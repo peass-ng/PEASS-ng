@@ -10,8 +10,8 @@ rm -rf $file
 printf $Y"[+] "$RED"System info\n"$NC >> $file
 uname -a 2>/dev/null >> $file
 
-printf $Y"[+] "$RED"nc, wget, curl, ping, gcc, gdb, base64?\n"$NC >> $file
-which nc wget curl ping gcc make gdb base64 2>/dev/null >> $file
+printf $Y"[+] "$RED"Useful software\n"$NC >> $file
+which nc ncat netcat wget curl ping fping nmap gcc make gdb base64 socat python python2 python3 2>/dev/null >> $file
 
 printf $Y"[+] "$RED"Hostname, hosts and DNS\n"$NC >> $file
 cat /etc/hostname /etc/hosts /etc/resolv.conf 2>/dev/null >> $file
