@@ -20,7 +20,7 @@ printf $Y"[+] "$RED"My username and groups\n"$NC >> $file
 whoami 2>/dev/null >> $file
 groups 2>/dev/null >> $file
 
-printf $Y"[+] "$RED"Files inside HOME (limit 20)\n"$NC >> $file
+printf $Y"[+] "$RED"Files inside \$HOME (limit 20)\n"$NC >> $file
 ls -la $HOME 2>/dev/null | head -n 20 >> $file
 
 printf $Y"[+] "$RED"Do I hace PGP keys?\n"$NC >> $file
@@ -34,6 +34,9 @@ find /home -type f -printf "%f\t%p\t%u\t%g\t%m\n" 2>/dev/null | column -t | head
 
 printf $Y"[+] "$RED"Any file inside accesible .ssh directory?\n"$NC >> $file
 find  /home -name .ssh 2>/dev/null -exec ls -laR {} \; >> $file
+
+printf $Y"[+] "$RED"Any sd* disk in /dev?\n"$NC >> $file
+ls /dev | grep -i "sd" >> $file
 
 printf $Y"[+] "$RED"Environment\n"$NC >> $file
 env 2>/dev/null >> $file
