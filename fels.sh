@@ -161,7 +161,8 @@ ls -a /tmp /var/tmp /var/backups 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Writable Files (not in \$HOME or /proc)\n"$NC >> $file
-find / '(' -type f -or -type d ')' '(' '(' -user  $USER -perm -u=w ')' -or '(' -group $USER -perm -g=w ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc' | grep -v $HOME | sort | uniq >> $file
+find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | sort | uniq >> $file
+for g in `groups`; do find \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME >> $file; done
 echo "" >> $file
 
 printf $Y"[+] "$RED"Web files?\n"$NC >> $file
@@ -184,5 +185,5 @@ grep -lRi "password\|passw" /home /var/www /var/log 2>/dev/null | sort | uniq >>
 echo "" >> $file
 
 printf $Y"[+] "$RED"Sudo -l (you need to puts the password and the result appear in console)\n"$NC >> $file
-sudo -l 
+sudo -l
 
