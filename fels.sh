@@ -50,7 +50,7 @@ df -h 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Unmounted file-system?\n"$NC >> $file
-cat /etc/fstab 2>/dev/null >> $file
+cat /etc/fstab 2>/dev/null | grep -v "^#" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Printer?\n"$NC >> $file
@@ -61,7 +61,7 @@ echo "" >> $file
 printf $B"[*] "$RED"NETWORK INFO\n"$NC >> $file 
 echo "" >> $file
 printf $Y"[+] "$RED"Hostname, hosts and DNS\n"$NC >> $file
-cat /etc/hostname /etc/hosts /etc/resolv.conf 2>/dev/null >> $file
+cat /etc/hostname /etc/hosts /etc/resolv.conf 2>/dev/null | grep -v "^#" >> $file
 dnsdomainname 2>/dev/null >> $file
 echo "" >> $file
 
@@ -161,6 +161,8 @@ ls -a /tmp /var/tmp /var/backups 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Writable Files (not in \$HOME or /proc)\n"$NC >> $file
+USER=`whoami`
+HOME=/home/$USER
 find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | sort | uniq >> $file
 for g in `groups`; do find \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME >> $file; done
 echo "" >> $file
