@@ -33,7 +33,7 @@ sestatus 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Useful software?\n"$NC >> $file
-which nc ncat netcat wget curl ping gcc make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm 2>/dev/null >> $file
+which nc ncat netcat wget curl ping gcc make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Capabilities\n"$NC >> $file
@@ -197,8 +197,8 @@ if [ "$dockercontainer" ]; then echo "Looks like we're in a Docker container" >>
 if [ "$lxccontainer" ]; then echo "Looks like we're in a LXC container" >> $file; fi
 echo "" >> $file
 
-printf $Y"[+] "$RED"*_history, profile, bashrc\n"$NC >> $file
-find / -type f \( -name "*_history" -o -name "profile" -o -name "*bashrc" \) -exec ls -l {} \; 2>/dev/null >> $file
+printf $Y"[+] "$RED"*_history, profile, bashrc, httpd.conf\n"$NC >> $file
+find / -type f \( -name "*_history" -o -name "profile" -o -name "*bashrc" -o -name "httpd.conf" \) -exec ls -l {} \; 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"All hidden files (not in /sys/)\n"$NC >> $file
