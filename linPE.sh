@@ -1,21 +1,35 @@
 #!/bin/sh
 
-file="/tmp/fels"
+file="/tmp/linPE"
 RED='\033[0;31m'
 Y='\033[0;33m'
 B='\033[0;34m'
 NC='\033[0m'
 
 rm -rf $file
+echo "File: $file"
 
+echo "[+]Gathering system information..."
 printf $B"[*] "$RED"BASIC SYSTEM INFO\n"$NC >> $file 
 echo "" >> $file
 printf $Y"[+] "$RED"Operative system\n"$NC >> $file
 (cat /proc/version || uname -a ) 2>/dev/null >> $file
 echo "" >> $file
 
+printf $Y"[+] "$RED"PATH\n"$NC >> $file
+echo $PATH 2>/dev/null >> $file
+echo "" >> $file
+
 printf $Y"[+] "$RED"Date\n"$NC >> $file
 date 2>/dev/null >> $file
+echo "" >> $file
+
+printf $Y"[+] "$RED"Sudo version\n"$NC >> $file
+sudo -V 2>/dev/null| grep "Sudo ver" >> $file
+echo "" >> $file
+
+printf $Y"[+] "$RED"selinux enabled?\n"$NC >> $file
+sestatus 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Useful software?\n"$NC >> $file
@@ -30,15 +44,27 @@ printf $Y"[+] "$RED"Environment\n"$NC >> $file
 (set || env) 2>/dev/null >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"Cleaned proccesses\n"$NC >> $file
-ps aux 2>/dev/null >> $file
+printf $Y"[+] "$RED"Top and cleaned proccesses\n"$NC >> $file
 top -n 1 2>/dev/null | head -n 13 >> $file
+ps aux 2>/dev/null | grep -v "\[" >> $file
+echo "" >> $file
+
+printf $Y"[+] "$RED"Binary processes permissions\n"$NC >> $file
+ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null >> $file
+echo "" >> $file
+
+printf $Y"[+] "$RED"Different processes executed during 1 min (HTB)\n"$NC >> $file
+if [ "`ps -e --format cmd`" ]; then for i in {1..121}; do ps -e --format cmd >> $file.tmp1; sleep 0.5; done; sort $file.tmp1 | uniq | grep -v "\[" | sed '/^.\{500\}./d' >> $file; rm $file.tmp1; fi
+echo "" >> $file
+
+printf $Y"[+] "$RED"Proccesses binary permissions\n"$NC >> $file
+ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Scheduled tasks\n"$NC >> $file
 crontab -l 2>/dev/null >> $file
 ls -al /etc/cron* 2>/dev/null >> $file
-cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/root 2>/dev/null | grep -v "^#" >> $file
+cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/root /var/spool/anacron 2>/dev/null | grep -v "^#" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Any sd* disk in /dev?\n"$NC >> $file
@@ -58,6 +84,7 @@ lpstat -a 2>/dev/null >> $file
 echo "" >> $file
 
 echo "" >> $file
+echo "[+]Gathering network information..."
 printf $B"[*] "$RED"NETWORK INFO\n"$NC >> $file 
 echo "" >> $file
 printf $Y"[+] "$RED"Hostname, hosts and DNS\n"$NC >> $file
@@ -69,12 +96,12 @@ printf $Y"[+] "$RED"Networks and neightbours\n"$NC >> $file
 cat /etc/networks 2>/dev/null >> $file
 (ifconfig || ip a) 2>/dev/null >> $file
 iptables -L 2>/dev/null >> $file
-arp -e 2>/dev/null >> $file
+(arp -e || arp -a || ip n) 2>/dev/null >> $file
 route 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Ports\n"$NC >> $file
-netstat -punta 2>/dev/null >> $file
+(netstat -punta || ss -t; ss -u) 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Files in use by network services\n"$NC >> $file
@@ -86,10 +113,15 @@ timeout 1 tcpdump >> $file 2>&1
 echo "" >> $file
 
 echo "" >> $file
+echo "[+]Gathering users information..."
 printf $B"[*] "$RED"USERS INFO\n"$NC >> $file 
 echo "" >> $file
 printf $Y"[+] "$RED"Me\n"$NC >> $file
 (id || (whoami && groups)) 2>/dev/null >> $file
+echo "" >> $file
+
+printf $Y"[+] "$RED"Sudo -l without password\n"$NC >> $file
+echo '' | sudo -S -l -k 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Do I have PGP keys?\n"$NC >> $file
@@ -114,6 +146,7 @@ cat /etc/passwd 2>/dev/null | cut -d: -f1 >> $file
 echo "" >> $file
 
 echo "" >> $file
+echo "[+]Gathering files information..."
 printf $B"[*] "$RED"INTERESTING FILES\n"$NC >> $file 
 echo "" >> $file
 printf $Y"[+] "$RED"SUID\n"$NC >> $file
@@ -146,6 +179,22 @@ echo "" >> $file
 
 printf $Y"[+] "$RED"NFS exports?\n"$NC >> $file
 cat /etc/exports 2>/dev/null >> $file
+echo "" >> $file
+
+printf $Y"[+] "$RED"Hashes inside /etc/passwd? Readable /etc/shadow or /etc/master.passwd?\n"$NC >> $file
+grep -v '^[^:]*:[x]' /etc/passwd 2>/dev/null >> $file
+cat /etc/shadow /etc/master.passwd 2>/dev/null >> $file
+echo "" >> $file
+
+printf $Y"[+] "$RED"Readable /root?\n"$NC >> $file
+ls -ahl /root/ 2>/dev/null >> $file
+echo "" >> $file
+
+printf $Y"[+] "$RED"Inside docker or lxc?\n"$NC >> $file
+dockercontainer=`grep -i docker /proc/self/cgroup  2>/dev/null; find / -name "*dockerenv*" -exec ls -la {} \; 2>/dev/null`
+lxccontainer=`grep -qa container=lxc /proc/1/environ 2>/dev/null`
+if [ "$dockercontainer" ]; then echo "Looks like we're in a Docker container" >> $file; fi
+if [ "$lxccontainer" ]; then echo "Looks like we're in a LXC container" >> $file; fi
 echo "" >> $file
 
 printf $Y"[+] "$RED"*_history, profile, bashrc\n"$NC >> $file
@@ -188,4 +237,3 @@ echo "" >> $file
 
 printf $Y"[+] "$RED"Sudo -l (you need to puts the password and the result appear in console)\n"$NC >> $file
 sudo -l
-
