@@ -1,4 +1,4 @@
-# LinPE - Linux Privilege Escalation (one-linner)
+# LinPE - Linux Privilege Escalation (one-liner)
 
 The goal of this script is to enumerate fast a linux machine.
 
