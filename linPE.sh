@@ -213,10 +213,10 @@ printf $Y"[+] "$RED"Writable Files (not in \$HOME or /proc)\n"$NC >> $file
 USER=`whoami`
 HOME=/home/$USER
 find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | sort | uniq >> $file
-for g in `groups`; do find \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME >> $file; done
+for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME; done >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"Web files?\n"$NC >> $file
+printf $Y"[+] "$RED"Web files?(output limited)\n"$NC >> $file
 ls -alhR /var/www/ 2>/dev/null | head >> $file
 ls -alhR /srv/www/htdocs/ 2>/dev/null | head >> $file
 ls -alhR /usr/local/www/apache22/data/ 2>/dev/null | head >> $file
