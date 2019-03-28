@@ -45,12 +45,15 @@ printf $Y"[+] "$RED"Environment\n"$NC >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Top and cleaned proccesses\n"$NC >> $file
-top -n 1 2>/dev/null | head -n 13 >> $file
 ps aux 2>/dev/null | grep -v "\[" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Binary processes permissions\n"$NC >> $file
 ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null >> $file
+echo "" >> $file
+
+printf $Y"[+] "$RED"Services\n"$NC >> $file
+(/usr/sbin/service --status-all || /sbin/chkconfig --list || /bin/rc-status) 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Different processes executed during 1 min (HTB)\n"$NC >> $file
@@ -96,16 +99,12 @@ printf $Y"[+] "$RED"Networks and neightbours\n"$NC >> $file
 cat /etc/networks 2>/dev/null >> $file
 (ifconfig || ip a) 2>/dev/null >> $file
 iptables -L 2>/dev/null >> $file
-(arp -e || arp -a || ip n) 2>/dev/null >> $file
-route 2>/dev/null >> $file
+ip n 2>/dev/null >> $file
+route -n 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Ports\n"$NC >> $file
 (netstat -punta || ss -t; ss -u) 2>/dev/null >> $file
-echo "" >> $file
-
-printf $Y"[+] "$RED"Files in use by network services\n"$NC >> $file
-lsof -i 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Can I sniff with tcpdump?\n"$NC >> $file
@@ -201,19 +200,19 @@ printf $Y"[+] "$RED"*_history, profile, bashrc, httpd.conf\n"$NC >> $file
 find / -type f \( -name "*_history" -o -name "profile" -o -name "*bashrc" -o -name "httpd.conf" \) -exec ls -l {} \; 2>/dev/null >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"All hidden files (not in /sys/)\n"$NC >> $file
-find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/" >> $file
+printf $Y"[+] "$RED"All hidden files (not in /sys/) (limit 100)\n"$NC >> $file
+find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/" | head -n 100 >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"What inside /tmp, /var/tmp, /var/backups\n"$NC >> $file
 ls -a /tmp /var/tmp /var/backups 2>/dev/null >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"Writable Files (not in \$HOME or /proc)\n"$NC >> $file
+printf $Y"[+] "$RED"Interesting writable Files\n"$NC >> $file
 USER=`whoami`
 HOME=/home/$USER
-find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | sort | uniq >> $file
-for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME; done >> $file
+find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs'| sort | uniq >> $file
+for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs'; done >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Web files?(output limited)\n"$NC >> $file
