@@ -92,7 +92,25 @@ suidG="/bin/fusermount\|\
 /usr/sbin/unix_chkpwd\|\
 /usr/sbin/userhelper\|\
 /usr/sbin/usernetctl\|\
-/usr/X11R6/bin/Xorg"
+/usr/X11R6/bin/Xorg\|\
+/usr/kerberos/bin/ksu\|\
+/usr/libexec/openssh/ssh-keysign\|\
+/usr/lib/squid/ncsa_auth\|\
+/usr/lib/squid/pam_auth\|\
+/usr/lib/vmware-tools/bin32/vmware-user-suid-wrapper\|\
+/usr/lib/vmware-tools/bin64/vmware-user-suid-wrapper\|\
+/usr/lib/news/bin/startinnfeed\|\
+/usr/lib/news/bin/rnews\|\
+/usr/lib/news/bin/inndstart\|\
+/usr/bin/rsh\|\
+/usr/bin/chsh\|\
+/media/.hal-mtab-lock\|\
+/sbin/mount.nfs4\|\
+/sbin/pam_timestamp_check\|\
+/sbin/unix_chkpwd\|\
+/sbin/umount.nfs4\|\
+/sbin/mount.nfs\|\
+/sbin/umount.nfs"
 
 suidB='nmap\|perl\|awk\|find\|bash\|sh\|man\|more\|less\|vi\|emacs\|vim\|nc\|netcat\|python\|ruby\|lua\|irb\|tar\|zip\|gdb\|pico\|scp\|git\|rvim\|script\|ash\|csh\|curl\|dash\|ed\|env\|expect\|ftp\|sftp\|node\|php\|rpm\|rpmquery\|socat\|strace\|taskset\|tclsh\|telnet\|tftp\|wget\|wish\|zsh\|ssh$\|ip$\|arp\|mtr'
 
