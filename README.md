@@ -68,7 +68,7 @@ The **Red** color is used for:
 
 The **Green** color is used for:
 - SUID files that are very common
-- sGID files that are very common
+- SGID files that are very common
 
 **The color filtering is not available in the one-liner** (the lists are too big)
 
