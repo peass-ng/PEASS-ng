@@ -5,6 +5,156 @@ RED='\033[0;31m'
 Y='\033[0;33m'
 B='\033[0;34m'
 NC='\033[0m'
+C=$(printf '\033')
+
+suidG="/bin/fusermount\|\
+/bin/mount\|\
+/bin/ntfs-3g\|\
+/bin/ping\|\
+/bin/ping6\|\
+/bin/rcp\|\
+/bin/su\|\
+/bin/systemctl\|\
+/bin/umount\|\
+/sbin/mksnap_ffs\|\
+/sbin/mount.cifs\|\
+/sbin/ping\|\
+/sbin/ping6\|\
+/sbin/poweroff\|\
+/sbin/shutdown\|\
+/usr/bin/at\|\
+/usr/bin/atq\|\
+/usr/bin/atrm\|\
+/usr/bin/batch\|\
+/usr/bin/bwrap\|\
+/usr/bin/chage\|\
+/usr/bin/chfn\|\
+/usr/bin/chpass\|\
+/usr/bin/chsh\|\
+/usr/bin/crontab\|\
+/usr/bin/doas\|\
+/usr/bin/fusermount\|\
+/usr/bin/gpasswd\|\
+/usr/bin/kismet_capture\|\
+/usr/bin/lock\|\
+/usr/bin/login\|\
+/usr/bin/lpq\|\
+/usr/bin/lpr\|\
+/usr/bin/lprm\|\
+/usr/bin/mount\|\
+/usr/bin/newgidmap\|\
+/usr/bin/newgrp\|\
+/usr/bin/newuidmap\|\
+/usr/bin/ntfs-3g\|\
+/usr/bin/opieinfo\|\
+/usr/bin/opiepasswd\|\
+/usr/bin/passwd\|\
+/usr/bin/pkexec\|\
+/usr/bin/quota\|\
+/usr/bin/rlogin\|\
+/usr/bin/rsh\|\
+/usr/bin/staprun\|\
+/usr/bin/su\|\
+/usr/bin/sudo\|\
+/usr/bin/traceroute6.iputils\|\
+/usr/bin/umount\|\
+/usr/bin/vmware-user-suid-wrapper\|\
+/usr/lib/chromium/chrome-sandbox\|\
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper\|\
+/usr/lib/eject/dmcrypt-get-device\|\
+/usr/libexec/abrt-action-install-debuginfo-to-abrt-cache\|\
+/usr/libexec/auth/login_chpass\|\
+/usr/libexec/auth/login_lchpass\|\
+/usr/libexec/auth/login_passwd\|\
+/usr/libexec/dbus-1/dbus-daemon-launch-helper\|\
+/usr/libexec/dma-mbox-create\|\
+/usr/libexec/lockspool\|\
+/usr/libexec/ssh-keysign\|\
+/usr/libexec/ulog-helper\|\
+/usr/lib/i386-linux-gnu/lxc/lxc-user-nic\|\
+/usr/lib/openssh/ssh-keysign\|\
+/usr/lib/policykit-1/polkit-agent-helper-1\|\
+/usr/lib/polkit-1/polkit-agent-helper-1\|\
+/usr/lib/snapd/snap-confine\|\
+/usr/lib/xorg/Xorg.wrap\|\
+/usr/local/bin/Xorg\|\
+/usr/local/libexec/dbus-daemon-launch-helper\|\
+/usr/sbin/authpf\|\
+/usr/sbin/authpf-noip\|\
+/usr/sbin/exim4\|\
+/usr/sbin/mount.nfs\|\
+/usr/sbin/pam_timestamp_check\|\
+/usr/sbin/ppp\|\
+/usr/sbin/pppd\|\
+/usr/sbin/timedc\|\
+/usr/sbin/traceroute\|\
+/usr/sbin/traceroute6\|\
+/usr/sbin/unix_chkpwd\|\
+/usr/sbin/userhelper\|\
+/usr/sbin/usernetctl\|\
+/usr/X11R6/bin/Xorg"
+
+suidB='nmap\|perl\|awk\|find\|bash\|sh\|man\|more\|less\|vi\|emacs\|vim\|nc\|netcat\|python\|ruby\|lua\|irb\|tar\|zip\|gdb\|pico\|scp\|git\|rvim\|script\|ash\|csh\|curl\|dash\|ed\|env\|expect\|ftp\|sftp\|node\|php\|rpm\|rpmquery\|socat\|strace\|taskset\|tclsh\|telnet\|tftp\|wget\|wish\|zsh\|ssh$\|ip$\|arp\|mtr'
+
+sgid="/sbin/pam_extrausers_chkpwd\|\
+/sbin/unix_chkpwd\|\
+/usr/bin/at\|\
+/usr/bin/atq\|\
+/usr/bin/atrm\|\
+/usr/bin/batch\|\
+/usr/bin/bsd-write\|\
+/usr/bin/btsockstat\|\
+/usr/bin/chage\|\
+/usr/bin/crontab\|\
+/usr/bin/dotlockfile\|\
+/usr/bin/dotlock.mailutils\|\
+/usr/bin/expiry\|\
+/usr/bin/lock\|\
+/usr/bin/lpq\|\
+/usr/bin/lpr\|\
+/usr/bin/lprm\|\
+/usr/bin/mlocate\|\
+/usr/bin/mutt_dotlock\|\
+/usr/bin/netstat\|\
+/usr/bin/screen\|\
+/usr/bin/skeyaudit\|\
+/usr/bin/skeyinfo\|\
+/usr/bin/skeyinit\|\
+/usr/bin/ssh-agent\|\
+/usr/bin/wall\|\
+/usr/bin/write\|\
+/usr/lib/emacs/24.5/i686-linux-gnu/movemail\|\
+/usr/lib/evolution/camel-lock-helper-1.2\|\
+/usr/libexec/auth/login_activ\|\
+/usr/libexec/auth/login_crypto\|\
+/usr/libexec/auth/login_radius\|\
+/usr/libexec/auth/login_skey\|\
+/usr/libexec/auth/login_snk\|\
+/usr/libexec/auth/login_token\|\
+/usr/libexec/auth/login_yubikey\|\
+/usr/libexec/dma\|\
+/usr/libexec/sendmail/sendmail\|\
+/usr/lib/i386-linux-gnu/utempter/utempter\|\
+/usr/lib/libvte9/gnome-pty-helper\|\
+/usr/lib/mc/cons.saver\|\
+/usr/lib/snapd/snap-confine\|\
+/usr/lib/x86_64-linux-gnu/utempter/utempter\|\
+/usr/lib/xemacs-21.4.22/i686-linux-gnu/movemail\|\
+/usr/lib/xorg/Xorg.wrap\|\
+/usr/sbin/authpf\|\
+/usr/sbin/authpf-noip\|\
+/usr/sbin/lpc\|\
+/usr/sbin/lpd\|\
+/usr/sbin/smtpctl\|\
+/usr/sbin/trpt\|\
+/usr/sbin/unix_chkpwd\|\
+/usr/X11R6/bin/xlock\|\
+/usr/X11R6/bin/xterm"
+
+intfol="/etc/\|/root/\|/home/\|/var/log\|/mnt/\|/usr/local/sbin\|/usr/sbin\|/sbin\|/usr/local/bin\|/usr/bin\|/bin\|/usr/local/games\|/usr/games\|/usr/lib"
+
+
+if [ "$(/usr/bin/id -u)" -eq "0" ]; then printf $B"[*] "$RED"YOU ARE ALREADY ROOT!!! (nothing is going to be executed)\n"$NC; exit; fi
 
 rm -rf $file
 echo "File: $file"
@@ -44,8 +194,8 @@ printf $Y"[+] "$RED"Environment\n"$NC >> $file
 (set || env) 2>/dev/null >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"Top and cleaned proccesses\n"$NC >> $file
-ps aux 2>/dev/null | grep -v "\[" >> $file
+printf $Y"[+] "$RED"Cleaned proccesses\n"$NC >> $file
+ps aux 2>/dev/null | grep -v "\[" | sed "s,root,${C}[31m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Binary processes permissions\n"$NC >> $file
@@ -149,11 +299,11 @@ echo "[+]Gathering files information..."
 printf $B"[*] "$RED"INTERESTING FILES\n"$NC >> $file 
 echo "" >> $file
 printf $Y"[+] "$RED"SUID\n"$NC >> $file
-find / -perm -4000 2>/dev/null >> $file
+find / -perm -4000 2>/dev/null | sed "s,$suidB,${C}[31m&${C}[0m," | sed "s,$suidG,${C}[32m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"SGID\n"$NC >> $file
-find / -perm -g=s -type f 2>/dev/null >> $file
+find / -perm -g=s -type f 2>/dev/null | sed "s,$sgid,${C}[32m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Files inside \$HOME (limit 20)\n"$NC >> $file
@@ -211,8 +361,8 @@ echo "" >> $file
 printf $Y"[+] "$RED"Interesting writable Files\n"$NC >> $file
 USER=`whoami`
 HOME=/home/$USER
-find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs'| sort | uniq >> $file
-for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs'; done >> $file
+find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs'| sort | uniq | sed "s,$intfol,${C}[31m&${C}[0m," >> $file
+for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | sed "s,$intfol,${C}[31m&${C}[0m,"; done >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Web files?(output limited)\n"$NC >> $file

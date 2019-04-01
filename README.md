@@ -51,8 +51,27 @@ There is only one exception, the last command executed is *sudo -l* so this comm
 - [x] IPs inside logs
 - [x] "password" and "passw" inside files
 
-
+- **Ending**
 - [x] Sudo -l (so you can introduce your password if known)
+
+
+## Colours
+
+LinPE uses colors to indicate where does each section begins. But **it also use them the identify potencial misconfigurations**.
+
+It uses 2 colors: **Red** to indicate that something could be wrong, and **Green** to indicate that it is a common behaviour.
+
+The **Red** color is used for:
+- Identify processes running as root
+- Writable files in interesting directories
+- SUID files that can be used to escalate privileges (https://gtfobins.github.io/)
+
+The **Green** color is used for:
+- SUID files that are very common
+- sGID files that are very common
+
+**The color filtering is not available in the one-liner** (the lists are too big)
+
 
 ## One liner
 
