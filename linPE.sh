@@ -191,7 +191,7 @@ getcap -r / 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Environment\n"$NC >> $file
-(set || env) 2>/dev/null >> $file
+(set || env) 2>/dev/null | grep -v "suidG\|suidB\|sgid\|intfol" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Cleaned proccesses\n"$NC >> $file
