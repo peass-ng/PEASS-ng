@@ -35,6 +35,7 @@ suidG="/bin/fusermount\|\
 /usr/bin/doas\|\
 /usr/bin/fusermount\|\
 /usr/bin/gpasswd\|\
+/usr/bin/gpio\|\
 /usr/bin/kismet_capture\|\
 /usr/bin/lock\|\
 /usr/bin/login\|\
@@ -59,6 +60,8 @@ suidG="/bin/fusermount\|\
 /usr/bin/traceroute6.iputils\|\
 /usr/bin/umount\|\
 /usr/bin/vmware-user-suid-wrapper\|\
+/usr/bin/vncserver-x11\|\
+/usr/bin/Xvnc\|\
 /usr/lib/chromium/chrome-sandbox\|\
 /usr/lib/dbus-1.0/dbus-daemon-launch-helper\|\
 /usr/lib/eject/dmcrypt-get-device\|\
@@ -71,6 +74,7 @@ suidG="/bin/fusermount\|\
 /usr/libexec/lockspool\|\
 /usr/libexec/ssh-keysign\|\
 /usr/libexec/ulog-helper\|\
+/usr/lib/chromium-browser/chrome-sandbox\|\
 /usr/lib/i386-linux-gnu/lxc/lxc-user-nic\|\
 /usr/lib/openssh/ssh-keysign\|\
 /usr/lib/policykit-1/polkit-agent-helper-1\|\
@@ -112,7 +116,7 @@ suidG="/bin/fusermount\|\
 /sbin/mount.nfs\|\
 /sbin/umount.nfs"
 
-suidB='nmap\|perl\|awk\|find\|bash\|sh\|man\|more\|less\|vi\|emacs\|vim\|nc\|netcat\|python\|ruby\|lua\|irb\|tar\|zip\|gdb\|pico\|scp\|git\|rvim\|script\|ash\|csh\|curl\|dash\|ed\|env\|expect\|ftp\|sftp\|node\|php\|rpm\|rpmquery\|socat\|strace\|taskset\|tclsh\|telnet\|tftp\|wget\|wish\|zsh\|ssh$\|ip$\|arp\|mtr'
+suidB='nmap$\|perl$\|awk$\|find$\|bash$\|sh$\|man$\|more$\|less$\|vi$\|emacs$\|vim$\|nc$\|netcat$\|python$\|ruby$\|lua$\|irb$\|tar$\|zip$\|gdb$\|pico$\|scp$\|git$\|rvim$\|script$\|ash$\|csh$\|curl$\|dash$\|ed$\|env$\|expect$\|ftp$\|sftp$\|node$\|php$\|rpm$\|rpmquery$\|socat$\|strace$\|taskset$\|tclsh$\|telnet$\|tftp$\|wget$\|wish$\|zsh$\|ssh$\|ip$\|arp$\|mtr$'
 
 sgid="/sbin/pam_extrausers_chkpwd\|\
 /sbin/unix_chkpwd\|\
@@ -287,8 +291,9 @@ printf $Y"[+] "$RED"Me\n"$NC >> $file
 (id || (whoami && groups)) 2>/dev/null >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"Sudo -l without password\n"$NC >> $file
+printf $Y"[+] "$RED"Sudo -l without password & /etc/sudoers\n"$NC >> $file
 echo '' | sudo -S -l -k 2>/dev/null >> $file
+cat /etc/sudoers 2>/dev/null >> $file #Add to one-liner  
 echo "" >> $file
 
 printf $Y"[+] "$RED"Do I have PGP keys?\n"$NC >> $file
@@ -317,7 +322,7 @@ echo "[+]Gathering files information..."
 printf $B"[*] "$RED"INTERESTING FILES\n"$NC >> $file 
 echo "" >> $file
 printf $Y"[+] "$RED"SUID\n"$NC >> $file
-find / -perm -4000 2>/dev/null | sed "s,$suidB,${C}[31m&${C}[0m," | sed "s,$suidG,${C}[32m&${C}[0m," >> $file
+find / -perm -4000 2>/dev/null | sed "s,$suidG,${C}[32m&${C}[0m," | sed "s,$suidB,${C}[31m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"SGID\n"$NC >> $file
@@ -348,13 +353,10 @@ printf $Y"[+] "$RED"NFS exports?\n"$NC >> $file
 cat /etc/exports 2>/dev/null >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"Hashes inside /etc/passwd? Readable /etc/shadow or /etc/master.passwd?\n"$NC >> $file
+printf $Y"[+] "$RED"Hashes inside /etc/passwd? Readable /etc/shadow, /etc/master.passwd?, or /root?\n"$NC >> $file
 grep -v '^[^:]*:[x]' /etc/passwd 2>/dev/null >> $file
 cat /etc/shadow /etc/master.passwd 2>/dev/null >> $file
-echo "" >> $file
-
-printf $Y"[+] "$RED"Readable /root?\n"$NC >> $file
-ls -ahl /root/ 2>/dev/null >> $file
+ls -ahl /root/ 2>/dev/null >> $file #Modify in one-liner  
 echo "" >> $file
 
 printf $Y"[+] "$RED"Inside docker or lxc?\n"$NC >> $file
@@ -394,8 +396,9 @@ printf $Y"[+] "$RED"Backup files?\n"$NC >> $file
 find /var /etc /bin /sbin /home /usr/local/bin /usr/local/sbin /usr/bin /usr/games /usr/sbin /root /tmp -type f \( -name "*back*" -o -name "*bck*" \) 2>/dev/null >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"Find IPs inside logs\n"$NC >> $file
+printf $Y"[+] "$RED"Find IPs & passwords inside logs\n"$NC >> $file
 grep -a -R -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' /var/log/ 2>/dev/null | sort | uniq >> $file
+grep -a -R -i 'password' /var/log/ 2>/dev/null | sort | uniq >> $file #Add to one-liner 
 echo "" >> $file
 
 printf $Y"[+] "$RED"Find 'password' or 'passw' string inside /home, /var/www, /var/log, /etc\n"$NC >> $file
