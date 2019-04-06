@@ -22,6 +22,7 @@ suidG="/bin/fusermount\|\
 /sbin/ping6\|\
 /sbin/poweroff\|\
 /sbin/shutdown\|\
+/usr/bin/arping\|\
 /usr/bin/at\|\
 /usr/bin/atq\|\
 /usr/bin/atrm\|\
@@ -37,6 +38,7 @@ suidG="/bin/fusermount\|\
 /usr/bin/gpasswd\|\
 /usr/bin/gpio\|\
 /usr/bin/kismet_capture\|\
+/usr/bin/lppasswd\|\
 /usr/bin/lock\|\
 /usr/bin/login\|\
 /usr/bin/lpq\|\
@@ -58,6 +60,7 @@ suidG="/bin/fusermount\|\
 /usr/bin/staprun\|\
 /usr/bin/su\|\
 /usr/bin/sudo\|\
+/usr/bin/sudoedit\|\
 /usr/bin/traceroute6.iputils\|\
 /usr/bin/umount\|\
 /usr/bin/vmware-user-suid-wrapper\|\
@@ -80,6 +83,7 @@ suidG="/bin/fusermount\|\
 /usr/lib/openssh/ssh-keysign\|\
 /usr/lib/policykit-1/polkit-agent-helper-1\|\
 /usr/lib/polkit-1/polkit-agent-helper-1\|\
+/usr/lib/pt_chown\|\
 /usr/lib/snapd/snap-confine\|\
 /usr/lib/xorg/Xorg.wrap\|\
 /usr/local/bin/Xorg\|\
@@ -150,6 +154,7 @@ sgid="/sbin/pam_extrausers_chkpwd\|\
 /usr/bin/ssh-agent\|\
 /usr/bin/wall\|\
 /usr/bin/write\|\
+/usr/games/mahjongg\|\
 /usr/lib/emacs/24.5/i686-linux-gnu/movemail\|\
 /usr/lib/evolution/camel-lock-helper-1.2\|\
 /usr/libexec/auth/login_activ\|\
@@ -180,10 +185,11 @@ sgid="/sbin/pam_extrausers_chkpwd\|\
 /usr/X11R6/bin/xlock\|\
 /usr/X11R6/bin/xterm"
 
-intfol="/etc/\|/root/\|/home/\|/var/log/\|/mnt/\|/usr/local/sbin/\|/usr/sbin/\|/sbin/\|/usr/local/bin/\|/usr/bin/\|/bin/\|/usr/local/games/\|/usr/games/\|/usr/lib/"`echo $PATH 2>/dev/null| sed 's/:/\\\|/g'`
+intfol="\./\|/etc/\|/root/\|/home/\|/var/log/\|/mnt/\|/usr/local/sbin/\|/usr/sbin/\|/sbin/\|/usr/local/bin/\|/usr/bin/\|/bin/\|/usr/local/games/\|/usr/games/\|/usr/lib/"`echo $PATH 2>/dev/null| sed 's/:/\\\|/g'`
 
-usrs=`cat /etc/passwd 2>/dev/null | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|/\\\|/g'`
-knw_usrs='daemon\|message+\|mysql\|syslog\|www-data\|postgres\|tomcat\|mail\|noboby\|Debian-+\|rtkit\|systemd+'
+sh_usrs=`cat /etc/passwd 2>/dev/null | grep -i "sh$" | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|/\\\|/g'`"ImPoSSssSiBlEee"
+nosh_usrs=`cat /etc/passwd 2>/dev/null | grep -i -v "sh$" | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|/\\\|/g'`"ImPoSSssSiBlEee"
+knw_usrs='daemon\|message+\|syslog\|www-data\|mail\|noboby\|Debian-+\|rtkit\|systemd+'
 
 
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then printf $B"[*] "$RED"YOU ARE ALREADY ROOT!!! (nothing is going to be executed)\n"$NC; exit; fi
@@ -196,6 +202,7 @@ printf $B"[*] "$RED"BASIC SYSTEM INFO\n"$NC >> $file
 echo "" >> $file
 printf $Y"[+] "$RED"Operative system\n"$NC >> $file
 (cat /proc/version || uname -a ) 2>/dev/null >> $file
+lsb_release -a 2>/dev/null >> $file #add to one-liner
 echo "" >> $file
 
 printf $Y"[+] "$RED"PATH\n"$NC >> $file
@@ -223,22 +230,22 @@ getcap -r / 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Environment\n"$NC >> $file
-(set || env) 2>/dev/null | grep -v "suidG\|suidB\|sgid\|intfol\|usrs\|knw_usrs" >> $file
+(set || env) 2>/dev/null | grep -v "suidG\|suidB\|sgid\|intfol\|_usrs" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Cleaned proccesses\n"$NC >> $file
-ps aux 2>/dev/null | grep -v "\[" | sed "s,$usrs,${C}[93m&${C}[0m," | sed "s,$knw_usrs,${C}[34m&${C}[0m," | sed "s,root,${C}[31m&${C}[0m,"  >> $file
+ps aux 2>/dev/null | grep -v "\[" | sed "s,$sh_usrs,${C}[34m&${C}[0m," | sed "s,$nosh_usrs,${C}[96m&${C}[0m," | sed "s,$knw_usrs,${C}[32m&${C}[0m," | sed "s,root,${C}[31m&${C}[0m,"  >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Binary processes permissions\n"$NC >> $file
-ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | sed "s,$usrs,${C}[93m&${C}[0m," | sed "s,$knw_usrs,${C}[34m&${C}[0m," | sed "s,root,${C}[31m&${C}[0m," >> $file
+ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | sed "s,$sh_usrs,${C}[34m&${C}[0m," | sed "s,$nosh_usrs,${C}[96m&${C}[0m," | sed "s,$knw_usrs,${C}[32m&${C}[0m," | sed "s,root,${C}[31m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Services\n"$NC >> $file
 (/usr/sbin/service --status-all || /sbin/chkconfig --list || /bin/rc-status) 2>/dev/null >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"Different processes executed during 1 min (HTB)\n"$NC >> $file
+printf $Y"[+] "$RED"Different processes executed during 1 min (frequent cron?)\n"$NC >> $file
 if [ "`ps -e --format cmd`" ]; then for i in {1..121}; do ps -e --format cmd >> $file.tmp1; sleep 0.5; done; sort $file.tmp1 | uniq | grep -v "\[" | sed '/^.\{500\}./d' >> $file; rm $file.tmp1; fi
 echo "" >> $file
 
@@ -282,7 +289,7 @@ route -n 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Ports\n"$NC >> $file
-(netstat -punta || ss -t; ss -u) 2>/dev/null >> $file
+(netstat -punta || ss -t; ss -u) 2>/dev/null | sed "s,127.0.0.1,${C}[31m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Can I sniff with tcpdump?\n"$NC >> $file
@@ -373,11 +380,11 @@ if [ "$lxccontainer" ]; then echo "Looks like we're in a LXC container" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"*_history, profile, bashrc, httpd.conf\n"$NC >> $file
-find / -type f \( -name "*_history" -o -name "profile" -o -name "*bashrc" -o -name "httpd.conf" \) -exec ls -l {} \; 2>/dev/null >> $file
+find / -type f \( -name "*_history" -o -name ".profile" -o -name "*bashrc" -o -name "httpd.conf" \) -exec ls -l {} \; 2>/dev/null >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"All hidden files (not in /sys/) (limit 100)\n"$NC >> $file
-find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/" | head -n 100 >> $file
+printf $Y"[+] "$RED"All hidden files (not in /sys/, not .gitignore) (limit 100)\n"$NC >> $file
+find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/\|\.gitignore" | head -n 100 >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"What inside /tmp, /var/tmp, /var/backups (limited 100)\n"$NC >> $file

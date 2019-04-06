@@ -59,16 +59,24 @@ There is only one exception, the last command executed is *sudo -l* so this comm
 
 LinPE uses colors to indicate where does each section begins. But **it also use them the identify potencial misconfigurations**.
 
-It uses 2 colors: **Red** to indicate that something could be wrong, and **Green** to indicate that it is a common behaviour.
+It uses 4 colors: **Red** to indicate that something could be wrong, and **Green** to indicate that something is "common", **Blue** to mark users with shell and **Light cyan** to mark users without shell.
 
 The **Red** color is used for:
 - Identify processes running as root
 - Writable files in interesting directories
 - SUID files that can be used to escalate privileges (https://gtfobins.github.io/)
+- 127.0.0.1 in netstat
 
 The **Green** color is used for:
 - SUID files that are very common
 - SGID files that are very common
+- Common names of users executing processes
+
+The **Blue** color is used for:
+- Users with shell
+
+The **Light cyan** color is used for:
+- Users without shell
 
 **The color filtering is not available in the one-liner** (the lists are too big)
 
