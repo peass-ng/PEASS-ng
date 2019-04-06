@@ -43,6 +43,7 @@ suidG="/bin/fusermount\|\
 /usr/bin/lpr\|\
 /usr/bin/lprm\|\
 /usr/bin/mount\|\
+/usr/bin/mtr\|\
 /usr/bin/newgidmap\|\
 /usr/bin/newgrp\|\
 /usr/bin/newuidmap\|\
@@ -113,10 +114,11 @@ suidG="/bin/fusermount\|\
 /sbin/pam_timestamp_check\|\
 /sbin/unix_chkpwd\|\
 /sbin/umount.nfs4\|\
+/usr/sbin/uuidd\|\
 /sbin/mount.nfs\|\
 /sbin/umount.nfs"
 
-suidB='nmap$\|perl$\|awk$\|find$\|bash$\|sh$\|man$\|more$\|less$\|vi$\|emacs$\|vim$\|nc$\|netcat$\|python$\|ruby$\|lua$\|irb$\|tar$\|zip$\|gdb$\|pico$\|scp$\|git$\|rvim$\|script$\|ash$\|csh$\|curl$\|dash$\|ed$\|env$\|expect$\|ftp$\|sftp$\|node$\|php$\|rpm$\|rpmquery$\|socat$\|strace$\|taskset$\|tclsh$\|telnet$\|tftp$\|wget$\|wish$\|zsh$\|ssh$\|ip$\|arp$\|mtr$'
+suidB='aria2c$\|arp$\|ash$\|awk$\|base64$\|bash$\|busybox$\|cat$\|chmod$\|chown$\|cp$\|csh$\|curl$\|cut$\|dash$\|date$\|dd$\|diff$\|dmsetup$\|docker$\|ed$\|emacs$\|env$\|expand$\|expect$\|file$\|find$\|flock$\|fmt$\|fold$\|gdb$\|gimp$\|git$\|grep$\|head$\|ionice$\|ip$\|jjs$\|jq$\|jrunscript$\|ksh$\|ld.so$\|less$\|logsave$\|lua$\|make$\|more$\|mv$\|mysql$\|nano$\|nc$\|nice$\|nl$\|nmap$\|node$\|od$\|openssl$\|perl$\|pg$\|php$\|pic$\|pico$\|python$\|readelf$\|rlwrap$\|rpm$\|rpmquery$\|rsync$\|rvim$\|scp$\|sed$\|setarch$\|shuf$\|socat$\|sort$\|sqlite3$\|stdbuf$\|strace$\|systemctl$\|tail$\|tar$\|taskset$\|tclsh$\|tee$\|telnet$\|tftp$\|time$\|timeout$\|ul$\|unexpand$\|uniq$\|unshare$\|vim$\|watch$\|wget$\|xargs$\|xxd$\|zip$\|zsh$'
 
 sgid="/sbin/pam_extrausers_chkpwd\|\
 /sbin/unix_chkpwd\|\
@@ -135,6 +137,9 @@ sgid="/sbin/pam_extrausers_chkpwd\|\
 /usr/bin/lpq\|\
 /usr/bin/lpr\|\
 /usr/bin/lprm\|\
+/usr/bin/mail-unlock\|\
+/usr/bin/mail-touchlock\|\
+/usr/bin/mail-lock\|\
 /usr/bin/mlocate\|\
 /usr/bin/mutt_dotlock\|\
 /usr/bin/netstat\|\
@@ -159,6 +164,7 @@ sgid="/sbin/pam_extrausers_chkpwd\|\
 /usr/lib/i386-linux-gnu/utempter/utempter\|\
 /usr/lib/libvte9/gnome-pty-helper\|\
 /usr/lib/mc/cons.saver\|\
+/usr/lib/pt_chown\|\
 /usr/lib/snapd/snap-confine\|\
 /usr/lib/x86_64-linux-gnu/utempter/utempter\|\
 /usr/lib/xemacs-21.4.22/i686-linux-gnu/movemail\|\
@@ -170,10 +176,14 @@ sgid="/sbin/pam_extrausers_chkpwd\|\
 /usr/sbin/smtpctl\|\
 /usr/sbin/trpt\|\
 /usr/sbin/unix_chkpwd\|\
+/usr/sbin/uuidd\|\
 /usr/X11R6/bin/xlock\|\
 /usr/X11R6/bin/xterm"
 
-intfol="/etc/\|/root/\|/home/\|/var/log\|/mnt/\|/usr/local/sbin\|/usr/sbin\|/sbin\|/usr/local/bin\|/usr/bin\|/bin\|/usr/local/games\|/usr/games\|/usr/lib"
+intfol="/etc/\|/root/\|/home/\|/var/log/\|/mnt/\|/usr/local/sbin/\|/usr/sbin/\|/sbin/\|/usr/local/bin/\|/usr/bin/\|/bin/\|/usr/local/games/\|/usr/games/\|/usr/lib/"`echo $PATH 2>/dev/null| sed 's/:/\\\|/g'`
+
+usrs=`cat /etc/passwd 2>/dev/null | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|/\\\|/g'`
+knw_usrs='daemon\|message+\|mysql\|syslog\|www-data\|postgres\|tomcat\|mail\|noboby\|Debian-+\|rtkit\|systemd+'
 
 
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then printf $B"[*] "$RED"YOU ARE ALREADY ROOT!!! (nothing is going to be executed)\n"$NC; exit; fi
@@ -205,7 +215,7 @@ sestatus 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Useful software?\n"$NC >> $file
-which nc ncat netcat wget curl ping gcc make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo 2>/dev/null >> $file
+which nc ncat netcat wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Capabilities\n"$NC >> $file
@@ -213,15 +223,15 @@ getcap -r / 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Environment\n"$NC >> $file
-(set || env) 2>/dev/null | grep -v "suidG\|suidB\|sgid\|intfol" >> $file
+(set || env) 2>/dev/null | grep -v "suidG\|suidB\|sgid\|intfol\|usrs\|knw_usrs" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Cleaned proccesses\n"$NC >> $file
-ps aux 2>/dev/null | grep -v "\[" | sed "s,root,${C}[31m&${C}[0m," >> $file
+ps aux 2>/dev/null | grep -v "\[" | sed "s,$usrs,${C}[93m&${C}[0m," | sed "s,$knw_usrs,${C}[34m&${C}[0m," | sed "s,root,${C}[31m&${C}[0m,"  >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Binary processes permissions\n"$NC >> $file
-ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null >> $file
+ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | sed "s,$usrs,${C}[93m&${C}[0m," | sed "s,$knw_usrs,${C}[34m&${C}[0m," | sed "s,root,${C}[31m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Services\n"$NC >> $file
@@ -230,10 +240,6 @@ echo "" >> $file
 
 printf $Y"[+] "$RED"Different processes executed during 1 min (HTB)\n"$NC >> $file
 if [ "`ps -e --format cmd`" ]; then for i in {1..121}; do ps -e --format cmd >> $file.tmp1; sleep 0.5; done; sort $file.tmp1 | uniq | grep -v "\[" | sed '/^.\{500\}./d' >> $file; rm $file.tmp1; fi
-echo "" >> $file
-
-printf $Y"[+] "$RED"Proccesses binary permissions\n"$NC >> $file
-ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Scheduled tasks\n"$NC >> $file
@@ -374,8 +380,8 @@ printf $Y"[+] "$RED"All hidden files (not in /sys/) (limit 100)\n"$NC >> $file
 find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/" | head -n 100 >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"What inside /tmp, /var/tmp, /var/backups\n"$NC >> $file
-ls -a /tmp /var/tmp /var/backups 2>/dev/null >> $file
+printf $Y"[+] "$RED"What inside /tmp, /var/tmp, /var/backups (limited 100)\n"$NC >> $file
+ls -a /tmp /var/tmp /var/backups 2>/dev/null | head 105 >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Interesting writable Files\n"$NC >> $file
@@ -393,7 +399,7 @@ ls -alhR /opt/lampp/htdocs/ 2>/dev/null | head >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Backup files?\n"$NC >> $file
-find /var /etc /bin /sbin /home /usr/local/bin /usr/local/sbin /usr/bin /usr/games /usr/sbin /root /tmp -type f \( -name "*back*" -o -name "*bck*" \) 2>/dev/null >> $file
+find /var /etc /bin /sbin /home /usr/local/bin /usr/local/sbin /usr/bin /usr/games /usr/sbin /root /tmp -type f \( -name "*backup*" -o -name "*bck*" \) 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Find IPs & passwords inside logs\n"$NC >> $file
@@ -401,9 +407,11 @@ grep -a -R -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' /var/log/
 grep -a -R -i 'password' /var/log/ 2>/dev/null | sort | uniq >> $file #Add to one-liner 
 echo "" >> $file
 
-printf $Y"[+] "$RED"Find 'password' or 'passw' string inside /home, /var/www, /var/log, /etc\n"$NC >> $file
+printf $Y"[+] "$RED"Find 'password' or 'passw' string inside /home, /var/www, /var/log, /etc and list possible web(/var/www) and config(/etc) passwords\n"$NC >> $file
 grep -lRi "password\|passw" /home /var/www /var/log 2>/dev/null | sort | uniq >> $file
+grep -R -i "password.* = ['\"]" /var/www | sed '/^.\{150\}./d' | grep "\.php" >> $file #Add to one-liner
+grep -R -i "password" /etc 2>/dev/null | grep "conf" | grep -v "#" >> $file #Add to one-liner
 echo "" >> $file
 
-printf $Y"[+] "$RED"Sudo -l (you need to puts the password and the result appear in console)\n"$NC >> $file
+printf $Y"[+] "$RED"Sudo -l (you need to put the password and the result appear in console)\n"$NC >> $file
 sudo -l
