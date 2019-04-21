@@ -44,15 +44,13 @@ There is only one exception, the last command executed is *sudo -l* so this comm
 - [x] Check if Docker or LXC container
 - [x] List ALL writable file for current users (global, user and groups)
 - [x] *_history, profile, bashrc files
-- [x] List of all hidden files
+- [x] List all hidden files
 - [x] Inside /tmp, /var/tmp and /var/backups
 - [x] Web files
-- [x] Possible backup files
-- [x] IPs inside logs
-- [x] "password" and "passw" inside files
+- [x] Search for backup files
+- [x] Get IPs, passwords and emails from logs
+- [x] "pwd" and "passw" inside files (and get most probable lines)
 
-- **Ending**
-- [x] Sudo -l (so you can introduce your password if known)
 
 
 ## Colours
@@ -64,12 +62,13 @@ It uses 4 colors: **Red** to indicate that something could be wrong, and **Green
 The **Red** color is used for:
 - Identify processes running as root
 - Writable files in interesting directories
-- SUID files that can be used to escalate privileges (https://gtfobins.github.io/)
+- SUID binaries that can be used to escalate privileges (https://gtfobins.github.io/)
+- SUDO binaries that can be used to escalate privileges (https://gtfobins.github.io/)
 - 127.0.0.1 in netstat
 
 The **Green** color is used for:
-- SUID files that are very common
-- SGID files that are very common
+- SUID common binaries (the bin was already found in other machines)
+- SGID common binaries
 - Common names of users executing processes
 
 The **Blue** color is used for:
@@ -84,6 +83,8 @@ The **Light cyan** color is used for:
 ## One liner
 
 Here you have the script in one line, **just copy and paste it**;)
+
+TODO: Update one-liner
 
 The defult file where all the data is recorded is: */tmp/linPE* (you can change it at the beginning of the script)
 
