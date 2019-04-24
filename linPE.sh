@@ -7,212 +7,12 @@ B='\033[0;34m'
 NC='\033[0m'
 C=$(printf '\033')
 
-
-sidG="/accton$\|\
-/allocate$\|\
-/arping$\|\
-/at$\|\
-/atq$\|\
-/atrm$\|\
-/authpf$\|\
-/authpf-noip$\|\
-/batch$\|\
-/bsd-write$\|\
-/btsockstat$\|\
-/bwrap$\|\
-/cacaocsc$\|\
-/camel-lock-helper-1.2$\|\
-/ccreds_validate$\|\
-/cdrw$\|\
-/chage$\|\
-/chfn$\|\
-/chkey$\|\
-/chkperm$\|\
-/chpass$\|\
-/chrome-sandbox$\|\
-/chsh$\|\
-/cons.saver$\|\
-/crontab$\|\
-/ct$\|\
-/cu$\|\
-/dbus-daemon-launch-helper$\|\
-/deallocate$\|\
-/dma$\|\
-/dmcrypt-get-device$\|\
-/doas$\|\
-/dotlockfile$\|\
-/dotlock.mailutils$\|\
-/dtaction$\|\
-/dtappgather$\|\
-/dtfile$\|\
-/dtprintinfo$\|\
-/dtsession$\|\
-/eject$\|\
-/execabrt-action-install-debuginfo-to-abrt-cache$\|\
-/execdbus-daemon-launch-helper$\|\
-/execdma-mbox-create$\|\
-/execlockspool$\|\
-/execlogin_chpass$\|\
-/execlogin_lchpass$\|\
-/execlogin_passwd$\|\
-/execssh-keysign$\|\
-/execulog-helper$\|\
-/exim4$\|\
-/expiry$\|\
-/fdformat$\|\
-/fusermount$\|\
-/gnome-pty-helper$\|\
-/gnome-suspend$\|\
-/gpasswd$\|\
-/gpg$\|\
-/gpio$\|\
-/inndstart$\|\
-/ksu$\|\
-/list_devices$\|\
-/lock$\|\
-/lockdev$\|\
-/lockfile$\|\
-/login$\|\
-/login_activ$\|\
-/login_crypto$\|\
-/login_radius$\|\
-/login_skey$\|\
-/login_snk$\|\
-/login_token$\|\
-/login_yubikey$\|\
-/lpc$\|\
-/lpd$\|\
-/lpd-port$\|\
-/lppasswd$\|\
-/lpq$\|\
-/lpr$\|\
-/lprm$\|\
-/lpset$\|\
-/lxc-user-nic$\|\
-/mahjongg$\|\
-/mail-lock$\|\
-/mailq$\|\
-/mail-touchlock$\|\
-/mail-unlock$\|\
-/mksnap_ffs$\|\
-/mlocate$\|\
-/mount$\|\
-/mount.cifs$\|\
-/mount.nfs$\|\
-/mount.nfs4$\|\
-/movemail$\|\
-/mtr$\|\
-/mutt_dotlock$\|\
-/ncsa_auth$\|\
-/netpr$\|\
-/netreport$\|\
-/netstat$\|\
-/newgidmap$\|\
-/newgrp$\|\
-/newtask$\|\
-/newuidmap$\|\
-/ntfs-3g$\|\
-/opieinfo$\|\
-/opiepasswd$\|\
-/pam_auth$\|\
-/pam_extrausers_chkpwd$\|\
-/pam_timestamp_check$\|\
-/pamverifier$\|\
-/passwd$\|\
-/pfexec$\|\
-/ping$\|\
-/ping6$\|\
-/pkexec$\|\
-/pmconfig$\|\
-/polkit-agent-helper-1$\|\
-/postdrop$\|\
-/postqueue$\|\
-/poweroff$\|\
-/ppp$\|\
-/pppd$\|\
-/procmail$\|\
-/pt_chmod$\|\
-/pt_chown$\|\
-/quota$\|\
-/rcp$\|\
-/rdist$\|\
-/remote.unknown$\|\
-/rlogin$\|\
-/rmformat$\|\
-/rnews$\|\
-/rsh$\|\
-/sacadm$\|\
-/screen$\|\
-/sdtcm_convert$\|\
-/sendmail$\|\
-/sendmail.sendmail$\|\
-/shutdown$\|\
-/skeyaudit$\|\
-/skeyinfo$\|\
-/skeyinit$\|\
-/slocate$\|\
-/smpatch$\|\
-/smtpctl$\|\
-/snap-confine$\|\
-/sperl5.8.8$\|\
-/ssh-agent$\|\
-/ssh-keysign$\|\
-/staprun$\|\
-/startinnfeed$\|\
-/stclient$\|\
-/su$\|\
-/sudo$\|\
-/sudoedit$\|\
-/suexec$\|\
-/sys-suspend$\|\
-/systemctl$\|\
-/timedc$\|\
-/tip$\|\
-/traceroute$\|\
-/traceroute6$\|\
-/traceroute6.iputils$\|\
-/trpt$\|\
-/tsoldtlabel$\|\
-/tsoljdslabel$\|\
-/tsolxagent$\|\
-/ufsdump$\|\
-/ufsrestore$\|\
-/umount$\|\
-/umount.nfs$\|\
-/umount.nfs4$\|\
-/unix_chkpwd$\|\
-/uptime$\|\
-/userhelper$\|\
-/usernetctl$\|\
-/utempter$\|\
-/utmp_update$\|\
-/uucico$\|\
-/uucp$\|\
-/uuglist$\|\
-/uuidd$\|\
-/uuname$\|\
-/uusched$\|\
-/uustat$\|\
-/uux$\|\
-/uuxqt$\|\
-/vmware-user-suid-wrapper$\|\
-/vncserver-x11$\|\
-/volrmmount$\|\
-/w$\|\
-/wall$\|\
-/whodo$\|\
-/write$\|\
-/xlock$\|\
-/Xorg$\|\
-/Xorg.wrap$\|\
-/xscreensaver$\|\
-/Xsun$\|\
-/xterm$\|\
-/Xvnc$"
-
+sidG="/accton$\|/allocate$\|/arping$\|/at$\|/atq$\|/atrm$\|/authpf$\|/authpf-noip$\|/batch$\|/bsd-write$\|/btsockstat$\|/bwrap$\|/cacaocsc$\|/camel-lock-helper-1.2$\|/ccreds_validate$\|/cdrw$\|/chage$\|/chfn$\|/chkey$\|/chkperm$\|/chpass$\|/chrome-sandbox$\|/chsh$\|/cons.saver$\|/crontab$\|/ct$\|/cu$\|/dbus-daemon-launch-helper$\|/deallocate$\|/dma$\|/dmcrypt-get-device$\|/doas$\|/dotlockfile$\|/dotlock.mailutils$\|/dtaction$\|/dtappgather$\|/dtfile$\|/dtprintinfo$\|/dtsession$\|/eject$\|/execabrt-action-install-debuginfo-to-abrt-cache$\|/execdbus-daemon-launch-helper$\|/execdma-mbox-create$\|/execlockspool$\|/execlogin_chpass$\|/execlogin_lchpass$\|/execlogin_passwd$\|/execssh-keysign$\|/execulog-helper$\|/exim4$\|/expiry$\|/fdformat$\|/fusermount$\|/gnome-pty-helper$\|/gnome-suspend$\|/gpasswd$\|/gpg$\|/gpio$\|/inndstart$\|/ksu$\|/list_devices$\|/lock$\|/lockdev$\|/lockfile$\|/login$\|/login_activ$\|/login_crypto$\|/login_radius$\|/login_skey$\|/login_snk$\|/login_token$\|/login_yubikey$\|/lpc$\|/lpd$\|/lpd-port$\|/lppasswd$\|/lpq$\|/lpr$\|/lprm$\|/lpset$\|/lxc-user-nic$\|/mahjongg$\|/mail-lock$\|/mailq$\|/mail-touchlock$\|/mail-unlock$\|/mksnap_ffs$\|/mlocate$\|/mount$\|/mount.cifs$\|/mount.nfs$\|/mount.nfs4$\|/movemail$\|/mtr$\|/mutt_dotlock$\|/ncsa_auth$\|/netpr$\|/netreport$\|/netstat$\|/newgidmap$\|/newgrp$\|/newtask$\|/newuidmap$\|/ntfs-3g$\|/opieinfo$\|/opiepasswd$\|/pam_auth$\|/pam_extrausers_chkpwd$\|/pam_timestamp_check$\|/pamverifier$\|/passwd$\|/pfexec$\|/ping$\|/ping6$\|/pkexec$\|/pmconfig$\|/polkit-agent-helper-1$\|/postdrop$\|/postqueue$\|/poweroff$\|/ppp$\|/pppd$\|/procmail$\|/pt_chmod$\|/pt_chown$\|/quota$\|/rcp$\|/rdist$\|/remote.unknown$\|/rlogin$\|/rmformat$\|/rnews$\|/rsh$\|/sacadm$\|/screen$\|/sdtcm_convert$\|/sendmail$\|/sendmail.sendmail$\|/shutdown$\|/skeyaudit$\|/skeyinfo$\|/skeyinit$\|/slocate$\|/smpatch$\|/smtpctl$\|/snap-confine$\|/sperl5.8.8$\|/ssh-agent$\|/ssh-keysign$\|/staprun$\|/startinnfeed$\|/stclient$\|/su$\|/sudo$\|/sudoedit$\|/suexec$\|/sys-suspend$\|/systemctl$\|/timedc$\|/tip$\|/traceroute$\|/traceroute6$\|/traceroute6.iputils$\|/trpt$\|/tsoldtlabel$\|/tsoljdslabel$\|/tsolxagent$\|/ufsdump$\|/ufsrestore$\|/umount$\|/umount.nfs$\|/umount.nfs4$\|/unix_chkpwd$\|/uptime$\|/userhelper$\|/usernetctl$\|/utempter$\|/utmp_update$\|/uucico$\|/uucp$\|/uuglist$\|/uuidd$\|/uuname$\|/uusched$\|/uustat$\|/uux$\|/uuxqt$\|/vmware-user-suid-wrapper$\|/vncserver-x11$\|/volrmmount$\|/w$\|/wall$\|/whodo$\|/write$\|/xlock$\|/Xorg$\|/Xorg.wrap$\|/xscreensaver$\|/Xsun$\|/xterm$\|/Xvnc$"
 sidB='aria2c$\|arp$\|ash$\|awk$\|base64$\|bash$\|busybox$\|cat$\|chmod$\|chown$\|cp$\|csh$\|curl$\|cut$\|dash$\|date$\|dd$\|diff$\|dmsetup$\|docker$\|ed$\|emacs$\|env$\|expand$\|expect$\|file$\|find$\|flock$\|fmt$\|fold$\|gdb$\|gimp$\|git$\|grep$\|head$\|ionice$\|ip$\|jjs$\|jq$\|jrunscript$\|ksh$\|ld.so$\|less$\|logsave$\|lua$\|make$\|more$\|mv$\|mysql$\|nano$\|nc$\|nice$\|nl$\|nmap$\|node$\|od$\|openssl$\|perl$\|pg$\|php$\|pic$\|pico$\|python$\|readelf$\|rlwrap$\|rpm$\|rpmquery$\|rsync$\|rvim$\|scp$\|sed$\|setarch$\|shuf$\|socat$\|sort$\|sqlite3$\|stdbuf$\|strace$\|systemctl$\|tail$\|tar$\|taskset$\|tclsh$\|tee$\|telnet$\|tftp$\|time$\|timeout$\|ul$\|unexpand$\|uniq$\|unshare$\|vim$\|watch$\|wget$\|xargs$\|xxd$\|zip$\|zsh$'
 sudoB="$(whoami)\|\*\|env_keep+=LD_PRELOAD\|apt-get$\|apt$\|aria2c$\|arp$\|ash$\|awk$\|base64$\|bash$\|busybox$\|cat$\|chmod$\|chown$\|cp$\|cpan$\|cpulimit$\|crontab$\|csh$\|curl$\|cut$\|dash$\|date$\|dd$\|diff$\|dmesg$\|dmsetup$\|dnf$\|docker$\|dpkg$\|easy_install$\|ed$\|emacs$\|env$\|expand$\|expect$\|facter$\|file$\|find$\|flock$\|fmt$\|fold$\|ftp$\|gdb$\|gimp$\|git$\|grep$\|head$\|ionice$\|ip$\|irb$\|jjs$\|journalctl$\|jq$\|jrunscript$\|ksh$\|ld.so$\|less$\|logsave$\|ltrace$\|lua$\|mail$\|make$\|man$\|more$\|mount$\|mtr$\|mv$\|mysql$\|nano$\|nc$\|nice$\|nl$\|nmap$\|node$\|od$\|openssl$\|perl$\|pg$\|php$\|pic$\|pico$\|pip$\|puppet$\|python$\|readelf$\|red$\|rlwrap$\|rpm$\|rpmquery$\|rsync$\|ruby$\|run-mailcap$\|run-parts$\|rvim$\|scp$\|screen$\|script$\|sed$\|service$\|setarch$\|sftp$\|smbclient$\|socat$\|sort$\|sqlite3$\|ssh$\|start-stop-daemon$\|stdbuf$\|strace$\|systemctl$\|tail$\|tar$\|taskset$\|tclsh$\|tcpdump$\|tee$\|telnet$\|tftp$\|time$\|timeout$\|tmux$\|ul$\|unexpand$\|uniq$\|unshare$\|vi$\|vim$\|watch$\|wget$\|wish$\|xargs$\|xxd$\|yum$\|zip$\|zsh$\|zypper$"
-
+sudoMore="ALL:ALL\|ALL : ALL\|ALL\|NOPASSWD"
+sudocapsB="/apt-get\|/apt\|/aria2c\|/arp\|/ash\|/awk\|/base64\|/bash\|/busybox\|/cat\|/chmod\|/chown\|/cp\|/cpan\|/cpulimit\|/crontab\|/csh\|/curl\|/cut\|/dash\|/date\|/dd\|/diff\|/dmesg\|/dmsetup\|/dnf\|/docker\|/dpkg\|/easy_install\|/ed\|/emacs\|/env\|/expand\|/expect\|/facter\|/file\|/find\|/flock\|/fmt\|/fold\|/ftp\|/gdb\|/gimp\|/git\|/grep\|/head\|/ionice\|/ip\|/irb\|/jjs\|/journalctl\|/jq\|/jrunscript\|/ksh\|/ld.so\|/less\|/logsave\|/ltrace\|/lua\|/mail\|/make\|/man\|/more\|/mount\|/mtr\|/mv\|/mysql\|/nano\|/nc\|/nice\|/nl\|/nmap\|/node\|/od\|/openssl\|/perl\|/pg\|/php\|/pic\|/pico\|/pip\|/puppet\|/python\|/readelf\|/red\|/rlwrap\|/rpm\|/rpmquery\|/rsync\|/ruby\|/run-mailcap\|/run-parts\|/rvim\|/scp\|/screen\|/script\|/sed\|/service\|/setarch\|/sftp\|/smbclient\|/socat\|/sort\|/sqlite3\|/ssh\|/start-stop-daemon\|/stdbuf\|/strace\|/systemctl\|/tail\|/tar\|/taskset\|/tclsh\|/tcpdump\|/tee\|/telnet\|/tftp\|/time\|/timeout\|/tmux\|/ul\|/unexpand\|/uniq\|/unshare\|/vi\|/vim\|/watch\|/wget\|/wish\|/xargs\|/xxd\|/yum\|/zip\|/zsh\|/zypper"
+capsB="=ep\|cap_dac_read_search\|cap_dac_override"
 intfol="\./\|/etc/\|/root/\|/home/\|/var/log/\|/mnt/\|/usr/local/sbin/\|/usr/sbin/\|/sbin/\|/usr/local/bin/\|/usr/bin/\|/bin/\|/usr/local/games/\|/usr/games/\|/usr/lib/"`echo $PATH 2>/dev/null| sed 's/:/\\\|/g'`
 
 sh_usrs=`cat /etc/passwd 2>/dev/null | grep -i "sh$" | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|/\\\|/g'`"ImPoSSssSiBlEee"
@@ -220,6 +20,10 @@ nosh_usrs=`cat /etc/passwd 2>/dev/null | grep -i -v "sh$" | cut -d ":" -f 1 | tr
 knw_usrs='daemon\|message+\|syslog\|www\|www-data\|mail\|noboby\|Debian-+\|rtkit\|systemd+'
 USER=`whoami`
 HOME=/home/$USER
+
+Wfolders=`find /home /tmp /var /bin /etc /usr /lib /media /mnt /opt /root -writable -type d -maxdepth 2 2>/dev/null | tr '\n' '|' | sed 's/|/\\\|/g'`"/home\|\*"
+
+notExtensions="\.tif$\|\.tiff$\|\.gif$\|\.jpeg$\|\.jpg\|\.jif$\|\.jfif$\|\.jp2$\|\.jpx$\|\.j2k$\|\.j2c$\|\.fpx$\|\.pcd$\|\.png$\|\.pdf$\|\.flv$\|\.mp4$\|\.mp3$\|\.gifv$\|\.avi$\|\.mov$\|\.mpeg$\|\.wav$\|\.doc$\|\.docx$\|\.xls$\|\.xlsx$"
 
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then printf $B"[*] "$RED"YOU ARE ALREADY ROOT!!! (nothing is going to be executed)\n"$NC; exit; fi
 
@@ -255,7 +59,7 @@ which nc ncat netcat wget curl ping gcc g++ make gdb base64 socat python python2
 echo "" >> $file
 
 printf $Y"[+] "$RED"Capabilities\n"$NC >> $file
-getcap -r / 2>/dev/null >> $file
+getcap -r / 2>/dev/null | sed "s,$sudocapsB,${C}[31m&${C}[0m," | sed "s,$capsB,${C}[31m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Environment\n"$NC >> $file
@@ -263,7 +67,7 @@ printf $Y"[+] "$RED"Environment\n"$NC >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Cleaned proccesses\n"$NC >> $file
-ps aux 2>/dev/null | grep -v "\[" | sed "s,$sh_usrs,${C}[34m&${C}[0m," | sed "s,$nosh_usrs,${C}[96m&${C}[0m," | sed "s,$knw_usrs,${C}[32m&${C}[0m," | sed "s,root,${C}[31m&${C}[0m,"  >> $file
+ps aux 2>/dev/null | grep -v "\[" | sed "s,$sh_usrs,${C}[34m&${C}[0m," | sed "s,$nosh_usrs,${C}[96m&${C}[0m," | sed "s,$knw_usrs,${C}[32m&${C}[0m," | sed "s,root,${C}[31m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Binary processes permissions\n"$NC >> $file
@@ -279,9 +83,9 @@ if [ "`ps -e --format cmd`" ]; then for i in {1..121}; do ps -e --format cmd >> 
 echo "" >> $file
 
 printf $Y"[+] "$RED"Scheduled tasks\n"$NC >> $file
-crontab -l 2>/dev/null >> $file
+crontab -l 2>/dev/null | sed "s,$Wfolders,${C}[31m&${C}[0m," >> $file
 ls -al /etc/cron* 2>/dev/null >> $file
-cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/root /var/spool/anacron 2>/dev/null | grep -v "^#" >> $file
+cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/root /var/spool/anacron 2>/dev/null | grep -v "^#" | sed "s,$Wfolders,${C}[31m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Any sd* disk in /dev?\n"$NC >> $file
@@ -334,8 +138,8 @@ printf $Y"[+] "$RED"Me\n"$NC >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Sudo -l without password & /etc/sudoers\n"$NC >> $file
-echo '' | sudo -S -l -k 2>/dev/null | sed "s,$sudoB,${C}[31m&${C}[0m," >> $file
-cat /etc/sudoers 2>/dev/null | sed "s,$sudoB,${C}[31m&${C}[0m," >> $file #Add to one-liner  
+echo '' | sudo -S -l -k 2>/dev/null | sed "s,$sudoB,${C}[31m&${C}[0m," | sed "s,$sudoMore,${C}[31m&${C}[0m,"  >> $file
+cat /etc/sudoers 2>/dev/null | sed "s,$sudoB,${C}[31m&${C}[0m," | sed "s,$sudoMore,${C}[31m&${C}[0m," >> $file #Add to one-liner  
 echo "" >> $file
 
 printf $Y"[+] "$RED"Do not forget to execute 'sudo -l' without password or with valid password (if you know it)!!\n"$NC >> $file
@@ -350,16 +154,16 @@ awk -F: '($3 == "0") {print}' /etc/passwd 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Login\n"$NC >> $file
-w 2>/dev/null >> $file
-last 2>/dev/null | tail >> $file
+w 2>/dev/null | sed "s,$sh_usrs,${C}[34m&${C}[0m," | sed "s,$nosh_usrs,${C}[96m&${C}[0m," | sed "s,$knw_usrs,${C}[32m&${C}[0m," | sed "s,root,${C}[31m&${C}[0m," >> $file
+last 2>/dev/null | tail | sed "s,$sh_usrs,${C}[34m&${C}[0m," | sed "s,$nosh_usrs,${C}[96m&${C}[0m," | sed "s,$knw_usrs,${C}[32m&${C}[0m," | sed "s,root,${C}[31m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Users with console\n"$NC >> $file
-cat /etc/passwd 2>/dev/null | grep "sh$" >> $file
+cat /etc/passwd 2>/dev/null | grep "sh$" | sed "s,$sh_usrs,${C}[34m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"All users\n"$NC >> $file
-cat /etc/passwd 2>/dev/null | cut -d: -f1 >> $file
+cat /etc/passwd 2>/dev/null | cut -d: -f1 | sed "s,$sh_usrs,${C}[34m&${C}[0m," | sed "s,$nosh_usrs,${C}[96m&${C}[0m," | sed "s,$knw_usrs,${C}[32m&${C}[0m," | sed "s,root,${C}[31m&${C}[0m," >> $file
 echo "" >> $file
 
 echo "" >> $file
@@ -398,7 +202,7 @@ printf $Y"[+] "$RED"NFS exports?\n"$NC >> $file
 cat /etc/exports 2>/dev/null >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"Hashes inside /etc/passwd? Readable /etc/shadow, /etc/master.passwd?, or /root?\n"$NC >> $file
+printf $Y"[+] "$RED"Hashes inside /etc/passwd? Readable /etc/shadow, /etc/master.passwd, or /root?\n"$NC >> $file
 grep -v '^[^:]*:[x]' /etc/passwd 2>/dev/null >> $file
 cat /etc/shadow /etc/master.passwd 2>/dev/null >> $file
 ls -ahl /root/ 2>/dev/null >> $file #Modify in one-liner  
@@ -407,16 +211,16 @@ echo "" >> $file
 printf $Y"[+] "$RED"Inside docker or lxc?\n"$NC >> $file
 dockercontainer=`grep -i docker /proc/self/cgroup  2>/dev/null; find / -name "*dockerenv*" -exec ls -la {} \; 2>/dev/null`
 lxccontainer=`grep -qa container=lxc /proc/1/environ 2>/dev/null`
-if [ "$dockercontainer" ]; then echo "Looks like we're in a Docker container" >> $file; fi
-if [ "$lxccontainer" ]; then echo "Looks like we're in a LXC container" >> $file; fi
+if [ "$dockercontainer" ]; then echo "Looks like we're in a Docker container" | sed "s,.*,${C}[31m&${C}[0m," >> $file; fi
+if [ "$lxccontainer" ]; then echo "Looks like we're in a LXC container" | sed "s,.*,${C}[31m&${C}[0m," >> $file; fi
 echo "" >> $file
 
 printf $Y"[+] "$RED"*_history, profile, bashrc, httpd.conf\n"$NC >> $file
-find / -type f \( -name "*_history" -o -name ".profile" -o -name "*bashrc" -o -name "httpd.conf" \) -exec ls -l {} \; 2>/dev/null >> $file
+find / -type f \( -name "*_history" -o -name ".profile" -o -name "*bashrc" -o -name "httpd.conf" \) -exec ls -l {} \; 2>/dev/null | sed "s,_history$,${C}[33m&${C}[0m," | sed "s,profile$,${C}[36m&${C}[0m," | sed "s,bashrc$,${C}[34m&${C}[0m," | sed "s,httpd.conf$,${C}[35m&${C}[0m,">> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"All hidden files (not in /sys/, not .gitignore) (limit 100)\n"$NC >> $file
-find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/\|\.gitignore" | head -n 100 >> $file
+printf $Y"[+] "$RED"All hidden files (not in /sys/, not: .gitignore, .listing, .profile, .bashrc) (limit 100)\n"$NC >> $file
+find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/\|\.gitignore\|\.profile\|\.bashrc\|\.listing" | head -n 100 >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"What inside /tmp, /var/tmp, /var/backups (limited 100)\n"$NC >> $file
@@ -424,8 +228,8 @@ ls -a /tmp /var/tmp /var/backups 2>/dev/null | head 105 >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Interesting writable Files\n"$NC >> $file
-find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs'| sort | uniq | sed "s,$intfol,${C}[31m&${C}[0m," >> $file
-for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | sed "s,$intfol,${C}[31m&${C}[0m,"; done >> $file
+find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sort | uniq | sed "s,$intfol,${C}[31m&${C}[0m," >> $file
+for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sed "s,$intfol,${C}[31m&${C}[0m," >> $file; done
 echo "" >> $file
 
 printf $Y"[+] "$RED"Web files?(output limited)\n"$NC >> $file
@@ -451,7 +255,7 @@ printf $Y"[+] "$RED"Finding emails inside logs\n"$NC >> $file
 grep -R -E -a -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" /var/log/ 2>/dev/null | sort | uniq -c >> $file #Add to one-liner 
 echo "" >> $file 
 
-printf $Y"[+] "$RED"Find 'password' or 'passw' string inside /home, /var/www, /etc, /root and list possible web(/var/www) and config(/etc) passwords\n"$NC >> $file
+printf $Y"[+] "$RED"Find 'pwd' or 'passw' string inside /home, /var/www, /etc, /root and list possible web(/var/www) and config(/etc) passwords\n"$NC >> $file
 grep -lRi "pwd\|passw" /home /var/www /root 2>/dev/null | sort | uniq -c >> $file
 grep -R -i "password.* = ['\"]" /var/www | sed '/^.\{150\}./d' | grep "\.php" >> $file #Add to one-liner
 grep -R -i "password" /etc 2>/dev/null | grep "conf" | grep -v "#" >> $file #Add to one-liner

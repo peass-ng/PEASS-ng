@@ -63,8 +63,11 @@ The **Red** color is used for:
 - Identify processes running as root
 - Writable files in interesting directories
 - SUID binaries that can be used to escalate privileges (https://gtfobins.github.io/)
-- SUDO binaries that can be used to escalate privileges (https://gtfobins.github.io/)
+- SUDO binaries that can be used to escalate privileges in sudo -l (without passwd) (https://gtfobins.github.io/)
 - 127.0.0.1 in netstat
+- Capabilities in interesting binaries
+- Interesting capabilities of a binary
+- Writable folders and wilcards inside info about cron jobs
 
 The **Green** color is used for:
 - SUID common binaries (the bin was already found in other machines)
@@ -76,6 +79,7 @@ The **Blue** color is used for:
 
 The **Light cyan** color is used for:
 - Users without shell
+
 
 **The color filtering is not available in the one-liner** (the lists are too big)
 
