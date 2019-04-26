@@ -68,6 +68,7 @@ The **Red** color is used for:
 - Capabilities in interesting binaries
 - Interesting capabilities of a binary
 - Writable folders and wilcards inside info about cron jobs
+- Grops that could lead to root
 
 The **Green** color is used for:
 - SUID common binaries (the bin was already found in other machines)
