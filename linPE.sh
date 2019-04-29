@@ -38,6 +38,7 @@ if [ "$(/usr/bin/id -u)" -eq "0" ]; then printf $B"[*] "$RED"YOU ARE ALREADY ROO
 rm -rf $file 2>/dev/null
 echo "File: $file"
 
+echo "" >> $file
 echo "LEYEND:" | sed "s,LEYEND,${C}[1;4m&${C}[0m," >> $file
 echo "RED/YELLOW: 99% a PE vector" | sed "s,RED/YELLOW,${C}[1;31;103m&${C}[0m," >> $file
 echo "RED: You must take a look at it" | sed "s,RED,${C}[1;31m&${C}[0m," >> $file
@@ -88,7 +89,7 @@ if [ "$compiler" ]; then
 fi
 
 printf $Y"[+] "$RED"Environment\n"$NC >> $file
-(set || env) 2>/dev/null | grep -v "groupsB\|groupsVB\|sidG\|sidB\|sidVB\|sudoB\|sudoVB\|sudocapsB\|capsB\|\notExtensions\|Wfolders\|writeB\|writeVB\|_usrs\|compiler" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m," >> $file
+(set || env) 2>/dev/null | grep -v "groupsB\|groupsVB\|sidG\|sidB\|sidVB\|sudoB\|sudoVB\|sudocapsB\|capsB\|\notExtensions\|Wfolders\|writeB\|writeVB\|_usrs\|compiler" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,Ig" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Cleaned proccesses\n"$NC >> $file
@@ -104,7 +105,7 @@ printf $Y"[+] "$RED"Services\n"$NC >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Different processes executed during 1 min (interesting is low number of repetitions)\n"$NC >> $file
-if [ "`ps -e --format cmd`" ]; then for i in $(seq 1 121); do ps -e --format cmd >> $file.tmp1; sleep 0.5; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort -r >> $file; rm $file.tmp1; fi
+if [ "`ps -e --format cmd`" ]; then for i in $(seq 1 121); do ps -e --format cmd >> $file.tmp1; sleep 0.5; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort >> $file; rm $file.tmp1; fi
 echo "" >> $file
 
 printf $Y"[+] "$RED"Scheduled tasks\n"$NC >> $file
@@ -243,25 +244,25 @@ if [ "$postgver" ]; then
 fi
 
 #checks to see if any postgres password exists and connects to DB 'template0' - following commands are a variant on this
-postcon1=`psql -U postgres template0 -c 'select version()' 2>/dev/null | grep version`
+postcon1=`psql -U postgres -d template0 -c 'select version()' 2>/dev/null | grep version`
 if [ "$postcon1" ]; then
   echo "We can connect to Postgres DB 'template0' as user 'postgres' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
   echo "" >> $file
 fi
 
-postcon11=`psql -U postgres template1 -c 'select version()' 2>/dev/null | grep version`
+postcon11=`psql -U postgres -d template1 -c 'select version()' 2>/dev/null | grep version`
 if [ "$postcon11" ]; then
   echo "We can connect to Postgres DB 'template1' as user 'postgres' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
   echo "" >> $file
 fi
 
-postcon2=`psql -U pgsql template0 -c 'select version()' 2>/dev/null | grep version`
+postcon2=`psql -U pgsql -d template0 -c 'select version()' 2>/dev/null | grep version`
 if [ "$postcon2" ]; then
   echo "We can connect to Postgres DB 'template0' as user 'psql' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
   echo "" >> $file
 fi
 
-postcon22=`psql -U pgsql template1 -c 'select version()' 2>/dev/null | grep version`
+postcon22=`psql -U pgsql -d template1 -c 'select version()' 2>/dev/null | grep version`
 if [ "$postcon22" ]; then
   echo "We can connect to Postgres DB 'template1' as user 'psql' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
   echo "" >> $file
