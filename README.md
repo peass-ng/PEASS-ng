@@ -1,50 +1,60 @@
 # LinPE - Linux Privilege Escalation (one-liner)
 
-The goal of this script is to enumerate fast a linux machine.
+The goal of this script is to search for possible **Privilege Escalatoin vectors inside a linux machine**.
 
-This script was designed so you only have to copy and paste the code inside the **sh** or **bash** console and all the output will be redirected to a file (by default /tmp/fels, but feel free to change it).
+This script does not have any dependency.
 
-There is only one exception, the last command executed is *sudo -l* so this commands needs you to write the password of your user (if you know it).
+It could take from **2 to 3 minutes** to execute the hole script (less than 1 min to make almost all the checks, almost 1 min to search for possible passwords inside files and 1 min to monitor the process in order to find very frequent cron jobs).
 
+This script have several lists included inside it to be able to color the results in order to help to discover PE vector.
 
 ## Checks
 - **System Information**
 - [x] SO, kernel version & sudo version
-- [x] Date, time, selinux & env
-- [x] Useful software installed
-- [x] Capabilities
-- [x] Processes (top, current, executed within a minute, binary permissions)
+- [x] PATH, Date, time, selinux & env
+- [x] Useful software installed (special search for compilers)
+- [x] Processes (Current, Executed within a minute, Binary permissions)
+- [x] Services
 - [x] Scheduled tasks
-- [x] sd* disk in /dev, storage info, ummounted file-sys, printers
+- [x] sd* disk in /dev, storage info, mem info, ummounted file-sys, printers
 
 
 - **Network Information**
 - [x] Hostname, hosts & dns 
 - [x] Intefaces, networks and neightbours
-- [x] Active ports and files used
+- [x] Active ports
 - [x] Sniff permissions
 
 
 - **Users Information**
-- [x] Info about me (whoami, groups, sudo, PGPkeys)
+- [x] Info about current user (whoami, groups, sudo, PGPkeys)
+- [x] `sudo -l` without password
 - [x] List of superusers
 - [x] Login info
 - [x] Available users with console
 - [x] List of all users
 
 
+- **Software Information**
+- [x] MySQl (Version, loging as "root:")
+- [x] PostgreSQL (Version, try login in "template0" and "template1" as: "postgres:", "psql:")
+- [x] Apache (Version)
+
+
 - **Interesting Files**
-- [x] SUID & SGID files
+- [x] Pkexec policy, SUID & SGID files
+- [x] Capabilities
 - [x] Reduced list of files inside home
-- [x] Files inside any .ssh directory
+- [x] SSH files
 - [x] Mails
 - [x] NFS exports
 - [x] Hashes (passwd, shadow & master.passwd)
 - [x] Try to read root dir
 - [x] Check if Docker or LXC container
 - [x] List ALL writable file for current users (global, user and groups)
-- [x] *_history, profile, bashrc files
-- [x] List all hidden files
+- [x] Files that can contain passwords
+- [x] List of all hidden files
+- [x] Search buckup files
 - [x] Inside /tmp, /var/tmp and /var/backups
 - [x] Web files
 - [x] Search for backup files
@@ -57,18 +67,20 @@ There is only one exception, the last command executed is *sudo -l* so this comm
 
 LinPE uses colors to indicate where does each section begins. But **it also use them the identify potencial misconfigurations**.
 
-It uses 4 colors: **Red** to indicate that something could be wrong, and **Green** to indicate that something is "common", **Blue** to mark users with shell and **Light cyan** to mark users without shell.
+The **Red/Yellow** color is used for identifing configurations that lead to PE.
 
-The **Red** color is used for:
+The **Red** color is used for identifing suspicious configurations that could lead to PE:
 - Identify processes running as root
 - Writable files in interesting directories
-- SUID binaries that can be used to escalate privileges (https://gtfobins.github.io/)
+- SUID/SGID binaries that can be used to escalate privileges (https://gtfobins.github.io/)
 - SUDO binaries that can be used to escalate privileges in sudo -l (without passwd) (https://gtfobins.github.io/)
 - 127.0.0.1 in netstat
 - Capabilities in interesting binaries
 - Interesting capabilities of a binary
 - Writable folders and wilcards inside info about cron jobs
-- Grops that could lead to root
+- Writables folders in PATH
+- Groups that could lead to root
+- Files that could contains passwords
 
 The **Green** color is used for:
 - SUID common binaries (the bin was already found in other machines)
@@ -76,10 +88,13 @@ The **Green** color is used for:
 - Common names of users executing processes
 
 The **Blue** color is used for:
+- Users without shell
+
+The **Light Cyan** color is used for:
 - Users with shell
 
-The **Light cyan** color is used for:
-- Users without shell
+The **Light Magenta** color is used for:
+- Current username
 
 
 **The color filtering is not available in the one-liner** (the lists are too big)
