@@ -7,8 +7,9 @@ B='\033[1;34m'
 NC='\033[0m'
 C=$(printf '\033')
 
-groupsB="root\|shadow"
-groupsVB="sudo\|admin\|docker\|lxd\|wheel"
+groupsB="\(root\)\|\(shadow\)"
+groupsVB="\(sudo\)\|\(admin\)\|\(docker\)\|\(lxd\)\|\(wheel\)"
+knw_grps='\(lpadmin\)\|\(adm\)\|\(cdrom\)' #https://www.togaware.com/linux/survivor/Standard_Groups.html
 
 sidG="/accton$\|/allocate$\|/arping$\|/at$\|/atq$\|/atrm$\|/authpf$\|/authpf-noip$\|/batch$\|/bsd-write$\|/btsockstat$\|/bwrap$\|/cacaocsc$\|/camel-lock-helper-1.2$\|/ccreds_validate$\|/cdrw$\|/chage$\|/chfn$\|/chkey$\|/chkperm$\|/chpass$\|/chrome-sandbox$\|/chsh$\|/cons.saver$\|/crontab$\|/ct$\|/cu$\|/dbus-daemon-launch-helper$\|/deallocate$\|/dma$\|/dmcrypt-get-device$\|/doas$\|/dotlockfile$\|/dotlock.mailutils$\|/dtaction$\|/dtappgather$\|/dtfile$\|/dtprintinfo$\|/dtsession$\|/eject$\|/execabrt-action-install-debuginfo-to-abrt-cache$\|/execdbus-daemon-launch-helper$\|/execdma-mbox-create$\|/execlockspool$\|/execlogin_chpass$\|/execlogin_lchpass$\|/execlogin_passwd$\|/execssh-keysign$\|/execulog-helper$\|/exim4$\|/expiry$\|/fdformat$\|/fusermount$\|/gnome-pty-helper$\|/gnome-suspend$\|/gpasswd$\|/gpg$\|/gpio$\|/inndstart$\|/ksu$\|/list_devices$\|/lock$\|/lockdev$\|/lockfile$\|/login$\|/login_activ$\|/login_crypto$\|/login_radius$\|/login_skey$\|/login_snk$\|/login_token$\|/login_yubikey$\|/lpc$\|/lpd$\|/lpd-port$\|/lppasswd$\|/lpq$\|/lpr$\|/lprm$\|/lpset$\|/lxc-user-nic$\|/mahjongg$\|/mail-lock$\|/mailq$\|/mail-touchlock$\|/mail-unlock$\|/mksnap_ffs$\|/mlocate$\|/mount$\|/mount.cifs$\|/mount.nfs$\|/mount.nfs4$\|/movemail$\|/mtr$\|/mutt_dotlock$\|/ncsa_auth$\|/netpr$\|/netreport$\|/netstat$\|/newgidmap$\|/newgrp$\|/newtask$\|/newuidmap$\|/ntfs-3g$\|/opieinfo$\|/opiepasswd$\|/pam_auth$\|/pam_extrausers_chkpwd$\|/pam_timestamp_check$\|/pamverifier$\|/passwd$\|/pfexec$\|/ping$\|/ping6$\|/pmconfig$\|/polkit-agent-helper-1$\|/postdrop$\|/postqueue$\|/poweroff$\|/ppp$\|/pppd$\|/procmail$\|/pt_chmod$\|/pt_chown$\|/quota$\|/rcp$\|/rdist$\|/remote.unknown$\|/rlogin$\|/rmformat$\|/rnews$\|/rsh$\|/sacadm$\|/screen$\|/sdtcm_convert$\|/sendmail$\|/sendmail.sendmail$\|/shutdown$\|/skeyaudit$\|/skeyinfo$\|/skeyinit$\|/slocate$\|/smpatch$\|/smtpctl$\|/snap-confine$\|/sperl5.8.8$\|/ssh-agent$\|/ssh-keysign$\|/staprun$\|/startinnfeed$\|/stclient$\|/su$\|/sudo$\|/sudoedit$\|/suexec$\|/sys-suspend$\|/systemctl$\|/timedc$\|/tip$\|/traceroute$\|/traceroute6$\|/traceroute6.iputils$\|/trpt$\|/tsoldtlabel$\|/tsoljdslabel$\|/tsolxagent$\|/ufsdump$\|/ufsrestore$\|/umount$\|/umount.nfs$\|/umount.nfs4$\|/unix_chkpwd$\|/uptime$\|/userhelper$\|/usernetctl$\|/utempter$\|/utmp_update$\|/uucico$\|/uucp$\|/uuglist$\|/uuidd$\|/uuname$\|/uusched$\|/uustat$\|/uux$\|/uuxqt$\|/vmware-user-suid-wrapper$\|/vncserver-x11$\|/volrmmount$\|/w$\|/wall$\|/whodo$\|/write$\|/xlock$\|/Xorg$\|/Xorg.wrap$\|/xscreensaver$\|/Xsun$\|/xterm$\|/Xvnc$"
 sidB="pkexec$"
@@ -29,7 +30,7 @@ knw_usrs='daemon\|message+\|syslog\|www\|www-data\|mail\|noboby\|Debian-+\|rtkit
 USER=`whoami`
 HOME=/home/$USER
 
-Wfolders=`find /home /tmp /var /bin /etc /usr /lib /media /mnt /opt /root -writable -type d -maxdepth 2 2>/dev/null | tr '\n' '|' | sed 's/|/\\\|/g'`" \*"
+Wfolders=`find /home /tmp /var /bin /etc /usr /lib /media /mnt /opt /root -writable -type d -maxdepth 2 -exec ls -l {} \; 2>/dev/null | tr '\n' '|' | sed 's/|/\\\|/g'`" \*"
 
 notExtensions="\.tif$\|\.tiff$\|\.gif$\|\.jpeg$\|\.jpg\|\.jif$\|\.jfif$\|\.jp2$\|\.jpx$\|\.j2k$\|\.j2c$\|\.fpx$\|\.pcd$\|\.png$\|\.pdf$\|\.flv$\|\.mp4$\|\.mp3$\|\.gifv$\|\.avi$\|\.mov$\|\.mpeg$\|\.wav$\|\.doc$\|\.docx$\|\.xls$\|\.xlsx$"
 
@@ -77,11 +78,11 @@ if [ "$sestatus" ]; then
 fi
 
 printf $Y"[+] "$RED"Useful software?\n"$NC >> $file
-which nc ncat netcat wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch 2>/dev/null >> $file
+which nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch 2>/dev/null >> $file
 echo "" >> $file
 
 #limited search for installed compilers
-compiler=`dpkg --list 2>/dev/null| grep compiler |grep -v "decompiler\|lib" 2>/dev/null && yum list installed 'gcc*' 2>/dev/null| grep gcc 2>/dev/null`
+compiler=`dpkg --list 2>/dev/null| grep compiler | grep -v "decompiler\|lib" 2>/dev/null && yum list installed 'gcc*' 2>/dev/null| grep gcc 2>/dev/null`
 if [ "$compiler" ]; then
   printf $Y"[+] "$RED"Installed compilers?\n"$NC >> $file
   echo "$compiler" >> $file
@@ -89,7 +90,7 @@ if [ "$compiler" ]; then
 fi
 
 printf $Y"[+] "$RED"Environment\n"$NC >> $file
-(set || env) 2>/dev/null | grep -v "groupsB\|groupsVB\|sidG\|sidB\|sidVB\|sudoB\|sudoVB\|sudocapsB\|capsB\|\notExtensions\|Wfolders\|writeB\|writeVB\|_usrs\|compiler" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,Ig" >> $file
+(set || env) 2>/dev/null | grep -v "groupsB\|groupsVB\|sidG\|sidB\|sidVB\|sudoB\|sudoVB\|sudocapsB\|capsB\|\notExtensions\|Wfolders\|writeB\|writeVB\|_usrs\|compiler\|PWD=\|LS_COLORS=" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,Ig" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Cleaned proccesses\n"$NC >> $file
@@ -114,7 +115,7 @@ ls -al /etc/cron* 2>/dev/null >> $file
 cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/root /var/spool/anacron 2>/dev/null | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly" | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m," >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"System status?\n"$NC >> $file
+printf $Y"[+] "$RED"System stats?\n"$NC >> $file
 df -h 2>/dev/null >> $file
 free 2>/dev/null >> $file
 echo "" >> $file
@@ -174,7 +175,7 @@ echo "[+]Gathering users information..."
 printf $B"[*] "$RED"USERS INFO\n"$NC >> $file 
 echo "" >> $file
 printf $Y"[+] "$RED"Me\n"$NC >> $file
-(id || (whoami && groups)) 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$groupsB,${C}[1;31m&${C}[0m," | sed "s,$groupsVB,${C}[1;31;103m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," >> $file
+(id || (whoami && groups)) 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs\|$knw_grps,${C}[1;32m&${C}[0m," | sed "s,$groupsB,${C}[1;31m&${C}[0m," | sed "s,$groupsVB,${C}[1;31;103m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m,g" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Sudo -l without password & /etc/sudoers\n"$NC >> $file
@@ -197,8 +198,8 @@ awk -F: '($3 == "0") {print}' /etc/passwd 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Login information\n"$NC >> $file
-w 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[31;103m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," >> $file
-last 2>/dev/null | tail | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," >> $file
+w 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," >> $file
+last 2>/dev/null | tail | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Users with console\n"$NC >> $file
@@ -276,14 +277,41 @@ if [ "$apachever" ]; then
   echo "" >> $file
 fi
 
+#Wordpress user, password, databname and host
+wp=`find /var /etc /home /root /tmp -type f -name wp-config.php 2>/dev/null`
+if [ "$wp" ]; then
+  printf $Y"[+] "$RED"Worpress\n"$NC >> $file
+  echo "wp-config.php files found:\n$wp" >> $file
+  for f in $wp; do grep "PASSWORD\|USER\|NAME\|HOST" $f 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," >> $file; done
+fi
+
+#Tomcat users
+wp=`find /var /etc /home /root /tmp -type f -name tomcat-users.xml 2>/dev/null`
+if [ "$wp" ]; then
+  printf $Y"[+] "$RED"Tomcat\n"$NC >> $file
+  echo "tomcat-users.xml file found:\n$wp" >> $file
+  for f in $wp; do grep "username=" $f 2>/dev/null | grep "password=" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file; done
+fi
+
+#Mongo
+mongover=`mongod --version 2>/dev/null`
+if [ "$mongover" ]; then
+  printf $Y"[+] "$RED"Mongo\n"$NC >> $file
+  echo "Version: $mongover" >> $file
+  #TODO: Check if you can login without password and warn the user
+fi
+
 
 echo "" >> $file
 echo "[+]Gathering files information..."
 printf $B"[*] "$RED"INTERESTING FILES\n"$NC >> $file 
 echo "" >> $file
-printf $B"[+] "$RED"Pkexec policy\n"$NC >> $file
-cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null | grep -v "^#" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$groupsB,${C}[1;31m&${C}[0m," | sed "s,$groupsVB,${C}[1;31m&${C}[0m," | sed "s,$USER,${C}[31;103m&${C}[0m," >> $file
-echo "" >> $file
+pkexecpolocy=`cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null`
+if [ "$pkexecpolocy" ]; then
+  printf $B"[+] "$RED"Pkexec policy\n"$NC >> $file
+  echo $pkexecpolocy | grep -v "^#" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$groupsB,${C}[1;31m&${C}[0m," | sed "s,$groupsVB,${C}[1;31m&${C}[0m," | sed "s,$USER,${C}[31;103m&${C}[0m," >> $file
+  echo "" >> $file
+fi
 
 printf $Y"[+] "$RED"SUID\n"$NC >> $file
 find / -perm -4000 2>/dev/null | sed "s,$sidG,${C}[1;32m&${C}[0m," | sed "s,$sidB,${C}[1;31m&${C}[0m," | sed "s,$sidVB,${C}[1;31;103m&${C}[0m," >> $file
@@ -303,11 +331,12 @@ echo "" >> $file
 
 sshrootlogin=`grep "PermitRootLogin " /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | awk '{print  $2}'`
 if [ "$sshrootlogin" = "yes" ]; then
-  printf $Y"[+] "$RED"SSH conf info\n"$NC >> $file
-  echo "SSH root login is PERMITTED"| sed "s,.*,${C}[1;31m&${C}[0m,"
-  echo ""
+  printf $Y"[+] "$RED"SSH conf info\n"$NC >> $file 
+  echo "SSH root login is PERMITTED"| sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+  echo "" >> $file
 fi
 
+#TODO: check if imposible symbols inside the file (quotes, parenthesis...)
 privatekeyfiles=`grep -rl "PRIVATE KEY-----" /home /root 2>/dev/null`
 if [ "$privatekeyfiles" ]; then
     echo "Private SSH keys found!:\n$privatekeyfiles" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
@@ -342,8 +371,8 @@ printf $Y"[+] "$RED"20 First files of /home\n"$NC >> $file
 find /home -type f 2>/dev/null | column -t | grep -v -i "/"$USER | head -n 20 >> $file
 echo "" >> $file
 
-printf $Y"[+] "$RED"Mails?\n"$NC >> $file
-ls -alh /var/mail/ /var/spool/mail/ 2>/dev/null >> $file
+printf $Y"[+] "$RED"Mails (limited 50)\n"$NC >> $file
+ls -lh /var/mail/ /var/spool/mail/ 2>/dev/null | head -n 50 >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Inside docker or lxc?\n"$NC >> $file
@@ -354,7 +383,8 @@ if [ "$lxccontainer" ]; then echo "Looks like we're in a LXC container" | sed "s
 echo "" >> $file
 
 printf $Y"[+] "$RED"*_history, profile, bashrc, httpd.conf, .plan, .htpasswd, .git-credentials, hosts.equiv\n"$NC >> $file
-find / -type f \( -name "*_history" -o -name ".profile" -o -name "*bashrc" -o -name "httpd.conf" -o -name "*.plan" -o -name ".htpasswd" -o -name ".git-credentials" -o -name "*.rhosts" -o -name "hosts.equiv" -o -name "Dockerfile" -o -name "docker-compose.yml" \) -exec ls -l {} \; 2>/dev/null | sed "s,bash_history\|\.plan\|\.htpasswd\|\.git-credentials\|\.rhosts,${C}[1;31m&${C}[0m,">> $file
+fils=`find / -type f \( -name "*_history" -o -name ".profile" -o -name "*bashrc" -o -name "httpd.conf" -o -name "*.plan" -o -name ".htpasswd" -o -name ".git-credentials" -o -name "*.rhosts" -o -name "hosts.equiv" -o -name "Dockerfile" -o -name "docker-compose.yml" \) 2>/dev/null`
+for f in $fils; do if [ -r $f ]; then ls -l $f 2>/dev/null | sed "s,bash_history\|\.plan\|\.htpasswd\|\.git-credentials\|\.rhosts,${C}[1;31m&${C}[0m," >> $file; fi; done
 echo "" >> $file
 
 printf $Y"[+] "$RED"All hidden files (not in /sys/, not: .gitignore, .listing, .ignore, .uuid and listed before) (limit 100)\n"$NC >> $file
@@ -370,15 +400,21 @@ find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')
 for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31;103m&${C}[0m," >> $file; done
 echo "" >> $file
 
+printf $Y"[+] "$RED"Backup files?\n"$NC >> $file
+backs=`find /var /etc /bin /sbin /home /usr/local/bin /usr/local/sbin /usr/bin /usr/games /usr/sbin /root /tmp -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*bck*" \) 2>/dev/null` 
+for b in $backs; do if [ -r $b ]; then ls -l $b | sed "s,backup\|bck\|\.bak,${C}[1;31m&${C}[0m," >> $file; fi; done
+echo "" >> $file
+
+printf $Y"[+] "$RED"Searching passwords in config PHP files\n"$NC >> $file
+configs=`find /var /etc /home /root /tmp -type f -name *config*.php 2>/dev/null`
+for c in $configs; do grep -i "password.* = ['\"]\|define.*passw" $c 2>/dev/null | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password,${C}[1;31m&${C}[0m," >> $file; done
+echo "" >> $file
+
 printf $Y"[+] "$RED"Web files?(output limited)\n"$NC >> $file
 ls -alhR /var/www/ 2>/dev/null | head >> $file
 ls -alhR /srv/www/htdocs/ 2>/dev/null | head >> $file
 ls -alhR /usr/local/www/apache22/data/ 2>/dev/null | head >> $file
 ls -alhR /opt/lampp/htdocs/ 2>/dev/null | head >> $file
-echo "" >> $file
-
-printf $Y"[+] "$RED"Backup files?\n"$NC >> $file
-find /var /etc /bin /sbin /home /usr/local/bin /usr/local/sbin /usr/bin /usr/games /usr/sbin /root /tmp -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*bck*" \) 2>/dev/null | sed "s,backup\|bck\|\.bak,${C}[1;31m&${C}[0m," >> $file
 echo "" >> $file
 
 printf $Y"[+] "$RED"Finding IPs inside logs\n"$NC >> $file
@@ -395,6 +431,6 @@ echo "" >> $file
 
 printf $Y"[+] "$RED"Finding 'pwd' or 'passw' string inside /home, /var/www, /etc, /root and list possible web(/var/www) and config(/etc) passwords\n"$NC >> $file
 grep -lRi "pwd\|passw" /home /var/www /root 2>/dev/null | sort | uniq >> $file
-grep -R -i "password.* = ['\"]" /var/www | sed '/^.\{150\}./d' | grep "\.php" | sed "s,password,${C}[1;31m&${C}[0m," >> $file #Add to one-liner
-grep -R -i "password" /etc 2>/dev/null | grep "conf" | grep -v ":#\|:/\*\|: \*" | sed "s,password,${C}[1;31m&${C}[0m," >> $file #Add to one-liner
+grep -R -i "password.* = ['\"]\|define.*passw" /var/www /root /home 2>/dev/null | grep "\.php" | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password,${C}[1;31m&${C}[0m," >> $file #Add to one-liner
+grep -R -i "password" /etc 2>/dev/null | grep "conf" | grep -v ":#\|:/\*\|: \*" | sort | uniq | sed "s,password,${C}[1;31m&${C}[0m," >> $file #Add to one-liner
 echo "" >> $file
