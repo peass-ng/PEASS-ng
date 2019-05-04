@@ -336,8 +336,7 @@ if [ "$sshrootlogin" = "yes" ]; then
   echo "" >> $file
 fi
 
-#TODO: check if imposible symbols inside the file (quotes, parenthesis...)
-privatekeyfiles=`grep -rl "PRIVATE KEY-----" /home /root 2>/dev/null`
+privatekeyfiles=`grep -L "\"\|'\|(" $(grep -rl "PRIVATE KEY-----" /home /root 2>/dev/null)`
 if [ "$privatekeyfiles" ]; then
     echo "Private SSH keys found!:\n$privatekeyfiles" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
   	echo "" >> $file
