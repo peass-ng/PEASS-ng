@@ -4,6 +4,8 @@ The goal of this script is to search for possible **Privilege Escalatoin vectors
 
 This script does not have any dependency.
 
+There is not need even for bash shell, **it runs using /bin/sh**.
+
 It could take from **2 to 3 minutes** to execute the hole script (less than 1 min to make almost all the checks, almost 1 min to search for possible passwords inside files and 1 min to monitor the process in order to find very frequent cron jobs).
 
 This script have several lists included inside it to be able to color the results in order to help to discover PE vector.
@@ -29,6 +31,7 @@ This script have several lists included inside it to be able to color the result
 - **Users Information**
 - [x] Info about current user (whoami, groups, sudo, PGPkeys)
 - [x] `sudo -l` without password
+- [x] Try to login using `su` as other users (using null pass and the username)
 - [x] List of superusers
 - [x] Login info
 - [x] Available users with console
@@ -39,6 +42,11 @@ This script have several lists included inside it to be able to color the result
 - [x] MySQl (Version, loging as "root:")
 - [x] PostgreSQL (Version, try login in "template0" and "template1" as: "postgres:", "psql:")
 - [x] Apache (Version)
+- [x] Wordpress (Database credentials)
+- [x] Tomcat (Credentials)
+- [x] Mongo (Version)
+- [x] Supervisor (Credentials)
+- [x] Cesi (Credentials)
 
 
 - **Interesting Files**
