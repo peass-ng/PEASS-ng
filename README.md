@@ -47,11 +47,15 @@ This script have several lists included inside it to be able to color the result
 - [x] Mongo (Version)
 - [x] Supervisor (Credentials)
 - [x] Cesi (Credentials)
+- [x] Rsyncd (Credentials)
+- [x] Hostapd (Credentials)
+- [x] Network (Credentials)
 
 
 - **Interesting Files**
 - [x] Pkexec policy, SUID & SGID files
 - [x] Capabilities
+- [x] .sh scripts in PATH
 - [x] Reduced list of files inside home
 - [x] SSH files
 - [x] Mails

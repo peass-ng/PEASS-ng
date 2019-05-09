@@ -31,11 +31,13 @@ knw_usrs='daemon:\|daemon\s\|^daemon$\|message+\|syslog\|www\|www-data\|mail\|no
 USER=`whoami`
 HOME=/home/$USER
 
-Wfolders=`find /home /tmp /var /bin /etc /usr /lib /media /mnt /opt /root -writable -type d -maxdepth 2 -exec ls -l {} \; 2>/dev/null | tr '\n' '|' | sed 's/|/\\\|/g'`" \*"
+Wfolders=`find /home /tmp /var /bin /etc /usr /lib /media /mnt /opt /root -writable -type d -maxdepth 2 2>/dev/null | tr '\n' '|' | sed 's/|/\\\|/g'`" \*"
 
 notExtensions="\.tif$\|\.tiff$\|\.gif$\|\.jpeg$\|\.jpg\|\.jif$\|\.jfif$\|\.jp2$\|\.jpx$\|\.j2k$\|\.j2c$\|\.fpx$\|\.pcd$\|\.png$\|\.pdf$\|\.flv$\|\.mp4$\|\.mp3$\|\.gifv$\|\.avi$\|\.mov$\|\.mpeg$\|\.wav$\|\.doc$\|\.docx$\|\.xls$\|\.xlsx$"
 
 TIMEOUT=`which timeout`
+
+pathshG="/dnsmap-bulk.sh\|/0trace.sh\|/gvmap.sh\|/blueranger.sh\|/testacg.sh\|/gettext.sh\|/testlahf.sh\|/setuporamysql.sh"
 
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then printf $B"[*] "$RED"YOU ARE ALREADY ROOT!!! (nothing is going to be executed)\n"$NC; exit; fi
 
@@ -93,7 +95,7 @@ if [ "$compiler" ]; then
 fi
 
 printf $Y"[+] "$GREEN"Environment\n"$NC >> $file
-(env || set) 2>/dev/null | grep -v "^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler\|PWD=\|LS_COLORS=" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,Ig" >> $file
+(env || set) 2>/dev/null | grep -v "^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler\|PWD=\|LS_COLORS=\|pathshG" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,Ig" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Cleaned proccesses\n"$NC >> $file
@@ -317,7 +319,7 @@ fi
 #Tomcat users
 wp=`find /var /etc /home /root /tmp /usr /opt -type f -name tomcat-users.xml 2>/dev/null`
 if [ "$wp" ]; then
-  printf $Y"[+] "$GREEN"Tomcat\n"$NC >> $file
+  printf $Y"[+] "$GREEN"Tomcat uses file found\n"$NC >> $file
   echo "tomcat-users.xml file found:\n$wp" >> $file
   for f in $wp; do grep "username=" $f 2>/dev/null | grep "password=" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file; done
 fi
@@ -337,6 +339,7 @@ fi
 supervisor=`find /etc -name supervisord.conf 2>/dev/null`
 if [ "$supervisor" ]; then
   printf $Y"[+] "$GREEN"Supervisor conf was found\n"$NC >> $file
+  echo $supervisor >> $file
   for f in $supervisor; do cat $f 2>/dev/null | grep "port.*=\|username.*=\|password=.*" | sed "s,port\|username\|password,${C}[1;31m&${C}[0m," >> $file; done
 fi
 
@@ -344,9 +347,33 @@ fi
 cesi=`find /etc -name cesi.conf 2>/dev/null`
 if [ "$cesi" ]; then
   printf $Y"[+] "$GREEN"Cesi conf was found\n"$NC >> $file
-  for f in $supervisor; do cat $f 2>/dev/null | grep "username.*=\|password.*=\|host.*=\|port.*=" | sed "s,port\|username\|password,${C}[1;31m&${C}[0m," >> $file; done
+  echo $cesi >> $file
+  for f in $cesi; do cat $f 2>/dev/null | grep "username.*=\|password.*=\|host.*=\|port.*=" | sed "s,port\|username\|password,${C}[1;31m&${C}[0m," >> $file; done
 fi
 
+#Rsyncd
+rsyncd=`find /etc -name rsyncd.conf 2>/dev/null`
+if [ "$rsyncd" ]; then
+  printf $Y"[+] "$GREEN"Rsyncd conf was found\n"$NC >> $file
+  echo $rsyncd
+  for f in $rsyncd; do cat $f 2>/dev/null | grep "uid.*=|\gid.*=\|path.*=\|auth.*users.*=\|secrets.*file.*=\|hosts.*allow.*=\|hosts.*deny.*=" | sed "s,secrets.*,${C}[1;31m&${C}[0m," >> $file; done
+fi
+
+#hostapd
+hostapd=`find /etc -name hostapd.conf 2>/dev/null`
+if [ "$hostapd" ]; then
+  printf $Y"[+] "$GREEN"Hostapd conf was found\n"$NC >> $file
+  echo $hostapd
+  for f in $hostapd; do cat $f 2>/dev/null | grep "passphrase" | sed "s,passphrase.*,${C}[1;31m&${C}[0m," >> $file; done
+fi
+
+#wifi
+wifi=`find /etc/NetworkManager/system-connections/ 2>/dev/null`
+if [ "$hostapd" ]; then
+  printf $Y"[+] "$GREEN"Network conenctions files fond\n"$NC >> $file
+  echo $wifi
+  for f in $wifi; do cat $f 2>/dev/null | grep "psk.*=" | sed "s,psk.*,${C}[1;31m&${C}[0m," >> $file; done
+fi
 
 echo "" >> $file
 printf $B"[*] "$GREEN"Gathering files information...\n"$NC
@@ -370,6 +397,11 @@ echo "" >> $file
 printf $Y"[+] "$GREEN"Capabilities\n"$NC >> $file
 getcap -r / 2>/dev/null | sed "s,$sudocapsB,${C}[1;31m&${C}[0m," | sed "s,$capsB,${C}[1;31m&${C}[0m," >> $file
 echo "" >> $file
+
+printf $Y"[+] "$GREEN".sh files in path\n"$NC >> $file
+for d in `echo $PATH | tr ":" "\n"`; do find $d -name *.sh | sed "s,$pathshG,${C}[1;32m&${C}[0m," >> $file ; done
+echo "" >> $file
+
 
 printf $Y"[+] "$GREEN"SSH Files\n"$NC >> $file
 find / \( -name "id_dsa*" -o -name "id_rsa*" -o -name "known_hosts" -o -name "authorized_hosts" -o -name "authorized_keys" \) -type f -exec ls -la {} \;  2>/dev/null >> $file
@@ -458,7 +490,7 @@ echo "" >> $file
 
 printf $Y"[+] "$GREEN"Searching passwords in config PHP files\n"$NC >> $file
 configs=`find /var /etc /home /root /tmp /usr /opt -type f -name *config*.php 2>/dev/null`
-for c in $configs; do grep -i "password.* = ['\"]\|define.*passw" $c 2>/dev/null | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password,${C}[1;31m&${C}[0m,i" >> $file; done
+for c in $configs; do grep -i "password.* = ['\"]\|define.*passw\|db_pass" $c 2>/dev/null | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password\|db_pass,${C}[1;31m&${C}[0m,i" >> $file; done
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Web files?(output limited)\n"$NC >> $file
