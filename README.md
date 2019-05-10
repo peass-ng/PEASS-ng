@@ -63,7 +63,7 @@ This script have several lists included inside it to be able to color the result
 - [x] Hashes (passwd, shadow & master.passwd)
 - [x] Try to read root dir
 - [x] Check if Docker or LXC container
-- [x] List ALL writable file for current users (global, user and groups)
+- [x] List ALL writable files for current user (global, user and groups)
 - [x] Files that can contain passwords
 - [x] List of all hidden files
 - [x] Search buckup files
@@ -82,11 +82,13 @@ LinPE uses colors to indicate where does each section begins. But **it also use 
 The **Red/Yellow** color is used for identifing configurations that lead to PE.
 
 The **Red** color is used for identifing suspicious configurations that could lead to PE:
+- Possible exploitable kernel versions
 - Identify processes running as root
 - Writable files in interesting directories
 - SUID/SGID binaries that can be used to escalate privileges (https://gtfobins.github.io/)
 - SUDO binaries that can be used to escalate privileges in sudo -l (without passwd) (https://gtfobins.github.io/)
 - 127.0.0.1 in netstat
+- Known files that could contain passwords
 - Capabilities in interesting binaries
 - Interesting capabilities of a binary
 - Writable folders and wilcards inside info about cron jobs
@@ -97,6 +99,7 @@ The **Red** color is used for identifing suspicious configurations that could le
 The **Green** color is used for:
 - SUID common binaries (the bin was already found in other machines)
 - SGID common binaries
+- .sh files in path
 - Common names of users executing processes
 
 The **Blue** color is used for:

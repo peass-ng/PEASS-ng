@@ -8,7 +8,9 @@ Y="${C}[1;33m"
 B="${C}[1;34m"
 NC="${C}[0m"
 
-groupsB="(root)\|(shadow)\|(admin)"
+kernelB="3.9.6\|3.9.0\|3.9\|3.8.9\|3.8.8\|3.8.7\|3.8.6\|3.8.5\|3.8.4\|3.8.3\|3.8.2\|3.8.1\|3.8.0\|3.8\|3.7.6\|3.7.0\|3.7\|3.6.0\|3.6\|3.5.0\|3.5\|3.4.9\|3.4.8\|3.4.6\|3.4.5\|3.4.4\|3.4.3\|3.4.2\|3.4.1\|3.4.0\|3.4\|3.3\|3.2\|3.19.0\|3.16.0\|3.15\|3.14\|3.13.1\|3.13.0\|3.13\|3.12.0\|3.12\|3.11.0\|3.11\|3.10.6\|3.10.0\|3.10\|3.1.0\|3.0.6\|3.0.5\|3.0.4\|3.0.3\|3.0.2\|3.0.1\|3.0.0\|2.6.9\|2.6.8\|2.6.7\|2.6.6\|2.6.5\|2.6.4\|2.6.39\|2.6.38\|2.6.37\|2.6.36\|2.6.35\|2.6.34\|2.6.33\|2.6.32\|2.6.31\|2.6.30\|2.6.3\|2.6.29\|2.6.28\|2.6.27\|2.6.26\|2.6.25\|2.6.24.1\|2.6.24\|2.6.23\|2.6.22\|2.6.21\|2.6.20\|2.6.2\|2.6.19\|2.6.18\|2.6.17\|2.6.16\|2.6.15\|2.6.14\|2.6.13\|2.6.12\|2.6.11\|2.6.10\|2.6.1\|2.6.0\|2.4.9\|2.4.8\|2.4.7\|2.4.6\|2.4.5\|2.4.4\|2.4.37\|2.4.36\|2.4.35\|2.4.34\|2.4.33\|2.4.32\|2.4.31\|2.4.30\|2.4.29\|2.4.28\|2.4.27\|2.4.26\|2.4.25\|2.4.24\|2.4.23\|2.4.22\|2.4.21\|2.4.20\|2.4.19\|2.4.18\|2.4.17\|2.4.16\|2.4.15\|2.4.14\|2.4.13\|2.4.12\|2.4.11\|2.4.10\|2.2.24"
+
+groupsB="(root)\|(shadow)\|(admin)\|(video)"
 groupsVB="(sudo)\|(docker)\|(lxd)\|(wheel)\|(disk)"
 knw_grps='(lpadmin)\|(adm)\|(cdrom)|\(plugdev)\|(nogroup)' #https://www.togaware.com/linux/survivor/Standard_Groups.html
 
@@ -59,8 +61,8 @@ printf $B"[*] "$GREEN"Gathering system info...\n"$NC
 printf $B"[*] "$GREEN"BASIC SYSTEM INFO\n"$NC >> $file 
 echo "" >> $file
 printf $Y"[+] "$GREEN"Operative system\n"$NC >> $file
-(cat /proc/version || uname -a ) 2>/dev/null >> $file
-lsb_release -a 2>/dev/null >> $file #add to one-liner
+(cat /proc/version || uname -a ) 2>/dev/null | sed "s,$kernelB,${C}[1;31m&${C}[0m," >> $file
+lsb_release -a 2>/dev/null | sed "s,$kernelB,${C}[1;31m&${C}[0m," >> $file #add to one-liner
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"PATH\n"$NC >> $file
@@ -95,7 +97,7 @@ if [ "$compiler" ]; then
 fi
 
 printf $Y"[+] "$GREEN"Environment\n"$NC >> $file
-(env || set) 2>/dev/null | grep -v "^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler\|PWD=\|LS_COLORS=\|pathshG" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,Ig" >> $file
+(env || set) 2>/dev/null | grep -v "kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler\|PWD=\|LS_COLORS=\|pathshG" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,Ig" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Cleaned proccesses\n"$NC >> $file
