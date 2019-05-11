@@ -6,9 +6,11 @@ This script does not have any dependency.
 
 There is not need even for bash shell, **it runs using /bin/sh**.
 
-It could take from **2 to 3 minutes** to execute the hole script (less than 1 min to make almost all the checks, almost 1 min to search for possible passwords inside files and 1 min to monitor the process in order to find very frequent cron jobs).
+It could take from **2 to 3 minutes** to execute the hole script (less than 1 min to make almost all the checks, almost 1 min to search for possible passwords inside files and 1 min to monitor the processes in order to find very frequent cron jobs).
 
 This script have several lists included inside it to be able to color the results in order to help to discover PE vector.
+
+The script **automatically finds a writable directory** and writes the output of the checks there. The first console output will be the path of the file created.
 
 ## Checks
 - **System Information**
@@ -84,6 +86,8 @@ The **Red/Yellow** color is used for identifing configurations that lead to PE.
 The **Red** color is used for identifing suspicious configurations that could lead to PE:
 - Possible exploitable kernel versions
 - Identify processes running as root
+- Not mounted devices
+- Dangerous fstab permissions
 - Writable files in interesting directories
 - SUID/SGID binaries that can be used to escalate privileges (https://gtfobins.github.io/)
 - SUDO binaries that can be used to escalate privileges in sudo -l (without passwd) (https://gtfobins.github.io/)
@@ -97,6 +101,8 @@ The **Red** color is used for identifing suspicious configurations that could le
 - Files that could contains passwords
 
 The **Green** color is used for:
+- Usually not interesting devices to mount
+- Not dangerous fstab permissions
 - SUID common binaries (the bin was already found in other machines)
 - SGID common binaries
 - .sh files in path
@@ -104,6 +110,7 @@ The **Green** color is used for:
 
 The **Blue** color is used for:
 - Users without shell
+- Mounted devices
 
 The **Light Cyan** color is used for:
 - Users with shell

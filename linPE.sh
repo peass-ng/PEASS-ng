@@ -1,6 +1,5 @@
-#!/bin/bash
+#!/bin/sh
 
-file="/tmp/linPE"
 C=$(printf '\033')
 RED="${C}[1;31m"
 GREEN="${C}[1;32m"
@@ -8,7 +7,14 @@ Y="${C}[1;33m"
 B="${C}[1;34m"
 NC="${C}[0m"
 
-kernelB="3.9.6\|3.9.0\|3.9\|3.8.9\|3.8.8\|3.8.7\|3.8.6\|3.8.5\|3.8.4\|3.8.3\|3.8.2\|3.8.1\|3.8.0\|3.8\|3.7.6\|3.7.0\|3.7\|3.6.0\|3.6\|3.5.0\|3.5\|3.4.9\|3.4.8\|3.4.6\|3.4.5\|3.4.4\|3.4.3\|3.4.2\|3.4.1\|3.4.0\|3.4\|3.3\|3.2\|3.19.0\|3.16.0\|3.15\|3.14\|3.13.1\|3.13.0\|3.13\|3.12.0\|3.12\|3.11.0\|3.11\|3.10.6\|3.10.0\|3.10\|3.1.0\|3.0.6\|3.0.5\|3.0.4\|3.0.3\|3.0.2\|3.0.1\|3.0.0\|2.6.9\|2.6.8\|2.6.7\|2.6.6\|2.6.5\|2.6.4\|2.6.39\|2.6.38\|2.6.37\|2.6.36\|2.6.35\|2.6.34\|2.6.33\|2.6.32\|2.6.31\|2.6.30\|2.6.3\|2.6.29\|2.6.28\|2.6.27\|2.6.26\|2.6.25\|2.6.24.1\|2.6.24\|2.6.23\|2.6.22\|2.6.21\|2.6.20\|2.6.2\|2.6.19\|2.6.18\|2.6.17\|2.6.16\|2.6.15\|2.6.14\|2.6.13\|2.6.12\|2.6.11\|2.6.10\|2.6.1\|2.6.0\|2.4.9\|2.4.8\|2.4.7\|2.4.6\|2.4.5\|2.4.4\|2.4.37\|2.4.36\|2.4.35\|2.4.34\|2.4.33\|2.4.32\|2.4.31\|2.4.30\|2.4.29\|2.4.28\|2.4.27\|2.4.26\|2.4.25\|2.4.24\|2.4.23\|2.4.22\|2.4.21\|2.4.20\|2.4.19\|2.4.18\|2.4.17\|2.4.16\|2.4.15\|2.4.14\|2.4.13\|2.4.12\|2.4.11\|2.4.10\|2.2.24"
+filename="linpe.txt"
+kernelB=" 3.9.6\| 3.9.0\| 3.9\| 3.8.9\| 3.8.8\| 3.8.7\| 3.8.6\| 3.8.5\| 3.8.4\| 3.8.3\| 3.8.2\| 3.8.1\| 3.8.0\| 3.8\| 3.7.6\| 3.7.0\| 3.7\| 3.6.0\| 3.6\| 3.5.0\| 3.5\| 3.4.9\| 3.4.8\| 3.4.6\| 3.4.5\| 3.4.4\| 3.4.3\| 3.4.2\| 3.4.1\| 3.4.0\| 3.4\| 3.3\| 3.2\| 3.19.0\| 3.16.0\| 3.15\| 3.14\| 3.13.1\| 3.13.0\| 3.13\| 3.12.0\| 3.12\| 3.11.0\| 3.11\| 3.10.6\| 3.10.0\| 3.10\| 3.1.0\| 3.0.6\| 3.0.5\| 3.0.4\| 3.0.3\| 3.0.2\| 3.0.1\| 3.0.0\| 2.6.9\| 2.6.8\| 2.6.7\| 2.6.6\| 2.6.5\| 2.6.4\| 2.6.39\| 2.6.38\| 2.6.37\| 2.6.36\| 2.6.35\| 2.6.34\| 2.6.33\| 2.6.32\| 2.6.31\| 2.6.30\| 2.6.3\| 2.6.29\| 2.6.28\| 2.6.27\| 2.6.26\| 2.6.25\| 2.6.24.1\| 2.6.24\| 2.6.23\| 2.6.22\| 2.6.21\| 2.6.20\| 2.6.2\| 2.6.19\| 2.6.18\| 2.6.17\| 2.6.16\| 2.6.15\| 2.6.14\| 2.6.13\| 2.6.12\| 2.6.11\| 2.6.10\| 2.6.1\| 2.6.0\| 2.4.9\| 2.4.8\| 2.4.7\| 2.4.6\| 2.4.5\| 2.4.4\| 2.4.37\| 2.4.36\| 2.4.35\| 2.4.34\| 2.4.33\| 2.4.32\| 2.4.31\| 2.4.30\| 2.4.29\| 2.4.28\| 2.4.27\| 2.4.26\| 2.4.25\| 2.4.24\| 2.4.23\| 2.4.22\| 2.4.21\| 2.4.20\| 2.4.19\| 2.4.18\| 2.4.17\| 2.4.16\| 2.4.15\| 2.4.14\| 2.4.13\| 2.4.12\| 2.4.11\| 2.4.10\| 2.2.24"
+
+mounted=`(mount -l || cat /proc/mounts || cat /proc/self/mounts) 2>/dev/null | grep "^/" | cut -d " " -f1 | tr '\n' '|' | sed 's/|/\\\|/g'`"ImPoSSssSiBlEee"
+mountG="swap\|/cdrom\|/floppy"
+notmounted=`cat /etc/fstab | grep "^/" | grep -v $mountG | cut -d " " -f1 | grep -v $mounted | tr '\n' '|' | sed 's/|/\\\|/g'`"ImPoSSssSiBlEee"
+mountpermsB="[^o]suid\|[^o]user\|[^o]exec"
+mountpermsG="nosuid\|nouser\|noexec"
 
 groupsB="(root)\|(shadow)\|(admin)\|(video)"
 groupsVB="(sudo)\|(docker)\|(lxd)\|(wheel)\|(disk)"
@@ -33,18 +39,22 @@ knw_usrs='daemon:\|daemon\s\|^daemon$\|message+\|syslog\|www\|www-data\|mail\|no
 USER=`whoami`
 HOME=/home/$USER
 
-Wfolders=`find /home /tmp /var /bin /etc /usr /lib /media /mnt /opt /root -writable -type d -maxdepth 2 2>/dev/null | tr '\n' '|' | sed 's/|/\\\|/g'`" \*"
+WF=`find /home /tmp /var /bin /etc /usr /lib /media /mnt /opt /root /dev -writable -type d -maxdepth 2 2>/dev/null | sort`
+file=`echo $WF | cut -d " " -f 1`"/$filename"
+Wfolders=`echo $WF | tr ' ' '|' | sed 's/|/\\\|/g'`"\| \*"
 
 notExtensions="\.tif$\|\.tiff$\|\.gif$\|\.jpeg$\|\.jpg\|\.jif$\|\.jfif$\|\.jp2$\|\.jpx$\|\.j2k$\|\.j2c$\|\.fpx$\|\.pcd$\|\.png$\|\.pdf$\|\.flv$\|\.mp4$\|\.mp3$\|\.gifv$\|\.avi$\|\.mov$\|\.mpeg$\|\.wav$\|\.doc$\|\.docx$\|\.xls$\|\.xlsx$"
 
 TIMEOUT=`which timeout 2>/dev/null`
+GCC=`which gcc 2>/dev/null`
 
-pathshG="/dnsmap-bulk.sh\|/0trace.sh\|/gvmap.sh\|/blueranger.sh\|/testacg.sh\|/gettext.sh\|/testlahf.sh\|/setuporamysql.sh"
+pathshG="/0trace.sh\|/blueranger.sh\|/dnsmap-bulk.sh\|/gettext.sh\|/go-rhn.sh\|/gvmap.sh\|/lesspipe.sh\|/mksmbpasswd.sh\|/setuporamysql.sh\|/testacg.sh\|/testlahf.sh\|/url_handler.sh"
+
 
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then printf $B"[*] "$RED"YOU ARE ALREADY ROOT!!! (nothing is going to be executed)\n"$NC; exit; fi
 
 rm -rf $file 2>/dev/null
-echo "File: $file"
+echo "File: $file" | sed "s,.*,${C}[1;4m&${C}[0m,"
 
 echo "" >> $file
 echo "LEYEND:" | sed "s,LEYEND,${C}[1;4m&${C}[0m," >> $file
@@ -86,6 +96,9 @@ fi
 
 printf $Y"[+] "$GREEN"Useful software?\n"$NC >> $file
 which nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch 2>/dev/null >> $file
+if [ ! "$GCC" ]; then
+  locate -r "/gcc[0-9\.-]\+$" 2>/dev/null | grep -v "/doc/" >> $file
+fi
 echo "" >> $file
 
 #limited search for installed compilers
@@ -97,7 +110,7 @@ if [ "$compiler" ]; then
 fi
 
 printf $Y"[+] "$GREEN"Environment\n"$NC >> $file
-(env || set) 2>/dev/null | grep -v "kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler\|PWD=\|LS_COLORS=\|pathshG" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,Ig" >> $file
+(env || set) 2>/dev/null | grep -v "^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler\|PWD=\|LS_COLORS=\|pathshG" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,Ig" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Cleaned proccesses\n"$NC >> $file
@@ -132,7 +145,7 @@ ls /dev 2>/dev/null | grep -i "sd" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Unmounted file-system?\n"$NC >> $file
-cat /etc/fstab 2>/dev/null | grep -v "^#" >> $file
+cat /etc/fstab 2>/dev/null | grep -v "^#" | sed "s,$notmounted,${C}[1;31m&${C}[0m," | sed "s,$mounted,${C}[1;34m&${C}[0m," | sed "s,$mountG,${C}[1;32m&${C}[0m,g" | sed "s,$Wfolders,${C}[1;31m&${C}[0m," | sed "s,$mountpermsB,${C}[1;31m&${C}[0m,g" | sed "s,$mountpermsG,${C}[1;32m&${C}[0m,g" >> $file
 echo "" >> $file
 
 printer=`lpstat -a 2>/dev/null`
