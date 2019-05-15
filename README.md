@@ -15,7 +15,7 @@ The script **automatically finds a writable directory** and writes the output of
 ## Checks
 - **System Information**
 - [x] SO, kernel version & sudo version
-- [x] PATH, Date, time, selinux & env
+- [x] PATH, Date, time, selinux & env (and exports a new path if lacks basic folders)
 - [x] Useful software installed (special search for compilers)
 - [x] Processes (Current, Executed within a minute, Binary permissions)
 - [x] Services
@@ -85,6 +85,7 @@ The **Red/Yellow** color is used for identifing configurations that lead to PE.
 
 The **Red** color is used for identifing suspicious configurations that could lead to PE:
 - Possible exploitable kernel versions
+- Vulnerable sudo versions
 - Identify processes running as root
 - Not mounted devices
 - Dangerous fstab permissions
@@ -101,6 +102,7 @@ The **Red** color is used for identifing suspicious configurations that could le
 - Files that could contains passwords
 
 The **Green** color is used for:
+- Usually processes run by root
 - Usually not interesting devices to mount
 - Not dangerous fstab permissions
 - SUID common binaries (the bin was already found in other machines)
