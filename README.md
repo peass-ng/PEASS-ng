@@ -41,7 +41,7 @@ The script **automatically finds a writable directory** and writes the output of
 
 
 - **Software Information**
-- [x] MySQl (Version, loging as "root:")
+- [x] MySQl (Version, user being configured, loging as "root:root","root:toor","root:", user hashes extraction via DB and file, possible backup user configured)
 - [x] PostgreSQL (Version, try login in "template0" and "template1" as: "postgres:", "psql:")
 - [x] Apache (Version)
 - [x] Wordpress (Database credentials)

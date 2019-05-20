@@ -57,12 +57,12 @@ GCC=`which gcc 2>/dev/null`
 
 pathshG="/0trace.sh\|/blueranger.sh\|/dnsmap-bulk.sh\|/gettext.sh\|/go-rhn.sh\|/gvmap.sh\|/lesspipe.sh\|/mksmbpasswd.sh\|/setuporamysql.sh\|/testacg.sh\|/testlahf.sh\|/url_handler.sh"
 
-notBackup="/tdbbackup$"
+notBackup="/tdbbackup$\|/db_hotbackup$"
 
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then printf $B"[*] "$RED"YOU ARE ALREADY ROOT!!! (nothing is going to be executed)\n"$NC; exit; fi
 
 rm -rf $file 2>/dev/null
-echo "File: $file" | sed "s,.*,${C}[1;4m&${C}[0m,"
+echo "Output File: $file" | sed "s,.*,${C}[1;4m&${C}[0m,"
 
 echo "" >> $file
 echo "LEYEND:" | sed "s,LEYEND,${C}[1;4m&${C}[0m," >> $file
@@ -94,7 +94,7 @@ ADDPATH=":/usr/local/sbin"\
 for P in "${ADDPATH}"; do
   if [ "${PATH##*$P*}" ];then export PATH="$PATH$P"; fi
 done
-echo "New path exported: $PATH"
+echo "New path exported: $PATH" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Date\n"$NC >> $file
@@ -144,7 +144,7 @@ printf $Y"[+] "$GREEN"Services\n"$NC >> $file
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Different processes executed during 1 min (interesting is low number of repetitions)\n"$NC >> $file
-if [ "`ps -e --format cmd`" ]; then for i in $(seq 1 121); do ps -e --format cmd >> $file.tmp1; sleep 0.5; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort >> $file; rm $file.tmp1; fi
+if [ "`ps -e --format cmd`" ]; then for i in $(seq 1 610); do ps -e --format cmd >> $file.tmp1; sleep 0.1; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort | grep -E -v "\s*[6-9][0-9][0-9]|\s*[0-9][0-9][0-9][0-9]" >> $file; rm $file.tmp1; fi
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Scheduled tasks\n"$NC >> $file
@@ -163,7 +163,7 @@ ls /dev 2>/dev/null | grep -i "sd" | head -n 10 >> $file
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Unmounted file-system?\n"$NC >> $file
-cat /etc/fstab 2>/dev/null | grep -v "^#" | sed "s,$notmounted,${C}[1;31m&${C}[0m," | sed "s,$mounted,${C}[1;34m&${C}[0m," | sed "s,$mountG,${C}[1;32m&${C}[0m,g" | sed "s,$Wfolders,${C}[1;31m&${C}[0m," | sed "s,$mountpermsB,${C}[1;31m&${C}[0m,g" | sed "s,$mountpermsG,${C}[1;32m&${C}[0m,g" >> $file
+cat /etc/fstab 2>/dev/null | grep -v "^#" | sed "s,$mountG,${C}[1;32m&${C}[0m,g" | sed "s,$notmounted,${C}[1;31m&${C}[0m," | sed "s,$mounted,${C}[1;34m&${C}[0m,"  | sed "s,$Wfolders,${C}[1;31m&${C}[0m," | sed "s,$mountpermsB,${C}[1;31m&${C}[0m,g" | sed "s,$mountpermsG,${C}[1;32m&${C}[0m,g" >> $file
 echo "" >> $file
 
 printer=`lpstat -a 2>/dev/null`
@@ -279,6 +279,7 @@ mysqlver=`mysql --version 2>/dev/null`
 if [ "$mysqlver" ]; then
   printf $Y"[+] "$GREEN"MySQL\n"$NC >> $file
   echo "Version: $mysqlver" >> $file # TODO: color in red known vulnerable versions
+
   echo "" >> $file
 fi
 
@@ -286,15 +287,51 @@ fi
 mysqlconnect=`mysqladmin -uroot -proot version 2>/dev/null`
 if [ "$mysqlconnect" ]; then
   echo "We can connect to the local MYSQL service with default root/root credentials!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+  mysql -u root --password=root -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+  echo "" >> $file
+fi
+
+#checks to see if root/toor will get us a connection
+mysqlconnect=`mysqladmin -uroot -ptoor version 2>/dev/null`
+if [ "$mysqlconnect" ]; then
+  echo "We can connect to the local MYSQL service with root/toor credentials!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+  mysql -u root --password=toor -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
   echo "" >> $file
 fi
 
 #mysql version details
 mysqlconnectnopass=`mysqladmin -uroot version 2>/dev/null`
 if [ "$mysqlconnectnopass" ]; then
-  echo "We can connect to the local MYSQL service as 'root' and without a password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file 
+  echo "We can connect to the local MYSQL service as 'root' and without a password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+  mysql -u root -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
   echo ""
 fi
+
+#mysqlCredentials
+mysqldirs=`find /etc /usr/var/lib /var/lib -type d -name mysql -not -path "*mysql/mysql"  2>/dev/null`
+for d in $mysqldirs; do 
+  dcnf=`find $d -name debian.cnf 2>/dev/null`
+  for f in $dcnf; do
+    if [ -r $f ]; then 
+      echo "We can read the mysql debian.cnf. You can use this username/password to log in MySQL" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+      cat $f  >> $file
+    fi
+  done
+  uMYD=`find $d -name user.MYD 2>/dev/null`
+  for f in $uMYD; do
+    if [ -r $f ]; then 
+      echo "We can read the Mysql Hashes from $f" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+      grep -oaE "[-_\.\*a-Z0-9]{3,}" $f | grep -v "mysql_native_password"  >> $file
+    fi
+  done
+  user=`grep -lr "user\s*=" $d 2>/dev/null | grep -v "debian.cnf"`
+  for f in $user; do
+    if [ -r $f ]; then
+      u=`cat $f | grep -v "#" | grep "user" | grep "=" 2>/dev/null`
+      echo "From '$f' Mysql user: $u" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," >> $file
+    fi
+  done
+done
 
 #postgres details - if installed
 postgver=`psql -V 2>/dev/null`
@@ -421,10 +458,11 @@ fi
 #vnc
 vnc=`find /home /root -name .vnc 2>/dev/null`
 if [ "$vnc" ]; then
-  printf $Y"[+] "$GREEN".vnc directories found, searcching for passwd files\n"$NC >> $file
+  printf $Y"[+] "$GREEN".vnc directories found, searching for passwd files\n"$NC >> $file
   echo $vnc
-  for d in $vnc; do find $d -name "passwd" -exec cat {} \; 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," >> $file; done
+  for d in $vnc; do find $d -name "passwd" -exec ls -l {} \; 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," >> $file; done
 fi
+
 
 echo "" >> $file
 printf $B"[*] "$GREEN"Gathering files information...\n"$NC
@@ -455,7 +493,7 @@ echo "" >> $file
 
 
 printf $Y"[+] "$GREEN"SSH Files\n"$NC >> $file
-find / \( -name "id_dsa*" -o -name "id_rsa*" -o -name "known_hosts" -o -name "authorized_hosts" -o -name "authorized_keys" \) -type f -exec ls -la {} \;  2>/dev/null >> $file
+find / \( -name "id_dsa*" -o -name "id_rsa*" -o -name "known_hosts" -o -name "authorized_hosts" -o -name "authorized_keys" \) -exec ls -la {} \;  2>/dev/null >> $file
 echo "" >> $file
 
 sshrootlogin=`grep "PermitRootLogin " /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | awk '{print  $2}'`
@@ -466,7 +504,7 @@ fi
 
 privatekeyfiles=`grep -rl "PRIVATE KEY-----" /home /root 2>/dev/null`
 if [ "$privatekeyfiles" ]; then
-  privatekeyfilesgrep=`grep -L "\"\|'\|(" $privatekeyfiles`
+  privatekeyfilesgrep=`grep -L "\"\|'\|(" $privatekeyfiles` # Check there are not that symbols in the file
 fi
 if [ "$privatekeyfilesgrep" ]; then
     echo "Private SSH keys found!:\n$privatekeyfilesgrep" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
@@ -517,7 +555,7 @@ echo "" >> $file
 
 printf $Y"[+] "$GREEN"*_history, profile, bashrc, httpd.conf, .plan, .htpasswd, .git-credentials, hosts.equiv, .sudo_as_admin_successful\n"$NC >> $file
 fils=`find / -type f \( -name "*_history" -o -name ".sudo_as_admin_successful" -o -name ".profile" -o -name "*bashrc" -o -name "httpd.conf" -o -name "*.plan" -o -name ".htpasswd" -o -name ".git-credentials" -o -name "*.rhosts" -o -name "hosts.equiv" -o -name "Dockerfile" -o -name "docker-compose.yml" \) 2>/dev/null`
-for f in $fils; do if [ -r $f ]; then ls -l $f 2>/dev/null | sed "s,bash_history\|\.plan\|\.htpasswd\|\.git-credentials\|\.rhosts\|.sudo_as_admin_successful,${C}[1;31m&${C}[0m," >> $file; fi; done
+for f in $fils; do if [ -r $f ]; then ls -l $f 2>/dev/null | sed "s,bash_history\|\.plan\|\.htpasswd\|\.git-credentials\|\.rhosts\|.sudo_as_admin_successful,${C}[1;31m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,/root,${C}[1;31m&${C}[0m," >> $file; fi; done
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"All hidden files (not in /sys/, not: .gitignore, .listing, .ignore, .uuid, .depend and listed before) (limit 100)\n"$NC >> $file
@@ -556,7 +594,7 @@ grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Finding passwords inside logs (limited 100)\n"$NC >> $file
-grep -R -i "pwd\|passw" /var/log/ 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | head -n 100 | sed "s,pwd\|passw,${C}[1;31m&${C}[0m," >> $file #Add to one-liner
+grep -R -i "pwd\|passw" /var/log/ 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | grep -v "File does not exist:\|script not found or unable to stat:\|\"GET /.*\" 404" | head -n 100 | sed "s,pwd\|passw,${C}[1;31m&${C}[0m," >> $file #Add to one-liner
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Finding emails inside logs (limited 100)\n"$NC >> $file
