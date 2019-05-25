@@ -52,7 +52,9 @@ The script **automatically finds a writable directory** and writes the output of
 - [x] Rsyncd (Credentials)
 - [x] Hostapd (Credentials)
 - [x] Network (Credentials)
-
+- [x] Anaconda-ks (Credentials)
+- [x] VNC (Credentials)
+- [x] LDAP database (Credentials)
 
 - **Interesting Files**
 - [x] Pkexec policy, SUID & SGID files
@@ -77,7 +79,7 @@ The script **automatically finds a writable directory** and writes the output of
 
 
 
-## Colours
+## Colors
 
 LinPE uses colors to indicate where does each section begins. But **it also use them the identify potencial misconfigurations**.
 
@@ -90,7 +92,7 @@ The **Red** color is used for identifing suspicious configurations that could le
 - Not mounted devices
 - Dangerous fstab permissions
 - Writable files in interesting directories
-- SUID/SGID binaries that can be used to escalate privileges (https://gtfobins.github.io/)
+- SUID/SGID binaries that have some version vulnerable (it also specifies the vulnerable version)
 - SUDO binaries that can be used to escalate privileges in sudo -l (without passwd) (https://gtfobins.github.io/)
 - 127.0.0.1 in netstat
 - Known files that could contain passwords
@@ -102,12 +104,11 @@ The **Red** color is used for identifing suspicious configurations that could le
 - Files that could contains passwords
 
 The **Green** color is used for:
-- Usually processes run by root
-- Usually not interesting devices to mount
+- Common processes run by root
+- Common not interesting devices to mount
 - Not dangerous fstab permissions
-- SUID common binaries (the bin was already found in other machines)
-- SGID common binaries
-- .sh files in path
+- SUID/SGID common binaries (the bin was already found in other machines and searchsploit doesnt identify any vulnerable version)
+- Common .sh files in path
 - Common names of users executing processes
 
 The **Blue** color is used for:
