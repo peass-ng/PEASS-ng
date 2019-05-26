@@ -87,7 +87,12 @@ GROUPS="ImPoSSssSiBlEee"`groups $USER 2>/dev/null | cut -d ":" -f 2 | tr ' ' '|'
 
 
 WF=`find /home /tmp /var /bin /etc /usr /lib /media /mnt /opt /root /dev  -type d -maxdepth 2 '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | sort`
-file=`echo $WF | cut -d " " -f 1`"/$filename"
+file=""
+for f in $WF; do
+  echo '' > $f/$filename 2>/dev/null
+  if [ $? -eq 0 ]; then file="$f/$filename"; break; fi;
+done;
+if [ ! "$file" ]; then printf $B"[*] "$RED"I didn't find any writable folder!!\n"$NC; echo $WF; exit; fi;
 Wfolders=`echo $WF | tr ' ' '|' | sed 's/|/\\\|/g'`"\| \*"
 
 notExtensions="\.tif$\|\.tiff$\|\.gif$\|\.jpeg$\|\.jpg\|\.jif$\|\.jfif$\|\.jp2$\|\.jpx$\|\.j2k$\|\.j2c$\|\.fpx$\|\.pcd$\|\.png$\|\.pdf$\|\.flv$\|\.mp4$\|\.mp3$\|\.gifv$\|\.avi$\|\.mov$\|\.mpeg$\|\.wav$\|\.doc$\|\.docx$\|\.xls$\|\.xlsx$"
@@ -504,10 +509,10 @@ if [ "$vnc" ]; then
 fi
 
 #ldap
-if [ -d "/var/lib/ldap" ];
-  printf $Y"[+] "$GREEN"/var/lib/lda has been found. Trying to extract passwords:\n"$NC >> $file;
+if [ -d "/var/lib/ldap" ]; then
+  printf $Y"[+] "$GREEN"/var/lib/ldap has been found. Trying to extract passwords:\n"$NC >> $file;
   echo "The password hash is from the {SSHA} to 'structural'" >> $file;
-  cat /var/lib/ldap/*.bdb | grep -i -a -E -o "description.*" | sort | uniq -u | sed "s,administrator\|password,${C}[1;31m&${C}[0m,Ig" >> $file;
+  cat /var/lib/ldap/*.bdb 2>/dev/null | grep -i -a -E -o "description.*" | sort | uniq -u | sed "s,administrator\|password,${C}[1;31m&${C}[0m,Ig" >> $file;
 fi
 
 echo "" >> $file
@@ -521,35 +526,36 @@ if [ "$pkexecpolocy" ]; then
   echo "" >> $file
 fi
 
-  # for b in $sidB; do
-    #if [ "`echo $s | grep $(echo $b | cut -d "%" -f 1)`" ]; then
-    #  echo "s,$(echo $b | cut -d "%" -f 1),${C}[1;31m&  --->  $(echo $b | cut -d "%" -f 2)${C}[0m,"
-    #  echo $s | sed "s,$(echo $b | cut -d "%" -f 1),${C}[1;31m&  --->  $(echo $b | cut -d "%" -f 2)${C}[0m,"
-    #  c = ""
-    #  break;
-    #fi
-  # done
-
 printf $Y"[+] "$GREEN"SUID\n"$NC >> $file
 for s in `find / -perm -4000 2>/dev/null`; do
-for s in $f; do
   c="a"
   for b in $sidB; do
-  if [ "`echo $s | grep $(echo $b | cut -d "%" -f 1)`" ]; then
-    echo $s | sed "s,$(echo $b | cut -d "%" -f 1),${C}[1;31m&\t\t--->\t$(echo $b | cut -d "%" -f 2)${C}[0m,"
-    c=""
-    break;
-  fi
+    if [ "`echo $s | grep $(echo $b | cut -d "%" -f 1)`" ]; then
+      echo $s | sed "s,$(echo $b | cut -d "%" -f 1),${C}[1;31m&\t\t--->\t$(echo $b | cut -d "%" -f 2)${C}[0m," >> $file
+      c=""
+      break;
+    fi
   done;
   if [ "$c" ]; then
-      echo $s | sed "s,$sidG,${C}[1;32m&${C}[0m," | sed "s,$sidVB,${C}[1;31;103m&${C}[0m,"
+      echo $s | sed "s,$sidG,${C}[1;32m&${C}[0m," | sed "s,$sidVB,${C}[1;31;103m&${C}[0m," >> $file
     fi
 done;
-find / -perm -4000 2>/dev/null | sed "s,$sidG,${C}[1;32m&${C}[0m," | sed "s,$sidVB,${C}[1;31;103m&${C}[0m,"
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"SGID\n"$NC >> $file
-find / -perm -g=s -type f 2>/dev/null | sed "s,$sidG,${C}[1;32m&${C}[0m," | sed "s,$sidB,${C}[1;31m&${C}[0m," | sed "s,$sidVB,${C}[1;31;103m&${C}[0m," >> $file
+for s in `find / -perm -g=s -type f 2>/dev/null`; do
+  c="a"
+  for b in $sidB; do
+    if [ "`echo $s | grep $(echo $b | cut -d "%" -f 1)`" ]; then
+      echo $s | sed "s,$(echo $b | cut -d "%" -f 1),${C}[1;31m&\t\t--->\t$(echo $b | cut -d "%" -f 2)${C}[0m," >> $file
+      c=""
+      break;
+    fi
+  done;
+  if [ "$c" ]; then
+      echo $s | sed "s,$sidG,${C}[1;32m&${C}[0m," | sed "s,$sidVB,${C}[1;31;103m&${C}[0m," >> $file
+    fi
+done;
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Capabilities\n"$NC >> $file
