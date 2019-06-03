@@ -1,6 +1,11 @@
 # LinPE - Linux Privilege Escalation (one-liner)
 
-The goal of this script is to search for possible **Privilege Escalatoin vectors inside a linux machine**.
+![](https://github.com/carlospolop/linPE/blob/master/images/linpe.png)
+
+[![asciicast](https://asciinema.org/a/249809.png)](https://asciinema.org/a/249809)
+
+
+The goal of this script is to search for possible **Privilege Escalation vectors inside a linux machine**.
 
 This script does not have any dependency.
 
