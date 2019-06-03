@@ -573,7 +573,7 @@ getcap -r / 2>/dev/null | sed "s,$sudocapsB,${C}[1;31m&${C}[0m," | sed "s,$capsB
 echo "" >> $file
 
 printf $Y"[+] "$GREEN".sh files in path\n"$NC >> $file
-for d in `echo $PATH | tr ":" "\n"`; do find $d -name *.sh | sed "s,$pathshG,${C}[1;32m&${C}[0m," >> $file ; done
+for d in `echo $PATH | tr ":" "\n"`; do find $d -name "*.sh" | sed "s,$pathshG,${C}[1;32m&${C}[0m," >> $file ; done
 echo "" >> $file
 
 
