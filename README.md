@@ -1,6 +1,5 @@
 # LinPE - Linux Privilege Escalation (one-liner)
 
-![](https://github.com/carlospolop/linPE/blob/master/images/linpe.png)
 
 [![asciicast](https://asciinema.org/a/249809.png)](https://asciinema.org/a/249809)
 
@@ -17,7 +16,10 @@ This script have several lists included inside it to be able to color the result
 
 The script **automatically finds a writable directory** and writes the output of the checks there. The first console output will be the path of the file created.
 
-## Checks
+![](https://github.com/carlospolop/linPE/blob/master/images/linpe.png)
+
+
+## What does linpe looks for
 - **System Information**
 - [x] SO, kernel version & sudo version
 - [x] PATH, Date, time, selinux & env (and exports a new path if lacks basic folders)
