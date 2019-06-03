@@ -55,6 +55,7 @@ The script **automatically finds a writable directory** and writes the output of
 - [x] Anaconda-ks (Credentials)
 - [x] VNC (Credentials)
 - [x] LDAP database (Credentials)
+- [x] Open VPN files (Credentials)
 
 - **Interesting Files**
 - [x] Pkexec policy, SUID & SGID files
