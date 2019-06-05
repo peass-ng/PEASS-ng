@@ -22,7 +22,7 @@ The script **automatically finds a writable directory** and writes the output of
 
 LinPE uses colors to indicate where does each section begins. But **it also use them the identify potencial misconfigurations**.
 
-The ![](https://placehold.it/15/b32400/000000?text=+) **Red/Yellow** ![](https://placehold.it/15/fff500/000000?text=+) color is used for identifing configurations that lead to PE.
+The ![](https://placehold.it/15/b32400/000000?text=+) **Red/Yellow** ![](https://placehold.it/15/fff500/000000?text=+) color is used for identifing configurations that lead to PE (99% sure).
 
 The ![](https://placehold.it/15/b32400/000000?text=+) **Red** color is used for identifing suspicious configurations that could lead to PE:
 - Possible exploitable kernel versions
