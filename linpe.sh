@@ -69,6 +69,7 @@ sidB="/apache2%Read_root_passwd__apache2_-f_/etc/shadow\
  /sendmail$%Sendmail_8.10.1/Sendmail_8.11.x/Linux_Kernel_2.2.x_2.4.0-test1_(SGI_ProPack_1.2/1.3)\
  /sudo$\
  /sudoedit$%Sudo/SudoEdit_1.6.9p21/1.7.2p4/(RHEL_5/6/7/Ubuntu)/Sudo<=1.8.14\
+ /tmux%Tmux_1.3_1.4_privesc
  /traceroute$%LBL_Traceroute_[2000-11-15]\
  /umount$%BSD/Linux[1996-08-13]\
  /umount-loop$%Rocks_Clusters<=4.1\
@@ -94,6 +95,8 @@ knw_usrs='daemon:\|daemon\s\|^daemon$\|message+\|syslog\|www\|www-data\|mail\|no
 USER=`whoami`
 HOME=/home/$USER
 GROUPS="ImPoSSssSiBlEee"`groups $USER 2>/dev/null | cut -d ":" -f 2 | tr ' ' '|' | sed 's/|/\\\|/g'`
+
+pwd_inside_history="PASSW\|passw\|root\|sudo\|^su\|pkexec\|^ftp\|mongo\|psql\|mysql\|rdekstop\|xfreerdp\|^ssh\|@"
 
 WF=`find /home /tmp /var /bin /etc /usr /lib /media /mnt /opt /root /dev -type d -maxdepth 2 '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | sort`
 file=""
@@ -192,7 +195,7 @@ fi
 
 printf $Y"[+] "$GREEN"Environment\n"$NC >> $file
 printf $B"[i] "$Y"Any private information inside environment variables?\n"$NC >> $file
-(env || set) 2>/dev/null | grep -v "kernelDCW_Ubuntu_Precise_1\|kernelDCW_Ubuntu_Precise_2\|kernelDCW_Ubuntu_Trusty_1\|kernelDCW_Ubuntu_Trusty_2\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel5\|kernelDCW_Rhel6_1\|kernelDCW_Rhel6_2\|kernelDCW_Rhel7\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,Ig" >> $file
+(env || set) 2>/dev/null | grep -v "pwd_inside_history\|kernelDCW_Ubuntu_Precise_1\|kernelDCW_Ubuntu_Precise_2\|kernelDCW_Ubuntu_Trusty_1\|kernelDCW_Ubuntu_Trusty_2\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel5\|kernelDCW_Rhel6_1\|kernelDCW_Rhel6_2\|kernelDCW_Rhel7\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,Ig" >> $file
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Cleaned proccesses\n"$NC >> $file
@@ -220,6 +223,7 @@ printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sc
 crontab -l 2>/dev/null | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," >> $file
 ls -al /etc/cron* 2>/dev/null >> $file
 cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/root /var/spool/anacron 2>/dev/null | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m,"  | sed "s,root,${C}[1;31m&${C}[0m," >> $file
+crontab -l -u $USER 2>/dev/null >> $file
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"System stats?\n"$NC >> $file
@@ -345,8 +349,8 @@ echo "" >> $file
 
 
 echo "" >> $file
-printf $B"[*] "$GREEN"Gathering software information...\n"$NC
-printf $B"[*] "$GREEN"Software PE\n"$NC >> $file 
+printf $B"[*] "$GREEN"Gathering sensitive software information...\n"$NC
+printf $B"[*] "$GREEN"SENSITIVE SOFTWARE INFORMATION\n"$NC >> $file 
 echo "" >> $file
 
 mysqlver=`mysql --version 2>/dev/null`
@@ -552,9 +556,49 @@ if [ "$ovpn" ]; then
   for f in $ovpn; do cat $f 2>/dev/null | grep "auth-user-pass" | sed "s,auth-user-pass.*,${C}[1;31m&${C}[0m," >> $file; done
 fi
 
+#SSH
+ssh=`find / \( -name "id_dsa*" -o -name "id_rsa*" -o -name "known_hosts" -o -name "authorized_hosts" -o -name "authorized_keys" \) -exec ls -la {} \;  2>/dev/null`
+if [ "$ssh" ]; then
+  printf $Y"[+] "$GREEN"SSH Files\n"$NC >> $file
+  echo $ssh >> $file
+  echo "" >> $file
+fi
+
+sshrootlogin=`grep "PermitRootLogin " /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | awk '{print  $2}'`
+if [ "$sshrootlogin" = "yes" ]; then
+  echo "SSH root login is PERMITTED"| sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+  echo "" >> $file
+fi
+
+privatekeyfiles=`grep -rl "PRIVATE KEY-----" /home /root 2>/dev/null`
+if [ "$privatekeyfiles" ]; then
+  privatekeyfilesgrep=`grep -L "\"\|'\|(" $privatekeyfiles` # Check there are not that symbols in the file
+fi
+if [ "$privatekeyfilesgrep" ]; then
+    echo "Private SSH keys found!:\n$privatekeyfilesgrep" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+  	echo "" >> $file
+fi
+
+#AWS
+awskeyfiles=`grep -rli "aws_secret_access_key" /home /root 2>/dev/null | grep -v $(basename "$0")`
+if [ "$awskeyfiles" ]; then
+    printf $Y"[+] "$GREEN"AWS Keys\n"$NC >> $file
+  	echo "AWS secret keys found!: $awskeyfiles" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+  	echo "" >> $file
+fi
+
+#NFS
+exprts=`cat /etc/exports 2>/dev/null`
+if [ "$exprts" ]; then
+    printf $Y"[+] "$GREEN"NFS exports?\n"$NC >> $file
+    printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation/nfs-no_root_squash-misconfiguration-pe\n"$NC >> $file
+    cat /etc/exports 2>/dev/null | grep -v "^#" | sed "s,no_root_squash\|no_all_squash ,${C}[1;31;103m&${C}[0m," >> $file
+    echo "" >> $file
+fi
+
 echo "" >> $file
 printf $B"[*] "$GREEN"Gathering files information...\n"$NC
-printf $B"[*] "$GREEN"INTERESTING FILES\n"$NC >> $file 
+printf $B"[*] "$GREEN"GENERAL INTERESTING FILES\n"$NC >> $file 
 echo "" >> $file
 pkexecpolocy=`cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null`
 if [ "$pkexecpolocy" ]; then
@@ -606,41 +650,6 @@ printf $Y"[+] "$GREEN".sh files in path\n"$NC >> $file
 for d in `echo $PATH | tr ":" "\n"`; do find $d -name "*.sh" | sed "s,$pathshG,${C}[1;32m&${C}[0m," >> $file ; done
 echo "" >> $file
 
-
-printf $Y"[+] "$GREEN"SSH Files\n"$NC >> $file
-find / \( -name "id_dsa*" -o -name "id_rsa*" -o -name "known_hosts" -o -name "authorized_hosts" -o -name "authorized_keys" \) -exec ls -la {} \;  2>/dev/null >> $file
-echo "" >> $file
-
-sshrootlogin=`grep "PermitRootLogin " /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | awk '{print  $2}'`
-if [ "$sshrootlogin" = "yes" ]; then
-  echo "SSH root login is PERMITTED"| sed "s,.*,${C}[1;31m&${C}[0m," >> $file
-  echo "" >> $file
-fi
-
-privatekeyfiles=`grep -rl "PRIVATE KEY-----" /home /root 2>/dev/null`
-if [ "$privatekeyfiles" ]; then
-  privatekeyfilesgrep=`grep -L "\"\|'\|(" $privatekeyfiles` # Check there are not that symbols in the file
-fi
-if [ "$privatekeyfilesgrep" ]; then
-    echo "Private SSH keys found!:\n$privatekeyfilesgrep" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
-  	echo "" >> $file
-fi
-
-awskeyfiles=`grep -rli "aws_secret_access_key" /home /root 2>/dev/null | grep -v $(basename "$0")`
-if [ "$awskeyfiles" ]; then
-    printf $Y"[+] "$GREEN"AWS Keys\n"$NC >> $file
-  	echo "AWS secret keys found!: $awskeyfiles" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
-  	echo "" >> $file
-fi
-
-exprts=`cat /etc/exports 2>/dev/null`
-if [ "$exprts" ]; then
-    printf $Y"[+] "$GREEN"NFS exports?\n"$NC >> $file
-    printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation/nfs-no_root_squash-misconfiguration-pe\n"$NC >> $file
-    cat /etc/exports 2>/dev/null | grep -v "^#" | sed "s,no_root_squash\|no_all_squash ,${C}[1;31;103m&${C}[0m," >> $file
-    echo "" >> $file
-fi
-
 printf $Y"[+] "$GREEN"Hashes inside passwd file? Readable shadow file, or /root?\n"$NC >> $file
 printf $B"[i] "$Y"Try to crack the hashes\n"$NC >> $file
 grep -v '^[^:]*:[x]' /etc/passwd 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
@@ -673,7 +682,16 @@ echo "" >> $file
 printf $Y"[+] "$GREEN"*_history, .sudo_as_admin_successful, profile, bashrc, httpd.conf, .plan, .htpasswd, .git-credentials, .rhosts, hosts.equiv, Dockerfile, docker-compose.yml\n"$NC >> $file
 printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#read-sensitive-data\n"$NC >> $file
 fils=`find / -type f \( -name "*_history" -o -name ".sudo_as_admin_successful" -o -name ".profile" -o -name "*bashrc" -o -name "httpd.conf" -o -name "*.plan" -o -name ".htpasswd" -o -name ".git-credentials" -o -name "*.rhosts" -o -name "hosts.equiv" -o -name "Dockerfile" -o -name "docker-compose.yml" \) 2>/dev/null`
-for f in $fils; do if [ -r $f ]; then ls -l $f 2>/dev/null | sed "s,bash_history\|\.sudo_as_admin_successful\|\.plan\|\.htpasswd\|\.git-credentials\|\.rhosts\|,${C}[1;31m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,/root,${C}[1;31m&${C}[0m," >> $file; fi; done
+for f in $fils; do 
+  if [ -r $f ]; then 
+    ls -l $f 2>/dev/null | sed "s,bash_history\|\.sudo_as_admin_successful\|\.plan\|\.htpasswd\|\.git-credentials\|\.rhosts\|,${C}[1;31m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,/root,${C}[1;31m&${C}[0m," >> $file; 
+    g=`echo $f | grep "_history"`
+    if [ $g ]; then
+      printf $GREEN"Looking for possible passwords inside $f\n"$NC >> $file
+      cat $f | grep $pwd_inside_history | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m," >> $file
+    fi;
+  fi; 
+done
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"All hidden files (not in /sys/, not: .gitignore, .listing, .ignore, .uuid, .depend and listed before) (limit 100)\n"$NC >> $file

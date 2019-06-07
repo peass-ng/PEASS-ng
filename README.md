@@ -106,7 +106,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 - [x] List of all users
 
 
-- **Software Information**
+- **Software Sensitive Information**
 - [x] MySQl (Version, user being configured, loging as "root:root","root:toor","root:", user hashes extraction via DB and file, possible backup user configured)
 - [x] PostgreSQL (Version, try login in "template0" and "template1" as: "postgres:", "psql:")
 - [x] Apache (Version)
@@ -122,20 +122,22 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 - [x] VNC (Credentials)
 - [x] LDAP database (Credentials)
 - [x] Open VPN files (Credentials)
+- [x] SSH (private keys, known_hosts, authorized_hosts, authorized_keys, root login permitted)
+- [x] AWS (Files with AWS keys)
+- [X] NFS (privilege escalation misconfiguration)
 
-- **Interesting Files**
+
+- **Generic Interesting Files**
 - [x] Pkexec policy, SUID & SGID files
 - [x] Capabilities
 - [x] .sh scripts in PATH
 - [x] Reduced list of files inside home
-- [x] SSH files
 - [x] Mails
-- [x] NFS exports
 - [x] Hashes (passwd, shadow & master.passwd)
 - [x] Try to read root dir
 - [x] Check if Docker or LXC container
 - [x] List ALL writable files for current user (global, user and groups)
-- [x] Files that can contain passwords
+- [x] Files that can contain passwords (and search for passwords inside *_history files)
 - [x] List of all hidden files
 - [x] Search buckup files
 - [x] Inside /tmp, /var/tmp and /var/backups
