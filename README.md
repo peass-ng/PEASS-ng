@@ -8,11 +8,11 @@ The goal of this script is to search for possible **Privilege Escalation vectors
 
 This script does not have any dependency.
 
-There is not need even for bash shell, **it runs using /bin/sh**.
+There is no need even for bash shell, **it runs using /bin/sh**.
 
 It could take from **2 to 3 minutes** to execute the hole script (less than 1 min to make almost all the checks, almost 1 min to search for possible passwords inside all the accesible files of the system and 1 min to monitor the processes in order to find very frequent cron jobs).
 
-This script have several lists included inside it to be able to color the results in order to help to discover PE vector.
+This script has several lists included inside of it to be able to color the results in order to discover PE vector.
 
 The script **automatically finds a writable directory** and writes the output of the checks there. The first console output will be the path of the file created.
 
@@ -20,7 +20,7 @@ The script **automatically finds a writable directory** and writes the output of
 
 ## Colors
 
-LinPE uses colors to indicate where does each section begins. But **it also use them the identify potencial misconfigurations**.
+LinPE uses colors to indicate where does each section begin. But **it also uses them the identify potencial misconfigurations**.
 
 The ![](https://placehold.it/15/b32400/000000?text=+) **Red/Yellow** ![](https://placehold.it/15/fff500/000000?text=+) color is used for identifing configurations that lead to PE (99% sure).
 
@@ -31,7 +31,7 @@ The ![](https://placehold.it/15/b32400/000000?text=+) **Red** color is used for 
 - Not mounted devices
 - Dangerous fstab permissions
 - Writable files in interesting directories
-- SUID/SGID binaries that have some version vulnerable (it also specifies the vulnerable version)
+- SUID/SGID binaries that have some vulnerable version (it also specifies the vulnerable version)
 - SUDO binaries that can be used to escalate privileges in sudo -l (without passwd) (https://gtfobins.github.io/)
 - 127.0.0.1 in netstat
 - Known files that could contain passwords
@@ -46,7 +46,7 @@ The ![](https://placehold.it/15/66ff33/000000?text=+) **Green** color is used fo
 - Common processes run by root
 - Common not interesting devices to mount
 - Not dangerous fstab permissions
-- SUID/SGID common binaries (the bin was already found in other machines and searchsploit doesnt identify any vulnerable version)
+- SUID/SGID common binaries (the bin was already found in other machines and searchsploit doesn't identify any vulnerable version)
 - Common .sh files in path
 - Common names of users executing processes
 
@@ -68,7 +68,7 @@ The ![](https://placehold.it/15/bf80ff/000000?text=+) **Light Magenta** color is
 
 Here you have an old linpe version script in one line, **just copy and paste it**;)
 
-This one-liner is deprecated (I am not going to update it more), but it could be useful in some cases so I will remain here:
+This one-liner is deprecated (I am not going to update it more), but it could be useful in some cases so it will remain here:
 
 The default file where all the data is recorded is: */tmp/linPE* (you can change it at the beginning of the script)
 
@@ -78,73 +78,73 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 ```
 
 
-## What does linpe looks for
+## What does linpe look for
 - **System Information**
-- [x] SO, kernel version & sudo version
-- [x] PATH, Date, time, selinux & env (and exports a new path if lacks basic folders)
-- [x] Useful software installed (special search for compilers)
-- [x] Processes (Current, Executed within a minute, Binary permissions)
-- [x] Services
-- [x] Scheduled tasks
-- [x] sd* disk in /dev, storage info, mem info, ummounted file-sys, printers
+  - [x] SO, kernel version & sudo version
+  - [x] PATH, Date, time, selinux & env (and exports a new path if basic folders lacks)
+  - [x] Useful software installed (special search for compilers)
+  - [x] Processes (Current, Executed within a minute, Binary permissions)
+  - [x] Services
+  - [x] Scheduled tasks
+  - [x] sd* disk in /dev, storage info, mem info, ummounted file-sys, printers
 
 
 - **Network Information**
-- [x] Hostname, hosts & dns 
-- [x] Intefaces, networks and neightbours
-- [x] Active ports
-- [x] Sniff permissions
+  - [x] Hostname, hosts & dns 
+  - [x] Intefaces, networks and neightbours
+  - [x] Active ports
+  - [x] Sniff permissions
 
 
 - **Users Information**
-- [x] Info about current user (whoami, groups, sudo, PGPkeys)
-- [x] `sudo -l` without password
-- [x] Try to login using `su` as other users (using null pass and the username)
-- [x] List of superusers
-- [x] Login info
-- [x] Available users with console
-- [x] List of all users
+  - [x] Info about current user (whoami, groups, sudo, PGPkeys)
+  - [x] `sudo -l` without password
+  - [x] Try to login using `su` as other users (using null pass and the username)
+  - [x] List of superusers
+  - [x] Login info
+  - [x] Available users with console
+  - [x] List of all users
 
 
 - **Software Sensitive Information**
-- [x] MySQl (Version, user being configured, loging as "root:root","root:toor","root:", user hashes extraction via DB and file, possible backup user configured)
-- [x] PostgreSQL (Version, try login in "template0" and "template1" as: "postgres:", "psql:")
-- [x] Apache (Version)
-- [x] Wordpress (Database credentials)
-- [x] Tomcat (Credentials)
-- [x] Mongo (Version)
-- [x] Supervisor (Credentials)
-- [x] Cesi (Credentials)
-- [x] Rsyncd (Credentials)
-- [x] Hostapd (Credentials)
-- [x] Network (Credentials)
-- [x] Anaconda-ks (Credentials)
-- [x] VNC (Credentials)
-- [x] LDAP database (Credentials)
-- [x] Open VPN files (Credentials)
-- [x] SSH (private keys, known_hosts, authorized_hosts, authorized_keys, root login permitted)
-- [x] AWS (Files with AWS keys)
-- [X] NFS (privilege escalation misconfiguration)
+  - [x] MySQl (Version, user being configured, loging as "root:root","root:toor","root:", user hashes extraction via DB and file, possible backup user configured)
+  - [x] PostgreSQL (Version, try login in "template0" and "template1" as: "postgres:", "psql:")
+  - [x] Apache (Version)
+  - [x] Wordpress (Database credentials)
+  - [x] Tomcat (Credentials)
+  - [x] Mongo (Version)
+  - [x] Supervisor (Credentials)
+  - [x] Cesi (Credentials)
+  - [x] Rsyncd (Credentials)
+  - [x] Hostapd (Credentials)
+  - [x] Network (Credentials)
+  - [x] Anaconda-ks (Credentials)
+  - [x] VNC (Credentials)
+  - [x] LDAP database (Credentials)
+  - [x] Open VPN files (Credentials)
+  - [x] SSH (private keys, known_hosts, authorized_hosts, authorized_keys, root login permitted)
+  - [x] AWS (Files with AWS keys)
+  - [x] NFS (privilege escalation misconfiguration)
 
 
 - **Generic Interesting Files**
-- [x] Pkexec policy, SUID & SGID files
-- [x] Capabilities
-- [x] .sh scripts in PATH
-- [x] Reduced list of files inside home
-- [x] Mails
-- [x] Hashes (passwd, shadow & master.passwd)
-- [x] Try to read root dir
-- [x] Check if Docker or LXC container
-- [x] List ALL writable files for current user (global, user and groups)
-- [x] Files that can contain passwords (and search for passwords inside *_history files)
-- [x] List of all hidden files
-- [x] Search buckup files
-- [x] Inside /tmp, /var/tmp and /var/backups
-- [x] Web files
-- [x] Search for backup files
-- [x] Get IPs, passwords and emails from logs
-- [x] "pwd" and "passw" inside files (and get most probable lines)
+  - [x] Pkexec policy, SUID & SGID files
+  - [x] Capabilities
+  - [x] .sh scripts in PATH
+  - [x] Reduced list of files inside home
+  - [x] Mails
+  - [x] Hashes (passwd, shadow & master.passwd)
+  - [x] Try to read root dir
+  - [x] Check if Docker or LXC container
+  - [x] List ALL writable files for current user (global, user and groups)
+  - [x] Files that can contain passwords (and search for passwords inside *_history files)
+  - [x] List of all hidden files
+  - [x] Search buckup files
+  - [x] Inside /tmp, /var/tmp and /var/backups
+  - [x] Web files
+  - [x] Search for backup files
+  - [x] Get IPs, passwords and emails from logs
+  - [x] "pwd" and "passw" inside files (and get most probable lines)
 
 
-By Polop(TM)
+By Polop<sup>(TM)</sup>
