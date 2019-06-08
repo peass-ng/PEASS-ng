@@ -1,7 +1,7 @@
 # LinPE - Linux Privilege Escalation (one-liner)
 
 
-[![asciicast](https://asciinema.org/a/249809.png)](https://asciinema.org/a/249809)
+[![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/250532)
 
 
 The goal of this script is to search for possible **Privilege Escalation vectors inside a linux machine**.

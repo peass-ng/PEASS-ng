@@ -575,7 +575,7 @@ if [ "$privatekeyfiles" ]; then
   privatekeyfilesgrep=`grep -L "\"\|'\|(" $privatekeyfiles` # Check there are not that symbols in the file
 fi
 if [ "$privatekeyfilesgrep" ]; then
-    echo "Private SSH keys found!:\n$privatekeyfilesgrep" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+    printf "Private SSH keys found!:\n$privatekeyfilesgrep" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
 fi
 
 if [ "$ssh" ] || [ "$sshrootlogin" ] || [ "$privatekeyfiles" ]; then
