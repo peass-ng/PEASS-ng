@@ -1,4 +1,4 @@
-# LinPE - Linux Privilege Escalation
+# LinPE - Linux Privilege Escalation (with colors)
 
 
 [![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/250532)
