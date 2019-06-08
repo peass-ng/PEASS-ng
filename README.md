@@ -1,4 +1,4 @@
-# LinPE - Linux Privilege Escalation (one-liner)
+# LinPE - Linux Privilege Escalation
 
 
 [![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/250532)
@@ -16,7 +16,7 @@ This script have several lists included inside it to be able to color the result
 
 The script **automatically finds a writable directory** and writes the output of the checks there. The first console output will be the path of the file created.
 
-![](https://github.com/carlospolop/linPE/blob/master/images/linpe.png)
+![](https://github.com/carlospolop/linPE/blob/master/images/linpe-exec.png)
 
 ## Colors
 
