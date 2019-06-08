@@ -1,6 +1,8 @@
 # LinPE - Linux Privilege Escalation (with colors)
 
 
+**Linpe performs the linux privilege escalation checks explained in [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/privilege-escalation)**
+
 [![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/250532)
 
 
