@@ -10,7 +10,7 @@ This script does not have any dependency.
 
 There is not need even for bash shell, **it runs using /bin/sh**.
 
-It could take from **2 to 3 minutes** to execute the hole script (less than 1 min to make almost all the checks, almost 1 min to search for possible passwords inside files and 1 min to monitor the processes in order to find very frequent cron jobs).
+It could take from **2 to 3 minutes** to execute the hole script (less than 1 min to make almost all the checks, almost 1 min to search for possible passwords inside all the accesible files of the system and 1 min to monitor the processes in order to find very frequent cron jobs).
 
 This script have several lists included inside it to be able to color the results in order to help to discover PE vector.
 

@@ -119,11 +119,11 @@ notBackup="/tdbbackup$\|/db_hotbackup$"
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then printf $B"[*] "$RED"YOU ARE ALREADY ROOT!!! (nothing is going to be executed)\n"$NC; exit; fi
 
 rm -rf $file 2>/dev/null
-echo "linpe v1.0"
+echo "linpe v1.1"
 echo "Output File: $file" | sed "s,.*,${C}[1;4m&${C}[0m,"
 
 echo "" >> $file
-echo "linpe v1.0" | sed "s,.*,${C}[1;94m&${C}[0m," >> $file
+echo "linpe v1.1" | sed "s,.*,${C}[1;94m&${C}[0m," >> $file
 echo "https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist" >> $file
 echo "LEYEND:" | sed "s,LEYEND,${C}[1;4m&${C}[0m," >> $file
 echo "RED/YELLOW: 99% a PE vector" | sed "s,RED/YELLOW,${C}[1;31;103m&${C}[0m," >> $file
@@ -296,8 +296,8 @@ echo "" >> $file
 
 printf $Y"[+] "$GREEN"Testing 'sudo -l' without password & /etc/sudoers\n"$NC >> $file
 printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC >> $file
-echo '' | sudo -S -l 2>/dev/null | sed "s,$sudoB,${C}[1;31m&${C}[0m," | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m," >> $file
-cat /etc/sudoers 2>/dev/null | sed "s,$sudoB,${C}[1;31m&${C}[0m," | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m," >> $file
+echo '' | sudo -S -l 2>/dev/null | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m," >> $file
+cat /etc/sudoers 2>/dev/null | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m," >> $file
 echo "" >> $file
 
 
@@ -545,7 +545,7 @@ fi
 if [ -d "/var/lib/ldap" ]; then
   printf $Y"[+] "$GREEN"/var/lib/ldap has been found. Trying to extract passwords:\n"$NC >> $file;
   echo "The password hash is from the {SSHA} to 'structural'" >> $file;
-  cat /var/lib/ldap/*.bdb 2>/dev/null | grep -i -a -E -o "description.*" | sort | uniq -u | sed "s,administrator\|password,${C}[1;31m&${C}[0m,Ig" >> $file;
+  cat /var/lib/ldap/*.bdb 2>/dev/null | grep -i -a -E -o "description.*" | sort | uniq | sed "s,administrator\|password,${C}[1;31m&${C}[0m,Ig" >> $file;
 fi
 
 #ovpn
@@ -557,30 +557,34 @@ if [ "$ovpn" ]; then
 fi
 
 #SSH
-ssh=`find / \( -name "id_dsa*" -o -name "id_rsa*" -o -name "known_hosts" -o -name "authorized_hosts" -o -name "authorized_keys" \) -exec ls -la {} \;  2>/dev/null`
-if [ "$ssh" ]; then
+ssh=`find /home /user /root /etc /opt /var /mnt \( -name "id_dsa*" -o -name "id_rsa*" -o -name "known_hosts" -o -name "authorized_hosts" -o -name "authorized_keys" \) -exec ls -la {} \;  2>/dev/null`
+sshrootlogin=`grep "PermitRootLogin " /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | awk '{print  $2}'`
+privatekeyfiles=`grep -rl "PRIVATE KEY-----" /home /root /mnt /etc 2>/dev/null`
+if [ "$ssh" ] || [ "$sshrootlogin" ] || [ "$privatekeyfiles" ]; then
   printf $Y"[+] "$GREEN"SSH Files\n"$NC >> $file
-  echo $ssh >> $file
-  echo "" >> $file
 fi
 
-sshrootlogin=`grep "PermitRootLogin " /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | awk '{print  $2}'`
+if [ "$ssh"  ]; then
+  echo $ssh >> $file
+fi
+
 if [ "$sshrootlogin" = "yes" ]; then
   echo "SSH root login is PERMITTED"| sed "s,.*,${C}[1;31m&${C}[0m," >> $file
-  echo "" >> $file
 fi
-
-privatekeyfiles=`grep -rl "PRIVATE KEY-----" /home /root 2>/dev/null`
 if [ "$privatekeyfiles" ]; then
   privatekeyfilesgrep=`grep -L "\"\|'\|(" $privatekeyfiles` # Check there are not that symbols in the file
 fi
 if [ "$privatekeyfilesgrep" ]; then
     echo "Private SSH keys found!:\n$privatekeyfilesgrep" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
-  	echo "" >> $file
 fi
 
+if [ "$ssh" ] || [ "$sshrootlogin" ] || [ "$privatekeyfiles" ]; then
+  echo "" >> $file
+fi
+
+
 #AWS
-awskeyfiles=`grep -rli "aws_secret_access_key" /home /root 2>/dev/null | grep -v $(basename "$0")`
+awskeyfiles=`grep -rli "aws_secret_access_key" /home /root /mnt /etc 2>/dev/null | grep -v $(basename "$0")`
 if [ "$awskeyfiles" ]; then
     printf $Y"[+] "$GREEN"AWS Keys\n"$NC >> $file
   	echo "AWS secret keys found!: $awskeyfiles" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
