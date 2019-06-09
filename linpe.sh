@@ -256,7 +256,7 @@ cat /etc/hostname /etc/hosts /etc/resolv.conf 2>/dev/null | grep -v "^#" >> $fil
 dnsdomainname 2>/dev/null >> $file
 echo "" >> $file
 
-printf $Y"[+] "$GREEN"Networks and neightbours\n"$NC >> $file
+printf $Y"[+] "$GREEN"Networks and neighbours\n"$NC >> $file
 cat /etc/networks 2>/dev/null >> $file
 (ifconfig || ip a) 2>/dev/null >> $file
 iptables -L 2>/dev/null >> $file
@@ -702,7 +702,7 @@ printf $Y"[+] "$GREEN"All hidden files (not in /sys/, not: .gitignore, .listing,
 find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/\|\.gitignore\|_history$\|\.profile\|\.bashrc\|\.listing\|\.ignore\|\.uuid\|\.plan\|\.htpasswd\|\.git-credentials\|.rhosts\|.depend" | head -n 100 >> $file
 echo "" >> $file
 
-printf $Y"[+] "$GREEN"Readable files inside inside /tmp, /var/tmp, /var/backups(limit 100)\n"$NC >> $file
+printf $Y"[+] "$GREEN"Readable files inside /tmp, /var/tmp, /var/backups(limit 100)\n"$NC >> $file
 filstmpback=`find /tmp /var/tmp /var/backups -type f 2>/dev/null | head -n 100`
 for f in $filstmpback; do if [ -r $f ]; then ls -l $f 2>/dev/null >> $file; fi; done
 echo "" >> $file
