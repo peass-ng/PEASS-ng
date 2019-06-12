@@ -127,6 +127,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] SSH (private keys, known_hosts, authorized_hosts, authorized_keys, root login permitted)
   - [x] AWS (Files with AWS keys)
   - [x] NFS (privilege escalation misconfiguration)
+  - [x] Kerberos (configuration & tickets in /tmp)
 
 
 - **Generic Interesting Files**

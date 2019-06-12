@@ -119,11 +119,11 @@ notBackup="/tdbbackup$\|/db_hotbackup$"
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then printf $B"[*] "$RED"YOU ARE ALREADY ROOT!!! (nothing is going to be executed)\n"$NC; exit; fi
 
 rm -rf $file 2>/dev/null
-echo "linpe v1.1"
+echo "linpe v1.1.1"
 echo "Output File: $file" | sed "s,.*,${C}[1;4m&${C}[0m,"
 
 echo "" >> $file
-echo "linpe v1.1" | sed "s,.*,${C}[1;94m&${C}[0m," >> $file
+echo "linpe v1.1.1" | sed "s,.*,${C}[1;94m&${C}[0m," >> $file
 echo "https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist" >> $file
 echo "LEYEND:" | sed "s,LEYEND,${C}[1;4m&${C}[0m," >> $file
 echo "RED/YELLOW: 99% a PE vector" | sed "s,RED/YELLOW,${C}[1;31;103m&${C}[0m," >> $file
@@ -582,7 +582,6 @@ if [ "$ssh" ] || [ "$sshrootlogin" ] || [ "$privatekeyfiles" ]; then
   echo "" >> $file
 fi
 
-
 #AWS
 awskeyfiles=`grep -rli "aws_secret_access_key" /home /root /mnt /etc 2>/dev/null | grep -v $(basename "$0")`
 if [ "$awskeyfiles" ]; then
@@ -598,6 +597,22 @@ if [ "$exprts" ]; then
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation/nfs-no_root_squash-misconfiguration-pe\n"$NC >> $file
     cat /etc/exports 2>/dev/null | grep -v "^#" | sed "s,no_root_squash\|no_all_squash ,${C}[1;31;103m&${C}[0m," >> $file
     echo "" >> $file
+fi
+
+#Kerberos
+krb5=`ls /etc/krb5.conf 2>/dev/null`
+krbtickets=`ls /tmp/krb5cc* 2>/dev/null`
+if [ "$krb5" ]; then
+  printf $Y"[+] "$GREEN"Found kerberos conf /etc/krb5.conf\n"$NC >> $file
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88#pass-the-ticket-ptt\n"$NC >> $file
+  cat /etc/krb5.conf | grep default_ccache_name | sed "s,default_ccache_name,${C}[1;31m&${C}[0m," >> $file
+  echo "" >> $file
+fi
+if [ "$krbtickets" ]; then
+  printf $Y"[+] "$GREEN"Found kerberos tickets\n"$NC >> $file
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88#pass-the-ticket-ptt\n"$NC >> $file
+  ls -l /tmp/krb5cc* >> $file
+  echo "" >> $file
 fi
 
 echo "" >> $file
