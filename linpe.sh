@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v1.1.2"
+VERSION="v1.1.3"
 
 C=$(printf '\033')
 RED="${C}[1;31m"
@@ -461,6 +461,14 @@ if [ "$apachever" ]; then
   echo "" >> $file
 fi
 
+#php coockies files
+phpcookies=`ls /var/lib/php/sessions 2>/dev/null`
+if [ "$phpcookies" ]; then
+  printf $Y"[+] "$GREEN"PHPCookies where found\n"$NC >> $file
+  ls /var/lib/php/sessions 2>/dev/null >> $file
+  echo "" >> $file
+fi
+
 #Wordpress user, password, databname and host
 wp=`find /var /etc /home /root /tmp /usr /opt -type f -name wp-config.php 2>/dev/null`
 if [ "$wp" ]; then
@@ -618,6 +626,26 @@ if [ "$krbtickets" ]; then
   echo "" >> $file
 fi
 
+#Kibana
+if [ -f "/etc/kibana/kibana.yml" ]; then
+  printf $Y"[+] "$GREEN"Found Kibana: /etc/kibana/kibana.yml\n"$NC >> $file
+  cat /etc/kibana/kibana.yml | grep -v "^#" | grep -v -e '^[[:space:]]*$' | sed "s,username\|password\|host\|port\|elasticsearch\|ssl,${C}[1;31m&${C}[0m," >> $file
+  echo "" >> $file
+fi
+
+#Logstash
+if [ -d "/etc/logstash" ]; then
+  printf $Y"[+] "$GREEN"Found Logstash: /etc/logstash\n"$NC >> $file
+  if [ -r /etc/logstash/startup.options ]; then 
+    echo "Logstash is running as user:" >> $file
+    cat /etc/logstash/startup.options 2>/dev/null | grep "LS_USER\|LS_GROUP" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," >> $file
+  fi
+  cat /etc/logstash/conf.d/out* | grep "exec\s*{\|command\s*=>" | sed "s,exec\s*{\|command\s*=>,${C}[1;31m&${C}[0m," >> $file
+  cat /etc/logstash/conf.d/filt* | grep "path\s*=>\|code\s*=>\|ruby\s*{" | sed "s,path\s*=>\|code\s*=>\|ruby\s*{,${C}[1;31m&${C}[0m," >> $file
+  echo "" >> $file
+fi
+
+
 echo "" >> $file
 printf $B"[*] "$GREEN"Gathering files information...\n"$NC
 printf $B"[*] "$GREEN"GENERAL INTERESTING FILES\n"$NC >> $file 
@@ -671,13 +699,28 @@ echo "" >> $file
 printf $Y"[+] "$GREEN".sh files in path\n"$NC >> $file
 for d in `echo $PATH | tr ":" "\n"`; do find $d -name "*.sh" 2>/dev/null | sed "s,$pathshG,${C}[1;32m&${C}[0m," >> $file ; done
 echo "" >> $file
+ 
+hashespasswd=`grep -v '^[^:]*:[x]' /etc/passwd 2>/dev/null`
+if [ "$hashespasswd" ]; then
+  printf $Y"[+] "$GREEN"Hashes inside passwd file\n"$NC >> $file
+  printf $B"[i] "$Y"Try to crack the hashes\n"$NC >> $file
+  for h in $hashespasswd; do echo $h | sed "s,.*,${C}[1;31m&${C}[0m," >> $file; done
+  echo "" >> $file
+fi
 
-printf $Y"[+] "$GREEN"Hashes inside passwd file? Readable shadow file, or /root?\n"$NC >> $file
-printf $B"[i] "$Y"Try to crack the hashes\n"$NC >> $file
-grep -v '^[^:]*:[x]' /etc/passwd 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
-cat /etc/shadow /etc/master.passwd 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
-ls -ahl /root/ 2>/dev/null >> $file
-echo "" >> $file
+shadowread=`cat /etc/shadow /etc/master.passwd 2>/dev/null`
+if [ "$shadowread" ]; then
+  printf $Y"[+] "$GREEN"Readable Shadow file\n"$NC >> $file
+  cat /etc/shadow /etc/master.passwd 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+  echo "" >> $file
+fi
+
+rootread=`ls -ahl /root/ 2>/dev/null`
+if [ "$rootread" ]; then
+  printf $Y"[+] "$GREEN"Readable /root\n"$NC >> $file
+  ls -ahl /root/ 2>/dev/null >> $file
+  echo "" >> $file
+fi
 
 printf $Y"[+] "$GREEN"Files inside \$HOME (limit 20)\n"$NC >> $file
 ls -la $HOME 2>/dev/null | head -n 23 >> $file

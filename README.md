@@ -12,7 +12,7 @@ This script does not have any dependency.
 
 There is no need even for bash shell, **it runs using /bin/sh**.
 
-It could take from **2 to 3 minutes** to execute the hole script (less than 1 min to make almost all the checks, almost 1 min to search for possible passwords inside all the accesible files of the system and 1 min to monitor the processes in order to find very frequent cron jobs).
+It could take from **2 to 3 minutes** to execute the whole script (less than 1 min to make almost all the checks, almost 1 min to search for possible passwords inside all the accesible files of the system and 1 min to monitor the processes in order to find very frequent cron jobs).
 
 This script has several lists included inside of it to be able to color the results in order to discover PE vector.
 
@@ -128,6 +128,8 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] AWS (Files with AWS keys)
   - [x] NFS (privilege escalation misconfiguration)
   - [x] Kerberos (configuration & tickets in /tmp)
+  - [x] Kibana (credentials)
+  - [x] Logstash (Username and possible code execution)
 
 
 - **Generic Interesting Files**
