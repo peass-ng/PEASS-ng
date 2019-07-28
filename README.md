@@ -20,6 +20,8 @@ The script **automatically finds a writable directory** and writes the output of
 
 ![](https://github.com/carlospolop/linPE/blob/master/images/linpe-exec.png)
 
+Linpe also **exports a new PATH** variable if common folders aren't present in the original PATH variable. It also **exports** `export HISTSIZE=0` so no command executed during the session will be saved in the history file.
+
 ## Colors
 
 LinPE uses colors to indicate where does each section begin. But **it also uses them the identify potencial misconfigurations**.
@@ -124,12 +126,15 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] VNC (Credentials)
   - [x] LDAP database (Credentials)
   - [x] Open VPN files (Credentials)
-  - [x] SSH (private keys, known_hosts, authorized_hosts, authorized_keys, root login permitted)
+  - [x] SSH (private keys, known_hosts, authorized_hosts, authorized_keys, main config parameters in sshd_config)
+  - [X] PAM-SSH (Unexpected "auth" values)
   - [x] AWS (Files with AWS keys)
   - [x] NFS (privilege escalation misconfiguration)
   - [x] Kerberos (configuration & tickets in /tmp)
   - [x] Kibana (credentials)
   - [x] Logstash (Username and possible code execution)
+  - [x] Elasticseach (Config info and Version via port 9200)
+  - [x] Vault-ssh (Config values, secrets list and .vault-token files)
 
 
 - **Generic Interesting Files**
