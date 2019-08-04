@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v1.1.4"
+VERSION="v1.1.5"
 
 C=$(printf '\033')
 RED="${C}[1;31m"
@@ -35,7 +35,7 @@ groupsB="(root)\|(shadow)\|(admin)" #(video) Investigate
 groupsVB="(sudo)\|(docker)\|(lxd)\|(wheel)\|(disk)"
 knw_grps='(lpadmin)\|(adm)\|(cdrom)\|(plugdev)\|(nogroup)' #https://www.togaware.com/linux/survivor/Standard_Groups.html
 
-sidG="/accton$\|/allocate$\|/arping$\|/at$\|/atq$\|/atrm$\|/authpf$\|/authpf-noip$\|/batch$\|/bsd-write$\|/btsockstat$\|/bwrap$\|/cacaocsc$\|/camel-lock-helper-1.2$\|/ccreds_validate$\|/cdrw$\|/chage$\|/check-foreground-console$\|/chrome-sandbox$\|/chsh$\|/cons.saver$\|/crontab$\|/ct$\|/cu$\|/dbus-daemon-launch-helper$\|/deallocate$\|/desktop-create-kmenu$\|/dma$\|/dmcrypt-get-device$\|/doas$\|/dotlockfile$\|/dotlock.mailutils$\|/dtaction$\|/dtfile$\|/dtsession$\|/eject$\|/execabrt-action-install-debuginfo-to-abrt-cache$\|/execdbus-daemon-launch-helper$\|/execdma-mbox-create$\|/execlockspool$\|/execlogin_chpass$\|/execlogin_lchpass$\|/execlogin_passwd$\|/execssh-keysign$\|/execulog-helper$\|/expiry$\|/fdformat$\|/fusermount$\|/gnome-pty-helper$\|/glines$\|/gnibbles$\|/gnobots2$\|/gnome-suspend$\|/gnometris$\|/gnomine$\|/gnotski$\|/gnotravex$\|/gpasswd$\|/gpg$\|/gpio$\|/gtali\|/.hal-mtab-lock$\|/imapd$\|/inndstart$\|/kismet_capture$\|/ksu$\|/list_devices$\|/locate$\|/lock$\|/lockdev$\|/lockfile$\|/login_activ$\|/login_crypto$\|/login_radius$\|/login_skey$\|/login_snk$\|/login_token$\|/login_yubikey$\|/lpd$\|/lpd-port$\|/lppasswd$\|/lpq$\|/lprm$\|/lpset$\|/lxc-user-nic$\|/mahjongg$\|/mail-lock$\|/mailq$\|/mail-touchlock$\|/mail-unlock$\|/mksnap_ffs$\|/mlocate$\|/mlock$\|/mount.cifs$\|/mount.nfs$\|/mount.nfs4$\|/mtr$\|/mutt_dotlock$\|/ncsa_auth$\|/netpr$\|/netreport$\|/netstat$\|/newgidmap$\|/newtask$\|/newuidmap$\|/opieinfo$\|/opiepasswd$\|/pam_auth$\|/pam_extrausers_chkpwd$\|/pam_timestamp_check$\|/pamverifier$\|/pfexec$\|/ping$\|/ping6$\|/pmconfig$\|/polkit-agent-helper-1$\|/polkit-explicit-grant-helper$\|/polkit-grant-helper$\|/polkit-grant-helper-pam$\|/polkit-read-auth-helper$\|/polkit-resolve-exe-helper$\|/polkit-revoke-helper$\|/polkit-set-default-helper$\|/postdrop$\|/postqueue$\|/poweroff$\|/ppp$\|/procmail$\|/pt_chmod$\|/pwdb_chkpwd$\|/quota$\|/remote.unknown$\|/rlogin$\|/rmformat$\|/rnews$\|/sacadm$\|/same-gnome$\|screen.real$\|/sendmail.sendmail$\|/shutdown$\|/skeyaudit$\|/skeyinfo$\|/skeyinit$\|/slocate$\|/smbmnt$\|/smbumount$\|/smpatch$\|/smtpctl$\|/snap-confine$\|/sperl5.8.8$\|/ssh-agent$\|/ssh-keysign$\|/staprun$\|/startinnfeed$\|/stclient$\|/su$\|/suexec$\|/sys-suspend$\|/telnetlogin$\|/timedc$\|/tip$\|/traceroute6$\|/traceroute6.iputils$\|/trpt$\|/tsoldtlabel$\|/tsoljdslabel$\|/tsolxagent$\|/ufsdump$\|/ufsrestore$\|/umount.cifs$\|/umount.nfs$\|/umount.nfs4$\|/unix_chkpwd$\|/uptime$\|/userhelper$\|/userisdnctl$\|/usernetctl$\|/utempter$\|/utmp_update$\|/uucico$\|/uuglist$\|/uuidd$\|/uuname$\|/uusched$\|/uustat$\|/uux$\|/uuxqt$\|/vmware-user-suid-wrapper$\|/vncserver-x11$\|/volrmmount$\|/w$\|/wall$\|/whodo$\|/write$\|/X$\|/Xorg.wrap$\|/xscreensaver$\|/Xsun$\|/Xvnc$"
+sidG="/abuild-sudo$\|/accton$\|/allocate$\|/arping$\|/at$\|/atq$\|/atrm$\|/authpf$\|/authpf-noip$\|/batch$\|/bbsuid$\|/bsd-write$\|/btsockstat$\|/bwrap$\|/cacaocsc$\|/camel-lock-helper-1.2$\|/ccreds_validate$\|/cdrw$\|/chage$\|/check-foreground-console$\|/chrome-sandbox$\|/chsh$\|/cons.saver$\|/crontab$\|/ct$\|/cu$\|/dbus-daemon-launch-helper$\|/deallocate$\|/desktop-create-kmenu$\|/dma$\|/dmcrypt-get-device$\|/doas$\|/dotlockfile$\|/dotlock.mailutils$\|/dtaction$\|/dtfile$\|/dtsession$\|/eject$\|/execabrt-action-install-debuginfo-to-abrt-cache$\|/execdbus-daemon-launch-helper$\|/execdma-mbox-create$\|/execlockspool$\|/execlogin_chpass$\|/execlogin_lchpass$\|/execlogin_passwd$\|/execssh-keysign$\|/execulog-helper$\|/expiry$\|/fdformat$\|/fusermount$\|/gnome-pty-helper$\|/glines$\|/gnibbles$\|/gnobots2$\|/gnome-suspend$\|/gnometris$\|/gnomine$\|/gnotski$\|/gnotravex$\|/gpasswd$\|/gpg$\|/gpio$\|/gtali\|/.hal-mtab-lock$\|/imapd$\|/inndstart$\|/kismet_capture$\|/ksu$\|/list_devices$\|/locate$\|/lock$\|/lockdev$\|/lockfile$\|/login_activ$\|/login_crypto$\|/login_radius$\|/login_skey$\|/login_snk$\|/login_token$\|/login_yubikey$\|/lpd$\|/lpd-port$\|/lppasswd$\|/lpq$\|/lprm$\|/lpset$\|/lxc-user-nic$\|/mahjongg$\|/mail-lock$\|/mailq$\|/mail-touchlock$\|/mail-unlock$\|/mksnap_ffs$\|/mlocate$\|/mlock$\|/mount.cifs$\|/mount.nfs$\|/mount.nfs4$\|/mtr$\|/mutt_dotlock$\|/ncsa_auth$\|/netpr$\|/netreport$\|/netstat$\|/newgidmap$\|/newtask$\|/newuidmap$\|/opieinfo$\|/opiepasswd$\|/pam_auth$\|/pam_extrausers_chkpwd$\|/pam_timestamp_check$\|/pamverifier$\|/pfexec$\|/ping$\|/ping6$\|/pmconfig$\|/polkit-agent-helper-1$\|/polkit-explicit-grant-helper$\|/polkit-grant-helper$\|/polkit-grant-helper-pam$\|/polkit-read-auth-helper$\|/polkit-resolve-exe-helper$\|/polkit-revoke-helper$\|/polkit-set-default-helper$\|/postdrop$\|/postqueue$\|/poweroff$\|/ppp$\|/procmail$\|/pt_chmod$\|/pwdb_chkpwd$\|/quota$\|/remote.unknown$\|/rlogin$\|/rmformat$\|/rnews$\|/sacadm$\|/same-gnome$\|screen.real$\|/sendmail.sendmail$\|/shutdown$\|/skeyaudit$\|/skeyinfo$\|/skeyinit$\|/slocate$\|/smbmnt$\|/smbumount$\|/smpatch$\|/smtpctl$\|/snap-confine$\|/sperl5.8.8$\|/ssh-agent$\|/ssh-keysign$\|/staprun$\|/startinnfeed$\|/stclient$\|/su$\|/suexec$\|/sys-suspend$\|/telnetlogin$\|/timedc$\|/tip$\|/traceroute6$\|/traceroute6.iputils$\|/trpt$\|/tsoldtlabel$\|/tsoljdslabel$\|/tsolxagent$\|/ufsdump$\|/ufsrestore$\|/umount.cifs$\|/umount.nfs$\|/umount.nfs4$\|/unix_chkpwd$\|/uptime$\|/userhelper$\|/userisdnctl$\|/usernetctl$\|/utempter$\|/utmp_update$\|/uucico$\|/uuglist$\|/uuidd$\|/uuname$\|/uusched$\|/uustat$\|/uux$\|/uuxqt$\|/vmware-user-suid-wrapper$\|/vncserver-x11$\|/volrmmount$\|/w$\|/wall$\|/whodo$\|/write$\|/X$\|/Xorg.wrap$\|/xscreensaver$\|/Xsun$\|/Xvnc$"
 #Rules: Start path " /", end path "$", divide path and vulnversion "%". SPACE IS ONLY ALLOWED AT BEGINNING, DONT USE IT IN VULN DESCRIPTION
 sidB="/apache2%Read_root_passwd__apache2_-f_/etc/shadow\
  /chfn$%SuSE_9.3/10\
@@ -114,7 +114,7 @@ pwd_inside_history="PASSW\|passw\|root\|sudo\|^su\|pkexec\|^ftp\|mongo\|psql\|my
 WF=`find /home /tmp /var /bin /etc /usr /lib /media /mnt /opt /root /dev -type d -maxdepth 2 '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | sort`
 file=""
 for f in $WF; do
-  echo '' > $f/$filename 2>/dev/null
+  echo '' 2>/dev/null > $f/$filename
   if [ $? -eq 0 ]; then file="$f/$filename"; break; fi;
 done;
 if [ ! "$file" ]; then printf $B"[*] "$RED"I didn't find any writable folder!!\n"$NC; echo $WF; exit; fi;
@@ -168,11 +168,12 @@ printf $Y"[+] "$GREEN"Date\n"$NC >> $file
 date 2>/dev/null >> $file
 echo "" >> $file
 
-printf $Y"[+] "$GREEN"Sudo version\n"$NC >> $file
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-version\n"$NC >> $file
- >> $file
-sudo -V 2>/dev/null | grep "Sudo ver" | sed "s,$sudovB,${C}[1;31m&${C}[0m," >> $file
-echo "" >> $file
+if [ "`which sudo 2>/dev/null`" ]; then
+  printf $Y"[+] "$GREEN"Sudo version\n"$NC >> $file
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-version\n"$NC >> $file
+  sudo -V 2>/dev/null | grep "Sudo ver" | sed "s,$sudovB,${C}[1;31m&${C}[0m," >> $file
+  echo "" >> $file
+fi
 
 sestatus=`sestatus 2>/dev/null`
 if [ "$sestatus" ]; then
@@ -198,7 +199,7 @@ fi
 
 printf $Y"[+] "$GREEN"Environment\n"$NC >> $file
 printf $B"[i] "$Y"Any private information inside environment variables?\n"$NC >> $file
-(env || set) 2>/dev/null | grep -v "^VERSION=\|pwd_inside_history\|kernelDCW_Ubuntu_Precise_1\|kernelDCW_Ubuntu_Precise_2\|kernelDCW_Ubuntu_Trusty_1\|kernelDCW_Ubuntu_Trusty_2\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel5\|kernelDCW_Rhel6_1\|kernelDCW_Rhel6_2\|kernelDCW_Rhel7\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=" | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,Ig" >> $file
+(env || set) 2>/dev/null | grep -v "^VERSION=\|pwd_inside_history\|kernelDCW_Ubuntu_Precise_1\|kernelDCW_Ubuntu_Precise_2\|kernelDCW_Ubuntu_Trusty_1\|kernelDCW_Ubuntu_Trusty_2\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel5\|kernelDCW_Rhel6_1\|kernelDCW_Rhel6_2\|kernelDCW_Rhel7\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=" | sed "s,pwd\|passw\|PWD\|PASSW\|Passwd\|Pwd,${C}[1;31m&${C}[0m,g" >> $file
 export HISTSIZE=0 2>/dev/null
 echo "" >> $file
 
@@ -219,7 +220,7 @@ echo "" >> $file
 
 printf $Y"[+] "$GREEN"Different processes executed during 1 min (interesting is low number of repetitions)\n"$NC >> $file
 printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#frequent-cron-jobs\n"$NC >> $file
-if [ "`ps -e --format cmd`" ]; then for i in $(seq 1 610); do ps -e --format cmd >> $file.tmp1; sleep 0.1; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort | grep -E -v "\s*[6-9][0-9][0-9]|\s*[0-9][0-9][0-9][0-9]" >> $file; rm $file.tmp1; fi
+if [ "`ps -e --format cmd 2>/dev/null`" ]; then for i in $(seq 1 610); do ps -e --format cmd >> $file.tmp1; sleep 0.1; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort | grep -E -v "\s*[6-9][0-9][0-9]|\s*[0-9][0-9][0-9][0-9]" >> $file; rm $file.tmp1; fi
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Scheduled tasks\n"$NC >> $file
@@ -248,6 +249,13 @@ printer=`lpstat -a 2>/dev/null`
 if [ "$printer" ]; then
     printf $Y"[+] "$GREEN"Printer?\n"$NC >> $file
     echo $printer >> $file
+    echo "" >> $file
+fi
+
+dmesg=`dmesg 2>/dev/null | grep signature`
+if [ "$dmesg" ]; then
+    printf $Y"[+] "$GREEN"Signature verification failed detected in dmseg\n"$NC >> $file
+    echo $dmesg >> $file
     echo "" >> $file
 fi
 
@@ -304,6 +312,11 @@ echo '' | sudo -S -l 2>/dev/null | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,
 cat /etc/sudoers 2>/dev/null | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m," >> $file
 echo "" >> $file
 
+if [ -r "/etc/doas.conf" ]; then
+  printf $Y"[+] "$GREEN"Checking /etc/doas.conf\n"$NC >> $file
+  cat /etc/doas.conf | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,nopass,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," >> $file
+  echo "" >> $file
+fi
 
 if [ "$TIMEOUT" ]; then
   printf $Y"[+] "$GREEN"Testing 'su' as other users with shell without password or with their names as password (only works in modern su binary versions)\n"$NC >> $file
@@ -417,35 +430,39 @@ done
 
 #postgres details - if installed
 postgver=`psql -V 2>/dev/null`
-if [ "$postgver" ]; then
+postgdb=`find /var /etc /home /root /tmp /usr /opt -type f -name "pgadmin*.db" 2>/dev/null`
+if [ "$postgver" ] || [ "$postgdb"]; then
   printf $Y"[+] "$GREEN"PostgreSQL\n"$NC >> $file
-  echo "Version: $postgver" >> $file
+  if [ "$postgver" ]; then echo "Version: $postgver" >> $file; fi
+  if [ "$postgdb" ]; then echo "PostgreSQL database: $postgdb" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file; fi
   echo "" >> $file
 fi
 
+if [ "$TIMEOUT" ]; then  # In some OS (like OpenBSD) it will expect the password from console and will pause the script. Also, this OS doesn't have the "timeout" command so lets only use this checks in OS that has it.
 #checks to see if any postgres password exists and connects to DB 'template0' - following commands are a variant on this
-postcon1=`psql -U postgres -d template0 -c 'select version()' 2>/dev/null | grep version`
-if [ "$postcon1" ]; then
-  echo "We can connect to Postgres DB 'template0' as user 'postgres' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
-  echo "" >> $file
-fi
+  postcon1=`timeout 1 psql -U postgres -d template0 -c 'select version()' 2>/dev/null | grep version`
+  if [ "$postcon1" ]; then
+    echo "We can connect to Postgres DB 'template0' as user 'postgres' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+    echo "" >> $file
+  fi
 
-postcon11=`psql -U postgres -d template1 -c 'select version()' 2>/dev/null | grep version`
-if [ "$postcon11" ]; then
-  echo "We can connect to Postgres DB 'template1' as user 'postgres' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
-  echo "" >> $file
-fi
+  postcon11=`timeout 1 psql -U postgres -d template1 -c 'select version()' 2>/dev/null | grep version`
+  if [ "$postcon11" ]; then
+    echo "We can connect to Postgres DB 'template1' as user 'postgres' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+    echo "" >> $file
+  fi
 
-postcon2=`psql -U pgsql -d template0 -c 'select version()' 2>/dev/null | grep version`
-if [ "$postcon2" ]; then
-  echo "We can connect to Postgres DB 'template0' as user 'psql' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
-  echo "" >> $file
-fi
+  postcon2=`timeout 1 psql -U pgsql -dpgsq template0 -c 'select version()' 2>/dev/null | grep version`
+  if [ "$postcon2" ]; then
+    echo "We can connect to Postgres DB 'template0' as user 'psql' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+    echo "" >> $file
+  fi
 
-postcon22=`psql -U pgsql -d template1 -c 'select version()' 2>/dev/null | grep version`
-if [ "$postcon22" ]; then
-  echo "We can connect to Postgres DB 'template1' as user 'psql' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
-  echo "" >> $file
+  postcon22=`timeout 1 psql -U pgsql -d template1 -c 'select version()' 2>/dev/null | grep version`
+  if [ "$postcon22" ]; then
+    echo "We can connect to Postgres DB 'template1' as user 'psql' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+    echo "" >> $file
+  fi
 fi
 
 #apache details - if installed
@@ -476,6 +493,7 @@ if [ "$wp" ]; then
   printf $Y"[+] "$GREEN"Worpress\n"$NC >> $file
   echo "wp-config.php files found:\n$wp" >> $file
   for f in $wp; do grep "PASSWORD\|USER\|NAME\|HOST" $f 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," >> $file; done
+  echo "" >> $file
 fi
 
 #Tomcat users
@@ -484,6 +502,7 @@ if [ "$wp" ]; then
   printf $Y"[+] "$GREEN"Tomcat uses file found\n"$NC >> $file
   echo "tomcat-users.xml file found:\n$wp" >> $file
   for f in $wp; do grep "username=" $f 2>/dev/null | grep "password=" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file; done
+  echo "" >> $file
 fi
 
 #Mongo
@@ -494,6 +513,7 @@ fi
 if [ "$mongover" ]; then
   printf $Y"[+] "$GREEN"MongoDB\n"$NC >> $file
   echo "Version: $mongover" >> $file
+  echo "" >> $file
   #TODO: Check if you can login without password and warn the user
 fi
 
@@ -503,6 +523,7 @@ if [ "$supervisor" ]; then
   printf $Y"[+] "$GREEN"Supervisor conf was found\n"$NC >> $file
   echo $supervisor >> $file
   for f in $supervisor; do cat $f 2>/dev/null | grep "port.*=\|username.*=\|password=.*" | sed "s,port\|username\|password,${C}[1;31m&${C}[0m," >> $file; done
+  echo "" >> $file
 fi
 
 #Cesi
@@ -511,6 +532,7 @@ if [ "$cesi" ]; then
   printf $Y"[+] "$GREEN"Cesi conf was found\n"$NC >> $file
   echo $cesi >> $file
   for f in $cesi; do cat $f 2>/dev/null | grep "username.*=\|password.*=\|host.*=\|port.*=\|database.*=" | sed "s,username\|password\|database,${C}[1;31m&${C}[0m," >> $file; done
+  echo "" >> $file
 fi
 
 #Rsyncd
@@ -519,14 +541,16 @@ if [ "$rsyncd" ]; then
   printf $Y"[+] "$GREEN"Rsyncd conf was found\n"$NC >> $file
   echo $rsyncd
   for f in $rsyncd; do cat $f 2>/dev/null | grep "uid.*=|\gid.*=\|path.*=\|auth.*users.*=\|secrets.*file.*=\|hosts.*allow.*=\|hosts.*deny.*=" | sed "s,secrets.*,${C}[1;31m&${C}[0m," >> $file; done
+  echo "" >> $file
 fi
 
 #hostapd
 hostapd=`find /etc -name hostapd.conf 2>/dev/null`
 if [ "$hostapd" ]; then
   printf $Y"[+] "$GREEN"Hostapd conf was found\n"$NC >> $file
-  echo $hostapd
+  echo $hostapd >> $file
   for f in $hostapd; do cat $f 2>/dev/null | grep "passphrase" | sed "s,passphrase.*,${C}[1;31m&${C}[0m," >> $file; done
+  echo "" >> $file
 fi
 
 #wifi
@@ -535,6 +559,7 @@ if [ "$hostapd" ]; then
   printf $Y"[+] "$GREEN"Network conenctions files found\n"$NC >> $file
   echo $wifi
   for f in $wifi; do cat $f 2>/dev/null | grep "psk.*=" | sed "s,psk.*,${C}[1;31m&${C}[0m," >> $file; done
+  echo "" >> $file
 fi
 
 #anaconda-ks
@@ -543,6 +568,7 @@ if [ "$hostapd" ]; then
   printf $Y"[+] "$GREEN"Anaconda-ks config files found\n"$NC >> $file
   echo $anaconda
   for f in $anaconda; do cat $f 2>/dev/null | grep "rootpw" | sed "s,rootpw.*,${C}[1;31m&${C}[0m," >> $file; done
+  echo "" >> $file
 fi
 
 #vnc
@@ -551,13 +577,15 @@ if [ "$vnc" ]; then
   printf $Y"[+] "$GREEN".vnc directories found, searching for passwd files\n"$NC >> $file
   echo $vnc
   for d in $vnc; do find $d -name "passwd" -exec ls -l {} \; 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," >> $file; done
+  echo "" >> $file
 fi
 
 #ldap
 if [ -d "/var/lib/ldap" ]; then
   printf $Y"[+] "$GREEN"/var/lib/ldap has been found. Trying to extract passwords:\n"$NC >> $file;
   echo "The password hash is from the {SSHA} to 'structural'" >> $file;
-  cat /var/lib/ldap/*.bdb 2>/dev/null | grep -i -a -E -o "description.*" | sort | uniq | sed "s,administrator\|password,${C}[1;31m&${C}[0m,Ig" >> $file;
+  cat /var/lib/ldap/*.bdb 2>/dev/null | grep -i -a -E -o "description.*" | sort | uniq | sed "s,administrator\|password\|ADMINISTRATOR\|PASSWORD\|Password\|Administrator,${C}[1;31m&${C}[0m,g" >> $file;
+  echo "" >> $file
 fi
 
 #ovpn
@@ -566,12 +594,16 @@ if [ "$ovpn" ]; then
   printf $Y"[+] "$GREEN".ovpn files found, searching for auth-user-pass files\n"$NC >> $file
   echo $ovpn
   for f in $ovpn; do cat $f 2>/dev/null | grep "auth-user-pass" | sed "s,auth-user-pass.*,${C}[1;31m&${C}[0m," >> $file; done
+  echo "" >> $file
 fi
 
 #SSH
 ssh=`find /home /usr /root /etc /opt /var /mnt \( -name "id_dsa*" -o -name "id_rsa*" -o -name "known_hosts" -o -name "authorized_hosts" -o -name "authorized_keys" \) -exec ls -la {} \;  2>/dev/null`
 privatekeyfiles=`grep -rl "PRIVATE KEY-----" /home /root /mnt /etc 2>/dev/null`
-if [ "$ssh" ] || [ "$sshrootlogin" ] || [ "$privatekeyfiles" ]; then
+certsb4=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pem" -o -name "*.cer" -o -name "*.crt" \) 2>/dev/null`
+certsbin=`find /home /usr /root /etc /opt /var /mnt \( -name "*.csr" -o -name "*.der" \) 2>/dev/null`
+clientcert=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pfx" -o -name "*.p12" \) 2>/dev/null`
+if [ "$ssh" ] || [ -r "/etc/ssh/sshd_config" ] || [ "$privatekeyfiles" ] || [ "$certsb4" ] || [ "$clientcert" ] || [ "$certsbin" ]; then
   printf $Y"[+] "$GREEN"SSH Files\n"$NC >> $file
 fi
 
@@ -585,10 +617,19 @@ if [ "$privatekeyfiles" ]; then
   privatekeyfilesgrep=`grep -L "\"\|'\|(" $privatekeyfiles` # Check there aren't unexpected symbols in the file
 fi
 if [ "$privatekeyfilesgrep" ]; then
-    printf "Private SSH keys found!:\n$privatekeyfilesgrep" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+  printf "Private SSH keys found!:\n$privatekeyfilesgrep\n" | sed "s,.*,${C}[1;31m&${C}[0m," >> $file
+fi
+if [ "$certsb4" ] || [ "$certsbin" ]; then
+  echo "Certificates were found:" >> $file
+  grep -L "\"\|'\|(" $certsb4 2>/dev/null >> $file
+  echo $certsbin >> $file
+fi
+if [ "$clientcert" ]; then
+  echo "Client certificates were found:" >> $file
+  echo $clientcert >> $file
 fi
 
-if [ "$ssh" ] || [ "$sshrootlogin" ] || [ "$privatekeyfiles" ]; then
+if [ "$ssh" ] || [ -r "/etc/ssh/sshd_config" ] || [ "$privatekeyfiles" ] || [ "$certsb4" ] || [ "$clientcert" ] || [ "$certsbin" ]; then
   echo "" >> $file
 fi
 
@@ -735,7 +776,7 @@ printf $Y"[+] "$GREEN".sh files in path\n"$NC >> $file
 for d in `echo $PATH | tr ":" "\n"`; do find $d -name "*.sh" 2>/dev/null | sed "s,$pathshG,${C}[1;32m&${C}[0m," >> $file ; done
 echo "" >> $file
  
-hashespasswd=`grep -v '^[^:]*:[x]' /etc/passwd 2>/dev/null`
+hashespasswd=`grep -v '^[^:]*:[x\*]' /etc/passwd 2>/dev/null`
 if [ "$hashespasswd" ]; then
   printf $Y"[+] "$GREEN"Hashes inside passwd file\n"$NC >> $file
   printf $B"[i] "$Y"Try to crack the hashes\n"$NC >> $file
@@ -754,6 +795,13 @@ rootread=`ls -ahl /root/ 2>/dev/null`
 if [ "$rootread" ]; then
   printf $Y"[+] "$GREEN"Readable /root\n"$NC >> $file
   ls -ahl /root/ 2>/dev/null >> $file
+  echo "" >> $file
+fi
+
+myhomeroot=`find $HOME -user root 2>/dev/null | head`
+if [ "$myhomeroot" ]; then
+  printf $Y"[+] "$GREEN"Root files in my Home (output limited)\n"$NC >> $file
+  for f in $myhomeroot; do echo $f 2>/dev/null >> $file; done
   echo "" >> $file
 fi
 
@@ -820,7 +868,7 @@ for b in $backs; do if [ -r $b ]; then ls -l $b | grep -v $notBackup | sed "s,ba
 echo "" >> $file
 
 printf $Y"[+] "$GREEN"Searching passwords in config PHP files\n"$NC >> $file
-configs=`find /var /etc /home /root /tmp /usr /opt -type f -name *config*.php 2>/dev/null`
+configs=`find /var /etc /home /root /tmp /usr /opt -type f -name "*config*.php" 2>/dev/null`
 for c in $configs; do grep -i "password.* = ['\"]\|define.*passw\|db_pass" $c 2>/dev/null | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password\|db_pass,${C}[1;31m&${C}[0m,i" >> $file; done
 echo "" >> $file
 
@@ -830,6 +878,13 @@ ls -alhR /srv/www/htdocs/ 2>/dev/null | head >> $file
 ls -alhR /usr/local/www/apache22/data/ 2>/dev/null | head >> $file
 ls -alhR /opt/lampp/htdocs/ 2>/dev/null | head >> $file
 echo "" >> $file
+
+dbfiles=`find /var /etc /home /root /tmp /usr /opt -type f -name "*.db" 2>/dev/null`
+if [ "$dbfiles" ]; then
+  printf $Y"[+] "$GREEN"Looking for readable .db files\n"$NC >> $file
+  for f in $dbfiles; do if [ -r $f ]; then echo $f >> $file; fi; done
+  echo "" >> $file
+fi
 
 printf $Y"[+] "$GREEN"Finding IPs inside logs\n"$NC >> $file
 grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /var/log/ 2>/dev/null | sort | uniq -c >> $file

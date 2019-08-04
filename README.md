@@ -37,6 +37,7 @@ The ![](https://placehold.it/15/b32400/000000?text=+) **Red** color is used for 
 - Writable files in interesting directories
 - SUID/SGID binaries that have some vulnerable version (it also specifies the vulnerable version)
 - SUDO binaries that can be used to escalate privileges in sudo -l (without passwd) (https://gtfobins.github.io/)
+- Check /etc/doas.conf
 - 127.0.0.1 in netstat
 - Known files that could contain passwords
 - Capabilities in interesting binaries
@@ -126,7 +127,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] VNC (Credentials)
   - [x] LDAP database (Credentials)
   - [x] Open VPN files (Credentials)
-  - [x] SSH (private keys, known_hosts, authorized_hosts, authorized_keys, main config parameters in sshd_config)
+  - [x] SSH (private keys, known_hosts, authorized_hosts, authorized_keys, main config parameters in sshd_config, certificates)
   - [X] PAM-SSH (Unexpected "auth" values)
   - [x] AWS (Files with AWS keys)
   - [x] NFS (privilege escalation misconfiguration)
@@ -145,15 +146,17 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Mails
   - [x] Hashes (passwd, shadow & master.passwd)
   - [x] Try to read root dir
+  - [x] Files owned by root in my Home
   - [x] Check if Docker or LXC container
   - [x] List ALL writable files for current user (global, user and groups)
   - [x] Files that can contain passwords (and search for passwords inside *_history files)
   - [x] List of all hidden files
-  - [x] Search buckup files
+  - [x] Search backup files
   - [x] Inside /tmp, /var/tmp and /var/backups
   - [x] Web files
   - [x] Search for backup files
   - [x] Get IPs, passwords and emails from logs
+  - [x] Find "*.db" files
   - [x] "pwd" and "passw" inside files (and get most probable lines)
 
 
