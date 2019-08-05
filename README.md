@@ -6,19 +6,19 @@
 [![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/250532)
 
 
-The goal of this script is to search for possible **Privilege Escalation vectors inside a linux machine**.
+The goal of this script is to search for possible **Privilege Escalation vectors**.
 
-This script does not have any dependency.
+This script doesn't have any dependency.
 
-There is no need even for bash shell, **it runs using /bin/sh**.
+The script can be run in everything that have **/bin/sh** (even OpenBSD, FreeBSD and other OS with /bin/sh).
 
-It could take from **2 to 3 minutes** to execute the whole script (less than 1 min to make almost all the checks, almost 1 min to search for possible passwords inside all the accesible files of the system and 1 min to monitor the processes in order to find very frequent cron jobs).
+It could take from **2 to 3 minutes** to execute the whole script (less than 1 min to make almost all the checks, almost 1 min to search for possible passwords inside all the accesible files of the system and 1 min to monitor the processes in order to find very frequent cron jobs). 
 
-This script has several lists included inside of it to be able to color the results in order to discover PE vector.
+You can **decrease this** time use the parameters: 
+- **-f** (fast) - This will bypass checking processes during 1 min
+- **-v** (veryfast) - This will bypass the previous check and other time consuming checks.
 
-The script **automatically finds a writable directory** and writes the output of the checks there. The first console output will be the path of the file created.
-
-![](https://github.com/carlospolop/linPE/blob/master/images/linpe-exec.png)
+This script has **several lists** included inside of it to be able to **color the results** in order to highlight PE vector.
 
 Linpe also **exports a new PATH** variable if common folders aren't present in the original PATH variable. It also **exports** `export HISTSIZE=0` so no command executed during the session will be saved in the history file.
 
@@ -85,36 +85,56 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 
 ## What does linpe look for
 - **System Information**
-  - [x] SO, kernel version & sudo version
-  - [x] PATH, Date, time, selinux & env (and exports a new path if basic folders lacks)
-  - [x] Useful software installed (special search for compilers)
-  - [x] Processes (Current, Executed within a minute, Binary permissions)
-  - [x] Services
-  - [x] Scheduled tasks
-  - [x] sd* disk in /dev, storage info, mem info, ummounted file-sys, printers
+  - [x] SO & kernel version 
+  - [x] Sudo version
+  - [x] PATH
+  - [x] Date
+  - [x] System stats
+  - [x] Environment vars
+  - [x] SElinux
+  - [x] Printers
+  - [x] Dmesg (signature verifications)
+  - [x] Container?
 
+- **Devices**
+  - [x] sd* in /dev
+  - [x] Unmounted filesystems
+
+- **Available Software**
+  - [x] Useful software
+  - [x] Installed compilers
+
+- **Processes & Cron & Services**
+  - [x] Cleaned processes
+  - [x] Binary processes permissions
+  - [x] Different processes executed during 1 min
+  - [x] Cron jobs
+  - [x] Services
 
 - **Network Information**
-  - [x] Hostname, hosts & dns 
-  - [x] Intefaces, networks and neightbours
+  - [x] Hostname, hosts & dns
+  - [x] Content of /etc/inetd.conf
+  - [x] Networks and neighbours
   - [x] Active ports
-  - [x] Sniff permissions
-
+  - [x] Sniff permissions (tcpdump)
 
 - **Users Information**
-  - [x] Info about current user (whoami, groups, sudo, PGPkeys)
+  - [x] Info about current user
+  - [x] PGP keys
   - [x] `sudo -l` without password
+  - [x] doas config file
+  - [x] Pkexec policy
   - [x] Try to login using `su` as other users (using null pass and the username)
   - [x] List of superusers
+  - [x] List of users with console
   - [x] Login info
-  - [x] Available users with console
   - [x] List of all users
 
-
-- **Software Sensitive Information**
+- **Software Information**
   - [x] MySQl (Version, user being configured, loging as "root:root","root:toor","root:", user hashes extraction via DB and file, possible backup user configured)
   - [x] PostgreSQL (Version, try login in "template0" and "template1" as: "postgres:", "psql:")
   - [x] Apache (Version)
+  - [x] PHP cookies
   - [x] Wordpress (Database credentials)
   - [x] Tomcat (Credentials)
   - [x] Mongo (Version)
@@ -122,7 +142,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Cesi (Credentials)
   - [x] Rsyncd (Credentials)
   - [x] Hostapd (Credentials)
-  - [x] Network (Credentials)
+  - [x] Wifi (Credentials)
   - [x] Anaconda-ks (Credentials)
   - [x] VNC (Credentials)
   - [x] LDAP database (Credentials)
@@ -139,24 +159,23 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 
 
 - **Generic Interesting Files**
-  - [x] Pkexec policy, SUID & SGID files
+  - [x] SUID & SGID files
   - [x] Capabilities
   - [x] .sh scripts in PATH
-  - [x] Reduced list of files inside home
-  - [x] Mails
   - [x] Hashes (passwd, shadow & master.passwd)
   - [x] Try to read root dir
-  - [x] Files owned by root in my Home
-  - [x] Check if Docker or LXC container
-  - [x] List ALL writable files for current user (global, user and groups)
+  - [x] Files owned by root inside /home
+  - [x] Reduced list of files inside my home and /home
+  - [x] Mails
+  - [x] Backup files
+  - [x] DB files
+  - [x] Web files
   - [x] Files that can contain passwords (and search for passwords inside *_history files)
   - [x] List of all hidden files
-  - [x] Search backup files
+  - [x] List ALL writable files for current user (global, user and groups)
   - [x] Inside /tmp, /var/tmp and /var/backups
-  - [x] Web files
-  - [x] Search for backup files
+  - [x] Password ins config PHP files
   - [x] Get IPs, passwords and emails from logs
-  - [x] Find "*.db" files
   - [x] "pwd" and "passw" inside files (and get most probable lines)
 
 
