@@ -10,6 +10,8 @@ RED="${C}[1;31m"
 GREEN="${C}[1;32m"
 Y="${C}[1;33m"
 B="${C}[1;34m"
+LG="${C}[1;37m"
+DG="${C}[1;90m"
 NC="${C}[0m"
 
 filename="linpe.txt"
@@ -128,44 +130,82 @@ notBackup="/tdbbackup$\|/db_hotbackup$"
 
 
 ###########################################
-#---------) Parsing parameters (---------#
+#---------) Parsing parameters (----------#
 ###########################################
+# --) DEBUG
+# --) FAST - Do not check 1min of procceses
+# --) VERYFAST - FAST & do not search for special filaes in all the folders
+# --) BASIC - Print only first summary
+# --) RESUME - Print only Yes/No questions    
 
 DEBUG=""
 FAST=""
 VERYFAST=""
 RESUME=""
-OUTSCREEN=""
-QUIET=""
-BOTH=""
+BASIC=""
+#OUTSCREEN=""
+#QUIET=""
+#BOTH=""
 HELP="Poner mensaje de ayuda aqui!! TODO"
 
-while getopts "h?dfvrsqb" opt; do
+while getopts "h?dfvrb" opt; do
   case "$opt" in
     h|\?) echo $HELP; exit 0;;
     d)  DEBUG=1;;
     f)  FAST=1;;
     v)  VERYFAST=1;;
     r)  RESUME=1;;
-    s)  OUTSCREEN=1;;
-    q)  QUIET=1;;
-    b)  BOTH=1;;
+    b)  BASIC=1;;
     esac
 done
 
 ###########################################
 #--------------) Functions (--------------#
 ###########################################
-# --) Print basic status in screen if not QUIET and not OUTSCREEN
 # --) Print debug if DEBUG
 
-echo_quiet() {
-  if ! [ "$QUIET" ] && ! [ "$OUTSCREEN" ]; then echo "$@"; fi
+echo_title() {
+  if [ "`echo $@ | grep '*'`" ]; then
+    echo $@ | sed "s,\*,$GREEN&${C}[0m," | sed "s, ,$GREEN&," | sed "s,[-|)\[\]],$DG&${C}[0m,g"; printf $NC
+  elif [ "`echo $@ | grep '+'`" ]; then
+    printf "$@" | sed "s, ,$B&," | sed "s,\[+\],|-) [+]," | sed "s,+,$B&${C}[0m," | sed "s,[-|)\[\]],$DG&${C}[0m,g"; printf $DG"................. "$NC
+  elif [ "`echo $@ | grep '@'`" ]; then
+    printf "$@" | sed "s, ,$Y&," | sed "s,\[\@\],|--) [@]," | sed "s,\@,$Y&${C}[0m," | sed "s,[-|)\[\]],$DG&${C}[0m,g"; printf $NC
+  fi 
+} 
+
+check_red() {
+  if [ "`echo $@ | grep '31;'`"]; then
+    printf $RED"Yes\n"$NC
+  else
+    printf $LG"No\n"$NC
+  fi
+  if ! [ "$RESUME" ]; then echo "$@"; fi
 }
 
-echo_debug() {
-  if [ "$DEBUG" ]; then echo "$@"; fi
+check_red_cmd() {
+  $($@)
+  if [ "`$@ | grep '31;'`"]; then
+    printf $RED"Yes\n"$NC
+  else
+    printf $LG"No\n"$NC
+  fi
+  if ! [ "$RESUME" ]; then "$@"; fi
 }
+
+check_something() {
+  if [ "$#" -ge "1" ];then 
+    printf $RED"Yes\n"$NC
+    if ! [ "$RESUME" ]; then echo "$@"; fi
+  else 
+    printf $LG"No\n"$NC
+  fi
+}
+
+echo_info() {
+  if ! [ "$RESUME" ]; then echo "$@"; fi 
+} 
+
 
 ###########################################
 #---------) Checks before start (---------#
@@ -177,850 +217,795 @@ echo_debug() {
 
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then printf $B"[*] "$RED"YOU ARE ALREADY ROOT!!! (nothing is going to be executed)\n"$NC; exit; fi
 
-if ! [ "`which cat`"] && ! [ "`which tee`" ]; then echo printf $B"[*] "$RED"FATAL ERROR \"cat\" and \"tee\" aren't on the system\n"$NC; exit; fi
-
-if ! [ "$OUTSCREEN" ]; then
-  file=""
-  for f in $WF; do
-    echo '' 2>/dev/null > $f/$filename
-    if [ $? -eq 0 ]; then file="$f/$filename"; break; fi;
-  done;
-  if [ ! "$file" ]; then printf $B"[*] "$RED"I didn't find any writable folder!!\n"$NC; echo $WF; exit; fi;
-  rm -rf $file 2>/dev/null
-fi
-
-outcmd="tee -a $file > /dev/null"
-if [ "$OUTSCREEN" ]; then outcmd="cat"; fi
-if [ "$BOTH" ]; then outcmd="tee -a $file"; fi
+Wfolder=""
+for f in $WF; do
+  echo '' 2>/dev/null > $f/$filename
+  if [ $? -eq 0 ]; then Wfolder="$f"; rm -f $f/$filename 2>/dev/null; break; fi;
+done;
 
 
 ###########################################
 #-----------) Starting Output (-----------#
 ###########################################
-# --) If not quiet
 
-echo_quiet "linpe $VERSION"
-echo_quiet `echo "Output File: $file" | sed "s,.*,${C}[1;4m&${C}[0m,"`
-
-echo "" | $outcmd
-echo "linpe $VERSION" | sed "s,.*,${C}[1;94m&${C}[0m," | $outcmd
-echo "https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist" | $outcmd
-echo "LEYEND:" | sed "s,LEYEND,${C}[1;4m&${C}[0m," | $outcmd
-echo "RED/YELLOW: 99% a PE vector" | sed "s,RED/YELLOW,${C}[1;31;103m&${C}[0m," | $outcmd
-echo "RED: You must take a look at it" | sed "s,RED,${C}[1;31m&${C}[0m," | $outcmd
-echo "LightCyan: Users with console" | sed "s,LightCyan,${C}[1;96m&${C}[0m," | $outcmd
-echo "Blue: Users without console & mounted devs" | sed "s,Blue,${C}[1;34m&${C}[0m," | $outcmd
-echo "Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts) " | sed "s,Green,${C}[1;32m&${C}[0m," | $outcmd
-echo "LightMangenta: Your username" | sed "s,LightMangenta,${C}[1;95m&${C}[0m," | $outcmd
-echo "" | $outcmd
-echo "" | $outcmd
-
-echo_quiet `printf $B"Linux Privesc Checklist: "$Y"https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist\n"$NC`
-echo_quiet `printf $B"[*] "$GREEN"Gathering system info...\n"$NC`
-printf $B"[*] "$GREEN"BASIC SYSTEM INFO\n"$NC | $outcmd 
-echo "" | $outcmd
-printf $Y"[+] "$GREEN"Operative system\n"$NC | $outcmd
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#kernel-exploits\n"$NC | $outcmd
-(cat /proc/version || uname -a ) 2>/dev/null | sed "s,$kernelDCW_Ubuntu_Precise_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Precise_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Trusty_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Trusty_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Xenial,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel5,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel6_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel6_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel7,${C}[1;31;103m&${C}[0m," | sed "s,$kernelB,${C}[1;31m&${C}[0m," | $outcmd
-lsb_release -a 2>/dev/null | $outcmd
-echo "" | $outcmd
-
-printf $Y"[+] "$GREEN"PATH\n"$NC | $outcmd
-printf $B"[i] "$Y"Any writable folder in original PATH? (a new completed path will be exported)\n"$NC | $outcmd
-echo $OLDPATH 2>/dev/null | sed "s,$Wfolders\|\.,${C}[1;31;103m&${C}[0m," | $outcmd
-echo "New path exported: $PATH" 2>/dev/null | sed "s,$Wfolders\|\.,${C}[1;31;103m&${C}[0m,"  | $outcmd
-echo "" | $outcmd
-
-printf $Y"[+] "$GREEN"Date\n"$NC | $outcmd
-date 2>/dev/null | $outcmd
-echo "" | $outcmd
-
-echo_debug "[d] Sudo version"
-if [ "`which sudo 2>/dev/null`" ]; then
-  printf $Y"[+] "$GREEN"Sudo version\n"$NC | $outcmd
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-version\n"$NC | $outcmd
-  sudo -V 2>/dev/null | grep "Sudo ver" | sed "s,$sudovB,${C}[1;31m&${C}[0m," | $outcmd
-  echo "" | $outcmd
-fi
-
-echo_debug "[d] sestatus"
-sestatus=`sestatus 2>/dev/null`
-if [ "$sestatus" ]; then
-  printf $Y"[+] "$GREEN"selinux enabled?\n"$NC | $outcmd
-  echo $sestatus | $outcmd
-  echo "" | $outcmd
-fi
-
-printf $Y"[+] "$GREEN"Useful software?\n"$NC | $outcmd
-which nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch 2>/dev/null | $outcmd
-if [ ! "$GCC" ]; then
-  locate -r "/gcc[0-9\.-]\+$" 2>/dev/null | grep -v "/doc/" | $outcmd
-fi
-echo "" | $outcmd
-
-#limited search for installed compilers
-echo_debug "[d] Compilers"
-compiler=`dpkg --list 2>/dev/null| grep compiler | grep -v "decompiler\|lib" 2>/dev/null && yum list installed 'gcc*' 2>/dev/null| grep gcc 2>/dev/null`
-if [ "$compiler" ]; then
-  printf $Y"[+] "$GREEN"Installed compilers?\n"$NC | $outcmd
-  echo "$compiler" | $outcmd
-  echo "" | $outcmd
-fi
-
-printf $Y"[+] "$GREEN"Environment\n"$NC | $outcmd
-printf $B"[i] "$Y"Any private information inside environment variables?\n"$NC | $outcmd
-(env || set) 2>/dev/null | grep -v "^DEBUG\|^FAST\|^VERYFAST\|^RESUME\|^OUTSCREEN\|^HELP\|^QUIET\|^BOTH\|^VERSION=\|pwd_inside_history\|kernelDCW_Ubuntu_Precise_1\|kernelDCW_Ubuntu_Precise_2\|kernelDCW_Ubuntu_Trusty_1\|kernelDCW_Ubuntu_Trusty_2\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel5\|kernelDCW_Rhel6_1\|kernelDCW_Rhel6_2\|kernelDCW_Rhel7\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=" | sed "s,pwd\|passw\|PWD\|PASSW\|Passwd\|Pwd,${C}[1;31m&${C}[0m,g" | $outcmd
-export HISTSIZE=0 2>/dev/null
-echo "" | $outcmd
-
-printf $Y"[+] "$GREEN"Cleaned proccesses\n"$NC | $outcmd
-printf $B"[i] "$Y"Check weird & unexpected procceses run by root: https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes\n"$NC | $outcmd
-ps aux 2>/dev/null | grep -v "\[" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$rootcommon,${C}[1;32m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | $outcmd
-echo "" | $outcmd
-
-printf $Y"[+] "$GREEN"Binary processes permissions\n"$NC | $outcmd
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes\n"$NC | $outcmd
-ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;32m&${C}[0m," | $outcmd
-echo "" | $outcmd
-
-printf $Y"[+] "$GREEN"Services\n"$NC | $outcmd
-printf $B"[i] "$Y"Search for outdated versions\n"$NC | $outcmd
-(/usr/sbin/service --status-all || /sbin/chkconfig --list || /bin/rc-status) 2>/dev/null | $outcmd
-echo "" | $outcmd
-
-if ! [ "$FAST" ] && ! [ "$VERYFAST" ]; then
-  printf $Y"[+] "$GREEN"Different processes executed during 1 min (interesting is low number of repetitions)\n"$NC | $outcmd
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#frequent-cron-jobs\n"$NC | $outcmd
-  if [ "`ps -e --format cmd 2>/dev/null`" ]; then for i in $(seq 1 610); do ps -e --format cmd | $outcmd.tmp1; sleep 0.1; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort | grep -E -v "\s*[6-9][0-9][0-9]|\s*[0-9][0-9][0-9][0-9]" | $outcmd; rm $file.tmp1; fi
-  echo "" | $outcmd
-fi
-
-printf $Y"[+] "$GREEN"Scheduled tasks\n"$NC | $outcmd
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#scheduled-jobs\n"$NC | $outcmd
-crontab -l 2>/dev/null | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | $outcmd
-ls -al /etc/cron* 2>/dev/null | $outcmd
-cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/root /var/spool/anacron 2>/dev/null | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m,"  | sed "s,root,${C}[1;31m&${C}[0m," | $outcmd
-crontab -l -u $USER 2>/dev/null | $outcmd
-echo "" | $outcmd
-
-printf $Y"[+] "$GREEN"System stats?\n"$NC | $outcmd
-df -h 2>/dev/null | $outcmd
-free 2>/dev/null | $outcmd
-echo "" | $outcmd
-
-printf $Y"[+] "$GREEN"Any sd* disk in /dev? (limit 10)\n"$NC | $outcmd
-ls /dev 2>/dev/null | grep -i "sd" | head -n 10 | $outcmd
-echo "" | $outcmd
-
-printf $Y"[+] "$GREEN"Unmounted file-system?\n"$NC | $outcmd
-printf $B"[i] "$Y"Check if you can mount umounted devices\n"$NC | $outcmd
-cat /etc/fstab 2>/dev/null | grep -v "^#" | sed "s,$mountG,${C}[1;32m&${C}[0m,g" | sed "s,$notmounted,${C}[1;31m&${C}[0m," | sed "s,$mounted,${C}[1;34m&${C}[0m,"  | sed "s,$Wfolders,${C}[1;31m&${C}[0m," | sed "s,$mountpermsB,${C}[1;31m&${C}[0m,g" | sed "s,$mountpermsG,${C}[1;32m&${C}[0m,g" | $outcmd
-echo "" | $outcmd
-
-echo_debug "[d] Printer"
-printer=`lpstat -a 2>/dev/null`
-if [ "$printer" ]; then
-    printf $Y"[+] "$GREEN"Printer?\n"$NC | $outcmd
-    echo $printer | $outcmd
-    echo "" | $outcmd
-fi
-
-echo_debug "[d] dmesg"
-dmesg=`dmesg 2>/dev/null | grep signature`
-if [ "$dmesg" ]; then
-    printf $Y"[+] "$GREEN"Signature verification failed detected in dmseg\n"$NC | $outcmd
-    echo $dmesg | $outcmd
-    echo "" | $outcmd
-fi
-
-echo "" | $outcmd
-echo_quiet `printf $B"[*] "$GREEN"Gathering Network info...\n"$NC`
-printf $B"[*] "$GREEN"NETWORK INFO\n"$NC | $outcmd 
-echo "" | $outcmd
-printf $Y"[+] "$GREEN"Hostname, hosts and DNS\n"$NC | $outcmd
-cat /etc/hostname /etc/hosts /etc/resolv.conf 2>/dev/null | grep -v "^#" | $outcmd
-dnsdomainname 2>/dev/null | $outcmd
-echo "" | $outcmd
-
-printf $Y"[+] "$GREEN"Networks and neighbours\n"$NC | $outcmd
-cat /etc/networks 2>/dev/null | $outcmd
-(ifconfig || ip a) 2>/dev/null | $outcmd
-iptables -L 2>/dev/null | $outcmd
-ip n 2>/dev/null | $outcmd
-route -n 2>/dev/null | $outcmd
-echo "" | $outcmd
-
-printf $Y"[+] "$GREEN"Ports\n"$NC | $outcmd
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#internal-open-ports\n"$NC | $outcmd
-(netstat -punta || ss -t; ss -u) 2>/dev/null | sed "s,127.0.0.1,${C}[1;31m&${C}[0m," | $outcmd
-echo "" | $outcmd
-
-echo_debug "[d] tcpdump"
-tcpd=`timeout 1 tcpdump 2>/dev/null`
-if [ "$tcpd" ]; then
-    printf $Y"[+] "$GREEN"Can I sniff with tcpdump?\n"$NC | $outcmd
-    printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sniffing\n"$NC | $outcmd
-    echo "You can sniff with tcpdump!" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-    echo "" | $outcmd
-fi
-
-echo_debug "[d] inet.conf"
-inetdread=`cat /etc/inetd.conf 2>/dev/null`
-if [ "$inetdread" ]; then
-  printf $Y"[+] "$GREEN"Contents of /etc/inetd.conf:\n"$NC | $outcmd
-  cat /etc/inetd.conf 2>/dev/null | grep -v "^#" | $outcmd
+if ! [ "$BASIC" ]; then
+  echo "linpe $VERSION" | sed "s,.*,${C}[1;94m&${C}[0m,"
+  printf $Y"https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist\n"$NC
+  echo "LEYEND:" | sed "s,LEYEND,${C}[1;4m&${C}[0m,"
+  echo "RED/YELLOW: 99% a PE vector" | sed "s,RED/YELLOW,${C}[1;31;103m&${C}[0m,"
+  echo "RED: You must take a look at it" | sed "s,RED,${C}[1;31m&${C}[0m,"
+  echo "LightCyan: Users with console" | sed "s,LightCyan,${C}[1;96m&${C}[0m,"
+  echo "Blue: Users without console & mounted devs" | sed "s,Blue,${C}[1;34m&${C}[0m,"
+  echo "Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts) " | sed "s,Green,${C}[1;32m&${C}[0m,"
+  echo "LightMangenta: Your username" | sed "s,LightMangenta,${C}[1;95m&${C}[0m,"
+  echo ""
   echo ""
 fi
 
 
-echo "" | $outcmd
-echo_quiet `printf $B"[*] "$GREEN"Gathering users information...\n"$NC`
-printf $B"[*] "$GREEN"USERS INFO\n"$NC | $outcmd 
-echo "" | $outcmd
-printf $Y"[+] "$GREEN"Me\n"$NC | $outcmd
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#groups\n"$NC | $outcmd
-(id || (whoami && groups)) 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m,g" | sed "s,$knw_grps,${C}[1;32m&${C}[0m,g" | sed "s,$groupsB,${C}[1;31m&${C}[0m,g" | sed "s,$groupsVB,${C}[1;31;103m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | $outcmd
-echo "" | $outcmd
+###########################################
+#------------) Basic Resume (-------------#
+###########################################
 
-printf $Y"[+] "$GREEN"Testing 'sudo -l' without password & /etc/sudoers\n"$NC | $outcmd
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC | $outcmd
-echo '' | sudo -S -l 2>/dev/null | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m," | $outcmd
-cat /etc/sudoers 2>/dev/null | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m," | $outcmd
-echo "" | $outcmd
+echo_title "[*] Basic Information"
+printf $LG"OS: "$NC
+(cat /proc/version || uname -a ) 2>/dev/null | sed "s,$kernelDCW_Ubuntu_Precise_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Precise_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Trusty_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Trusty_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Xenial,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel5,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel6_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel6_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel7,${C}[1;31;103m&${C}[0m," | sed "s,$kernelB,${C}[1;31m&${C}[0m,"
+printf $LG"User & Groups: "$NC
+(id || (whoami && groups)) 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m,g" | sed "s,$knw_grps,${C}[1;32m&${C}[0m,g" | sed "s,$groupsB,${C}[1;31m&${C}[0m,g" | sed "s,$groupsVB,${C}[1;31;103m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g"
+printf $LG"Hostname: "$NC
+hostname 2>/dev/null
+printf $LG"Writable folder: "$NC
+echo $Wfolder
+echo ""
+echo ""
+if [ "$BASIC" ]; then exit; fi
 
-echo_debug "[d] doas.conf"
+
+###########################################
+#---------------) Checks (----------------#
+###########################################
+
+
+#--) Basic System Info
+echo_title "[*] Basic System Info"
+
+#--) Vulnerable Kernel
+echo_title "[+] Vulnerable Kernel?"
+check_red `(cat /proc/version || uname -a ) 2>/dev/null | sed "s,$kernelDCW_Ubuntu_Precise_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Precise_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Trusty_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Trusty_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Xenial,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel5,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel6_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel6_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel7,${C}[1;31;103m&${C}[0m," | sed "s,$kernelB,${C}[1;31m&${C}[0m,"`
+echo_info `lsb_release -a 2>/dev/null`
+echo_title "[@] https://book.hacktricks.xyz/linux-unix/privilege-escalation#kernel-exploits\n"
+
+#--) Writable folders in PATH
+echo_title "[+] Any writable folder in original PATH?"
+check_red `$OLDPATH 2>/dev/null | sed "s,$Wfolders\|\.,${C}[1;31;103m&${C}[0m,"`
+echo_info `echo "New path exported: $PATH" 2>/dev/null | sed "s,$Wfolders\|\.,${C}[1;31;103m&${C}[0m,"`
+
+#--) Date (no bool)
+echo_title "[+] Date"; echo ""
+echo_info `date 2>/dev/null`
+
+#--) vulnerable sudo version
+echo_title "[+] Vulnerable sudo version?"
+check_red `sudo -V 2>/dev/null | grep "Sudo ver" | sed "s,$sudovB,${C}[1;31m&${C}[0m,"`
+echo_title "[@] https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-version\n"$NC
+
+#--) SElinux
+echo_title "[+] SElinux enabled?"
+check_something `sestatus 2>/dev/null`
+
+#--) Useful software (no bool)
+echo_title "[+] Useful software?"; echo ""
+echo_info `which nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch 2>/dev/null`
+
+#--) Limited search for installed compilers
+echo_title "[+] Installed compilers?"
+check_something `dpkg --list 2>/dev/null | grep compiler | grep -v "decompiler\|lib" 2>/dev/null && yum list installed 'gcc*' 2>/dev/null| grep gcc 2>/dev/null; which gcc g++ 2>/dev/null || locate -r "/gcc[0-9\.-]\+$" 2>/dev/null | grep -v "/doc/"`
+
+#--) Environment vars
+echo_title "[+] Any private information inside environment variables?"
+check_red `(env || set) 2>/dev/null | grep -v "^DEBUG\|^FAST\|^VERYFAST\|^RESUME\|^OUTSCREEN\|^HELP\|^QUIET\|^BOTH\|^VERSION=\|pwd_inside_history\|kernelDCW_Ubuntu_Precise_1\|kernelDCW_Ubuntu_Precise_2\|kernelDCW_Ubuntu_Trusty_1\|kernelDCW_Ubuntu_Trusty_2\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel5\|kernelDCW_Rhel6_1\|kernelDCW_Rhel6_2\|kernelDCW_Rhel7\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=" | sed "s,pwd\|passw\|PWD\|PASSW\|Passwd\|Pwd,${C}[1;31m&${C}[0m,g"`
+export HISTSIZE=0 2>/dev/null
+
+#--) Cleaned proccesses
+echo_title "[+] Cleaned proccesses"
+check_red_cmd 'ps aux 2>/dev/null | grep -v "\[" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$rootcommon,${C}[1;32m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"'
+echo_title "[@] Check weird & unexpected procceses run by root: https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes"
+
+exit
+
+printf $Y"[+] "$GREEN"Binary processes permissions\n"$NC
+printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes\n"$NC
+ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;32m&${C}[0m,"
+echo ""
+
+printf $Y"[+] "$GREEN"Services\n"$NC
+printf $B"[@] "$Y"Search for outdated versions\n"$NC
+(/usr/sbin/service --status-all || /sbin/chkconfig --list || /bin/rc-status) 2>/dev/null
+echo ""
+
+if ! [ "$FAST" ] && ! [ "$VERYFAST" ]; then
+  printf $Y"[+] "$GREEN"Different processes executed during 1 min (interesting is low number of repetitions)\n"$NC
+  printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#frequent-cron-jobs\n"$NC
+  if [ "`ps -e --format cmd 2>/dev/null`" ]; then for i in $(seq 1 610); do ps -e --format cmd.tmp1; sleep 0.1; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort | grep -E -v "\s*[6-9][0-9][0-9]|\s*[0-9][0-9][0-9][0-9]"; rm $file.tmp1; fi
+  echo ""
+fi
+
+printf $Y"[+] "$GREEN"Scheduled tasks\n"$NC
+printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#scheduled-jobs\n"$NC
+crontab -l 2>/dev/null | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+ls -al /etc/cron* 2>/dev/null
+cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/root /var/spool/anacron 2>/dev/null | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m,"  | sed "s,root,${C}[1;31m&${C}[0m,"
+crontab -l -u $USER 2>/dev/null
+echo ""
+
+printf $Y"[+] "$GREEN"System stats?\n"$NC
+df -h 2>/dev/null
+free 2>/dev/null
+echo ""
+
+printf $Y"[+] "$GREEN"Any sd* disk in /dev? (limit 10)\n"$NC
+ls /dev 2>/dev/null | grep -i "sd" | head -n 10
+echo ""
+
+printf $Y"[+] "$GREEN"Unmounted file-system?\n"$NC
+printf $B"[@] "$Y"Check if you can mount umounted devices\n"$NC
+cat /etc/fstab 2>/dev/null | grep -v "^#" | sed "s,$mountG,${C}[1;32m&${C}[0m,g" | sed "s,$notmounted,${C}[1;31m&${C}[0m," | sed "s,$mounted,${C}[1;34m&${C}[0m,"  | sed "s,$Wfolders,${C}[1;31m&${C}[0m," | sed "s,$mountpermsB,${C}[1;31m&${C}[0m,g" | sed "s,$mountpermsG,${C}[1;32m&${C}[0m,g"
+echo ""
+
+printer=`lpstat -a 2>/dev/null`
+if [ "$printer" ]; then
+    printf $Y"[+] "$GREEN"Printer?\n"$NC
+    echo $printer
+    echo ""
+fi
+
+dmesg=`dmesg 2>/dev/null | grep signature`
+if [ "$dmesg" ]; then
+    printf $Y"[+] "$GREEN"Signature verification failed detected in dmseg\n"$NC
+    echo $dmesg
+    echo ""
+fi
+
+echo ""
+printf $B"[*] "$GREEN"NETWORK INFO\n"$NC 
+echo ""
+printf $Y"[+] "$GREEN"Hostname, hosts and DNS\n"$NC
+cat /etc/hostname /etc/hosts /etc/resolv.conf 2>/dev/null | grep -v "^#"
+dnsdomainname 2>/dev/null
+echo ""
+
+printf $Y"[+] "$GREEN"Networks and neighbours\n"$NC
+cat /etc/networks 2>/dev/null
+(ifconfig || ip a) 2>/dev/null
+iptables -L 2>/dev/null
+ip n 2>/dev/null
+route -n 2>/dev/null
+echo ""
+
+printf $Y"[+] "$GREEN"Ports\n"$NC
+printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#internal-open-ports\n"$NC
+(netstat -punta || ss -t; ss -u) 2>/dev/null | sed "s,127.0.0.1,${C}[1;31m&${C}[0m,"
+echo ""
+
+tcpd=`timeout 1 tcpdump 2>/dev/null`
+if [ "$tcpd" ]; then
+    printf $Y"[+] "$GREEN"Can I sniff with tcpdump?\n"$NC
+    printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sniffing\n"$NC
+    echo "You can sniff with tcpdump!" | sed "s,.*,${C}[1;31m&${C}[0m,"
+    echo ""
+fi
+
+inetdread=`cat /etc/inetd.conf 2>/dev/null`
+if [ "$inetdread" ]; then
+  printf $Y"[+] "$GREEN"Contents of /etc/inetd.conf:\n"$NC
+  cat /etc/inetd.conf 2>/dev/null | grep -v "^#"
+  echo ""
+fi
+
+
+echo ""
+printf $B"[*] "$GREEN"USERS INFO\n"$NC 
+echo ""
+printf $Y"[+] "$GREEN"Me\n"$NC
+printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#groups\n"$NC
+(id || (whoami && groups)) 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m,g" | sed "s,$knw_grps,${C}[1;32m&${C}[0m,g" | sed "s,$groupsB,${C}[1;31m&${C}[0m,g" | sed "s,$groupsVB,${C}[1;31;103m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g"
+echo ""
+
+printf $Y"[+] "$GREEN"Testing 'sudo -l' without password & /etc/sudoers\n"$NC
+printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC
+echo '' | sudo -S -l 2>/dev/null | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m,"
+cat /etc/sudoers 2>/dev/null | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m,"
+echo ""
+
 if [ -r "/etc/doas.conf" ]; then
-  printf $Y"[+] "$GREEN"Checking /etc/doas.conf\n"$NC | $outcmd
-  cat /etc/doas.conf | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,nopass,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Checking /etc/doas.conf\n"$NC
+  cat /etc/doas.conf | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,nopass,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m,"
+  echo ""
 fi
 
 if [ "$TIMEOUT" ]; then
-  echo_debug "[d] Testing su"
-  printf $Y"[+] "$GREEN"Testing 'su' as other users with shell without password or with their names as password (only works in modern su binary versions)\n"$NC | $outcmd
+    printf $Y"[+] "$GREEN"Testing 'su' as other users with shell without password or with their names as password (only works in modern su binary versions)\n"$NC
   SHELLUSERS=`cat /etc/passwd 2>/dev/null | grep -i "sh$" | cut -d ":" -f 1`
   for u in $SHELLUSERS; do
-    echo "Trying with $u..." | $outcmd
+    echo "Trying with $u..."
     trysu=`echo "" | timeout 1 su $u -c whoami 2>/dev/null`
     if [ "$trysu" ]; then
-      echo "You can login as $u whithout password!" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
+      echo "You can login as $u whithout password!" | sed "s,.*,${C}[1;31m&${C}[0m,"
     else
       trysu=`echo $u | timeout 1 su $u -c whoami 2>/dev/null`
       if [ "$trysu" ]; then
-        echo "You can login as $u using the username as password!" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
+        echo "You can login as $u using the username as password!" | sed "s,.*,${C}[1;31m&${C}[0m,"
       fi
     fi
   done
 else
-  printf $Y"[+] "$GREEN"Don forget to test 'su' as any other user with shell: without password and with their names as password (I can't do it...)\n"$NC | $outcmd
+  printf $Y"[+] "$GREEN"Don forget to test 'su' as any other user with shell: without password and with their names as password (I can't do it...)\n"$NC
 fi
 
-printf $Y"[+] "$GREEN"Do not forget to execute 'sudo -l' without password or with valid password (if you know it)!!\n"$NC | $outcmd
-echo "" | $outcmd
+printf $Y"[+] "$GREEN"Do not forget to execute 'sudo -l' without password or with valid password (if you know it)!!\n"$NC
+echo ""
 
-echo_debug "[d] gpg keys"
 gpgk=`gpg --list-keys 2>/dev/null`
 if [ "$gpgk" ]; then
-    printf $Y"[+] "$GREEN"Do I have PGP keys?\n"$NC | $outcmd
-    gpg --list-keys 2>/dev/null | $outcmd
-    echo "" | $outcmd
+    printf $Y"[+] "$GREEN"Do I have PGP keys?\n"$NC
+    gpg --list-keys 2>/dev/null
+    echo ""
 fi
 
-printf $Y"[+] "$GREEN"Superusers\n"$NC | $outcmd
-awk -F: '($3 == "0") {print}' /etc/passwd 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | $outcmd
-echo "" | $outcmd
+printf $Y"[+] "$GREEN"Superusers\n"$NC
+awk -F: '($3 == "0") {print}' /etc/passwd 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+echo ""
 
-printf $Y"[+] "$GREEN"Login information\n"$NC | $outcmd
-w 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | $outcmd
-last 2>/dev/null | tail | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | $outcmd
-echo "" | $outcmd
+printf $Y"[+] "$GREEN"Login information\n"$NC
+w 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+last 2>/dev/null | tail | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+echo ""
 
-printf $Y"[+] "$GREEN"Users with console\n"$NC | $outcmd
-cat /etc/passwd 2>/dev/null | grep "sh$" | sort | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | $outcmd
-echo "" | $outcmd
+printf $Y"[+] "$GREEN"Users with console\n"$NC
+cat /etc/passwd 2>/dev/null | grep "sh$" | sort | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+echo ""
 
-printf $Y"[+] "$GREEN"All users\n"$NC | $outcmd
-cat /etc/passwd 2>/dev/null | sort | cut -d: -f1 | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m," | $outcmd
-echo "" | $outcmd
+printf $Y"[+] "$GREEN"All users\n"$NC
+cat /etc/passwd 2>/dev/null | sort | cut -d: -f1 | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,"
+echo ""
 
 
-echo "" | $outcmd
-echo_quiet `printf $B"[*] "$GREEN"Gathering sensitive software information...\n"$NC`
-printf $B"[*] "$GREEN"SENSITIVE SOFTWARE INFORMATION\n"$NC | $outcmd 
-echo "" | $outcmd
+echo ""
+printf $B"[*] "$GREEN"SENSITIVE SOFTWARE INFORMATION\n"$NC 
+echo ""
 
-echo_debug "[d] mysql"
 mysqlver=`mysql --version 2>/dev/null`
 if [ "$mysqlver" ]; then
-  printf $Y"[+] "$GREEN"MySQL\n"$NC | $outcmd
-  echo "Version: $mysqlver" | $outcmd # TODO: color in red known vulnerable versions
+  printf $Y"[+] "$GREEN"MySQL\n"$NC
+  echo "Version: $mysqlver" # TODO: color in red known vulnerable versions
 
-  echo "" | $outcmd
+  echo ""
 fi
 
 #checks to see if root/root will get us a connection
-echo_debug "[d] mysqlconnect-1"
 mysqlconnect=`mysqladmin -uroot -proot version 2>/dev/null`
 if [ "$mysqlconnect" ]; then
-  echo "We can connect to the local MYSQL service with default root/root credentials!" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-  mysql -u root --password=root -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-  echo "" | $outcmd
+  echo "We can connect to the local MYSQL service with default root/root credentials!" | sed "s,.*,${C}[1;31m&${C}[0m,"
+  mysql -u root --password=root -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
+  echo ""
 fi
 
 #checks to see if root/toor will get us a connection
-echo_debug "[d] mysqlconnect-2"
 mysqlconnect=`mysqladmin -uroot -ptoor version 2>/dev/null`
 if [ "$mysqlconnect" ]; then
-  echo "We can connect to the local MYSQL service with root/toor credentials!" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-  mysql -u root --password=toor -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-  echo "" | $outcmd
+  echo "We can connect to the local MYSQL service with root/toor credentials!" | sed "s,.*,${C}[1;31m&${C}[0m,"
+  mysql -u root --password=toor -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
+  echo ""
 fi
 
 #mysql version details
-echo_debug "[d] mysqlconnectnopass"
 mysqlconnectnopass=`mysqladmin -uroot version 2>/dev/null`
 if [ "$mysqlconnectnopass" ]; then
-  echo "We can connect to the local MYSQL service as 'root' and without a password!" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-  mysql -u root -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
+  echo "We can connect to the local MYSQL service as 'root' and without a password!" | sed "s,.*,${C}[1;31m&${C}[0m,"
+  mysql -u root -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
   echo ""
 fi
 
 #mysqlCredentials
-echo_debug "[d] mysqldirs"
 mysqldirs=`find /etc /usr/var/lib /var/lib -type d -name mysql -not -path "*mysql/mysql"  2>/dev/null`
 for d in $mysqldirs; do 
   dcnf=`find $d -name debian.cnf 2>/dev/null`
   for f in $dcnf; do
     if [ -r $f ]; then 
-      echo "We can read the mysql debian.cnf. You can use this username/password to log in MySQL" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-      cat $f  | $outcmd
+      echo "We can read the mysql debian.cnf. You can use this username/password to log in MySQL" | sed "s,.*,${C}[1;31m&${C}[0m,"
+      cat $f 
     fi
   done
   uMYD=`find $d -name user.MYD 2>/dev/null`
   for f in $uMYD; do
     if [ -r $f ]; then 
-      echo "We can read the Mysql Hashes from $f" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-      grep -oaE "[-_\.\*a-Z0-9]{3,}" $f | grep -v "mysql_native_password"  | $outcmd
+      echo "We can read the Mysql Hashes from $f" | sed "s,.*,${C}[1;31m&${C}[0m,"
+      grep -oaE "[-_\.\*a-Z0-9]{3,}" $f | grep -v "mysql_native_password" 
     fi
   done
   user=`grep -lr "user\s*=" $d 2>/dev/null | grep -v "debian.cnf"`
   for f in $user; do
     if [ -r $f ]; then
       u=`cat $f | grep -v "#" | grep "user" | grep "=" 2>/dev/null`
-      echo "From '$f' Mysql user: $u" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | $outcmd
+      echo "From '$f' Mysql user: $u" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
     fi
   done
 done
 
 #postgres details - if installed
-echo_debug "[d] postgresql"
 postgver=`psql -V 2>/dev/null`
 postgdb=`find /var /etc /home /root /tmp /usr /opt -type f -name "pgadmin*.db" 2>/dev/null`
 if [ "$postgver" ] || [ "$postgdb"]; then
-  printf $Y"[+] "$GREEN"PostgreSQL\n"$NC | $outcmd
-  if [ "$postgver" ]; then echo "Version: $postgver" | $outcmd; fi
-  if [ "$postgdb" ]; then echo "PostgreSQL database: $postgdb" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd; fi
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"PostgreSQL\n"$NC
+  if [ "$postgver" ]; then echo "Version: $postgver"; fi
+  if [ "$postgdb" ]; then echo "PostgreSQL database: $postgdb" | sed "s,.*,${C}[1;31m&${C}[0m,"; fi
+  echo ""
 fi
 
 if [ "$TIMEOUT" ]; then  # In some OS (like OpenBSD) it will expect the password from console and will pause the script. Also, this OS doesn't have the "timeout" command so lets only use this checks in OS that has it.
 #checks to see if any postgres password exists and connects to DB 'template0' - following commands are a variant on this
-  echo_debug "[d] postgresql-pwds"
-  postcon1=`timeout 1 psql -U postgres -d template0 -c 'select version()' 2>/dev/null | grep version`
+    postcon1=`timeout 1 psql -U postgres -d template0 -c 'select version()' 2>/dev/null | grep version`
   if [ "$postcon1" ]; then
-    echo "We can connect to Postgres DB 'template0' as user 'postgres' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-    echo "" | $outcmd
+    echo "We can connect to Postgres DB 'template0' as user 'postgres' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m,"
+    echo ""
   fi
 
   postcon11=`timeout 1 psql -U postgres -d template1 -c 'select version()' 2>/dev/null | grep version`
   if [ "$postcon11" ]; then
-    echo "We can connect to Postgres DB 'template1' as user 'postgres' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-    echo "" | $outcmd
+    echo "We can connect to Postgres DB 'template1' as user 'postgres' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m,"
+    echo ""
   fi
 
   postcon2=`timeout 1 psql -U pgsql -dpgsq template0 -c 'select version()' 2>/dev/null | grep version`
   if [ "$postcon2" ]; then
-    echo "We can connect to Postgres DB 'template0' as user 'psql' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-    echo "" | $outcmd
+    echo "We can connect to Postgres DB 'template0' as user 'psql' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m,"
+    echo ""
   fi
 
   postcon22=`timeout 1 psql -U pgsql -d template1 -c 'select version()' 2>/dev/null | grep version`
   if [ "$postcon22" ]; then
-    echo "We can connect to Postgres DB 'template1' as user 'psql' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-    echo "" | $outcmd
+    echo "We can connect to Postgres DB 'template1' as user 'psql' with no password!" | sed "s,.*,${C}[1;31m&${C}[0m,"
+    echo ""
   fi
 fi
 
 #apache details - if installed
-echo_debug "[d] Apache"
 apachever=`apache2 -v 2>/dev/null; httpd -v 2>/dev/null`
 if [ "$apachever" ]; then
-  printf $Y"[+] "$GREEN"Apache\n"$NC | $outcmd
-  echo "Version: $apachever" | $outcmd
+  printf $Y"[+] "$GREEN"Apache\n"$NC
+  echo "Version: $apachever"
   sitesenabled=`find /var /etc /home /root /tmp /usr /opt -name sites-enabled -type d 2>/dev/null`
-  for d in $sitesenabled; do for f in $d/*; do grep "AuthType\|AuthName\|AuthUserFile" $f | sed "s,.*AuthUserFile.*,${C}[1;31m&${C}[0m," | $outcmd; done; done
+  for d in $sitesenabled; do for f in $d/*; do grep "AuthType\|AuthName\|AuthUserFile" $f | sed "s,.*AuthUserFile.*,${C}[1;31m&${C}[0m,"; done; done
   if [ !"$sitesenabled" ]; then
     default00=`find /var /etc /home /root /tmp /usr /opt -name 000-default 2>/dev/null`
-    for f in $default00; do grep "AuthType\|AuthName\|AuthUserFile" $f | sed "s,.*AuthUserFile.*,${C}[1;31m&${C}[0m," | $outcmd; done
+    for f in $default00; do grep "AuthType\|AuthName\|AuthUserFile" $f | sed "s,.*AuthUserFile.*,${C}[1;31m&${C}[0m,"; done
   fi
-  echo "" | $outcmd
+  echo ""
 fi
 
 #php coockies files
-echo_debug "[d] PHP Cookies"
 phpcookies=`ls /var/lib/php/sessions 2>/dev/null`
 if [ "$phpcookies" ]; then
-  printf $Y"[+] "$GREEN"PHPCookies where found\n"$NC | $outcmd
-  ls /var/lib/php/sessions 2>/dev/null | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"PHPCookies where found\n"$NC
+  ls /var/lib/php/sessions 2>/dev/null
+  echo ""
 fi
 
 #Wordpress user, password, databname and host
-echo_debug "[d] Wordpress"
 wp=`find /var /etc /home /root /tmp /usr /opt -type f -name wp-config.php 2>/dev/null`
 if [ "$wp" ]; then
-  printf $Y"[+] "$GREEN"Worpress\n"$NC | $outcmd
-  echo "wp-config.php files found:\n$wp" | $outcmd
-  for f in $wp; do grep "PASSWORD\|USER\|NAME\|HOST" $f 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd; done
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Worpress\n"$NC
+  echo "wp-config.php files found:\n$wp"
+  for f in $wp; do grep "PASSWORD\|USER\|NAME\|HOST" $f 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"; done
+  echo ""
 fi
 
 #Tomcat users
-echo_debug "[d] Tomcat"
 wp=`find /var /etc /home /root /tmp /usr /opt -type f -name tomcat-users.xml 2>/dev/null`
 if [ "$wp" ]; then
-  printf $Y"[+] "$GREEN"Tomcat uses file found\n"$NC | $outcmd
-  echo "tomcat-users.xml file found:\n$wp" | $outcmd
-  for f in $wp; do grep "username=" $f 2>/dev/null | grep "password=" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd; done
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Tomcat uses file found\n"$NC
+  echo "tomcat-users.xml file found:\n$wp"
+  for f in $wp; do grep "username=" $f 2>/dev/null | grep "password=" | sed "s,.*,${C}[1;31m&${C}[0m,"; done
+  echo ""
 fi
 
 #Mongo
-echo_debug "[d] Mongo"
 mongover=`mongo --version 2>/dev/null`
 if [ ! "$mongover" ]; then
   mongover=`mongod --version 2>/dev/null`
 fi
 if [ "$mongover" ]; then
-  printf $Y"[+] "$GREEN"MongoDB\n"$NC | $outcmd
-  echo "Version: $mongover" | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"MongoDB\n"$NC
+  echo "Version: $mongover"
+  echo ""
   #TODO: Check if you can login without password and warn the user
 fi
 
 #Supervisor
-echo_debug "[d] Supervisor"
 supervisor=`find /etc -name supervisord.conf 2>/dev/null`
 if [ "$supervisor" ]; then
-  printf $Y"[+] "$GREEN"Supervisor conf was found\n"$NC | $outcmd
-  echo $supervisor | $outcmd
-  for f in $supervisor; do cat $f 2>/dev/null | grep "port.*=\|username.*=\|password=.*" | sed "s,port\|username\|password,${C}[1;31m&${C}[0m," | $outcmd; done
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Supervisor conf was found\n"$NC
+  echo $supervisor
+  for f in $supervisor; do cat $f 2>/dev/null | grep "port.*=\|username.*=\|password=.*" | sed "s,port\|username\|password,${C}[1;31m&${C}[0m,"; done
+  echo ""
 fi
 
 #Cesi
-echo_debug "[d] Cesi"
 cesi=`find /etc -name cesi.conf 2>/dev/null`
 if [ "$cesi" ]; then
-  printf $Y"[+] "$GREEN"Cesi conf was found\n"$NC | $outcmd
-  echo $cesi | $outcmd
-  for f in $cesi; do cat $f 2>/dev/null | grep "username.*=\|password.*=\|host.*=\|port.*=\|database.*=" | sed "s,username\|password\|database,${C}[1;31m&${C}[0m," | $outcmd; done
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Cesi conf was found\n"$NC
+  echo $cesi
+  for f in $cesi; do cat $f 2>/dev/null | grep "username.*=\|password.*=\|host.*=\|port.*=\|database.*=" | sed "s,username\|password\|database,${C}[1;31m&${C}[0m,"; done
+  echo ""
 fi
 
 #Rsyncd
-echo_debug "[d] Rsyncd"
 rsyncd=`find /etc -name rsyncd.conf 2>/dev/null`
 if [ "$rsyncd" ]; then
-  printf $Y"[+] "$GREEN"Rsyncd conf was found\n"$NC | $outcmd
+  printf $Y"[+] "$GREEN"Rsyncd conf was found\n"$NC
   echo $rsyncd
-  for f in $rsyncd; do cat $f 2>/dev/null | grep "uid.*=|\gid.*=\|path.*=\|auth.*users.*=\|secrets.*file.*=\|hosts.*allow.*=\|hosts.*deny.*=" | sed "s,secrets.*,${C}[1;31m&${C}[0m," | $outcmd; done
-  echo "" | $outcmd
+  for f in $rsyncd; do cat $f 2>/dev/null | grep "uid.*=|\gid.*=\|path.*=\|auth.*users.*=\|secrets.*file.*=\|hosts.*allow.*=\|hosts.*deny.*=" | sed "s,secrets.*,${C}[1;31m&${C}[0m,"; done
+  echo ""
 fi
 
 #hostapd
-echo_debug "[d] Hostapd"
 hostapd=`find /etc -name hostapd.conf 2>/dev/null`
 if [ "$hostapd" ]; then
-  printf $Y"[+] "$GREEN"Hostapd conf was found\n"$NC | $outcmd
-  echo $hostapd | $outcmd
-  for f in $hostapd; do cat $f 2>/dev/null | grep "passphrase" | sed "s,passphrase.*,${C}[1;31m&${C}[0m," | $outcmd; done
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Hostapd conf was found\n"$NC
+  echo $hostapd
+  for f in $hostapd; do cat $f 2>/dev/null | grep "passphrase" | sed "s,passphrase.*,${C}[1;31m&${C}[0m,"; done
+  echo ""
 fi
 
 #wifi
-echo_debug "[d] Wifi nets"
 wifi=`find /etc/NetworkManager/system-connections/ 2>/dev/null`
 if [ "$wifi" ]; then
-  printf $Y"[+] "$GREEN"Network conenctions files found\n"$NC | $outcmd
+  printf $Y"[+] "$GREEN"Network conenctions files found\n"$NC
   echo $wifi
-  for f in $wifi; do cat $f 2>/dev/null | grep "psk.*=" | sed "s,psk.*,${C}[1;31m&${C}[0m," | $outcmd; done
-  echo "" | $outcmd
+  for f in $wifi; do cat $f 2>/dev/null | grep "psk.*=" | sed "s,psk.*,${C}[1;31m&${C}[0m,"; done
+  echo ""
 fi
 
 #anaconda-ks
-echo_debug "[d] Anaconda-ks"
 anaconda=`find /etc -name anaconda-ks.cfg 2>/dev/null`
 if [ "$anaconda" ]; then
-  printf $Y"[+] "$GREEN"Anaconda-ks config files found\n"$NC | $outcmd
-  echo $anaconda | $outcmd
-  for f in $anaconda; do cat $f 2>/dev/null | grep "rootpw" | sed "s,rootpw.*,${C}[1;31m&${C}[0m," | $outcmd; done
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Anaconda-ks config files found\n"$NC
+  echo $anaconda
+  for f in $anaconda; do cat $f 2>/dev/null | grep "rootpw" | sed "s,rootpw.*,${C}[1;31m&${C}[0m,"; done
+  echo ""
 fi
 
 #vnc
-echo_debug "[d] VNC"
 vnc=`find /home /root -name .vnc 2>/dev/null`
 if [ "$vnc" ]; then
-  printf $Y"[+] "$GREEN".vnc directories found, searching for passwd files\n"$NC | $outcmd
+  printf $Y"[+] "$GREEN".vnc directories found, searching for passwd files\n"$NC
   echo $vnc
-  for d in $vnc; do find $d -name "passwd" -exec ls -l {} \; 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd; done
-  echo "" | $outcmd
+  for d in $vnc; do find $d -name "passwd" -exec ls -l {} \; 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"; done
+  echo ""
 fi
 
 #ldap
-echo_debug "[d] LDAP"
 if [ -d "/var/lib/ldap" ]; then
-  printf $Y"[+] "$GREEN"/var/lib/ldap has been found. Trying to extract passwords:\n"$NC | $outcmd;
-  echo "The password hash is from the {SSHA} to 'structural'" | $outcmd;
-  cat /var/lib/ldap/*.bdb 2>/dev/null | grep -i -a -E -o "description.*" | sort | uniq | sed "s,administrator\|password\|ADMINISTRATOR\|PASSWORD\|Password\|Administrator,${C}[1;31m&${C}[0m,g" | $outcmd;
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"/var/lib/ldap has been found. Trying to extract passwords:\n"$NC;
+  echo "The password hash is from the {SSHA} to 'structural'";
+  cat /var/lib/ldap/*.bdb 2>/dev/null | grep -i -a -E -o "description.*" | sort | uniq | sed "s,administrator\|password\|ADMINISTRATOR\|PASSWORD\|Password\|Administrator,${C}[1;31m&${C}[0m,g";
+  echo ""
 fi
 
 #ovpn
-echo_debug "[d] OVPN"
 ovpn=`find /etc /usr /home /root -name .ovpn 2>/dev/null`
 if [ "$ovpn" ]; then
-  printf $Y"[+] "$GREEN".ovpn files found, searching for auth-user-pass files\n"$NC | $outcmd
+  printf $Y"[+] "$GREEN".ovpn files found, searching for auth-user-pass files\n"$NC
   echo $ovpn
-  for f in $ovpn; do cat $f 2>/dev/null | grep "auth-user-pass" | sed "s,auth-user-pass.*,${C}[1;31m&${C}[0m," | $outcmd; done
-  echo "" | $outcmd
+  for f in $ovpn; do cat $f 2>/dev/null | grep "auth-user-pass" | sed "s,auth-user-pass.*,${C}[1;31m&${C}[0m,"; done
+  echo ""
 fi
 
 #SSH
-echo_debug "[d] SSH"
 ssh=`find /home /usr /root /etc /opt /var /mnt \( -name "id_dsa*" -o -name "id_rsa*" -o -name "known_hosts" -o -name "authorized_hosts" -o -name "authorized_keys" \) -exec ls -la {} \;  2>/dev/null`
 privatekeyfiles=`grep -rl "PRIVATE KEY-----" /home /root /mnt /etc 2>/dev/null`
 certsb4=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pem" -o -name "*.cer" -o -name "*.crt" \) 2>/dev/null`
 certsbin=`find /home /usr /root /etc /opt /var /mnt \( -name "*.csr" -o -name "*.der" \) 2>/dev/null`
 clientcert=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pfx" -o -name "*.p12" \) 2>/dev/null`
 if [ "$ssh" ] || [ -r "/etc/ssh/sshd_config" ] || [ "$privatekeyfiles" ] || [ "$certsb4" ] || [ "$clientcert" ] || [ "$certsbin" ]; then
-  printf $Y"[+] "$GREEN"SSH Files\n"$NC | $outcmd
+  printf $Y"[+] "$GREEN"SSH Files\n"$NC
 fi
 
 if [ "$ssh"  ]; then
-  echo $ssh | $outcmd
+  echo $ssh
 fi
 
-grep "PermitRootLogin \|ChallengeResponseAuthentication \|PasswordAuthentication \|UsePAM \|Port\|PermitEmptyPasswords\|PubkeyAuthentication\|ListenAddress" /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | sed "s,PermitRootLogin.*es\|PermitEmptyPasswords.*es\|ChallengeResponseAuthentication.*es,${C}[1;31m&${C}[0m," | $outcmd
+grep "PermitRootLogin \|ChallengeResponseAuthentication \|PasswordAuthentication \|UsePAM \|Port\|PermitEmptyPasswords\|PubkeyAuthentication\|ListenAddress" /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | sed "s,PermitRootLogin.*es\|PermitEmptyPasswords.*es\|ChallengeResponseAuthentication.*es,${C}[1;31m&${C}[0m,"
 
 if [ "$privatekeyfiles" ]; then
   privatekeyfilesgrep=`grep -L "\"\|'\|(" $privatekeyfiles` # Check there aren't unexpected symbols in the file
 fi
 if [ "$privatekeyfilesgrep" ]; then
-  printf "Private SSH keys found!:\n$privatekeyfilesgrep\n" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
+  printf "Private SSH keys found!:\n$privatekeyfilesgrep\n" | sed "s,.*,${C}[1;31m&${C}[0m,"
 fi
 if [ "$certsb4" ] || [ "$certsbin" ]; then
-  echo "Certificates were found:" | $outcmd
-  grep -L "\"\|'\|(" $certsb4 2>/dev/null | $outcmd
-  echo $certsbin | $outcmd
+  echo "Certificates were found:"
+  grep -L "\"\|'\|(" $certsb4 2>/dev/null
+  echo $certsbin
 fi
 if [ "$clientcert" ]; then
-  echo "Client certificates were found:" | $outcmd
-  echo $clientcert | $outcmd
+  echo "Client certificates were found:"
+  echo $clientcert
 fi
 
 if [ "$ssh" ] || [ -r "/etc/ssh/sshd_config" ] || [ "$privatekeyfiles" ] || [ "$certsb4" ] || [ "$clientcert" ] || [ "$certsbin" ]; then
-  echo "" | $outcmd
+  echo ""
 fi
 
 #PAM-SSH
-echo_debug "[d] PAM-SSH"
 pamssh=`cat /etc/pam.d/sshd 2>/dev/null | grep -v "^#\|^@" | grep -i auth`
 if [ "$pamssh" ]; then
-  printf $Y"[+] "$GREEN"Unexpected auth lines in /etc/pam.d/sshd were detected\n"$NC | $outcmd
-  cat /etc/pam.d/sshd 2>/dev/null | grep -v "^#\|^@" | grep -i auth | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Unexpected auth lines in /etc/pam.d/sshd were detected\n"$NC
+  cat /etc/pam.d/sshd 2>/dev/null | grep -v "^#\|^@" | grep -i auth | sed "s,.*,${C}[1;31m&${C}[0m,"
+  echo ""
 fi
 
 #AWS
-echo_debug "[d] AWS keys"
 awskeyfiles=`grep -rli "aws_secret_access_key" /home /root /mnt /etc 2>/dev/null | grep -v $(basename "$0")`
 if [ "$awskeyfiles" ]; then
-    printf $Y"[+] "$GREEN"AWS Keys\n"$NC | $outcmd
-  	echo "AWS secret keys found!: $awskeyfiles" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-  	echo "" | $outcmd
+    printf $Y"[+] "$GREEN"AWS Keys\n"$NC
+  	echo "AWS secret keys found!: $awskeyfiles" | sed "s,.*,${C}[1;31m&${C}[0m,"
+  	echo ""
 fi
 
 #NFS
-echo_debug "[d] NFS exports"
 exprts=`cat /etc/exports 2>/dev/null`
 if [ "$exprts" ]; then
-    printf $Y"[+] "$GREEN"NFS exports?\n"$NC | $outcmd
-    printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation/nfs-no_root_squash-misconfiguration-pe\n"$NC | $outcmd
-    cat /etc/exports 2>/dev/null | grep -v "^#" | sed "s,no_root_squash\|no_all_squash ,${C}[1;31;103m&${C}[0m," | $outcmd
-    echo "" | $outcmd
+    printf $Y"[+] "$GREEN"NFS exports?\n"$NC
+    printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation/nfs-no_root_squash-misconfiguration-pe\n"$NC
+    cat /etc/exports 2>/dev/null | grep -v "^#" | sed "s,no_root_squash\|no_all_squash ,${C}[1;31;103m&${C}[0m,"
+    echo ""
 fi
 
 #Kerberos
-echo_debug "[d] Kerberos"
 krb5=`ls /etc/krb5.conf 2>/dev/null`
 krbtickets=`ls /tmp/krb5cc* 2>/dev/null`
 if [ "$krb5" ]; then
-  printf $Y"[+] "$GREEN"Found kerberos conf /etc/krb5.conf\n"$NC | $outcmd
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88#pass-the-ticket-ptt\n"$NC | $outcmd
-  cat /etc/krb5.conf | grep default_ccache_name | sed "s,default_ccache_name,${C}[1;31m&${C}[0m," | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Found kerberos conf /etc/krb5.conf\n"$NC
+  printf $B"[@] "$Y"https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88#pass-the-ticket-ptt\n"$NC
+  cat /etc/krb5.conf | grep default_ccache_name | sed "s,default_ccache_name,${C}[1;31m&${C}[0m,"
+  echo ""
 fi
 if [ "$krbtickets" ]; then
-  printf $Y"[+] "$GREEN"Found kerberos tickets\n"$NC | $outcmd
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88#pass-the-ticket-ptt\n"$NC | $outcmd
-  ls -l /tmp/krb5cc* | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Found kerberos tickets\n"$NC
+  printf $B"[@] "$Y"https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88#pass-the-ticket-ptt\n"$NC
+  ls -l /tmp/krb5cc*
+  echo ""
 fi
 
 #Kibana
-echo_debug "[d] Kibana"
 kibana=`find /etc /usr /home /root -name "kibana.y*ml" 2>/dev/null`
 if [ "$kibana" ]; then
-  printf $Y"[+] "$GREEN"Found Kibana\n"$NC | $outcmd
-  echo $kibana | $outcmd
-  for f in $kibana; do cat $f 2>/dev/null || grep -v "^#" | grep -v -e '^[[:space:]]*$' | sed "s,username\|password\|host\|port\|elasticsearch\|ssl,${C}[1;31m&${C}[0m," | $outcmd; done
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Found Kibana\n"$NC
+  echo $kibana
+  for f in $kibana; do cat $f 2>/dev/null || grep -v "^#" | grep -v -e '^[[:space:]]*$' | sed "s,username\|password\|host\|port\|elasticsearch\|ssl,${C}[1;31m&${C}[0m,"; done
+  echo ""
 fi
 
 #Logstash
-echo_debug "[d] Logstash"
 logstash=`find /etc /usr /home /root -type d -name logstash 2>/dev/null`
 if [ "$logstash" ]; then
-  printf $Y"[+] "$GREEN"Found logstash directory\n"$NC | $outcmd
+  printf $Y"[+] "$GREEN"Found logstash directory\n"$NC
   echo $logstash
   for d in $logstash; do
     if [ -r $d/startup.options ]; then 
-      echo "Logstash is running as user:" | $outcmd
-      cat $d/startup.options 2>/dev/null | grep "LS_USER\|LS_GROUP" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | $outcmd
+      echo "Logstash is running as user:"
+      cat $d/startup.options 2>/dev/null | grep "LS_USER\|LS_GROUP" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
     fi
-    cat $d/conf.d/out* | grep "exec\s*{\|command\s*=>" | sed "s,exec\s*{\|command\s*=>,${C}[1;31m&${C}[0m," | $outcmd
-    cat $d/conf.d/filt* | grep "path\s*=>\|code\s*=>\|ruby\s*{" | sed "s,path\s*=>\|code\s*=>\|ruby\s*{,${C}[1;31m&${C}[0m," | $outcmd
+    cat $d/conf.d/out* | grep "exec\s*{\|command\s*=>" | sed "s,exec\s*{\|command\s*=>,${C}[1;31m&${C}[0m,"
+    cat $d/conf.d/filt* | grep "path\s*=>\|code\s*=>\|ruby\s*{" | sed "s,path\s*=>\|code\s*=>\|ruby\s*{,${C}[1;31m&${C}[0m,"
   done
-  echo "" | $outcmd
+  echo ""
 fi
 
 #Elasticsearch
-echo_debug "[d] Elasticsearch"
 elasticsearch=`find /etc /usr /home /root -name "elasticsearch.y*ml" 2>/dev/null`
 if [ "$elasticsearch" ]; then
-  printf $Y"[+] "$GREEN"Found Elasticsearch\n"$NC | $outcmd
-  echo $elasticsearch | $outcmd
-  for f in $elasticsearch; do cat $f 2>/dev/null || grep -v "^#" | grep -v -e '^[[:space:]]*$' | grep "path.data\|path.logs\|cluster.name\|node.name\|network.host\|discovery.zen.ping.unicast.hosts" | $outcmd; done
-  echo "Version: $(curl -X GET '10.10.10.115:9200' 2>/dev/null | grep number | cut -d ':' -f 2)" | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Found Elasticsearch\n"$NC
+  echo $elasticsearch
+  for f in $elasticsearch; do cat $f 2>/dev/null || grep -v "^#" | grep -v -e '^[[:space:]]*$' | grep "path.data\|path.logs\|cluster.name\|node.name\|network.host\|discovery.zen.ping.unicast.hosts"; done
+  echo "Version: $(curl -X GET '10.10.10.115:9200' 2>/dev/null | grep number | cut -d ':' -f 2)"
+  echo ""
 fi
 
 #Vault-ssh
-echo_debug "[d] Vault-ssh"
 vaultssh=`find /etc /usr /home /root -name vault-ssh-helper.hcl 2>/dev/null`
 if [ "$vaultssh" ]; then
-  printf $Y"[+] "$GREEN"Found Vault-ssh\n"$NC | $outcmd
-  echo $vaultssh | $outcmd
-  for f in $vaultssh; do cat $f 2>/dev/null | $outcmd; vault-ssh-helper -verify-only -config $f 2>/dev/null | $outcmd; done
-  echo "" | $outcmd
-  vault secrets list 2>/dev/null | $outcmd
-  find /etc /usr /home /root -name ".vault-token" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," 2>/dev/null | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Found Vault-ssh\n"$NC
+  echo $vaultssh
+  for f in $vaultssh; do cat $f 2>/dev/null; vault-ssh-helper -verify-only -config $f 2>/dev/null; done
+  echo ""
+  vault secrets list 2>/dev/null
+  find /etc /usr /home /root -name ".vault-token" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," 2>/dev/null
+  echo ""
 fi
 
 
-echo "" | $outcmd
-echo_quiet `printf $B"[*] "$GREEN"Gathering files information...\n"$NC`
-printf $B"[*] "$GREEN"GENERAL INTERESTING FILES\n"$NC | $outcmd 
-echo "" | $outcmd
+echo ""
+printf $B"[*] "$GREEN"GENERAL INTERESTING FILES\n"$NC 
+echo ""
 
-echo_debug "[d] Pkexec policy"
 pkexecpolicy=`cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null`
 if [ "$pkexecpolicy" ]; then
-  printf $B"[+] "$GREEN"Pkexec policy\n"$NC | $outcmd
-  cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null | grep -v "^#" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$groupsB,${C}[1;31m&${C}[0m," | sed "s,$groupsVB,${C}[1;31m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | sed "s,$GROUPS,${C}[1;31;103m&${C}[0m," | $outcmd
-  echo "" | $outcmd
+  printf $B"[+] "$GREEN"Pkexec policy\n"$NC
+  cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null | grep -v "^#" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$groupsB,${C}[1;31m&${C}[0m," | sed "s,$groupsVB,${C}[1;31m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | sed "s,$GROUPS,${C}[1;31;103m&${C}[0m,"
+  echo ""
 fi
 
-printf $Y"[+] "$GREEN"SUID\n"$NC | $outcmd
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC | $outcmd
+printf $Y"[+] "$GREEN"SUID\n"$NC
+printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC
 for s in `find / -perm -4000 2>/dev/null`; do
   c="a"
   for b in $sidB; do
     if [ "`echo $s | grep $(echo $b | cut -d "%" -f 1)`" ]; then
-      echo $s | sed "s,$(echo $b | cut -d "%" -f 1),${C}[1;31m&\t\t--->\t$(echo $b | cut -d "%" -f 2)${C}[0m," | $outcmd
+      echo $s | sed "s,$(echo $b | cut -d "%" -f 1),${C}[1;31m&\t\t--->\t$(echo $b | cut -d "%" -f 2)${C}[0m,"
       c=""
       break;
     fi
   done;
   if [ "$c" ]; then
-      echo $s | sed "s,$sidG,${C}[1;32m&${C}[0m," | sed "s,$sidVB,${C}[1;31;103m&${C}[0m," | $outcmd
+      echo $s | sed "s,$sidG,${C}[1;32m&${C}[0m," | sed "s,$sidVB,${C}[1;31;103m&${C}[0m,"
     fi
 done;
-echo "" | $outcmd
+echo ""
 
-printf $Y"[+] "$GREEN"SGID\n"$NC | $outcmd
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC | $outcmd
+printf $Y"[+] "$GREEN"SGID\n"$NC
+printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC
 for s in `find / -perm -g=s -type f 2>/dev/null`; do
   c="a"
   for b in $sidB; do
     if [ "`echo $s | grep $(echo $b | cut -d "%" -f 1)`" ]; then
-      echo $s | sed "s,$(echo $b | cut -d "%" -f 1),${C}[1;31m&\t\t--->\t$(echo $b | cut -d "%" -f 2)${C}[0m," | $outcmd
+      echo $s | sed "s,$(echo $b | cut -d "%" -f 1),${C}[1;31m&\t\t--->\t$(echo $b | cut -d "%" -f 2)${C}[0m,"
       c=""
       break;
     fi
   done;
   if [ "$c" ]; then
-      echo $s | sed "s,$sidG,${C}[1;32m&${C}[0m," | sed "s,$sidVB,${C}[1;31;103m&${C}[0m," | $outcmd
+      echo $s | sed "s,$sidG,${C}[1;32m&${C}[0m," | sed "s,$sidVB,${C}[1;31;103m&${C}[0m,"
     fi
 done;
-echo "" | $outcmd
+echo ""
 
-printf $Y"[+] "$GREEN"Capabilities\n"$NC | $outcmd
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#capabilities\n"$NC | $outcmd
-getcap -r / 2>/dev/null | sed "s,$sudocapsB,${C}[1;31m&${C}[0m," | sed "s,$capsB,${C}[1;31m&${C}[0m," | $outcmd
-echo "" | $outcmd
+printf $Y"[+] "$GREEN"Capabilities\n"$NC
+printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#capabilities\n"$NC
+getcap -r / 2>/dev/null | sed "s,$sudocapsB,${C}[1;31m&${C}[0m," | sed "s,$capsB,${C}[1;31m&${C}[0m,"
+echo ""
 
-printf $Y"[+] "$GREEN".sh files in path\n"$NC | $outcmd
-for d in `echo $PATH | tr ":" "\n"`; do find $d -name "*.sh" 2>/dev/null | sed "s,$pathshG,${C}[1;32m&${C}[0m," | $outcmd ; done
-echo "" | $outcmd
+printf $Y"[+] "$GREEN".sh files in path\n"$NC
+for d in `echo $PATH | tr ":" "\n"`; do find $d -name "*.sh" 2>/dev/null | sed "s,$pathshG,${C}[1;32m&${C}[0m," ; done
+echo ""
 
-echo_debug "[d] /etc/passwd hashes"
 hashespasswd=`grep -v '^[^:]*:[x\*]' /etc/passwd 2>/dev/null`
 if [ "$hashespasswd" ]; then
-  printf $Y"[+] "$GREEN"Hashes inside passwd file\n"$NC | $outcmd
-  printf $B"[i] "$Y"Try to crack the hashes\n"$NC | $outcmd
-  for h in $hashespasswd; do echo $h | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd; done
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Hashes inside passwd file\n"$NC
+  printf $B"[@] "$Y"Try to crack the hashes\n"$NC
+  for h in $hashespasswd; do echo $h | sed "s,.*,${C}[1;31m&${C}[0m,"; done
+  echo ""
 fi
 
-echo_debug "[d] Shadow read"
 shadowread=`cat /etc/shadow /etc/master.passwd 2>/dev/null`
 if [ "$shadowread" ]; then
-  printf $Y"[+] "$GREEN"Readable Shadow file\n"$NC | $outcmd
-  cat /etc/shadow /etc/master.passwd 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Readable Shadow file\n"$NC
+  cat /etc/shadow /etc/master.passwd 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
+  echo ""
 fi
 
-echo_debug "[d] Root read"
 rootread=`ls -ahl /root/ 2>/dev/null`
 if [ "$rootread" ]; then
-  printf $Y"[+] "$GREEN"Readable /root\n"$NC | $outcmd
-  ls -ahl /root/ 2>/dev/null | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Readable /root\n"$NC
+  ls -ahl /root/ 2>/dev/null
+  echo ""
 fi
 
-echo_debug "[d] Root files in my home"
 myhomeroot=`find $HOME -user root 2>/dev/null | head`
 if [ "$myhomeroot" ]; then
-  printf $Y"[+] "$GREEN"Root files in my Home (output limited)\n"$NC | $outcmd
-  for f in $myhomeroot; do echo $f 2>/dev/null | $outcmd; done
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Root files in my Home (output limited)\n"$NC
+  for f in $myhomeroot; do echo $f 2>/dev/null; done
+  echo ""
 fi
 
-printf $Y"[+] "$GREEN"Files inside \$HOME (limit 20)\n"$NC | $outcmd
-ls -la $HOME 2>/dev/null | head -n 23 | $outcmd
-echo "" | $outcmd
+printf $Y"[+] "$GREEN"Files inside \$HOME (limit 20)\n"$NC
+ls -la $HOME 2>/dev/null | head -n 23
+echo ""
 
-echo_debug "[d] Files in /home"
 fileshome=`find /home -type f 2>/dev/null | grep -v -i "/"$USER | head -n 20 `
 if [ "$fileshome" ]; then
-  printf $Y"[+] "$GREEN"20 First files of /home\n"$NC | $outcmd
-  for f in $fileshome; do echo $f | $outcmd; done
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"20 First files of /home\n"$NC
+  for f in $fileshome; do echo $f; done
+  echo ""
 fi
 
-echo_debug "[d] Mail"
 fmails=`find /var/mail/ /var/spool/mail/ -type f 2>/dev/null`
 if [ "$fmails" ]; then
-  printf $Y"[+] "$GREEN"Mails (limited 50)\n"$NC | $outcmd
-  ls -l $fmails | head -n 50 | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Mails (limited 50)\n"$NC
+  ls -l $fmails | head -n 50
+  echo ""
 fi
 
-echo_debug "[d] Containers"
 dockercontainer=`grep -i docker /proc/self/cgroup  2>/dev/null; find / -name "*dockerenv*" -exec ls -la {} \; 2>/dev/null`
 lxccontainer=`grep -qa container=lxc /proc/1/environ 2>/dev/null`
 if [ "$dockercontainer" ] || [ "$lxccontainer" ]; then
-  printf $Y"[+] "$GREEN"Inside docker or lxc?\n"$NC | $outcmd
-  if [ "$dockercontainer" ]; then echo "Looks like we're in a Docker container" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd; fi
-  if [ "$lxccontainer" ]; then echo "Looks like we're in a LXC container" | sed "s,.*,${C}[1;31m&${C}[0m," | $outcmd; fi
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Inside docker or lxc?\n"$NC
+  if [ "$dockercontainer" ]; then echo "Looks like we're in a Docker container" | sed "s,.*,${C}[1;31m&${C}[0m,"; fi
+  if [ "$lxccontainer" ]; then echo "Looks like we're in a LXC container" | sed "s,.*,${C}[1;31m&${C}[0m,"; fi
+  echo ""
 fi
 
-printf $Y"[+] "$GREEN"*_history, .sudo_as_admin_successful, profile, bashrc, httpd.conf, .plan, .htpasswd, .git-credentials, .rhosts, hosts.equiv, Dockerfile, docker-compose.yml\n"$NC | $outcmd
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#read-sensitive-data\n"$NC | $outcmd
+printf $Y"[+] "$GREEN"*_history, .sudo_as_admin_successful, profile, bashrc, httpd.conf, .plan, .htpasswd, .git-credentials, .rhosts, hosts.equiv, Dockerfile, docker-compose.yml\n"$NC
+printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#read-sensitive-data\n"$NC
 fils=`find / -type f \( -name "*_history" -o -name ".sudo_as_admin_successful" -o -name ".profile" -o -name "*bashrc" -o -name "httpd.conf" -o -name "*.plan" -o -name ".htpasswd" -o -name ".git-credentials" -o -name "*.rhosts" -o -name "hosts.equiv" -o -name "Dockerfile" -o -name "docker-compose.yml" \) 2>/dev/null`
 for f in $fils; do 
   if [ -r $f ]; then 
-    ls -l $f 2>/dev/null | sed "s,bash_history\|\.sudo_as_admin_successful\|\.plan\|\.htpasswd\|\.git-credentials\|\.rhosts\|,${C}[1;31m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g" | $outcmd; 
+    ls -l $f 2>/dev/null | sed "s,bash_history\|\.sudo_as_admin_successful\|\.plan\|\.htpasswd\|\.git-credentials\|\.rhosts\|,${C}[1;31m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
     g=`echo $f | grep "_history"`
     if [ $g ]; then
-      printf $GREEN"Looking for possible passwords inside $f\n"$NC | $outcmd
-      cat $f | grep $pwd_inside_history | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m," | $outcmd
+      printf $GREEN"Looking for possible passwords inside $f\n"$NC
+      cat $f | grep $pwd_inside_history | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
     fi;
   fi; 
 done
-echo "" | $outcmd
+echo ""
 
-printf $Y"[+] "$GREEN"All hidden files (not in /sys/, not: .gitignore, .listing, .ignore, .uuid, .depend and listed before) (limit 100)\n"$NC | $outcmd
-find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/\|\.gitignore\|_history$\|\.profile\|\.bashrc\|\.listing\|\.ignore\|\.uuid\|\.plan\|\.htpasswd\|\.git-credentials\|.rhosts\|.depend" | head -n 100 | $outcmd
-echo "" | $outcmd
+printf $Y"[+] "$GREEN"All hidden files (not in /sys/, not: .gitignore, .listing, .ignore, .uuid, .depend and listed before) (limit 100)\n"$NC
+find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/\|\.gitignore\|_history$\|\.profile\|\.bashrc\|\.listing\|\.ignore\|\.uuid\|\.plan\|\.htpasswd\|\.git-credentials\|.rhosts\|.depend" | head -n 100
+echo ""
 
-printf $Y"[+] "$GREEN"Readable files inside /tmp, /var/tmp, /var/backups(limit 100)\n"$NC | $outcmd
+printf $Y"[+] "$GREEN"Readable files inside /tmp, /var/tmp, /var/backups(limit 100)\n"$NC
 filstmpback=`find /tmp /var/tmp /var/backups -type f 2>/dev/null | head -n 100`
-for f in $filstmpback; do if [ -r $f ]; then ls -l $f 2>/dev/null | $outcmd; fi; done
-echo "" | $outcmd
+for f in $filstmpback; do if [ -r $f ]; then ls -l $f 2>/dev/null; fi; done
+echo ""
 
-printf $Y"[+] "$GREEN"Interesting writable Files\n"$NC | $outcmd
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files\n"$NC | $outcmd
-find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sort | uniq | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31:93m&${C}[0m," | $outcmd
-for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31;103m&${C}[0m," | $outcmd; done
-echo "" | $outcmd
+printf $Y"[+] "$GREEN"Interesting writable Files\n"$NC
+printf $B"[@] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files\n"$NC
+find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sort | uniq | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31:93m&${C}[0m,"
+for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31;103m&${C}[0m,"; done
+echo ""
 
-printf $Y"[+] "$GREEN"Backup files?\n"$NC | $outcmd
+printf $Y"[+] "$GREEN"Backup files?\n"$NC
 backs=`find /var /etc /bin /sbin /home /usr/local/bin /usr/local/sbin /usr/bin /usr/games /usr/sbin /root /tmp -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*\.bck" -o -name "*\.bk" \) 2>/dev/null` 
-for b in $backs; do if [ -r $b ]; then ls -l $b | grep -v $notBackup | sed "s,backup\|bck\|\.bak,${C}[1;31m&${C}[0m," | $outcmd; fi; done
-echo "" | $outcmd
+for b in $backs; do if [ -r $b ]; then ls -l $b | grep -v $notBackup | sed "s,backup\|bck\|\.bak,${C}[1;31m&${C}[0m,"; fi; done
+echo ""
 
-printf $Y"[+] "$GREEN"Searching passwords in config PHP files\n"$NC | $outcmd
+printf $Y"[+] "$GREEN"Searching passwords in config PHP files\n"$NC
 configs=`find /var /etc /home /root /tmp /usr /opt -type f -name "*config*.php" 2>/dev/null`
-for c in $configs; do grep -i "password.* = ['\"]\|define.*passw\|db_pass" $c 2>/dev/null | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password\|db_pass,${C}[1;31m&${C}[0m,i" | $outcmd; done
-echo "" | $outcmd
+for c in $configs; do grep -i "password.* = ['\"]\|define.*passw\|db_pass" $c 2>/dev/null | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password\|db_pass,${C}[1;31m&${C}[0m,i"; done
+echo ""
 
-printf $Y"[+] "$GREEN"Web files?(output limited)\n"$NC | $outcmd
-ls -alhR /var/www/ 2>/dev/null | head | $outcmd
-ls -alhR /srv/www/htdocs/ 2>/dev/null | head | $outcmd
-ls -alhR /usr/local/www/apache22/data/ 2>/dev/null | head | $outcmd
-ls -alhR /opt/lampp/htdocs/ 2>/dev/null | head | $outcmd
-echo "" | $outcmd
+printf $Y"[+] "$GREEN"Web files?(output limited)\n"$NC
+ls -alhR /var/www/ 2>/dev/null | head
+ls -alhR /srv/www/htdocs/ 2>/dev/null | head
+ls -alhR /usr/local/www/apache22/data/ 2>/dev/null | head
+ls -alhR /opt/lampp/htdocs/ 2>/dev/null | head
+echo ""
 
 if ! [ "$VERYFAST" ]; then
-  echo_debug "[d] Looking for .db files"
-  dbfiles=`find /var /etc /home /root /tmp /usr /opt -type f -name "*.db" 2>/dev/null`
+    dbfiles=`find /var /etc /home /root /tmp /usr /opt -type f -name "*.db" 2>/dev/null`
   if [ "$dbfiles" ]; then
-    printf $Y"[+] "$GREEN"Looking for readable .db files\n"$NC | $outcmd
-    for f in $dbfiles; do if [ -r $f ]; then echo $f | $outcmd; fi; done
-    echo "" | $outcmd
+    printf $Y"[+] "$GREEN"Looking for readable .db files\n"$NC
+    for f in $dbfiles; do if [ -r $f ]; then echo $f; fi; done
+    echo ""
   fi
 
-  printf $Y"[+] "$GREEN"Finding IPs inside logs\n"$NC | $outcmd
-  grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /var/log/ 2>/dev/null | sort | uniq -c | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Finding IPs inside logs\n"$NC
+  grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /var/log/ 2>/dev/null | sort | uniq -c
+  echo ""
 
-  printf $Y"[+] "$GREEN"Finding passwords inside logs (limited 100)\n"$NC | $outcmd
-  grep -R -i "pwd\|passw" /var/log/ 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | grep -v "File does not exist:\|script not found or unable to stat:\|\"GET /.*\" 404" | head -n 100 | sed "s,pwd\|passw,${C}[1;31m&${C}[0m," | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Finding passwords inside logs (limited 100)\n"$NC
+  grep -R -i "pwd\|passw" /var/log/ 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | grep -v "File does not exist:\|script not found or unable to stat:\|\"GET /.*\" 404" | head -n 100 | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,"
+  echo ""
 
-  printf $Y"[+] "$GREEN"Finding emails inside logs (limited 100)\n"$NC | $outcmd
-  grep -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" /var/log/ 2>/dev/null | sort | uniq -c | head -n 100 | $outcmd 
-  echo "" | $outcmd 
+  printf $Y"[+] "$GREEN"Finding emails inside logs (limited 100)\n"$NC
+  grep -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" /var/log/ 2>/dev/null | sort | uniq -c | head -n 100 
+  echo "" 
 
-  printf $Y"[+] "$GREEN"Finding 'pwd' or 'passw' string inside /home, /var/www, /etc, /root and list possible web(/var/www) and config(/etc) passwords\n"$NC | $outcmd
-  grep -lRi "pwd\|passw" /home /var/www /root 2>/dev/null | sort | uniq | $outcmd
-  grep -R -i "password.* = ['\"]\|define.*passw" /var/www /root /home 2>/dev/null | grep "\.php" | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password,${C}[1;31m&${C}[0m," | $outcmd
-  grep -R -i "password" /etc 2>/dev/null | grep "conf" | grep -v ":#\|:/\*\|: \*" | sort | uniq | sed "s,password,${C}[1;31m&${C}[0m," | $outcmd
-  echo "" | $outcmd
+  printf $Y"[+] "$GREEN"Finding 'pwd' or 'passw' string inside /home, /var/www, /etc, /root and list possible web(/var/www) and config(/etc) passwords\n"$NC
+  grep -lRi "pwd\|passw" /home /var/www /root 2>/dev/null | sort | uniq
+  grep -R -i "password.* = ['\"]\|define.*passw" /var/www /root /home 2>/dev/null | grep "\.php" | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password,${C}[1;31m&${C}[0m,"
+  grep -R -i "password" /etc 2>/dev/null | grep "conf" | grep -v ":#\|:/\*\|: \*" | sort | uniq | sed "s,password,${C}[1;31m&${C}[0m,"
+  echo ""
 fi
