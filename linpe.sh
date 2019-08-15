@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.0.0"
+VERSION="v2.0.1"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -267,20 +267,18 @@ printf $B"[i] "$Y"Any private information inside environment variables?\n"$NC
 export HISTSIZE=0 2>/dev/null
 echo ""
 
-#-- 7SY) SElinux
-printf $Y"[+] "$GREEN"selinux enabled? .......... "$NC
-sestatus 2>/dev/null || echo_not_found "sestatus"
-echo ""
-
-#-- 8SY) Printer
-printf $Y"[+] "$GREEN"Printer? .......... "$NC
-lpstat -a 2>/dev/null || echo_not_found "lpstat"
-echo ""
-
-#-- 9SY) Dmesg
+#-- 7SY) Dmesg
 printf $Y"[+] "$GREEN"Looking for Signature verification failed in dmseg\n"$NC
 (dmesg 2>/dev/null | grep signature) || echo_not_found
 echo ""
+
+#-- 8SY) SElinux
+printf $Y"[+] "$GREEN"selinux enabled? .......... "$NC
+sestatus 2>/dev/null || echo_not_found "sestatus"
+
+#-- 9SY) Printer
+printf $Y"[+] "$GREEN"Printer? .......... "$NC
+lpstat -a 2>/dev/null || echo_not_found "lpstat"
 
 #-- 10SY) Container
 printf $Y"[+] "$GREEN"Is this a container? .......... "$NC
@@ -350,7 +348,7 @@ echo ""
 if ! [ "$FAST" ] && ! [ "$VERYFAST" ]; then
   printf $Y"[+] "$GREEN"Different processes executed during 1 min (interesting is low number of repetitions)\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#frequent-cron-jobs\n"$NC
-  if [ "`ps -e --format cmd 2>/dev/null`" ]; then for i in $(seq 1 610); do ps -e --format cmd >> $file.tmp1; sleep 0.1; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort | grep -E -v "\s*[6-9][0-9][0-9]|\s*[0-9][0-9][0-9][0-9]"; rm $file.tmp1; fi
+  if [ "`ps -e --format cmd 2>/dev/null`" ]; then for i in $(seq 1 1200); do ps -e --format cmd >> $file.tmp1; sleep 0.05; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort | grep -E -v "\s*[1-9][0-9][0-9][0-9]"; rm $file.tmp1; fi
   echo ""
 fi
 
@@ -437,7 +435,9 @@ echo ""
 
 #-- 4UI) Doas
 printf $Y"[+] "$GREEN"Checking /etc/doas.conf\n"$NC
-(cat /etc/doas.conf 2>/dev/null | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,nopass,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m,") || echo_not_found "/etc/doas.conf"
+if [ "`cat /etc/doas.conf 2>/dev/null`" ]; then cat /etc/doas.conf 2>/dev/null | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,nopass,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m,")
+else echo_not_found "/etc/doas.conf"
+fi
 echo ""
 
 #-- 5UI) Pkexec policy
@@ -735,9 +735,9 @@ echo ""
 printf $Y"[+] "$GREEN"Looking for ssl/ssh files\n"$NC
 ssh=`find /home /usr /root /etc /opt /var /mnt \( -name "id_dsa*" -o -name "id_rsa*" -o -name "known_hosts" -o -name "authorized_hosts" -o -name "authorized_keys" \) -exec ls -la {} \;  2>/dev/null`
 privatekeyfiles=`grep -rl "PRIVATE KEY-----" /home /root /mnt /etc 2>/dev/null`
-certsb4=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pem" -o -name "*.cer" -o -name "*.crt" \) 2>/dev/null`
-certsbin=`find /home /usr /root /etc /opt /var /mnt \( -name "*.csr" -o -name "*.der" \) 2>/dev/null`
-clientcert=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pfx" -o -name "*.p12" \) 2>/dev/null`
+certsb4=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pem" -o -name "*.cer" -o -name "*.crt" \) 2>/dev/null | grep -v "/usr/share/" "/etc/ssl/"`
+certsbin=`find /home /usr /root /etc /opt /var /mnt \( -name "*.csr" -o -name "*.der" \) 2>/dev/null | grep -v "/usr/share/" "/etc/ssl/"`
+clientcert=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pfx" -o -name "*.p12" \) 2>/dev/null | grep -v "/usr/share/" "/etc/ssl/"`
 
 if [ "$ssh"  ]; then
   echo $ssh
