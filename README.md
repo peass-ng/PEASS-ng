@@ -1,7 +1,9 @@
-# LinPE - Linux Privilege Escalation (with colors)
+# LinPEAS - Linux Privilege Escalation Awsome Script (with colors!!)
+
+Also valid for **Unix systems**
 
 
-**Linpe performs the linux privilege escalation checks explained in [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/privilege-escalation)**
+**LinPEAS performs the linux privilege escalation checks explained in [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/privilege-escalation)**
 
 [![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/250532)
 
@@ -20,11 +22,11 @@ You can **decrease this** time use the parameters:
 
 This script has **several lists** included inside of it to be able to **color the results** in order to highlight PE vector.
 
-Linpe also **exports a new PATH** variable if common folders aren't present in the original PATH variable. It also **exports** `export HISTSIZE=0` so no command executed during the session will be saved in the history file.
+LinPEAS also **exports a new PATH** variable if common folders aren't present in the original PATH variable. It also **exports** `export HISTSIZE=0` so no command executed during the session will be saved in the history file.
 
 ## Colors
 
-LinPE uses colors to indicate where does each section begin. But **it also uses them the identify potencial misconfigurations**.
+LinPEAS uses colors to indicate where does each section begin. But **it also uses them the identify potencial misconfigurations**.
 
 The ![](https://placehold.it/15/b32400/000000?text=+) **Red/Yellow** ![](https://placehold.it/15/fff500/000000?text=+) color is used for identifing configurations that lead to PE (99% sure).
 
