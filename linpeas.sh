@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.0.1"
+VERSION="v2.0.2"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -435,7 +435,7 @@ echo ""
 
 #-- 4UI) Doas
 printf $Y"[+] "$GREEN"Checking /etc/doas.conf\n"$NC
-if [ "`cat /etc/doas.conf 2>/dev/null`" ]; then cat /etc/doas.conf 2>/dev/null | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,nopass,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m,")
+if [ "`cat /etc/doas.conf 2>/dev/null`" ]; then cat /etc/doas.conf 2>/dev/null | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,nopass,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m,"
 else echo_not_found "/etc/doas.conf"
 fi
 echo ""
@@ -722,7 +722,7 @@ fi
 echo ""
 
 ##-- 21SI) .ovpn files
-printf $Y"[+] "$GREEN"Looking for .ovpn files and their credentials\n"$NC
+printf $Y"[+] "$GREEN"Looking for .ovpn files and credentials\n"$NC
 ovpn=`find /etc /usr /home /root -name .ovpn 2>/dev/null`
 if [ "$ovpn" ]; then
   echo $ovpn
@@ -733,11 +733,11 @@ echo ""
 
 ##-- 22SI) ssh files
 printf $Y"[+] "$GREEN"Looking for ssl/ssh files\n"$NC
-ssh=`find /home /usr /root /etc /opt /var /mnt \( -name "id_dsa*" -o -name "id_rsa*" -o -name "known_hosts" -o -name "authorized_hosts" -o -name "authorized_keys" \) -exec ls -la {} \;  2>/dev/null`
+ssh=`find /home /usr /root /etc /opt /var /mnt \( -name "id_dsa*" -o -name "id_rsa*" -o -name "known_hosts" -o -name "authorized_hosts" -o -name "authorized_keys" \) 2>/dev/null`
 privatekeyfiles=`grep -rl "PRIVATE KEY-----" /home /root /mnt /etc 2>/dev/null`
-certsb4=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pem" -o -name "*.cer" -o -name "*.crt" \) 2>/dev/null | grep -v "/usr/share/" "/etc/ssl/"`
-certsbin=`find /home /usr /root /etc /opt /var /mnt \( -name "*.csr" -o -name "*.der" \) 2>/dev/null | grep -v "/usr/share/" "/etc/ssl/"`
-clientcert=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pfx" -o -name "*.p12" \) 2>/dev/null | grep -v "/usr/share/" "/etc/ssl/"`
+certsb4=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pem" -o -name "*.cer" -o -name "*.crt" \) 2>/dev/null | grep -v "/usr/share/\|/etc/ssl/"`
+certsbin=`find /home /usr /root /etc /opt /var /mnt \( -name "*.csr" -o -name "*.der" \) 2>/dev/null | grep -v "/usr/share/\|/etc/ssl/"`
+clientcert=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pfx" -o -name "*.p12" \) 2>/dev/null | grep -v "/usr/share/\|/etc/ssl/"`
 
 if [ "$ssh"  ]; then
   echo $ssh
@@ -790,7 +790,7 @@ if [ "$krb5" ]; then
   for f in $krb5; do cat /etc/krb5.conf | grep default_ccache_name | sed "s,default_ccache_name,${C}[1;31m&${C}[0m,"; done
 else echo_not_found "krb5.conf"
 fi
-ls -l /tmp/krb5cc* 2>/dev/null || echo_not_found "tickets kerberos"
+ls -l "/tmp/krb5cc*" "/var/lib/sss/db/ccache_*" "/etc/opt/quest/vas/host.keytab" 2>/dev/null || echo_not_found "tickets kerberos"
 echo ""
 
 ##-- 26SI) kibana
@@ -832,7 +832,7 @@ fi
 echo ""
 
 ##-- 29SI) Vault-ssh
- printf $Y"[+] "$GREEN"Looking for Vault-ssh files\n"$NC
+printf $Y"[+] "$GREEN"Looking for Vault-ssh files\n"$NC
 vaultssh=`find /etc /usr /home /root -name vault-ssh-helper.hcl 2>/dev/null`
 if [ "$vaultssh" ]; then
   echo $vaultssh
@@ -843,6 +843,14 @@ if [ "$vaultssh" ]; then
 else echo_not_found "vault-ssh-helper.hcl"
 fi
 echo ""
+
+##-- 30SI) Cached AD Hashes
+adhashes= `ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null`
+printf $Y"[+] "$GREEN"Looking for AD cached hahses\n"$NC
+if [ "$adhashes" ]; then
+  ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null
+else echo_not_found "cached hashes"
+fi
 echo ""
 
 ###########################################
