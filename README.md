@@ -8,7 +8,7 @@ Also valid for **Unix systems**
 [![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/250532)
 
 
-**Quick Start**
+## Quick Start
 ```bash
 #From github
 curl https://raw.githubusercontent.com/carlospolop/linux-privilege-escalation-awsome-script/master/linpeas.sh | sh
@@ -40,6 +40,9 @@ You can **decrease this** time use the parameters:
 This script has **several lists** included inside of it to be able to **color the results** in order to highlight PE vector.
 
 LinPEAS also **exports a new PATH** variable if common folders aren't present in the original PATH variable. It also **exports** `export HISTSIZE=0` so no command executed during the session will be saved in the history file.
+
+You can see the [checks performed by linPEAS here](https://github.com/carlospolop/linux-privilege-escalation-awsome-script/tree/master/checks)
+
 
 ## Colors
 
