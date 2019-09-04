@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.0.3"
+VERSION="v2.0.4"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -110,7 +110,7 @@ spath=":$PATH"
 for P in $ADDPATH; do
   if [ ! -z "${spath##*$P*}" ]; then export PATH="$PATH$P" 2>/dev/null; fi
 done
-writeB="\.sh$\|\./\|/etc/\|/sys/\|/lib/systemd\|/lib\|/root\|/home/\|/var/log/\|/mnt/\|/usr/local/sbin\|/usr/sbin\|/sbin/\|/usr/local/bin\|/usr/bin\|/bin\|/usr/local/games\|/usr/games\|/usr/lib\|/etc/rc.d/\|"
+writeB="\.sh$\|\./\|/etc/\|/sys/\|/lib/systemd\|/lib\|/boot\|/root\|/home/\|/var/log/\|/mnt/\|/usr/local/sbin\|/usr/sbin\|/sbin/\|/usr/local/bin\|/usr/bin\|/bin\|/usr/local/games\|/usr/games\|/usr/lib\|/etc/rc.d/\|"
 writeVB="/etc/init\|/etc/sys\|/etc/shadow\|/etc/passwd\|/etc/cron\|"`echo $PATH 2>/dev/null| sed 's/:/\\\|/g'`
 
 sh_usrs=`cat /etc/passwd 2>/dev/null | grep -v "^root:" | grep -i "sh$" | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|bin|/|bin[\\\s:]|^bin$|/' | sed 's/|sys|/|sys[\\\s:]|^sys$|/' | sed 's/|daemon|/|daemon[\\\s:]|^daemon$|/' | sed 's/|/\\\|/g'`"ImPoSSssSiBlEee" #Modified bin, sys and daemon so they are not colored everywhere
@@ -208,7 +208,7 @@ echo ""
 #-----------) Some Basic Info (-----------#
 ###########################################
 
-printf $B"=============================( "$GREEN"Basic information"$B" )=============================\n"$NC
+printf $B"================================( "$GREEN"Basic information"$B" )================================\n"$NC
 printf $LG"OS: "$NC
 (cat /proc/version || uname -a ) 2>/dev/null | sed "s,$kernelDCW_Ubuntu_Precise_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Precise_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Trusty_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Trusty_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Xenial,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel5,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel6_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel6_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel7,${C}[1;31;103m&${C}[0m," | sed "s,$kernelB,${C}[1;31m&${C}[0m,"
 printf $LG"User & Groups: "$NC
@@ -224,7 +224,7 @@ echo ""
 ###########################################
 #-------------) System Info (-------------#
 ###########################################
-printf $B"=============================( "$GREEN"System Information"$B" )=============================\n"$NC
+printf $B"================================( "$GREEN"System Information"$B" )================================\n"$NC
 
 #-- 1SY) OS
 printf $Y"[+] "$GREEN"Operative system\n"$NC
@@ -295,7 +295,7 @@ echo ""
 ###########################################
 #---------------) Devices (---------------#
 ###########################################
-printf $B"=============================( "$GREEN"Devices"$B" )=============================\n"$NC
+printf $B"================================( "$GREEN"Devices"$B" )================================\n"$NC
 
 #-- 1D) sd in /dev
 printf $Y"[+] "$GREEN"Any sd* disk in /dev? (limit 20)\n"$NC
@@ -313,7 +313,7 @@ echo ""
 ###########################################
 #---------) Available Software (----------#
 ###########################################
-printf $B"=============================( "$GREEN"Available Software"$B" )=============================\n"$NC
+printf $B"================================( "$GREEN"Available Software"$B" )================================\n"$NC
 
 #-- 1AS) Useful software
 printf $Y"[+] "$GREEN"Useful software?\n"$NC
@@ -330,7 +330,7 @@ echo ""
 ###########################################
 #-----) Processes & Cron & Services (-----#
 ###########################################
-printf $B"=============================( "$GREEN"Processes, Cron & Services"$B" )=============================\n"$NC
+printf $B"================================( "$GREEN"Processes, Cron & Services"$B" )================================\n"$NC
 
 #-- 1PCS) Cleaned proccesses
 printf $Y"[+] "$GREEN"Cleaned processes\n"$NC
@@ -371,7 +371,7 @@ echo ""
 ###########################################
 #---------) Network Information (---------#
 ###########################################
-printf $B"=============================( "$GREEN"Network Information"$B" )=============================\n"$NC
+printf $B"================================( "$GREEN"Network Information"$B" )================================\n"$NC
 
 #-- 1NI) Hostname, hosts and DNS
 printf $Y"[+] "$GREEN"Hostname, hosts and DNS\n"$NC
@@ -418,7 +418,7 @@ echo ""
 ###########################################
 #----------) Users Information (----------#
 ###########################################
-printf $B"=============================( "$GREEN"Users Information"$B" )=============================\n"$NC
+printf $B"================================( "$GREEN"Users Information"$B" )================================\n"$NC
 
 #-- 1UI) My user
 printf $Y"[+] "$GREEN"My user\n"$NC
@@ -434,8 +434,8 @@ echo ""
 #-- 3UI) Sudo -l
 printf $Y"[+] "$GREEN"Testing 'sudo -l' without password & /etc/sudoers\n"$NC
 printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC
-(echo '' | sudo -S -l 2>/dev/null | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m,") || echo_not_found "sudo" 
-cat /etc/sudoers 2>/dev/null | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m," || echo_not_found "/etc/sudoers" 
+(echo '' | sudo -S -l 2>/dev/null | sed "s,_proxy,${C}[1;31m&${C}[0m,g" | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m,") || echo_not_found "sudo" 
+(cat /etc/sudoers 2>/dev/null | sed "s,_proxy,${C}[1;31m&${C}[0m,g" | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m,") || echo_not_found "/etc/sudoers" 
 echo ""
 
 #-- 4UI) Doas
@@ -497,7 +497,7 @@ echo ""
 ###########################################
 #--------) Software Information (---------#
 ###########################################
-printf $B"=============================( "$GREEN"Software Information"$B" )=============================\n"$NC
+printf $B"================================( "$GREEN"Software Information"$B" )================================\n"$NC
 
 #-- 1SI) Mysql version
 printf $Y"[+] "$GREEN"MySQL version "$NC
@@ -867,7 +867,7 @@ echo ""
 ###########################################
 #----------) Interesting files (----------#
 ###########################################
-printf $B"=============================( "$GREEN"Interesting Files"$B" )=============================\n"$NC
+printf $B"================================( "$GREEN"Interesting Files"$B" )================================\n"$NC
 
 ##-- 1IF) SUID
 printf $Y"[+] "$GREEN"SUID\n"$NC
@@ -991,7 +991,7 @@ done
 echo ""
 
 ##-- 16IF) All hidden files
-printf $Y"[+] "$GREEN"All hidden files (not in /sys/ and the ones listed in the previous check) (limit 100)\n"$NC
+printf $Y"[+] "$GREEN"All hidden files (not in /sys/ or the ones listed in the previous check) (limit 100)\n"$NC
 find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/\|\.gitignore\|_history$\|\.profile\|\.bashrc\|\.listing\|\.ignore\|\.uuid\|\.plan\|\.htpasswd\|\.git-credentials\|.rhosts\|.depend" | head -n 100
 echo ""
 
@@ -1001,36 +1001,42 @@ filstmpback=`find /tmp /var/tmp /var/backups -type f 2>/dev/null | head -n 100`
 for f in $filstmpback; do if [ -r $f ]; then ls -l $f 2>/dev/null; fi; done
 echo ""
 
-##-- 18IF) Interesting writable files
+##-- 18IF) Readable files belonging to root and not world readable
+printf $Y"[+] "$GREEN"Readable files belonging to root and not world readable\n"$NC
+rootread=`find / -type f -user root ! -perm -o=r 2>/dev/null`
+for f in $rootread; do if [ -r $f ]; then ls -l $f 2>/dev/null; fi; done
+echo ""
+
+##-- 19IF) Interesting writable files
 printf $Y"[+] "$GREEN"Interesting writable Files\n"$NC
 printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files\n"$NC
 find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sort | uniq | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31:93m&${C}[0m,"
 for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31;103m&${C}[0m,"; done
 echo ""
 
-##-- 19IF) Passwords in config PHP files
+##-- 20IF) Passwords in config PHP files
 printf $Y"[+] "$GREEN"Searching passwords in config PHP files\n"$NC
 configs=`find /var /etc /home /root /tmp /usr /opt -type f -name "*config*.php" 2>/dev/null`
 for c in $configs; do grep -i "password.* = ['\"]\|define.*passw\|db_pass" $c 2>/dev/null | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password\|db_pass,${C}[1;31m&${C}[0m,i"; done
 echo ""
 
-##-- 20IF) IPs inside logs
+##-- 21IF) IPs inside logs
 printf $Y"[+] "$GREEN"Finding IPs inside logs\n"$NC
 grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /var/log/ 2>/dev/null | sort | uniq -c
 echo ""
 
-##-- 21IF) Passwords inside logs
+##-- 22IF) Passwords inside logs
 printf $Y"[+] "$GREEN"Finding passwords inside logs (limited 100)\n"$NC
 grep -R -i "pwd\|passw" /var/log/ 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | grep -v "File does not exist:\|script not found or unable to stat:\|\"GET /.*\" 404" | head -n 100 | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,"
 echo ""
 
-##-- 22IF) Emails inside logs
+##-- 23IF) Emails inside logs
 printf $Y"[+] "$GREEN"Finding emails inside logs (limited 100)\n"$NC
 grep -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" /var/log/ 2>/dev/null | sort | uniq -c | head -n 100 
 echo "" 
 
 if ! [ "$VERYFAST" ]; then
-  ##-- 23IF) Passwords inside files
+  ##-- 24IF) Passwords inside files
   printf $Y"[+] "$GREEN"Finding 'pwd' or 'passw' string inside /home, /var/www, /etc, /root and list possible web(/var/www) and config(/etc) passwords\n"$NC
   grep -lRi "pwd\|passw" /home /var/www /root 2>/dev/null | sort | uniq
   grep -R -i "password.* = ['\"]\|define.*passw" /var/www /root /home 2>/dev/null | grep "\.php" | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password,${C}[1;31m&${C}[0m,"

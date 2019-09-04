@@ -93,6 +93,7 @@ Also valid for **Unix systems**
   - [x] Files that can contain passwords (and search for passwords inside *_history files)
   - [x] List of all hidden files
   - [x] List ALL writable files for current user (global, user and groups)
+  - [x] List of readable files belonging to root and not world readable
   - [x] Inside /tmp, /var/tmp and /var/backups
   - [x] Password ins config PHP files
   - [x] Get IPs, passwords and emails from logs
