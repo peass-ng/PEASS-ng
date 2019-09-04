@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.0.2"
+VERSION="v2.0.3"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -298,14 +298,14 @@ echo ""
 printf $B"=============================( "$GREEN"Devices"$B" )=============================\n"$NC
 
 #-- 1D) sd in /dev
-printf $Y"[+] "$GREEN"Any sd* disk in /dev? (limit 10)\n"$NC
-ls /dev 2>/dev/null | grep -i "sd" | head -n 10
+printf $Y"[+] "$GREEN"Any sd* disk in /dev? (limit 20)\n"$NC
+ls /dev 2>/dev/null | grep -i "sd" | sed "s,crypt,${C}[1;31m&${C}[0m," | head -n 20
 echo ""
 
 #-- 2D) Unmounted
 printf $Y"[+] "$GREEN"Unmounted file-system?\n"$NC
 printf $B"[i] "$Y"Check if you can mount umounted devices\n"$NC
-cat /etc/fstab 2>/dev/null | grep -v "^#" | sed "s,$mountG,${C}[1;32m&${C}[0m,g" | sed "s,$notmounted,${C}[1;31m&${C}[0m," | sed "s,$mounted,${C}[1;34m&${C}[0m,"  | sed "s,$Wfolders,${C}[1;31m&${C}[0m," | sed "s,$mountpermsB,${C}[1;31m&${C}[0m,g" | sed "s,$mountpermsG,${C}[1;32m&${C}[0m,g"
+cat /etc/fstab 2>/dev/null | grep -v "^#" | sed "s,$mountG,${C}[1;32m&${C}[0m,g" | sed "s,$notmounted,${C}[1;31m&${C}[0m," | sed "s,$mounted,${C}[1;34m&${C}[0m," | sed "s,$Wfolders,${C}[1;31m&${C}[0m," | sed "s,$mountpermsB,${C}[1;31m&${C}[0m,g" | sed "s,$mountpermsG,${C}[1;32m&${C}[0m,g"
 echo ""
 echo ""
 
@@ -348,7 +348,7 @@ echo ""
 if ! [ "$FAST" ] && ! [ "$VERYFAST" ]; then
   printf $Y"[+] "$GREEN"Different processes executed during 1 min (interesting is low number of repetitions)\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#frequent-cron-jobs\n"$NC
-  if [ "`ps -e --format cmd 2>/dev/null`" ]; then for i in $(seq 1 1200); do ps -e --format cmd >> $file.tmp1; sleep 0.05; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort | grep -E -v "\s*[1-9][0-9][0-9][0-9]"; rm $file.tmp1; fi
+  if [ "`ps -e --format cmd 2>/dev/null`" ]; then for i in $(seq 1 1250); do ps -e --format cmd >> $file.tmp1; sleep 0.05; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort | grep -E -v "\s*[1-9][0-9][0-9][0-9]"; rm $file.tmp1; fi
   echo ""
 fi
 
@@ -388,18 +388,23 @@ echo ""
 printf $Y"[+] "$GREEN"Networks and neighbours\n"$NC
 cat /etc/networks 2>/dev/null
 (ifconfig || ip a) 2>/dev/null
-iptables -L 2>/dev/null
+cat /etc/iptables
 ip n 2>/dev/null
 route -n 2>/dev/null
 echo ""
 
-#-- 4NI) Ports
+#-- 4NI) Iptables
+printf $Y"[+] "$GREEN"Iptables rules\n"$NC
+(iptables -L ; cat /etc/iptables/* | grep -v "^#") 2>/dev/null || echo_no
+echo ""
+
+#-- 5NI) Ports
 printf $Y"[+] "$GREEN"Active Ports\n"$NC
 printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#internal-open-ports\n"$NC
 (netstat -punta || ss -t; ss -u) 2>/dev/null | sed "s,127.0.0.1,${C}[1;31m&${C}[0m,"
 echo ""
 
-#-- 5NI) tcpdump
+#-- 6NI) tcpdump
 printf $Y"[+] "$GREEN"Can I sniff with tcpdump?\n"$NC
 tcpd=`timeout 1 tcpdump 2>/dev/null`
 if [ "$tcpd" ]; then
@@ -609,8 +614,14 @@ fi
 echo ""
 
 #-- 9SI) PHP cookies files
+phpsess1=`ls /var/lib/php/sessions 2>/dev/null`
+phpsess2=`find /tmp /var/tmp -name "sess_*" 2>/dev/null`
 printf $Y"[+] "$GREEN"Looking for PHPCookies\n"$NC
-ls /var/lib/php/sessions 2>/dev/null || echo_not_found 
+if [ "$phpsess1" ] || [ "$phpsess2"]; then
+  if [ "$phpsess1" ]; then ls /var/lib/php/sessions 2>/dev/null; fi
+  if [ "$phpsess2" ]; then find /tmp /var/tmp -name "sess_*" 2>/dev/null; fi
+else echo_not_found
+fi
 echo ""
 
 #-- 10SI) Wordpress user, password, databname and host
@@ -910,14 +921,12 @@ printf $Y"[+] "$GREEN"Hashes inside passwd file? ........... "$NC
 if [ "`grep -v '^[^:]*:[x\*]' /etc/passwd 2>/dev/null`" ]; then grep -v '^[^:]*:[x\*]' /etc/passwd 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
 else echo_no
 fi
-echo ""
 
 ##-- 6IF) Read shadow files
 printf $Y"[+] "$GREEN"Can I read shadow files? ........... "$NC
 if [ "`cat /etc/shadow /etc/master.passwd 2>/dev/null`" ]; then cat /etc/shadow /etc/master.passwd 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
 else echo_no
 fi
-echo ""
 
 ##-- 7IF) Read root dir
 printf $Y"[+] "$GREEN"Can I read root folder? ........... "$NC
@@ -926,7 +935,7 @@ echo ""
 
 ##-- 8IF) Root file in home dirs
 printf $Y"[+] "$GREEN"Looking for root files in home dirs (limit 20)"$NC
-(find /home $HOME -user root 2>/dev/null | head -n 20 | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m,") || echo_not_found
+(find /home -user root 2>/dev/null | head -n 20 | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m,") || echo_not_found
 echo ""
 
 ##-- 9IF) Files inside my home
@@ -935,7 +944,7 @@ ls -la $HOME 2>/dev/null | head -n 23
 echo ""
 
 ##-- 10IF) Files inside /home
-printf $Y"[+] "$GREEN"Files inside /home (limit 20)\n"$NC
+printf $Y"[+] "$GREEN"Files inside others home (limit 20)\n"$NC
 (find /home -type f 2>/dev/null | grep -v -i "/"$USER | head -n 20) || echo_not_found
 echo ""
 
