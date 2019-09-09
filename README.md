@@ -5,7 +5,7 @@ Also valid for **Unix systems**
 
 **LinPEAS performs the linux privilege escalation checks explained in [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/privilege-escalation)**
 
-[![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/250532)
+[![asciicast](https://asciinema.org/a/266928.png)](https://asciinema.org/a/266928)
 
 
 ## Quick Start
