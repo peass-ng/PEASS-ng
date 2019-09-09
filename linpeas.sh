@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.0.4"
+VERSION="v2.0.5"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -110,7 +110,7 @@ spath=":$PATH"
 for P in $ADDPATH; do
   if [ ! -z "${spath##*$P*}" ]; then export PATH="$PATH$P" 2>/dev/null; fi
 done
-writeB="\.sh$\|\./\|/etc/\|/sys/\|/lib/systemd\|/lib\|/boot\|/root\|/home/\|/var/log/\|/mnt/\|/usr/local/sbin\|/usr/sbin\|/sbin/\|/usr/local/bin\|/usr/bin\|/bin\|/usr/local/games\|/usr/games\|/usr/lib\|/etc/rc.d/\|"
+writeB="\.sh$\|\./\|/etc/sysconfig/network-scripts/\|/etc/\|/sys/\|/lib/systemd\|/lib\|/boot\|/root\|/home/\|/var/log/\|/mnt/\|/usr/local/sbin\|/usr/sbin\|/sbin/\|/usr/local/bin\|/usr/bin\|/bin\|/usr/local/games\|/usr/games\|/usr/lib\|/etc/rc.d/\|"
 writeVB="/etc/init\|/etc/sys\|/etc/shadow\|/etc/passwd\|/etc/cron\|"`echo $PATH 2>/dev/null| sed 's/:/\\\|/g'`
 
 sh_usrs=`cat /etc/passwd 2>/dev/null | grep -v "^root:" | grep -i "sh$" | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|bin|/|bin[\\\s:]|^bin$|/' | sed 's/|sys|/|sys[\\\s:]|^sys$|/' | sed 's/|daemon|/|daemon[\\\s:]|^daemon$|/' | sed 's/|/\\\|/g'`"ImPoSSssSiBlEee" #Modified bin, sys and daemon so they are not colored everywhere
@@ -135,7 +135,7 @@ notExtensions="\.tif$\|\.tiff$\|\.gif$\|\.jpeg$\|\.jpg\|\.jif$\|\.jfif$\|\.jp2$\
 TIMEOUT=`which timeout 2>/dev/null`
 GCC=`which gcc 2>/dev/null`
 
-pathshG="/0trace.sh\|/blueranger.sh\|/dnsmap-bulk.sh\|/gettext.sh\|/go-rhn.sh\|/gvmap.sh\|/lesspipe.sh\|/mksmbpasswd.sh\|/setuporamysql.sh\|/testacg.sh\|/testlahf.sh\|/url_handler.sh"
+pathshG="/0trace.sh\|/blueranger.sh\|/dnsmap-bulk.sh\|/gettext.sh\|/go-rhn.sh\|/gvmap.sh\|/lesspipe.sh\|/mksmbpasswd.sh\|/setuporamysql.sh\|/setup-nsssysinit.sh\|/testacg.sh\|/testlahf.sh\|/url_handler.sh"
 
 notBackup="/tdbbackup$\|/db_hotbackup$"
 
@@ -159,17 +159,19 @@ done;
 #---------) Parsing parameters (----------#
 ###########################################
 # --) FAST - Do not check 1min of procceses
-# --) VERYFAST - FAST & do not search for special filaes in all the folders
+# --) SUPERFAST - FAST & do not search for special filaes in all the folders
 
 FAST=""
-VERYFAST=""
-HELP="Enumerate and search Privilege Escalation vectors.\n\t-h To show this message\n\t-f Fast (don't check 1min of processes)\n\t-v Veryfast (don't check 1min of processes and other time consuming checks bypassed)"
+SUPERFAST=""
+NOTEXPORT=""
+HELP="Enumerate and search Privilege Escalation vectors.\n\t-h To show this message\n\t-f Fast (don't check 1min of processes)\n\t-s SuperFast (don't check 1min of processes and other time consuming checks bypassed)\n\t-n Do not export env variables related with history"
 
-while getopts "h?dfvrb" opt; do
+while getopts "h?fv" opt; do
   case "$opt" in
     h|\?) printf $B"$HELP"$NC; exit 0;;
     f)  FAST=1;;
-    v)  VERYFAST=1;;
+    v)  SUPERFAST=1;;
+    n)  NOTEXPORT=1;;
     esac
 done
 
@@ -185,6 +187,16 @@ echo_not_found (){
 echo_no (){
   printf $DG"No\n"$NC
 }
+
+
+###########################################
+#---) Exporting history env variables (---#
+###########################################
+
+if ! [ "$NOTEXPORT" ]; then
+  (unset HISTORY HISTFILE HISTSAVE HISTZONE HISTORY HISTLOG WATCH; history -n; export HISTFILE=/dev/null; export HISTSIZE=0; export HISTFILESIZE=0) 2>/dev/null
+fi
+
 
 ###########################################
 #-----------) Starting Output (-----------#
@@ -264,7 +276,6 @@ echo ""
 printf $Y"[+] "$GREEN"Environment\n"$NC
 printf $B"[i] "$Y"Any private information inside environment variables?\n"$NC
 (env || set) 2>/dev/null | grep -v "^VERSION=\|pwd_inside_history\|kernelDCW_Ubuntu_Precise_1\|kernelDCW_Ubuntu_Precise_2\|kernelDCW_Ubuntu_Trusty_1\|kernelDCW_Ubuntu_Trusty_2\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel5\|kernelDCW_Rhel6_1\|kernelDCW_Rhel6_2\|kernelDCW_Rhel7\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=" | sed "s,pwd\|passw\|PWD\|PASSW\|Passwd\|Pwd,${C}[1;31m&${C}[0m,g" || echo_not_found "env || set"
-export HISTSIZE=0 2>/dev/null
 echo ""
 
 #-- 7SY) Dmesg
@@ -345,7 +356,7 @@ ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]+
 echo ""
 
 #-- 3PCS) Different processes 1 min
-if ! [ "$FAST" ] && ! [ "$VERYFAST" ]; then
+if ! [ "$FAST" ] && ! [ "$SUPERFAST" ]; then
   printf $Y"[+] "$GREEN"Different processes executed during 1 min (interesting is low number of repetitions)\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#frequent-cron-jobs\n"$NC
   if [ "`ps -e --format cmd 2>/dev/null`" ]; then for i in $(seq 1 1250); do ps -e --format cmd >> $file.tmp1; sleep 0.05; done; sort $file.tmp1 | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort | grep -E -v "\s*[1-9][0-9][0-9][0-9]"; rm $file.tmp1; fi
@@ -500,7 +511,7 @@ echo ""
 printf $B"================================( "$GREEN"Software Information"$B" )================================\n"$NC
 
 #-- 1SI) Mysql version
-printf $Y"[+] "$GREEN"MySQL version "$NC
+printf $Y"[+] "$GREEN"MySQL version\n"$NC
 mysql --version 2>/dev/null || echo_not_found "mysql"
 echo ""
 
@@ -607,7 +618,7 @@ if [ "$apachever" ]; then
   for d in $sitesenabled; do for f in $d/*; do grep "AuthType\|AuthName\|AuthUserFile" $f | sed "s,.*AuthUserFile.*,${C}[1;31m&${C}[0m,"; done; done
   if [ !"$sitesenabled" ]; then
     default00=`find /var /etc /home /root /tmp /usr /opt -name 000-default 2>/dev/null`
-    for f in $default00; do grep "AuthType\|AuthName\|AuthUserFile" $f | sed "s,.*AuthUserFile.*,${C}[1;31m&${C}[0m,"; done
+    for f in $default00; do grep "AuthType\|AuthName\|AuthUserFile" $f 2>/dev/null | sed "s,.*AuthUserFile.*,${C}[1;31m&${C}[0m,"; done
   fi
 else echo_not_found
 fi
@@ -617,7 +628,7 @@ echo ""
 phpsess1=`ls /var/lib/php/sessions 2>/dev/null`
 phpsess2=`find /tmp /var/tmp -name "sess_*" 2>/dev/null`
 printf $Y"[+] "$GREEN"Looking for PHPCookies\n"$NC
-if [ "$phpsess1" ] || [ "$phpsess2"]; then
+if [ "$phpsess1" ] || [ "$phpsess2" ]; then
   if [ "$phpsess1" ]; then ls /var/lib/php/sessions 2>/dev/null; fi
   if [ "$phpsess2" ]; then find /tmp /var/tmp -name "sess_*" 2>/dev/null; fi
 else echo_not_found
@@ -778,7 +789,7 @@ if [ "$pamssh" ]; then
 fi
 echo ""
 
-if ! [ "$VERYFAST" ]; then
+if ! [ "$SUPERFAST" ]; then
   ##-- 23SI) AWS keys files
   printf $Y"[+] "$GREEN"Looking for AWS Keys\n"$NC
   (grep -rli "aws_secret_access_key" /home /root /mnt /etc 2>/dev/null | grep -v $(basename "$0" 2>/dev/null) | sed "s,.*,${C}[1;31m&${C}[0m,") || echo_not_found
@@ -933,39 +944,49 @@ printf $Y"[+] "$GREEN"Can I read root folder? ........... "$NC
 (ls -ahl /root/ 2>/dev/null) || echo_no
 echo ""
 
-##-- 8IF) Root file in home dirs
-printf $Y"[+] "$GREEN"Looking for root files in home dirs (limit 20)"$NC
+##-- 8IF) Root files in home dirs
+printf $Y"[+] "$GREEN"Looking for root files in home dirs (limit 20)\n"$NC
 (find /home -user root 2>/dev/null | head -n 20 | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m,") || echo_not_found
 echo ""
 
-##-- 9IF) Files inside my home
-printf $Y"[+] "$GREEN"Files inside $HOME (limit 20)\n"$NC
-ls -la $HOME 2>/dev/null | head -n 23 
+##-- 9IF) Root files in my dirs
+printf $Y"[+] "$GREEN"Looking for root files in folders owned by me\n"$NC
+(for d in `find /var /etc /home /root /tmp /usr /opt /boot /sys -type d -user $USER 2>/dev/null`; do find $d -user root -exec ls -l {} \; 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," ; done) || echo_not_found
 echo ""
 
-##-- 10IF) Files inside /home
+##-- 10IF) Readable files belonging to root and not world readable
+printf $Y"[+] "$GREEN"Readable files belonging to root and readable by me but not world readable\n"$NC
+(for f in `find / -type f -user root ! -perm -o=r 2>/dev/null`; do if [ -r $f ]; then ls -l $f 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"; fi; done) || echo_not_found
+echo ""
+
+##-- 11IF) Files inside my home
+printf $Y"[+] "$GREEN"Files inside $HOME (limit 20)\n"$NC
+(ls -la $HOME 2>/dev/null | head -n 23) || echo_not_found
+echo ""
+
+##-- 12IF) Files inside /home
 printf $Y"[+] "$GREEN"Files inside others home (limit 20)\n"$NC
 (find /home -type f 2>/dev/null | grep -v -i "/"$USER | head -n 20) || echo_not_found
 echo ""
 
-##-- 11IF) Mails
+##-- 13IF) Mails
 printf $Y"[+] "$GREEN"Mails (limited 50)\n"$NC
 (find /var/mail/ /var/spool/mail/ -type f 2>/dev/null | head -n 50) || echo_not_found
 echo ""
 
-##-- 12IF) Backup files
+##-- 14IF) Backup files
 printf $Y"[+] "$GREEN"Backup files?\n"$NC
 backs=`find /var /etc /bin /sbin /home /usr/local/bin /usr/local/sbin /usr/bin /usr/games /usr/sbin /root /tmp -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*\.bck" -o -name "*\.bk" \) 2>/dev/null` 
 for b in $backs; do if [ -r $b ]; then ls -l $b | grep -v $notBackup | sed "s,backup\|bck\|\.bak,${C}[1;31m&${C}[0m,"; fi; done
 echo ""
 
-##-- 13IF) DB files
+##-- 15IF) DB files
 printf $Y"[+] "$GREEN"Looking for readable .db files\n"$NC
 dbfiles=`find /var /etc /home /root /tmp /usr /opt -type f -name "*.db" 2>/dev/null`
 for f in $dbfiles; do if [ -r $f ]; then echo $f; fi; done
 echo ""
 
-##-- 14IF) Web files
+##-- 16IF) Web files
 printf $Y"[+] "$GREEN"Web files?(output limited)\n"$NC
 ls -alhR /var/www/ 2>/dev/null | head
 ls -alhR /srv/www/htdocs/ 2>/dev/null | head
@@ -973,7 +994,7 @@ ls -alhR /usr/local/www/apache22/data/ 2>/dev/null | head
 ls -alhR /opt/lampp/htdocs/ 2>/dev/null | head
 echo ""
 
-##-- 15IF) Interesting hidden files
+##-- 17IF) Interesting hidden files
 printf $Y"[+] "$GREEN"*_history, .sudo_as_admin_successful, profile, bashrc, httpd.conf, .plan, .htpasswd, .git-credentials, .rhosts, hosts.equiv, Dockerfile, docker-compose.yml\n"$NC
 printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#read-sensitive-data\n"$NC
 fils=`find / -type f \( -name "*_history" -o -name ".sudo_as_admin_successful" -o -name ".profile" -o -name "*bashrc" -o -name "httpd.conf" -o -name "*.plan" -o -name ".htpasswd" -o -name ".git-credentials" -o -name "*.rhosts" -o -name "hosts.equiv" -o -name "Dockerfile" -o -name "docker-compose.yml" \) 2>/dev/null`
@@ -990,53 +1011,47 @@ for f in $fils; do
 done
 echo ""
 
-##-- 16IF) All hidden files
+##-- 18IF) All hidden files
 printf $Y"[+] "$GREEN"All hidden files (not in /sys/ or the ones listed in the previous check) (limit 100)\n"$NC
 find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/\|\.gitignore\|_history$\|\.profile\|\.bashrc\|\.listing\|\.ignore\|\.uuid\|\.plan\|\.htpasswd\|\.git-credentials\|.rhosts\|.depend" | head -n 100
 echo ""
 
-##-- 17IF) Readable files in /tmp, /var/tmp, /var/backups
+##-- 19IF) Readable files in /tmp, /var/tmp, /var/backups
 printf $Y"[+] "$GREEN"Readable files inside /tmp, /var/tmp, /var/backups(limit 100)\n"$NC
 filstmpback=`find /tmp /var/tmp /var/backups -type f 2>/dev/null | head -n 100`
 for f in $filstmpback; do if [ -r $f ]; then ls -l $f 2>/dev/null; fi; done
 echo ""
 
-##-- 18IF) Readable files belonging to root and not world readable
-printf $Y"[+] "$GREEN"Readable files belonging to root and not world readable\n"$NC
-rootread=`find / -type f -user root ! -perm -o=r 2>/dev/null`
-for f in $rootread; do if [ -r $f ]; then ls -l $f 2>/dev/null; fi; done
-echo ""
-
-##-- 19IF) Interesting writable files
+##-- 20IF) Interesting writable files
 printf $Y"[+] "$GREEN"Interesting writable Files\n"$NC
 printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files\n"$NC
 find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sort | uniq | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31:93m&${C}[0m,"
 for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31;103m&${C}[0m,"; done
 echo ""
 
-##-- 20IF) Passwords in config PHP files
+##-- 21IF) Passwords in config PHP files
 printf $Y"[+] "$GREEN"Searching passwords in config PHP files\n"$NC
 configs=`find /var /etc /home /root /tmp /usr /opt -type f -name "*config*.php" 2>/dev/null`
 for c in $configs; do grep -i "password.* = ['\"]\|define.*passw\|db_pass" $c 2>/dev/null | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password\|db_pass,${C}[1;31m&${C}[0m,i"; done
 echo ""
 
-##-- 21IF) IPs inside logs
+##-- 22IF) IPs inside logs
 printf $Y"[+] "$GREEN"Finding IPs inside logs\n"$NC
 grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /var/log/ 2>/dev/null | sort | uniq -c
 echo ""
 
-##-- 22IF) Passwords inside logs
+##-- 23IF) Passwords inside logs
 printf $Y"[+] "$GREEN"Finding passwords inside logs (limited 100)\n"$NC
 grep -R -i "pwd\|passw" /var/log/ 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | grep -v "File does not exist:\|script not found or unable to stat:\|\"GET /.*\" 404" | head -n 100 | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,"
 echo ""
 
-##-- 23IF) Emails inside logs
+##-- 24IF) Emails inside logs
 printf $Y"[+] "$GREEN"Finding emails inside logs (limited 100)\n"$NC
 grep -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" /var/log/ 2>/dev/null | sort | uniq -c | head -n 100 
 echo "" 
 
-if ! [ "$VERYFAST" ]; then
-  ##-- 24IF) Passwords inside files
+if ! [ "$SUPERFAST" ]; then
+  ##-- 25IF) Passwords inside files
   printf $Y"[+] "$GREEN"Finding 'pwd' or 'passw' string inside /home, /var/www, /etc, /root and list possible web(/var/www) and config(/etc) passwords\n"$NC
   grep -lRi "pwd\|passw" /home /var/www /root 2>/dev/null | sort | uniq
   grep -R -i "password.* = ['\"]\|define.*passw" /var/www /root /home 2>/dev/null | grep "\.php" | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password,${C}[1;31m&${C}[0m,"

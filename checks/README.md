@@ -85,6 +85,8 @@ Also valid for **Unix systems**
   - [x] Hashes (passwd, shadow & master.passwd)
   - [x] Try to read root dir
   - [x] Files owned by root inside /home
+  - [x] List of readable files belonging to root and not world readable
+  - [x] Root files inside a folder owned by the current user
   - [x] Reduced list of files inside my home and /home
   - [x] Mails
   - [x] Backup files
@@ -93,7 +95,6 @@ Also valid for **Unix systems**
   - [x] Files that can contain passwords (and search for passwords inside *_history files)
   - [x] List of all hidden files
   - [x] List ALL writable files for current user (global, user and groups)
-  - [x] List of readable files belonging to root and not world readable
   - [x] Inside /tmp, /var/tmp and /var/backups
   - [x] Password ins config PHP files
   - [x] Get IPs, passwords and emails from logs
