@@ -194,7 +194,10 @@ echo_no (){
 ###########################################
 
 if ! [ "$NOTEXPORT" ]; then
-  (unset HISTORY HISTFILE HISTSAVE HISTZONE HISTORY HISTLOG WATCH; history -n; export HISTFILE=/dev/null; export HISTSIZE=0; export HISTFILESIZE=0) 2>/dev/null
+  unset HISTORY HISTFILE HISTSAVE HISTZONE HISTORY HISTLOG WATCH
+  export HISTFILE=/dev/null
+  export HISTSIZE=0
+  export HISTFILESIZE=0
 fi
 
 
@@ -399,14 +402,13 @@ echo ""
 printf $Y"[+] "$GREEN"Networks and neighbours\n"$NC
 cat /etc/networks 2>/dev/null
 (ifconfig || ip a) 2>/dev/null
-cat /etc/iptables
 ip n 2>/dev/null
 route -n 2>/dev/null
 echo ""
 
 #-- 4NI) Iptables
 printf $Y"[+] "$GREEN"Iptables rules\n"$NC
-(iptables -L ; cat /etc/iptables/* | grep -v "^#") 2>/dev/null || echo_no
+(iptables -L ; cat /etc/iptables/* | grep -v "^#") 2>/dev/null || echo_not_found "iptables rules"
 echo ""
 
 #-- 5NI) Ports
@@ -782,21 +784,25 @@ if [ "$clientcert" ]; then
   echo "Client certificates were found:"
   echo $clientcert
 fi
+echo ""
+
+##-- 23SI) PAM auth
+printf $Y"[+] "$GREEN"Looking for unexpected auth lines in /etc/pam.d/sshd\n"$NC
 pamssh=`cat /etc/pam.d/sshd 2>/dev/null | grep -v "^#\|^@" | grep -i auth`
 if [ "$pamssh" ]; then
-  printf $Y"[+] "$GREEN"Unexpected auth lines in /etc/pam.d/sshd were detected\n"$NC
   cat /etc/pam.d/sshd 2>/dev/null | grep -v "^#\|^@" | grep -i auth | sed "s,.*,${C}[1;31m&${C}[0m,"
+else echo_no
 fi
 echo ""
 
 if ! [ "$SUPERFAST" ]; then
-  ##-- 23SI) AWS keys files
+  ##-- 24SI) AWS keys files
   printf $Y"[+] "$GREEN"Looking for AWS Keys\n"$NC
   (grep -rli "aws_secret_access_key" /home /root /mnt /etc 2>/dev/null | grep -v $(basename "$0" 2>/dev/null) | sed "s,.*,${C}[1;31m&${C}[0m,") || echo_not_found
   echo ""
 fi
 
-##-- 24SI) NFS exports
+##-- 25SI) NFS exports
 printf $Y"[+] "$GREEN"NFS exports?\n"$NC
 printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation/nfs-no_root_squash-misconfiguration-pe\n"$NC
 if [ "`cat /etc/exports 2>/dev/null`" ]; then cat /etc/exports 2>/dev/null | grep -v "^#" | sed "s,no_root_squash\|no_all_squash ,${C}[1;31;103m&${C}[0m,"
@@ -804,7 +810,7 @@ else echo_not_found "/etc/exports"
 fi
 echo ""
 
-##-- 25SI) Kerberos
+##-- 26SI) Kerberos
 printf $Y"[+] "$GREEN"Looking for kerberos conf files and tickets\n"$NC
 printf $B"[i] "$Y"https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88#pass-the-ticket-ptt\n"$NC
 krb5=`find /var /etc /home /root /tmp /usr /opt -type d -name krb5.conf 2>/dev/null`
@@ -815,7 +821,7 @@ fi
 ls -l "/tmp/krb5cc*" "/var/lib/sss/db/ccache_*" "/etc/opt/quest/vas/host.keytab" 2>/dev/null || echo_not_found "tickets kerberos"
 echo ""
 
-##-- 26SI) kibana
+##-- 27SI) kibana
 printf $Y"[+] "$GREEN"Looking for Kibana yaml\n"$NC
 kibana=`find /var /etc /home /root /tmp /usr /opt -name "kibana.y*ml" 2>/dev/null`
 if [ "$kibana" ]; then
@@ -825,7 +831,7 @@ else echo_not_found "kibana.yml"
 fi
 echo ""
 
-###-- 27SI) Logstash
+###-- 28SI) Logstash
 printf $Y"[+] "$GREEN"Looking for logstash files\n"$NC
 logstash=`find /var /etc /home /root /tmp /usr /opt -type d -name logstash 2>/dev/null`
 if [ "$logstash" ]; then
@@ -842,7 +848,7 @@ else echo_not_found
 fi
 echo ""
 
-##-- 28SI) Elasticsearch
+##-- 29SI) Elasticsearch
 printf $Y"[+] "$GREEN"Looking for elasticsearch files\n"$NC
 elasticsearch=`find /var /etc /home /root /tmp /usr /opt -name "elasticsearch.y*ml" 2>/dev/null`
 if [ "$elasticsearch" ]; then
@@ -853,7 +859,7 @@ else echo_not_found
 fi
 echo ""
 
-##-- 29SI) Vault-ssh
+##-- 30SI) Vault-ssh
 printf $Y"[+] "$GREEN"Looking for Vault-ssh files\n"$NC
 vaultssh=`find /etc /usr /home /root -name vault-ssh-helper.hcl 2>/dev/null`
 if [ "$vaultssh" ]; then
@@ -866,7 +872,7 @@ else echo_not_found "vault-ssh-helper.hcl"
 fi
 echo ""
 
-##-- 30SI) Cached AD Hashes
+##-- 31SI) Cached AD Hashes
 adhashes= `ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null`
 printf $Y"[+] "$GREEN"Looking for AD cached hahses\n"$NC
 if [ "$adhashes" ]; then
