@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.0.5"
+VERSION="v2.0.6"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -223,7 +223,7 @@ echo ""
 #-----------) Some Basic Info (-----------#
 ###########################################
 
-printf $B"================================( "$GREEN"Basic information"$B" )================================\n"$NC
+printf $B"====================================( "$GREEN"Basic information"$B" )=====================================\n"$NC
 printf $LG"OS: "$NC
 (cat /proc/version || uname -a ) 2>/dev/null | sed "s,$kernelDCW_Ubuntu_Precise_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Precise_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Trusty_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Trusty_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Xenial,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel5,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel6_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel6_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel7,${C}[1;31;103m&${C}[0m," | sed "s,$kernelB,${C}[1;31m&${C}[0m,"
 printf $LG"User & Groups: "$NC
@@ -239,7 +239,7 @@ echo ""
 ###########################################
 #-------------) System Info (-------------#
 ###########################################
-printf $B"================================( "$GREEN"System Information"$B" )================================\n"$NC
+printf $B"====================================( "$GREEN"System Information"$B" )====================================\n"$NC
 
 #-- 1SY) OS
 printf $Y"[+] "$GREEN"Operative system\n"$NC
@@ -309,7 +309,7 @@ echo ""
 ###########################################
 #---------------) Devices (---------------#
 ###########################################
-printf $B"================================( "$GREEN"Devices"$B" )================================\n"$NC
+printf $B"=========================================( "$GREEN"Devices"$B" )==========================================\n"$NC
 
 #-- 1D) sd in /dev
 printf $Y"[+] "$GREEN"Any sd* disk in /dev? (limit 20)\n"$NC
@@ -327,7 +327,7 @@ echo ""
 ###########################################
 #---------) Available Software (----------#
 ###########################################
-printf $B"================================( "$GREEN"Available Software"$B" )================================\n"$NC
+printf $B"====================================( "$GREEN"Available Software"$B" )====================================\n"$NC
 
 #-- 1AS) Useful software
 printf $Y"[+] "$GREEN"Useful software?\n"$NC
@@ -385,7 +385,7 @@ echo ""
 ###########################################
 #---------) Network Information (---------#
 ###########################################
-printf $B"================================( "$GREEN"Network Information"$B" )================================\n"$NC
+printf $B"===================================( "$GREEN"Network Information"$B" )====================================\n"$NC
 
 #-- 1NI) Hostname, hosts and DNS
 printf $Y"[+] "$GREEN"Hostname, hosts and DNS\n"$NC
@@ -431,7 +431,7 @@ echo ""
 ###########################################
 #----------) Users Information (----------#
 ###########################################
-printf $B"================================( "$GREEN"Users Information"$B" )================================\n"$NC
+printf $B"====================================( "$GREEN"Users Information"$B" )=====================================\n"$NC
 
 #-- 1UI) My user
 printf $Y"[+] "$GREEN"My user\n"$NC
@@ -510,7 +510,7 @@ echo ""
 ###########################################
 #--------) Software Information (---------#
 ###########################################
-printf $B"================================( "$GREEN"Software Information"$B" )================================\n"$NC
+printf $B"===================================( "$GREEN"Software Information"$B" )===================================\n"$NC
 
 #-- 1SI) Mysql version
 printf $Y"[+] "$GREEN"MySQL version\n"$NC
@@ -884,7 +884,7 @@ echo ""
 ###########################################
 #----------) Interesting files (----------#
 ###########################################
-printf $B"================================( "$GREEN"Interesting Files"$B" )================================\n"$NC
+printf $B"====================================( "$GREEN"Interesting Files"$B" )=====================================\n"$NC
 
 ##-- 1IF) SUID
 printf $Y"[+] "$GREEN"SUID\n"$NC
