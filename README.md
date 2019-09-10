@@ -107,7 +107,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 
 - Add more checks
 - Mantain updated the list of vulnerable SUID binaries
-- Mantain update all the blacklists used to color the output
+- Mantain updated all the blacklists used to color the output
 
 If you want to help with any of this, youu can do it using github issues or you can submit a pull request.
 
