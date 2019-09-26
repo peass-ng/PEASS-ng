@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.0.6"
+VERSION="v2.0.7"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -78,6 +78,7 @@ sidB="/apache2%Read_root_passwd__apache2_-f_/etc/shadow\
  /rdist$%Solaris_10/OpenSolaris\
  /rsh$%Apple_Mac_OSX_10.9.5/10.10.5\
  /screen$%GNU_Screen_4.5.0\
+ /screen-4.5.0%GNU_Screen_4.5.0__HIGHLY_PROBABLE_A_PRIVILEGE_ESCALATION_VECTOR\
  /sdtcm_convert$%Sun_Solaris_7.0\
  /sendmail$%Sendmail_8.10.1/Sendmail_8.11.x/Linux_Kernel_2.2.x_2.4.0-test1_(SGI_ProPack_1.2/1.3)\
  /sudo$\
@@ -617,7 +618,7 @@ apachever=`apache2 -v 2>/dev/null; httpd -v 2>/dev/null`
 if [ "$apachever" ]; then
   echo "Version: $apachever"
   sitesenabled=`find /var /etc /home /root /tmp /usr /opt -name sites-enabled -type d 2>/dev/null`
-  for d in $sitesenabled; do for f in $d/*; do grep "AuthType\|AuthName\|AuthUserFile" $f | sed "s,.*AuthUserFile.*,${C}[1;31m&${C}[0m,"; done; done
+  for d in $sitesenabled; do for f in $d/*; do grep "AuthType\|AuthName\|AuthUserFile" $f 2>/dev/null | sed "s,.*AuthUserFile.*,${C}[1;31m&${C}[0m,"; done; done
   if [ !"$sitesenabled" ]; then
     default00=`find /var /etc /home /root /tmp /usr /opt -name 000-default 2>/dev/null`
     for f in $default00; do grep "AuthType\|AuthName\|AuthUserFile" $f 2>/dev/null | sed "s,.*AuthUserFile.*,${C}[1;31m&${C}[0m,"; done
@@ -776,12 +777,12 @@ if [ "$privatekeyfilesgrep" ]; then
   printf "Private SSH keys found!:\n$privatekeyfilesgrep\n" | sed "s,.*,${C}[1;31m&${C}[0m,"
 fi
 if [ "$certsb4" ] || [ "$certsbin" ]; then
-  echo "Certificates were found:"
+  echo "  -- Some certificates were found:"
   grep -L "\"\|'\|(" $certsb4 2>/dev/null
   echo $certsbin
 fi
 if [ "$clientcert" ]; then
-  echo "Client certificates were found:"
+  echo "  -- Some client certificates were found:"
   echo $clientcert
 fi
 echo ""
