@@ -1,11 +1,11 @@
 # LinPEAS - Linux Privilege Escalation Awsome Script (with colors!!)
 
-Also valid for **Unix systems**
+Also valid for other **Unix systems** (tested in Debian, CentOS, FreeBSD and OpenBSD)
 
 
 **LinPEAS performs the linux privilege escalation checks explained in [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/privilege-escalation)**
 
-[![asciicast](https://asciinema.org/a/266928.png)](https://asciinema.org/a/266928)
+[![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/266928)
 
 
 ## Quick Start
@@ -41,7 +41,7 @@ This script has **several lists** included inside of it to be able to **color th
 
 LinPEAS also **exports a new PATH** variable if common folders aren't present in the original PATH variable. It also **exports** unset and export several environmental commands so no command executed during the session will be saved in the history file (you can avoid this actions using the parameter **-n**).
 
-You can see the [checks performed by linPEAS here](https://github.com/carlospolop/linux-privilege-escalation-awsome-script/tree/master/checks)
+You can see the *[checks performed by linPEAS here](https://github.com/carlospolop/linux-privilege-escalation-awsome-script/tree/master/checks)*
 
 
 ## Colors
@@ -106,8 +106,11 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 ## Todo
 
 - Add more checks
+- Mantain updated the list of vulnerable SUID binaries
+- Mantain updated all the blacklists used to color the output
+- Support for MacOS
 
-If you want to add a new check you can suggest it using github issues or you can submit a pull request.
+If you want to help with any of this, youu can do it using github issues or you can submit a pull request.
 
 If you find any issue, please report it using the github issues.
 
