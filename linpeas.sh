@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.0.7"
+VERSION="v2.0.8"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -40,7 +40,7 @@ notmounted=`cat /etc/fstab | grep "^/" | grep -v $mountG | cut -d " " -f1 | grep
 mountpermsB="[^o]suid\|[^o]user\|[^o]exec"
 mountpermsG="nosuid\|nouser\|noexec"
 
-rootcommon="/init$\|upstart-udev-bridge\|udev\|/getty\|cron\|apache2\|/vmtoolsd\|/VGAuthService"
+rootcommon="/init$\|upstart-udev-bridge\|udev\|/getty\|cron\|apache2\|java\|tomcat\|/vmtoolsd\|/VGAuthService"
 
 groupsB="(root)\|(shadow)\|(admin)" #(video) Investigate
 groupsVB="(sudo)\|(docker)\|(lxd)\|(wheel)\|(disk)"
@@ -768,7 +768,7 @@ if [ "$ssh"  ]; then
   echo $ssh
 fi
 
-grep "PermitRootLogin \|ChallengeResponseAuthentication \|PasswordAuthentication \|UsePAM \|Port\|PermitEmptyPasswords\|PubkeyAuthentication\|ListenAddress" /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | sed "s,PermitRootLogin.*es\|PermitEmptyPasswords.*es\|ChallengeResponseAuthentication.*es,${C}[1;31m&${C}[0m,"
+grep "PermitRootLogin \|ChallengeResponseAuthentication \|PasswordAuthentication \|UsePAM \|Port\|PermitEmptyPasswords\|PubkeyAuthentication\|ListenAddress\|FordwardAgent" /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | sed "s,PermitRootLogin.*es\|PermitEmptyPasswords.*es\|ChallengeResponseAuthentication.*es\|FordwardAgent.*es,${C}[1;31m&${C}[0m,"
 
 if [ "$privatekeyfiles" ]; then
   privatekeyfilesgrep=`grep -L "\"\|'\|(" $privatekeyfiles` # Check there aren't unexpected symbols in the file
@@ -984,7 +984,7 @@ echo ""
 ##-- 14IF) Backup files
 printf $Y"[+] "$GREEN"Backup files?\n"$NC
 backs=`find /var /etc /bin /sbin /home /usr/local/bin /usr/local/sbin /usr/bin /usr/games /usr/sbin /root /tmp -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*\.bck" -o -name "*\.bk" \) 2>/dev/null` 
-for b in $backs; do if [ -r $b ]; then ls -l $b | grep -v $notBackup | sed "s,backup\|bck\|\.bak,${C}[1;31m&${C}[0m,"; fi; done
+for b in $backs; do if [ -r $b ]; then ls -l $b | grep -v $notBackup | sed "s,backup\|bck\|\.bak,${C}[1;31m&${C}[0m,g"; fi; done
 echo ""
 
 ##-- 15IF) DB files
