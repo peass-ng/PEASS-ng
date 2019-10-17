@@ -67,7 +67,7 @@ Also valid for **Unix systems**
   - [x] VNC (Credentials)
   - [x] LDAP database (Credentials)
   - [x] Open VPN files (Credentials)
-  - [x] SSH (private keys, known_hosts, authorized_hosts, authorized_keys, main config parameters in sshd_config, certificates)
+  - [x] SSH (private keys, known_hosts, authorized_hosts, authorized_keys, main config parameters in sshd_config, certificates, agents)
   - [X] PAM-SSH (Unexpected "auth" values)
   - [x] AWS (Files with AWS keys)
   - [x] NFS (privilege escalation misconfiguration)
