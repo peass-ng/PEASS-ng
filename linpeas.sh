@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.1.1"
+VERSION="v2.1.2"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -226,6 +226,7 @@ echo_not_found (){
 echo_no (){
   printf $DG"No\n"$NC
 }
+
 
 ###########################################
 #----------) Network functions (----------#
@@ -1123,11 +1124,31 @@ fi
 echo ""
 
 ##-- 31SI) Cached AD Hashes
-adhashes= `ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null`
+adhashes=`ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null`
 printf $Y"[+] "$GREEN"Looking for AD cached hahses\n"$NC
 if [ "$adhashes" ]; then
   ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null
 else echo_not_found "cached hashes"
+fi
+echo ""
+
+##-- 32SI) Screen sessions
+printf $Y"[+] "$GREEN"Looking for screen sessions\n"$N
+printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-shell-sessions\n"$NC
+screensess=`screen -ls 2>/dev/null`
+if [ "$screensess" ]; then
+  printf "$screensess" | sed "s,.*,${C}[1;31m&${C}[0m," | sed "s,No Sockets found.*,${C}[1;32m&${C}[0m,"
+else echo_not_found "screen"
+fi
+echo ""
+
+##-- 33SI) Tmux sessions
+tmuxsess=`tmux ls 2>&1`
+printf $Y"[+] "$GREEN"Looking for tmux sessions\n"$N
+printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-shell-sessions\n"$NC
+if [ "$tmuxsess" ]; then
+  printf "$tmuxsess" | sed "s,.*,${C}[1;31m&${C}[0m," | sed "s,no server running on.*,${C}[1;32m&${C}[0m,"
+else echo_not_found "tmux"
 fi
 echo ""
 
