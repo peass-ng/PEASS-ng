@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.1.2"
+VERSION="v2.1.3"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -145,8 +145,8 @@ notBackup="/tdbbackup$\|/db_hotbackup$"
 ###########################################
 #---------) Checks before start (---------#
 ###########################################
-# --) If root
 # --) Writable folder
+# --) ps working good
 # --) Network binaries
 
 Wfolder=""
@@ -154,6 +154,10 @@ for f in $WF; do
   echo '' 2>/dev/null > $f/$filename
   if [ $? -eq 0 ]; then Wfolder="$f"; file="$f/$filename"; rm -f $f/$filename 2>/dev/null; break; fi;
 done;
+
+if [ `ps aux 2>/dev/null | wc -l 2>/dev/null` -lt 8 ]; then
+  NOUSEPS="1"
+fi
 
 DISCOVER_BAN_BAD="No network discovery capabilities (fping or ping not found)"
 FPING=$(which fping)
@@ -216,7 +220,7 @@ done
 
 
 ###########################################
-#--------) echo print Functions (---------#
+#-----------) Main Functions (------------#
 ###########################################
 
 echo_not_found (){
@@ -227,6 +231,9 @@ echo_no (){
   printf $DG"No\n"$NC
 }
 
+print_ps (){
+  (for f in `ls -d /proc/*/`; do CMDLINE=`cat $f/cmdline 2>/dev/null`; if [ "$CMDLINE" ]; then USER=ls -ld $f | awk '{print $3}'; PID=`echo $f | cut -d "/" -f3`; printf "  %-13s  %-8s  %s\n" "$USER" "$PID" "$CMDLINE"; fi; done) 2>/dev/null | sort -r
+}
 
 ###########################################
 #----------) Network functions (----------#
@@ -426,15 +433,19 @@ hostname 2>/dev/null
 printf $LG"Writable folder: "$NC
 echo $Wfolder
 if [ "$DISCOVER_BAN_GOOD" ]; then
-  printf $Y"[+] $DISCOVER_BAN_GOOD\n" $NC
+  printf $Y"[+] $DISCOVER_BAN_GOOD\n"$NC
 else
   printf $RED"[-] $DISCOVER_BAN_BAD\n"$NC
 fi
 
 if [ "$SCAN_BAN_GOOD" ]; then
-  printf $Y"[+] $SCAN_BAN_GOOD\n" $NC
+  printf $Y"[+] $SCAN_BAN_GOOD\n"$NC
 else
   printf $RED"[-] $SCAN_BAN_BAD\n"$NC
+fi
+if [ "`which nmap`" ];then
+  NMAP_GOOD=$GREEN"nmap$B is available for network discover & port scanning, you use use it yourself"
+  printf $Y"[+] $NMAP_GOOD\n"$NC
 fi
 echo ""
 echo ""
@@ -574,7 +585,7 @@ printf $B"====================================( "$GREEN"Available Software"$B" )
 
 #-- 1AS) Useful software
 printf $Y"[+] "$GREEN"Useful software?\n"$NC
-which nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch 2>/dev/null
+which nmap aws nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch 2>/dev/null
 echo ""
 
 #-- 2AS) Search for compilers
@@ -591,14 +602,22 @@ printf $B"================================( "$GREEN"Processes, Cron & Services"$
 
 #-- 1PCS) Cleaned proccesses
 printf $Y"[+] "$GREEN"Cleaned processes\n"$NC
+if [ "$NOUSEPS" ]; then
+  printf $B"[i] "$GREEN"Looks like ps is not finding processes, going to read from /proc/ and not going to monitor 1min of processes\n"$NC
+fi
 printf $B"[i] "$Y"Check weird & unexpected proceses run by root: https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes\n"$NC
-ps aux 2>/dev/null | grep -v "\[" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$rootcommon,${C}[1;32m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
-echo ""
 
-#-- 2PCS) Binary processes permissions
-printf $Y"[+] "$GREEN"Binary processes permissions\n"$NC
-printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes\n"$NC
-ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;32m&${C}[0m,"
+if [ "$NOUSEPS" ]; then
+  print_ps | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$rootcommon,${C}[1;32m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+else
+  ps aux 2>/dev/null | grep -v "\[" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$rootcommon,${C}[1;32m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+  echo ""
+
+  #-- 2PCS) Binary processes permissions
+  printf $Y"[+] "$GREEN"Binary processes permissions\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes\n"$NC
+  ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;32m&${C}[0m,"
+fi
 echo ""
 
 #-- 3PCS) Different processes 1 min
@@ -687,26 +706,39 @@ printf $Y"[+] "$GREEN"Do I have PGP keys?\n"$NC
 gpg --list-keys 2>/dev/null || echo_not_found "gpg"
 echo ""
 
-#-- 3UI) Sudo -l
+#-- 3UI) Clipboard and highlighted text
+printf $Y"[+] "$GREEN"Clipboard or highlighted text?\n"$NC
+if [ `which xclip` ]; then
+  echo "Clipboard: "`xclip -o -selection clipboard 2>/dev/null` | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
+  echo "Highlighted text: "`xclip -o 2>/dev/null` | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
+elif [ `xsel` ]; then
+  echo "Clipboard: "`xsel -ob 2>/dev/null` | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
+  echo "Highlighted text: "`xsel -o 2>/dev/null` | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
+else echo_not_found "xsel and xclip"
+fi
+
+echo ""
+
+#-- 4UI) Sudo -l
 printf $Y"[+] "$GREEN"Testing 'sudo -l' without password & /etc/sudoers\n"$NC
 printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC
 (echo '' | sudo -S -l 2>/dev/null | sed "s,_proxy,${C}[1;31m&${C}[0m,g" | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m,") || echo_not_found "sudo" 
 (cat /etc/sudoers 2>/dev/null | sed "s,_proxy,${C}[1;31m&${C}[0m,g" | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m,") || echo_not_found "/etc/sudoers" 
 echo ""
 
-#-- 4UI) Doas
+#-- 5UI) Doas
 printf $Y"[+] "$GREEN"Checking /etc/doas.conf\n"$NC
 if [ "`cat /etc/doas.conf 2>/dev/null`" ]; then cat /etc/doas.conf 2>/dev/null | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,nopass,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m,"
 else echo_not_found "/etc/doas.conf"
 fi
 echo ""
 
-#-- 5UI) Pkexec policy
+#-- 6UI) Pkexec policy
 printf $Y"[+] "$GREEN"Checking Pkexec policy\n"$NC
 (cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null | grep -v "^#" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$groupsB,${C}[1;31m&${C}[0m," | sed "s,$groupsVB,${C}[1;31m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | sed "s,$GROUPS,${C}[1;31;103m&${C}[0m,") || echo_not_found "/etc/polkit-1/localauthority.conf.d"
 echo ""
 
-#-- 6UI) Brute su
+#-- 7UI) Brute su
 if [ "$TIMEOUT" ]; then
   printf $Y"[+] "$GREEN"Testing 'su' as other users with shell without password or with their names as password (only works in modern su binary versions)\n"$NC
   SHELLUSERS=`cat /etc/passwd 2>/dev/null | grep -i "sh$" | cut -d ":" -f 1`
@@ -728,23 +760,23 @@ fi
 printf $Y"[+] "$GREEN"Do not forget to execute 'sudo -l' without password or with valid password (if you know it)!!\n"$NC
 echo ""
 
-#-- 7UI) Superusers
+#-- 8UI) Superusers
 printf $Y"[+] "$GREEN"Superusers\n"$NC
 awk -F: '($3 == "0") {print}' /etc/passwd 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
 echo ""
 
-#-- 8UI) Users with console
+#-- 9UI) Users with console
 printf $Y"[+] "$GREEN"Users with console\n"$NC
 cat /etc/passwd 2>/dev/null | grep "sh$" | sort | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
 echo ""
 
-#-- 9UI) Login info
+#-- 10UI) Login info
 printf $Y"[+] "$GREEN"Login information\n"$NC
 w 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
 last 2>/dev/null | tail | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
 echo ""
 
-#-- 10UI) All users
+#-- 11UI) All users
 printf $Y"[+] "$GREEN"All users\n"$NC
 cat /etc/passwd 2>/dev/null | sort | cut -d: -f1 | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,"
 echo ""
@@ -1044,12 +1076,11 @@ else echo_no
 fi
 echo ""
 
-##-- 24SI) AWS keys files
+##-- 24SI) Cloud keys
 printf $Y"[+] "$GREEN"Looking for AWS Keys\n"$NC
-if ! [ "$SUPERFAST" ]; then  
-  (grep -rli "aws_secret_access_key" /home /root /mnt /etc 2>/dev/null | grep -v $(basename "$0" 2>/dev/null) | sed "s,.*,${C}[1;31m&${C}[0m,") || echo_not_found
-else
-  (grep -rli "aws_secret_access_key" /home 2>/dev/null | grep -v $(basename "$0" 2>/dev/null) | sed "s,.*,${C}[1;31m&${C}[0m,") || echo_not_found
+cloudcreds=`find /var /etc /home /root /tmp /usr /opt -type f -name "credentials" -o \( -name "credentials.db" \) -o \( -name "legacy_credentials.db" \) -o \( -name "access_tokens.db" \) -o \( -name "accessTokens.json" \) o \( -name "azureProfile.json" \) 2>/dev/null`
+if [ "$cloudcreds" ]; then
+  printf "$cloudcreds\n" | sed "s,credentials\|credentials.db\|legacy_credentials.db\|access_tokens.db\|accessTokens.json\|azureProfile.json,${C}[1;31m&${C}[0m,g"
 fi
 echo ""
 
@@ -1098,7 +1129,7 @@ if [ "$logstash" ]; then
 else echo_not_found
 fi
 echo ""
-
+AWS (Files with AWS keys)
 ##-- 29SI) Elasticsearch
 printf $Y"[+] "$GREEN"Looking for elasticsearch files\n"$NC
 elasticsearch=`find /var /etc /home /root /tmp /usr /opt -name "elasticsearch.y*ml" 2>/dev/null`
@@ -1143,7 +1174,7 @@ fi
 echo ""
 
 ##-- 33SI) Tmux sessions
-tmuxsess=`tmux ls 2>&1`
+tmuxsess=`tmux ls 2>/dev/null`
 printf $Y"[+] "$GREEN"Looking for tmux sessions\n"$N
 printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-shell-sessions\n"$NC
 if [ "$tmuxsess" ]; then
@@ -1151,6 +1182,7 @@ if [ "$tmuxsess" ]; then
 else echo_not_found "tmux"
 fi
 echo ""
+
 
 ###########################################
 #----------) Interesting files (----------#

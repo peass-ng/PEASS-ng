@@ -49,6 +49,7 @@ Also valid for **Unix systems**
   - [x] List of users with console
   - [x] Login info
   - [x] List of all users
+  - [x] Clipboard and highlighted text
 
 - **Software Information**
   - [x] MySQl (Version, user being configured, loging as "root:root","root:toor","root:", user hashes extraction via DB and file, possible backup user configured)
@@ -69,13 +70,14 @@ Also valid for **Unix systems**
   - [x] Open VPN files (Credentials)
   - [x] SSH (private keys, known_hosts, authorized_hosts, authorized_keys, main config parameters in sshd_config, certificates, agents)
   - [X] PAM-SSH (Unexpected "auth" values)
-  - [x] AWS (Files with AWS keys)
+  - [x] Cloud Credentials (credenals-AWS-, credentials.gb-GC-, legacy_credentials-GC-, access_tokens.db-GC-, accessTokens.json-Azure-, azureProfile.json-Azure-)
   - [x] NFS (privilege escalation misconfiguration)
   - [x] Kerberos (configuration & tickets in /tmp)
   - [x] Kibana (credentials)
   - [x] Logstash (Username and possible code execution)
   - [x] Elasticseach (Config info and Version via port 9200)
   - [x] Vault-ssh (Config values, secrets list and .vault-token files)
+  - [x] screen and tmux sessions
 
 
 - **Generic Interesting Files**
