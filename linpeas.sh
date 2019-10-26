@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.1.3"
+VERSION="v2.1.4"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -1129,7 +1129,7 @@ if [ "$logstash" ]; then
 else echo_not_found
 fi
 echo ""
-AWS (Files with AWS keys)
+
 ##-- 29SI) Elasticsearch
 printf $Y"[+] "$GREEN"Looking for elasticsearch files\n"$NC
 elasticsearch=`find /var /etc /home /root /tmp /usr /opt -name "elasticsearch.y*ml" 2>/dev/null`
@@ -1359,8 +1359,12 @@ printf $Y"[+] "$GREEN"Finding emails inside logs (limited 100)\n"$NC
 grep -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" /var/log/ 2>/dev/null | sort | uniq -c | head -n 100 
 echo "" 
 
+##-- 25IF) Passwords files in home
+printf $Y"[+] "$GREEN"Finding *password* or *credential* files in home\n"$NC
+(find /home /root -type f \( -name "*password*" -o -name "*credential*" sed "s,password\|credential,${C}[1;31m&${C}[0m,") || echo_not_found
+
 if ! [ "$SUPERFAST" ]; then
-  ##-- 25IF) Passwords inside files
+  ##-- 26IF) Passwords inside files
   printf $Y"[+] "$GREEN"Finding 'pwd' or 'passw' string inside /home, /var/www, /etc, /root and list possible web(/var/www) and config(/etc) passwords\n"$NC
   grep -lRi "pwd\|passw" /home /var/www /root 2>/dev/null | sort | uniq
   grep -R -i "password.* = ['\"]\|define.*passw" /var/www /root /home 2>/dev/null | grep "\.php" | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password,${C}[1;31m&${C}[0m,"

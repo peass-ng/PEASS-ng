@@ -100,4 +100,5 @@ Also valid for **Unix systems**
   - [x] Inside /tmp, /var/tmp and /var/backups
   - [x] Password ins config PHP files
   - [x] Get IPs, passwords and emails from logs
+  - [x] password or credential files in home
   - [x] "pwd" and "passw" inside files (and get most probable lines)
