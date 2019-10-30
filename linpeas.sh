@@ -163,10 +163,10 @@ DISCOVER_BAN_BAD="No network discovery capabilities (fping or ping not found)"
 FPING=$(which fping)
 PING=$(which ping)
 if [ "$FPING" ]; then
-  DISCOVER_BAN_GOOD="$GREEN$FPING$B is available for network discovery"
+  DISCOVER_BAN_GOOD="$GREEN$FPING$B is available for network discovery$LG (You can use linpeas to dicover hosts, learn more with -h)"
 else
   if [ "$PING" ]; then
-    DISCOVER_BAN_GOOD="$GREEN$PING$B is available for network discovery"
+    DISCOVER_BAN_GOOD="$GREEN$PING$B is available for network discovery$LG (You can use linpeas to dicover hosts, learn more with -h)"
   fi
 fi
 
@@ -182,7 +182,7 @@ if [ -z "$FOUND_NC" ]; then
 	FOUND_NC=$(which nc.traditional 2>/dev/null);
 fi
 if [ "$FOUND_NC" ]; then
-  SCAN_BAN_GOOD="$GREEN$FOUND_NC$B is available for network discover & port scanning"
+  SCAN_BAN_GOOD="$GREEN$FOUND_NC$B is available for network discover & port scanning$LG (You can use linpeas to dicover hosts/port scanning, learn more with -h)"
 fi
 
 
@@ -443,7 +443,7 @@ if [ "$SCAN_BAN_GOOD" ]; then
 else
   printf $RED"[-] $SCAN_BAN_BAD\n"$NC
 fi
-if [ "`which nmap`" ];then
+if [ "`which nmap 2>/dev/null`" ];then
   NMAP_GOOD=$GREEN"nmap$B is available for network discover & port scanning, you use use it yourself"
   printf $Y"[+] $NMAP_GOOD\n"$NC
 fi
@@ -708,15 +708,14 @@ echo ""
 
 #-- 3UI) Clipboard and highlighted text
 printf $Y"[+] "$GREEN"Clipboard or highlighted text?\n"$NC
-if [ `which xclip` ]; then
+if [ `which xclip 2>/dev/null` ]; then
   echo "Clipboard: "`xclip -o -selection clipboard 2>/dev/null` | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
   echo "Highlighted text: "`xclip -o 2>/dev/null` | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
-elif [ `xsel` ]; then
+elif [ `which xsel 2>/dev/null` ]; then
   echo "Clipboard: "`xsel -ob 2>/dev/null` | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
   echo "Highlighted text: "`xsel -o 2>/dev/null` | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
 else echo_not_found "xsel and xclip"
 fi
-
 echo ""
 
 #-- 4UI) Sudo -l
