@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.1.5"
+VERSION="v2.1.6"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -542,7 +542,7 @@ echo ""
 
 #-- 8SY) SElinux
 printf $Y"[+] "$GREEN"selinux enabled? .......... "$NC
-sestatus 2>/dev/null || echo_not_found "sestatus"
+(sestatus 2>/dev/null | sed "s,disabled,${C}[1;31m&${C}[0m,";) || echo_not_found "sestatus"
 
 #-- 9SY) Printer
 printf $Y"[+] "$GREEN"Printer? .......... "$NC
