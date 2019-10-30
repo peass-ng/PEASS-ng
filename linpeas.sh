@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.1.4"
+VERSION="v2.1.5"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -1361,7 +1361,7 @@ echo ""
 
 ##-- 25IF) Passwords files in home
 printf $Y"[+] "$GREEN"Finding *password* or *credential* files in home\n"$NC
-(find /home /root -type f \( -name "*password*" -o -name "*credential*" sed "s,password\|credential,${C}[1;31m&${C}[0m,") || echo_not_found
+(find /home /root -type f \( -name "*password*" -o -name "*credential*" \) 2>/dev/null | sed "s,password\|credential,${C}[1;31m&${C}[0m,") || echo_not_found
 
 if ! [ "$SUPERFAST" ]; then
   ##-- 26IF) Passwords inside files
