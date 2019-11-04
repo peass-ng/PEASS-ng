@@ -10,7 +10,7 @@ Check also the **Local Windows Privilege Escalation checklist** from **[book.hac
 
 Download the **[latest version from here](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/tree/master/winPEAS/winPEASexe/winPEAS/bin)** or **compile it yourself**.
 ```bash
-winpeas.exe ansii #ANSII color for linux consoles (reverse shell)
+winpeas.exe ansi #ANSI color for linux consoles (reverse shell)
 winpeas.exe #Will execute all checks except the ones that execute MD commands
 winpeas.exe cmd #All checks
 winpeas.exe cmd fast #All except the one that search for files
@@ -27,7 +27,7 @@ The **ouput will be colored**. Below you have some indications about what does e
 
 The tool is heavily based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)**.
 
-**IMPORTANT TO NOTICE:** By default WinPEAS will use colord for Windows terminals (without ANSII characters). If execute winpeas.exe from a reverse shell without any option **no color will be printed**. To see colors in a linux terminal you need to use the **ansii** parameter.
+**IMPORTANT TO NOTICE:** By default WinPEAS will use colors for Windows terminals (without ANSI characters). If you are executing winpeas.exe from a reverse shell without any option **any color will be appear**. To see colors in a linux terminal you need to use the **ansi** parameter.
 
 ## Help
 

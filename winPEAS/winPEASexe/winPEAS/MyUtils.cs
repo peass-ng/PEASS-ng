@@ -554,8 +554,8 @@ namespace winPEAS
                 // search every pattern in this directory's files
                 foreach (string pattern in patterns.Split(';'))
                 {
-                    if (Program.using_ansii)
-                        Beaprint.AnsiiPrint(String.Join("\n", Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly).Where(filepath => !filepath.Contains(".dll"))), color);
+                    if (Program.using_ansi)
+                        Beaprint.AnsiPrint(String.Join("\n", Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly).Where(filepath => !filepath.Contains(".dll"))), color);
                     else
                         Colorful.Console.WriteLineStyled(String.Join("\n", Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly).Where(filepath => !filepath.Contains(".dll"))), ss); // .exe can be contained because of appcmd.exe
                 }

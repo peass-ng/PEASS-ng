@@ -110,9 +110,9 @@ namespace winPEAS
 
             if (_vulnerabilities.Any(e => e.Vulnerable))
             {
-                if (Program.using_ansii)
+                if (Program.using_ansi)
                 {
-                    System.Console.WriteLine(Beaprint.GRAY + "    Finished. Found " + Beaprint.ansii_color_bad + _vulnerabilities.Count(i => i.Vulnerable) + Beaprint.GRAY + " potential vulnerabilities." + Beaprint.NOCOLOR);
+                    System.Console.WriteLine(Beaprint.GRAY + "    Finished. Found " + Beaprint.ansi_color_bad + _vulnerabilities.Count(i => i.Vulnerable) + Beaprint.GRAY + " potential vulnerabilities." + Beaprint.NOCOLOR);
                 }
                 else
                 {
@@ -722,7 +722,7 @@ namespace winPEAS
     {
         public static void FindVulns()
         {
-            if (Program.using_ansii)
+            if (Program.using_ansi)
             {
                 System.Console.WriteLine(Beaprint.YELLOW + "  [?] " + Beaprint.LBLUE + "Windows vulns search powered by" + Beaprint.LRED + "Watson" + Beaprint.LBLUE + "(https://github.com/rasta-mouse/Watson)" + Beaprint.NOCOLOR);
             }

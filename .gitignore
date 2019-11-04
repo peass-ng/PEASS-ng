@@ -1,2 +1,4 @@
 .vs/*
 winPEAS/winPEASexe/.vs/*
+Debug/*
+winPEAS/winPEASexe/winPEAS/bin/Debug/*

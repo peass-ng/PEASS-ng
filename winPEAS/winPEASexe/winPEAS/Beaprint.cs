@@ -23,11 +23,11 @@ namespace winPEAS
         static string LCYAN = "\x1b[1;36m";
         static string REDYELLOW = "\x1b[31;103m";
         public static string NOCOLOR = "\x1b[0m";
-        public static string ansii_color_bad = RED;
-        public static string ansii_color_good = GREEN;
-        public static string ansii_users_active = CYAN;
-        public static string ansii_users_disabled = BLUE;
-        public static string ansii_current_user = MAGENTA;
+        public static string ansi_color_bad = RED;
+        public static string ansi_color_good = GREEN;
+        public static string ansi_users_active = CYAN;
+        public static string ansi_users_disabled = BLUE;
+        public static string ansi_current_user = MAGENTA;
 
         public static Color color_key = Color.DarkSeaGreen;
         public static Color color_not_found = Color.Gray;
@@ -47,25 +47,56 @@ namespace winPEAS
             Color.Peru
         };
 
+        public static void PrintBanner()
+        {
+            System.Console.WriteLine(@"     
+          *((,.,/((((((((((((((((((((/,  */               
+   ,/*,..*(((((((((((((((((((((((((((((((((, ,/           
+.,*/((((((((((((((((((/,  .*//((//**, .*((((((* ./,       
+(((((((((((((((((* .****,,,/((##########(* ,((((((* (     
+((((((((((((/* .***************,,/(########(. ((((((* *,  
+,..    ...,****************(@@@#(/***/(#####* /((((((./ 
+,,,..**********************&@@@#@@@@@(***,.*(###* /(((((*.
+,, ,**********************#@@&(#%@@@%*********,,((/ /(((((
+,. ...........,,*********/%@@&&@@@@@/*************,,..((((
+,,**(################(/*****//&@@@@%****************** /((
+.**(########################(/,.,/(/*******************.*(
+.*/(#############################(/*********************,*
+,*/(##################################(/*****************.
+,*((######################################(**************.
+.*((######(,.***.,(###################(..***(/***********.
+.,/(######*(#####((##################((######/(**********.
+,.*/##################(/**********(################(*****.
+,.,*(####################/*******(####################((/.  
+,, **((############################################/  /((
+,,, ,*((#########################################(..((((((
+. .. ,**/(#####################################( .((((((((
+(((((*  ,(#################################((* /(((((((((
+((((((((((. ,(############################(../((((((((((
+     (((((((((/,  ,####################(/..((((((((((
+           (((((((((/,.  ,*//////*,. ./(((((((((((    
+             ((((((((((((((((((((((((((((/");
+        }
+
         public static void PrintInit()
         {
             Colorful.Console.WriteLine();
-            Colorful.Console.WriteLine();
+            if (Program.banner)
+                PrintBanner();
 
-            if (Program.using_ansii)
+            if (Program.using_ansi)
             {
-                System.Console.WriteLine(YELLOW + "[+] " + NOCOLOR + "WinPEAS" + GREEN + Program.version + NOCOLOR );
+                System.Console.WriteLine(YELLOW + "  " + NOCOLOR + "WinPEAS " + GREEN + Program.version + NOCOLOR + YELLOW + " by carlospolop" + NOCOLOR );
             }
             else
             {
                 Formatter[] colorsString = new Formatter[]
                         {
-                        new Formatter( "  [+] ", Color.Yellow),
-                        new Formatter( "WinPEASv", color_key),
+                        new Formatter( "  WinPEAS", color_key),
                         new Formatter( Program.version, color_default),
                 };
 
-                Colorful.Console.WriteLineFormatted("{0}{1}{2}", color_key, colorsString);
+                Colorful.Console.WriteLineFormatted("{0} {1} by carlospolop", Color.Yellow, colorsString);
             }
             LinkPrint("https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation", "You can find a Windows local PE Checklist here:");
             PrintLeyend();
@@ -73,7 +104,7 @@ namespace winPEAS
 
         static void PrintLeyend()
         {
-            if (Program.using_ansii)
+            if (Program.using_ansi)
             {
                 System.Console.WriteLine(YELLOW + "  [+] " + GREEN + "Leyend:" + NOCOLOR);
                 System.Console.WriteLine(RED + "         Red" + GRAY + "                Indicates a special privilege over an object or something is misconfigured" + NOCOLOR);
@@ -98,10 +129,11 @@ namespace winPEAS
 
         public static void PrintUsage()
         {
-            if (Program.using_ansii)
+            if (Program.using_ansi)
             {
                 System.Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tansii" + GRAY + "             Use ANSII colors (see color from linux terminal)" + NOCOLOR);
+                System.Console.WriteLine(LBLUE + "\tquiet" + GRAY + "             Do not print banner" + NOCOLOR);
+                System.Console.WriteLine(LBLUE + "\tansi" + GRAY + "             Use ansi colors (see color from linux terminal)" + NOCOLOR);
                 System.Console.WriteLine(LBLUE + "\tfast" + GRAY + "              This will avoid very time consuming checks" + NOCOLOR);
                 System.Console.WriteLine(LBLUE + "\tcmd" + GRAY + "               Obtain wifi, cred manager and clipboard information executing CMD commands" + NOCOLOR);
                 System.Console.WriteLine(LBLUE + "\tsysteminfo" + GRAY + "        Search system information" + NOCOLOR);
@@ -118,7 +150,8 @@ namespace winPEAS
             else
             {
                 Colorful.Console.Write("  [*] ", Color.Yellow); Colorful.Console.WriteLine("WinPEAS is a binary to enumerate possible paths to escalate privileges locally", color_key);
-                Colorful.Console.Write("\tansii", color_default); Colorful.Console.WriteLine("             Use ANSII colors (see color from linux terminal)", Color.Gray);
+                Colorful.Console.Write("\tquiet", color_default); Colorful.Console.WriteLine("             Do not print banner", Color.Gray);
+                Colorful.Console.Write("\tansi", color_default); Colorful.Console.WriteLine("             Use ansi colors (see color from linux terminal)", Color.Gray);
                 Colorful.Console.Write("\tfast", color_default); Colorful.Console.WriteLine("              This will avoid very time consuming checks", Color.Gray);
                 Colorful.Console.Write("\tcmd", color_default); Colorful.Console.WriteLine("               Obtain wifi, cred manager and clipboard information executing CMD commands", Color.Gray);
                 Colorful.Console.Write("\tsysteminfo", color_default); Colorful.Console.WriteLine("        Search system information", Color.Gray);
@@ -141,7 +174,7 @@ namespace winPEAS
                 System.Console.WriteLine();
                 System.Console.WriteLine();
                 int halfTotal = 60;
-                if (Program.using_ansii)
+                if (Program.using_ansi)
                     System.Console.WriteLine(LCYAN + "  " + new String('=', halfTotal - toPrint.Length) + "(" +NOCOLOR +  YELLOW + toPrint + LCYAN + ")" + new String('=', halfTotal - toPrint.Length) + NOCOLOR);
                 else
                 {
@@ -162,7 +195,7 @@ namespace winPEAS
             try
             {
                 Colorful.Console.WriteLine();
-                if (Program.using_ansii)
+                if (Program.using_ansi)
                     System.Console.WriteLine(YELLOW + "  [+] " + LRED + toPrint + YELLOW + "(" + GRAY + attackid + YELLOW + ")" + NOCOLOR);
                 else
                 {
@@ -185,7 +218,7 @@ namespace winPEAS
         {
             try
             {
-                if (Program.using_ansii)
+                if (Program.using_ansi)
                     System.Console.WriteLine(YELLOW + "   [?] " + LBLUE + comment + " " + LYELLOW + link + NOCOLOR);
                 else
                 {
@@ -208,7 +241,7 @@ namespace winPEAS
         {
             try
             {
-                if (Program.using_ansii)
+                if (Program.using_ansi)
                     System.Console.WriteLine(YELLOW + "    [i] " + LBLUE + toPrint + NOCOLOR);
                 else
                 {
@@ -233,7 +266,7 @@ namespace winPEAS
 
         public static void GoodPrint(string to_print)
         {
-            if (Program.using_ansii)
+            if (Program.using_ansi)
                 System.Console.WriteLine(GREEN + to_print + NOCOLOR);
             else
                 Colorful.Console.WriteLine(to_print, color_good);
@@ -241,7 +274,7 @@ namespace winPEAS
 
         public static void BadPrint(string to_print)
         {
-            if (Program.using_ansii)
+            if (Program.using_ansi)
                 System.Console.WriteLine(RED + to_print + NOCOLOR);
             else
                 Colorful.Console.WriteLine(to_print, color_bad);
@@ -249,7 +282,7 @@ namespace winPEAS
 
         public static void GrayPrint(string to_print)
         {
-            if (Program.using_ansii)
+            if (Program.using_ansi)
                 System.Console.WriteLine(GRAY + to_print + NOCOLOR);
             else
                 Colorful.Console.WriteLine(to_print, color_not_found);
@@ -260,22 +293,22 @@ namespace winPEAS
         {
             GrayPrint("   =================================================================================================");
         }
-        public static void AnsiiPrint(string to_print, Dictionary<string, string> ansii_colors_regexp)
+        public static void AnsiPrint(string to_print, Dictionary<string, string> ansi_colors_regexp)
         {
             if (to_print.Trim().Length > 0)
             {
                 foreach (string line in to_print.Split('\n'))
                 {
                     string new_line = line;
-                    foreach (KeyValuePair<string, string> color in ansii_colors_regexp)
-                        new_line = RegexAnsii(new_line, color.Value, color.Key);
+                    foreach (KeyValuePair<string, string> color in ansi_colors_regexp)
+                        new_line = Regexansi(new_line, color.Value, color.Key);
 
                     System.Console.WriteLine(new_line);
                 }
             }
         }
 
-        static string RegexAnsii(string to_match, string color, string rgxp)
+        static string Regexansi(string to_match, string color, string rgxp)
         {
             Regex regex = new Regex(rgxp);
             Match match = regex.Match(to_match);
@@ -283,7 +316,7 @@ namespace winPEAS
                 return to_match.Replace(match.Value, color + match.Value + NOCOLOR);
             return to_match;
         }
-        public static void DictPrint(Dictionary<string, string> dicprint, Dictionary<string, string> ansii_colors_regexp, bool delete_nulls)
+        public static void DictPrint(Dictionary<string, string> dicprint, Dictionary<string, string> ansi_colors_regexp, bool delete_nulls)
         {
             try
             {
@@ -293,10 +326,10 @@ namespace winPEAS
                         continue;
                     string value = entry.Value;
                     string key = entry.Key;
-                    foreach (KeyValuePair<string, string> color in ansii_colors_regexp)
+                    foreach (KeyValuePair<string, string> color in ansi_colors_regexp)
                     {
-                        key = RegexAnsii(key, color.Value, color.Key);
-                        value = RegexAnsii(value, color.Value, color.Key);
+                        key = Regexansi(key, color.Value, color.Key);
+                        value = Regexansi(value, color.Value, color.Key);
                     }
                     System.Console.WriteLine("    " + key + ": " + value);
                 }
@@ -316,7 +349,7 @@ namespace winPEAS
                     {
                         if (delete_nulls && String.IsNullOrEmpty(entry.Value))
                             continue;
-                        if (Program.using_ansii)
+                        if (Program.using_ansi)
                             System.Console.WriteLine("    " + entry.Key + ": " + entry.Value);
 
                         else
@@ -508,7 +541,7 @@ namespace winPEAS
             {
                 if (list_to_print.Count > 0)
                 {
-                    if (Program.using_ansii)
+                    if (Program.using_ansi)
                     {
                         foreach (string elem in list_to_print)
                             System.Console.WriteLine("    " + elem);
@@ -533,7 +566,7 @@ namespace winPEAS
             if (list_to_print.Count > 0)
             {
                 foreach (string elem in list_to_print)
-                    AnsiiPrint("    " + elem, dic_colors);
+                    AnsiPrint("    " + elem, dic_colors);
             }
             else
                 NotFoundPrint();
