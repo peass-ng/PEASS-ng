@@ -6,11 +6,13 @@
 
 Check also the **Local Windows Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation)**
 
+[![youtube]((https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/winPEAS/winPEASexe/images/screen.png)](https://youtu.be/66gOwXMnxRI)
+
 ## Quick Start
 
 Download the **[latest version from here](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/tree/master/winPEAS/winPEASexe/winPEAS/bin)** or **compile it yourself**.
 ```bash
-winpeas.exe ansi #ANSI color for linux consoles (reverse shell)
+winpeas.exe ansi cmd searchfast #ANSI color for linux consoles (reverse shell), cmd commands and avoid sleepig
 winpeas.exe #Will execute all checks except the ones that execute MD commands
 winpeas.exe cmd #All checks
 winpeas.exe cmd fast #All except the one that search for files
@@ -21,7 +23,9 @@ winpeas.exe systeminfo userinfo #Only systeminfo and userinfo checks executed
 
 The goal of this project is to search for possible **Privilege Escalation Paths** in Windows environments.
 
-It should take only a **few seconds** to execute almost all the checks and **some minutes searching in the whole main drive** for known files that could contain passwords (the time depened on the number of files in your drive). Get rif of that time consuming check using the parameter `fast`.
+It should take only a **few seconds** to execute almost all the checks and **some minutes searching in the whole main drive** for known files that could contain passwords (the time depened on the number of files in your drive). Get rid of that time consuming check using the parameter `fast`.
+
+By default, the progam **sleeps 150ms** before start searching files in each directory. This is made to consume less resources (**stealthier**). You can **avoid this sleep using `searchfast` parameter**.
 
 The **ouput will be colored**. Below you have some indications about what does each color means exacty, but keep in mind that **Red** is for something interesting (from a pentester perspective) and **Green** is something good (from a defender perspective).
 
@@ -128,6 +132,10 @@ If you want to **add something** and have **any cool idea** related to this proj
 ## Please, if this tool has been useful for you consider to donate
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DED2HWDYLFT2C&source=url)
+
+## Looking for a useful Privilege Escalation Course?
+
+Contact me and ask about the **Privilege Escalation Course** I am preparing for attackers and defenders (**100% technical**).
 
 ## TODO
 

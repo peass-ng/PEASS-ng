@@ -100,10 +100,10 @@ namespace winPEAS
         {
             foreach (Vulnerability vuln in _vulnerabilities.Where(i => i.Vulnerable))
             {
-                Beaprint.BadPrint(String.Format(" [!] {0} : VULNERABLE", vuln.Identification));
+                Beaprint.BadPrint(String.Format("       [!] {0} : VULNERABLE", vuln.Identification));
 
                 foreach (string exploit in vuln.KnownExploits)
-                    Beaprint.BadPrint(String.Format("  [>] {0}", exploit));
+                    Beaprint.BadPrint(String.Format("        [>] {0}", exploit));
 
                 System.Console.WriteLine();
             }

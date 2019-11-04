@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace winPEAS
 {
@@ -49,38 +50,39 @@ namespace winPEAS
 
         public static void PrintBanner()
         {
-            System.Console.WriteLine(@"     
-          *((,.,/((((((((((((((((((((/,  */               
-   ,/*,..*(((((((((((((((((((((((((((((((((, ,/           
-.,*/((((((((((((((((((/,  .*//((//**, .*((((((* ./,       
-(((((((((((((((((* .****,,,/((##########(* ,((((((* (     
-((((((((((((/* .***************,,/(########(. ((((((* *,  
-,..    ...,****************(@@@#(/***/(#####* /((((((./ 
-,,,..**********************&@@@#@@@@@(***,.*(###* /(((((*.
-,, ,**********************#@@&(#%@@@%*********,,((/ /(((((
-,. ...........,,*********/%@@&&@@@@@/*************,,..((((
-,,**(################(/*****//&@@@@%****************** /((
-.**(########################(/,.,/(/*******************.*(
-.*/(#############################(/*********************,*
-,*/(##################################(/*****************.
-,*((######################################(**************.
-.*((######(,.***.,(###################(..***(/***********.
-.,/(######*(#####((##################((######/(**********.
-,.*/##################(/**********(################(*****.
-,.,*(####################/*******(####################((/.  
-,, **((############################################/  /((
-,,, ,*((#########################################(..((((((
-. .. ,**/(#####################################( .((((((((
-(((((*  ,(#################################((* /(((((((((
-((((((((((. ,(############################(../((((((((((
-     (((((((((/,  ,####################(/..((((((((((
-           (((((((((/,.  ,*//////*,. ./(((((((((((    
-             ((((((((((((((((((((((((((((/");
+            Colorful.Console.WriteLine(@"     
+         *((,.,/((((((((((((((((((((/,  */               
+  ,/*,..*(((((((((((((((((((((((((((((((((,           
+,*/((((((((((((((((((/,  .*//((//**, .*((((((*       
+((((((((((((((((* *****,,,/########## .(* ,((((((   
+(((((((((((/* ******************/####### .(. ((((((
+((((((..******************/@@@@@/***/######* /((((((
+,,..**********************&@@@@@@@@@(***,#### ../(((((
+, ,**********************#@@&@@%@@@%*********##((/ /((((
+..(((##########*********/%@@@@@@@@@/*************,,..((((
+.(((################(/******/&@@@@%****************.. /((
+.((########################(/************************..*(
+.((#############################(/********************.,(
+.((##################################(/***************..(
+.((######################################(************..(
+.((######(,.***.,(###################(..***(/*********..(
+.((######*(#####((##################((######/(********..(
+.((##################(/**********(################(**...(
+.(((####################/*******(###################.((((  
+.(((((############################################/  /((
+..(((((#########################################(..(((((.
+....(((((#####################################( .((((((.
+......(((((#################################( .(((((((.
+(((((((((. ,(############################(../(((((((((.
+    (((((((((/,  ,####################(/..((((((((((.
+          (((((((((/,.  ,*//////*,. ./(((((((((((.
+             (((((((((((((((((((((((((((/", color_default);
+
+            Thread.Sleep(700);
         }
 
         public static void PrintInit()
         {
-            Colorful.Console.WriteLine();
             if (Program.banner)
                 PrintBanner();
 
@@ -98,6 +100,8 @@ namespace winPEAS
 
                 Colorful.Console.WriteLineFormatted("{0} {1} by carlospolop", Color.Yellow, colorsString);
             }
+            Colorful.Console.WriteLine();
+
             LinkPrint("https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation", "You can find a Windows local PE Checklist here:");
             PrintLeyend();
         }
@@ -133,8 +137,9 @@ namespace winPEAS
             {
                 System.Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally" + NOCOLOR);
                 System.Console.WriteLine(LBLUE + "\tquiet" + GRAY + "             Do not print banner" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tansi" + GRAY + "             Use ansi colors (see color from linux terminal)" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tfast" + GRAY + "              This will avoid very time consuming checks" + NOCOLOR);
+                System.Console.WriteLine(LBLUE + "\tansi" + GRAY + "              Use ansi colors (see color from linux terminal)" + NOCOLOR);
+                System.Console.WriteLine(LBLUE + "\tsearchfast" + GRAY + "        Avoid sleeping while searching files (notable amount of resources)" + NOCOLOR);
+                System.Console.WriteLine(LBLUE + "\tfast" + GRAY + "              Avoid very time consuming checks" + NOCOLOR);
                 System.Console.WriteLine(LBLUE + "\tcmd" + GRAY + "               Obtain wifi, cred manager and clipboard information executing CMD commands" + NOCOLOR);
                 System.Console.WriteLine(LBLUE + "\tsysteminfo" + GRAY + "        Search system information" + NOCOLOR);
                 System.Console.WriteLine(LBLUE + "\tuserinfo" + GRAY + "          Search user information" + NOCOLOR);
@@ -151,8 +156,9 @@ namespace winPEAS
             {
                 Colorful.Console.Write("  [*] ", Color.Yellow); Colorful.Console.WriteLine("WinPEAS is a binary to enumerate possible paths to escalate privileges locally", color_key);
                 Colorful.Console.Write("\tquiet", color_default); Colorful.Console.WriteLine("             Do not print banner", Color.Gray);
-                Colorful.Console.Write("\tansi", color_default); Colorful.Console.WriteLine("             Use ansi colors (see color from linux terminal)", Color.Gray);
-                Colorful.Console.Write("\tfast", color_default); Colorful.Console.WriteLine("              This will avoid very time consuming checks", Color.Gray);
+                Colorful.Console.Write("\tansi", color_default); Colorful.Console.WriteLine("              Use ansi colors (see color from linux terminal)", Color.Gray);
+                Colorful.Console.Write("\tsearchfast", color_default); Colorful.Console.WriteLine("        Avoid sleeping while searching files (notable amount of resources)", Color.Gray);
+                Colorful.Console.Write("\tfast", color_default); Colorful.Console.WriteLine("              Avoid very time consuming checks", Color.Gray);
                 Colorful.Console.Write("\tcmd", color_default); Colorful.Console.WriteLine("               Obtain wifi, cred manager and clipboard information executing CMD commands", Color.Gray);
                 Colorful.Console.Write("\tsysteminfo", color_default); Colorful.Console.WriteLine("        Search system information", Color.Gray);
                 Colorful.Console.Write("\tuserinfo", color_default); Colorful.Console.WriteLine("          Search user information", Color.Gray);

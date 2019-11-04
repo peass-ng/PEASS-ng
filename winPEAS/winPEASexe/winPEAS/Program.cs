@@ -9,8 +9,10 @@ namespace winPEAS
 {
     class Program
     {
-        public static bool banner = true;
         public static string version = "vBETA VERSION";
+        public static bool banner = true;
+        public static bool search_fast = false;
+        public static int search_time = 150;
         static bool is_fast = false;
         static bool exec_cmd = false;
         public static bool using_ansi = false;
@@ -568,7 +570,7 @@ namespace winPEAS
                     if (autologon.Count > 0) {
                         foreach (KeyValuePair<string, string> entry in autologon)
                         {
-                            if (entry.Value != null && entry.Value != "")
+                            if (!String.IsNullOrEmpty(entry.Value))
                             {
                                 if (!ban)
                                 {
@@ -580,9 +582,9 @@ namespace winPEAS
                                 else
                                     Colorful.Console.WriteLineStyled(String.Format("    {0,-30}:  {1}", entry.Key, entry.Value), CreateUsersSS());
                             }
-                            else
-                                Beaprint.NotFoundPrint();
                         }
+                        if (!ban)
+                            Beaprint.NotFoundPrint();
                     }
                     else
                         Beaprint.NotFoundPrint();
@@ -930,7 +932,7 @@ namespace winPEAS
                     Beaprint.MainPrint("Installed Applications --Via Program Files--", "T1083&T1012&T1010&T1518");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#software", "Check if you can modify installed software");
                     Dictionary<string, Dictionary<string, string>> InstalledAppsPerms = ApplicationInfo.GetInstalledAppsPerms();
-                    string format = "    ==>  {0}({1})";
+                    string format = "    ==>  {0} ({1})";
                     foreach (KeyValuePair<string, Dictionary<string, string>> app in InstalledAppsPerms)
                     {
                         if (String.IsNullOrEmpty(app.Value.ToString())) //If empty, nothing found, is good
@@ -1677,7 +1679,7 @@ namespace winPEAS
                     string using_HKLM_WSUS = MyUtils.GetRegValue("HKLM", path, "UseWUServer");
                     if (HKLM_WSUS.Contains("http://"))
                     {
-                        Beaprint.BadPrint("    WSUS is using http!");
+                        Beaprint.BadPrint("    WSUS is using http: " + HKLM_WSUS);
                         Beaprint.InfoPrint("You can test https://github.com/pimps/wsuxploit to escalate privileges");
                         if (using_HKLM_WSUS == "1")
                             Beaprint.BadPrint("    And UseWUServer is equals to 1, so it is vulnerable!");
@@ -2259,6 +2261,9 @@ namespace winPEAS
 
                 if (string.Equals(arg, "quiet", StringComparison.CurrentCultureIgnoreCase))
                     banner = false;
+
+                if (string.Equals(arg, "searchfast", StringComparison.CurrentCultureIgnoreCase))
+                    search_fast = false;
 
                 if (string.Equals(arg, "help", StringComparison.CurrentCultureIgnoreCase))
                 {

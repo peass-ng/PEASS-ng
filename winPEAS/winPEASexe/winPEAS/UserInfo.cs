@@ -296,7 +296,7 @@ namespace winPEAS
                     }
                     else if (fullInfo)
                     {
-                        string userLine = user["Caption"] + ((string)user["Fullname"] != "false" ? "" : " (" + user["Fullname"] + ")") + ((bool)user["Disabled"] ? "(Disabled)" : "") + ((bool)user["Lockout"] ? "(Lockout)" : "") + (((string)user["Description"]).Length > 1 ? ": " + user["Description"] : "");
+                        string userLine = user["Caption"] + ((bool)user["Disabled"] ? "(Disabled)" : "") + ((bool)user["Lockout"] ? "(Lockout)" : "") + ((string)user["Fullname"] != "false" ? "" : "(" + user["Fullname"] + ")") + (((string)user["Description"]).Length > 1 ? ": " + user["Description"] : "");
                         List<string> user_groups = GetUserGroups((string)user["Name"]);
                         string groupsLine = "";
                         if (user_groups.Count > 0)

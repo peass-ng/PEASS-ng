@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Runtime.InteropServices;
 using Colorful;
+using System.Threading;
 
 namespace winPEAS
 {
@@ -334,7 +335,7 @@ namespace winPEAS
             //     with a file and is the combination of all rights in this enumeration.
             int FullControl = 2032127;
 
-            int[] permissions = { FullControl, TakeOwnership, ChangePermissions, Modify, Delete, Write, WriteAttributes, WriteExtendedAttributes, AppendData, WriteData };
+            int[] permissions = { FullControl, TakeOwnership, ChangePermissions, Modify, Write, WriteData, Delete, WriteAttributes, WriteExtendedAttributes, AppendData };
             try
             {
                 FileSecurity fSecurity = File.GetAccessControl(path);
@@ -349,8 +350,12 @@ namespace winPEAS
                             {
                                 if ((perm & current_right) == perm)
                                 {
-                                    results.Add(String.Format("{0} [{1}]", rule.IdentityReference.Value, rule.FileSystemRights));
-                                    break;
+                                    string to_add = String.Format("{0} [{1}]", rule.IdentityReference.Value, rule.FileSystemRights);
+                                    if (!results.Contains(to_add))
+                                    {
+                                        results.Add(to_add);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -395,20 +400,20 @@ namespace winPEAS
                     return results;
 
                 Dictionary<string, int> interesting_perms = new Dictionary<string, int>()
-            {
-                { "WriteData", (int)FileSystemRights.WriteData },
-                { "AppendData", (int)FileSystemRights.AppendData },
-                { "WriteExtendedAttributes", (int)FileSystemRights.WriteExtendedAttributes },
-                { "WriteAttributes", (int)FileSystemRights.WriteAttributes },
-                { "Write", (int)FileSystemRights.Write },
-                { "Delete", (int)FileSystemRights.Delete },
-                { "Modify", (int)FileSystemRights.Modify },
-                { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
-                { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
-                { "FullControl", (int)FileSystemRights.FullControl },
-                { "GenericAll", 268435456},
-                { "GenericWrite", 1073741824 }
-            };
+                {
+                    { "GenericAll", 268435456},
+                    { "FullControl", (int)FileSystemRights.FullControl },
+                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
+                    { "GenericWrite", 1073741824 },
+                    { "WriteData", (int)FileSystemRights.WriteData },
+                    { "Modify", (int)FileSystemRights.Modify },
+                    { "Write", (int)FileSystemRights.Write },
+                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
+                    { "Delete", (int)FileSystemRights.Delete },
+                    { "AppendData", (int)FileSystemRights.AppendData },
+                    { "WriteAttributes", (int)FileSystemRights.WriteAttributes },
+                    { "WriteExtendedAttributes", (int)FileSystemRights.WriteExtendedAttributes },
+                };
 
                 FileSecurity fSecurity = File.GetAccessControl(path);
                 //Go through the rules returned from the DirectorySecurity
@@ -426,8 +431,12 @@ namespace winPEAS
                             {
                                 if ((entry.Value & current_right) == entry.Value)
                                 {
-                                    results.Add(String.Format("{0} [{1}]", rule.IdentityReference.Value, entry.Key));
-                                    break;
+                                    string to_add = String.Format("{0} [{1}]", rule.IdentityReference.Value, entry.Key);
+                                    if (!results.Contains(to_add))
+                                    {
+                                        results.Add(to_add);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -559,6 +568,9 @@ namespace winPEAS
                     else
                         Colorful.Console.WriteLineStyled(String.Join("\n", Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly).Where(filepath => !filepath.Contains(".dll"))), ss); // .exe can be contained because of appcmd.exe
                 }
+
+                if (!Program.search_fast)
+                    Thread.Sleep(Program.search_time);
 
                 // go recurse in all sub-directories
                 foreach (var directory in Directory.GetDirectories(path))
