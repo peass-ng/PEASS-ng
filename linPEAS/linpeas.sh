@@ -203,8 +203,8 @@ HELP=$GREEN"Enumerate and search Privilege Escalation vectors.\n\
       $Y\t-s$B SuperFast (don't check 1min of processes and other time consuming checks bypassed)\n\
       $Y\t-n$B Do not export env variables related with history\n\
       $Y\t-d <IP/NETMASK>$B Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
-      $Y\t-p <PORT(s)> -d <IP/NETMASK>$B Discover hosts looking for tcp open ports (via nc). By default ports 80,443,445,3389 will be checked but you have to add another one to indicate you want to discover using TCP (you can select 22 if you don't want to add more). You can also indicate a list of ports to add.$DG Ex: -d 192.168.0.1/24 -p 53,139
-      $Y\t-i <IP> [-p <PORT(s)>]$B Scan an IP using nc. If you don't select ports top1000 of nmap will be scanned but if you wish, you can select a list of ports (and only those will be scanned).$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080"
+      $Y\t-p <PORT(s)> -d <IP/NETMASK>$B Discover hosts looking for TCP open ports (via nc). By default ports 80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
+      $Y\t-i <IP> [-p <PORT(s)>]$B Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080"
 
 while getopts "h?fsd:p:i:" opt; do
   case "$opt" in
@@ -414,7 +414,6 @@ echo "Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts) " | s
 echo "LightMangenta: Your username" | sed "s,LightMangenta,${C}[1;95m&${C}[0m,"
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then
   echo "  YOU ARE ALREADY ROOT!!! (it could take longer to complete execution)" | sed "s,YOU ARE ALREADY ROOT!!!,${C}[1;31;103m&${C}[0m,"
-  sleep 3 2>/dev/null
 fi
 echo ""
 echo ""
@@ -444,13 +443,8 @@ if [ "$SCAN_BAN_GOOD" ]; then
 else
   printf $RED"[-] $SCAN_BAN_BAD\n"$NC
 fi
-<<<<<<< HEAD
-if [ "`which nmap`" ];then
-  NMAP_GOOD=$GREEN"nmap$B is available for network discover & port scanning, use it yourself"
-=======
 if [ "`which nmap 2>/dev/null`" ];then
   NMAP_GOOD=$GREEN"nmap$B is available for network discover & port scanning, you use use it yourself"
->>>>>>> fc361b128caf52e0a3b243379cacfee3d358e45c
   printf $Y"[+] $NMAP_GOOD\n"$NC
 fi
 echo ""

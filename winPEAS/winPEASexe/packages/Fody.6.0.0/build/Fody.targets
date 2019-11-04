@@ -1,0 +1,110 @@
+﻿<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <ProjectWeaverXml Condition="$(ProjectWeaverXml) == ''">$(ProjectDir)FodyWeavers.xml</ProjectWeaverXml>
+    <FodyPath Condition="$(FodyPath) == ''">$(MSBuildThisFileDirectory)..\</FodyPath>
+    <FodyAssemblyDirectory Condition="$(MSBuildRuntimeType) == 'Core'">$(FodyPath)netstandardtask</FodyAssemblyDirectory>
+    <FodyAssemblyDirectory Condition="$(MSBuildRuntimeType) != 'Core'">$(FodyPath)netclassictask</FodyAssemblyDirectory>
+    <FodyAssembly Condition="$(FodyAssembly) == ''">$(FodyAssemblyDirectory)\Fody.dll</FodyAssembly>
+    <DefaultItemExcludes>$(DefaultItemExcludes);FodyWeavers.xsd</DefaultItemExcludes>
+    <FodyGenerateXsd Condition="$(FodyGenerateXsd) == ''">true</FodyGenerateXsd>
+    <MsBuildMajorVersion>15</MsBuildMajorVersion>
+    <MsBuildMajorVersion Condition="'$(MSBuildVersion)' != ''">$([System.Version]::Parse($(MSBuildVersion)).Major)</MsBuildMajorVersion>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists($(ProjectWeaverXml))">
+    <UpToDateCheckInput Include="$(ProjectWeaverXml)" />
+    <CustomAdditionalCompileInputs Include="$(ProjectWeaverXml)" />
+  </ItemGroup>
+
+  <!-- Support for NCrunch -->
+  <ItemGroup Condition="'$(NCrunch)' == '1' and '$(TargetFramework)' == '' and '$(TargetFrameworks)' == ''">
+    <None Include="$(FodyAssemblyDirectory)\*.*" />
+    <None Include="@(WeaverFiles)" />
+  </ItemGroup>
+
+  <UsingTask TaskName="Fody.WeavingTask" AssemblyFile="$(FodyAssembly)" />
+  <UsingTask TaskName="Fody.UpdateReferenceCopyLocalTask" AssemblyFile="$(FodyAssembly)" />
+  <UsingTask TaskName="Fody.VerifyTask" AssemblyFile="$(FodyAssembly)" />
+
+  <Target
+      Name="FodyTarget"
+      AfterTargets="AfterCompile"
+      Condition="Exists(@(IntermediateAssembly)) And $(DesignTimeBuild) != true And $(DisableFody) != true"
+      DependsOnTargets="$(FodyDependsOnTargets)"
+      Inputs="@(IntermediateAssembly);$(ProjectWeaverXml)"
+      Outputs="$(IntermediateOutputPath)$(MSBuildProjectFile).Fody.CopyLocal.cache">
+
+    <Error Condition="($(MsBuildMajorVersion) &lt; 16)"
+           Text="Fody is only supported on MSBuild 16 and above. Current version: $(MsBuildMajorVersion)." />
+    <Fody.WeavingTask
+        AssemblyFile="@(IntermediateAssembly)"
+        IntermediateDirectory="$(ProjectDir)$(IntermediateOutputPath)"
+        KeyOriginatorFile="$(KeyOriginatorFile)"
+        AssemblyOriginatorKeyFile="$(AssemblyOriginatorKeyFile)"
+        ProjectDirectory="$(MSBuildProjectDirectory)"
+        ProjectFile="$(MSBuildProjectFullPath)"
+        SolutionDirectory="$(SolutionDir)"
+        References="@(ReferencePath)"
+        SignAssembly="$(SignAssembly)"
+        ReferenceCopyLocalFiles="@(ReferenceCopyLocalPaths)"
+        DefineConstants="$(DefineConstants)"
+        DebugType="$(DebugType)"
+        DocumentationFile="@(DocFileItem->'%(FullPath)')"
+        WeaverFiles="@(WeaverFiles)"
+        NCrunchOriginalSolutionDirectory="$(NCrunchOriginalSolutionDir)"
+        IntermediateCopyLocalFilesCache="$(IntermediateOutputPath)$(MSBuildProjectFile).Fody.CopyLocal.cache"
+        GenerateXsd="$(FodyGenerateXsd)"
+      >
+
+      <Output
+        TaskParameter="ExecutedWeavers"
+        PropertyName="FodyExecutedWeavers" />
+
+    </Fody.WeavingTask>
+
+    <ItemGroup>
+      <FileWrites Include="$(IntermediateOutputPath)$(MSBuildProjectFile).Fody.CopyLocal.cache" />
+    </ItemGroup>
+
+  </Target>
+
+  <Target
+      Name="FodyUpdateCopyLocalFilesTarget"
+      AfterTargets="FodyTarget"
+    >
+
+    <Fody.UpdateReferenceCopyLocalTask
+        ReferenceCopyLocalFiles="@(ReferenceCopyLocalPaths)"
+        IntermediateCopyLocalFilesCache="$(IntermediateOutputPath)$(MSBuildProjectFile).Fody.CopyLocal.cache"
+      >
+
+      <Output
+        TaskParameter="UpdatedReferenceCopyLocalFiles"
+        ItemName="FodyUpdatedReferenceCopyLocalPaths" />
+
+    </Fody.UpdateReferenceCopyLocalTask>
+
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" />
+      <ReferenceCopyLocalPaths Include="@(FodyUpdatedReferenceCopyLocalPaths)" />
+    </ItemGroup>
+
+  </Target>
+
+  <Target
+      Name="FodyVerifyTarget"
+      AfterTargets="AfterBuild"
+      Condition="'$(NCrunch)' != '1' And $(FodyExecutedWeavers) != '' And $(DisableFody) != true"
+      DependsOnTargets="$(FodyVerifyDependsOnTargets)">
+
+    <Fody.VerifyTask
+        ProjectDirectory="$(MSBuildProjectDirectory)"
+        TargetPath="$(TargetPath)"
+        SolutionDirectory="$(SolutionDir)"
+        DefineConstants="$(DefineConstants)"
+        NCrunchOriginalSolutionDirectory="$(NCrunchOriginalSolutionDir)"
+      />
+  </Target>
+
+</Project>

@@ -1,0 +1,32 @@
+C:\Users\carlos\source\repos\winPEAS\winPEAS\bin\Release\winPEAS.exe.config
+C:\Users\carlos\source\repos\winPEAS\winPEAS\bin\Release\winPEAS.exe
+C:\Users\carlos\source\repos\winPEAS\winPEAS\bin\Release\winPEAS.pdb
+C:\Users\carlos\source\repos\winPEAS\winPEAS\bin\Release\Microsoft.Win32.TaskScheduler.xml
+C:\Users\carlos\source\repos\winPEAS\winPEAS\obj\Release\winPEAS.csproj.Fody.CopyLocal.cache
+C:\Users\carlos\source\repos\winPEAS\winPEAS\obj\Release\winPEAS.csproj.CopyComplete
+C:\Users\carlos\source\repos\winPEAS\winPEAS\obj\Release\winPEAS.exe
+C:\Users\carlos\source\repos\winPEAS\winPEAS\obj\Release\winPEAS.pdb
+D:\Users\cpolo\Downloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\bin\Release\winPEAS.exe.config
+D:\Users\cpolo\Downloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\bin\Release\winPEAS.exe
+D:\Users\cpolo\Downloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\bin\Release\winPEAS.pdb
+D:\Users\cpolo\Downloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\bin\Release\Microsoft.Win32.TaskScheduler.xml
+D:\Users\cpolo\Downloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\obj\Release\winPEAS.csproj.Fody.CopyLocal.cache
+D:\Users\cpolo\Downloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\obj\Release\winPEAS.csproj.CopyComplete
+D:\Users\cpolo\Downloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\obj\Release\winPEAS.exe
+D:\Users\cpolo\Downloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\obj\Release\winPEAS.pdb
+D:\Windows\carlos\Donwloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\bin\Release\Microsoft.Win32.TaskScheduler.xml
+D:\Windows\carlos\Donwloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\obj\Release\winPEAS.csproj.Fody.CopyLocal.cache
+D:\Windows\carlos\Donwloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\obj\Release\winPEAS.exe
+D:\Windows\carlos\Donwloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\obj\Release\winPEAS.pdb
+D:\Windows\carlos\Donwloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\bin\Release\winPEAS.exe.config
+D:\Windows\carlos\Donwloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\bin\Release\winPEAS.exe
+D:\Windows\carlos\Donwloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\bin\Release\winPEAS.pdb
+D:\Windows\carlos\Donwloads\Telegram Desktop\winPEAS (2)\winPEAS\winPEAS\obj\Release\winPEAS.csproj.CopyComplete
+C:\Users\carlos\source\repos\PEASS\winPEAS\winPEASexe\winPEAS\bin\Release\winPEAS.exe.config
+C:\Users\carlos\source\repos\PEASS\winPEAS\winPEASexe\winPEAS\bin\Release\winPEAS.exe
+C:\Users\carlos\source\repos\PEASS\winPEAS\winPEASexe\winPEAS\bin\Release\winPEAS.pdb
+C:\Users\carlos\source\repos\PEASS\winPEAS\winPEASexe\winPEAS\bin\Release\Microsoft.Win32.TaskScheduler.xml
+C:\Users\carlos\source\repos\PEASS\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.csproj.Fody.CopyLocal.cache
+C:\Users\carlos\source\repos\PEASS\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.csproj.CopyComplete
+C:\Users\carlos\source\repos\PEASS\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.exe
+C:\Users\carlos\source\repos\PEASS\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.pdb

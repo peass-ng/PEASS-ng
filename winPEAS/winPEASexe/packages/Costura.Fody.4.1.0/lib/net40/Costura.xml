@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Costura</name>
+    </assembly>
+    <members>
+        <member name="T:CosturaUtility">
+            <summary>
+            Contains methods for interacting with the Costura system.
+            </summary>
+        </member>
+        <member name="M:CosturaUtility.Initialize">
+            <summary>
+            Call this to Initialize the Costura system.
+            </summary>
+        </member>
+    </members>
+</doc>
