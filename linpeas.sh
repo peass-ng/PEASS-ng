@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.1.4"
+VERSION="v2.1.6"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -163,10 +163,10 @@ DISCOVER_BAN_BAD="No network discovery capabilities (fping or ping not found)"
 FPING=$(which fping)
 PING=$(which ping)
 if [ "$FPING" ]; then
-  DISCOVER_BAN_GOOD="$GREEN$FPING$B is available for network discovery"
+  DISCOVER_BAN_GOOD="$GREEN$FPING$B is available for network discovery$LG (You can use linpeas to dicover hosts, learn more with -h)"
 else
   if [ "$PING" ]; then
-    DISCOVER_BAN_GOOD="$GREEN$PING$B is available for network discovery"
+    DISCOVER_BAN_GOOD="$GREEN$PING$B is available for network discovery$LG (You can use linpeas to dicover hosts, learn more with -h)"
   fi
 fi
 
@@ -182,7 +182,7 @@ if [ -z "$FOUND_NC" ]; then
 	FOUND_NC=$(which nc.traditional 2>/dev/null);
 fi
 if [ "$FOUND_NC" ]; then
-  SCAN_BAN_GOOD="$GREEN$FOUND_NC$B is available for network discover & port scanning"
+  SCAN_BAN_GOOD="$GREEN$FOUND_NC$B is available for network discover & port scanning$LG (You can use linpeas to dicover hosts/port scanning, learn more with -h)"
 fi
 
 
@@ -444,8 +444,13 @@ if [ "$SCAN_BAN_GOOD" ]; then
 else
   printf $RED"[-] $SCAN_BAN_BAD\n"$NC
 fi
+<<<<<<< HEAD
 if [ "`which nmap`" ];then
   NMAP_GOOD=$GREEN"nmap$B is available for network discover & port scanning, use it yourself"
+=======
+if [ "`which nmap 2>/dev/null`" ];then
+  NMAP_GOOD=$GREEN"nmap$B is available for network discover & port scanning, you use use it yourself"
+>>>>>>> fc361b128caf52e0a3b243379cacfee3d358e45c
   printf $Y"[+] $NMAP_GOOD\n"$NC
 fi
 echo ""
@@ -543,7 +548,7 @@ echo ""
 
 #-- 8SY) SElinux
 printf $Y"[+] "$GREEN"selinux enabled? .......... "$NC
-sestatus 2>/dev/null || echo_not_found "sestatus"
+(sestatus 2>/dev/null | sed "s,disabled,${C}[1;31m&${C}[0m,";) || echo_not_found "sestatus"
 
 #-- 9SY) Printer
 printf $Y"[+] "$GREEN"Printer? .......... "$NC
@@ -709,15 +714,14 @@ echo ""
 
 #-- 3UI) Clipboard and highlighted text
 printf $Y"[+] "$GREEN"Clipboard or highlighted text?\n"$NC
-if [ `which xclip` ]; then
+if [ `which xclip 2>/dev/null` ]; then
   echo "Clipboard: "`xclip -o -selection clipboard 2>/dev/null` | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
   echo "Highlighted text: "`xclip -o 2>/dev/null` | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
-elif [ `xsel` ]; then
+elif [ `which xsel 2>/dev/null` ]; then
   echo "Clipboard: "`xsel -ob 2>/dev/null` | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
   echo "Highlighted text: "`xsel -o 2>/dev/null` | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
 else echo_not_found "xsel and xclip"
 fi
-
 echo ""
 
 #-- 4UI) Sudo -l
@@ -1362,7 +1366,7 @@ echo ""
 
 ##-- 25IF) Passwords files in home
 printf $Y"[+] "$GREEN"Finding *password* or *credential* files in home\n"$NC
-(find /home /root -type f \( -name "*password*" -o -name "*credential*" sed "s,password\|credential,${C}[1;31m&${C}[0m,") || echo_not_found
+(find /home /root -type f \( -name "*password*" -o -name "*credential*" \) 2>/dev/null | sed "s,password\|credential,${C}[1;31m&${C}[0m,") || echo_not_found
 
 if ! [ "$SUPERFAST" ]; then
   ##-- 26IF) Passwords inside files
