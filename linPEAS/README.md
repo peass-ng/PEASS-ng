@@ -224,6 +224,10 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 
 If you want to **add something** and have **any cool idea** related to this project, please let me know it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues)** and we will update the master version.
 
+## Please, if this tool has been useful for you consider to donate
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DED2HWDYLFT2C&source=url)
+
 ## TODO
 
 - Add more checks
