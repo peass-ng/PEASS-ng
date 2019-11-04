@@ -1,8 +1,8 @@
-# LinPEAS - Linux Privilege Escalation Awsome Script
+# LinPEAS - Linux Privilege Escalation Awesome Script
 
 **LinPEAS is a script that searh for possible paths to escalate privileges on Linux/Unix\* hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/privilege-escalation)**
 
-Check the **Local Linux Privilege Escalation checklist** from [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist)
+Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist)**.
 
 [![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/266928)
 
@@ -229,9 +229,9 @@ If you want to **add something** and have **any cool idea** related to this proj
 - Mantain updated all the blacklists used to color the output
 - Support for MacOS
 
-If you want to help with any of this, you can do it using [github issues](https://github.com/carlospolop/privilege-escalation-awsome-scripts-suite/issues) or you can submit a pull request.
+If you want to help with any of this, you can do it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues) or you can submit a pull request**.
 
-If you find any issue, please report it using [github issues](https://github.com/carlospolop/privilege-escalation-awsome-scripts-suite/issues).
+If you find any issue, please report it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues)**.
 
 
 **Linpeas** is being **updated** every time I find something that could be useful to escalate privileges.
