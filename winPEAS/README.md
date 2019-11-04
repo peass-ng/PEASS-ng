@@ -6,7 +6,7 @@ Check more **information about how to exploit** found misconfigurations in **[bo
 
 ## WinPEAS .exe and .bat
 - [Link to WinPEAS C# project (.exe)](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/tree/master/winPEAS/winPEASexe)
-- [Link to WinPEAS .bat project]https://github.com/carlospolop/privilege-escalation-awesome-script-suite/tree/master/winPEAS/winPEASbat) Notice that WinPEAS.bat is a batch script made for Windows systems which don't support WinPEAS.exe (Net.4 required)
+- [Link to WinPEAS .bat project](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/tree/master/winPEAS/winPEASbat) Notice that WinPEAS.bat is a batch script made for Windows systems which don't support WinPEAS.exe (Net.4 required)
 
 ## Do not fork it!!
 
