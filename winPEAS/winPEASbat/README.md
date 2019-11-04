@@ -1,4 +1,4 @@
-# Windows Privilege Escalation Awsome Script (.bat)
+# Windows Privilege Escalation Awesome Script (.bat)
 
 **WinPEAS is a script that searh for possible paths to escalate privileges on Windows hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/windows/windows-local-privilege-escalation)**
 
