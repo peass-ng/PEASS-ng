@@ -10,7 +10,7 @@ Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks
 ## Quick Start
 ```bash
 #From github
-curl https://raw.githubusercontent.com/carlospolop/linux-privilege-escalation-awsome-script/master/linpeas.sh | sh
+curl https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-script-suite/master/linPEAS/linpeas.sh | sh
 ```
 
 ```bash
