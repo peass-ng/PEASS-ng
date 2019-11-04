@@ -6,7 +6,7 @@
 
 Check also the **Local Windows Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation)**
 
-[![youtube]((https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/winPEAS/winPEASexe/images/screen.png)](https://youtu.be/66gOwXMnxRI)
+[![youtube](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/winPEAS/winPEASexe/images/screen.png)](https://youtu.be/66gOwXMnxRI)
 
 ## Quick Start
 
