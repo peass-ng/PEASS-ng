@@ -414,6 +414,7 @@ echo "Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts) " | s
 echo "LightMangenta: Your username" | sed "s,LightMangenta,${C}[1;95m&${C}[0m,"
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then
   echo "  YOU ARE ALREADY ROOT!!! (it could take longer to complete execution)" | sed "s,YOU ARE ALREADY ROOT!!!,${C}[1;31;103m&${C}[0m,"
+  sleep 3 2>/dev/null
 fi
 echo ""
 echo ""
@@ -444,7 +445,7 @@ else
   printf $RED"[-] $SCAN_BAN_BAD\n"$NC
 fi
 if [ "`which nmap`" ];then
-  NMAP_GOOD=$GREEN"nmap$B is available for network discover & port scanning, you use use it yourself"
+  NMAP_GOOD=$GREEN"nmap$B is available for network discover & port scanning, use it yourself"
   printf $Y"[+] $NMAP_GOOD\n"$NC
 fi
 echo ""
