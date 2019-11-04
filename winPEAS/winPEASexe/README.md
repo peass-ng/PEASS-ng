@@ -2,11 +2,11 @@
 
 **WinPEAS is a script that searh for possible paths to escalate privileges on Windows hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/windows/windows-local-privilege-escalation)**
 
-Check also the **Local Windows Privilege Escalation checklist** from [book.hacktricks.xyz](https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation)
+Check also the **Local Windows Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation)**
 
 ## Quick Start
 
-Download the **[latest version from here](https://github.com/carlospolop/privilege-escalation-awsome-scripts-suite/winpeas/winpeasexe/winpeas/bin/Release)** or **compile it yourself**.
+Download the **[latest version from here](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/tree/master/winPEAS/winPEASexe/winPEAS/bin)** or **compile it yourself**.
 ```bash
 winpeas.exe ansii #ANSII color for linux consoles (reverse shell)
 winpeas.exe #Will execute all checks except the ones that execute MD commands
@@ -25,19 +25,15 @@ The **ouput will be colored**. Below you have some indications about what does e
 
 The tool is heavily based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)**.
 
-**IMPORTANT TO NOTICE:** By default WinPEAS will use colord for Windows terminals (without ANSII characters). If execute winpeas.exe from a reverse shell without any option **no color will be printed**. To see color in a linux terminal you need to use the **ansii** parameter.
+**IMPORTANT TO NOTICE:** By default WinPEAS will use colord for Windows terminals (without ANSII characters). If execute winpeas.exe from a reverse shell without any option **no color will be printed**. To see colors in a linux terminal you need to use the **ansii** parameter.
 
 ## Help
 
-![](https://github.com/carlospolop/privilege-escalation-awsome-scripts-suite/blob/master/winpeas/winpeasexe/images/help.png)
+![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/winPEAS/winPEASexe/images/help.png)
 
 ## Colors
 
-<details>
-  <summary>Details</summary>
-    ![](https://github.com/carlospolop/privilege-escalation-awsome-scripts-suite/blob/master/winpeas/winpeasexe/images/colors.png)
-
-</details>
+![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/winPEAS/winPEASexe/images/colors.png)
 
 ## Checks
 
@@ -125,7 +121,7 @@ The tool is heavily based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)
 
 ## Do not fork it!!
 
-If you want to **add something** and have **any cool idea** related to this project, please let me know it using the [github issues](https://github.com/carlospolop/privilege-escalation-awsome-scripts-suite/issues) and we will update the master version.
+If you want to **add something** and have **any cool idea** related to this project, please let me know it using the **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues)** and we will update the master version.
 
 ## TODO
 
@@ -134,9 +130,9 @@ If you want to **add something** and have **any cool idea** related to this proj
 - List wifi networks without using CMD
 - List credentials inside the Credential Manager without using CMD
 
-If you want to help with any of this, you can do it using [github issues](https://github.com/carlospolop/privilege-escalation-awsome-scripts-suite/issues) or you can submit a pull request.
+If you want to help with any of this, you can do it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues)** or you can submit a pull request.
 
-If you find any issue, please report it using [github issues](https://github.com/carlospolop/privilege-escalation-awsome-scripts-suite/issues).
+If you find any issue, please report it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues)**.
 
 **WinPEAS** is being **updated** every time I find something that could be useful to escalate privileges.
 
