@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.1.6"
+VERSION="v2.1.7"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -197,6 +197,7 @@ SUPERFAST=""
 NOTEXPORT=""
 DISCOVERY=""
 PORTS=""
+QUIET=""
 HELP=$GREEN"Enumerate and search Privilege Escalation vectors.\n\
       $Y\t-h$B To show this message\n\
       $Y\t-f$B Fast (don't check 1min of processes)\n\
@@ -206,7 +207,7 @@ HELP=$GREEN"Enumerate and search Privilege Escalation vectors.\n\
       $Y\t-p <PORT(s)> -d <IP/NETMASK>$B Discover hosts looking for TCP open ports (via nc). By default ports 80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
       $Y\t-i <IP> [-p <PORT(s)>]$B Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080"
 
-while getopts "h?fsd:p:i:" opt; do
+while getopts "h?fsd:p:i:q" opt; do
   case "$opt" in
     h|\?) printf "$HELP"$NC; exit 0;;
     f)  FAST=1;;
@@ -215,6 +216,7 @@ while getopts "h?fsd:p:i:" opt; do
     d)  DISCOVERY=$OPTARG;;
     p)  PORTS=$OPTARG;;
     i)  IP=$OPTARG;;
+    q)  QUIET=1;;
     esac
 done
 
@@ -233,6 +235,22 @@ echo_no (){
 
 print_ps (){
   (for f in `ls -d /proc/*/`; do CMDLINE=`cat $f/cmdline 2>/dev/null`; if [ "$CMDLINE" ]; then USER=ls -ld $f | awk '{print $3}'; PID=`echo $f | cut -d "/" -f3`; printf "  %-13s  %-8s  %s\n" "$USER" "$PID" "$CMDLINE"; fi; done) 2>/dev/null | sort -r
+}
+
+print_banner(){
+echo "[48;5;108m     [48;5;59m [48;5;71m [48;5;77m       [48;5;22m [48;5;108m   [48;5;114m [48;5;59m [49m
+[48;5;108m  [48;5;71m [48;5;22m [48;5;113m [48;5;71m [48;5;94m [48;5;214m  [48;5;58m [48;5;214m    [48;5;100m [48;5;71m  [48;5;16m [48;5;108m  [49m
+[48;5;65m [48;5;16m [48;5;22m [48;5;214m      [48;5;16m [48;5;214m        [48;5;65m  [49m
+[48;5;65m [48;5;214m       [48;5;16m [48;5;214m [48;5;16m [48;5;214m       [48;5;136m [48;5;65m [49m
+[48;5;23m [48;5;214m          [48;5;178m [48;5;214m       [48;5;65m [49m
+[48;5;16m [48;5;214m         [48;5;136m [48;5;94m   [48;5;136m [48;5;214m    [48;5;65m [49m
+[48;5;58m [48;5;214m  [48;5;172m [48;5;64m [48;5;77m             [48;5;71m [48;5;65m [49m
+[48;5;16m [48;5;71m [48;5;77m  [48;5;71m [48;5;77m         [48;5;71m [48;5;77m   [48;5;65m  [49m
+[48;5;59m [48;5;71m [48;5;77m [48;5;77m [48;5;16m [48;5;77m         [48;5;16m [48;5;77m   [48;5;65m  [49m
+[48;5;65m  [48;5;77m      [48;5;71m [48;5;16m [48;5;77m    [48;5;113m [48;5;77m   [48;5;65m  [49m
+[48;5;65m [48;5;16m [48;5;77m  [48;5;150m [48;5;113m [48;5;77m        [48;5;150m [48;5;113m [48;5;77m [48;5;65m [48;5;59m [48;5;65m [49m
+[48;5;16m [48;5;65m [48;5;71m [48;5;77m             [48;5;71m [48;5;22m [48;5;65m  [49m
+[48;5;108m  [48;5;107m [48;5;59m [48;5;77m           [48;5;16m [48;5;114m [48;5;108m   [49m"
 }
 
 ###########################################
@@ -403,7 +421,9 @@ fi
 ###########################################
 
 echo ""
-echo "linpeas $VERSION" | sed "s,.*,${C}[1;94m&${C}[0m,"
+if [ !"$QUIET" ]; then print_banner; fi
+printf "  linpeas $VERSION" | sed "s,.*,${C}[1;94m&${C}[0m,"; printf $Y" by carlospolop\n"$NC
+echo ""
 printf $B"Linux Privesc Checklist: "$Y"https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist\n"$NC
 echo "LEYEND:" | sed "s,LEYEND,${C}[1;4m&${C}[0m,"
 echo "RED/YELLOW: 99% a PE vector" | sed "s,RED/YELLOW,${C}[1;31;103m&${C}[0m,"
@@ -413,7 +433,9 @@ echo "Blue: Users without console & mounted devs" | sed "s,Blue,${C}[1;34m&${C}[
 echo "Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts) " | sed "s,Green,${C}[1;32m&${C}[0m,"
 echo "LightMangenta: Your username" | sed "s,LightMangenta,${C}[1;95m&${C}[0m,"
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then
+  echo ""
   echo "  YOU ARE ALREADY ROOT!!! (it could take longer to complete execution)" | sed "s,YOU ARE ALREADY ROOT!!!,${C}[1;31;103m&${C}[0m,"
+  sleep 3
 fi
 echo ""
 echo ""
