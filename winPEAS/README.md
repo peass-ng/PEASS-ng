@@ -1,4 +1,4 @@
-# Windows Privilege Escalation Awsome Scripts
+# Windows Privilege Escalation Awesome Scripts
 
 Check the **Local Windows Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation)**
 
