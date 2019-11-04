@@ -1,4 +1,4 @@
-# PEASS - Privilege Escalation Awsome Scripts SUITE
+# PEASS - Privilege Escalation Awesome Scripts SUITE
 
 Here you will find **privilege escalation tools for Windows and Linux/Unix\*** (in some near future  also for Mac).
 
