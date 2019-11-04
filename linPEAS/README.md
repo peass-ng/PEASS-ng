@@ -1,4 +1,6 @@
-# LinPEAS - Linux Privilege Escalation Awesome Script
+# LinPEAS - Linux Privilege Escalation Awesome Script 
+
+![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/linPEAS/images/linpeas.png)
 
 **LinPEAS is a script that searh for possible paths to escalate privileges on Linux/Unix\* hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/privilege-escalation)**
 

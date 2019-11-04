@@ -1,5 +1,7 @@
 # Windows Privilege Escalation Awesome Scripts
 
+![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/winPEAS/winPEASexe/images/winpeas.png)
+
 Check the **Local Windows Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation)**
 
 Check more **information about how to exploit** found misconfigurations in **[book.hacktricks.xyz](https://book.hacktricks.xyz/windows/windows-local-privilege-escalation)**

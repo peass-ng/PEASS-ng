@@ -1,13 +1,15 @@
 # PEASS - Privilege Escalation Awesome Scripts SUITE
 
+![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/linPEAS/images/peass.png)
+
 Here you will find **privilege escalation tools for Windows and Linux/Unix\*** (in some near future  also for Mac).
 
 These tools search for possible **local privilege escalation paths** that you could exploit and print them to you **with nice colors** so you can recognize the misconfigurations easily.
 
-- Check the **Local Windows Privilege Escalation checklist** from [book.hacktricks.xyz](https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation)
+- Check the **Local Windows Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation)**
 - **[WinPEAS](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/tree/master/winPEAS) - Windows local Privilege Escalation Awesome Script (C#.exe and .bat)**
 
-- Check the **Local Linux Privilege Escalation checklist** from [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist)
+- Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist)**
 - **[LinPEAS](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/tree/master/linPEAS) - Linux local Privilege Escalation Awesome Script (.sh)**
 
 ## Do not fork it!!
