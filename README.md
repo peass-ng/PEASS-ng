@@ -12,7 +12,7 @@ These tools search for possible **local privilege escalation paths** that you co
 
 ## Do not fork it!!
 
-If you want to **add something** and have **any cool idea** related to this project, please let me know it using the [github issues](https://github.com/carlospolop/privilege-escalation-awsome-scripts-suite/issues) and we will update the master version.
+If you want to **add something** and have **any cool idea** related to this project, please let me know it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues)** and we will update the master version.
 
 ## License
 
