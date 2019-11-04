@@ -10,4 +10,4 @@ Check more **information about how to exploit** found misconfigurations in **[bo
 
 ## Do not fork it!!
 
-If you want to **add something** and have **any cool idea** related to this project, please let me know it using the [github issues]https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues) and we will update the master version.
+If you want to **add something** and have **any cool idea** related to this project, please let me know it using the [github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues) and we will update the master version.
