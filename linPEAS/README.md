@@ -41,7 +41,7 @@ This script has **several lists** included inside of it to be able to **color th
 
 LinPEAS also **exports a new PATH** variable if common folders aren't present in the original PATH variable. It also **exports** unset and export several environmental commands so no command executed during the session will be saved in the history file (you can avoid this actions using the parameter **-n**).
 
-![](https://github.com/carlospolop/privilege-escalation-awsome-scripts-suite/blob/master/linpeas/images/help.png)
+![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/linPEAS/images/help.png)
 
 ## Hosts Discovery and Port Scanning
 
@@ -49,7 +49,7 @@ With LinPEAS you can also **discover hosts automatically** using `fping`, `ping`
 
 LinPEAS will **automatically search for this binaries** in `$PATH` and let you know if any of them is available. In that case you can use LinPEAS to hosts dicovery and/or port scanning.
 
-![](https://github.com/carlospolop/privilege-escalation-awsome-scripts-suite/blob/master/linpeas/images/network.png)
+![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/linPEAS/images/network.png)
 
 ## Colors
 
@@ -220,7 +220,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 
 ## Do not fork it!!
 
-If you want to **add something** and have **any cool idea** related to this project, please let me know it using the [github issues](https://github.com/carlospolop/privilege-escalation-awsome-scripts-suite/issues) and we will update the master version.
+If you want to **add something** and have **any cool idea** related to this project, please let me know it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues)** and we will update the master version.
 
 ## TODO
 
