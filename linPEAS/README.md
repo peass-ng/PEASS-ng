@@ -6,7 +6,7 @@
 
 Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist)**.
 
-[![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/266928)
+[![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/279208)
 
 
 ## Quick Start
