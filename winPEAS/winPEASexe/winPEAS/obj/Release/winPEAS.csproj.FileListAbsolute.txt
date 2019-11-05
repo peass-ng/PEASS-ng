@@ -38,4 +38,3 @@ D:\shared\privilege-escalation-awesome-script-suite\winPEAS\winPEASexe\winPEAS\o
 D:\shared\privilege-escalation-awesome-script-suite\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.csproj.CopyComplete
 D:\shared\privilege-escalation-awesome-script-suite\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.exe
 D:\shared\privilege-escalation-awesome-script-suite\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.pdb
-D:\shared\privilege-escalation-awesome-script-suite\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.csprojAssemblyReference.cache

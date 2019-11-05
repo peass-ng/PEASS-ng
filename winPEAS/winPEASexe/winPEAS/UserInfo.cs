@@ -324,10 +324,15 @@ namespace winPEAS
             try
             {
                 UserPrincipal oUserPrincipal = GetUser(sUserName, domain);
-                PrincipalSearchResult<Principal> oPrincipalSearchResult = oUserPrincipal.GetGroups();
-                foreach (Principal oResult in oPrincipalSearchResult)
+                if (oUserPrincipal != null)
                 {
-                    myItems.Add(oResult.Name);
+                    PrincipalSearchResult<Principal> oPrincipalSearchResult = oUserPrincipal.GetGroups();
+                    foreach (Principal oResult in oPrincipalSearchResult)
+                        myItems.Add(oResult.Name);
+                }
+                else
+                {
+                    Beaprint.GrayPrint("  [-] Controlled exception, info about " + domain + "\\" + sUserName + " not found");
                 }
             }
             catch (Exception ex)
