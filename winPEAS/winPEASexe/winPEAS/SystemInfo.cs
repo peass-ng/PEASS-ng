@@ -96,6 +96,7 @@ namespace winPEAS
                 results.Add("IsVirtualMachine", isVM.ToString());
                 results.Add("Current Time", now.ToString());
                 results.Add("HighIntegrity", isHighIntegrity.ToString());
+                results.Add("PartOfDomain", Program.partofdomain.ToString());
                 results.Add("Hotfixes", hotfixes);
             }
             catch (Exception ex)

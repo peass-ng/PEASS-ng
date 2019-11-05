@@ -20,7 +20,7 @@ namespace winPEAS
         // Static blacklists
         static string strTrue = "True";
         static string strFalse = "False";
-        static string badgroups = "docker|Remote";
+        static string badgroups = "docker|Remote|Admins";
         static string badpasswd = "NotChange|NotExpi";
         static string badPrivileges = "Enabled|ENABLED|SeImpersonatePrivilege|SeAssignPrimaryPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege";
         static string goodSoft = "Windows Phone Kits|Windows Kits|Windows Defender|Windows Mail|Windows Media Player|Windows Multimedia Platform|windows nt|Windows Photo Viewer|Windows Portable Devices|Windows Security|Windows Sidebar|WindowsApps|WindowsPowerShell|Microsoft|WOW6432Node|internet explorer|Internet Explorer|Common Files";
@@ -47,10 +47,11 @@ namespace winPEAS
         static StyleSheet onlyKeyStyleSheet = new StyleSheet(color_key);
 
         // Create Dynamic blacklists
+        public static bool partofdomain = MyUtils.IsDomainJoined();
         static string currentUserName = Environment.UserName;
         static string currentDomainName = Environment.UserDomainName;
-        static List<string> currentUserGroups = UserInfo.GetUserGroups(currentUserName);
-        public static List<string> interestingUsersGroups = new List<string> { "Everyone", "Users", "Todos" , currentUserName }; //Authenticated Users (Authenticated left behin to avoid repetitions)
+        static List<string> currentUserGroups = UserInfo.GetUserGroups(currentUserName, currentDomainName);
+        public static List<string> interestingUsersGroups = new List<string> { "Everyone", "Users", "Todos", currentUserName }; //Authenticated Users (Authenticated left behin to avoid repetitions)
         static string paint_interestingUserGroups = String.Join("|", currentUserGroups);
         static string paint_activeUsers = String.Join("|", UserInfo.GetMachineUsers(true, false, false, false, false));
         static string paint_disabledUsers = String.Join("|", UserInfo.GetMachineUsers(false, true, false, false, false));
@@ -314,7 +315,8 @@ namespace winPEAS
 
             void PrintUACInfo()
             {
-                try {
+                try
+                {
                     Beaprint.MainPrint("UAC Status", "T1012");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#basic-uac-bypass-full-file-system-access", "If you are in the Administrators group check how to bypass the UAC");
                     Dictionary<string, string> uacDict = SystemInfo.GetUACSystemPolicies();
@@ -388,7 +390,7 @@ namespace winPEAS
                  * MediumPurple:
                  * ---- Disabled users
                 */
-            
+
             StyleSheet CreateUsersSS()
             {
                 StyleSheet styleSheetUsers = new StyleSheet(color_default);
@@ -483,7 +485,8 @@ namespace winPEAS
                     {
                         if (exec_cmd)
                             Beaprint.BadPrint("    " + MyUtils.ExecCMD("powershell -command Get-Clipboard"));
-                        else {
+                        else
+                        {
                             Beaprint.NotFoundPrint();
                             Beaprint.InfoPrint("    This C# implementation to capture the clipboard is not trustable in every Windows version");
                             Beaprint.InfoPrint("    If you want to see what is inside the clipboard execute 'powershell -command \"Get - Clipboard\"'");
@@ -523,12 +526,14 @@ namespace winPEAS
                     {
                         string format = "    {0,-10}{1,-15}{2,-15}{3,-25}{4,-10}{5}";
                         string header = String.Format(format, "SessID", "pSessionName", "pUserName", "pDomainName", "State", "SourceIP");
-                        if (using_ansi) {
+                        if (using_ansi)
+                        {
                             System.Console.WriteLine(header);
                             foreach (Dictionary<string, string> rdp_ses in rdp_sessions)
                                 Beaprint.AnsiPrint(String.Format(format, rdp_ses["SessionID"], rdp_ses["pSessionName"], rdp_ses["pUserName"], rdp_ses["pDomainName"], rdp_ses["State"], rdp_ses["SourceIP"]), colorsU());
                         }
-                        else {
+                        else
+                        {
                             Colorful.Console.WriteLineStyled(header, onlyKeyStyleSheet);
                             foreach (Dictionary<string, string> rdp_ses in rdp_sessions)
                                 Colorful.Console.WriteLineStyled(String.Format(format, rdp_ses["SessionID"], rdp_ses["pSessionName"], rdp_ses["pUserName"], rdp_ses["pDomainName"], rdp_ses["State"], rdp_ses["SourceIP"]), CreateUsersSS());
@@ -567,7 +572,8 @@ namespace winPEAS
                     Beaprint.MainPrint("Looking for AutoLogon credentials", "T1012");
                     bool ban = false;
                     Dictionary<string, string> autologon = UserInfo.GetAutoLogon();
-                    if (autologon.Count > 0) {
+                    if (autologon.Count > 0)
+                    {
                         foreach (KeyValuePair<string, string> entry in autologon)
                         {
                             if (!String.IsNullOrEmpty(entry.Value))
@@ -601,7 +607,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Home folders found", "T1087&T1083&T1033");
                     List<string> user_folders = UserInfo.GetUsersFolders();
-                    foreach(string ufold in user_folders)
+                    foreach (string ufold in user_folders)
                     {
                         string perms = String.Join(", ", MyUtils.GetPermissionsFolder(ufold, interestingUsersGroups));
                         if (perms.Length > 0)
@@ -708,7 +714,7 @@ namespace winPEAS
                         if (proc_info["CommandLine"].Length > 1)
                             formString += "\n    {8}";
 
-                        if (using_ansi) 
+                        if (using_ansi)
                         {
                             Dictionary<string, string> colorsP = new Dictionary<string, string>()
                             {
@@ -1308,7 +1314,8 @@ namespace winPEAS
                             formString += "\n    Folder Permissions: {9}";
                         formString += "\n    {10}";
 
-                        if (using_ansi) {
+                        if (using_ansi)
+                        {
                             Dictionary<string, string> colorsN = new Dictionary<string, string>()
                             {
                                 { strFalse, ansi_color_bad },
@@ -1316,7 +1323,7 @@ namespace winPEAS
                                 { "File Permissions.*|Folder Permissions.*", ansi_color_bad },
                                 { rule["AppName"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?"), (file_perms.Length > 0 || folder_perms.Length > 0) ? ansi_color_bad : ansi_color_good },
                             };
-                            Beaprint.AnsiPrint(String.Format(formString, rule["Profiles"], rule["Name"],  rule["AppName"], rule["Action"], rule["Protocol"], rule["Direction"], rule["Direction"] == "IN" ? rule["Local"] : rule["Remote"], rule["Direction"] == "IN" ? rule["Remote"] : rule["Local"], file_perms, folder_perms, rule["Description"]), colorsN);
+                            Beaprint.AnsiPrint(String.Format(formString, rule["Profiles"], rule["Name"], rule["AppName"], rule["Action"], rule["Protocol"], rule["Direction"], rule["Direction"] == "IN" ? rule["Local"] : rule["Remote"], rule["Direction"] == "IN" ? rule["Remote"] : rule["Local"], file_perms, folder_perms, rule["Description"]), colorsN);
                         }
                         else
                         {
@@ -1522,7 +1529,7 @@ namespace winPEAS
                     List<Dictionary<string, string>> cred_files = KnownFileCredsInfo.GetCredFiles();
                     Beaprint.DictPrint(cred_files, false);
                     if (cred_files.Count != 0)
-                            Beaprint.InfoPrint("Follow the provided link for further instructions in how to decrypt the creds file");
+                        Beaprint.InfoPrint("Follow the provided link for further instructions in how to decrypt the creds file");
                 }
                 catch (Exception ex)
                 {
@@ -1982,7 +1989,7 @@ namespace winPEAS
                     {
                         StyleSheet styleSheetPS = new StyleSheet(color_default);
                         styleSheetPS.AddStyle("ProxyPassword.*", color_bad);
-                        
+
                         Beaprint.DictPrint(putty_sess, styleSheetPS, true);
                     }
                 }

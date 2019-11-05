@@ -292,18 +292,20 @@ namespace winPEAS
                     else if (onlyLockout && (bool)user["Lockout"]) retList.Add((string)user["Name"]);
                     else if (onlyAdmins)
                     {
-                        if ((string.Join(",", GetUserGroups((string)user["Name"])).Contains("Admin"))) retList.Add((string)user["Name"]);
+                        string domain = (string)user["Domain"];
+                        if (string.Join(",", GetUserGroups((string)user["Name"], domain)).Contains("Admin")) retList.Add((string)user["Name"]);
                     }
                     else if (fullInfo)
                     {
+                        string domain = (string)user["Domain"];
                         string userLine = user["Caption"] + ((bool)user["Disabled"] ? "(Disabled)" : "") + ((bool)user["Lockout"] ? "(Lockout)" : "") + ((string)user["Fullname"] != "false" ? "" : "(" + user["Fullname"] + ")") + (((string)user["Description"]).Length > 1 ? ": " + user["Description"] : "");
-                        List<string> user_groups = GetUserGroups((string)user["Name"]);
+                        List<string> user_groups = GetUserGroups((string)user["Name"], domain);
                         string groupsLine = "";
                         if (user_groups.Count > 0)
                         {
                             groupsLine = "\n\t|->Groups: " + string.Join(",", user_groups);
                         }
-                        string passLine = "\n\t|->Password: " + ((bool)user["PasswordChangeable"] ? "CanChange" : "NotChange") + "-" + ((bool)user["PasswordExpires"] ? "Expi" : "NotExpi") + "-" + ((bool)user["PasswordRequired"] ? "Req" : "NotReq");
+                        string passLine = "\n\t|->Password: " + ((bool)user["PasswordChangeable"] ? "CanChange" : "NotChange") + "-" + ((bool)user["PasswordExpires"] ? "Expi" : "NotExpi") + "-" + ((bool)user["PasswordRequired"] ? "Req" : "NotReq") + "\n";
                         retList.Add(userLine + groupsLine + passLine);
                     }
                 }
@@ -316,12 +318,12 @@ namespace winPEAS
         }
 
         // https://stackoverflow.com/questions/3679579/check-for-groups-a-local-user-is-a-member-of/3681442#3681442
-        public static List<string> GetUserGroups(string sUserName)
+        public static List<string> GetUserGroups(string sUserName, string domain)
         {
             List<string> myItems = new List<string>();
             try
             {
-                UserPrincipal oUserPrincipal = GetUser(sUserName);
+                UserPrincipal oUserPrincipal = GetUser(sUserName, domain);
                 PrincipalSearchResult<Principal> oPrincipalSearchResult = oUserPrincipal.GetGroups();
                 foreach (Principal oResult in oPrincipalSearchResult)
                 {
@@ -335,27 +337,45 @@ namespace winPEAS
             return myItems;
         }
 
-        public static UserPrincipal GetUser(string sUserName)
+        public static UserPrincipal GetUser(string sUserName, string domain)
         {
+            UserPrincipal user = null;
             try
             {
-                // Extract local user information
-                //https://stackoverflow.com/questions/14594545/query-local-administrator-group
-                var context = new PrincipalContext(ContextType.Machine);
-                var user = new UserPrincipal(context);
-                user.SamAccountName = sUserName;
-                var searcher = new PrincipalSearcher(user);
-                user = searcher.FindOne() as UserPrincipal;
-                return user;
+                if (Program.partofdomain) //Check if partof domain
+                {
+                    user = GetUserDomain(sUserName, domain);
+                    if (user == null) //If part of domain but null, then user is local
+                        user = GetUserLocal(sUserName);
+                }
+                else //If not part of a domain, thn user is local
+                    user = GetUserLocal(sUserName);
             }
-            catch (Exception ex)
-            {
-                //if not local, try to extract domain user information
-                //https://stackoverflow.com/questions/12710355/check-if-user-is-a-domain-user-or-local-user/12710452
-                var domainContext = new PrincipalContext(ContextType.Domain, Environment.UserDomainName);
-                UserPrincipal domainuser = UserPrincipal.FindByIdentity(domainContext, IdentityType.SamAccountName, sUserName);
-                return domainuser;
+            catch
+            { //If error, then some error ocurred trying to find a user inside an unexistant domain, check if local user
+                user = GetUserLocal(sUserName);
             }
+            return user;
+        }
+        public static UserPrincipal GetUserLocal(string sUserName)
+        {
+            // Extract local user information
+            //https://stackoverflow.com/questions/14594545/query-local-administrator-group
+            var context = new PrincipalContext(ContextType.Machine);
+            var user = new UserPrincipal(context);
+            user.SamAccountName = sUserName;
+            var searcher = new PrincipalSearcher(user);
+            user = searcher.FindOne() as UserPrincipal;
+            return user;
+        }
+        public static UserPrincipal GetUserDomain(string sUserName, string domain)
+        {
+            //if not local, try to extract domain user information
+            //https://stackoverflow.com/questions/12710355/check-if-user-is-a-domain-user-or-local-user/12710452
+            //var domainContext = new PrincipalContext(ContextType.Domain, Environment.UserDomainName);
+            var domainContext = new PrincipalContext(ContextType.Domain, domain);
+            UserPrincipal domainuser = UserPrincipal.FindByIdentity(domainContext, IdentityType.SamAccountName, sUserName);
+            return domainuser;
         }
 
         public static PrincipalContext GetPrincipalContext()
@@ -594,15 +614,15 @@ namespace winPEAS
                         var pi = server.GetDomainPasswordInformation(sid);
 
                         results.Add(new Dictionary<string, string>()
-                    {
-                        { "Domain", domain },
-                        { "SID", String.Format("{0}", sid) },
-                        { "MaxPasswordAge", String.Format("{0}", pi.MaxPasswordAge) },
-                        { "MinPasswordAge", String.Format("{0}", pi.MinPasswordAge) },
-                        { "MinPasswordLength", String.Format("{0}", pi.MinPasswordLength) },
-                        { "PasswordHistoryLength", String.Format("{0}", pi.PasswordHistoryLength) },
-                        { "PasswordProperties", String.Format("{0}", pi.PasswordProperties) },
-                    });
+                        {
+                            { "Domain", domain },
+                            { "SID", String.Format("{0}", sid) },
+                            { "MaxPasswordAge", String.Format("{0}", pi.MaxPasswordAge) },
+                            { "MinPasswordAge", String.Format("{0}", pi.MinPasswordAge) },
+                            { "MinPasswordLength", String.Format("{0}", pi.MinPasswordLength) },
+                            { "PasswordHistoryLength", String.Format("{0}", pi.PasswordHistoryLength) },
+                            { "PasswordProperties", String.Format("{0}", pi.PasswordProperties) },
+                        });
                     }
                 }
             }
