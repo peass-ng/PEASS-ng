@@ -1,6 +1,6 @@
 # LinPEAS - Linux Privilege Escalation Awesome Script 
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/linPEAS/images/linpeas.png)
+![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/linpeas.png)
 
 **LinPEAS is a script that searh for possible paths to escalate privileges on Linux/Unix\* hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/privilege-escalation)**
 
@@ -12,7 +12,7 @@ Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks
 ## Quick Start
 ```bash
 #From github
-curl https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-script-suite/master/linPEAS/linpeas.sh | sh
+curl https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh | sh
 ```
 
 ```bash
@@ -43,7 +43,7 @@ This script has **several lists** included inside of it to be able to **color th
 
 LinPEAS also **exports a new PATH** variable if common folders aren't present in the original PATH variable. It also **exports** unset and export several environmental commands so no command executed during the session will be saved in the history file (you can avoid this actions using the parameter **-n**).
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/linPEAS/images/help.png)
+![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/help.png)
 
 ## Hosts Discovery and Port Scanning
 
@@ -51,7 +51,7 @@ With LinPEAS you can also **discover hosts automatically** using `fping`, `ping`
 
 LinPEAS will **automatically search for this binaries** in `$PATH` and let you know if any of them is available. In that case you can use LinPEAS to hosts dicovery and/or port scanning.
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/linPEAS/images/network.png)
+![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/network.png)
 
 ## Colors
 
@@ -222,7 +222,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 
 ## Do not fork it!!
 
-If you want to **add something** and have **any cool idea** related to this project, please let me know it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues)** and we will update the master version.
+If you want to **add something** and have **any cool idea** related to this project, please let me know it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)** and we will update the master version.
 
 ## Please, if this tool has been useful for you consider to donate
 
@@ -239,9 +239,9 @@ Contact me and ask about the **Privilege Escalation Course** I am preparing for 
 - Mantain updated all the blacklists used to color the output
 - Support for MacOS
 
-If you want to help with any of this, you can do it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues) or you can submit a pull request**.
+If you want to help with any of this, you can do it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues) or you can submit a pull request**.
 
-If you find any issue, please report it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues)**.
+If you find any issue, please report it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)**.
 
 
 **Linpeas** is being **updated** every time I find something that could be useful to escalate privileges.

@@ -1,16 +1,16 @@
 # Windows Privilege Escalation Awesome Script (.exe)
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/winPEAS/winPEASexe/images/winpeas.png)
+![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/winpeas.png)
 
 **WinPEAS is a script that searh for possible paths to escalate privileges on Windows hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/windows/windows-local-privilege-escalation)**
 
 Check also the **Local Windows Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation)**
 
-[![youtube](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/winPEAS/winPEASexe/images/screen.png)](https://youtu.be/66gOwXMnxRI)
+[![youtube](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/screen.png)](https://youtu.be/66gOwXMnxRI)
 
 ## Quick Start
 
-Download the **[latest version from here](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/tree/master/winPEAS/winPEASexe/winPEAS/bin)** or **compile it yourself**.
+Download the **[latest version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/winPEAS/bin)** or **compile it yourself**.
 ```bash
 winpeas.exe ansi cmd searchfast #ANSI color for linux consoles (reverse shell), cmd commands and avoid sleepig
 winpeas.exe #Will execute all checks except the ones that execute MD commands
@@ -35,11 +35,11 @@ The tool is heavily based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)
 
 ## Help
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/winPEAS/winPEASexe/images/help.png)
+![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/help.png)
 
 ## Colors
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/raw/master/winPEAS/winPEASexe/images/colors.png)
+![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/colors.png)
 
 ## Checks
 
@@ -127,7 +127,7 @@ The tool is heavily based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)
 
 ## Do not fork it!!
 
-If you want to **add something** and have **any cool idea** related to this project, please let me know it using the **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues)** and we will update the master version.
+If you want to **add something** and have **any cool idea** related to this project, please let me know it using the **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)** and we will update the master version.
 
 ## Please, if this tool has been useful for you consider to donate
 
@@ -144,9 +144,9 @@ Contact me and ask about the **Privilege Escalation Course** I am preparing for 
 - List wifi networks without using CMD
 - List credentials inside the Credential Manager without using CMD
 
-If you want to help with any of this, you can do it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues)** or you can submit a pull request.
+If you want to help with any of this, you can do it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)** or you can submit a pull request.
 
-If you find any issue, please report it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-script-suite/issues)**.
+If you find any issue, please report it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)**.
 
 **WinPEAS** is being **updated** every time I find something that could be useful to escalate privileges.
 
