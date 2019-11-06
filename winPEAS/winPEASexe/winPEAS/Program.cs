@@ -20,7 +20,7 @@ namespace winPEAS
         // Static blacklists
         static string strTrue = "True";
         static string strFalse = "False";
-        static string badgroups = "docker|Remote|Admins";
+        static string badgroups = "docker|Remote |Admins";//The space in Remote is important to not mix with SeShutdownRemotePrivilege
         static string badpasswd = "NotChange|NotExpi";
         static string badPrivileges = "Enabled|ENABLED|SeImpersonatePrivilege|SeAssignPrimaryPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege";
         static string goodSoft = "Windows Phone Kits|Windows Kits|Windows Defender|Windows Mail|Windows Media Player|Windows Multimedia Platform|windows nt|Windows Photo Viewer|Windows Portable Devices|Windows Security|Windows Sidebar|WindowsApps|WindowsPowerShell|Microsoft|WOW6432Node|internet explorer|Internet Explorer|Common Files";
@@ -55,7 +55,7 @@ namespace winPEAS
         static string paint_interestingUserGroups = String.Join("|", currentUserGroups);
         static string paint_activeUsers = String.Join("|", UserInfo.GetMachineUsers(true, false, false, false, false));
         static string paint_disabledUsers = String.Join("|", UserInfo.GetMachineUsers(false, true, false, false, false));
-        static string paint_lockoutUsers = String.Join("|", UserInfo.GetMachineUsers(false, false, true, false, false));
+        //static string paint_lockoutUsers = String.Join("|", UserInfo.GetMachineUsers(false, false, true, false, false));
         static string paint_adminUsers = String.Join("|", UserInfo.GetMachineUsers(false, false, false, true, false));
 
 
@@ -398,7 +398,7 @@ namespace winPEAS
                 {
                     styleSheetUsers.AddStyle(paint_activeUsers, Color.Cyan);
                     if (paint_disabledUsers.Length > 1) styleSheetUsers.AddStyle(paint_disabledUsers + "|Disabled", Color.MediumPurple);
-                    if (paint_lockoutUsers.Length > 1) styleSheetUsers.AddStyle(paint_lockoutUsers + "|Lockout", Color.Blue);
+                    //if (paint_lockoutUsers.Length > 1) styleSheetUsers.AddStyle(paint_lockoutUsers + "|Lockout", Color.Blue);
                     styleSheetUsers.AddStyle(currentUserName, Color.Magenta);
                     styleSheetUsers.AddStyle(currentDomainName, Color.Magenta);
                     styleSheetUsers.AddStyle(paint_adminUsers, color_bad);
@@ -1241,7 +1241,7 @@ namespace winPEAS
                                 {
                             new Formatter(card["Name"], Color.DarkOrange),
                             new Formatter(card["PysicalAddr"], color_default),
-                            new Formatter(card["IPs"], Color.OrangeRed),
+                            new Formatter(card["IPs"], Color.DarkOrange),
                             new Formatter(card["Netmasks"].Replace(", 0.0.0.0", ""), Color.Gray),
                             new Formatter(card["Gateways"], Color.MediumPurple),
                             new Formatter(card["DNSs"], Color.MediumPurple),
@@ -1332,11 +1332,11 @@ namespace winPEAS
                                 new Formatter(rule["Profiles"], Color.Gray),
                                 new Formatter(rule["Name"], Color.DarkOrange),
                                 new Formatter(rule["AppName"], (file_perms.Length > 0 || folder_perms.Length > 0) ? color_bad : color_good),
-                                new Formatter(rule["Action"], Color.OrangeRed),
+                                new Formatter(rule["Action"], Color.Cyan),
                                 new Formatter(rule["Protocol"], Color.MediumPurple),
                                 new Formatter(rule["Direction"], color_default),
-                                new Formatter(rule["Direction"] == "IN" ? rule["Local"] : rule["Remote"], rule["Direction"] == "IN" ? color_default : Color.White),
-                                new Formatter(rule["Direction"] == "IN" ? rule["Remote"] : rule["Local"], rule["Direction"] == "IN" ? Color.White : color_default),
+                                new Formatter(rule["Direction"] == "IN" ? rule["Local"] : rule["Remote"], rule["Direction"] == "IN" ? color_default : Color.Cyan),
+                                new Formatter(rule["Direction"] == "IN" ? rule["Remote"] : rule["Local"], rule["Direction"] == "IN" ? Color.Cyan : color_default),
                                 new Formatter(file_perms, color_bad),
                                 new Formatter(folder_perms, color_bad),
                                 new Formatter(rule["Description"], Color.Gray),

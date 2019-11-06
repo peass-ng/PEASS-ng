@@ -35,18 +35,18 @@ namespace winPEAS
         public static Color color_default = Color.LightSkyBlue;
         public static Color color_good = Color.Green;
         public static Color color_bad = Color.Red;
-        static List<Color> color_line = new List<Color>() {
-            Color.SkyBlue,
-            Color.LightPink,
+        /*static List<Color> color_line = new List<Color>() {
+            Color.DarkOrange,
+            Color.MediumPurple,
             Color.MediumVioletRed,
             Color.Linen,
             Color.MediumTurquoise,
-            Color.MediumPurple,
+            Color.SkyBlue,
             Color.Tomato,
             Color.GreenYellow,
             Color.HotPink,
             Color.Peru
-        };
+        };*/
 
         public static void PrintBanner()
         {
@@ -126,7 +126,7 @@ namespace winPEAS
                 Colorful.Console.Write("         Lightblue", color_default); Colorful.Console.WriteLine("  Indicates information extracted from the host (host dependant)");
                 Colorful.Console.Write("         Magenta", Color.Magenta); Colorful.Console.WriteLine("    Indicates current user and domain");
                 Colorful.Console.Write("         Cyan", Color.Cyan); Colorful.Console.WriteLine("       Indicates active users");
-                Colorful.Console.Write("         Blue", Color.Blue); Colorful.Console.WriteLine("       Indicates locked users");
+                //Colorful.Console.Write("         Blue", Color.Blue); Colorful.Console.WriteLine("       Indicates locked users");
                 Colorful.Console.Write("         Purple", Color.MediumPurple); Colorful.Console.WriteLine("     Indicates disablde users and links (and other info for coloring purposes)");
             }
         }
@@ -500,7 +500,7 @@ namespace winPEAS
             }
         }
 
-        public static void LinePrint(string formString, List<string> to_complete)
+        /*public static void LinePrint(string formString, List<string> to_complete)
         {
             try
             {
@@ -539,7 +539,7 @@ namespace winPEAS
             {
                 System.Console.WriteLine(ex);
             }
-        }
+        }*/
 
         public static void ListPrint(List<string> list_to_print)
         {
