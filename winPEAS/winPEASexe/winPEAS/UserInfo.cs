@@ -283,9 +283,7 @@ namespace winPEAS
             List<string> retList = new List<string>();
             try
             {
-                SelectQuery query = new SelectQuery("Win32_UserAccount");
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-                foreach (ManagementObject user in searcher.Get())
+                foreach (ManagementObject user in Program.win32_users)
                 {
                     if (onlyActive && !(bool)user["Disabled"] && !(bool)user["Lockout"]) retList.Add((string)user["Name"]);
                     else if (onlyDisabled && (bool)user["Disabled"] && !(bool)user["Lockout"]) retList.Add((string)user["Name"]);
@@ -317,12 +315,21 @@ namespace winPEAS
             return retList;
         }
 
+
+        public static bool IsLocaluser(string UserName, string domain)
+        {
+            return Program.currentADDomainName != Program.currentUserDomainName && domain != Program.currentUserDomainName;
+        }
+
         // https://stackoverflow.com/questions/3679579/check-for-groups-a-local-user-is-a-member-of/3681442#3681442
         public static List<string> GetUserGroups(string sUserName, string domain)
         {
             List<string> myItems = new List<string>();
             try
             {
+                if (Program.currentUserIsLocal && domain != Program.currentUserDomainName)
+                    return myItems; //If local user and other domain, do not look
+
                 UserPrincipal oUserPrincipal = GetUser(sUserName, domain);
                 if (oUserPrincipal != null)
                 {
@@ -347,13 +354,13 @@ namespace winPEAS
             UserPrincipal user = null;
             try
             {
-                if (Program.partofdomain) //Check if partof domain
+                if (Program.partofdomain && !Program.currentUserIsLocal) //Check if part of domain and notlocal users
                 {
                     user = GetUserDomain(sUserName, domain);
                     if (user == null) //If part of domain but null, then user is local
                         user = GetUserLocal(sUserName);
                 }
-                else //If not part of a domain, thn user is local
+                else //If not part of a domain, then check local
                     user = GetUserLocal(sUserName);
             }
             catch

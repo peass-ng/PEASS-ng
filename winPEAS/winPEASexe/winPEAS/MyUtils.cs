@@ -16,10 +16,9 @@ namespace winPEAS
 {
     class MyUtils
     {
-        public static bool IsDomainJoined()
+        public static string IsDomainJoined()
         {
-            // returns true if the system is likely a virtual machine
-            // Adapted from RobSiklos' code from https://stackoverflow.com/questions/498371/how-to-detect-if-my-application-is-running-in-a-virtual-machine/11145280#11145280
+            // returns Compuer Domain if the system is inside an AD (an nothing if it is not)
             try
             {
                 using (var searcher = new System.Management.ManagementObjectSearcher("Select * from Win32_ComputerSystem"))
@@ -28,7 +27,7 @@ namespace winPEAS
                     {
                         foreach (var item in items)
                         {
-                            return (bool)item["PartOfDomain"];
+                            return (string)item["Domain"];
                         }
                     }
                 }
@@ -38,7 +37,7 @@ namespace winPEAS
                 System.Console.WriteLine(ex);
             }
             //By default tru, because this way wiill check domain and local, but never should get here the code
-            return true;
+            return "";
         }
 
         public static Dictionary<string, string> RemoveEmptyKeys(Dictionary<string, string> dic_in)

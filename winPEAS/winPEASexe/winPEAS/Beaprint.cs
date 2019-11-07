@@ -88,7 +88,7 @@ namespace winPEAS
 
             if (Program.using_ansi)
             {
-                System.Console.WriteLine(YELLOW + "  " + NOCOLOR + "WinPEAS " + GREEN + Program.version + NOCOLOR + YELLOW + " by carlospolop" + NOCOLOR );
+                System.Console.WriteLine(YELLOW + "  " + NOCOLOR + "WinPEAS " + GREEN + Program.version + NOCOLOR + YELLOW + " by carlospolop" + NOCOLOR);
             }
             else
             {
@@ -181,7 +181,7 @@ namespace winPEAS
                 System.Console.WriteLine();
                 int halfTotal = 60;
                 if (Program.using_ansi)
-                    System.Console.WriteLine(LCYAN + "  " + new String('=', halfTotal - toPrint.Length) + "(" +NOCOLOR +  YELLOW + toPrint + LCYAN + ")" + new String('=', halfTotal - toPrint.Length) + NOCOLOR);
+                    System.Console.WriteLine(LCYAN + "  " + new String('=', halfTotal - toPrint.Length) + "(" + NOCOLOR + YELLOW + toPrint + LCYAN + ")" + new String('=', halfTotal - toPrint.Length) + NOCOLOR);
                 else
                 {
                     StyleSheet styleSheet = new StyleSheet(Color.White);
@@ -192,7 +192,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
 
@@ -216,7 +216,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
 
@@ -239,7 +239,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
 
@@ -261,7 +261,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
 
@@ -342,7 +342,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
         public static void DictPrint(Dictionary<string, string> dicprint, bool delete_nulls)
@@ -375,7 +375,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
 
@@ -413,7 +413,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
 
@@ -434,7 +434,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
 
@@ -454,7 +454,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
 
@@ -475,7 +475,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
 
@@ -496,7 +496,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
 
@@ -513,7 +513,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}",ex));
             }
         }
 
@@ -537,7 +537,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}",ex));
             }
         }*/
 
@@ -563,7 +563,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
 
@@ -592,7 +592,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                GrayPrint(String.Format("{0}", ex));
             }
         }
 

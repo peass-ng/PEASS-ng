@@ -3,13 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Management;
 using System.Text.RegularExpressions;
 
 namespace winPEAS
 {
     class Program
     {
-        public static string version = "vBETA VERSION";
+        public static string version = "vBETA VERSION, Please if you find any issue let me know in https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues";
         public static bool banner = true;
         public static bool search_fast = false;
         public static int search_time = 150;
@@ -47,17 +48,34 @@ namespace winPEAS
         static StyleSheet onlyKeyStyleSheet = new StyleSheet(color_key);
 
         // Create Dynamic blacklists
-        public static bool partofdomain = MyUtils.IsDomainJoined();
         static string currentUserName = Environment.UserName;
-        static string currentDomainName = Environment.UserDomainName;
-        static List<string> currentUserGroups = UserInfo.GetUserGroups(currentUserName, currentDomainName);
+        public static string currentUserDomainName = Environment.UserDomainName;
+        public static string currentADDomainName = MyUtils.IsDomainJoined();
+        public static bool partofdomain = currentADDomainName == "" ? false : true;
+        public static bool currentUserIsLocal = currentADDomainName != currentUserDomainName;
+        static SelectQuery query = new SelectQuery("Win32_UserAccount");
+        static ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+        public static ManagementObjectCollection win32_users = searcher.Get();
         public static List<string> interestingUsersGroups = new List<string> { "Everyone", "Users", "Todos", currentUserName }; //Authenticated Users (Authenticated left behin to avoid repetitions)
-        static string paint_interestingUserGroups = String.Join("|", currentUserGroups);
-        static string paint_activeUsers = String.Join("|", UserInfo.GetMachineUsers(true, false, false, false, false));
-        static string paint_disabledUsers = String.Join("|", UserInfo.GetMachineUsers(false, true, false, false, false));
-        //static string paint_lockoutUsers = String.Join("|", UserInfo.GetMachineUsers(false, false, true, false, false));
-        static string paint_adminUsers = String.Join("|", UserInfo.GetMachineUsers(false, false, false, true, false));
+        static List<string> currentUserGroups = new List<string>();
+        static string paint_interestingUserGroups = "";
+        static string paint_activeUsers = "";
+        static string paint_disabledUsers = "";
+        //static string paint_lockoutUsers = "";
+        static string paint_adminUsers = "";
 
+        public static void CreateDynamicLists()
+        {
+            Beaprint.GrayPrint("   Creating Dynamic lists, this could take a while, please wait...");
+            currentUserGroups = UserInfo.GetUserGroups(currentUserName, currentUserDomainName);
+            paint_interestingUserGroups = String.Join("|", currentUserGroups);
+            paint_activeUsers = String.Join("|", UserInfo.GetMachineUsers(true, false, false, false, false));
+            paint_disabledUsers = String.Join("|", UserInfo.GetMachineUsers(false, true, false, false, false));
+            //paint_lockoutUsers = String.Join("|", UserInfo.GetMachineUsers(false, false, true, false, false));
+            paint_adminUsers = String.Join("|", UserInfo.GetMachineUsers(false, false, false, true, false));
+            interestingUsersGroups.AddRange(currentUserGroups);
+            paint_interestingUserGroups = String.Join("|", interestingUsersGroups);
+        }
 
 
 
@@ -92,7 +110,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -106,7 +124,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -121,7 +139,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -136,7 +154,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -164,7 +182,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -192,7 +210,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -220,7 +238,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -238,7 +256,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -290,7 +308,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -309,7 +327,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -353,7 +371,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -399,36 +417,29 @@ namespace winPEAS
                     styleSheetUsers.AddStyle(paint_activeUsers, Color.Cyan);
                     if (paint_disabledUsers.Length > 1) styleSheetUsers.AddStyle(paint_disabledUsers + "|Disabled", Color.MediumPurple);
                     //if (paint_lockoutUsers.Length > 1) styleSheetUsers.AddStyle(paint_lockoutUsers + "|Lockout", Color.Blue);
-                    styleSheetUsers.AddStyle(currentUserName, Color.Magenta);
-                    styleSheetUsers.AddStyle(currentDomainName, Color.Magenta);
-                    styleSheetUsers.AddStyle(paint_adminUsers, color_bad);
-                    styleSheetUsers.AddStyle(badgroups, color_bad);
-                    styleSheetUsers.AddStyle(badpasswd, color_bad);
-                    styleSheetUsers.AddStyle(badPrivileges, color_bad);
-                    styleSheetUsers.AddStyle("DefaultPassword.*", color_bad);
+                    styleSheetUsers.AddStyle(currentUserName + "|" + currentUserDomainName, Color.Magenta);
+                    styleSheetUsers.AddStyle(paint_adminUsers + "|" + badgroups + "|" + badgroups + "|" + badpasswd + "|" + badPrivileges + "|" + "DefaultPassword.*", color_bad);
                     styleSheetUsers.AddStyle(@"\|->Groups:|\|->Password:|Current user:", color_key);
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
                 return styleSheetUsers;
             }
 
             Dictionary<string, string> colorsU()
             {
-                return new Dictionary<string, string>()
+                Dictionary<string, string> usersColors = new Dictionary<string, string>()
                 {
                     { paint_activeUsers, ansi_users_active },
-                    { paint_disabledUsers, ansi_users_disabled },
-                    { currentUserName, ansi_current_user },
-                    { currentDomainName, ansi_current_user },
-                    { paint_adminUsers, ansi_color_bad },
-                    { badgroups, ansi_color_bad },
-                    { badpasswd, ansi_color_bad },
-                    { badPrivileges, ansi_color_bad },
-                    { "DefaultPassword.*", ansi_color_bad },
+                    { currentUserName + "|"+ currentUserDomainName, ansi_current_user },
+                    { paint_adminUsers+"|"+ badgroups + "|" + badgroups + "|" + badpasswd + "|" + badPrivileges + "|" + "DefaultPassword.*", ansi_color_bad },
                 };
+
+                if (paint_disabledUsers.Length > 1)
+                    usersColors[paint_disabledUsers] = ansi_users_disabled;
+                return usersColors;
             }
 
             void PrintCU()
@@ -451,7 +462,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -469,7 +480,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -495,7 +506,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -512,7 +523,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -544,7 +555,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -561,7 +572,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -597,7 +608,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -618,7 +629,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -636,7 +647,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -746,7 +757,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -843,7 +854,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -864,7 +875,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -885,7 +896,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -927,7 +938,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -984,7 +995,7 @@ namespace winPEAS
                 }
                 catch
                 {
-                    //Colorful.Console.WriteLine(ex);
+                    //Beaprint.GrayPrint(String.Format("{0}",ex));
                 }
             }
 
@@ -1099,7 +1110,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1153,7 +1164,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1194,7 +1205,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1212,7 +1223,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1253,7 +1264,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1285,7 +1296,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1347,7 +1358,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1363,7 +1374,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1411,7 +1422,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1448,7 +1459,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
 
             }
@@ -1470,7 +1481,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1484,7 +1495,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1516,7 +1527,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1533,7 +1544,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1550,7 +1561,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1565,7 +1576,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1579,7 +1590,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1614,7 +1625,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1631,7 +1642,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1648,7 +1659,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1670,7 +1681,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1705,7 +1716,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1754,7 +1765,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1797,7 +1808,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1825,7 +1836,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1875,7 +1886,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1904,7 +1915,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1950,7 +1961,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -1995,7 +2006,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -2009,7 +2020,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -2041,7 +2052,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -2066,7 +2077,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -2114,7 +2125,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -2152,7 +2163,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -2174,7 +2185,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -2188,7 +2199,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -2216,7 +2227,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Colorful.Console.WriteLine(ex);
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
                 }
             }
 
@@ -2241,8 +2252,7 @@ namespace winPEAS
         static void Main(string[] args)
         {
             //AppDomain.CurrentDomain.AssemblyResolve += (sender, arg) => { if (arg.Name.StartsWith("Colorful.Console")) return Assembly.Load(Properties.Resources.String1); return null; };
-            interestingUsersGroups.AddRange(currentUserGroups);
-            paint_interestingUserGroups = String.Join("|", interestingUsersGroups);
+            CreateDynamicLists();
 
             //Check parameters
             bool check_all = true;
