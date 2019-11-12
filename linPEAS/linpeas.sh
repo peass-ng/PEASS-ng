@@ -163,10 +163,10 @@ DISCOVER_BAN_BAD="No network discovery capabilities (fping or ping not found)"
 FPING=$(which fping)
 PING=$(which ping)
 if [ "$FPING" ]; then
-  DISCOVER_BAN_GOOD="$GREEN$FPING$B is available for network discovery$LG (You can use linpeas to dicover hosts, learn more with -h)"
+  DISCOVER_BAN_GOOD="$GREEN$FPING$B is available for network discovery$LG (You can use linpeas to discover hosts, learn more with -h)"
 else
   if [ "$PING" ]; then
-    DISCOVER_BAN_GOOD="$GREEN$PING$B is available for network discovery$LG (You can use linpeas to dicover hosts, learn more with -h)"
+    DISCOVER_BAN_GOOD="$GREEN$PING$B is available for network discovery$LG (You can use linpeas to discover hosts, learn more with -h)"
   fi
 fi
 
@@ -182,7 +182,7 @@ if [ -z "$FOUND_NC" ]; then
 	FOUND_NC=$(which nc.traditional 2>/dev/null);
 fi
 if [ "$FOUND_NC" ]; then
-  SCAN_BAN_GOOD="$GREEN$FOUND_NC$B is available for network discover & port scanning$LG (You can use linpeas to dicover hosts/port scanning, learn more with -h)"
+  SCAN_BAN_GOOD="$GREEN$FOUND_NC$B is available for network discover & port scanning$LG (You can use linpeas to discover hosts/port scanning, learn more with -h)"
 fi
 
 
