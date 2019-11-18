@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.1.7"
+VERSION="v2.1.8"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -122,7 +122,7 @@ USER=`whoami`
 HOME=/home/$USER
 GROUPS="ImPoSSssSiBlEee"`groups $USER 2>/dev/null | cut -d ":" -f 2 | tr ' ' '|' | sed 's/|/\\\|/g'`
 
-pwd_inside_history="PASSW\|passw\|root\|sudo\|^su\|pkexec\|^ftp\|mongo\|psql\|mysql\|rdekstop\|xfreerdp\|^ssh\|@"
+pwd_inside_history="7z\|unzip\|PASSW\|passw\|root\|sudo\|^su\|pkexec\|^ftp\|mongo\|psql\|mysql\|rdesktop\|xfreerdp\|^ssh\|@"
 
 WF=`find /home /tmp /var /bin /etc /usr /lib /media /mnt /opt /root /dev -type d -maxdepth 2 '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | sort`
 file=""
@@ -1081,6 +1081,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   certsbin=`find /home /usr /root /etc /opt /var /mnt \( -name "*.csr" -o -name "*.der" \) 2>/dev/null | grep -v "/usr/share/\|/etc/ssl/"`
   clientcert=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pfx" -o -name "*.p12" \) 2>/dev/null | grep -v "/usr/share/\|/etc/ssl/"`
   sshagents=`find /tmp -name "agent*" 2>/dev/null`
+  homesshconfig=`find /home /root -name config 2>/dev/null | grep "ssh"`
 
   if [ "$ssh"  ]; then
     printf "$ssh\n"
@@ -1095,17 +1096,22 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     printf "Private SSH keys found!:\n$privatekeyfilesgrep\n" | sed "s,.*,${C}[1;31m&${C}[0m,"
   fi
   if [ "$certsb4_grep" ] || [ "$certsbin" ]; then
-    echo "  -- Some certificates were found:"
+    echo "  --> Some certificates were found:"
     printf "$certsb4_grep\n"
     printf "$certsbin\n"
   fi
   if [ "$clientcert" ]; then
-    echo "  -- Some client certificates were found:"
+    echo "  --> Some client certificates were found:"
     printf "$clientcert\n"
   fi
   if [ "$sshagents" ]; then
-    echo "  -- Some SSH Agents were found:"
+    echo "  --> Some SSH Agents were found:"
     printf "$sshagents\n"
+  fi
+  if [ "$homesshconfig" ]; then
+    echo " --> Some home ssh config file was found"
+    printf "$homesshconfig\n"
+    for f in $homesshconfig; do cat $f 2>/dev/null sed "s,User\|ProxyCommand,${C}[1;31m&${C}[0m,"; done
   fi
   echo ""
 
@@ -1143,6 +1149,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   else echo_not_found "krb5.conf"
   fi
   ls -l "/tmp/krb5cc*" "/var/lib/sss/db/ccache_*" "/etc/opt/quest/vas/host.keytab" 2>/dev/null || echo_not_found "tickets kerberos"
+  klist 2>/dev/null || echo_not_found "klist"
   echo ""
 
   ##-- 27SI) kibana
@@ -1330,13 +1337,13 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- 14IF) Backup files
   printf $Y"[+] "$GREEN"Backup files?\n"$NC
-  backs=`find /var /etc /bin /sbin /home /usr/local/bin /usr/local/sbin /usr/bin /usr/games /usr/sbin /root /tmp -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*\.bck" -o -name "*\.bk" \) 2>/dev/null` 
-  for b in $backs; do if [ -r $b ]; then ls -l $b | grep -v $notBackup | sed "s,backup\|bck\|\.bak,${C}[1;31m&${C}[0m,g"; fi; done
+  backs=`find /var /etc /bin /sbin /home /usr/local/bin /usr/local/sbin /usr/bin /usr/games /usr/sbin /root /tmp -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*\.bck" -o -name "*\.bk" -o -name "*\.old" \) 2>/dev/null` 
+  for b in $backs; do if [ -r $b ]; then ls -l $b | grep -v $notBackup | sed "s,backup\|bck\|\.bak\|\.old,${C}[1;31m&${C}[0m,g"; fi; done
   echo ""
 
   ##-- 15IF) DB files
-  printf $Y"[+] "$GREEN"Looking for readable .db files\n"$NC
-  dbfiles=`find /var /etc /home /root /tmp /usr /opt -type f -name "*.db" 2>/dev/null`
+  printf $Y"[+] "$GREEN"Looking for readable .db files (limit 100)\n"$NC
+  dbfiles=`find /var /etc /home /root /tmp /usr /opt -type f -name "*.db" 2>/dev/null | head -n 100`
   for f in $dbfiles; do if [ -r $f ]; then echo $f; fi; done
   echo ""
 
@@ -1351,14 +1358,21 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- 17IF) Interesting hidden files
   printf $Y"[+] "$GREEN"*_history, .sudo_as_admin_successful, profile, bashrc, httpd.conf, .plan, .htpasswd, .git-credentials, .rhosts, hosts.equiv, Dockerfile, docker-compose.yml\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#read-sensitive-data\n"$NC
-  fils=`find / -type f \( -name "*_history" -o -name ".sudo_as_admin_successful" -o -name ".profile" -o -name "*bashrc" -o -name "httpd.conf" -o -name "*.plan" -o -name ".htpasswd" -o -name ".git-credentials" -o -name "*.rhosts" -o -name "hosts.equiv" -o -name "Dockerfile" -o -name "docker-compose.yml" \) 2>/dev/null`
+  fils=`find /var /etc /home /root /tmp /usr /opt /mnt -type f \( -name "*_history" -o -name ".sudo_as_admin_successful" -o -name ".profile" -o -name "*bashrc" -o -name "*httpd.conf" -o -name "*.plan" -o -name ".htpasswd" -o -name ".git-credentials" -o -name "*.rhosts" -o -name "hosts.equiv" -o -name "Dockerfile" -o -name "docker-compose.yml" \) 2>/dev/null`
   for f in $fils; do 
     if [ -r $f ]; then 
-      ls -l $f 2>/dev/null | sed "s,bash_history\|\.sudo_as_admin_successful\|\.plan\|\.htpasswd\|\.git-credentials\|\.rhosts\|,${C}[1;31m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
-      g=`echo $f | grep "_history"`
-      if [ $g ]; then
+      ls -l $f 2>/dev/null | sed "s,bash_history\|\.sudo_as_admin_successful\|\.plan\|\.htpasswd\|\.git-credentials\|\.rhosts\|httpd.conf,${C}[1;31m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
+      if [ `echo $f | grep "_history"` ]; then
         printf $GREEN"Looking for possible passwords inside $f\n"$NC
         cat $f | grep $pwd_inside_history | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
+        echo ""
+      elif [ `echo $f | grep "httpd.conf" ` ]; then
+        printf $GREEN"Reading $f\n"$NC
+        cat $f | sed "s,htaccess.*\|htpasswd.*,${C}[1;31m&${C}[0m,"
+        echo ""
+      elif [ `echo $f | grep "htpasswd" ` ]; then
+        printf $GREEN"Reading $f\n"$NC
+        cat $f | sed "s,.*,${C}[1;31m&${C}[0m,"
         echo ""
       fi;
     fi; 

