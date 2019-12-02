@@ -161,7 +161,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] `sudo -l` without password
   - [x] doas config file
   - [x] Pkexec policy
-  - [x] Try to login using `su` as other users (using as passwords: null pass, username and top10pwds)
+  - [x] Try to login using `su` as other users (using as passwords: null pass, username, reverse username, and top2000pwds)
   - [x] List of superusers
   - [x] List of users with console
   - [x] Login info
