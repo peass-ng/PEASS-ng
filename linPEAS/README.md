@@ -33,11 +33,11 @@ This script doesn't have any dependency.
 
 It uses **/bin/sh** sintax, so can run in anything supporting `sh` (and the binaries and parameters used).
 
-It could take from **2 to 3 minutes** to execute the whole script (less than 1 min to make almost all the checks, almost 1 min to search for possible passwords inside all the accesible files of the system and 1 min to monitor the processes in order to find very frequent cron jobs). 
+It could take from **3 to 4 minutes** to execute the whole script (less than 1 min to make almost all the checks, 20s/user bruteforce with top2000, almost 1 min to search for possible passwords inside all the accesible files of the system, and 1 min to monitor the processes in order to find very frequent cron jobs). 
 
-You can **decrease this** time use the parameters: 
-- **-f** (fast) - This will bypass checking processes during 1 min
-- **-s** (superfast) - This will bypass the previous check and other time consuming checks.
+You can **decrease this** time and be more **stealthy** using the parameters: 
+- **-f** (fast & stealth) - This will bypass checking processes during 1 min and su brute - **Stealthy mode** (Nothing will be written to disk)
+- **-s** (superfast & stealth) - This will bypass the previous checks and other time consuming checks - **Stealthy mode** (Nothing will be written to disk)
 
 This script has **several lists** included inside of it to be able to **color the results** in order to highlight PE vector.
 
@@ -52,6 +52,7 @@ With LinPEAS you can also **discover hosts automatically** using `fping`, `ping`
 LinPEAS will **automatically search for this binaries** in `$PATH` and let you know if any of them is available. In that case you can use LinPEAS to hosts dicovery and/or port scanning.
 
 ![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/network.png)
+
 
 ## Colors
 
@@ -160,7 +161,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] `sudo -l` without password
   - [x] doas config file
   - [x] Pkexec policy
-  - [x] Try to login using `su` as other users (using null pass and the username)
+  - [x] Try to login using `su` as other users (using as passwords: null pass, username and top10pwds)
   - [x] List of superusers
   - [x] List of users with console
   - [x] Login info
