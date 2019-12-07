@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.2.0"
+VERSION="v2.2.1"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -81,7 +81,6 @@ sidB="/apache2%Read_root_passwd__apache2_-f_/etc/shadow\
  /rdist$%Solaris_10/OpenSolaris\
  /rsh$%Apple_Mac_OSX_10.9.5/10.10.5\
  /screen$%GNU_Screen_4.5.0\
- /screen-4.5.0%GNU_Screen_4.5.0__HIGHLY_PROBABLE_A_PRIVILEGE_ESCALATION_VECTOR\
  /sdtcm_convert$%Sun_Solaris_7.0\
  /sendmail$%Sendmail_8.10.1/Sendmail_8.11.x/Linux_Kernel_2.2.x_2.4.0-test1_(SGI_ProPack_1.2/1.3)\
  /sudo$\
@@ -95,7 +94,7 @@ sidB="/apache2%Read_root_passwd__apache2_-f_/etc/shadow\
  /xlock$%BSD/OS_2.1/DG/UX_7.0/Debian_1.3/HP-UX_10.34/IBM_AIX_4.2/SGI_IRIX_6.4/Solaris_2.5.1\
  /xorg$%xorg-x11-server<=1.20.3/AIX_7.1_(6.x_to_7.x_should_be_vulnerable)_X11.base.rte<7.1.5.32\
  /xterm$%Solaris_5.5.1_X11R6.3"
-sidVB='/aria2c$\|/arp$\|/ash$\|/awk$\|/base64$\|/bash$\|/busybox$\|/cat$\|/chmod$\|/chown$\|/cp$\|/csh$\|/curl$\|/cut$\|/dash$\|/date$\|/dd$\|/diff$\|/dmsetup$\|/docker$\|/ed$\|/emacs$\|/env$\|/expand$\|/expect$\|/file$\|/find$\|/flock$\|/fmt$\|/fold$\|/gdb$\|/gimp$\|/git$\|/grep$\|/head$\|/ionice$\|/ip$\|/jjs$\|/jq$\|/jrunscript$\|/ksh$\|/ld.so$\|/less$\|/logsave$\|/lua$\|/make$\|/more$\|/mv$\|/mysql$\|/nano$\|/nc$\|/nice$\|/nl$\|/nmap$\|/node$\|/od$\|/openssl$\|/perl$\|/pg$\|/php$\|/pic$\|/pico$\|/python$\|/readelf$\|/rlwrap$\|/rpm$\|/rpmquery$\|/rsync$\|/rvim$\|/scp$\|/sed$\|/setarch$\|/shuf$\|/socat$\|/sort$\|/sqlite3$\|/stdbuf$\|/strace$\|/systemctl$\|/tail$\|/tar$\|/taskset$\|/tclsh$\|/tee$\|/telnet$\|/tftp$\|/time$\|/timeout$\|/ul$\|/unexpand$\|/uniq$\|/unshare$\|/vim$\|/watch$\|/wget$\|/xargs$\|/xxd$\|/zip$\|/zsh$'
+sidVB='/aria2c$\|/arp$\|/ash$\|/awk$\|/base64$\|/bash$\|/busybox$\|/cat$\|/chmod$\|/chown$\|/cp$\|/csh$\|/curl$\|/cut$\|/dash$\|/date$\|/dd$\|/diff$\|/dmsetup$\|/docker$\|/ed$\|/emacs$\|/env$\|/expand$\|/expect$\|/file$\|/find$\|/flock$\|/fmt$\|/fold$\|/gdb$\|/gimp$\|/git$\|/grep$\|/head$\|/ionice$\|/ip$\|/jjs$\|/jq$\|/jrunscript$\|/ksh$\|/ld.so$\|/less$\|/logsave$\|/lua$\|/make$\|/more$\|/mv$\|/mysql$\|/nano$\|/nc$\|/nice$\|/nl$\|/nmap$\|/node$\|/od$\|/openssl$\|/perl$\|/pg$\|/php$\|/pic$\|/pico$\|/python$\|/readelf$\|/rlwrap$\|/rpm$\|/rpmquery$\|/rsync$\|/rvim$\|/screen-4.5.0\|/scp$\|/sed$\|/setarch$\|/shuf$\|/socat$\|/sort$\|/sqlite3$\|/stdbuf$\|/strace$\|/systemctl$\|/tail$\|/tar$\|/taskset$\|/tclsh$\|/tee$\|/telnet$\|/tftp$\|/time$\|/timeout$\|/ul$\|/unexpand$\|/uniq$\|/unshare$\|/vim$\|/watch$\|/wget$\|/xargs$\|/xxd$\|/zip$\|/zsh$'
 
 sudoVB=" \*\|env_keep+=LD_PRELOAD\|apt-get$\|apt$\|aria2c$\|arp$\|ash$\|awk$\|base64$\|bash$\|busybox$\|cat$\|chmod$\|chown$\|cp$\|cpan$\|cpulimit$\|crontab$\|csh$\|curl$\|cut$\|dash$\|date$\|dd$\|diff$\|dmesg$\|dmsetup$\|dnf$\|docker$\|dpkg$\|easy_install$\|ed$\|emacs$\|env$\|expand$\|expect$\|facter$\|file$\|find$\|flock$\|fmt$\|fold$\|ftp$\|gdb$\|gimp$\|git$\|grep$\|head$\|ionice$\|ip$\|irb$\|jjs$\|journalctl$\|jq$\|jrunscript$\|ksh$\|ld.so$\|less$\|logsave$\|ltrace$\|lua$\|mail$\|make$\|man$\|more$\|mount$\|mtr$\|mv$\|mysql$\|nano$\|nc$\|nice$\|nl$\|nmap$\|node$\|od$\|openssl$\|perl$\|pg$\|php$\|pic$\|pico$\|pip$\|puppet$\|python$\|readelf$\|red$\|rlwrap$\|rpm$\|rpmquery$\|rsync$\|ruby$\|run-mailcap$\|run-parts$\|rvim$\|scp$\|screen$\|script$\|sed$\|service$\|setarch$\|sftp$\|smbclient$\|socat$\|sort$\|sqlite3$\|ssh$\|start-stop-daemon$\|stdbuf$\|strace$\|systemctl$\|tail$\|tar$\|taskset$\|tclsh$\|tcpdump$\|tee$\|telnet$\|tftp$\|time$\|timeout$\|tmux$\|ul$\|unexpand$\|uniq$\|unshare$\|vi$\|vim$\|watch$\|wget$\|wish$\|xargs$\|xxd$\|yum$\|zip$\|zsh$\|zypper$"
 sudoB="$(whoami)\|ALL:ALL\|ALL : ALL\|ALL\|NOPASSWD\|/apache2"
@@ -149,6 +148,11 @@ pathshG="/0trace.sh\|/blueranger.sh\|/dnsmap-bulk.sh\|/gettext.sh\|/go-rhn.sh\|/
 
 notBackup="/tdbbackup$\|/db_hotbackup$"
 
+cronjobsG=".placeholder\|0anacron\|0hourly\|apache2\|aptitude\|apt-compat\|bsdmainutils\|debtags\|dpkg\|e2scrub_all\|fake-hwclock\|john\|logrotate\|man-db\|mlocate\|ntp\|passwd\|php\|raid-check\|rwhod\|samba\|sysstat"
+cronjobsB="centreon"
+
+processesVB="jdwp"
+
 
 ###########################################
 #---------) Checks before start (---------#
@@ -200,7 +204,7 @@ fi
 # --) FAST - Do not check 1min of proccesesand su brute
 # --) SUPERFAST - FAST & do not search for special filaes in all the folders
 
-FAST=""
+FAST="1" #By default stealth/fast mode
 SUPERFAST=""
 NOTEXPORT=""
 DISCOVERY=""
@@ -211,8 +215,8 @@ HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
       $B This tool enum and search possible misconfigurations$DG (known vulns, user, processes and file permissions, special file permissions, readable/writable files, bruteforce other users(top1000pwds), passwords...)$B inside the host and highlight possible misconfigs with colors.
       $Y-h$B To show this message
       $Y-q$B Do not show banner
-      $Y-f$B Fast (don't check 1min of processes and su brute) - Stealthy mode
-      $Y-s$B SuperFast (don't check 1min of processes, su brute and other time consuming checks) - Stealthy mode
+      $Y-a$B All checks (1min of processes and su brute) - Noisy mode, for CTFs mainly
+      $Y-s$B SuperFast (don't check 1min of processes, su brute and other time consuming checks) - Stealth mode
       $Y-n$B Do not export env variables related with history
       $Y-o$B Only execute selected checks (SysI, Devs, AvaSof, ProCronSrvcs, Net, UsrI, SofI, IntFiles). Select a comma separated list.
       $Y-d <IP/NETMASK>$B Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
@@ -220,10 +224,10 @@ HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
       $Y-i <IP> [-p <PORT(s)>]$B Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
       $GREEN Notice$B that if you select some network action, any PE check will be performed\n\n"
 
-while getopts "h?fsd:p:i:qo:" opt; do
+while getopts "h?asd:p:i:qo:" opt; do
   case "$opt" in
     h|\?) printf "$HELP"$NC; exit 0;;
-    f)  FAST=1;;
+    a)  FAST="";;
     s)  SUPERFAST=1;;
     n)  NOTEXPORT=1;;
     d)  DISCOVERY=$OPTARG;;
@@ -474,7 +478,7 @@ echo "  RED/YELLOW: 99% a PE vector" | sed "s,RED/YELLOW,${C}[1;31;103m&${C}[0m,
 echo "  RED: You must take a look at it" | sed "s,RED,${C}[1;31m&${C}[0m,"
 echo "  LightCyan: Users with console" | sed "s,LightCyan,${C}[1;96m&${C}[0m,"
 echo "  Blue: Users without console & mounted devs" | sed "s,Blue,${C}[1;34m&${C}[0m,"
-echo "  Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts) " | sed "s,Green,${C}[1;32m&${C}[0m,"
+echo "  Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts, cronjobs) " | sed "s,Green,${C}[1;32m&${C}[0m,"
 echo "  LightMangenta: Your username" | sed "s,LightMangenta,${C}[1;95m&${C}[0m,"
 if [ "$(/usr/bin/id -u)" -eq "0" ]; then
   echo ""
@@ -483,8 +487,9 @@ if [ "$(/usr/bin/id -u)" -eq "0" ]; then
 fi
 echo ""
 echo ""
-
-
+# To DELETE
+printf $Y"\nIMPORTANT CHANGE:$GREEN For satisfying most users and thanks to the incorporation of the 2000pwds/user su bruteforce, the default behaviour of linpeas has been changed to fast/stealth (no writting to disk, no 1min processes check, and no su BF). Use the parameter$Y -a$GREEN to execute all these checks.\n\n"$NC
+sleep 2.5
 ###########################################
 #-----------) Some Basic Info (-----------#
 ###########################################
@@ -681,9 +686,9 @@ if [ "`echo $CHECKS | grep ProCronSrvcs`" ]; then
   printf $B"[i] "$Y"Check weird & unexpected proceses run by root: https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes\n"$NC
 
   if [ "$NOUSEPS" ]; then
-    print_ps | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$rootcommon,${C}[1;32m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+    print_ps | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$rootcommon,${C}[1;32m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,$processesVB,${C}[1;31;103m&${C}[0m,g"
   else
-    ps aux 2>/dev/null | grep -v "\[" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$rootcommon,${C}[1;32m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+    ps aux 2>/dev/null | grep -v "\[" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$rootcommon,${C}[1;32m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,$processesVB,${C}[1;31;103m&${C}[0m,g"
     echo ""
 
     #-- 2PCS) Binary processes permissions
@@ -705,7 +710,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcs`" ]; then
   printf $Y"[+] "$GREEN"Cron jobs\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#scheduled-jobs\n"$NC
   crontab -l 2>/dev/null | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
-  ls -al /etc/cron* 2>/dev/null
+  ls -al /etc/cron* 2>/dev/null | sed "s,$cronjobsG,${C}[1;32m&${C}[0m,g" | sed "s,$cronjobsB,${C}[1;31m&${C}[0m,g"
   cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/root /var/spool/anacron 2>/dev/null | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m,"  | sed "s,root,${C}[1;31m&${C}[0m,"
   crontab -l -u $USER 2>/dev/null
   echo ""
@@ -752,7 +757,7 @@ if [ "`echo $CHECKS | grep Net`" ]; then
   #-- 5NI) Ports
   printf $Y"[+] "$GREEN"Active Ports\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#internal-open-ports\n"$NC
-  (netstat -punta || ss -t; ss -u) 2>/dev/null | sed "s,127.0.0.1,${C}[1;31m&${C}[0m,"
+  (netstat -punta || ss --ntpu) 2>/dev/null | sed "s,127.0.0.1,${C}[1;31m&${C}[0m,"
   echo ""
 
   #-- 6NI) tcpdump
