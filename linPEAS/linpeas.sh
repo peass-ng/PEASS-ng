@@ -1367,7 +1367,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   echo ""
 
   ##-- 13IF) Mails
-  printf $Y"[+] "$GREEN"Mails (limited 50)\n"$NC
+  printf $Y"[+] "$GREEN"Mails (limit 50)\n"$NC
   (find /var/mail/ /var/spool/mail/ -type f 2>/dev/null | head -n 50) || echo_not_found
   echo ""
 
@@ -1384,7 +1384,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   echo ""
 
   ##-- 16IF) Web files
-  printf $Y"[+] "$GREEN"Web files?(output limited)\n"$NC
+  printf $Y"[+] "$GREEN"Web files?(output limit)\n"$NC
   ls -alhR /var/www/ 2>/dev/null | head
   ls -alhR /srv/www/htdocs/ 2>/dev/null | head
   ls -alhR /usr/local/www/apache22/data/ 2>/dev/null | head
@@ -1440,17 +1440,17 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   echo ""
 
   ##-- 22IF) IPs inside logs
-  printf $Y"[+] "$GREEN"Finding IPs inside logs\n"$NC
-  grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /var/log/ 2>/dev/null | sort | uniq -c
+  printf $Y"[+] "$GREEN"Finding IPs inside logs (limit 100)\n"$NC
+  grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /var/log/ 2>/dev/null | sort | uniq -c | sort -r | head -n 100
   echo ""
 
   ##-- 23IF) Passwords inside logs
-  printf $Y"[+] "$GREEN"Finding passwords inside logs (limited 100)\n"$NC
+  printf $Y"[+] "$GREEN"Finding passwords inside logs (limit 100)\n"$NC
   grep -R -i "pwd\|passw" /var/log/ 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | grep -v "File does not exist:\|script not found or unable to stat:\|\"GET /.*\" 404" | head -n 100 | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,"
   echo ""
 
   ##-- 24IF) Emails inside logs
-  printf $Y"[+] "$GREEN"Finding emails inside logs (limited 100)\n"$NC
+  printf $Y"[+] "$GREEN"Finding emails inside logs (limit 100)\n"$NC
   grep -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" /var/log/ 2>/dev/null | sort | uniq -c | head -n 100 
   echo "" 
 
