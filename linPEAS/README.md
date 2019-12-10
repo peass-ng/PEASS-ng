@@ -180,6 +180,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Login info
   - [x] List of all users
   - [x] Clipboard and highlighted text
+  - [x] Password policy
 
 - **Software Information**
   - [x] MySQl (Version, user being configured, loging as "root:root","root:toor","root:", user hashes extraction via DB and file, possible backup user configured)
