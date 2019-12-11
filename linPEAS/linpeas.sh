@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.2.2"
+VERSION="v2.2.3"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -148,11 +148,18 @@ pathshG="/0trace.sh\|/blueranger.sh\|/dnsmap-bulk.sh\|/gettext.sh\|/go-rhn.sh\|/
 
 notBackup="/tdbbackup$\|/db_hotbackup$"
 
-cronjobsG=".placeholder\|0anacron\|0hourly\|apache2\|aptitude\|apt-compat\|bsdmainutils\|debtags\|dpkg\|e2scrub_all\|fake-hwclock\|john\|logrotate\|man-db\|mlocate\|ntp\|passwd\|php\|raid-check\|rwhod\|samba\|sysstat"
+cronjobsG=".placeholder\|0anacron\|0hourly\|apache2\|apport\|aptitude\|apt-compat\|bsdmainutils\|debtags\|dpkg\|e2scrub_all\|fake-hwclock\|john\|logrotate\|man-db\|mdadm\|mlocate\|ntp\|passwd\|php\|raid-check\|rwhod\|samba\|sysstat\|ubuntu-advantage-tools\|update-notifier-common"
 cronjobsB="centreon"
 
 processesVB="jdwp"
 
+profiledG="01-locale-fix.sh\|bash_completion.sh\|colorgrep.csh\|colorgrep.sh\|colorxzgrep.csh\|colorxzgrep.sh\|colorzgrep.csh\|colorzgrep.sh\|csh.local\|gawk.csh\|gawk.sh\|kali.sh\|lang.csh\|lang.sh\|less.csh\|less.sh\|sh.local\|vte-2.91.sh"
+
+if [ "$(/usr/bin/id -u)" -eq "0" ]; then
+  IAMROOT="1"
+else
+  IAMROOT=""
+fi
 
 ###########################################
 #---------) Checks before start (---------#
@@ -252,7 +259,13 @@ echo_no (){
 }
 
 print_ps (){
-  (for f in `ls -d /proc/*/`; do CMDLINE=`cat $f/cmdline 2>/dev/null`; if [ "$CMDLINE" ]; then USER=ls -ld $f | awk '{print $3}'; PID=`echo $f | cut -d "/" -f3`; printf "  %-13s  %-8s  %s\n" "$USER" "$PID" "$CMDLINE"; fi; done) 2>/dev/null | sort -r
+  (for f in `ls -d /proc/*/`; do 
+    CMDLINE=`cat $f/cmdline 2>/dev/null | grep -v "seds,"`; #Delete my own sed processess
+    if [ "$CMDLINE" ]; 
+      then USER=ls -ld $f | awk '{print $3}'; PID=`echo $f | cut -d "/" -f3`; 
+      printf "  %-13s  %-8s  %s\n" "$USER" "$PID" "$CMDLINE"; 
+    fi; 
+  done) 2>/dev/null | sort -r
 }
 
 print_banner(){
@@ -480,7 +493,7 @@ echo "  LightCyan: Users with console" | sed "s,LightCyan,${C}[1;96m&${C}[0m,"
 echo "  Blue: Users without console & mounted devs" | sed "s,Blue,${C}[1;34m&${C}[0m,"
 echo "  Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts, cronjobs) " | sed "s,Green,${C}[1;32m&${C}[0m,"
 echo "  LightMangenta: Your username" | sed "s,LightMangenta,${C}[1;95m&${C}[0m,"
-if [ "$(/usr/bin/id -u)" -eq "0" ]; then
+if [ "$IAMROOT" ]; then
   echo ""
   echo "  YOU ARE ALREADY ROOT!!! (it could take longer to complete execution)" | sed "s,YOU ARE ALREADY ROOT!!!,${C}[1;31;103m&${C}[0m,"
   sleep 3
@@ -586,8 +599,8 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   #-- 3SY) PATH
   printf $Y"[+] "$GREEN"PATH\n"$NC
   printf $B"[i] "$Y"Any writable folder in original PATH? (a new completed path will be exported)\n"$NC
-  echo $OLDPATH 2>/dev/null | sed "s,$Wfolders\|\.,${C}[1;31;103m&${C}[0m,"
-  echo "New path exported: $PATH" 2>/dev/null | sed "s,$Wfolders\|\.,${C}[1;31;103m&${C}[0m," 
+  echo $OLDPATH 2>/dev/null | sed "s,$Wfolders\|\.,${C}[1;31;103m&${C}[0m,g"
+  echo "New path exported: $PATH" 2>/dev/null | sed "s,$Wfolders\|\.,${C}[1;31;103m&${C}[0m,g" 
   echo ""
 
   #-- 4SY) Date
@@ -822,7 +835,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   echo ""
 
   #-- 7UI) Brute su
-  if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
+  if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ] && ! [ "$IAMROOT" ]; then
     printf $Y"[+] "$GREEN"Testing 'su' as other users with shell using as passwords: null pwd, the username and top2000pwds\n"$NC
     SHELLUSERS=`cat /etc/passwd 2>/dev/null | grep -i "sh$" | cut -d ":" -f 1`
     for u in $SHELLUSERS; do
@@ -1123,6 +1136,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   clientcert=`find /home /usr /root /etc /opt /var /mnt \( -name "*.pfx" -o -name "*.p12" \) 2>/dev/null | grep -v "/usr/share/\|/etc/ssl/"`
   sshagents=`find /tmp -name "agent*" 2>/dev/null`
   homesshconfig=`find /home /root -name config 2>/dev/null | grep "ssh"`
+  sshconfig="`ls /etc/ssh/ssh_config`"
 
   if [ "$ssh"  ]; then
     printf "$ssh\n"
@@ -1152,7 +1166,12 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   if [ "$homesshconfig" ]; then
     echo " --> Some home ssh config file was found"
     printf "$homesshconfig\n"
-    for f in $homesshconfig; do cat $f 2>/dev/null sed "s,User\|ProxyCommand,${C}[1;31m&${C}[0m,"; done
+    for f in $homesshconfig; do cat $f 2>/dev/null | sed "s,User\|ProxyCommand\|P,${C}[1;31m&${C}[0m,"; done
+  fi
+  if [ "$sshconfig" ]; then
+    echo ""
+    echo "Looking inside /etc/ssh/ssh_config for interesting info"
+    cat $sshconfig 2>/dev/null | grep -v "^#" | sed "s,User\|ProxyCommand,${C}[1;31m&${C}[0m,"
   fi
   echo ""
 
@@ -1166,7 +1185,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   echo ""
 
   ##-- 24SI) Cloud keys
-  printf $Y"[+] "$GREEN"Looking for AWS Keys\n"$NC
+  printf $Y"[+] "$GREEN"Looking for Cloud credentials (AWS, Azure, GC)\n"$NC
   cloudcreds=`find /var /etc /home /root /tmp /usr /opt -type f -name "credentials" -o \( -name "credentials.db" \) -o \( -name "legacy_credentials.db" \) -o \( -name "access_tokens.db" \) -o \( -name "accessTokens.json" \) o \( -name "azureProfile.json" \) 2>/dev/null`
   if [ "$cloudcreds" ]; then
     for f in "$cloudcreds"; do 
@@ -1333,66 +1352,75 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   for d in `echo $PATH | tr ":" "\n"`; do find $d -name "*.sh" 2>/dev/null | sed "s,$pathshG,${C}[1;32m&${C}[0m," ; done
   echo ""
 
-  ##-- 5IF) Hashes in passwd file
+  ##-- 5IF) Files (scripts) in /etc/profile.d/
+  printf $Y"[+] "$GREEN"Files (scripts) in /etc/profile.d/\n"$NC
+  (ls -la /etc/profile.d/ | sed "s,$profiledG,${C}[1;32m&${C}[0m,") || echo_not_found "/etc/profile.d/"
+  echo ""
+
+  ##-- 6IF) Hashes in passwd file
   printf $Y"[+] "$GREEN"Hashes inside passwd file? ........... "$NC
   if [ "`grep -v '^[^:]*:[x\*]' /etc/passwd 2>/dev/null`" ]; then grep -v '^[^:]*:[x\*]' /etc/passwd 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
   else echo_no
   fi
 
-  ##-- 6IF) Read shadow files
+  ##-- 7IF) Read shadow files
   printf $Y"[+] "$GREEN"Can I read shadow files? ........... "$NC
   if [ "`cat /etc/shadow /etc/master.passwd 2>/dev/null`" ]; then cat /etc/shadow /etc/master.passwd 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
   else echo_no
   fi
 
-  ##-- 7IF) Read root dir
+  ##-- 8IF) Read root dir
   printf $Y"[+] "$GREEN"Can I read root folder? ........... "$NC
-  (ls -ahl /root/ 2>/dev/null) || echo_no
+  (ls -al /root/ 2>/dev/null) || echo_no
   echo ""
 
-  ##-- 8IF) Root files in home dirs
+  ##-- 9IF) Root files in home dirs
   printf $Y"[+] "$GREEN"Looking for root files in home dirs (limit 20)\n"$NC
   (find /home -user root 2>/dev/null | head -n 20 | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m,") || echo_not_found
   echo ""
 
-  ##-- 9IF) Root files in my dirs
-  printf $Y"[+] "$GREEN"Looking for root files in folders owned by me\n"$NC
-  (for d in `find /var /etc /home /root /tmp /usr /opt /boot /sys -type d -user $USER 2>/dev/null`; do find $d -user root -exec ls -l {} \; 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," ; done) || echo_not_found
-  echo ""
+  ##-- 10IF) Root files in my dirs
+  if ! [ "$IAMROOT" ]; then
+    printf $Y"[+] "$GREEN"Looking for root files in folders owned by me\n"$NC
+    (for d in `find /var /etc /home /root /tmp /usr /opt /boot /sys -type d -user $USER 2>/dev/null`; do find $d -user root -exec ls -l {} \; 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," ; done) || echo_not_found
+    echo ""
+  fi
 
-  ##-- 10IF) Readable files belonging to root and not world readable
-  printf $Y"[+] "$GREEN"Readable files belonging to root and readable by me but not world readable\n"$NC
-  (for f in `find / -type f -user root ! -perm -o=r 2>/dev/null`; do if [ -r $f ]; then ls -l $f 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"; fi; done) || echo_not_found
-  echo ""
+  ##-- 11IF) Readable files belonging to root and not world readable
+  if ! [ "$IAMROOT" ]; then
+    printf $Y"[+] "$GREEN"Readable files belonging to root and readable by me but not world readable\n"$NC
+    (for f in `find / -type f -user root ! -perm -o=r 2>/dev/null`; do if [ -r $f ]; then ls -l $f 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"; fi; done) || echo_not_found
+    echo ""
+  fi
 
-  ##-- 11IF) Files inside my home
+  ##-- 12IF) Files inside my home
   printf $Y"[+] "$GREEN"Files inside $HOME (limit 20)\n"$NC
   (ls -la $HOME 2>/dev/null | head -n 23) || echo_not_found
   echo ""
 
-  ##-- 12IF) Files inside /home
+  ##-- 13IF) Files inside /home
   printf $Y"[+] "$GREEN"Files inside others home (limit 20)\n"$NC
   (find /home -type f 2>/dev/null | grep -v -i "/"$USER | head -n 20) || echo_not_found
   echo ""
 
-  ##-- 13IF) Mails
+  ##-- 14IF) Mails
   printf $Y"[+] "$GREEN"Mails (limit 50)\n"$NC
   (find /var/mail/ /var/spool/mail/ -type f 2>/dev/null | head -n 50) || echo_not_found
   echo ""
 
-  ##-- 14IF) Backup files
+  ##-- 15IF) Backup files
   printf $Y"[+] "$GREEN"Backup files?\n"$NC
   backs=`find /var /etc /bin /sbin /home /usr/local/bin /usr/local/sbin /usr/bin /usr/games /usr/sbin /root /tmp -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*\.bck" -o -name "*\.bk" -o -name "*\.old" \) 2>/dev/null` 
   for b in $backs; do if [ -r $b ]; then ls -l $b | grep -v $notBackup | sed "s,backup\|bck\|\.bak\|\.old,${C}[1;31m&${C}[0m,g"; fi; done
   echo ""
 
-  ##-- 15IF) DB files
+  ##-- 16IF) DB files
   printf $Y"[+] "$GREEN"Looking for readable .db files (limit 100)\n"$NC
   dbfiles=`find /var /etc /home /root /tmp /usr /opt -type f -name "*.db" 2>/dev/null | head -n 100`
   for f in $dbfiles; do if [ -r $f ]; then echo $f; fi; done
   echo ""
 
-  ##-- 16IF) Web files
+  ##-- 17IF) Web files
   printf $Y"[+] "$GREEN"Web files?(output limit)\n"$NC
   ls -alhR /var/www/ 2>/dev/null | head
   ls -alhR /srv/www/htdocs/ 2>/dev/null | head
@@ -1400,7 +1428,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ls -alhR /opt/lampp/htdocs/ 2>/dev/null | head
   echo ""
 
-  ##-- 17IF) Interesting hidden files
+  ##-- 18IF) Interesting hidden files
   printf $Y"[+] "$GREEN"*_history, .sudo_as_admin_successful, profile, bashrc, httpd.conf, .plan, .htpasswd, .git-credentials, .gitconfig, .rhosts, hosts.equiv, Dockerfile, docker-compose.yml\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#read-sensitive-data\n"$NC
   fils=`find /var /etc /home /root /tmp /usr /opt /mnt -type f \( -name "*_history" -o -name ".sudo_as_admin_successful" -o -name ".profile" -o -name "*bashrc" -o -name "*httpd.conf" -o -name "*.plan" -o -name ".htpasswd" -o -name ".gitconfig" -o -name ".git-credentials" -o -name "*.rhosts" -o -name "hosts.equiv" -o -name "Dockerfile" -o -name "docker-compose.yml" \) 2>/dev/null`
@@ -1424,51 +1452,53 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   done
   echo ""
 
-  ##-- 18IF) All hidden files
+  ##-- 19IF) All hidden files
   printf $Y"[+] "$GREEN"All hidden files (not in /sys/ or the ones listed in the previous check) (limit 100)\n"$NC
-  find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/\|\.gitignore\|_history$\|\.profile\|\.bashrc\|\.listing\|\.ignore\|\.uuid\|\.plan\|\.htpasswd\|\.git-credentials\|.rhosts\|.depend" | head -n 100
+  find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/\|\.gitignore\|_history$\|\.profile\|\.bashrc\|\.listing\|\.ignore\|\.uuid\|\.plan\|\.htpasswd\|\.git-credentials\|.rhosts\|.depend\|.placeholder" | head -n 100
   echo ""
 
-  ##-- 19IF) Readable files in /tmp, /var/tmp, /var/backups
+  ##-- 20IF) Readable files in /tmp, /var/tmp, /var/backups
   printf $Y"[+] "$GREEN"Readable files inside /tmp, /var/tmp, /var/backups(limit 100)\n"$NC
   filstmpback=`find /tmp /var/tmp /var/backups -type f 2>/dev/null | head -n 100`
   for f in $filstmpback; do if [ -r $f ]; then ls -l $f 2>/dev/null; fi; done
   echo ""
 
-  ##-- 20IF) Interesting writable files
-  printf $Y"[+] "$GREEN"Interesting writable Files\n"$NC
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files\n"$NC
-  find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sort | uniq | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31:93m&${C}[0m,"
-  for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31;103m&${C}[0m,"; done
-  echo ""
+  ##-- 21IF) Interesting writable files
+  if ! [ "$IAMROOT" ]; then
+    printf $Y"[+] "$GREEN"Interesting writable Files\n"$NC
+    printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files\n"$NC
+    find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sort | uniq | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31:93m&${C}[0m,"
+    for g in `groups`; do find / \( -type f -or -type d \) -group $g -perm -g=w 2>/dev/null | grep -v '/proc/' | grep -v $HOME | grep -v '/sys/fs' | grep -v $notExtensions | sed "s,$writeB,${C}[1;31m&${C}[0m," | sed "s,$writeVB,${C}[1;31;103m&${C}[0m,"; done
+    echo ""
+  fi
 
-  ##-- 21IF) Passwords in config PHP files
+  ##-- 22IF) Passwords in config PHP files
   printf $Y"[+] "$GREEN"Searching passwords in config PHP files\n"$NC
   configs=`find /var /etc /home /root /tmp /usr /opt -type f -name "*config*.php" 2>/dev/null`
   for c in $configs; do grep -i "password.* = ['\"]\|define.*passw\|db_pass" $c 2>/dev/null | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password\|db_pass,${C}[1;31m&${C}[0m,i"; done
   echo ""
 
-  ##-- 22IF) IPs inside logs
+  ##-- 23IF) IPs inside logs
   printf $Y"[+] "$GREEN"Finding IPs inside logs (limit 100)\n"$NC
   grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /var/log/ 2>/dev/null | sort | uniq -c | sort -r | head -n 100
   echo ""
 
-  ##-- 23IF) Passwords inside logs
+  ##-- 24IF) Passwords inside logs
   printf $Y"[+] "$GREEN"Finding passwords inside logs (limit 100)\n"$NC
   grep -R -i "pwd\|passw" /var/log/ 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | grep -v "File does not exist:\|script not found or unable to stat:\|\"GET /.*\" 404" | head -n 100 | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,"
   echo ""
 
-  ##-- 24IF) Emails inside logs
+  ##-- 25IF) Emails inside logs
   printf $Y"[+] "$GREEN"Finding emails inside logs (limit 100)\n"$NC
   grep -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" /var/log/ 2>/dev/null | sort | uniq -c | head -n 100 
   echo "" 
 
-  ##-- 25IF) Passwords files in home
+  ##-- 26IF) Passwords files in home
   printf $Y"[+] "$GREEN"Finding *password* or *credential* files in home\n"$NC
   (find /home /root -type f \( -name "*password*" -o -name "*credential*" \) 2>/dev/null | sed "s,password\|credential,${C}[1;31m&${C}[0m,") || echo_not_found
 
   if ! [ "$SUPERFAST" ]; then
-    ##-- 26IF) Passwords inside files
+    ##-- 27IF) Passwords inside files
     printf $Y"[+] "$GREEN"Finding 'pwd' or 'passw' string inside /home, /var/www, /etc, /root and list possible web(/var/www) and config(/etc) passwords\n"$NC
     grep -lRi "pwd\|passw" /home /var/www /root 2>/dev/null | sort | uniq
     grep -R -i "password.* = ['\"]\|define.*passw" /var/www /root /home 2>/dev/null | grep "\.php" | grep -v "function\|password.* = \"\"\|password.* = ''" | sed '/^.\{150\}./d' | sort | uniq | sed "s,password,${C}[1;31m&${C}[0m,"
