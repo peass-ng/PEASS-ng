@@ -183,13 +183,13 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Password policy
 
 - **Software Information**
-  - [x] MySQl (Version, user being configured, loging as "root:root","root:toor","root:", user hashes extraction via DB and file, possible backup user configured)
-  - [x] PostgreSQL (Version, try login in "template0" and "template1" as: "postgres:", "psql:")
+  - [x] MySQl (Version, user being configured, loging as "root:root","root:toor","root:", user hashes extraction via DB and file, possible backup user configured, credentials in config)
+  - [x] PostgreSQL (Version, try login in "template0" and "template1" as: "postgres:", "psql:", file DBs, Config)
   - [x] Apache (Version)
   - [x] PHP cookies
   - [x] Wordpress (Database credentials)
   - [x] Tomcat (Credentials)
-  - [x] Mongo (Version)
+  - [x] Mongo (Version, Credentials)
   - [x] Supervisor (Credentials)
   - [x] Cesi (Credentials)
   - [x] Rsyncd (Credentials)
@@ -209,6 +209,9 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Elasticseach (Config info and Version via port 9200)
   - [x] Vault-ssh (Config values, secrets list and .vault-token files)
   - [x] screen and tmux sessions
+  - [x] Couchdb
+  - [x] Redis
+  - [x] Dovecot
 
 
 - **Generic Interesting Files**
@@ -222,6 +225,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] List of readable files belonging to root and not world readable
   - [x] Root files inside a folder owned by the current user
   - [x] Reduced list of files inside my home and /home
+  - [x] Mail applications
   - [x] Mails
   - [x] Backup files
   - [x] DB files
