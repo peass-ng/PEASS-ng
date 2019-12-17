@@ -183,7 +183,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Password policy
 
 - **Software Information**
-  - [x] MySQl (Version, user being configured, loging as "root:root","root:toor","root:", user hashes extraction via DB and file, possible backup user configured, credentials in config)
+  - [x] MySQl (Version, user being configured, loging as "root:root","root:toor","root:", user hashes extraction via DB and file, possible backup user configured, credentials in config, cmd exec library)
   - [x] PostgreSQL (Version, try login in "template0" and "template1" as: "postgres:", "psql:", file DBs, Config)
   - [x] Apache (Version)
   - [x] PHP cookies
