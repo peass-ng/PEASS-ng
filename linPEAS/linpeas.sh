@@ -964,7 +964,6 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
         echo "Found $mysqlexec"
         echo "If you can login in MySQL you can execute commands doing: SELECT sys_eval('id');" | sed "s,.*,${C}[1;31m&${C}[0m,"
       fi
-      done
     done
   else echo_not_found
   fi
