@@ -981,6 +981,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
       if [ -r $f ]; then 
         echo "Found readable $f"
         cat "$f" | grep -v "^#" | grep -v "^$" | sed "s,auth\|password\|md5\|user=\|pass=,${C}[1;31m&${C}[0m," 2>/dev/null
+        echo ""
       fi
     done
   else echo_not_found
@@ -1377,6 +1378,17 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
       echo "$dp" | sed "s,.*,${C}[1;31m&${C}[0m," 2>/dev/null
 	  done
 	fi
+  echo ""
+
+  ##-- 36SI) Mosquitto
+  printf $Y"[+] "$GREEN"Looking for mosquitto.conf\n"$NC
+  mqttconfs=`find /var /etc /home /root /tmp /usr /opt -type f -name "mosquitto.conf" 2>/dev/null`
+  for f in $mqttconfs; do
+    if [ -r $f ]; then 
+      echo "Found readable $f"
+      cat "$f" | grep -v "^#" | grep -v "^$" | sed "s,password_file.*\|psk_file.*\|allow_anonymous.*true\|auth,${C}[1;31m&${C}[0m," 2>/dev/null
+    fi
+  done
   echo ""
   echo ""
 fi
