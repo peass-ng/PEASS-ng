@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.2.5"
+VERSION="v2.2.7"
 
 ###########################################
 #---------------) Colors (----------------#
@@ -151,7 +151,7 @@ notBackup="/tdbbackup$\|/db_hotbackup$"
 cronjobsG=".placeholder\|0anacron\|0hourly\|apache2\|apport\|aptitude\|apt-compat\|bsdmainutils\|debtags\|dpkg\|e2scrub_all\|fake-hwclock\|john\|logrotate\|man-db\|mdadm\|mlocate\|ntp\|passwd\|php\|raid-check\|rwhod\|samba\|sysstat\|ubuntu-advantage-tools\|update-notifier-common"
 cronjobsB="centreon"
 
-processesVB="jdwp"
+processesVB="jdwp\|tmux\|screen"
 
 mail_apps="Postfix\|Dovecot\|Exim\|SquirrelMail\|Cyrus\|Sendmail\|Courier"
 
@@ -210,7 +210,7 @@ fi
 ###########################################
 #---------) Parsing parameters (----------#
 ###########################################
-# --) FAST - Do not check 1min of proccesesand su brute
+# --) FAST - Do not check 1min of procceses and su brute
 # --) SUPERFAST - FAST & do not search for special filaes in all the folders
 
 FAST="1" #By default stealth/fast mode
@@ -502,9 +502,6 @@ if [ "$IAMROOT" ]; then
 fi
 echo ""
 echo ""
-# To DELETE
-printf $Y"\nIMPORTANT CHANGE:$GREEN For satisfying most users and thanks to the incorporation of the 2000pwds/user su bruteforce, the default behaviour of linpeas has been changed to fast/stealth (no writting to disk, no 1min processes check, and no su BF). Use the parameter$Y -a$GREEN to execute all these checks.\n\n"$NC
-sleep 2.5
 ###########################################
 #-----------) Some Basic Info (-----------#
 ###########################################
@@ -671,7 +668,7 @@ if [ "`echo $CHECKS | grep Devs`" ]; then
   #-- 2D) Unmounted
   printf $Y"[+] "$GREEN"Unmounted file-system?\n"$NC
   printf $B"[i] "$Y"Check if you can mount umounted devices\n"$NC
-  cat /etc/fstab 2>/dev/null | grep -v "^#" | sed "s,$mountG,${C}[1;32m&${C}[0m,g" | sed "s,$notmounted,${C}[1;31m&${C}[0m," | sed "s,$mounted,${C}[1;34m&${C}[0m," | sed "s,$Wfolders,${C}[1;31m&${C}[0m," | sed "s,$mountpermsB,${C}[1;31m&${C}[0m,g" | sed "s,$mountpermsG,${C}[1;32m&${C}[0m,g"
+  cat /etc/fstab 2>/dev/null | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | sed "s,$mountG,${C}[1;32m&${C}[0m,g" | sed "s,$notmounted,${C}[1;31m&${C}[0m," | sed "s,$mounted,${C}[1;34m&${C}[0m," | sed "s,$Wfolders,${C}[1;31m&${C}[0m," | sed "s,$mountpermsB,${C}[1;31m&${C}[0m,g" | sed "s,$mountpermsG,${C}[1;32m&${C}[0m,g"
   echo ""
   echo ""
 fi
@@ -756,13 +753,13 @@ if [ "`echo $CHECKS | grep Net`" ]; then
 
   #-- 1NI) Hostname, hosts and DNS
   printf $Y"[+] "$GREEN"Hostname, hosts and DNS\n"$NC
-  cat /etc/hostname /etc/hosts /etc/resolv.conf 2>/dev/null | grep -v "^#"
+  cat /etc/hostname /etc/hosts /etc/resolv.conf 2>/dev/null | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null
   dnsdomainname 2>/dev/null
   echo ""
 
   #-- 2NI) /etc/inetd.conf
   printf $Y"[+] "$GREEN"Content of /etc/inetd.conf\n"$NC
-  (cat /etc/inetd.conf 2>/dev/null | grep -v "^#") || echo_not_found "/etc/inetd.conf" 
+  (cat /etc/inetd.conf 2>/dev/null | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null) || echo_not_found "/etc/inetd.conf" 
   echo ""
 
   #-- 3NI) Networks and neighbours
@@ -775,7 +772,7 @@ if [ "`echo $CHECKS | grep Net`" ]; then
 
   #-- 4NI) Iptables
   printf $Y"[+] "$GREEN"Iptables rules\n"$NC
-  (timeout 1 iptables -L 2>/dev/null; cat /etc/iptables/* | grep -v "^#") 2>/dev/null || echo_not_found "iptables rules"
+  (timeout 1 iptables -L 2>/dev/null; cat /etc/iptables/* | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null) 2>/dev/null || echo_not_found "iptables rules"
   echo ""
 
   #-- 5NI) Ports
@@ -842,7 +839,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
 
   #-- 6UI) Pkexec policy
   printf $Y"[+] "$GREEN"Checking Pkexec policy\n"$NC
-  (cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null | grep -v "^#" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$groupsB,${C}[1;31m&${C}[0m," | sed "s,$groupsVB,${C}[1;31m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | sed "s,$GROUPS,${C}[1;31;103m&${C}[0m,") || echo_not_found "/etc/polkit-1/localauthority.conf.d"
+  (cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$groupsB,${C}[1;31m&${C}[0m," | sed "s,$groupsVB,${C}[1;31m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | sed "s,$GROUPS,${C}[1;31;103m&${C}[0m,") || echo_not_found "/etc/polkit-1/localauthority.conf.d"
   echo ""
 
   #-- 7UI) Brute su
@@ -956,7 +953,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
       for f in $mycfg; do
         if [ -r $f ]; then 
           echo "Found readable $f"
-          cat "$f" | grep -v "^#" | grep -v "^$" | sed "s,password.*,${C}[1;31m&${C}[0m,"
+          cat "$f" | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | sed "s,password.*,${C}[1;31m&${C}[0m,"
         fi
       done
       mysqlexec=`whereis lib_mysqludf_sys.so 2>/dev/null | grep "lib_mysqludf_sys\.so"`
@@ -980,7 +977,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     for f in $postgconfs; do
       if [ -r $f ]; then 
         echo "Found readable $f"
-        cat "$f" | grep -v "^#" | grep -v "^$" | sed "s,auth\|password\|md5\|user=\|pass=,${C}[1;31m&${C}[0m," 2>/dev/null
+        cat "$f" | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | sed "s,auth\|password\|md5\|user=\|pass=,${C}[1;31m&${C}[0m," 2>/dev/null
         echo ""
       fi
     done
@@ -1065,7 +1062,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   (mongo --version 2>/dev/null || mongod --version 2>/dev/null) || echo_not_found
   for f in $mongos; do
     echo "Found $f"
-    cat "$f" | grep -v "^#" | grep -v "^$" | sed "s,auth*=*true\|pass.*,${C}[1;31m&${C}[0m," 2>/dev/null
+    cat "$f" | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | sed "s,auth*=*true\|pass.*,${C}[1;31m&${C}[0m," 2>/dev/null
   done
 
   #TODO: Check if you can login without password and warn the user
@@ -1100,7 +1097,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
       if [ `echo "$f" | grep -i "secrets"` ]; then
         cat "$f" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
       else
-        cat "$f" 2>/dev/null | grep -v "^#" | grep -v "^$" | sed "s,secrets.*\|auth.*users.*=,${C}[1;31m&${C}[0m,"
+        cat "$f" 2>/dev/null | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | sed "s,secrets.*\|auth.*users.*=,${C}[1;31m&${C}[0m,"
       fi
       echo ""
     done
@@ -1214,7 +1211,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   if [ "$sshconfig" ]; then
     echo ""
     echo "Looking inside /etc/ssh/ssh_config for interesting info"
-    cat "$sshconfig" 2>/dev/null | grep -v "^#" | grep -v "^$" | sed "s,User\|ProxyCommand,${C}[1;31m&${C}[0m,"
+    cat "$sshconfig" 2>/dev/null | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | sed "s,User\|ProxyCommand,${C}[1;31m&${C}[0m,"
   fi
   echo ""
 
@@ -1242,7 +1239,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- 25SI) NFS exports
   printf $Y"[+] "$GREEN"NFS exports?\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation/nfs-no_root_squash-misconfiguration-pe\n"$NC
-  if [ "`cat /etc/exports 2>/dev/null`" ]; then cat /etc/exports 2>/dev/null | grep -v "^#" | sed "s,no_root_squash\|no_all_squash ,${C}[1;31;103m&${C}[0m,"
+  if [ "`cat /etc/exports 2>/dev/null`" ]; then cat /etc/exports 2>/dev/null | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | sed "s,no_root_squash\|no_all_squash ,${C}[1;31;103m&${C}[0m,"
   else echo_not_found "/etc/exports"
   fi
   echo ""
@@ -1264,7 +1261,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   kibana=`find /var /etc /home /root /tmp /usr /opt -name "kibana.y*ml" 2>/dev/null`
   if [ "$kibana" ]; then
     printf "$kibana\n"
-    for f in $kibana; do cat "$f" 2>/dev/null | grep -v "^#" | grep -v "^$" | grep -v -e '^[[:space:]]*$' | sed "s,username\|password\|host\|port\|elasticsearch\|ssl,${C}[1;31m&${C}[0m,"; done
+    for f in $kibana; do cat "$f" 2>/dev/null | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | grep -v -e '^[[:space:]]*$' | sed "s,username\|password\|host\|port\|elasticsearch\|ssl,${C}[1;31m&${C}[0m,"; done
   else echo_not_found "kibana.yml"
   fi
   echo ""
@@ -1291,7 +1288,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   elasticsearch=`find /var /etc /home /root /tmp /usr /opt -name "elasticsearch.y*ml" 2>/dev/null`
   if [ "$elasticsearch" ]; then
     printf "$elasticsearch\n"
-    for f in $elasticsearch; do cat $f 2>/dev/null | grep -v "^#" | grep -v -e '^[[:space:]]*$' | grep "path.data\|path.logs\|cluster.name\|node.name\|network.host\|discovery.zen.ping.unicast.hosts"; done
+    for f in $elasticsearch; do cat $f 2>/dev/null | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v -e '^[[:space:]]*$' | grep "path.data\|path.logs\|cluster.name\|node.name\|network.host\|discovery.zen.ping.unicast.hosts"; done
     echo "Version: $(curl -X GET '10.10.10.115:9200' 2>/dev/null | grep number | cut -d ':' -f 2)"
   else echo_not_found
   fi
@@ -1330,11 +1327,12 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   echo ""
 
   ##-- 33SI) Tmux sessions
-  tmuxsess=`tmux ls 2>/dev/null`
+  tmuxdefsess=`tmux ls 2>/dev/null`
+  tmuxnondefsess=`ps aux | grep "tmux " | grep -v grep`
   printf $Y"[+] "$GREEN"Looking for tmux sessions\n"$N
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-shell-sessions\n"$NC
-  if [ "$tmuxsess" ]; then
-    printf "$tmuxsess" | sed "s,.*,${C}[1;31m&${C}[0m," | sed "s,no server running on.*,${C}[32m&${C}[0m,"
+  if [ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ]; then
+    printf "$tmuxdefsess\n$tmuxnondefsess\n" | sed "s,.*,${C}[1;31m&${C}[0m," | sed "s,no server running on.*,${C}[32m&${C}[0m,"
   else echo_not_found "tmux"
   fi
   echo ""
@@ -1359,7 +1357,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   for f in $redisconfs; do
     if [ -r $f ]; then 
       echo "Found readable $f"
-      cat "$f" | grep -v "^#" | grep -v "^$" | sed "s,masterauth.*\|requirepass.*,${C}[1;31m&${C}[0m," 2>/dev/null
+      cat "$f" | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | sed "s,masterauth.*\|requirepass.*,${C}[1;31m&${C}[0m," 2>/dev/null
     fi
   done
   echo ""
@@ -1386,7 +1384,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   for f in $mqttconfs; do
     if [ -r $f ]; then 
       echo "Found readable $f"
-      cat "$f" | grep -v "^#" | grep -v "^$" | sed "s,password_file.*\|psk_file.*\|allow_anonymous.*true\|auth,${C}[1;31m&${C}[0m," 2>/dev/null
+      cat "$f" | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | sed "s,password_file.*\|psk_file.*\|allow_anonymous.*true\|auth,${C}[1;31m&${C}[0m," 2>/dev/null
     fi
   done
   echo ""
