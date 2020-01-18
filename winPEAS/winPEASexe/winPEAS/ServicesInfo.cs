@@ -22,8 +22,7 @@ namespace winPEAS
                 {
                     if (result["PathName"] != null)
                     {
-                        Match path = Regex.Match(result["PathName"].ToString(), @"^\W*([a-z]:\\.+?(\.exe|\.dll|\.sys))\W*", RegexOptions.IgnoreCase);
-                        String binaryPath = path.Groups[1].ToString();
+                        string binaryPath = MyUtils.GetExecutableFromPath(result["PathName"].ToString());
                         string companyName = "";
                         string isDotNet = "";
                         try
@@ -37,7 +36,7 @@ namespace winPEAS
                             // Not enough privileges
                         }
 
-                        if ((String.IsNullOrEmpty(companyName)) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
+                        if (String.IsNullOrEmpty(companyName) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
                         {
                             Dictionary<string, string> toadd = new Dictionary<string, string>();
                             toadd["Name"] = String.Format("{0}", result["Name"]);
@@ -56,7 +55,88 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+            }
+            return results;
+        }
+
+        public static List<Dictionary<string, string>> GetNonstandardServicesFromReg()
+        {
+            List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
+
+            try
+            {
+                foreach (string key in MyUtils.GetRegSubkeys("HKLM", @"SYSTEM\CurrentControlSet\Services"))
+                {
+                    Dictionary<string, object> key_values = MyUtils.GetRegValues("HKLM", @"SYSTEM\CurrentControlSet\Services\" + key);
+                    if (key_values.ContainsKey("DisplayName") && key_values.ContainsKey("ImagePath"))
+                    {
+                        string companyName = "";
+                        string isDotNet = "";
+                        string pathName = Environment.ExpandEnvironmentVariables(String.Format("{0}", key_values["ImagePath"]).Replace("\\SystemRoot\\", "%SystemRoot%\\"));
+                        string binaryPath = MyUtils.ReconstructExecPath(pathName);
+                        if (binaryPath != "")
+                        {
+                            try
+                            {
+                                FileVersionInfo myFileVersionInfo = FileVersionInfo.GetVersionInfo(binaryPath);
+                                companyName = myFileVersionInfo.CompanyName;
+                                isDotNet = MyUtils.CheckIfDotNet(binaryPath) ? "isDotNet" : "";
+                            }
+                            catch (Exception ex)
+                            {
+                                // Not enough privileges
+                            }
+                        }
+
+                        string displayName = String.Format("{0}", key_values["DisplayName"]);
+                        string imagePath = String.Format("{0}", key_values["ImagePath"]);
+                        string description = key_values.ContainsKey("Description") ? String.Format("{0}", key_values["Description"]) : "";
+                        string startMode = "";
+                        if (key_values.ContainsKey("Start"))
+                        {
+                            switch (key_values["Start"].ToString())
+                            {
+                                case "0":
+                                    startMode = "Boot";
+                                    break;
+                                case "1":
+                                    startMode = "System";
+                                    break;
+                                case "2":
+                                    startMode = "Autoload";
+                                    break;
+                                case "3":
+                                    startMode = "System";
+                                    break;
+                                case "4":
+                                    startMode = "Manual";
+                                    break;
+                                case "5":
+                                    startMode = "Disabled";
+                                    break;
+                            }
+                        }
+                        if (String.IsNullOrEmpty(companyName) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
+                        {
+                            Dictionary<string, string> toadd = new Dictionary<string, string>();
+                            toadd["Name"] = String.Format("{0}", displayName);
+                            toadd["DisplayName"] = String.Format("{0}", displayName);
+                            toadd["CompanyName"] = companyName;
+                            toadd["State"] = "";
+                            toadd["StartMode"] = startMode;
+                            toadd["PathName"] = pathName;
+                            toadd["FilteredPath"] = binaryPath;
+                            toadd["isDotNet"] = isDotNet;
+                            toadd["Description"] = description;
+                            results.Add(toadd);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -75,7 +155,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -120,7 +200,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -138,7 +218,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }

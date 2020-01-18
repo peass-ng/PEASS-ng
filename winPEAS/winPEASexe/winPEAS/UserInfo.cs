@@ -301,16 +301,16 @@ namespace winPEAS
                         string groupsLine = "";
                         if (user_groups.Count > 0)
                         {
-                            groupsLine = "\n\t|->Groups: " + string.Join(",", user_groups);
+                            groupsLine = "\n        |->Groups: " + string.Join(",", user_groups);
                         }
-                        string passLine = "\n\t|->Password: " + ((bool)user["PasswordChangeable"] ? "CanChange" : "NotChange") + "-" + ((bool)user["PasswordExpires"] ? "Expi" : "NotExpi") + "-" + ((bool)user["PasswordRequired"] ? "Req" : "NotReq") + "\n";
+                        string passLine = "\n        |->Password: " + ((bool)user["PasswordChangeable"] ? "CanChange" : "NotChange") + "-" + ((bool)user["PasswordExpires"] ? "Expi" : "NotExpi") + "-" + ((bool)user["PasswordRequired"] ? "Req" : "NotReq") + "\n";
                         retList.Add(userLine + groupsLine + passLine);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
             }
             return retList;
         }
@@ -344,7 +344,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return myItems;
         }
@@ -410,7 +410,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
             }
             return retList;
         }
@@ -578,7 +578,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
             }
             finally
             {
@@ -602,7 +602,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
             }
             return retList;
         }
@@ -640,7 +640,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
             }
             return results;
         }
@@ -748,7 +748,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
             }
             return results;
         }
@@ -789,7 +789,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
             }
             return c;
         }

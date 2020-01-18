@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Runtime.InteropServices;
-using Colorful;
+//using Colorful;
 using System.Threading;
 
 namespace winPEAS
@@ -34,9 +34,9 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
-            //By default tru, because this way wiill check domain and local, but never should get here the code
+            //By default true, because this way will check domain and local, but never should get here the code
             return "";
         }
 
@@ -52,7 +52,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -86,7 +86,7 @@ namespace winPEAS
                     }
                 }
             }
-            catch 
+            catch
             {
                 //Access denied to a path
             }
@@ -285,6 +285,44 @@ namespace winPEAS
             return isDotNet;
         }
 
+        public static string GetExecutableFromPath(string path)
+        {
+            string binaryPath = "";
+            Match match_path = Regex.Match(path, @"^\W*([a-z]:\\.+?(\.exe|\.dll|\.sys))\W*", RegexOptions.IgnoreCase);
+            if (match_path.Groups.Count > 1)
+                binaryPath = match_path.Groups[1].ToString();
+            return binaryPath;
+        }
+
+        public static string ReconstructExecPath(string path)
+        {
+            if (!path.Contains(".exe") && !path.Contains(".dll") && !path.Contains(".sys"))
+                return "";
+
+            string system32dir = Environment.SystemDirectory; // C:\windows\system32
+            string windowsdir = Directory.GetParent(system32dir).ToString();
+            string windrive = Path.GetPathRoot(system32dir); // C:\
+
+            string binaryPath = GetExecutableFromPath(path);
+            if (binaryPath == "")
+            {
+                binaryPath = GetExecutableFromPath(system32dir +"\\" + path);
+                if (!File.Exists(binaryPath))
+                {
+                    binaryPath = GetExecutableFromPath(windowsdir + "\\" + path);
+                    if (!File.Exists(binaryPath))
+                    {
+                        binaryPath = GetExecutableFromPath(windrive + "\\" + path);
+                        if (!File.Exists(binaryPath))
+                        {
+                            binaryPath = "";
+                        }
+                    }
+                }
+            }
+            return binaryPath;
+        }
+
         public static List<string> GetPermissionsFile(string path, List<string> lowgroups)
         {
             /*Permisos especiales para carpetas 
@@ -302,85 +340,26 @@ namespace winPEAS
             path = binaryPath;
             if (path == null || path == "")
                 return results;
-            //
-            // Summary:
-            //     Specifies the right to open and write to a file or folder. This does not include
-            //     the right to open and write file system attributes, extended file system attributes,
-            //     or access and audit rules.
-            int WriteData = 2;
-            //
-            // Summary:
-            //     Specifies the right to append data to the end of a file.
-            int AppendData = 4;
-            // Summary:
-            //     Specifies the right to open and write extended file system attributes to a folder
-            //     or file. This does not include the ability to write data, attributes, or access
-            //     and audit rules.
-            int WriteExtendedAttributes = 16;
-            //
-            // Summary:
-            //     Specifies the right to open and write file system attributes to a folder or file.
-            //     This does not include the ability to write data, extended attributes, or access
-            //     and audit rules.
-            int WriteAttributes = 256;
-            //
-            // Summary:
-            //     Specifies the right to create folders and files, and to add or remove data from
-            //     files. This right includes the System.Security.AccessControl.FileSystemRights.WriteData
-            //     right, System.Security.AccessControl.FileSystemRights.AppendData right, System.Security.AccessControl.FileSystemRights.WriteExtendedAttributes
-            //     right, and System.Security.AccessControl.FileSystemRights.WriteAttributes right.
-            int Write = 278;
-            //
-            // Summary:
-            //     Specifies the right to delete a folder or file.
-            int Delete = 65536;
-            //
-            // Summary:
-            //     Specifies the right to read, write, list folder contents, delete folders and
-            //     files, and run application files. This right includes the System.Security.AccessControl.FileSystemRights.ReadAndExecute
-            //     right, the System.Security.AccessControl.FileSystemRights.Write right, and the
-            //     System.Security.AccessControl.FileSystemRights.Delete right.
-            int Modify = 197055;
-            //
-            // Summary:
-            //     Specifies the right to change the security and audit rules associated with a
-            //     file or folder.
-            int ChangePermissions = 262144;
-            //
-            // Summary:
-            //     Specifies the right to change the owner of a folder or file. Note that owners
-            //     of a resource have full access to that resource.
-            int TakeOwnership = 524288;
-            //
-            //
-            // Summary:
-            //     Specifies the right to exert full control over a folder or file, and to modify
-            //     access control and audit rules. This value represents the right to do anything
-            //     with a file and is the combination of all rights in this enumeration.
-            int FullControl = 2032127;
 
-            int[] permissions = { FullControl, TakeOwnership, ChangePermissions, Modify, Write, WriteData, Delete, WriteAttributes, WriteExtendedAttributes, AppendData };
             try
             {
                 FileSecurity fSecurity = File.GetAccessControl(path);
                 foreach (FileSystemAccessRule rule in fSecurity.GetAccessRules(true, true, typeof(NTAccount)))
                 {
-                    int current_right = (int)rule.FileSystemRights;
+                    int current_perm = (int)rule.FileSystemRights;
+                    string current_perm_str = permInt2Str(current_perm);
+                    if (current_perm_str == "")
+                        continue;
+
                     foreach (string group in lowgroups)
                     {
                         if (rule.IdentityReference.Value.ToLower().Contains(group.ToLower()))
                         {
-                            foreach (int perm in permissions)
+                            string to_add = String.Format("{0} [{1}]", rule.IdentityReference.Value, current_perm_str);
+                            if (!results.Contains(to_add))
                             {
-                                if ((perm & current_right) == perm)
-                                {
-                                    string to_add = String.Format("{0} [{1}]", rule.IdentityReference.Value, rule.FileSystemRights);
-                                    if (!results.Contains(to_add))
-                                    {
-                                        results.Add(to_add);
-                                        break;
-                                    }
-                                }
+                                results.Add(to_add);
+                                break;
                             }
                         }
                     }
@@ -423,45 +402,25 @@ namespace winPEAS
                 if (String.IsNullOrEmpty(path))
                     return results;
 
-                Dictionary<string, int> interesting_perms = new Dictionary<string, int>()
-                {
-                    { "GenericAll", 268435456},
-                    { "FullControl", (int)FileSystemRights.FullControl },
-                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
-                    { "GenericWrite", 1073741824 },
-                    { "WriteData", (int)FileSystemRights.WriteData },
-                    { "Modify", (int)FileSystemRights.Modify },
-                    { "Write", (int)FileSystemRights.Write },
-                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
-                    { "Delete", (int)FileSystemRights.Delete },
-                    { "AppendData", (int)FileSystemRights.AppendData },
-                    { "WriteAttributes", (int)FileSystemRights.WriteAttributes },
-                    { "WriteExtendedAttributes", (int)FileSystemRights.WriteExtendedAttributes },
-                };
-
                 FileSecurity fSecurity = File.GetAccessControl(path);
                 //Go through the rules returned from the DirectorySecurity
                 foreach (FileSystemAccessRule rule in fSecurity.GetAccessRules(true, true, typeof(NTAccount)))
                 {
-                    int current_right = (int)rule.FileSystemRights;
-                    var filesystemAccessRule = (FileSystemAccessRule)rule;
+                    int current_perm = (int)rule.FileSystemRights;
+                    string current_perm_str = permInt2Str(current_perm);
+                    if (current_perm_str == "")
+                        continue;
 
                     //If we find one that matches the identity we are looking for
                     foreach (string name in NtAccountNames)
                     {
                         if (rule.IdentityReference.Value.ToLower().Contains(name.ToLower()))
                         {
-                            foreach (KeyValuePair<string, int> entry in interesting_perms)
+                            string to_add = String.Format("{0} [{1}]", rule.IdentityReference.Value, current_perm_str);
+                            if (!results.Contains(to_add))
                             {
-                                if ((entry.Value & current_right) == entry.Value)
-                                {
-                                    string to_add = String.Format("{0} [{1}]", rule.IdentityReference.Value, entry.Key);
-                                    if (!results.Contains(to_add))
-                                    {
-                                        results.Add(to_add);
-                                        break;
-                                    }
-                                }
+                                results.Add(to_add);
+                                break;
                             }
                         }
                     }
@@ -469,9 +428,43 @@ namespace winPEAS
             }
             catch
             {
-               //Te exceptions here use to be "Not access to a file", nothing interesting
+                //Te exceptions here use to be "Not access to a file", nothing interesting
             }
             return results;
+        }
+
+        public static string permInt2Str(int current_perm)
+        {
+            Dictionary<string, int> interesting_perms = new Dictionary<string, int>()
+            {
+                { "GenericAll", 268435456},
+                { "FullControl", (int)FileSystemRights.FullControl },
+                { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
+                { "GenericWrite", 1073741824 },
+                { "WriteData/CreateFiles", (int)FileSystemRights.WriteData },
+                { "Modify", (int)FileSystemRights.Modify },
+                { "Write", (int)FileSystemRights.Write },
+                { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
+                { "Delete", (int)FileSystemRights.Delete },
+                { "DeleteSubdirectoriesAndFiles", (int)FileSystemRights.DeleteSubdirectoriesAndFiles },
+                { "AppendData/CreateDirectories", (int)FileSystemRights.AppendData },
+                { "WriteAttributes", (int)FileSystemRights.WriteAttributes },
+                { "WriteExtendedAttributes", (int)FileSystemRights.WriteExtendedAttributes },
+            };
+
+            try
+            {
+                foreach (KeyValuePair<string, int> entry in interesting_perms)
+                {
+                    if ((entry.Value & current_perm) == entry.Value)
+                        return entry.Key;
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("Error in permInt2Str: " + ex);
+            }
+            return "";
         }
 
         public static bool CheckQuoteAndSpace(string path)
@@ -580,17 +573,14 @@ namespace winPEAS
             return files;
         }
 
-        public static void FindFiles(string path, string patterns, StyleSheet ss, Dictionary<string,string> color)
+        public static void FindFiles(string path, string patterns, Dictionary<string, string> color)
         {
             try
             {
                 // search every pattern in this directory's files
                 foreach (string pattern in patterns.Split(';'))
                 {
-                    if (Program.using_ansi)
-                        Beaprint.AnsiPrint(String.Join("\n", Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly).Where(filepath => !filepath.Contains(".dll"))), color);
-                    else
-                        Colorful.Console.WriteLineStyled(String.Join("\n", Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly).Where(filepath => !filepath.Contains(".dll"))), ss); // .exe can be contained because of appcmd.exe
+                    Beaprint.AnsiPrint(String.Join("\n", Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly).Where(filepath => !filepath.Contains(".dll"))), color);
                 }
 
                 if (!Program.search_fast)
@@ -598,14 +588,14 @@ namespace winPEAS
 
                 // go recurse in all sub-directories
                 foreach (var directory in Directory.GetDirectories(path))
-                    FindFiles(directory, patterns, ss, color);
+                    FindFiles(directory, patterns, color);
             }
             catch (UnauthorizedAccessException) { }
             catch (PathTooLongException) { }
         }
 
         // From https://stackoverflow.com/questions/206323/how-to-execute-command-line-in-c-get-std-out-results
-        public static string ExecCMD(string args)
+        public static string ExecCMD(string args, string alternative_binary="")
         {
             //Create process
             Process pProcess = new Process();
@@ -614,10 +604,10 @@ namespace winPEAS
             pProcess.StartInfo.CreateNoWindow = true;
 
             //strCommand is path and file name of command to run
-            pProcess.StartInfo.FileName = "cmd.exe";
+            pProcess.StartInfo.FileName = (String.IsNullOrEmpty(alternative_binary)) ? "cmd.exe" : alternative_binary;
 
             //strCommandParameters are parameters to pass to program
-            pProcess.StartInfo.Arguments = "/C "+args;
+            pProcess.StartInfo.Arguments = (String.IsNullOrEmpty(alternative_binary)) ? "/C " + args : args;
 
             pProcess.StartInfo.UseShellExecute = false;
 

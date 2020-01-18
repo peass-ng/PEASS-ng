@@ -44,7 +44,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint("Error: "+ex);
             }
             return retList;
         }
@@ -67,7 +67,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint("Error: " + ex);
             }
             return results;
         }
@@ -89,15 +89,6 @@ namespace winPEAS
 
             foreach (string path in autorunLocations)
             {
-                /*results.Add(new Dictionary<string, string>() {
-                            { "Reg", "" },
-                            { "Folder", path },
-                            { "File", "" },
-                            { "isWritableReg", ""},
-                            { "interestingFolderRights", String.Join(", ", MyUtils.GetPermissionsFolder(path, Program.interestingUsersGroups))},
-                            { "interestingFileRights", ""},
-                            { "isUnquotedSpaced", "" }
-                    });*/
                 foreach (string filepath in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
                 {
                     string folder = Path.GetDirectoryName(filepath);
@@ -162,7 +153,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint("Error: " + ex);
             }
             return results;
         }

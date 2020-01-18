@@ -1,4 +1,4 @@
-﻿using Colorful;
+﻿//using Colorful;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -109,21 +109,8 @@ namespace winPEAS
             }
 
             if (_vulnerabilities.Any(e => e.Vulnerable))
-            {
-                if (Program.using_ansi)
-                {
-                    System.Console.WriteLine(Beaprint.GRAY + "    Finished. Found " + Beaprint.ansi_color_bad + _vulnerabilities.Count(i => i.Vulnerable) + Beaprint.GRAY + " potential vulnerabilities." + Beaprint.NOCOLOR);
-                }
-                else
-                {
-                    string iniPrint = "    Finished. Found {0} potential vulnerabilities.";
-                    Formatter[] colors = new Formatter[]
-                    {
-                        new Formatter(_vulnerabilities.Count(i => i.Vulnerable), Beaprint.color_bad),
-                    };
-                    Colorful.Console.WriteLineFormatted(iniPrint, Color.Gray, colors);
-                }
-            }
+                System.Console.WriteLine(Beaprint.GRAY + "    Finished. Found " + Beaprint.ansi_color_bad + _vulnerabilities.Count(i => i.Vulnerable) + Beaprint.GRAY + " potential vulnerabilities." + Beaprint.NOCOLOR);
+
             else
                 Beaprint.GrayPrint("      Finished. Found 0 vulnerabilities.\r\n");
         }
@@ -160,6 +147,21 @@ namespace winPEAS
                 new Vulnerability(
                     id: "CVE-2019-1315",
                     exploits: new string[] { "https://offsec.almond.consulting/windows-error-reporting-arbitrary-file-move-eop.html" }
+                    ),
+
+                new Vulnerability(
+                    id: "CVE-2019-1385",
+                    exploits: new string[] { "https://www.youtube.com/watch?v=K6gHnr-VkAg" }
+                    ),
+
+                new Vulnerability(
+                    id: "CVE-2019-1388",
+                    exploits: new string[] { "https://github.com/jas502n/CVE-2019-1388" }
+                    ),
+
+                new Vulnerability(
+                    id: "CVE-2019-1405",
+                    exploits: new string[] { "https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2019/november/cve-2019-1405-and-cve-2019-1322-elevation-to-system-via-the-upnp-device-host-service-and-the-update-orchestrator-service/" }
                     )
             };
 
@@ -185,7 +187,7 @@ namespace winPEAS
                     Supersedence.AddRange(new string[] {
                         "4493475", "4498375", "4499154", "4505051", "4503291",
                         "4507458", "4512497", "4517276", "4516070", "4522009",
-                        "4520011", "4524153"
+                        "4520011", "4524153", "4525232", "4530681"
                     });
 
                     break;
@@ -204,7 +206,7 @@ namespace winPEAS
                         "4493470", "4493473", "4499418", "4494440", "4499177",
                         "4505052", "4503267", "4503294", "4509475", "4507459",
                         "4507460", "4512495", "4512517", "4516044", "4516061",
-                        "4522010", "4519998", "4524152"
+                        "4522010", "4519998", "4524152", "4525236", "4530689"
                     });
 
                     break;
@@ -215,7 +217,7 @@ namespace winPEAS
                         "4493474", "4493436", "4499162", "4499181", "4502112",
                         "4505055", "4503279", "4503289", "4509476", "4507450",
                         "4507467", "4512474", "4512507", "4516059", "4516068",
-                        "4522011", "4520010", "4524151"
+                        "4522011", "4520010", "4524151", "4525245", "4530711"
                     });
 
                     break;
@@ -226,7 +228,7 @@ namespace winPEAS
                         "4493441", "4493440", "4499147", "4499179", "4505062",
                         "4503281", "4503284", "4509477", "4507455", "4507465",
                         "4512494", "4512516", "4516066", "4516071", "4522012",
-                        "4520004", "4524150"
+                        "4520004", "4524150", "452524", "4530714"
                     });
 
                     break;
@@ -237,7 +239,7 @@ namespace winPEAS
                         "4493464", "4493437", "4499167", "4499183", "4505064",
                         "4503286", "4503288", "4509478", "4507435", "4507466",
                         "4512501", "4512509", "4516045", "4516058", "4522014",
-                        "4520008", "4524149"
+                        "4520008", "4524149", "4525237", "B4530717"
                     });
 
                     break;
@@ -248,7 +250,7 @@ namespace winPEAS
                         "4493509", "4495667", "4494441", "4497934", "4501835",
                         "4505056", "4501371", "4503327", "4509479", "4505658",
                         "4507469", "4511553", "4512534", "4512578", "4516077",
-                        "4522015", "4519338", "4524148"
+                        "4522015", "4519338", "4524148", "4523205", "4530715"
                     });
 
                     break;
@@ -305,7 +307,7 @@ namespace winPEAS
                         "4493474", "4493436", "4499162", "4499181", "4502112",
                         "4505055", "4503279", "4503289", "4509476", "4507450",
                         "4507467", "4512474", "4512507", "4516059", "4516068",
-                        "4522011", "4520010", "4524151"
+                        "4522011", "4520010", "4524151", "4525245", "4530711"
                     });
 
                     break;
@@ -316,7 +318,7 @@ namespace winPEAS
                         "4493441", "4493440", "4499147", "4499179", "4505062",
                         "4503281", "4503284", "4509477", "4507455", "4507465",
                         "4512494", "4512516", "4516066", "4516071", "4522012",
-                        "4520004", "4524150"
+                        "4520004", "4524150", "4525241", "4530714"
                     });
 
                     break;
@@ -327,7 +329,7 @@ namespace winPEAS
                         "4493464", "4493437", "4499167", "4499183", "4505064",
                         "4503286", "4503288", "4509478", "4507435", "4507466",
                         "4512501", "4512509", "4516045", "4516058", "4522014",
-                        "4520008", "4524149"
+                        "4520008", "4524149", "4525237", "4530717"
                     });
 
                     break;
@@ -338,7 +340,7 @@ namespace winPEAS
                         "4493509", "4495667", "4494441", "4497934", "4501835",
                         "4505056", "4501371", "4503327", "4509479", "4505658",
                         "4507469", "4511553", "4512534", "4512578", "4516077",
-                        "4522015", "4519338", "4524148"
+                        "4522015", "4519338", "4524148", "4523205", "4530715"
                     });
 
                     break;
@@ -385,7 +387,7 @@ namespace winPEAS
                     Supersedence.AddRange(new string[] {
                         "4503267", "4503294", "4509475", "4507459", "4507460",
                         "4512495", "4512517", "4516044", "4516061", "4522010",
-                        "4519998", "4524152"
+                        "4519998", "4524152", "4525236", "4530689"
                     });
 
                     break;
@@ -395,7 +397,7 @@ namespace winPEAS
                     Supersedence.AddRange(new string[] {
                         "4503279", "4503289", "4509476", "4507450", "4507467",
                         "4512474", "4512507", "4516059", "4516068", "4522011",
-                        "4520010", "4524151"
+                        "4520010", "4524151", "4525245", "4530711"
                     });
 
                     break;
@@ -405,7 +407,7 @@ namespace winPEAS
                     Supersedence.AddRange(new string[] {
                         "4503284", "4503281", "4509477", "4507455", "4507465",
                         "4512494", "4512516", "4516066", "4516071", "4522012",
-                        "4520004", "4524150"
+                        "4520004", "4524150", "4525241", "4530714"
                     });
 
                     break;
@@ -415,7 +417,7 @@ namespace winPEAS
                     Supersedence.AddRange(new string[] {
                         "4503286", "4503288", "4509478", "4507435", "4507466",
                         "4512501", "4512509", "4516045", "4516058", "4522014",
-                        "4520008", "4524149"
+                        "4520008", "4524149", "4525237", "4530717"
                     });
 
                     break;
@@ -425,7 +427,7 @@ namespace winPEAS
                     Supersedence.AddRange(new string[] {
                         "4503327", "4501371", "4509479", "4505658", "4507469",
                         "4511553", "4512534", "4512578", "4516077", "4522015",
-                        "4519338", "4524148"
+                        "4519338", "4524148", "4523205", "4530715"
                     });
 
                     break;
@@ -435,7 +437,7 @@ namespace winPEAS
                     Supersedence.AddRange(new string[] {
                         "4503293", "4501375", "4505903", "4507453", "4512508",
                         "4512941", "4515384", "4517211", "4522016", "4517389",
-                        "4524147"
+                        "4524147", "4524570", "4530684"
                     });
 
                     break;
@@ -465,7 +467,7 @@ namespace winPEAS
 
                     Supersedence.AddRange(new string[] {
                         "4507458", "4512497", "4517276", "4516070", "4522009",
-                        "4520011", "4524153"
+                        "4520011", "4524153", "4525232", "4530681"
                     });
 
                     break;
@@ -482,7 +484,8 @@ namespace winPEAS
 
                     Supersedence.AddRange(new string[] {
                         "4507460", "4507459", "4512495", "4512517", "4516044",
-                        "4516061", "4522010", "4519998", "4524152"
+                        "4516061", "4522010", "4519998", "4524152", "4525236",
+                        "4530689"
                     });
 
                     break;
@@ -490,8 +493,9 @@ namespace winPEAS
                 case "15063":
 
                     Supersedence.AddRange(new string[] {
-                        "4507450", "4507467", "4512474", "4512507", "4516059",
-                        "4516068", "4522011", "4520010", "4524151"
+                        "4507460", "4507459", "4512495", "4512517", "4516044",
+                        "4516061", "4522010", "4519998", "4524152", "4525236",
+                        "4530689"
                     });
 
                     break;
@@ -500,7 +504,8 @@ namespace winPEAS
 
                     Supersedence.AddRange(new string[] {
                         "4507455", "4507465", "4512494", "4512516", "4516066",
-                        "4516071", "4522012", "4520004", "4524150"
+                        "4516071", "4522012", "4520004", "4524150", "4525241",
+                        "4530714"
                     });
 
                     break;
@@ -509,7 +514,8 @@ namespace winPEAS
 
                     Supersedence.AddRange(new string[] {
                         "4507435", "4507466", "4512501", "4512509", "4516045",
-                        "4516058", "4522014", "4520008", "4524149"
+                        "4516058", "4522014", "4520008", "4524149", "4525237",
+                        "4530717"
                     });
 
                     break;
@@ -518,7 +524,8 @@ namespace winPEAS
 
                     Supersedence.AddRange(new string[] {
                         "4507469", "4505658", "4511553", "4512534", "4512578",
-                        "4516077", "4522015", "4519338", "4524148"
+                        "4516077", "4522015", "4519338", "4524148", "4523205",
+                        "4530715"
                     });
 
                     break;
@@ -527,7 +534,8 @@ namespace winPEAS
 
                     Supersedence.AddRange(new string[] {
                         "4507453", "4505903", "4512508", "4512941", "4515384",
-                        "4517211", "4522016", "4517389", "4524147"
+                        "4517211", "4522016", "4517389", "4524147", "4524570",
+                        "4530684"
                     });
 
                     break;
@@ -580,7 +588,8 @@ namespace winPEAS
                 case "15063":
 
                     Supersedence.AddRange(new string[] {
-                        "4516068", "4516059", "4522011", "4520010", "4524151"
+                        "4516068", "4516059", "4522011", "4520010", "4524151",
+                        "4525245", "4530711"
                     });
 
                     break;
@@ -588,7 +597,8 @@ namespace winPEAS
                 case "16299":
 
                     Supersedence.AddRange(new string[] {
-                        "4516066", "4516071", "4522012", "4520004", "4524150"
+                        "4516066", "4516071", "4522012", "4520004", "4524150",
+                        "4525241", "4530714"
                     });
 
                     break;
@@ -596,7 +606,8 @@ namespace winPEAS
                 case "17134":
 
                     Supersedence.AddRange(new string[] {
-                        "4516058", "4516045", "4522014", "4520008", "4524149"
+                        "4516058", "4516045", "4522014", "4520008", "4524149",
+                        "4525237", "4530717"
                     });
 
                     break;
@@ -604,7 +615,8 @@ namespace winPEAS
                 case "17763":
 
                     Supersedence.AddRange(new string[] {
-                        "4512578", "4516077", "4522015", "4519338", "4524148"
+                        "4512578", "4516077", "4522015", "4519338", "4524148",
+                        "4523205", "4530715"
                     });
 
                     break;
@@ -612,7 +624,8 @@ namespace winPEAS
                 case "18362":
 
                     Supersedence.AddRange(new string[] {
-                        "4515384", "4517211", "4522016", "4517389", "4524147"
+                        "4515384", "4517211", "4522016", "4517389", "4524147",
+                        "4524570", "4530684"
                     });
 
                     break;
@@ -642,7 +655,7 @@ namespace winPEAS
                 case "10240":
 
                     Supersedence.AddRange(new string[] {
-                        "4520011"
+                        "4520011", "4525232", "4530681"
                     });
 
                     break;
@@ -658,7 +671,7 @@ namespace winPEAS
                 case "14393":
 
                     Supersedence.AddRange(new string[] {
-                        "4519998"
+                        "4519998", "4519979", "4525236", "4530689"
                     });
 
                     break;
@@ -666,7 +679,7 @@ namespace winPEAS
                 case "15063":
 
                     Supersedence.AddRange(new string[] {
-                        "4520010"
+                        "4520010", "4525245", "4530711"
                     });
 
                     break;
@@ -674,7 +687,7 @@ namespace winPEAS
                 case "16299":
 
                     Supersedence.AddRange(new string[] {
-                        "4520004"
+                        "4520004", "4520006", "4525241", "4530714"
                     });
 
                     break;
@@ -682,7 +695,7 @@ namespace winPEAS
                 case "17134":
 
                     Supersedence.AddRange(new string[] {
-                        "4520008"
+                        "4520008", "4519978", "4525237", "4530717"
                     });
 
                     break;
@@ -690,7 +703,7 @@ namespace winPEAS
                 case "17763":
 
                     Supersedence.AddRange(new string[] {
-                        "4519338"
+                        "4519338", "4520062", "4523205", "4530715"
                     });
 
                     break;
@@ -698,7 +711,280 @@ namespace winPEAS
                 case "18362":
 
                     Supersedence.AddRange(new string[] {
-                        "4517389"
+                        "4517389", "4522355", "4524570", "4530684"
+                    });
+
+                    break;
+
+                default:
+                    return;
+            }
+
+            IEnumerable<string> x = Supersedence.Intersect(installedKBs);
+
+            if (!x.Any())
+                vulnerabilities.SetAsVulnerable(name);
+        }
+    }
+
+    internal static class CVE_2019_1385
+    {
+        private const string name = "CVE-2019-1385";
+
+        public static void Check(VulnerabilityCollection vulnerabilities, string BuildNumber, List<string> installedKBs)
+        {
+            List<string> Supersedence = new List<string>();
+
+            switch (BuildNumber)
+            {
+                case "10240":
+
+                    Supersedence.AddRange(new string[] {
+                        //
+                    });
+
+                    break;
+
+                case "10586":
+
+                    Supersedence.AddRange(new string[] {
+                        //
+                    });
+
+                    break;
+
+                case "14393":
+
+                    Supersedence.AddRange(new string[] {
+                        //
+                    });
+
+                    break;
+
+                case "15063":
+
+                    Supersedence.AddRange(new string[] {
+                        //
+                    });
+
+                    break;
+
+                case "16299":
+
+                    Supersedence.AddRange(new string[] {
+                        "4525241", "4530714"
+                    });
+
+                    break;
+
+                case "17134":
+
+                    Supersedence.AddRange(new string[] {
+                        "4525237", "4530717"
+                    });
+
+                    break;
+
+                case "17763":
+
+                    Supersedence.AddRange(new string[] {
+                        "4523205", "4530715"
+                    });
+
+                    break;
+
+                case "18362":
+
+                    Supersedence.AddRange(new string[] {
+                        "4524570", "4530684"
+                    });
+
+                    break;
+
+                case "18363":
+
+                    Supersedence.AddRange(new string[] {
+                        "4524570", "4530684"
+                    });
+
+                    break;
+
+                default:
+                    return;
+            }
+
+            IEnumerable<string> x = Supersedence.Intersect(installedKBs);
+
+            if (!x.Any())
+                vulnerabilities.SetAsVulnerable(name);
+        }
+    }
+
+
+    internal static class CVE_2019_1388
+    {
+        private const string name = "CVE-2019-1388";
+
+        public static void Check(VulnerabilityCollection vulnerabilities, string BuildNumber, List<string> installedKBs)
+        {
+            List<string> Supersedence = new List<string>();
+
+            switch (BuildNumber)
+            {
+                case "10240":
+
+                    Supersedence.AddRange(new string[] {
+                        "4525232", "4530681"
+                    });
+
+                    break;
+
+                case "10586":
+
+                    Supersedence.AddRange(new string[] {
+                        //
+                    });
+
+                    break;
+
+                case "14393":
+
+                    Supersedence.AddRange(new string[] {
+                        "4525236", "4530689"
+                    });
+
+                    break;
+
+                case "15063":
+
+                    Supersedence.AddRange(new string[] {
+                        //
+                    });
+
+                    break;
+
+                case "16299":
+
+                    Supersedence.AddRange(new string[] {
+                        "4525241", "4530714"
+                    });
+
+                    break;
+
+                case "17134":
+
+                    Supersedence.AddRange(new string[] {
+                        "4525237", "4530717"
+                    });
+
+                    break;
+
+                case "17763":
+
+                    Supersedence.AddRange(new string[] {
+                        "4523205", "4530715"
+                    });
+
+                    break;
+
+                case "18362":
+
+                    Supersedence.AddRange(new string[] {
+                        "4524570", "4530684"
+                    });
+
+                    break;
+
+                default:
+                    return;
+            }
+
+            IEnumerable<string> x = Supersedence.Intersect(installedKBs);
+
+            if (!x.Any())
+                vulnerabilities.SetAsVulnerable(name);
+        }
+    }
+
+
+    internal static class CVE_2019_1405
+    {
+        private const string name = "CVE-2019-1405";
+
+        public static void Check(VulnerabilityCollection vulnerabilities, string BuildNumber, List<string> installedKBs)
+        {
+            List<string> Supersedence = new List<string>();
+
+            switch (BuildNumber)
+            {
+                case "10240":
+
+                    Supersedence.AddRange(new string[] {
+                        "4525232", "4530681"
+                    });
+
+                    break;
+
+                case "10586":
+
+                    Supersedence.AddRange(new string[] {
+                        //
+                    });
+
+                    break;
+
+                case "14393":
+
+                    Supersedence.AddRange(new string[] {
+                        "4525236", "4530689"
+                    });
+
+                    break;
+
+                case "15063":
+
+                    Supersedence.AddRange(new string[] {
+                        //
+                    });
+
+                    break;
+
+                case "16299":
+
+                    Supersedence.AddRange(new string[] {
+                        "4525241", "4530714"
+                    });
+
+                    break;
+
+                case "17134":
+
+                    Supersedence.AddRange(new string[] {
+                        "4525237", "4530717"
+                    });
+
+                    break;
+
+                case "17763":
+
+                    Supersedence.AddRange(new string[] {
+                        "4523205", "4530715"
+                    });
+
+                    break;
+
+                case "18362":
+
+                    Supersedence.AddRange(new string[] {
+                        "4524570", "4530684"
+                    });
+
+                    break;
+
+                case "18363":
+
+                    Supersedence.AddRange(new string[] {
+                        "4524570", "4530684"
                     });
 
                     break;
@@ -722,21 +1008,9 @@ namespace winPEAS
     {
         public static void FindVulns()
         {
-            if (Program.using_ansi)
-            {
-                System.Console.WriteLine(Beaprint.YELLOW + "  [?] " + Beaprint.LBLUE + "Windows vulns search powered by" + Beaprint.LRED + "Watson" + Beaprint.LBLUE + "(https://github.com/rasta-mouse/Watson)" + Beaprint.NOCOLOR);
-            }
-            else
-            {
-                string iniPrint = "  {0} Windows vulns search powered by {1} (https://github.com/rasta-mouse/Watson)";
-                Formatter[] colors = new Formatter[]
-                {
-                 new Formatter("[?]", Color.Yellow),
-                 new Formatter("Watson", Color.OrangeRed),
-                };
-                Colorful.Console.WriteLineFormatted(iniPrint, Color.MediumPurple, colors);
-            }
+            System.Console.WriteLine(Beaprint.YELLOW + "  [?] " + Beaprint.LBLUE + "Windows vulns search powered by " + Beaprint.LRED + "Watson" + Beaprint.LBLUE + "(https://github.com/rasta-mouse/Watson)" + Beaprint.NOCOLOR);
 
+            // Supported versions
             List<string> supportedVersions = new List<string>()
             {
                 "10240", //1507
@@ -746,33 +1020,32 @@ namespace winPEAS
                 "16299", //1709
                 "17134", //1803
                 "17763", //1809 & 2K19
-                "18362" //1903
-                //"18363", //1909
+                "18362", //1903
+                "18363", //1909
             };
 
             // Get OS Build number
             string buildNumber = Wmi.GetBuildNumber();
             if (!string.IsNullOrEmpty(buildNumber))
-            {
-                string iniPrint = "    {0}: {1}";
-                Formatter[] colors = new Formatter[]
-                {
-                 new Formatter("OS Build Number", Beaprint.color_key),
-                 new Formatter(buildNumber, Beaprint.color_default),
-                };
-                Colorful.Console.WriteLineFormatted(iniPrint, Beaprint.color_key, colors);
-            }
+                System.Console.WriteLine(String.Format("    {0}: {1}", "OS Build Number", buildNumber));
             else
                 return;
 
             if (!supportedVersions.Contains(buildNumber))
             {
-                Colorful.Console.WriteLine("   Windows version not supported\r\n", Beaprint.color_good);
+                Beaprint.GoodPrint("   Windows version not supported\r\n");
                 return;
             }
 
             // List of KBs installed
+            //Console.WriteLine(" [*] Enumerating installed KBs...\r\n");
             List<string> installedKBs = Wmi.GetInstalledKBs();
+
+            /*#if DEBUG
+                        foreach (string kb in installedKBs)
+                            Console.WriteLine(" {0}", kb);
+                        Console.WriteLine();
+            #endif*/
 
             // List of Vulnerabilities
             VulnerabilityCollection vulnerabiltiies = new VulnerabilityCollection();
@@ -784,10 +1057,12 @@ namespace winPEAS
             CVE_2019_1130.Check(vulnerabiltiies, buildNumber, installedKBs);
             CVE_2019_1253.Check(vulnerabiltiies, buildNumber, installedKBs);
             CVE_2019_1315.Check(vulnerabiltiies, buildNumber, installedKBs);
+            CVE_2019_1385.Check(vulnerabiltiies, buildNumber, installedKBs);
+            CVE_2019_1388.Check(vulnerabiltiies, buildNumber, installedKBs);
+            CVE_2019_1405.Check(vulnerabiltiies, buildNumber, installedKBs);
 
             // Print the results
             vulnerabiltiies.ShowResults();
-
         }
     }
 }

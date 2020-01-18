@@ -73,7 +73,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
 
             return results;
@@ -109,9 +109,9 @@ namespace winPEAS
                     {
                         Console.WriteLine("\r\n    [x] IO exception, places.sqlite file likely in use (i.e. Firefox is likely running).", exception.Message);
                     }
-                    catch (Exception exception)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine("\r\n    [x] Exception: {0}", exception.Message);
+                        Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
                     }
                 }
             }
@@ -147,7 +147,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -191,7 +191,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -226,9 +226,9 @@ namespace winPEAS
                 {
                     Console.WriteLine("\r\n    [x] IO exception, history file likely in use (i.e. Browser is likely running): ", exception.Message);
                 }
-                catch (Exception exception)
+                catch (Exception ex)
                 {
-                    Console.WriteLine("\r\n    [x] Exception: {0}", exception.Message);
+                    Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
                 }
             }
             return results;
@@ -263,9 +263,9 @@ namespace winPEAS
                 {
                     Console.WriteLine("\r\n    [x] IO exception, Bookmarks file likely in use (i.e. Chrome is likely running).", exception.Message);
                 }
-                catch (Exception exception)
+                catch (Exception ex)
                 {
-                    Console.WriteLine("\r\n    [x] Exception: {0}", exception.Message);
+                    Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
                 }
             }
             return results;
@@ -313,7 +313,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -444,7 +444,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
             }
             return results;
         }
@@ -501,9 +501,9 @@ namespace winPEAS
                 Marshal.ReleaseComObject(shellObj);
                 shellObj = null;
             }
-            catch (Exception ex2)
+            catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex2);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
             }
             return results;
         }
@@ -703,7 +703,7 @@ namespace winPEAS
 
             for (int i = 0; i < vaultCount; i++)
             {
-                
+
                 // Open vault block
                 object vaultGuidString = System.Runtime.InteropServices.Marshal.PtrToStructure(guidAddress, typeof(Guid));
                 Guid vaultGuid = new Guid(vaultGuidString.ToString());
@@ -823,7 +823,7 @@ namespace winPEAS
 
         public static void GetCredsCredmanager()
         {
-            var cm = new Credential {};
+            var cm = new Credential { };
             cm.Load();
         }
 
@@ -1224,7 +1224,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
             }
             return results;
         }
@@ -1328,7 +1328,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
             }
             return results;
         }
@@ -1410,7 +1410,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -1560,7 +1560,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -1643,7 +1643,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -2182,7 +2182,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -2270,7 +2270,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -2458,7 +2458,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -2569,7 +2569,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }

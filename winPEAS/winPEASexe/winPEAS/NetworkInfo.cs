@@ -163,14 +163,14 @@ namespace winPEAS
                     byte[] macBytes = new byte[] { arpEntry.mac0, arpEntry.mac1, arpEntry.mac2, arpEntry.mac3, arpEntry.mac4, arpEntry.mac5 };
                     string physAddr = BitConverter.ToString(macBytes);
                     ArpEntryType entryType = (ArpEntryType)arpEntry.dwType;
-                    adapters[arpEntry.dwIndex]["arp"] += String.Format("\t  {0,-22}{1,-22}{2}\n", ipAddr, physAddr, entryType);
+                    adapters[arpEntry.dwIndex]["arp"] += String.Format("          {0,-22}{1,-22}{2}\n", ipAddr, physAddr, entryType);
                 }
 
                 FreeMibTable(buffer);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             results = adapters.Values.ToList();
             return results;
@@ -188,14 +188,32 @@ namespace winPEAS
                 //    results.Add(new List<string>() { "TCP", conn.LocalEndPoint.ToString(), conn.RemoteEndPoint.ToString(), conn.State.ToString() });
 
                 foreach (var listener in props.GetActiveTcpListeners())
-                    results.Add(new List<string>() { "TCP", listener.ToString(), "", "Listening" });
+                {
+                    bool repeated = false;
+                    foreach(List<string> inside_entry in results)
+                    {
+                        if (inside_entry.SequenceEqual(new List<string>() { "TCP", listener.ToString(), "", "Listening" }))
+                            repeated = true;
+                    }
+                    if (! repeated)
+                        results.Add(new List<string>() { "TCP", listener.ToString(), "", "Listening" });
+                }
 
                 foreach (var listener in props.GetActiveUdpListeners())
-                    results.Add(new List<string>() { "UDP", listener.ToString(), "", "Listening" });
+                {
+                    bool repeated = false;
+                    foreach (List<string> inside_entry in results)
+                    {
+                        if (inside_entry.SequenceEqual(new List<string>() { "UDP", listener.ToString(), "", "Listening" }))
+                            repeated = true;
+                    }
+                    if (!repeated)
+                        results.Add(new List<string>() { "UDP", listener.ToString(), "", "Listening" });
+                }
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
 
             return results;
@@ -222,7 +240,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return result;
         }
@@ -244,7 +262,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -323,26 +341,50 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
 
         // https://stackoverflow.com/questions/3567063/get-a-list-of-all-unc-shared-folders-on-a-local-network-server
-        public static List<string> GetNetworkShares(string pcname)
+        // v2: https://stackoverflow.com/questions/6227892/reading-share-permissions-in-c-sharp
+        public static List<Dictionary<string, string>> GetNetworkShares(string pcname)
         {
-            List<string> results = new List<string>();
+            List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
             try
             {
-                using (ManagementClass shares = new ManagementClass(@"\\" + pcname + @"\root\cimv2", "Win32_Share", new ObjectGetOptions()))
+                ManagementClass manClass = new ManagementClass(@"\\" + pcname + @"\root\cimv2:Win32_Share"); //get shares
+
+                foreach (ManagementObject objShare in manClass.GetInstances())
                 {
-                    foreach (ManagementObject share in shares.GetInstances())
-                        results.Add(share["Name"].ToString());
+                    int current_perm = 0;
+                    string perm_str = "";
+
+                    try
+                    {
+                        //get the access values you have
+                        ManagementBaseObject result = objShare.InvokeMethod("GetAccessMask", null, null);
+
+                        //value meanings: http://msdn.microsoft.com/en-us/library/aa390438(v=vs.85).aspx
+                        current_perm = Convert.ToInt32(result.Properties["ReturnValue"].Value);
+                        perm_str = MyUtils.permInt2Str(current_perm);
+                    }
+                    catch (ManagementException me)
+                    {
+                        perm_str = ""; //no permissions are set on the share
+                    }
+
+                    Dictionary<string, string> share = new Dictionary<string, string> { };
+                    share["Name"] = String.Format("{0}", objShare.Properties["Name"].Value);
+                    share["Path"] = String.Format("{0}", objShare.Properties["Path"].Value);
+                    share["Permissions"] = perm_str;
+                    results.Add(share);
                 }
+
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -375,7 +417,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }

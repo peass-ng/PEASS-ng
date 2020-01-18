@@ -37,7 +37,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return false;
         }
@@ -101,7 +101,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -136,7 +136,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -159,7 +159,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -208,7 +208,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -255,7 +255,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -285,7 +285,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -315,7 +315,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -343,7 +343,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }
@@ -359,7 +359,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [X] Exception: {0}", ex.Message);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return result;
         }
@@ -379,7 +379,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return result;
         }
@@ -402,7 +402,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
             return results;
         }

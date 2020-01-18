@@ -1,4 +1,4 @@
-﻿using Colorful; // http://colorfulconsole.com/
+﻿//using Colorful; // http://colorfulconsole.com/
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -26,89 +26,78 @@ namespace winPEAS
         public static string NOCOLOR = "\x1b[0m";
         public static string ansi_color_bad = RED;
         public static string ansi_color_good = GREEN;
+        public static string ansi_color_gray = GRAY;
+        public static string ansi_color_yellow = YELLOW;
         public static string ansi_users_active = CYAN;
         public static string ansi_users_disabled = BLUE;
         public static string ansi_current_user = MAGENTA;
 
-        public static Color color_key = Color.DarkSeaGreen;
-        public static Color color_not_found = Color.Gray;
-        public static Color color_default = Color.LightSkyBlue;
-        public static Color color_good = Color.Green;
-        public static Color color_bad = Color.Red;
-        /*static List<Color> color_line = new List<Color>() {
-            Color.DarkOrange,
-            Color.MediumPurple,
-            Color.MediumVioletRed,
-            Color.Linen,
-            Color.MediumTurquoise,
-            Color.SkyBlue,
-            Color.Tomato,
-            Color.GreenYellow,
-            Color.HotPink,
-            Color.Peru
-        };*/
 
         public static void PrintBanner()
         {
-            Colorful.Console.WriteLine(@"     
-             *((,.,/((((((((((((((((((((/,  */               
-      ,/*,..*(((((((((((((((((((((((((((((((((,           
-    ,*/((((((((((((((((((/,  .*//((//**, .*((((((*       
-    ((((((((((((((((* *****,,,/########## .(* ,((((((   
-    (((((((((((/* ******************/####### .(. ((((((
-    ((((((..******************/@@@@@/***/######* /((((((
-    ,,..**********************@@@@@@@@@@(***,#### ../(((((
-    , ,**********************/@@@@@%@@@@/********##((/ /((((
-    ..(((##########*********/%@@@@@@@@@/*************,,..((((
-    .(((################(/******/@@@@@/****************.. /((
-    .((########################(/************************..*(
-    .((#############################(/********************.,(
-    .((##################################(/***************..(
-    .((######################################(************..(
-    .((######(,.***.,(###################(..***(/*********..(
-    .((######*(#####((##################((######/(********..(
-    .((##################(/**********(################(**...(
-    .(((####################/*******(###################.((((  
-    .(((((############################################/  /((
-    ..(((((#########################################(..(((((.
-    ....(((((#####################################( .((((((.
-    ......(((((#################################( .(((((((.
-    (((((((((. ,(############################(../(((((((((.
-        (((((((((/,  ,####################(/..((((((((((.
-              (((((((((/,.  ,*//////*,. ./(((((((((((.
-                 (((((((((((((((((((((((((((/", color_default);
+            try
+            {
+                System.Console.WriteLine(BLUE + String.Format(@"     
+             {0}*((,.,/((((((((((((((((((((/,  */               
+      {0},/*,..*((((((((((((((((((((((((((((((((((,           
+    {0},*/((((((((((((((((((/,  .*//((//**, .*(((((((*       
+    {0}(((((((((((((((({2}**********/{1}########## {0}.(* ,(((((((   
+    {0}(((((((((((/{2}********************/{1}####### {0}.(. (((((((
+    {0}((((((..{2}******************{3}/@@@@@/{2}***/{1}###### {0}./(((((((
+    {0},,....{2}********************{3}@@@@@@@@@@{2}(***,{1}#### {0}.//((((((
+    {0}, ,..{2}********************{3}/@@@@@%@@@@{2}/********{1}##{0}((/ /((((
+    {0}..(({1}###########{2}*********{3}/%@@@@@@@@@{2}/************{0},,..((((
+    {0}.({1}##################(/{2}******{3}/@@@@@{2}/***************{0}.. /((
+    {0}.({1}#########################(/{2}**********************{0}..*((
+    {0}.({1}##############################(/{2}*****************{0}.,(((
+    {0}.({1}###################################(/{2}************{0}..(((
+    {0}.({1}#######################################({2}*********{0}..(((
+    {0}.({1}#######(,.***.,(###################(..***.{2}*******{0}..(((
+    {0}.({1}#######*(#####((##################((######/({2}*****{0}..(((
+    {0}.({1}###################(/***********(##############({0}...(((
+    {0}.(({1}#####################/*******(################{0}.((((((
+    {0}.((({1}############################################{0}(..((((
+    {0}..((({1}##########################################{0}(..(((((
+    {0}....(({1}########################################{0}( .(((((
+    {0}......(({1}####################################{0}( .((((((
+    {0}((((((((({1}#################################{0}(../((((((
+        {0}(((((((((/{1}##########################{0}(/..((((((
+              {0}(((((((((/,.  ,*//////*,. ./(((((((((((((((.
+                 {0}(((((((((((((((((((((((((((((/", LGREEN, GREEN, BLUE, NOCOLOR) + NOCOLOR);
 
-            Thread.Sleep(700);
+                System.Console.WriteLine();
+                System.Console.WriteLine(LYELLOW + "ADVISORY: " + BLUE + Program.advisory);
+                System.Console.WriteLine();
+                Thread.Sleep(700);
+            }
+            catch (Exception ex)
+            {
+                GrayPrint("Error in PrintBanner: " + ex);
+            }
         }
 
         public static void PrintInit()
         {
-            if (Program.banner)
-                PrintBanner();
-
-            if (Program.using_ansi)
+            try
             {
-                System.Console.WriteLine(YELLOW + "  " + NOCOLOR + "WinPEAS " + GREEN + Program.version + NOCOLOR + YELLOW + " by carlospolop" + NOCOLOR);
+                if (Program.banner)
+                    PrintBanner();
+
+                System.Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Program.version + NOCOLOR + YELLOW + " by carlospolop" + NOCOLOR);
+                System.Console.WriteLine();
+                PrintLeyend();
+                System.Console.WriteLine();
+                LinkPrint("https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation", "You can find a Windows local PE Checklist here:");
             }
-            else
+            catch(Exception ex)
             {
-                Formatter[] colorsString = new Formatter[]
-                        {
-                        new Formatter( "  WinPEAS", color_key),
-                        new Formatter( Program.version, color_default),
-                };
-
-                Colorful.Console.WriteLineFormatted("{0} {1} by carlospolop", Color.Yellow, colorsString);
+                GrayPrint("Error in PrintInit: " + ex);
             }
-            Colorful.Console.WriteLine();
-
-            LinkPrint("https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation", "You can find a Windows local PE Checklist here:");
-            PrintLeyend();
         }
 
         static void PrintLeyend()
         {
-            if (Program.using_ansi)
+            try
             {
                 System.Console.WriteLine(YELLOW + "  [+] " + GREEN + "Leyend:" + NOCOLOR);
                 System.Console.WriteLine(RED + "         Red" + GRAY + "                Indicates a special privilege over an object or something is misconfigured" + NOCOLOR);
@@ -117,62 +106,62 @@ namespace winPEAS
                 System.Console.WriteLine(BLUE + "         Blue" + GRAY + "               Indicates disabled users" + NOCOLOR);
                 System.Console.WriteLine(LYELLOW + "         LightYellow" + GRAY + "        Indicates links" + NOCOLOR);
             }
-            else
+            catch(Exception ex)
             {
-                Colorful.Console.Write("  [+] ", Color.Yellow); Colorful.Console.WriteLine(" Leyend", color_good);
-                Colorful.Console.Write("         Red", color_bad); Colorful.Console.WriteLine("        Indicates a special privilege over an object or something is misconfigured", Color.Gray);
-                Colorful.Console.Write("         Green", color_good); Colorful.Console.WriteLine("      Indicates that some protection is enabled or something is well configured", Color.Gray);
-                Colorful.Console.Write("         Pistachio", color_key); Colorful.Console.WriteLine("  Indicates static information (no host dependant), in general");
-                Colorful.Console.Write("         Lightblue", color_default); Colorful.Console.WriteLine("  Indicates information extracted from the host (host dependant)");
-                Colorful.Console.Write("         Magenta", Color.Magenta); Colorful.Console.WriteLine("    Indicates current user and domain");
-                Colorful.Console.Write("         Cyan", Color.Cyan); Colorful.Console.WriteLine("       Indicates active users");
-                //Colorful.Console.Write("         Blue", Color.Blue); Colorful.Console.WriteLine("       Indicates locked users");
-                Colorful.Console.Write("         Purple", Color.MediumPurple); Colorful.Console.WriteLine("     Indicates disablde users and links (and other info for coloring purposes)");
+                GrayPrint("Error in PrintLeyend: " + ex);
             }
         }
 
         public static void PrintUsage()
         {
-            if (Program.using_ansi)
-            {
-                System.Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tquiet" + GRAY + "             Do not print banner" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tansi" + GRAY + "              Use ansi colors (see color from linux terminal)" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tsearchfast" + GRAY + "        Avoid sleeping while searching files (notable amount of resources)" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tfast" + GRAY + "              Avoid very time consuming checks" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tcmd" + GRAY + "               Obtain wifi, cred manager and clipboard information executing CMD commands" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tsysteminfo" + GRAY + "        Search system information" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tuserinfo" + GRAY + "          Search user information" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tprocesinfo" + GRAY + "        Search processes information" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tservicesinfo" + GRAY + "      Search services information" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tapplicationsinfo" + GRAY + "  Search installed applications information" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tnetworkinfo" + GRAY + "       Search network information" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\twindowscreds" + GRAY + "      Search windows credentials" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tbrowserinfo" + GRAY + "       Search browser information" + NOCOLOR);
-                System.Console.WriteLine(LBLUE + "\tfilesinfo" + GRAY + "         Search files that can contains credentials" + NOCOLOR);
-                System.Console.WriteLine(YELLOW + "\t[+] " + LYELLOW + "By default all checks are executed" + NOCOLOR);
-            }
-            else
-            {
-                Colorful.Console.Write("  [*] ", Color.Yellow); Colorful.Console.WriteLine("WinPEAS is a binary to enumerate possible paths to escalate privileges locally", color_key);
-                Colorful.Console.Write("\tquiet", color_default); Colorful.Console.WriteLine("             Do not print banner", Color.Gray);
-                Colorful.Console.Write("\tansi", color_default); Colorful.Console.WriteLine("              Use ansi colors (see color from linux terminal)", Color.Gray);
-                Colorful.Console.Write("\tsearchfast", color_default); Colorful.Console.WriteLine("        Avoid sleeping while searching files (notable amount of resources)", Color.Gray);
-                Colorful.Console.Write("\tfast", color_default); Colorful.Console.WriteLine("              Avoid very time consuming checks", Color.Gray);
-                Colorful.Console.Write("\tcmd", color_default); Colorful.Console.WriteLine("               Obtain wifi, cred manager and clipboard information executing CMD commands", Color.Gray);
-                Colorful.Console.Write("\tsysteminfo", color_default); Colorful.Console.WriteLine("        Search system information", Color.Gray);
-                Colorful.Console.Write("\tuserinfo", color_default); Colorful.Console.WriteLine("          Search user information", Color.Gray);
-                Colorful.Console.Write("\tprocesinfo", color_default); Colorful.Console.WriteLine("        Search processes information", Color.Gray);
-                Colorful.Console.Write("\tservicesinfo", color_default); Colorful.Console.WriteLine("      Search services information", Color.Gray);
-                Colorful.Console.Write("\tapplicationsinfo", color_default); Colorful.Console.WriteLine("  Search installed applications information", Color.Gray);
-                Colorful.Console.Write("\tnetworkinfo", color_default); Colorful.Console.WriteLine("       Search network information", Color.Gray);
-                Colorful.Console.Write("\twindowscreds", color_default); Colorful.Console.WriteLine("      Search windows credentials", Color.Gray);
-                Colorful.Console.Write("\tbrowserinfo", color_default); Colorful.Console.WriteLine("       Search browser information", Color.Gray);
-                Colorful.Console.Write("\tfilesinfo", color_default); Colorful.Console.WriteLine("         Search files that can contains credentials", Color.Gray);
-                Colorful.Console.Write("\t[+] ", Color.Yellow); Colorful.Console.WriteLine(" By default all checks are executed", color_good);
-            }
+            System.Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        quiet" + GRAY + "             Do not print banner" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        searchfast" + GRAY + "        Avoid sleeping while searching files (notable amount of resources)" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        fast" + GRAY + "              Avoid very time consuming checks" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        cmd" + GRAY + "               Obtain wifi, cred manager and clipboard information executing CMD commands" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        notansi" + GRAY + "           Don't use ansi colors (all white)" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        systeminfo" + GRAY + "        Search system information" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        userinfo" + GRAY + "          Search user information" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        procesinfo" + GRAY + "        Search processes information" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        servicesinfo" + GRAY + "      Search services information" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        applicationsinfo" + GRAY + "  Search installed applications information" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        networkinfo" + GRAY + "       Search network information" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        windowscreds" + GRAY + "      Search windows credentials" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        browserinfo" + GRAY + "       Search browser information" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        filesinfo" + GRAY + "         Search files that can contains credentials" + NOCOLOR);
+            System.Console.WriteLine(YELLOW + "        [+] " + LYELLOW + "By default all checks (except CMD checks) are executed" + NOCOLOR);
         }
 
+        public static void deleteColors()
+        {
+            GRAY = "";
+            RED = "";
+            LRED = "";
+            GREEN = "";
+            LGREEN = "";
+            YELLOW = "";
+            LYELLOW = "";
+            BLUE = "";
+            LBLUE = "";
+            MAGENTA = "";
+            LMAGENTA = "";
+            CYAN = "";
+            LCYAN = "";
+            REDYELLOW = "";
+            NOCOLOR = "";
+            ansi_color_bad = "";
+            ansi_color_good = "";
+            ansi_color_gray = "";
+            ansi_color_yellow = "";
+            ansi_users_active = "";
+            ansi_users_disabled = "";
+            ansi_current_user = "";
+    }
+
+
+        /////////////////////////////////
+        /// DIFFERENT PRINT FUNCTIONS ///
+        /////////////////////////////////
         public static void GreatPrint(string toPrint)
         {
             try
@@ -180,15 +169,7 @@ namespace winPEAS
                 System.Console.WriteLine();
                 System.Console.WriteLine();
                 int halfTotal = 60;
-                if (Program.using_ansi)
-                    System.Console.WriteLine(LCYAN + "  " + new String('=', halfTotal - toPrint.Length) + "(" + NOCOLOR + YELLOW + toPrint + LCYAN + ")" + new String('=', halfTotal - toPrint.Length) + NOCOLOR);
-                else
-                {
-                    StyleSheet styleSheet = new StyleSheet(Color.White);
-                    styleSheet.AddStyle("[a-zA-Z]", Color.Yellow);
-                    styleSheet.AddStyle("[=()]", Color.LightSkyBlue);
-                    Colorful.Console.WriteLineStyled(new String('=', halfTotal - toPrint.Length) + "( " + toPrint + " )" + new String('=', halfTotal - toPrint.Length), styleSheet);
-                }
+                System.Console.WriteLine(LCYAN + "  " + new String('=', halfTotal - toPrint.Length) + "(" + NOCOLOR + YELLOW + toPrint + LCYAN + ")" + new String('=', halfTotal - toPrint.Length) + NOCOLOR);
             }
             catch (Exception ex)
             {
@@ -200,19 +181,8 @@ namespace winPEAS
         {
             try
             {
-                Colorful.Console.WriteLine();
-                if (Program.using_ansi)
-                    System.Console.WriteLine(YELLOW + "  [+] " + LRED + toPrint + YELLOW + "(" + GRAY + attackid + YELLOW + ")" + NOCOLOR);
-                else
-                {
-                    string iniPrint = "[+] {0} ({1})";
-                    Formatter[] colors = new Formatter[]
-                    {
-                        new Formatter(toPrint, Color.Salmon),
-                        new Formatter(attackid, Color.Gray),
-                    };
-                    Colorful.Console.WriteLineFormatted(iniPrint, Color.Yellow, colors);
-                }
+                System.Console.WriteLine();
+                System.Console.WriteLine(YELLOW + "  [+] " + LRED + toPrint + YELLOW + "(" + GRAY + attackid + YELLOW + ")" + NOCOLOR);
             }
             catch (Exception ex)
             {
@@ -224,18 +194,7 @@ namespace winPEAS
         {
             try
             {
-                if (Program.using_ansi)
-                    System.Console.WriteLine(YELLOW + "   [?] " + LBLUE + comment + " " + LYELLOW + link + NOCOLOR);
-                else
-                {
-                    Formatter[] colors = new Formatter[]
-                    {
-                         new Formatter("   [?] ", Color.Yellow),
-                         new Formatter(link, Color.MediumPurple),
-                    };
-                    Colorful.Console.WriteLineFormatted("{0}" + comment + " {1}", color_default, colors);
-                }
-                Colorful.Console.WriteLine();
+                System.Console.WriteLine(YELLOW + "   [?] " + LBLUE + comment + " " + LYELLOW + link + NOCOLOR);
             }
             catch (Exception ex)
             {
@@ -247,17 +206,7 @@ namespace winPEAS
         {
             try
             {
-                if (Program.using_ansi)
-                    System.Console.WriteLine(YELLOW + "    [i] " + LBLUE + toPrint + NOCOLOR);
-                else
-                {
-                    string iniPrint = "    [i] {0}";
-                    Formatter[] colorsString = new Formatter[]
-                    {
-                        new Formatter(toPrint, color_key),
-                    };
-                    Colorful.Console.WriteLineFormatted(iniPrint, Color.Yellow, colorsString);
-                }
+                System.Console.WriteLine(YELLOW + "    [i] " + LBLUE + toPrint + NOCOLOR);
             }
             catch (Exception ex)
             {
@@ -272,32 +221,23 @@ namespace winPEAS
 
         public static void GoodPrint(string to_print)
         {
-            if (Program.using_ansi)
-                System.Console.WriteLine(GREEN + to_print + NOCOLOR);
-            else
-                Colorful.Console.WriteLine(to_print, color_good);
+            System.Console.WriteLine(GREEN + to_print + NOCOLOR);
         }
 
         public static void BadPrint(string to_print)
         {
-            if (Program.using_ansi)
-                System.Console.WriteLine(RED + to_print + NOCOLOR);
-            else
-                Colorful.Console.WriteLine(to_print, color_bad);
+            System.Console.WriteLine(RED + to_print + NOCOLOR);
         }
 
         public static void GrayPrint(string to_print)
         {
-            if (Program.using_ansi)
-                System.Console.WriteLine(GRAY + to_print + NOCOLOR);
-            else
-                Colorful.Console.WriteLine(to_print, color_not_found);
-
+            System.Console.WriteLine(GRAY + to_print + NOCOLOR);
         }
 
         public static void PrintLineSeparator()
         {
             GrayPrint("   =================================================================================================");
+            System.Console.WriteLine();
         }
         public static void AnsiPrint(string to_print, Dictionary<string, string> ansi_colors_regexp)
         {
@@ -316,13 +256,18 @@ namespace winPEAS
 
         static string Regexansi(string to_match, string color, string rgxp)
         {
+            if (to_match.Length == 0 || color.Length == 0 || rgxp.Length == 0)
+                return to_match;
+
             Regex regex = new Regex(rgxp);
-            Match match = regex.Match(to_match);
-            if (match.Success)
-                return to_match.Replace(match.Value, color + match.Value + NOCOLOR);
+            foreach (Match match in regex.Matches(to_match))
+            {
+                if (match.Value.Length > 0)
+                    to_match = to_match.Replace(match.Value, NOCOLOR + color + match.Value + NOCOLOR);
+            }
             return to_match;
         }
-        public static void DictPrint(Dictionary<string, string> dicprint, Dictionary<string, string> ansi_colors_regexp, bool delete_nulls)
+        public static void DictPrint(Dictionary<string, string> dicprint, Dictionary<string, string> ansi_colors_regexp, bool delete_nulls, bool no_gray = false)
         {
             try
             {
@@ -332,12 +277,16 @@ namespace winPEAS
                         continue;
                     string value = entry.Value;
                     string key = entry.Key;
+                    string line = "";
+                    if (! no_gray)
+                        line = ansi_color_gray + "    " + key + ": " + NOCOLOR + value;
+                    else
+                        line = "    " + key + ": " + value;
+
                     foreach (KeyValuePair<string, string> color in ansi_colors_regexp)
-                    {
-                        key = Regexansi(key, color.Value, color.Key);
-                        value = Regexansi(value, color.Value, color.Key);
-                    }
-                    System.Console.WriteLine("    " + key + ": " + value);
+                        line = Regexansi(line, color.Value, color.Key);
+                    
+                    System.Console.WriteLine(line);
                 }
             }
             catch (Exception ex)
@@ -355,57 +304,7 @@ namespace winPEAS
                     {
                         if (delete_nulls && String.IsNullOrEmpty(entry.Value))
                             continue;
-                        if (Program.using_ansi)
-                            System.Console.WriteLine("    " + entry.Key + ": " + entry.Value);
-
-                        else
-                        {
-                            Formatter[] colorsString = new Formatter[]
-                            {
-                                new Formatter(entry.Key, color_key),
-                                new Formatter(entry.Value, color_default),
-                            };
-                            string formString = "    {0}" + new String(' ', (entry.Key.Length <= 30 ? 30 - entry.Key.Length : 0)) + ":  {1}";
-                            Colorful.Console.WriteLineFormatted(formString, color_key, colorsString);
-                        }
-                    }
-                }
-                else
-                    NotFoundPrint();
-            }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
-        }
-
-        public static void DictPrint(Dictionary<string, string> dicprint, StyleSheet ssheet, bool delete_nulls)
-        {
-            try
-            {
-                if (dicprint.Count > 0)
-                {
-                    string formString = "    {0,-30}:  {1}";
-
-                    foreach (KeyValuePair<string, string> entry in dicprint)
-                    {
-                        if (delete_nulls && String.IsNullOrEmpty(entry.Value))
-                            continue;
-                        //Check if a string is already painted (the stylesheet will contains red color first and dont want of overwrite that)
-                        bool repeated = false;
-                        foreach (StyleClass<TextPattern> sstext in ssheet.Styles)
-                        {
-                            string target = sstext.Target.Value;
-                            if (Regex.Match(entry.Key, target).Success || Regex.Match(" " + entry.Key, target).Success)
-                            {
-                                repeated = true;
-                                break;
-                            }
-                        }
-                        if (!repeated)
-                            ssheet.AddStyle(" " + entry.Key.Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?"), color_key);
-
-                        Colorful.Console.WriteLineStyled(String.Format(formString, entry.Key, entry.Value), ssheet);
+                        System.Console.WriteLine(ansi_color_gray + "    " + entry.Key + ": " + NOCOLOR + entry.Value);
                     }
                 }
                 else
@@ -458,7 +357,8 @@ namespace winPEAS
             }
         }
 
-        public static void DictPrint(List<Dictionary<string, string>> listdicprint, StyleSheet ssheet, bool delete_nulls)
+
+        public static void DictPrint(List<Dictionary<string, string>> listdicprint, Dictionary<string, string> colors, bool delete_nulls, bool no_gray = false)
         {
             try
             {
@@ -466,7 +366,7 @@ namespace winPEAS
                 {
                     foreach (Dictionary<string, string> dicprint in listdicprint)
                     {
-                        DictPrint(dicprint, ssheet, delete_nulls);
+                        DictPrint(dicprint, colors, delete_nulls, no_gray);
                         PrintLineSeparator();
                     }
                 }
@@ -478,68 +378,6 @@ namespace winPEAS
                 GrayPrint(String.Format("{0}", ex));
             }
         }
-
-        public static void DictPrint(List<Dictionary<string, string>> listdicprint, Dictionary<string, string> colors, bool delete_nulls)
-        {
-            try
-            {
-                if (listdicprint.Count > 0)
-                {
-                    foreach (Dictionary<string, string> dicprint in listdicprint)
-                    {
-                        DictPrint(dicprint, colors, delete_nulls);
-                        PrintLineSeparator();
-                    }
-                }
-                else
-                    NotFoundPrint();
-            }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
-        }
-
-        /*public static void LinePrint(string formString, List<string> to_complete)
-        {
-            try
-            {
-                Formatter[] colorsString = new Formatter[to_complete.Count];
-                for (int i = 0; i < to_complete.Count; i++)
-                {
-                    colorsString[i] = new Formatter(to_complete[i], color_line[i % color_line.Count]);
-                }
-                Colorful.Console.WriteLineFormatted(formString, color_key, colorsString);
-            }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}",ex));
-            }
-        }
-
-        public static void ColumnPrint(string formString, List<string> to_complete)
-        {
-            try
-            {
-                string[] params_format = new string[to_complete.Count];
-                for (int i = 0; i < to_complete.Count; i++)
-                {
-                    params_format[i] = "{" + i + "}";
-                }
-                formString = String.Format(formString, params_format);
-
-                Formatter[] colorsString = new Formatter[to_complete.Count];
-                for (int i = 0; i < to_complete.Count; i++)
-                {
-                    colorsString[i] = new Formatter(to_complete[i], color_line[i % color_line.Count]);
-                }
-                Colorful.Console.WriteLineFormatted(formString, color_key, colorsString);
-            }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}",ex));
-            }
-        }*/
 
         public static void ListPrint(List<string> list_to_print)
         {
@@ -547,16 +385,8 @@ namespace winPEAS
             {
                 if (list_to_print.Count > 0)
                 {
-                    if (Program.using_ansi)
-                    {
-                        foreach (string elem in list_to_print)
-                            System.Console.WriteLine("    " + elem);
-                    }
-                    else
-                    {
-                        foreach (string elem in list_to_print)
-                            Colorful.Console.WriteLine("    " + elem, color_default);
-                    }
+                    foreach (string elem in list_to_print)
+                        System.Console.WriteLine("    " + elem);
                 }
                 else
                     NotFoundPrint();
@@ -577,25 +407,5 @@ namespace winPEAS
             else
                 NotFoundPrint();
         }
-
-        public static void ListPrint(List<string> list_to_print, StyleSheet ss)
-        {
-            try
-            {
-                if (list_to_print.Count > 0)
-                {
-                    foreach (string elem in list_to_print)
-                        Colorful.Console.WriteLineStyled("    " + elem, ss);
-                }
-                else
-                    NotFoundPrint();
-            }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
-        }
-
-
     }
 }

@@ -12,26 +12,30 @@ Check also the **Local Windows Privilege Escalation checklist** from **[book.hac
 
 Download the **[latest version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/winPEAS/bin)** or **compile it yourself**.
 ```bash
-winpeas.exe ansi cmd searchfast #ANSI color for linux consoles (reverse shell), cmd commands and avoid sleepig
-winpeas.exe #Will execute all checks except the ones that execute MD commands
+winpeas.exe cmd searchfast #cmd commands and avoid sleepig (noisy - CTFs)
+winpeas.exe #Will execute all checks except the ones that use a CMD
 winpeas.exe cmd #All checks
 winpeas.exe cmd fast #All except the one that search for files
-winpeas.exe systeminfo userinfo #Only systeminfo and userinfo checks executed 
+winpeas.exe systeminfo userinfo #Only systeminfo and userinfo checks executed
+winpeas.exe notcolor #Do not color the output
 ```
 
 ## Basic information
 
 The goal of this project is to search for possible **Privilege Escalation Paths** in Windows environments.
 
-It should take only a **few seconds** to execute almost all the checks and **some minutes searching in the whole main drive** for known files that could contain passwords (the time depened on the number of files in your drive). Get rid of that time consuming check using the parameter `fast`.
+It should take only a **few seconds** to execute almost all the checks and **some minutes during the last check searching in the whole main drive** for known files that could contain passwords (the time depened on the number of files in your drive). Get rid of that time consuming check using the parameter `fast`.
 
 By default, the progam **sleeps 150ms** before start searching files in each directory. This is made to consume less resources (**stealthier**). You can **avoid this sleep using `searchfast` parameter**.
 
-The **ouput will be colored**. Below you have some indications about what does each color means exacty, but keep in mind that **Red** is for something interesting (from a pentester perspective) and **Green** is something good (from a defender perspective).
+The **ouput will be colored** using **ansi** colors. If you are executing `winpeas.exe` **from a Windows console**, you need to set a registry value to see the colors:
+`
+REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
+`
+Below you have some indications about what does each color means exacty, but keep in mind that **Red** is for something interesting (from a pentester perspective) and **Green** is something well configured (from a defender perspective).
 
-The tool is heavily based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)**.
+The tool is based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)**.
 
-**IMPORTANT TO NOTICE:** By default WinPEAS will use colors for Windows terminals (without ANSI characters). If you are executing winpeas.exe from a reverse shell without any option **any color will be appear**. To see colors in a linux terminal you need to use the **ansi** parameter.
 
 ## Help
 
@@ -72,7 +76,7 @@ The tool is heavily based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)
 
 - **Services Information**
   - [x] Interesting services (non Microsoft) information
-  - [x] Writable service registry
+  - [x] Writable service registry binpath
   - [x] PATH Dll Hijacking
 
 - **Applications Information**
@@ -92,7 +96,7 @@ The tool is heavily based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)
 - **Windows Credentials**
   - [x] Windows Vault
   - [x] Credential Manager
-  - [x] Saved RDO connections
+  - [x] Saved RDP connections
   - [x] Recently run commands
   - [x] DPAPI Masterkeys
   - [x] DPAPI Credential files
@@ -116,6 +120,7 @@ The tool is heavily based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)
 - **Interesting Files and registry**
   - [x] Putty sessions
   - [x] Putty SSH host keys
+  - [x] SSH Keys inside registry
   - [x] Cloud credentials
   - [x] Possible registries with credentials
   - [x] Possible credentials files in users homes
@@ -149,6 +154,10 @@ If you want to help with any of this, you can do it using **[github issues](http
 If you find any issue, please report it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)**.
 
 **WinPEAS** is being **updated** every time I find something that could be useful to escalate privileges.
+
+## Advisory
+
+All the scripts/binaries of the PEAS Suite should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
 
 ## License
 

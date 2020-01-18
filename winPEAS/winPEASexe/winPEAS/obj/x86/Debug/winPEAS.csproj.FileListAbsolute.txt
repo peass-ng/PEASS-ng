@@ -6,3 +6,12 @@ C:\Users\carlos\source\repos\PEASS\winPEAS\winPEASexe\winPEAS\obj\x86\Debug\winP
 C:\Users\carlos\source\repos\PEASS\winPEAS\winPEASexe\winPEAS\obj\x86\Debug\winPEAS.csproj.CopyComplete
 C:\Users\carlos\source\repos\PEASS\winPEAS\winPEASexe\winPEAS\obj\x86\Debug\winPEAS.exe
 C:\Users\carlos\source\repos\PEASS\winPEAS\winPEASexe\winPEAS\obj\x86\Debug\winPEAS.pdb
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x86\Debug\winPEAS.exe.config
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x86\Debug\winPEAS.exe
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x86\Debug\winPEAS.pdb
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x86\Debug\Microsoft.Win32.TaskScheduler.xml
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\x86\Debug\winPEAS.csprojAssemblyReference.cache
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\x86\Debug\winPEAS.csproj.Fody.CopyLocal.cache
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\x86\Debug\winPEAS.csproj.CopyComplete
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\x86\Debug\winPEAS.exe
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\x86\Debug\winPEAS.pdb

@@ -45,7 +45,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint("Error: " + ex);
             }
             return results;
         }
@@ -107,7 +107,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Beaprint.GrayPrint("Error: " + ex);
             }
             return results;
         }

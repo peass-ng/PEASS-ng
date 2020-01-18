@@ -24,6 +24,11 @@ If you want to **add something** and have **any cool idea** related to this proj
 
 Contact me and ask about the **Privilege Escalation Course** I am preparing for attackers and defenders (**100% technical**).
 
+## Advisory
+
+All the scripts/binaries of the PEAS suite should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
+
+
 ## License
 
 MIT License

