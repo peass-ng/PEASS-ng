@@ -240,9 +240,9 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Generic hashes MD5, SHA1, SHA256, SHA512
 </details>
 
-## Do not fork it!!
+## Let's improve PEASS together
 
-If you want to **add something** and have **any cool idea** related to this project, please let me know it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)** and we will update the master version.
+If you want to **add something** and have **any cool idea** related to this project, please let me know it in the **telegram group https://t.me/peass** or using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)** and we will update the master version.
 
 ## Please, if this tool has been useful for you consider to donate
 

@@ -10,9 +10,9 @@ Check more **information about how to exploit** found misconfigurations in **[bo
 - [Link to WinPEAS C# project (.exe)](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe)
 - [Link to WinPEAS .bat project](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASbat) Notice that WinPEAS.bat is a batch script made for Windows systems which don't support WinPEAS.exe (Net.4 required)
 
-## Do not fork it!!
+## Let's improve PEASS together
 
-If you want to **add something** and have **any cool idea** related to this project, please let me know it using the [github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues) and we will update the master version.
+If you want to **add something** and have **any cool idea** related to this project, please let me know it in the **telegram group https://t.me/peass** or using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)** and we will update the master version.
 
 ## Please, if this tool has been useful for you consider to donate
 

@@ -12,9 +12,9 @@ These tools search for possible **local privilege escalation paths** that you co
 - Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist)**
 - **[LinPEAS](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/linPEAS) - Linux local Privilege Escalation Awesome Script (.sh)**
 
-## Do not fork it!!
+## Let's improve PEASS together
 
-If you want to **add something** and have **any cool idea** related to this project, please let me know it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)** and we will update the master version.
+If you want to **add something** and have **any cool idea** related to this project, please let me know it in the **telegram group https://t.me/peass** or using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)** and we will update the master version.
 
 ## Please, if this tool has been useful for you consider to donate
 
