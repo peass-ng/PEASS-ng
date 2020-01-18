@@ -29,9 +29,10 @@ It should take only a **few seconds** to execute almost all the checks and **som
 By default, the progam **sleeps 150ms** before start searching files in each directory. This is made to consume less resources (**stealthier**). You can **avoid this sleep using `searchfast` parameter**.
 
 The **ouput will be colored** using **ansi** colors. If you are executing `winpeas.exe` **from a Windows console**, you need to set a registry value to see the colors:
-`
+```
 REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
-`
+```
+
 Below you have some indications about what does each color means exacty, but keep in mind that **Red** is for something interesting (from a pentester perspective) and **Green** is something well configured (from a defender perspective).
 
 The tool is based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)**.
