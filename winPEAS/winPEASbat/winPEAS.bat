@@ -282,6 +282,10 @@ echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] CURRENT LOGGED USERS ^<_-_-_-_-_-_-_-_
 quser
 echo. 
 echo.
+echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] Kerberos Tickets ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+klist
+echo. 
+echo.
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] CURRENT CLIPBOARD ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 echo [i] Any password inside the clipboard?
 powershell -command "Get-Clipboard" 2>nul
