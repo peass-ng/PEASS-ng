@@ -1648,7 +1648,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
 	  ##-- 29IF) Find possible files with passwords
     printf $Y"[+] "$GREEN"Finding 'pwd' or 'passw' string inside /home, /var/www, /etc, /root and list possible web(/var/www) and config(/etc) passwords(limit 70)\n"$NC
-    grep -lRi "pwd\|passw" /home /var/www /etc /root 2>/dev/null | sort | uniq | head 70
+    grep -lRi "pwd\|passw" /home /var/www /etc /root 2>/dev/null | sort | uniq | head -n 70
     echo ""
 
     ##-- 30IF) Specific hashes inside files
