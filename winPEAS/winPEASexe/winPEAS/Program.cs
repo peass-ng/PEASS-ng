@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Management;
 using System.Text.RegularExpressions;
+using System.Security.Principal;
 
 namespace winPEAS
 {
@@ -38,7 +39,7 @@ namespace winPEAS
 
         // Create Dynamic blacklists
         static string currentUserName = Environment.UserName;
-        public static List<string> interestingUsersGroups = new List<string> { "Everyone", "Users", "Todos", currentUserName }; //Authenticated Users (Authenticated left behin to avoid repetitions)
+        public static List<string> interestingUsersGroups = new List<string> { "Everyone", @"Builtin\Users", "Todos", currentUserName }; //Authenticated Users (Authenticated left behin to avoid repetitions)
         public static string currentUserDomainName = Environment.UserDomainName;
         public static string currentADDomainName = "";
         public static bool partofdomain = false;
@@ -93,7 +94,7 @@ namespace winPEAS
 
             try
             {
-                Beaprint.GrayPrint("   - Creating cctive users list...");
+                Beaprint.GrayPrint("   - Creating active users list...");
                 paint_activeUsers = String.Join("|", UserInfo.GetMachineUsers(true, false, false, false, false));
                 paint_activeUsers_no_Administrator = paint_activeUsers.Replace("|Administrator", "").Replace("Administrator|", "").Replace("Administrator", "");
             }
@@ -707,6 +708,16 @@ namespace winPEAS
         /////////////////////////////////////////////////
         private static void PrintInfoServices()
         {
+            Dictionary<string, string> mod_services = new Dictionary<string, string>();
+            try
+            {
+                mod_services = ServicesInfo.GetModifiableServices();
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint(String.Format("{0}", ex));
+            }
+
             void PrintInterestingServices()
             {
                 /* Colors Code
@@ -721,13 +732,17 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Interesting Services -non Microsoft-", "T1007");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#services", "Check if you can overwrite some service binary or perform a DLL hijacking, also cehck for unquoted paths");
+
                     List<Dictionary<string, string>> services_info = ServicesInfo.GetNonstandardServices();
+                    
                     if (services_info.Count < 1)
                         services_info = ServicesInfo.GetNonstandardServicesFromReg();
+                    
                     foreach (Dictionary<string, string> service_info in services_info)
                     {
                         List<string> file_rights = MyUtils.GetPermissionsFile(service_info["FilteredPath"], interestingUsersGroups);
                         List<string> dir_rights = new List<string>();
+
                         if (service_info["FilteredPath"] != null && service_info["FilteredPath"] != "")
                             dir_rights = MyUtils.GetPermissionsFolder(Path.GetDirectoryName(service_info["FilteredPath"]), interestingUsersGroups);
 
@@ -749,6 +764,8 @@ namespace winPEAS
                             formString += " - {6}";
                         if (no_quotes_and_space)
                             formString += " - {7}";
+                        if (mod_services.ContainsKey(service_info["Name"]))
+                            formString += "\n    YOU CAN MODIFY THIS SERVICE: "+ mod_services[service_info["Name"]];
                         if (file_rights.Count > 0)
                             formString += "\n    File Permissions: {8}";
                         if (dir_rights.Count > 0)
@@ -762,12 +779,40 @@ namespace winPEAS
                                 { "File Permissions:.*", Beaprint.ansi_color_bad },
                                 { "Possible DLL Hijacking.*", Beaprint.ansi_color_bad },
                                 { "No quotes and Space detected", Beaprint.ansi_color_bad },
+                                { "YOU CAN MODIFY THIS SERVICE:.*", Beaprint.ansi_color_bad },
                                 { service_info["PathName"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+"), (file_rights.Count > 0 || dir_rights.Count > 0 || no_quotes_and_space) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                             };
+
                             Beaprint.AnsiPrint(String.Format(formString, service_info["Name"], service_info["CompanyName"], service_info["DisplayName"], service_info["PathName"], service_info["StartMode"], service_info["State"], service_info["isDotNet"], "No quotes and Space detected", String.Join(", ", file_rights), dir_rights.Count > 0 ? Path.GetDirectoryName(service_info["FilteredPath"]) : "", String.Join(", ", dir_rights), service_info["Description"]), colorsS);
                         }
+
                         Beaprint.PrintLineSeparator();
                     }
+                }
+                catch (Exception ex)
+                {
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                }
+            }
+
+            void PrintModifiableServices()
+            {
+                try
+                {
+                    Beaprint.MainPrint("Modifiable Services", "T1007");
+                    Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#services", "Check if you can modify any service");
+                    if (mod_services.Count > 0)
+                    {
+                        Beaprint.BadPrint("    LOOKS LIKE YOU CAN MODIFY SOME SERVICE/s:");
+                        Dictionary<string, string> colorsMS = new Dictionary<string, string>()
+                        {
+                            { ".*", Beaprint.ansi_color_bad },
+                        };
+                        Beaprint.DictPrint(mod_services, colorsMS, false, true);
+                    }
+                    else
+                        Beaprint.GoodPrint("    You cannot modify any service");
+                    
                 }
                 catch (Exception ex)
                 {
@@ -781,13 +826,20 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Looking if you can modify any service registry", "");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#services-registry-permissions", "Check if you can modify the registry of a service");
-                    List<string> overWriteServs = ServicesInfo.GetWriteServiceRegs();
-                    if (overWriteServs.Count <= 0)
+                    List<Dictionary<string, string>> regPerms = ServicesInfo.GetWriteServiceRegs(interestingUsersGroups);
+
+                    Dictionary<string, string> colorsWR = new Dictionary<string, string>()
+                            {
+                                { @"\(.*\)", Beaprint.ansi_color_bad },
+                            };
+
+                    if (regPerms.Count <= 0)
                         Beaprint.GoodPrint("    [-] Looks like you cannot change the registry of any service...");
                     else
                     {
-                        foreach (string writeServReg in overWriteServs)
-                            Beaprint.BadPrint("    [!] Looks like you can change the binpath the service in " + writeServReg + " !!");
+                        foreach (Dictionary<string,string> writeServReg in regPerms)
+                            Beaprint.AnsiPrint(String.Format("    {0} ({1})", writeServReg["Path"], writeServReg["Permissions"]), colorsWR);
+                        
                     }
                 }
                 catch (Exception ex)
@@ -819,7 +871,9 @@ namespace winPEAS
 
 
             Beaprint.GreatPrint("Services Information");
+
             PrintInterestingServices();
+            PrintModifiableServices();
             PrintWritableRegServices();
             PrintPathDLLHijacking();
         }
@@ -914,7 +968,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Autorun Applications", "T1010");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#run-at-startup", "Check if you can modify other users AutoRuns binaries");
-                    List<Dictionary<string, string>> apps = ApplicationInfo.GetAutoRuns();
+                    List<Dictionary<string, string>> apps = ApplicationInfo.GetAutoRuns(interestingUsersGroups);
 
                     foreach (Dictionary<string, string> app in apps)
                     {
@@ -923,10 +977,10 @@ namespace winPEAS
                             { "FolderPerms:.*", Beaprint.ansi_color_bad },
                             { "FilePerms:.*", Beaprint.ansi_color_bad },
                             { "(Unquoted and Space detected)", Beaprint.ansi_color_bad },
-                            { ".*(RegPath is writable)", Beaprint.ansi_color_bad },
+                            { "RegPerms: .*", Beaprint.ansi_color_bad },
                             { (app["Folder"].Length > 0) ? app["Folder"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+") : "ouigyevb2uivydi2u3id2ddf3", !String.IsNullOrEmpty(app["interestingFolderRights"]) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                             { (app["File"].Length > 0) ? app["File"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+") : "adu8v298hfubibuidiy2422r", !String.IsNullOrEmpty(app["interestingFileRights"]) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
-                            { (app["Reg"].Length > 0) ? app["Reg"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+") : "o8a7eduia37ibduaunbf7a4g7ukdhk4ua", (app["isWritableReg"].ToLower() == "true") ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
+                            { (app["Reg"].Length > 0) ? app["Reg"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+") : "o8a7eduia37ibduaunbf7a4g7ukdhk4ua", (app["RegPermissions"].Length > 0) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                         };
                         string line = "";
 
@@ -951,8 +1005,8 @@ namespace winPEAS
                         if (!String.IsNullOrEmpty(app["Reg"]))
                             line += "\n    RegPath: " + app["Reg"];
 
-                        if (app["isWritableReg"].ToLower() == "true")
-                            line += " (RegPath is writable)";
+                        if (app["RegPermissions"].Length > 0)
+                            line += "\n    RegPerms: "+ app["RegPermissions"];
                         
                         Beaprint.AnsiPrint(line, colorsA);
                         Beaprint.PrintLineSeparator();
@@ -1941,8 +1995,6 @@ namespace winPEAS
         [STAThread]
         static void Main(string[] args)
         {
-            //AppDomain.CurrentDomain.AssemblyResolve += (sender, arg) => { if (arg.Name.StartsWith("Colorful.Console")) return Assembly.Load(Properties.Resources.String1); return null; };
-       
             //Check parameters
             bool check_all = true;
             bool check_si = false;

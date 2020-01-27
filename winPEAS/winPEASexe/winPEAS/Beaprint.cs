@@ -9,16 +9,16 @@ namespace winPEAS
 {
     class Beaprint
     {
-        public static string GRAY = "\x1b[1;30m";
-        static string RED = "\x1b[31m";
+        public static string GRAY = "\x1b[1;90m";
+        static string RED = "\x1b[1;31m";
         public static string LRED = "\x1b[1;31m";
-        static string GREEN = "\x1b[32m";
+        static string GREEN = "\x1b[1;32m";
         static string LGREEN = "\x1b[1;32m";
         public static string YELLOW = "\x1b[33m";
         static string LYELLOW = "\x1b[1;33m";
         static string BLUE = "\x1b[34m";
         public static string LBLUE = "\x1b[1;34m";
-        static string MAGENTA = "\x1b[35m";
+        static string MAGENTA = "\x1b[1:35m";
         static string LMAGENTA = "\x1b[1;35m";
         static string CYAN = "\x1b[36m";
         static string LCYAN = "\x1b[1;36m";
@@ -182,7 +182,7 @@ namespace winPEAS
             try
             {
                 System.Console.WriteLine();
-                System.Console.WriteLine(YELLOW + "  [+] " + LRED + toPrint + YELLOW + "(" + GRAY + attackid + YELLOW + ")" + NOCOLOR);
+                System.Console.WriteLine(YELLOW + "  [+] " + GREEN + toPrint + YELLOW + "(" + GRAY + attackid + YELLOW + ")" + NOCOLOR);
             }
             catch (Exception ex)
             {

@@ -433,24 +433,41 @@ namespace winPEAS
             return results;
         }
 
-        public static string permInt2Str(int current_perm)
+        public static string permInt2Str(int current_perm, bool only_write_or_equivalent=false)
         {
             Dictionary<string, int> interesting_perms = new Dictionary<string, int>()
+                {
+                    { "AllAccess", 0xf01ff},
+                    { "GenericAll", 0x10000000},
+                    { "FullControl", (int)FileSystemRights.FullControl },
+                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
+                    { "GenericWrite", 0x40000000 },
+                    { "WriteData/CreateFiles", (int)FileSystemRights.WriteData },
+                    { "Modify", (int)FileSystemRights.Modify },
+                    { "Write", (int)FileSystemRights.Write },
+                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
+                    { "Delete", (int)FileSystemRights.Delete },
+                    { "DeleteSubdirectoriesAndFiles", (int)FileSystemRights.DeleteSubdirectoriesAndFiles },
+                    { "AppendData/CreateDirectories", (int)FileSystemRights.AppendData },
+                    { "WriteAttributes", (int)FileSystemRights.WriteAttributes },
+                    { "WriteExtendedAttributes", (int)FileSystemRights.WriteExtendedAttributes },
+                };
+
+            if (only_write_or_equivalent)
             {
-                { "GenericAll", 268435456},
-                { "FullControl", (int)FileSystemRights.FullControl },
-                { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
-                { "GenericWrite", 1073741824 },
-                { "WriteData/CreateFiles", (int)FileSystemRights.WriteData },
-                { "Modify", (int)FileSystemRights.Modify },
-                { "Write", (int)FileSystemRights.Write },
-                { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
-                { "Delete", (int)FileSystemRights.Delete },
-                { "DeleteSubdirectoriesAndFiles", (int)FileSystemRights.DeleteSubdirectoriesAndFiles },
-                { "AppendData/CreateDirectories", (int)FileSystemRights.AppendData },
-                { "WriteAttributes", (int)FileSystemRights.WriteAttributes },
-                { "WriteExtendedAttributes", (int)FileSystemRights.WriteExtendedAttributes },
-            };
+                interesting_perms = new Dictionary<string, int>()
+                {
+                    { "AllAccess", 0xf01ff},
+                    { "GenericAll", 0x10000000},
+                    { "FullControl", (int)FileSystemRights.FullControl },
+                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
+                    { "GenericWrite", 0x40000000 },
+                    { "WriteData/CreateFiles", (int)FileSystemRights.WriteData },
+                    { "Modify", (int)FileSystemRights.Modify },
+                    { "Write", (int)FileSystemRights.Write },
+                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
+                };
+            }
 
             try
             {
@@ -526,24 +543,42 @@ namespace winPEAS
             public IntPtr dacl;
         }
 
-        public static bool CheckWriteAccessReg(string root_name, string reg_path)
+        public static List<string> CheckAccessReg(RegistryKey key, List<string> NtAccountNames)
         {
-            IntPtr key;
-            IntPtr root = HKEY_LOCAL_MACHINE;
-            if (root_name.Contains("HKCU") || root_name.Contains("CURRENT_USER"))
-                root = HKEY_CURRENT_USER;
-            else if (root_name.Contains("HKLM") || root_name.Contains("LOCAL_MACHINE"))
-                root = HKEY_LOCAL_MACHINE;
+            List<string> results = new List<string>();
 
-            if (RegOpenKeyEx(root, reg_path, 0, KEY_ALL_ACCESS, out key) != 0)
+            try
             {
-                if (RegOpenKeyEx(root, reg_path, 0, KEY_WRITE, out key) != 0)
+                var security = key.GetAccessControl();
+
+                //Go through the rules returned from the DirectorySecurity
+                foreach (RegistryAccessRule rule in security.GetAccessRules(true, true, typeof(NTAccount)))
                 {
-                    if (RegOpenKeyEx(root, reg_path, 0, KEY_SET_VALUE, out key) != 0)
-                        return false;
+                    int current_perm = (int)rule.RegistryRights;
+                    string current_perm_str = permInt2Str(current_perm, true);
+                    if (current_perm_str == "" || current_perm_str == "WriteExtendedAttributes")
+                        continue;
+
+                    //If we find one that matches the identity we are looking for
+                    foreach (string name in NtAccountNames)
+                    {
+                        if (rule.IdentityReference.Value.ToLower().Contains(name.ToLower()))
+                        {
+                            string to_add = String.Format("{0} [{1}]", rule.IdentityReference.Value, current_perm_str);
+                            if (!results.Contains(to_add))
+                            {
+                                results.Add(to_add);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
-            return true;
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+            }
+            return results;
         }
 
 

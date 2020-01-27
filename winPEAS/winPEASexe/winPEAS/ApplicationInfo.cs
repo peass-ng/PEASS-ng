@@ -106,9 +106,9 @@ namespace winPEAS
             return results;
         }
 
-        public static List<Dictionary<string, string>> GetAutoRuns()
+        public static List<Dictionary<string, string>> GetAutoRuns(List<string> NtAccountNames)
         {
-            List<Dictionary<string, string>> reg_autorus = ServicesInfo.GetRegistryAutoRuns();
+            List<Dictionary<string, string>> reg_autorus = ServicesInfo.GetRegistryAutoRuns(NtAccountNames);
             List<Dictionary<string, string>> file_autorus = GetAutoRunsFolder();
             reg_autorus.AddRange(file_autorus);
             return reg_autorus;

@@ -5,6 +5,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using System.Text.RegularExpressions;
+using System.ServiceProcess;
+using System.Reflection;
+using System.Security.AccessControl;
+using System.Runtime.InteropServices;
+using System.Security.Principal;
 
 namespace winPEAS
 {
@@ -141,16 +146,23 @@ namespace winPEAS
             return results;
         }
 
-        public static List<string> GetWriteServiceRegs()
+        public static List<Dictionary<string, string>> GetWriteServiceRegs(List<string> NtAccountNames)
         {
-            List<string> results = new List<string>();
+            List<Dictionary<string,string>> results = new List<Dictionary<string, string>>();
             try
             {
                 RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"system\currentcontrolset\services");
                 foreach (string serviceRegName in regKey.GetSubKeyNames())
                 {
-                    if (MyUtils.CheckWriteAccessReg("HKLM", @"system\currentcontrolset\services\" + serviceRegName))
-                        results.Add(@"HKLM\system\currentcontrolset\services\" + serviceRegName);
+                    RegistryKey key = Registry.LocalMachine.OpenSubKey(@"system\currentcontrolset\services\" + serviceRegName);
+                    List<string> perms = MyUtils.CheckAccessReg(key, NtAccountNames);
+                    if (perms.Count > 0)
+                    {
+                        results.Add(new Dictionary<string, string> {
+                        { "Path", @"HKLM\system\currentcontrolset\services\" + serviceRegName },
+                        { "Permissions", string.Join(", ", perms) }
+                    });
+                    }
                 }
             }
             catch (Exception ex)
@@ -160,7 +172,8 @@ namespace winPEAS
             return results;
         }
 
-        public static List<Dictionary<string, string>> GetRegistryAutoRuns()
+
+        public static List<Dictionary<string, string>> GetRegistryAutoRuns(List<string> NtAccountNames)
         {
             List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
             try
@@ -183,13 +196,15 @@ namespace winPEAS
                     {
                         foreach (KeyValuePair<string, object> kvp in settings)
                         {
+                            RegistryKey key = Registry.LocalMachine.OpenSubKey(autorunLocation);
+
                             string filepath = Environment.ExpandEnvironmentVariables(String.Format("{0}", kvp.Value));
                             string folder = System.IO.Path.GetDirectoryName(filepath.Replace("'", "").Replace("\"", ""));
                             results.Add(new Dictionary<string, string>() {
                             { "Reg", "HKLM\\"+autorunLocation },
                             { "Folder", folder },
                             { "File", filepath },
-                            { "isWritableReg", MyUtils.CheckWriteAccessReg("HKLM", autorunLocation).ToString()},
+                            { "RegPermissions", string.Join(", ", MyUtils.CheckAccessReg(key, NtAccountNames)) },
                             { "interestingFolderRights", String.Join(", ", MyUtils.GetPermissionsFolder(folder, Program.interestingUsersGroups))},
                             { "interestingFileRights", String.Join(", ", MyUtils.GetPermissionsFile(filepath, Program.interestingUsersGroups))},
                             { "isUnquotedSpaced", MyUtils.CheckQuoteAndSpace(filepath).ToString() }
@@ -219,6 +234,87 @@ namespace winPEAS
             catch (Exception ex)
             {
                 Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+            }
+            return results;
+        }
+
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern bool QueryServiceObjectSecurity(
+            IntPtr serviceHandle,
+            System.Security.AccessControl.SecurityInfos secInfo,
+            byte[] lpSecDesrBuf,
+            uint bufSize,
+            out uint bufSizeNeeded);
+        public static Dictionary<string,string> GetModifiableServices()
+        {
+            Dictionary<string, string> results = new Dictionary<string, string>();
+
+            ServiceController[] scServices;
+            scServices = ServiceController.GetServices();
+
+            var GetServiceHandle = typeof(System.ServiceProcess.ServiceController).GetMethod("GetServiceHandle", BindingFlags.Instance | BindingFlags.NonPublic);
+            object[] readRights = { 0x00020000 };
+
+            foreach (ServiceController sc in scServices)
+            {
+                try
+                {
+                    IntPtr handle = (IntPtr)GetServiceHandle.Invoke(sc, readRights);
+                    ServiceControllerStatus status = sc.Status;
+                    byte[] psd = new byte[0];
+                    uint bufSizeNeeded;
+                    bool ok = QueryServiceObjectSecurity(handle, SecurityInfos.DiscretionaryAcl, psd, 0, out bufSizeNeeded);
+                    if (!ok)
+                    {
+                        int err = Marshal.GetLastWin32Error();
+                        if (err == 122 || err == 0)
+                        { // ERROR_INSUFFICIENT_BUFFER
+                          // expected; now we know bufsize
+                            psd = new byte[bufSizeNeeded];
+                            ok = QueryServiceObjectSecurity(handle, SecurityInfos.DiscretionaryAcl, psd, bufSizeNeeded, out bufSizeNeeded);
+                        }
+                        else
+                        {
+                            //throw new ApplicationException("error calling QueryServiceObjectSecurity() to get DACL for " + _name + ": error code=" + err);
+                            continue;
+                        }
+                    }
+                    if (!ok)
+                    {
+                        //throw new ApplicationException("error calling QueryServiceObjectSecurity(2) to get DACL for " + _name + ": error code=" + Marshal.GetLastWin32Error());
+                        continue;
+                    }
+
+                    // get security descriptor via raw into DACL form so ACE ordering checks are done for us.
+                    RawSecurityDescriptor rsd = new RawSecurityDescriptor(psd, 0);
+                    RawAcl racl = rsd.DiscretionaryAcl;
+                    DiscretionaryAcl dacl = new DiscretionaryAcl(false, false, racl);
+
+                    WindowsIdentity identity = WindowsIdentity.GetCurrent();
+
+                    string permissions = "";
+
+                    foreach (System.Security.AccessControl.CommonAce ace in dacl)
+                    {
+                        if (identity.Groups.Contains(ace.SecurityIdentifier))
+                        {
+                            int serviceRights = ace.AccessMask;
+
+                            string current_perm_str = MyUtils.permInt2Str(serviceRights, true);
+                            if (!String.IsNullOrEmpty(current_perm_str))
+                                permissions += current_perm_str;
+                        }
+                    }
+
+                    if (!String.IsNullOrEmpty(permissions))
+                        results.Add(sc.ServiceName, permissions);
+                    
+                }
+                catch (Exception ex)
+                {
+                    //Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                }
             }
             return results;
         }
