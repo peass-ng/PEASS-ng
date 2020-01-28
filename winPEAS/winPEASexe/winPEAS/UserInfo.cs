@@ -349,6 +349,53 @@ namespace winPEAS
             return myItems;
         }
 
+
+        public static string SID2GroupName(string SID)
+        {
+            string groupName = "";
+            ContextType ct = ContextType.Domain;
+            if (Program.currentUserIsLocal)
+                ct = ContextType.Machine;
+
+            try
+            {
+                groupName = GetSIDGroupName(SID, ct);
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}\n    Checking using the other Principal Context", ex.Message));
+                try
+                {
+                    if (ct == ContextType.Machine)
+                        groupName = GetSIDGroupName(SID, ContextType.Domain);
+                    else
+                        groupName = GetSIDGroupName(SID, ContextType.Machine);
+                }
+                catch
+                {
+                    Beaprint.GrayPrint(String.Format("  [X] Exception: {0}\n    Checking using the other Principal Context"));
+                }
+            }
+            return groupName;
+        }
+
+        public static string GetSIDGroupName(string SID, ContextType ct)
+        {
+            string groupName = "";
+            try
+            {
+                var ctx = new PrincipalContext(ct);
+                var group = GroupPrincipal.FindByIdentity(ctx, IdentityType.Sid, SID);
+                return group.SamAccountName.ToString();
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+            }
+            return groupName;
+        }
+
+
         public static UserPrincipal GetUser(string sUserName, string domain)
         {
             UserPrincipal user = null;

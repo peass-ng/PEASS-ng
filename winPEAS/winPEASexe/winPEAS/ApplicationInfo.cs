@@ -57,7 +57,7 @@ namespace winPEAS
                 foreach (string f in Directory.GetFiles(fpath))
                 {
                     results[f] = new Dictionary<string, string>(){
-                            { f, String.Join(", ", MyUtils.GetPermissionsFile(f, Program.interestingUsersGroups)) }
+                            { f, String.Join(", ", MyUtils.GetPermissionsFile(f, Program.currentUserSIDs)) }
                         };
                 }
                 foreach (string d in Directory.GetDirectories(fpath))
@@ -97,8 +97,8 @@ namespace winPEAS
                             { "Folder", folder },
                             { "File", filepath },
                             { "isWritableReg", ""},
-                            { "interestingFolderRights", String.Join(", ", MyUtils.GetPermissionsFolder(folder, Program.interestingUsersGroups))},
-                            { "interestingFileRights", String.Join(", ", MyUtils.GetPermissionsFile(filepath, Program.interestingUsersGroups))},
+                            { "interestingFolderRights", String.Join(", ", MyUtils.GetPermissionsFolder(folder, Program.currentUserSIDs))},
+                            { "interestingFileRights", String.Join(", ", MyUtils.GetPermissionsFile(filepath, Program.currentUserSIDs))},
                             { "isUnquotedSpaced", "" }
                     });
                 }
@@ -106,7 +106,7 @@ namespace winPEAS
             return results;
         }
 
-        public static List<Dictionary<string, string>> GetAutoRuns(List<string> NtAccountNames)
+        public static List<Dictionary<string, string>> GetAutoRuns(Dictionary<string,string> NtAccountNames)
         {
             List<Dictionary<string, string>> reg_autorus = ServicesInfo.GetRegistryAutoRuns(NtAccountNames);
             List<Dictionary<string, string>> file_autorus = GetAutoRunsFolder();

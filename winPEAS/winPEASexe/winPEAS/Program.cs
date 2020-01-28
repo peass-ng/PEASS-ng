@@ -39,7 +39,6 @@ namespace winPEAS
 
         // Create Dynamic blacklists
         static string currentUserName = Environment.UserName;
-        public static List<string> interestingUsersGroups = new List<string> { "Everyone", @"Builtin\Users", "Todos", currentUserName }; //Authenticated Users (Authenticated left behin to avoid repetitions)
         public static string currentUserDomainName = Environment.UserDomainName;
         public static string currentADDomainName = "";
         public static bool partofdomain = false;
@@ -47,7 +46,7 @@ namespace winPEAS
         static SelectQuery query = null;
         static ManagementObjectSearcher searcher = null;
         public static ManagementObjectCollection win32_users = null;
-        static List<string> currentUserGroups = new List<string>();
+        public static Dictionary<string,string> currentUserSIDs = new Dictionary<string, string>();
         static string paint_activeUsers = "";
         static string paint_activeUsers_no_Administrator = "";
         static string paint_disabledUsers = "";
@@ -60,7 +59,7 @@ namespace winPEAS
             try
             {
                 Beaprint.GrayPrint("   Creating Dynamic lists, this could take a while, please wait...");
-                Beaprint.GrayPrint("   - Getting AD info...");
+                Beaprint.GrayPrint("   - Checking if domain...");
                 currentADDomainName = MyUtils.IsDomainJoined();
                 partofdomain = currentADDomainName == "" ? false : true;
                 currentUserIsLocal = currentADDomainName != currentUserDomainName;
@@ -84,8 +83,19 @@ namespace winPEAS
 
             try { 
                 Beaprint.GrayPrint("   - Creating current user groups list...");
-                currentUserGroups = UserInfo.GetUserGroups(currentUserName, currentUserDomainName);
-                interestingUsersGroups.AddRange(currentUserGroups);
+                WindowsIdentity identity = WindowsIdentity.GetCurrent();
+                IdentityReferenceCollection currentSIDs= identity.Groups;
+                foreach (IdentityReference group in identity.Groups)
+                {
+                    string gName = "";
+                    try
+                    {
+                        gName = UserInfo.SID2GroupName(group.ToString());
+                    }
+                    catch { }
+                    currentUserSIDs[group.ToString()] = gName;
+                }
+
             }
             catch (Exception ex)
             {
@@ -301,27 +311,28 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Drives Information", "T1120");
                     Beaprint.LinkPrint("", "Remember that you should search more info inside the other drives");
-                    foreach (Dictionary<string, string> drive in SystemInfo.GetDrivesInfo())
-                    {
-                        string drive_permissions = String.Join(", ", MyUtils.GetPermissionsFolder(drive["Name"], interestingUsersGroups));
-                        string dToPrint = "    {0} (Type: {1})";
-                        if (drive["Volume label"] != "")
-                            dToPrint += "(Volume label: {2})";
-
-                        if (drive["Filesystem"] != "")
-                            dToPrint += "(Filesystem: {3})";
-
-                        if (drive["Available space"] != "")
-                            dToPrint += "(Available space: {4} GB)";
-
-                        if (drive_permissions.Length > 0)
-                            dToPrint += "(Permissions: {5})";
-
-                        Dictionary<string, string> colorsSI = new Dictionary<string, string>()
+                    Dictionary<string, string> colorsSI = new Dictionary<string, string>()
                             {
                                 { "Permissions.*", Beaprint.ansi_color_bad}
                             };
-                        Beaprint.AnsiPrint(String.Format(dToPrint, drive["Name"], drive["Type"], drive["Volume label"], drive["Filesystem"], (((Int64.Parse(drive["Available space"]) / 1024) / 1024) / 1024).ToString(), drive_permissions), colorsSI);
+
+                    foreach (Dictionary<string, string> drive in SystemInfo.GetDrivesInfo())
+                    {
+                        string drive_permissions = String.Join(", ", MyUtils.GetPermissionsFolder(drive["Name"], currentUserSIDs));
+                        string dToPrint = String.Format("    {0} (Type: {1})", drive["Name"], drive["Type"]);
+                        if (!String.IsNullOrEmpty(drive["Volume label"]))
+                            dToPrint += "(Volume label: "+ drive["Volume label"] + ")";
+
+                        if (!String.IsNullOrEmpty(drive["Filesystem"]))
+                            dToPrint += "(Filesystem: "+ drive["Filesystem"] + ")";
+
+                        if (!String.IsNullOrEmpty(drive["Available space"]))
+                            dToPrint += "(Available space: "+ (((Int64.Parse(drive["Available space"]) / 1024) / 1024) / 1024).ToString() + " GB)";
+
+                        if (drive_permissions.Length > 0)
+                            dToPrint += "(Permissions: "+ drive_permissions + ")";
+                        
+                        Beaprint.AnsiPrint(dToPrint, colorsSI);
                     }
                 }
                 catch (Exception ex)
@@ -435,11 +446,19 @@ namespace winPEAS
             {
                 try
                 {
-                    Beaprint.MainPrint("Current users", "T1087&T1069&T1033");
+                    Beaprint.MainPrint("Users", "T1087&T1069&T1033");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#users-and-groups", "Check if you have some admin equivalent privileges");
+                    
                     List<string> users_grps = UserInfo.GetMachineUsers(false, false, false, false, true);
 
                     Beaprint.AnsiPrint("  Current user: " + currentUserName, colorsU());
+
+                    List<string> currentGroupsNames = new List<string>();
+                    foreach (KeyValuePair<string,string> g in currentUserSIDs)
+                        currentGroupsNames.Add(String.IsNullOrEmpty(g.Value) ? g.Key : g.Value);
+
+                    Beaprint.AnsiPrint("  Current groups: " + String.Join(", ", currentGroupsNames), colorsU());
+                    Beaprint.PrintLineSeparator();
                     Beaprint.ListPrint(users_grps, colorsU());
                 }
                 catch (Exception ex)
@@ -582,7 +601,7 @@ namespace winPEAS
                     List<string> user_folders = UserInfo.GetUsersFolders();
                     foreach (string ufold in user_folders)
                     {
-                        string perms = String.Join(", ", MyUtils.GetPermissionsFolder(ufold, interestingUsersGroups));
+                        string perms = String.Join(", ", MyUtils.GetPermissionsFolder(ufold, currentUserSIDs));
                         if (perms.Length > 0)
                             Beaprint.BadPrint("    " + ufold + " : " + perms);
                         else
@@ -661,10 +680,10 @@ namespace winPEAS
                             proc_info["Product"] = ProcessesInfo.browserProcesses[proc_info["Name"]].ToString();
                         }
 
-                        List<string> file_rights = MyUtils.GetPermissionsFile(proc_info["ExecutablePath"], interestingUsersGroups);
+                        List<string> file_rights = MyUtils.GetPermissionsFile(proc_info["ExecutablePath"], currentUserSIDs);
                         List<string> dir_rights = new List<string>();
                         if (proc_info["ExecutablePath"] != null && proc_info["ExecutablePath"] != "")
-                            dir_rights = MyUtils.GetPermissionsFolder(Path.GetDirectoryName(proc_info["ExecutablePath"]), interestingUsersGroups);
+                            dir_rights = MyUtils.GetPermissionsFolder(Path.GetDirectoryName(proc_info["ExecutablePath"]), currentUserSIDs);
 
                         string formString = "    {0}({1})[{2}]";
                         if (proc_info["Product"] != null && proc_info["Product"].Length > 1)
@@ -708,26 +727,20 @@ namespace winPEAS
         /////////////////////////////////////////////////
         private static void PrintInfoServices()
         {
+            /// Start finding Modifiable services so any function could use them
             Dictionary<string, string> mod_services = new Dictionary<string, string>();
             try
             {
-                mod_services = ServicesInfo.GetModifiableServices();
+                mod_services = ServicesInfo.GetModifiableServices(currentUserSIDs);
             }
             catch (Exception ex)
             {
                 Beaprint.GrayPrint(String.Format("{0}", ex));
             }
 
+
             void PrintInterestingServices()
             {
-                /* Colors Code
-                 * RED:
-                 * ---- Write privilege in path or path without quotes and some space
-                 * ---- Startmode = Auto
-                 * GREEN:
-                 * ---- No write privileges
-                 * ---- Startmode = Manual
-                */
                 try
                 {
                     Beaprint.MainPrint("Interesting Services -non Microsoft-", "T1007");
@@ -740,11 +753,11 @@ namespace winPEAS
                     
                     foreach (Dictionary<string, string> service_info in services_info)
                     {
-                        List<string> file_rights = MyUtils.GetPermissionsFile(service_info["FilteredPath"], interestingUsersGroups);
+                        List<string> file_rights = MyUtils.GetPermissionsFile(service_info["FilteredPath"], currentUserSIDs);
                         List<string> dir_rights = new List<string>();
 
                         if (service_info["FilteredPath"] != null && service_info["FilteredPath"] != "")
-                            dir_rights = MyUtils.GetPermissionsFolder(Path.GetDirectoryName(service_info["FilteredPath"]), interestingUsersGroups);
+                            dir_rights = MyUtils.GetPermissionsFolder(Path.GetDirectoryName(service_info["FilteredPath"]), currentUserSIDs);
 
                         bool no_quotes_and_space = MyUtils.CheckQuoteAndSpace(service_info["PathName"]);
 
@@ -826,7 +839,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Looking if you can modify any service registry", "");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#services-registry-permissions", "Check if you can modify the registry of a service");
-                    List<Dictionary<string, string>> regPerms = ServicesInfo.GetWriteServiceRegs(interestingUsersGroups);
+                    List<Dictionary<string, string>> regPerms = ServicesInfo.GetWriteServiceRegs(currentUserSIDs);
 
                     Dictionary<string, string> colorsWR = new Dictionary<string, string>()
                             {
@@ -891,8 +904,8 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Current Active Window Application", "T1010&T1518");
                     string title = ApplicationInfo.GetActiveWindowTitle();
-                    List<string> permsFile = MyUtils.GetPermissionsFile(title, interestingUsersGroups);
-                    List<string> permsFolder = MyUtils.GetPermissionsFolder(title, interestingUsersGroups);
+                    List<string> permsFile = MyUtils.GetPermissionsFile(title, currentUserSIDs);
+                    List<string> permsFolder = MyUtils.GetPermissionsFolder(title, currentUserSIDs);
                     if (permsFile.Count > 0)
                     {
                         Beaprint.BadPrint("    " + title);
@@ -968,7 +981,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Autorun Applications", "T1010");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#run-at-startup", "Check if you can modify other users AutoRuns binaries");
-                    List<Dictionary<string, string>> apps = ApplicationInfo.GetAutoRuns(interestingUsersGroups);
+                    List<Dictionary<string, string>> apps = ApplicationInfo.GetAutoRuns(currentUserSIDs);
 
                     foreach (Dictionary<string, string> app in apps)
                     {
@@ -1028,8 +1041,8 @@ namespace winPEAS
 
                     foreach (Dictionary<string, string> sapp in scheduled_apps)
                     {
-                        List<string> file_rights = MyUtils.GetPermissionsFile(sapp["Action"], interestingUsersGroups);
-                        List<string> dir_rights = MyUtils.GetPermissionsFolder(sapp["Action"], interestingUsersGroups);
+                        List<string> file_rights = MyUtils.GetPermissionsFile(sapp["Action"], currentUserSIDs);
+                        List<string> dir_rights = MyUtils.GetPermissionsFolder(sapp["Action"], currentUserSIDs);
                         string formString = "    ({0}) {1}: {2}";
                         if (file_rights.Count > 0)
                             formString += "\n    Permissions file: {3}";
@@ -1183,8 +1196,8 @@ namespace winPEAS
                     Beaprint.GrayPrint("    DENY rules:");
                     foreach (Dictionary<string, string> rule in NetworkInfo.GetFirewallRules())
                     {
-                        string file_perms = String.Join(", ", MyUtils.GetPermissionsFile(rule["AppName"], interestingUsersGroups));
-                        string folder_perms = String.Join(", ", MyUtils.GetPermissionsFolder(rule["AppName"], interestingUsersGroups));
+                        string file_perms = String.Join(", ", MyUtils.GetPermissionsFile(rule["AppName"], currentUserSIDs));
+                        string folder_perms = String.Join(", ", MyUtils.GetPermissionsFolder(rule["AppName"], currentUserSIDs));
                         string formString = "    ({0}){1}[{2}]: {3} {4} {5} from {6} --> {7}";
                         if (file_perms.Length > 0)
                             formString += "\n    File Permissions: {8}";
@@ -1995,6 +2008,10 @@ namespace winPEAS
         [STAThread]
         static void Main(string[] args)
         {
+            //WindowsIdentity identity = WindowsIdentity.GetCurrent();
+            //foreach(IdentityReference group in identity.Groups)
+            //    System.Console.WriteLine(identity.Groups);
+
             //Check parameters
             bool check_all = true;
             bool check_si = false;
@@ -2138,7 +2155,7 @@ namespace winPEAS
              * List Drivers ==> but how do I know if a driver is malicious?
              */
 
-            //System.Console.ReadLine(); //For debugging
+            System.Console.ReadLine(); //For debugging
         }
     }
 }

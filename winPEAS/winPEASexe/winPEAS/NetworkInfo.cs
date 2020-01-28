@@ -367,7 +367,7 @@ namespace winPEAS
 
                         //value meanings: http://msdn.microsoft.com/en-us/library/aa390438(v=vs.85).aspx
                         current_perm = Convert.ToInt32(result.Properties["ReturnValue"].Value);
-                        perm_str = MyUtils.permInt2Str(current_perm);
+                        perm_str = MyUtils.PermInt2Str(current_perm);
                     }
                     catch (ManagementException me)
                     {

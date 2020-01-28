@@ -9,7 +9,8 @@ namespace winPEAS
 {
     class Beaprint
     {
-        public static string GRAY = "\x1b[1;90m";
+        public static string GRAY = "\x1b[1;37m";
+        public static string DGRAY = "\x1b[1;90m";
         static string RED = "\x1b[1;31m";
         public static string LRED = "\x1b[1;31m";
         static string GREEN = "\x1b[1;32m";
@@ -33,6 +34,9 @@ namespace winPEAS
         public static string ansi_current_user = MAGENTA;
 
 
+        /////////////////////////////////
+        /////////  PRINT THINGS /////////
+        /////////////////////////////////
         public static void PrintBanner()
         {
             try
@@ -132,32 +136,6 @@ namespace winPEAS
             System.Console.WriteLine(YELLOW + "        [+] " + LYELLOW + "By default all checks (except CMD checks) are executed" + NOCOLOR);
         }
 
-        public static void deleteColors()
-        {
-            GRAY = "";
-            RED = "";
-            LRED = "";
-            GREEN = "";
-            LGREEN = "";
-            YELLOW = "";
-            LYELLOW = "";
-            BLUE = "";
-            LBLUE = "";
-            MAGENTA = "";
-            LMAGENTA = "";
-            CYAN = "";
-            LCYAN = "";
-            REDYELLOW = "";
-            NOCOLOR = "";
-            ansi_color_bad = "";
-            ansi_color_good = "";
-            ansi_color_gray = "";
-            ansi_color_yellow = "";
-            ansi_users_active = "";
-            ansi_users_disabled = "";
-            ansi_current_user = "";
-    }
-
 
         /////////////////////////////////
         /// DIFFERENT PRINT FUNCTIONS ///
@@ -182,7 +160,7 @@ namespace winPEAS
             try
             {
                 System.Console.WriteLine();
-                System.Console.WriteLine(YELLOW + "  [+] " + GREEN + toPrint + YELLOW + "(" + GRAY + attackid + YELLOW + ")" + NOCOLOR);
+                System.Console.WriteLine(YELLOW + "  [+] " + GREEN + toPrint + YELLOW + "(" + DGRAY + attackid + YELLOW + ")" + NOCOLOR);
             }
             catch (Exception ex)
             {
@@ -231,7 +209,7 @@ namespace winPEAS
 
         public static void GrayPrint(string to_print)
         {
-            System.Console.WriteLine(GRAY + to_print + NOCOLOR);
+            System.Console.WriteLine(DGRAY + to_print + NOCOLOR);
         }
 
         public static void PrintLineSeparator()
@@ -357,7 +335,6 @@ namespace winPEAS
             }
         }
 
-
         public static void DictPrint(List<Dictionary<string, string>> listdicprint, Dictionary<string, string> colors, bool delete_nulls, bool no_gray = false)
         {
             try
@@ -406,6 +383,36 @@ namespace winPEAS
             }
             else
                 NotFoundPrint();
+        }
+
+
+        //////////////////////////////////
+        /// Delete Colors (nocolor) :( ///
+        /// //////////////////////////////
+        public static void deleteColors()
+        {
+            GRAY = "";
+            RED = "";
+            LRED = "";
+            GREEN = "";
+            LGREEN = "";
+            YELLOW = "";
+            LYELLOW = "";
+            BLUE = "";
+            LBLUE = "";
+            MAGENTA = "";
+            LMAGENTA = "";
+            CYAN = "";
+            LCYAN = "";
+            REDYELLOW = "";
+            NOCOLOR = "";
+            ansi_color_bad = "";
+            ansi_color_good = "";
+            ansi_color_gray = "";
+            ansi_color_yellow = "";
+            ansi_users_active = "";
+            ansi_users_disabled = "";
+            ansi_current_user = "";
         }
     }
 }

@@ -16,7 +16,63 @@ namespace winPEAS
 {
     class MyUtils
     {
+        //////////////////////
+        /// IsDomainJoined ///
+        //////////////////////
+        /// The clases and functions here are dedicated to discover if the current host is joined in a domain or not, and get the domain name if so
+        /// It can be done using .Net (default) and WMI (used if .Net fails)
+        internal class Win32
+        {
+            public const int ErrorSuccess = 0;
+
+            [DllImport("Netapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            public static extern int NetGetJoinInformation(string server, out IntPtr domain, out NetJoinStatus status);
+
+            [DllImport("Netapi32.dll")]
+            public static extern int NetApiBufferFree(IntPtr Buffer);
+
+            public enum NetJoinStatus
+            {
+                NetSetupUnknownStatus = 0,
+                NetSetupUnjoined,
+                NetSetupWorkgroupName,
+                NetSetupDomainName
+            }
+
+        }
+
         public static string IsDomainJoined()
+        {
+            // returns Compuer Domain if the system is inside an AD (an nothing if it is not)
+            try
+            {
+                Win32.NetJoinStatus status = Win32.NetJoinStatus.NetSetupUnknownStatus;
+                IntPtr pDomain = IntPtr.Zero;
+                int result = Win32.NetGetJoinInformation(null, out pDomain, out status);
+                if (pDomain != IntPtr.Zero)
+                {
+                    Win32.NetApiBufferFree(pDomain);
+                }
+
+                if (result == Win32.ErrorSuccess)
+                {
+                    // If in domain, return domain name, if not, return empty
+                    if (status == Win32.NetJoinStatus.NetSetupDomainName)
+                        return Environment.UserDomainName;
+                    return "";
+                }
+
+            }
+
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}\n Trying to check if domain is joined using WMI", ex.Message));
+                IsDomainJoinedWmi();
+            }
+            return "";
+        }
+
+        public static string IsDomainJoinedWmi()
         {
             // returns Compuer Domain if the system is inside an AD (an nothing if it is not)
             try
@@ -36,84 +92,16 @@ namespace winPEAS
             {
                 Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
-            //By default true, because this way will check domain and local, but never should get here the code
+            //By default local
             return "";
         }
 
-        public static Dictionary<string, string> RemoveEmptyKeys(Dictionary<string, string> dic_in)
-        {
-            Dictionary<string, string> results = new Dictionary<string, string>();
-            try
-            {
-                foreach (KeyValuePair<string, string> entry in dic_in)
-                    if (!String.IsNullOrEmpty(entry.Value.Trim()))
-                        results[entry.Key] = entry.Value;
-                return results;
-            }
-            catch (Exception ex)
-            {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
-            }
-            return results;
-        }
-        public static List<string> ListFolder(String path)
-        {
-            string root = @Path.GetPathRoot(Environment.SystemDirectory) + path;
-            var dirs = from dir in Directory.EnumerateDirectories(root) select dir;
-            return dirs.ToList();
-        }
 
-        //From https://stackoverflow.com/questions/929276/how-to-recursively-list-all-the-files-in-a-directory-in-c
-        public static Dictionary<string, string> GecRecursivePrivs(string path)
-        {
-            /*string root = @Path.GetPathRoot(Environment.SystemDirectory) + path;
-            var dirs = from dir in Directory.EnumerateDirectories(root) select dir;
-            return dirs.ToList();*/
-            Dictionary<string, string> results = new Dictionary<string, string>();
-            results[path] = ""; //If you cant open, then there are no privileges for you (and the try will explode)
-            try
-            {
-                results[path] = String.Join(", ", GetPermissionsFolder(path, Program.interestingUsersGroups));
-                if (String.IsNullOrEmpty(results[path]))
-                {
-                    foreach (string d in Directory.GetDirectories(path))
-                    {
-                        foreach (string f in Directory.GetFiles(d))
-                        {
-                            results[f] = String.Join(", ", GetPermissionsFile(f, Program.interestingUsersGroups));
-                        }
-                        results.Concat(GecRecursivePrivs(d)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                    }
-                }
-            }
-            catch
-            {
-                //Access denied to a path
-            }
-            return results;
-        }
-
-        //From Seatbelt
-        public static bool IsHighIntegrity()
-        {
-            // returns true if the current process is running with adminstrative privs in a high integrity context
-            WindowsIdentity identity = WindowsIdentity.GetCurrent();
-            WindowsPrincipal principal = new WindowsPrincipal(identity);
-            return principal.IsInRole(WindowsBuiltInRole.Administrator);
-        }
-
-        //From https://stackoverflow.com/questions/3519539/how-to-check-if-a-string-contains-any-of-some-strings
-        public static bool ContainsAnyRegex(string haystack, List<string> regexps)
-        {
-            foreach (string regex in regexps)
-            {
-                if (Regex.Match(haystack, regex, RegexOptions.IgnoreCase).Success)
-                    return true;
-            }
-            return false;
-        }
-
-        // From Seatbelt
+        ///////////////////////////////////////////
+        /// Interf. for Keys and Values in Reg. ///
+        ///////////////////////////////////////////
+        /// Functions related to obtain keys and values from the registry
+        /// Some parts adapted from Seatbelt
         public static string GetRegValue(string hive, string path, string value)
         {
             // returns a single registry value under the specified path in the specified hive (HKLM/HKCU)
@@ -254,6 +242,241 @@ namespace winPEAS
             }
         }
 
+
+        ///////////////////////////////////
+        //////// Check Permissions ////////
+        ///////////////////////////////////
+        /// Get interesting permissions from Files, Folders and Registry
+        public static List<string> GetPermissionsFile(string path, Dictionary<string,string> SIDs)
+        {
+            /*Permisos especiales para carpetas 
+             *https://docs.microsoft.com/en-us/windows/win32/secauthz/access-mask-format?redirectedfrom=MSDN
+             *https://docs.microsoft.com/en-us/windows/win32/fileio/file-security-and-access-rights?redirectedfrom=MSDN
+             */
+
+            List<string> results = new List<string>();
+            path = path.Trim();
+            if (path == null || path == "")
+                return results;
+
+            Match reg_path = Regex.Match(path.ToString(), @"\W*([a-z]:\\.+?(\.[a-zA-Z0-9_-]+))\W*", RegexOptions.IgnoreCase);
+            string binaryPath = reg_path.Groups[1].ToString();
+            path = binaryPath;
+            if (path == null || path == "")
+                return results;
+
+            try
+            {
+                FileSecurity fSecurity = File.GetAccessControl(path);
+                results = GetMyPermissionsF(fSecurity, SIDs);
+            }
+            catch
+            {
+                //By some reason some times it cannot find a file or cannot get permissions (normally with some binaries inside system32)
+            }
+            return results;
+        }
+
+        public static List<string> GetPermissionsFolder(string path, Dictionary<string, string> SIDs)
+        {
+            List<string> results = new List<string>();
+
+            try
+            {
+                path = path.Trim();
+                if (String.IsNullOrEmpty(path))
+                    return results;
+
+                path = GetFolderFromString(path);
+
+                if (String.IsNullOrEmpty(path))
+                    return results;
+
+                FileSecurity fSecurity = File.GetAccessControl(path);
+                results = GetMyPermissionsF(fSecurity, SIDs);
+            }
+            catch
+            {
+                //Te exceptions here use to be "Not access to a file", nothing interesting
+            }
+            return results;
+        }
+
+        public static List<string> GetMyPermissionsF(FileSecurity fSecurity, Dictionary<string, string> SIDs)
+        {
+            // Get interesting permissions in fSecurity (Only files and folders)
+            List<string> results = new List<string>();
+            Dictionary<string, string> container = new Dictionary<string, string>();
+
+            foreach (FileSystemAccessRule rule in fSecurity.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+            {
+                //First, check if the rule to check is interesting
+                int current_perm = (int)rule.FileSystemRights;
+                string current_perm_str = PermInt2Str(current_perm, false);
+                if (current_perm_str == "")
+                    continue;
+
+                foreach (KeyValuePair<string, string> mySID in SIDs)
+                {
+                    // If the rule is interesting, check if any of my SIDs is in the rule
+                    if (rule.IdentityReference.Value.ToLower() == mySID.Key.ToLower())
+                    {
+                        string SID_name = String.IsNullOrEmpty(mySID.Value) ? mySID.Key : mySID.Value;
+
+                        if (container.ContainsKey(SID_name))
+                        {
+                            if (!container[SID_name].Contains(current_perm_str))
+                                container[SID_name] += " " + current_perm_str;
+                        }
+                        else
+                            container[SID_name] = current_perm_str;
+
+                        string to_add = String.Format("{0} [{1}]", SID_name, current_perm_str);
+                    }
+                }
+            }
+            foreach (KeyValuePair<string, string> SID_input in container)
+            {
+                string to_add = String.Format("{0} [{1}]", SID_input.Key, SID_input.Value);
+                results.Add(to_add);
+            }
+            return results;
+        }
+
+        public static List<string> GetMyPermissionsR(RegistryKey key, Dictionary<string, string> SIDs)
+        {
+            // Get interesting permissions in rSecurity (Only Registry)
+            List<string> results = new List<string>();
+            Dictionary<string, string> container = new Dictionary<string, string>();
+
+            try
+            {
+                var rSecurity = key.GetAccessControl();
+
+                //Go through the rules returned from the DirectorySecurity
+                foreach (RegistryAccessRule rule in rSecurity.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+                {
+                    int current_perm = (int)rule.RegistryRights;
+                    string current_perm_str = PermInt2Str(current_perm, true);
+                    if (current_perm_str == "")
+                        continue;
+
+                    foreach (KeyValuePair<string, string> mySID in SIDs)
+                    {
+                        // If the rule is interesting, check if any of my SIDs is in the rule
+                        if (rule.IdentityReference.Value.ToLower() == mySID.Key.ToLower())
+                        {
+                            string SID_name = String.IsNullOrEmpty(mySID.Value) ? mySID.Key : mySID.Value;
+
+                            if (container.ContainsKey(SID_name))
+                            {
+                                if (!container[SID_name].Contains(current_perm_str))
+                                    container[SID_name] += " " + current_perm_str;
+                            }
+                            else
+                                container[SID_name] = current_perm_str;
+
+                            string to_add = String.Format("{0} [{1}]", SID_name, current_perm_str);
+                        }
+                    }
+                }
+                foreach (KeyValuePair<string, string> SID_input in container)
+                {
+                    string to_add = String.Format("{0} [{1}]", SID_input.Key, SID_input.Value);
+                    results.Add(to_add);
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+            }
+            return results;
+        }
+
+        public static string PermInt2Str(int current_perm, bool only_write_or_equivalent = false)
+        {
+            Dictionary<string, int> interesting_perms = new Dictionary<string, int>()
+                {
+                    { "AllAccess", 0xf01ff},
+                    { "GenericAll", 0x10000000},
+                    { "FullControl", (int)FileSystemRights.FullControl },
+                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
+                    { "GenericWrite", 0x40000000 },
+                    { "WriteData/CreateFiles", (int)FileSystemRights.WriteData },
+                    { "Modify", (int)FileSystemRights.Modify },
+                    { "Write", (int)FileSystemRights.Write },
+                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
+                    { "Delete", (int)FileSystemRights.Delete },
+                    { "DeleteSubdirectoriesAndFiles", (int)FileSystemRights.DeleteSubdirectoriesAndFiles },
+                    { "AppendData/CreateDirectories", (int)FileSystemRights.AppendData },
+                    { "WriteAttributes", (int)FileSystemRights.WriteAttributes },
+                    { "WriteExtendedAttributes", (int)FileSystemRights.WriteExtendedAttributes },
+                };
+
+            if (only_write_or_equivalent)
+            {
+                interesting_perms = new Dictionary<string, int>()
+                {
+                    { "AllAccess", 0xf01ff},
+                    { "GenericAll", 0x10000000},
+                    { "FullControl", (int)FileSystemRights.FullControl },
+                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
+                    { "GenericWrite", 0x40000000 },
+                    { "WriteData/CreateFiles", (int)FileSystemRights.WriteData },
+                    { "Modify", (int)FileSystemRights.Modify },
+                    { "Write", (int)FileSystemRights.Write },
+                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
+                };
+            }
+
+            try
+            {
+                foreach (KeyValuePair<string, int> entry in interesting_perms)
+                {
+                    if ((entry.Value & current_perm) == entry.Value)
+                        return entry.Key;
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("Error in PermInt2Str: " + ex);
+            }
+            return "";
+        }
+
+        //From https://stackoverflow.com/questions/929276/how-to-recursively-list-all-the-files-in-a-directory-in-c
+        public static Dictionary<string, string> GecRecursivePrivs(string path)
+        {
+            /*string root = @Path.GetPathRoot(Environment.SystemDirectory) + path;
+            var dirs = from dir in Directory.EnumerateDirectories(root) select dir;
+            return dirs.ToList();*/
+            Dictionary<string, string> results = new Dictionary<string, string>();
+            results[path] = ""; //If you cant open, then there are no privileges for you (and the try will explode)
+            try
+            {
+                results[path] = String.Join(", ", GetPermissionsFolder(path, Program.currentUserSIDs));
+                if (String.IsNullOrEmpty(results[path]))
+                {
+                    foreach (string d in Directory.GetDirectories(path))
+                    {
+                        foreach (string f in Directory.GetFiles(d))
+                        {
+                            results[f] = String.Join(", ", GetPermissionsFile(f, Program.currentUserSIDs));
+                        }
+                        results.Concat(GecRecursivePrivs(d)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                    }
+                }
+            }
+            catch
+            {
+                //Access denied to a path
+            }
+            return results;
+        }
+
+        ////////////////////////////////////
+        /////// MISC - Files & Paths ///////
+        ////////////////////////////////////
         public static bool CheckIfDotNet(string path)
         {
             bool isDotNet = false;
@@ -306,7 +529,7 @@ namespace winPEAS
             string binaryPath = GetExecutableFromPath(path);
             if (binaryPath == "")
             {
-                binaryPath = GetExecutableFromPath(system32dir +"\\" + path);
+                binaryPath = GetExecutableFromPath(system32dir + "\\" + path);
                 if (!File.Exists(binaryPath))
                 {
                     binaryPath = GetExecutableFromPath(windowsdir + "\\" + path);
@@ -321,55 +544,6 @@ namespace winPEAS
                 }
             }
             return binaryPath;
-        }
-
-        public static List<string> GetPermissionsFile(string path, List<string> lowgroups)
-        {
-            /*Permisos especiales para carpetas 
-             *https://docs.microsoft.com/en-us/windows/win32/secauthz/access-mask-format?redirectedfrom=MSDN
-             *https://docs.microsoft.com/en-us/windows/win32/fileio/file-security-and-access-rights?redirectedfrom=MSDN
-             */
-
-            List<string> results = new List<string>();
-            path = path.Trim();
-            if (path == null || path == "")
-                return results;
-
-            Match reg_path = Regex.Match(path.ToString(), @"\W*([a-z]:\\.+?(\.[a-zA-Z0-9_-]+))\W*", RegexOptions.IgnoreCase);
-            string binaryPath = reg_path.Groups[1].ToString();
-            path = binaryPath;
-            if (path == null || path == "")
-                return results;
-
-            try
-            {
-                FileSecurity fSecurity = File.GetAccessControl(path);
-                foreach (FileSystemAccessRule rule in fSecurity.GetAccessRules(true, true, typeof(NTAccount)))
-                {
-                    int current_perm = (int)rule.FileSystemRights;
-                    string current_perm_str = permInt2Str(current_perm);
-                    if (current_perm_str == "")
-                        continue;
-
-                    foreach (string group in lowgroups)
-                    {
-                        if (rule.IdentityReference.Value.ToLower().Contains(group.ToLower()))
-                        {
-                            string to_add = String.Format("{0} [{1}]", rule.IdentityReference.Value, current_perm_str);
-                            if (!results.Contains(to_add))
-                            {
-                                results.Add(to_add);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                //By some reason some times it cannot find a file or cannot get permissions (normally with some binaries inside system32)
-            }
-            return results;
         }
 
         public static string GetFolderFromString(string path)
@@ -387,102 +561,6 @@ namespace winPEAS
             return fpath;
         }
 
-        public static List<string> GetPermissionsFolder(string path, List<string> NtAccountNames)
-        {
-            List<string> results = new List<string>();
-
-            try
-            {
-                path = path.Trim();
-                if (String.IsNullOrEmpty(path))
-                    return results;
-
-                path = GetFolderFromString(path);
-
-                if (String.IsNullOrEmpty(path))
-                    return results;
-
-                FileSecurity fSecurity = File.GetAccessControl(path);
-                //Go through the rules returned from the DirectorySecurity
-                foreach (FileSystemAccessRule rule in fSecurity.GetAccessRules(true, true, typeof(NTAccount)))
-                {
-                    int current_perm = (int)rule.FileSystemRights;
-                    string current_perm_str = permInt2Str(current_perm);
-                    if (current_perm_str == "")
-                        continue;
-
-                    //If we find one that matches the identity we are looking for
-                    foreach (string name in NtAccountNames)
-                    {
-                        if (rule.IdentityReference.Value.ToLower().Contains(name.ToLower()))
-                        {
-                            string to_add = String.Format("{0} [{1}]", rule.IdentityReference.Value, current_perm_str);
-                            if (!results.Contains(to_add))
-                            {
-                                results.Add(to_add);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                //Te exceptions here use to be "Not access to a file", nothing interesting
-            }
-            return results;
-        }
-
-        public static string permInt2Str(int current_perm, bool only_write_or_equivalent=false)
-        {
-            Dictionary<string, int> interesting_perms = new Dictionary<string, int>()
-                {
-                    { "AllAccess", 0xf01ff},
-                    { "GenericAll", 0x10000000},
-                    { "FullControl", (int)FileSystemRights.FullControl },
-                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
-                    { "GenericWrite", 0x40000000 },
-                    { "WriteData/CreateFiles", (int)FileSystemRights.WriteData },
-                    { "Modify", (int)FileSystemRights.Modify },
-                    { "Write", (int)FileSystemRights.Write },
-                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
-                    { "Delete", (int)FileSystemRights.Delete },
-                    { "DeleteSubdirectoriesAndFiles", (int)FileSystemRights.DeleteSubdirectoriesAndFiles },
-                    { "AppendData/CreateDirectories", (int)FileSystemRights.AppendData },
-                    { "WriteAttributes", (int)FileSystemRights.WriteAttributes },
-                    { "WriteExtendedAttributes", (int)FileSystemRights.WriteExtendedAttributes },
-                };
-
-            if (only_write_or_equivalent)
-            {
-                interesting_perms = new Dictionary<string, int>()
-                {
-                    { "AllAccess", 0xf01ff},
-                    { "GenericAll", 0x10000000},
-                    { "FullControl", (int)FileSystemRights.FullControl },
-                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
-                    { "GenericWrite", 0x40000000 },
-                    { "WriteData/CreateFiles", (int)FileSystemRights.WriteData },
-                    { "Modify", (int)FileSystemRights.Modify },
-                    { "Write", (int)FileSystemRights.Write },
-                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
-                };
-            }
-
-            try
-            {
-                foreach (KeyValuePair<string, int> entry in interesting_perms)
-                {
-                    if ((entry.Value & current_perm) == entry.Value)
-                        return entry.Key;
-                }
-            }
-            catch (Exception ex)
-            {
-                Beaprint.GrayPrint("Error in permInt2Str: " + ex);
-            }
-            return "";
-        }
 
         public static bool CheckQuoteAndSpace(string path)
         {
@@ -493,94 +571,6 @@ namespace winPEAS
             }
             return false;
         }
-
-        //Adapted from https://social.msdn.microsoft.com/Forums/vstudio/en-US/378491d6-23a3-4ae7-a702-c52c5abb0e8d/access-to-both-32-and-64-bit-registry-using-c-and-regmultisz?forum=csharpgeneral
-        [DllImport("Advapi32.dll", EntryPoint = "RegOpenKeyExW", CharSet = CharSet.Unicode)]
-        static extern int RegOpenKeyEx(IntPtr hKey, [In] string lpSubKey, int ulOptions, int samDesired, out IntPtr phkResult);
-        [DllImport("Advapi32.dll", EntryPoint = "RegQueryValueExW", CharSet = CharSet.Unicode)]
-        static extern int RegQueryValueEx(IntPtr hKey, [In] string lpValueName, IntPtr lpReserved, out int lpType, [Out] byte[] lpData, ref int lpcbData);
-        [DllImport("advapi32.dll")]
-        static extern int RegCloseKey(IntPtr hKey);
-
-        static public readonly IntPtr HKEY_CLASSES_ROOT = new IntPtr(-2147483648);
-        static public readonly IntPtr HKEY_CURRENT_USER = new IntPtr(-2147483647);
-        static public readonly IntPtr HKEY_LOCAL_MACHINE = new IntPtr(-2147483646);
-        static public readonly IntPtr HKEY_USERS = new IntPtr(-2147483645);
-        static public readonly IntPtr HKEY_PERFORMANCE_DATA = new IntPtr(-2147483644);
-        static public readonly IntPtr HKEY_CURRENT_CONFIG = new IntPtr(-2147483643);
-        static public readonly IntPtr HKEY_DYN_DATA = new IntPtr(-2147483642);
-
-        public const int KEY_READ = 0x20019;
-        public const int KEY_WRITE = 0x20006;
-        public const int KEY_QUERY_VALUE = 0x0001;
-        public const int KEY_SET_VALUE = 0x0002;
-        public const int KEY_WOW64_64KEY = 0x0100;
-        public const int KEY_WOW64_32KEY = 0x0200;
-        public const int KEY_ALL_ACCESS = 0xF003F;
-
-        public const int REG_NONE = 0;
-        public const int REG_SZ = 1;
-        public const int REG_EXPAND_SZ = 2;
-        public const int REG_BINARY = 3;
-        public const int REG_DWORD = 4;
-        public const int REG_DWORD_BIG_ENDIAN = 5;
-        public const int REG_LINK = 6;
-        public const int REG_MULTI_SZ = 7;
-        public const int REG_RESOURCE_LIST = 8;
-        public const int REG_FULL_RESOURCE_DESCRIPTOR = 9;
-        public const int REG_RESOURCE_REQUIREMENTS_LIST = 10;
-        public const int REG_QWORD = 11;
-
-        [StructLayoutAttribute(LayoutKind.Sequential)]
-        public struct SECURITY_DESCRIPTOR
-        {
-            public byte revision;
-            public byte size;
-            public short control;
-            public IntPtr owner;
-            public IntPtr group;
-            public IntPtr sacl;
-            public IntPtr dacl;
-        }
-
-        public static List<string> CheckAccessReg(RegistryKey key, List<string> NtAccountNames)
-        {
-            List<string> results = new List<string>();
-
-            try
-            {
-                var security = key.GetAccessControl();
-
-                //Go through the rules returned from the DirectorySecurity
-                foreach (RegistryAccessRule rule in security.GetAccessRules(true, true, typeof(NTAccount)))
-                {
-                    int current_perm = (int)rule.RegistryRights;
-                    string current_perm_str = permInt2Str(current_perm, true);
-                    if (current_perm_str == "" || current_perm_str == "WriteExtendedAttributes")
-                        continue;
-
-                    //If we find one that matches the identity we are looking for
-                    foreach (string name in NtAccountNames)
-                    {
-                        if (rule.IdentityReference.Value.ToLower().Contains(name.ToLower()))
-                        {
-                            string to_add = String.Format("{0} [{1}]", rule.IdentityReference.Value, current_perm_str);
-                            if (!results.Contains(to_add))
-                            {
-                                results.Add(to_add);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
-            }
-            return results;
-        }
-
 
         public static List<string> FindFiles(string path, string patterns)
         {
@@ -629,6 +619,55 @@ namespace winPEAS
             catch (PathTooLongException) { }
         }
 
+
+        //////////////////////
+        //////// MISC ////////
+        //////////////////////
+        public static Dictionary<string, string> RemoveEmptyKeys(Dictionary<string, string> dic_in)
+        {
+            Dictionary<string, string> results = new Dictionary<string, string>();
+            try
+            {
+                foreach (KeyValuePair<string, string> entry in dic_in)
+                    if (!String.IsNullOrEmpty(entry.Value.Trim()))
+                        results[entry.Key] = entry.Value;
+                return results;
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+            }
+            return results;
+        }
+        public static List<string> ListFolder(String path)
+        {
+            string root = @Path.GetPathRoot(Environment.SystemDirectory) + path;
+            var dirs = from dir in Directory.EnumerateDirectories(root) select dir;
+            return dirs.ToList();
+        }
+
+        
+        //From Seatbelt
+        public static bool IsHighIntegrity()
+        {
+            // returns true if the current process is running with adminstrative privs in a high integrity context
+            WindowsIdentity identity = WindowsIdentity.GetCurrent();
+            WindowsPrincipal principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+
+        //From https://stackoverflow.com/questions/3519539/how-to-check-if-a-string-contains-any-of-some-strings
+        public static bool ContainsAnyRegex(string haystack, List<string> regexps)
+        {
+            foreach (string regex in regexps)
+            {
+                if (Regex.Match(haystack, regex, RegexOptions.IgnoreCase).Success)
+                    return true;
+            }
+            return false;
+        }
+
+        
         // From https://stackoverflow.com/questions/206323/how-to-execute-command-line-in-c-get-std-out-results
         public static string ExecCMD(string args, string alternative_binary="")
         {

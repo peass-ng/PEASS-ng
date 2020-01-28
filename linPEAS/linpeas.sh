@@ -1569,13 +1569,13 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ls -alhR /opt/lampp/htdocs/ 2>/dev/null | head
   echo ""
 
-  ##-- 19IF) Interesting hidden files
-  printf $Y"[+] "$GREEN"Readable *_history, .sudo_as_admin_successful, profile, bashrc, httpd.conf, .plan, .htpasswd, .git-credentials, .git, .svn, .gitconfig, .rhosts, hosts.equiv, Dockerfile, docker-compose.yml\n"$NC
+  ##-- 19IF) Interesting files
+  printf $Y"[+] "$GREEN"Readable *_history, .sudo_as_admin_successful, profile, bashrc, httpd.conf, .plan, .htpasswd, .gitconfig, .git-credentials, .git, .svn, .rhosts, hosts.equiv, Dockerfile, docker-compose.yml\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#read-sensitive-data\n"$NC
   fils=`find /etc /home /root /tmp /usr /opt /mnt /var/backups /var/www /var/opt /var/cache \( -name "*_history" -o -name ".sudo_as_admin_successful" -o -name ".profile" -o -name "*bashrc" -o -name "*httpd.conf" -o -name "*.plan" -o -name ".htpasswd" -o -name ".gitconfig" -o -name ".git-credentials" -o -name ".git" -o -name ".svn" -o -name "*.rhosts" -o -name "hosts.equiv" -o -name "Dockerfile" -o -name "docker-compose.yml" \) 2>/dev/null`
   for f in $fils; do 
     if [ -r $f ]; then 
-      ls -ld $f 2>/dev/null | sed "s,bash_history\|\.sudo_as_admin_successful\|\.plan\|\.htpasswd\|\.git-credentials\|.git\|.svn\|\.rhosts\|httpd.conf,${C}[1;31m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
+      ls -ld $f 2>/dev/null | sed "s,_history\|\.sudo_as_admin_successful\|.profile\|bashrc\|httpd.conf\|\.plan\|\.htpasswd\|.gitconfig\|\.git-credentials\|.git\|.svn\|\.rhosts\|hosts.equiv\|Dockerfile\|docker-compose.yml,${C}[1;31m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
       if [ `echo $f | grep "_history"` ]; then
         printf $GREEN"Looking for possible passwords inside $f\n"$NC
         cat $f | grep $pwd_inside_history | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
@@ -1595,7 +1595,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- 20IF) All hidden files
   printf $Y"[+] "$GREEN"All hidden files (not in /sys/ or the ones listed in the previous check) (limit 70)\n"$NC
-  find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/\|\.gitignore\|.npmignore\|_history$\|\.profile\|\.bashrc\|\.listing\|\.ignore\|\.uuid\|\.plan\|\.htpasswd\|\.git-credentials\|.rhosts\|.depend\|.placeholder\|.gitkeep\|.git$\|.svn$" | head -n 70
+  find / -type f -iname ".*" -ls 2>/dev/null | grep -v "/sys/\|_history$\|.sudo_as_admin_successful\|\.profile\|\.bashrc\|\.plan\|\.htpasswd\|.gitconfig\|\.git-credentials\|\.rhosts\|\.gitignore\|.npmignore\|\.listing\|\.ignore\|\.uuid\|.depend\|.placeholder\|.gitkeep" | head -n 70
   echo ""
 
   ##-- 21IF) Readable files in /tmp, /var/tmp, /var/backups
