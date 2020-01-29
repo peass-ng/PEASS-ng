@@ -92,7 +92,10 @@ namespace winPEAS
                     {
                         gName = UserInfo.SID2GroupName(group.ToString());
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        Beaprint.GrayPrint("Error obtaining current SIDs: " + ex);
+                    }
                     currentUserSIDs[group.ToString()] = gName;
                 }
 
