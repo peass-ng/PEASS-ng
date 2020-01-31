@@ -10,7 +10,7 @@ Check also the **Local Windows Privilege Escalation checklist** from **[book.hac
 
 ## Quick Start
 
-Download the **[latest version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/winPEAS/bin)** or **compile it yourself**.
+Download the **[latest obfuscated version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/winPEAS/bin/Obfuscated%20Releases)** or **compile it yourself** (read instructions for compilation).
 ```bash
 winpeas.exe cmd searchfast #cmd commands and avoid sleepig (noisy - CTFs)
 winpeas.exe #Will execute all checks except the ones that use a CMD
@@ -37,6 +37,24 @@ Below you have some indications about what does each color means exacty, but kee
 
 The tool is based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)**.
 
+## Instructions to compile
+
+There was a time when **winpeas.exe was detected as malicious by Defender:(** But not anymore thanks to **dotfuscator**. 
+
+This means that to **compile winpeas** you will need to **install dotfuscator** in *VisualStudio*. To install it *open VisualStudio --> Go to Search (CTRL+Q) --> Write "dotfuscator"* and just follow the instructions to install it.
+
+To use **dotfuscator** you will need to **create an account** *(they will send you an email to the address you set during registration*).
+
+Once you have installed and activated it you need to:
+1. **Compile** winpeas in VisualStudio
+2. **Open dotfuscator** app
+3. **Open** in dotfuscator **winPEAS.exe compiled** before and **Microsoft.Win32.TaskScheduler.dll** (is in the same folder as winPEAS.exe)
+4. Click on **Build**
+5. The **single, minimized and obfuscated binary** will appear in a **folder called Dotfuscator inside the folder were winPEAS.exe** and the DLL were (this location will be saved by dotfuscator and by default all the following builds will appear in this folder).
+
+**I'm sorry that all of this is necessary but is worth it. Dotfuscator will merge the DLL and EXE in a single executable, will minimize the size of the executable (winpeas size was reduced to the half) and will obfuscate the code** (F\*\*k you Defender).
+
+![](https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/winPEAS/winPEASexe/images/dotfuscator.PNG)
 
 ## Help
 
@@ -146,7 +164,7 @@ Contact me and ask about the **Privilege Escalation Course** I am preparing for 
 ## TODO
 
 - Add more checks
-- Mantain updated Watson
+- Mantain updated Watson (last JAN 2020)
 - List wifi networks without using CMD
 - List credentials inside the Credential Manager without using CMD
 
