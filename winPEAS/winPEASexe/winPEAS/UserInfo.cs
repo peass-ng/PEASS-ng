@@ -564,6 +564,7 @@ namespace winPEAS
             }
             return user;
         }
+
         public static UserPrincipal GetUserLocal(string sUserName)
         {
             // Extract local user information
@@ -575,6 +576,7 @@ namespace winPEAS
             user = searcher.FindOne() as UserPrincipal;
             return user;
         }
+
         public static UserPrincipal GetUserDomain(string sUserName, string domain)
         {
             //if not local, try to extract domain user information
@@ -979,8 +981,8 @@ namespace winPEAS
                 else if (Clipboard.ContainsFileDropList())
                     c = String.Format("{0}", Clipboard.GetFileDropList());
 
-                else if (Clipboard.ContainsImage())
-                    c = String.Format("{0}", Clipboard.GetImage());
+                //else if (Clipboard.ContainsImage()) //No system.Drwing import
+                    //c = String.Format("{0}", Clipboard.GetImage());
             }
             catch (Exception ex)
             {

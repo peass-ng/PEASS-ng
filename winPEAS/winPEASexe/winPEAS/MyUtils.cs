@@ -9,7 +9,6 @@ using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Runtime.InteropServices;
-//using Colorful;
 using System.Threading;
 
 namespace winPEAS
@@ -623,22 +622,6 @@ namespace winPEAS
         //////////////////////
         //////// MISC ////////
         //////////////////////
-        public static Dictionary<string, string> RemoveEmptyKeys(Dictionary<string, string> dic_in)
-        {
-            Dictionary<string, string> results = new Dictionary<string, string>();
-            try
-            {
-                foreach (KeyValuePair<string, string> entry in dic_in)
-                    if (!String.IsNullOrEmpty(entry.Value.Trim()))
-                        results[entry.Key] = entry.Value;
-                return results;
-            }
-            catch (Exception ex)
-            {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
-            }
-            return results;
-        }
         public static List<string> ListFolder(String path)
         {
             string root = @Path.GetPathRoot(Environment.SystemDirectory) + path;

@@ -1,5 +1,4 @@
-﻿using CredentialManagement;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -829,11 +828,6 @@ namespace winPEAS
             return results;
         }
 
-        public static void GetCredsCredmanager()
-        {
-            var cm = new Credential { };
-            cm.Load();
-        }
 
         public static List<Dictionary<string, string>> GetSavedRDPConnections()
         {
@@ -2007,25 +2001,7 @@ namespace winPEAS
                 return false;
             }
         }
-        public static IEnumerable<string> Split(string text, int partLength)
-        {
-            if (text == null) { Console.WriteLine("[ERROR] Split() - singleLineString"); }
-            if (partLength < 1) { Console.WriteLine("[ERROR] Split() - 'columns' must be greater than 0."); }
 
-            var partCount = Math.Ceiling((double)text.Length / partLength);
-            if (partCount < 2)
-            {
-                yield return text;
-            }
-
-            for (int i = 0; i < partCount; i++)
-            {
-                var index = i * partLength;
-                var lengthLeft = Math.Min(partLength, text.Length - index);
-                var line = text.Substring(index, lengthLeft);
-                yield return line;
-            }
-        }
         public static List<Dictionary<string, string>> ListKerberosTickets()
         {
             if (MyUtils.IsHighIntegrity())
@@ -2194,6 +2170,7 @@ namespace winPEAS
             }
             return results;
         }
+
         public static List<Dictionary<string, string>> ListKerberosTicketsCurrentUser()
         {
             List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
@@ -2294,6 +2271,7 @@ namespace winPEAS
                 return ListKerberosTGTDataCurrentUser();
             }
         }
+
         public static List<Dictionary<string, string>> ListKerberosTGTDataAllUsers()
         {
             List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();

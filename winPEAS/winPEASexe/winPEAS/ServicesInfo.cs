@@ -9,7 +9,6 @@ using System.ServiceProcess;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Runtime.InteropServices;
-using System.Security.Principal;
 
 namespace winPEAS
 {

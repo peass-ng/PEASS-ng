@@ -1,7 +1,5 @@
-﻿//using Colorful; // http://colorfulconsole.com/
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -20,10 +18,10 @@ namespace winPEAS
         static string BLUE = "\x1b[34m";
         public static string LBLUE = "\x1b[1;34m";
         static string MAGENTA = "\x1b[1:35m";
-        static string LMAGENTA = "\x1b[1;35m";
+        //static string LMAGENTA = "\x1b[1;35m";
         static string CYAN = "\x1b[36m";
         static string LCYAN = "\x1b[1;36m";
-        static string REDYELLOW = "\x1b[31;103m";
+        //static string REDYELLOW = "\x1b[31;103m";
         public static string NOCOLOR = "\x1b[0m";
         public static string ansi_color_bad = RED;
         public static string ansi_color_good = GREEN;
@@ -39,8 +37,6 @@ namespace winPEAS
         /////////////////////////////////
         public static void PrintBanner()
         {
-            try
-            {
                 System.Console.WriteLine(BLUE + String.Format(@"     
              {0}*((,.,/((((((((((((((((((((/,  */               
       {0},/*,..*((((((((((((((((((((((((((((((((((,           
@@ -73,47 +69,30 @@ namespace winPEAS
                 System.Console.WriteLine(LYELLOW + "ADVISORY: " + BLUE + Program.advisory);
                 System.Console.WriteLine();
                 Thread.Sleep(700);
-            }
-            catch (Exception ex)
-            {
-                GrayPrint("Error in PrintBanner: " + ex);
-            }
         }
 
         public static void PrintInit()
         {
-            try
-            {
-                if (Program.banner)
-                    PrintBanner();
+            if (Program.banner)
+                PrintBanner();
 
-                System.Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Program.version + NOCOLOR + YELLOW + " by carlospolop" + NOCOLOR);
-                System.Console.WriteLine();
-                PrintLeyend();
-                System.Console.WriteLine();
-                LinkPrint("https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation", "You can find a Windows local PE Checklist here:");
-            }
-            catch(Exception ex)
-            {
-                GrayPrint("Error in PrintInit: " + ex);
-            }
+            System.Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Program.version + NOCOLOR + YELLOW + " by carlospolop" + NOCOLOR);
+            System.Console.WriteLine();
+            PrintLeyend();
+            System.Console.WriteLine();
+            LinkPrint("https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation", "You can find a Windows local PE Checklist here:");
+
         }
 
         static void PrintLeyend()
         {
-            try
-            {
-                System.Console.WriteLine(YELLOW + "  [+] " + GREEN + "Leyend:" + NOCOLOR);
-                System.Console.WriteLine(RED + "         Red" + GRAY + "                Indicates a special privilege over an object or something is misconfigured" + NOCOLOR);
-                System.Console.WriteLine(GREEN + "         Green" + GRAY + "              Indicates that some protection is enabled or something is well configured" + NOCOLOR);
-                System.Console.WriteLine(CYAN + "         Cyan" + GRAY + "               Indicates active users" + NOCOLOR);
-                System.Console.WriteLine(BLUE + "         Blue" + GRAY + "               Indicates disabled users" + NOCOLOR);
-                System.Console.WriteLine(LYELLOW + "         LightYellow" + GRAY + "        Indicates links" + NOCOLOR);
-            }
-            catch(Exception ex)
-            {
-                GrayPrint("Error in PrintLeyend: " + ex);
-            }
+            System.Console.WriteLine(YELLOW + "  [+] " + GREEN + "Leyend:" + NOCOLOR);
+            System.Console.WriteLine(RED + "         Red" + GRAY + "                Indicates a special privilege over an object or something is misconfigured" + NOCOLOR);
+            System.Console.WriteLine(GREEN + "         Green" + GRAY + "              Indicates that some protection is enabled or something is well configured" + NOCOLOR);
+            System.Console.WriteLine(CYAN + "         Cyan" + GRAY + "               Indicates active users" + NOCOLOR);
+            System.Console.WriteLine(BLUE + "         Blue" + GRAY + "               Indicates disabled users" + NOCOLOR);
+            System.Console.WriteLine(LYELLOW + "         LightYellow" + GRAY + "        Indicates links" + NOCOLOR);
+
         }
 
         public static void PrintUsage()
@@ -142,54 +121,27 @@ namespace winPEAS
         /////////////////////////////////
         public static void GreatPrint(string toPrint)
         {
-            try
-            {
-                System.Console.WriteLine();
-                System.Console.WriteLine();
-                int halfTotal = 60;
-                System.Console.WriteLine(LCYAN + "  " + new String('=', halfTotal - toPrint.Length) + "(" + NOCOLOR + YELLOW + toPrint + LCYAN + ")" + new String('=', halfTotal - toPrint.Length) + NOCOLOR);
-            }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
+
+            System.Console.WriteLine();
+            System.Console.WriteLine();
+            int halfTotal = 60;
+            System.Console.WriteLine(LCYAN + "  " + new String('=', halfTotal - toPrint.Length) + "(" + NOCOLOR + YELLOW + toPrint + LCYAN + ")" + new String('=', halfTotal - toPrint.Length) + NOCOLOR);
         }
 
         public static void MainPrint(string toPrint, string attackid)
         {
-            try
-            {
-                System.Console.WriteLine();
-                System.Console.WriteLine(YELLOW + "  [+] " + GREEN + toPrint + YELLOW + "(" + DGRAY + attackid + YELLOW + ")" + NOCOLOR);
-            }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
+            System.Console.WriteLine();
+            System.Console.WriteLine(YELLOW + "  [+] " + GREEN + toPrint + YELLOW + "(" + DGRAY + attackid + YELLOW + ")" + NOCOLOR);
         }
 
         public static void LinkPrint(string link, string comment = "")
         {
-            try
-            {
-                System.Console.WriteLine(YELLOW + "   [?] " + LBLUE + comment + " " + LYELLOW + link + NOCOLOR);
-            }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
+            System.Console.WriteLine(YELLOW + "   [?] " + LBLUE + comment + " " + LYELLOW + link + NOCOLOR);
         }
 
         public static void InfoPrint(string toPrint)
         {
-            try
-            {
-                System.Console.WriteLine(YELLOW + "    [i] " + LBLUE + toPrint + NOCOLOR);
-            }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
+            System.Console.WriteLine(YELLOW + "    [i] " + LBLUE + toPrint + NOCOLOR);
         }
 
         public static void NotFoundPrint()
@@ -247,131 +199,92 @@ namespace winPEAS
         }
         public static void DictPrint(Dictionary<string, string> dicprint, Dictionary<string, string> ansi_colors_regexp, bool delete_nulls, bool no_gray = false)
         {
-            try
+            foreach (KeyValuePair<string, string> entry in dicprint)
             {
-                foreach (KeyValuePair<string, string> entry in dicprint)
-                {
-                    if (delete_nulls && String.IsNullOrEmpty(entry.Value.Trim()))
-                        continue;
-                    string value = entry.Value;
-                    string key = entry.Key;
-                    string line = "";
-                    if (! no_gray)
-                        line = ansi_color_gray + "    " + key + ": " + NOCOLOR + value;
-                    else
-                        line = "    " + key + ": " + value;
+                if (delete_nulls && String.IsNullOrEmpty(entry.Value.Trim()))
+                    continue;
+                string value = entry.Value;
+                string key = entry.Key;
+                string line = "";
+                if (!no_gray)
+                    line = ansi_color_gray + "    " + key + ": " + NOCOLOR + value;
+                else
+                    line = "    " + key + ": " + value;
 
-                    foreach (KeyValuePair<string, string> color in ansi_colors_regexp)
-                        line = Regexansi(line, color.Value, color.Key);
-                    
-                    System.Console.WriteLine(line);
-                }
+                foreach (KeyValuePair<string, string> color in ansi_colors_regexp)
+                    line = Regexansi(line, color.Value, color.Key);
+
+                System.Console.WriteLine(line);
             }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
+
         }
         public static void DictPrint(Dictionary<string, string> dicprint, bool delete_nulls)
         {
-            try
+            if (dicprint.Count > 0)
             {
-                if (dicprint.Count > 0)
+                foreach (KeyValuePair<string, string> entry in dicprint)
                 {
-                    foreach (KeyValuePair<string, string> entry in dicprint)
-                    {
-                        if (delete_nulls && String.IsNullOrEmpty(entry.Value))
-                            continue;
-                        System.Console.WriteLine(ansi_color_gray + "    " + entry.Key + ": " + NOCOLOR + entry.Value);
-                    }
+                    if (delete_nulls && String.IsNullOrEmpty(entry.Value))
+                        continue;
+                    System.Console.WriteLine(ansi_color_gray + "    " + entry.Key + ": " + NOCOLOR + entry.Value);
                 }
-                else
-                    NotFoundPrint();
             }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
+            else
+                NotFoundPrint();
         }
 
         public static void DictPrint(List<Dictionary<string, string>> listdicprint, bool delete_nulls)
         {
-            try
+            if (listdicprint.Count > 0)
             {
-                if (listdicprint.Count > 0)
+                foreach (Dictionary<string, string> dicprint in listdicprint)
                 {
-                    foreach (Dictionary<string, string> dicprint in listdicprint)
-                    {
-                        DictPrint(dicprint, delete_nulls);
-                        PrintLineSeparator();
-                    }
+                    DictPrint(dicprint, delete_nulls);
+                    PrintLineSeparator();
                 }
-                else
-                    NotFoundPrint();
             }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
+            else
+                NotFoundPrint();
         }
 
         public static void DictPrint(Dictionary<string, object> dicprint, bool delete_nulls)
         {
-            try
+
+            if (dicprint != null)
             {
-                if (dicprint != null)
-                {
-                    Dictionary<string, string> results = new Dictionary<string, string>();
-                    foreach (KeyValuePair<string, object> entry in dicprint)
-                        results[entry.Key] = String.Format("{0}", entry.Value);
-                    DictPrint(results, delete_nulls);
-                }
-                else
-                    NotFoundPrint();
+                Dictionary<string, string> results = new Dictionary<string, string>();
+                foreach (KeyValuePair<string, object> entry in dicprint)
+                    results[entry.Key] = String.Format("{0}", entry.Value);
+                DictPrint(results, delete_nulls);
             }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
+            else
+                NotFoundPrint();
+
         }
 
         public static void DictPrint(List<Dictionary<string, string>> listdicprint, Dictionary<string, string> colors, bool delete_nulls, bool no_gray = false)
         {
-            try
+            if (listdicprint.Count > 0)
             {
-                if (listdicprint.Count > 0)
+                foreach (Dictionary<string, string> dicprint in listdicprint)
                 {
-                    foreach (Dictionary<string, string> dicprint in listdicprint)
-                    {
-                        DictPrint(dicprint, colors, delete_nulls, no_gray);
-                        PrintLineSeparator();
-                    }
+                    DictPrint(dicprint, colors, delete_nulls, no_gray);
+                    PrintLineSeparator();
                 }
-                else
-                    NotFoundPrint();
             }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
+            else
+                NotFoundPrint();
         }
 
         public static void ListPrint(List<string> list_to_print)
         {
-            try
+            if (list_to_print.Count > 0)
             {
-                if (list_to_print.Count > 0)
-                {
-                    foreach (string elem in list_to_print)
-                        System.Console.WriteLine("    " + elem);
-                }
-                else
-                    NotFoundPrint();
+                foreach (string elem in list_to_print)
+                    System.Console.WriteLine("    " + elem);
             }
-            catch (Exception ex)
-            {
-                GrayPrint(String.Format("{0}", ex));
-            }
+            else
+                NotFoundPrint();
         }
 
         public static void ListPrint(List<string> list_to_print, Dictionary<string, string> dic_colors)
@@ -401,10 +314,10 @@ namespace winPEAS
             BLUE = "";
             LBLUE = "";
             MAGENTA = "";
-            LMAGENTA = "";
+            //LMAGENTA = "";
             CYAN = "";
             LCYAN = "";
-            REDYELLOW = "";
+            //REDYELLOW = "";
             NOCOLOR = "";
             ansi_color_bad = "";
             ansi_color_good = "";

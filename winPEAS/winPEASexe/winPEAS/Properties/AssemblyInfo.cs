@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("winPEAS")]
+[assembly: AssemblyTitle("asdas2dasd")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("winPEAS")]
+[assembly: AssemblyProduct("asdas2dasd")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("d934058e-a7db-493f-a741-ae8e3df867f4")]
+[assembly: Guid("1928358e-a64b-493f-a741-ae8e3d029374")]
 
 // Version information for an assembly consists of the following four values:
 //

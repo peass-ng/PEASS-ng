@@ -1,5 +1,4 @@
-﻿//using Colorful; // http://colorfulconsole.com/
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Management;
@@ -654,39 +653,39 @@ namespace winPEAS
         {
             void PrintInterestingProcesses()
             {
-                /* Colors Code
-                 * RED:
-                 * ---- Write privileges in path
-                 * ---- Different Owner than myself
-                 * GREEN:
-                 * ---- No Write privileges in path
-                 * MAGENTA:
-                 * ---- Current username
-                */
                 try
                 {
                     Beaprint.MainPrint("Interesting Processes -non Microsoft-", "T1010&T1057&T1007");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#running-processes", "Check if any interesting proccesses for memmory dump or if you could overwrite some binary running");
-                    List<Dictionary<string, string>> processes_info = ProcessesInfo.GetProcessInfo();
+                    List<Dictionary<string, string>> processes_info = ProcessesInfo.GetProcInfo();
                     foreach (Dictionary<string, string> proc_info in processes_info)
                     {
+                        Dictionary<string, string> colorsP = new Dictionary<string, string>()
+                        {
+                            { " "+currentUserName, Beaprint.ansi_current_user },
+                            { "Permissions:.*", Beaprint.ansi_color_bad },
+                            { "Possible DLL Hijacking.*", Beaprint.ansi_color_bad },
+                        };
+
                         if (ProcessesInfo.defensiveProcesses.ContainsKey(proc_info["Name"]))
                         {
-                            proc_info["Product"] = ProcessesInfo.defensiveProcesses[proc_info["Name"]].ToString();
+                            if (!String.IsNullOrEmpty(ProcessesInfo.defensiveProcesses[proc_info["Name"]].ToString()))
+                                proc_info["Product"] = ProcessesInfo.defensiveProcesses[proc_info["Name"]].ToString();
+                            colorsP[proc_info["Product"]] = Beaprint.ansi_color_good;
                         }
                         else if (ProcessesInfo.interestingProcesses.ContainsKey(proc_info["Name"]))
                         {
-                            proc_info["Product"] = ProcessesInfo.interestingProcesses[proc_info["Name"]].ToString();
-                        }
-                        else if (ProcessesInfo.browserProcesses.ContainsKey(proc_info["Name"]))
-                        {
-                            proc_info["Product"] = ProcessesInfo.browserProcesses[proc_info["Name"]].ToString();
+                            if (!String.IsNullOrEmpty(ProcessesInfo.defensiveProcesses[proc_info["Name"]].ToString()))
+                                proc_info["Product"] = ProcessesInfo.interestingProcesses[proc_info["Name"]].ToString();
+                            colorsP[proc_info["Product"]] = Beaprint.ansi_color_bad;
                         }
 
                         List<string> file_rights = MyUtils.GetPermissionsFile(proc_info["ExecutablePath"], currentUserSIDs);
                         List<string> dir_rights = new List<string>();
                         if (proc_info["ExecutablePath"] != null && proc_info["ExecutablePath"] != "")
                             dir_rights = MyUtils.GetPermissionsFolder(Path.GetDirectoryName(proc_info["ExecutablePath"]), currentUserSIDs);
+
+                        colorsP[proc_info["ExecutablePath"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+", "\\+") + "[^\"^']"] = (file_rights.Count > 0 || dir_rights.Count > 0) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good;
 
                         string formString = "    {0}({1})[{2}]";
                         if (proc_info["Product"] != null && proc_info["Product"].Length > 1)
@@ -702,13 +701,7 @@ namespace winPEAS
                         if (proc_info["CommandLine"].Length > 1)
                             formString += "\n    "+ Beaprint.ansi_color_gray + "Command Line: {9}";
 
-                        Dictionary<string, string> colorsP = new Dictionary<string, string>()
-                        {
-                            { " "+currentUserName, Beaprint.ansi_current_user },
-                            { "Permissions:.*", Beaprint.ansi_color_bad },
-                            { "Possible DLL Hijacking.*", Beaprint.ansi_color_bad },
-                            { proc_info["ExecutablePath"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+")+"[^\"^']", (file_rights.Count > 0 || dir_rights.Count > 0) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
-                        };
+                        
                         Beaprint.AnsiPrint(String.Format(formString, proc_info["Name"], proc_info["ProcessID"], proc_info["ExecutablePath"], proc_info["Product"], proc_info["Owner"], proc_info["isDotNet"], String.Join(", ", file_rights), dir_rights.Count > 0 ? Path.GetDirectoryName(proc_info["ExecutablePath"]) : "", String.Join(", ", dir_rights), proc_info["CommandLine"]), colorsP);
                         Beaprint.PrintLineSeparator();
                     }
