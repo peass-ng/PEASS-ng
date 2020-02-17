@@ -1838,7 +1838,7 @@ namespace winPEAS
                 try
                 {
                     string[] pass_reg_hkcu = new string[] { @"Software\ORL\WinVNC3\Password", @"Software\TightVNC\Server", @"Software\SimonTatham\PuTTY\Sessions" };
-                    string[] pass_reg_hklm = new string[] { @"SYSTEM\Microsoft\Windows NT\Currentversion\WinLogon", @"SYSTEM\CurrentControlSet\Services\SNMP" };
+                    string[] pass_reg_hklm = new string[] { @"SOFTWARE\Microsoft\Windows NT\Currentversion\WinLogon", @"SYSTEM\CurrentControlSet\Services\SNMP" };
 
                     Beaprint.MainPrint("Looking for possible regs with creds", "T1012&T1214");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#inside-the-registry");
