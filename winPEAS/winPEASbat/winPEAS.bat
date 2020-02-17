@@ -382,8 +382,8 @@ echo Looking inside HKCU\Software\ORL\WinVNC3\Password
 reg query HKCU\Software\ORL\WinVNC3\Password 2>nul
 echo Looking inside HKEY_LOCAL_MACHINE\SOFTWARE\RealVNC\WinVNC4/password
 reg query HKEY_LOCAL_MACHINE\SOFTWARE\RealVNC\WinVNC4 /v password 2>nul
-echo Looking inside HKLM\SYSTEM\Microsoft\Windows NT\Currentversion\WinLogon
-reg query HKLM\SYSTEM\Microsoft\Windows NT\Currentversion\WinLogon 2>nul
+echo Looking inside HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\WinLogon
+reg query HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon 2>nul
 echo Looking inside HKLM\SYSTEM\CurrentControlSet\Services\SNMP
 reg query HKLM\SYSTEM\CurrentControlSet\Services\SNMP /s 2>nul
 echo Looking inside HKCU\Software\TightVNC\Server
