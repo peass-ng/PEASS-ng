@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.3.1"
+VERSION="v2.3.2"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -1333,7 +1333,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   adhashes=`ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null`
   printf $Y"[+] "$GREEN"Looking for AD cached hahses\n"$NC
   if [ "$adhashes" ]; then
-    ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null
+    ls -l "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null
   else echo_not_found "cached hashes"
   fi
   echo ""
@@ -1407,6 +1407,17 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     if [ -r $f ]; then 
       echo "Found readable $f"
       cat "$f" | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | sed "s,password_file.*\|psk_file.*\|allow_anonymous.*true\|auth,${C}[1;31m&${C}[0m," 2>/dev/null
+    fi
+  done
+  echo ""
+
+  ##-- 37SI) Neo4j
+  printf $Y"[+] "$GREEN"Looking for neo4j auth file\n"$NC
+  neo4j=`find /var /etc /home /root /tmp /usr /opt -type d -name "neo4j" 2>/dev/null`
+  for d in $neo4j; do
+    if [ -r $d ]; then 
+      echo "Found readable $d"
+      find $d -type f -name "auth" -exec cat {} \; 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," 2>/dev/null
     fi
   done
   echo ""
