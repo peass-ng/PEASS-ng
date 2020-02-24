@@ -174,7 +174,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Try to login using `su` as other users (using as passwords: null pass, username, reverse username, and top2000pwds)
   - [x] List of superusers
   - [x] List of users with console
-  - [x] Login info
+  - [x] Login info (now, last logons, last time each user)
   - [x] List of all users
   - [x] Clipboard and highlighted text
   - [x] Password policy
@@ -216,13 +216,14 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 - **Generic Interesting Files**
   - [x] SUID & SGID files
   - [x] Capabilities
+  - [x] Users with capabilities
   - [x] .sh scripts in PATH
   - [x] scripts in /etc/profile.d
   - [x] Hashes (passwd, shadow & master.passwd)
   - [x] Try to read root dir
   - [x] Files owned by root inside /home
   - [x] List of readable files belonging to root and not world readable
-  - [x] Root files inside a folder owned by the current user
+  - [x] Others files inside a folder owned by the current user
   - [x] Reduced list of files inside my home and /home
   - [x] Mail applications
   - [x] Mails
