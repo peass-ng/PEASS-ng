@@ -29,6 +29,10 @@ Some of the tests in this script were extracted from **[here](https://github.com
 - [x] Audit Settings
 - [x] WEF Settings
 - [x] LAPS installed?
+- [x] LSA protection?
+- [x] Credential Guard?
+- [x] WDigest?
+- [x] Number of cached cred
 - [x] UAC Settings
 - [x] AV?
 - [x] PS Settings
@@ -50,7 +54,12 @@ Some of the tests in this script were extracted from **[here](https://github.com
 - [x] Windows Vault
 - [x] DPAPI Master Keys
 - [x] AppCmd.exe?
-- [x] Search for known registry to have passwords and keys inside
+- [x] Check for unattended files
+- [x] Check for SAM & SYSTEM backups
+- [x] Check for cached GPP Passwords
+- [x] Check for McAffe SiteList.xml files
+- [x] Check for Cloud credentials
+- [x] Search for known registry to have passwords and keys inside (Winlogon...)
 - [x] Search for known files to have passwords inside (can take some minutes)
 - [x] If *long*, search files with passwords inside 
 - [x] If *long*, search registry with passwords inside 

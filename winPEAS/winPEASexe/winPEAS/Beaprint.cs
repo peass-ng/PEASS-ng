@@ -100,7 +100,7 @@ namespace winPEAS
             System.Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        quiet" + GRAY + "             Do not print banner" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        searchfast" + GRAY + "        Avoid sleeping while searching files (notable amount of resources)" + NOCOLOR);
-            System.Console.WriteLine(LBLUE + "        fast" + GRAY + "              Avoid very time consuming checks" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        searchall" + GRAY + "         Search all known filenames whith possible credentials (coul take some mins)" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        cmd" + GRAY + "               Obtain wifi, cred manager and clipboard information executing CMD commands" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        notansi" + GRAY + "           Don't use ansi colors (all white)" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        systeminfo" + GRAY + "        Search system information" + NOCOLOR);

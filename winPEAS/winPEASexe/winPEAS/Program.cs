@@ -13,8 +13,7 @@ namespace winPEAS
         public static string advisory = "winpeas should be used for authorized penetration testing and/or educational purposes only.Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.";
         public static bool banner = true;
         public static bool search_fast = false;
-        public static int search_time = 150;
-        static bool is_fast = false;
+        public static int search_time = 50;
         static bool exec_cmd = false;
         public static bool notcolor = false;
 
@@ -33,8 +32,9 @@ namespace winPEAS
         static string print_credStrings_limited = "[pP][aA][sS][sS][wW][a-zA-Z0-9_-]*|[pP][wW][dD][a-zA-Z0-9_-]*|[nN][aA][mM][eE]|[lL][oO][gG][iI][nN]|[cC][oO][nN][tT][rR][aA][sS][eE][a-zA-Z0-9_-]*|[cC][rR][eE][dD][eE][nN][tT][iI][aA][lL][a-zA-Z0-9_-]*|[aA][pP][iI]|[tT][oO][kK][eE][nN]|[sS][eE][sS][sS][a-zA-Z0-9_-]*";
         static string print_credStrings = print_credStrings_limited + "|[uU][sS][eE][rR][a-zA-Z0-9_-]*";
         static List<string> credStringsRegex = new List<string> { "PASSW[a-zA-Z0-9_-]*=", "PWD[a-zA-Z0-9_-]*=", "USER[a-zA-Z0-9_-]*=", "NAME=", "&LOGIN", "=LOGIN", "CONTRASEÑA[a-zA-Z0-9_-]*=", "CREDENTIAL[a-zA-Z0-9_-]*=", "API_KEY", "TOKEN" };
-        static string patterns_file_creds = @"RDCMan.settings;*.rdg;*_history;.sudo_as_admin_successful;.profile;*bashrc;httpd.conf;*.plan;.htpasswd;.git-credentials;*.rhosts;hosts.equiv;Dockerfile;docker-compose.yml;credentials;credentials.db;access_tokens.db;accessTokens.json;legacy_credentials;azureProfile.json;appcmd.exe;scclient.exe;unattend.txt;*.gpg$;*.pgp$;*config*.php;elasticsearch.y*ml;kibana.y*ml;*.p12$;*.der$;*.csr$;*.cer$;known_hosts;id_rsa;id_dsa;*.ovpn;anaconda-ks.cfg;hostapd.conf;rsyncd.conf;cesi.conf;supervisord.conf;tomcat-users.xml;web.config;*.kdbx;KeePass.config;Ntds.dit;SAM;SYSTEM;FreeSSHDservice.ini;sysprep.inf;sysprep.xml;unattend.xml;unattended.xml;*vnc*.ini;*vnc*.c*nf*;*vnc*.txt;*vnc*.xml;groups.xml;services.xml;scheduledtasks.xml;printers.xml;drives.xml;datasources.xml;php.ini;https.conf;https-xampp.conf;httpd.conf;my.ini;my.cnf;access.log;error.log;server.xml;SiteList.xml;ConsoleHost_history.txt;setupinfo;setupinfo.bak";
-        static string patterns_file_creds_color = "RDCMan.settings|.rdg|_history|.sudo_as_admin_successful|.profile|bashrc|httpd.conf|.plan|.htpasswd|.git-credentials|.rhosts|hosts.equiv|Dockerfile|docker-compose.yml|credentials|credentials.db|access_tokens.db|accessTokens.json|legacy_credentials|azureProfile.json|appcmd.exe|scclient.exe|unattend.txt|access.log|error.log|credential|password|.gpg|.pgp|config.php|elasticsearch|kibana.|.p12|.der|.csr|.crt|.cer|.pem|known_hosts|id_rsa|id_dsa|.ovpn|anaconda-ks.cfg|hostapd.conf|rsyncd.conf|cesi.conf|supervisord.conf|tomcat-users.xml|web.config|.kdbx|.key|KeePass.config|ntds.dir|Ntds.dit|sam|system|SAM|SYSTEM|FreeSSHDservice.ini|sysprep.inf|sysprep.xml|unattend.xml|unattended.xml|vnc|groups.xml|services.xml|scheduledtasks.xml|printers.xml|drives.xml|datasources.xml|php.ini|https.conf|https-xampp.conf|httpd.conf|my.ini|my.cnf|access.log|error.log|server.xml|SiteList.xml|setupinfo";
+        static string patterns_file_creds = @"RDCMan.settings;*.rdg;*_history*;httpd.conf;.htpasswd;.gitconfig;.git-credentials;Dockerfile;docker-compose.yml;access_tokens.db;accessTokens.json;azureProfile.json;appcmd.exe;scclient.exe;*.gpg$;*.pgp$;*config*.php;elasticsearch.y*ml;kibana.y*ml;*.p12$;*.cer$;known_hosts;*id_rsa*;*id_dsa*;*.ovpn;tomcat-users.xml;web.config;*.kdbx;KeePass.config;Ntds.dit;SAM;SYSTEM;FreeSSHDservice.ini;sysprep.inf;sysprep.xml;*vnc*.ini;*vnc*.c*nf*;*vnc*.txt;*vnc*.xml;php.ini;https.conf;https-xampp.conf;my.ini;my.cnf;access.log;error.log;server.xml;ConsoleHost_history.txt";
+        static string complete_patterns_file_creds = ";unattend.txt;*.der$;*.csr$;unattend.xml;unattended.xml;groups.xml;services.xml;scheduledtasks.xml;printers.xml;drives.xml;datasources.xml;setupinfo;setupinfo.bak";
+        static string patterns_file_creds_color = @"RDCMan.settings|.rdg|_history|httpd.conf|.htpasswd|.gitconfig|.git-credentials|Dockerfile|docker-compose.ymlaccess_tokens.db|accessTokens.json|azureProfile.json|appcmd.exe|scclient.exe|unattend.txt|access.log|error.log|credential|password|.gpg|.pgp|config.php|elasticsearch|kibana.|.p12|\.der|.csr|.crt|.cer|.pem|known_hosts|id_rsa|id_dsa|.ovpn|tomcat-users.xml|web.config|.kdbx|.key|KeePass.config|ntds.dir|Ntds.dit|sam|system|SAM|SYSTEM|FreeSSHDservice.ini|sysprep.inf|sysprep.xml|unattend.xml|unattended.xml|vnc|groups.xml|services.xml|scheduledtasks.xml|printers.xml|drives.xml|datasources.xml|php.ini|https.conf|https-xampp.conf|my.ini|my.cnf|access.log|error.log|server.xml|setupinfo";
 
         // Create Dynamic blacklists
         static string currentUserName = Environment.UserName;
@@ -144,7 +144,7 @@ namespace winPEAS
             try
             {
                 if (MyUtils.GetRegValue("HKCU", "CONSOLE", "VirtualTerminalLevel") == "" && MyUtils.GetRegValue("HKCU", "CONSOLE", "VirtualTerminalLevel") == "")
-                    System.Console.WriteLine(@"ANSI color bit for Windows is not set. If you are execcuting this from a Windows terminal inside the host you should run 'REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1'");
+                    System.Console.WriteLine(@"ANSI color bit for Windows is not set. If you are execcuting this from a Windows terminal inside the host you should run 'REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1' and then start a new CMD");
             }
             catch(Exception ex)
             {
@@ -189,7 +189,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("PowerShell Settings", "");
                     Dictionary<string, string> PSs = SystemInfo.GetPowerShellSettings();
-                    Beaprint.DictPrint(PSs, true);
+                    Beaprint.DictPrint(PSs, false);
                 }
                 catch (Exception ex)
                 {
@@ -232,7 +232,7 @@ namespace winPEAS
                 try
                 {
                     Beaprint.MainPrint("LAPS Settings", "T1012");
-                    Beaprint.LinkPrint("", "If installed, local administrator password change frequently in domain-joined boxes and is restricted by ACL");
+                    Beaprint.LinkPrint("", "If installed, local administrator password is changed frequently and is restricted by ACL");
                     Dictionary<string, string> lapsDict = SystemInfo.GetLapsSettings();
                     Dictionary<string, string> colorsSI = new Dictionary<string, string>()
                         {
@@ -243,6 +243,62 @@ namespace winPEAS
                 catch (Exception ex)
                 {
                     Beaprint.GrayPrint(String.Format("{0}", ex));
+                }
+            }
+
+            void PrintWdigest()
+            {
+                Beaprint.MainPrint("Wdigest", "");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#wdigest", "If enabled, plain-text crds could be stored in LSASS");
+                string useLogonCredential = MyUtils.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest", "UseLogonCredential");
+                if (useLogonCredential == "1")
+                    Beaprint.BadPrint("    Wdigest is active");
+                else
+                    Beaprint.GoodPrint("    Wdigest is not enabled");
+            }
+
+            void PrintLSAProtection()
+            {
+                Beaprint.MainPrint("LSA Protection", "");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#lsa-protection", "If enabled, a driver is needed to read LSASS memory (If Secure Boot or UEFI, RunAsPPL cannot be disabled by deleting the registry key)");
+                string useLogonCredential = MyUtils.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\LSA", "RunAsPPL");
+                if (useLogonCredential == "1")
+                    Beaprint.GoodPrint("    LSA Protection is active");
+                else
+                    Beaprint.BadPrint("    LSA Protection is not enabled");
+            }
+
+            void PrintCredentialGuard()
+            {
+                Beaprint.MainPrint("Credentials Guard", "");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#credential-guard", "If enabled, a driver is needed to read LSASS memory");
+                string lsaCfgFlags = MyUtils.GetRegValue("HKLM", @"System\CurrentControlSet\Control\LSA", "LsaCfgFlags");
+                if (lsaCfgFlags == "1")
+                {
+                    System.Console.WriteLine("    Please, note that this only checks the LsaCfgFlags key value. This is not enough to enable Credentials Guard (but it's a strong indicator).");
+                    Beaprint.GoodPrint("    CredentialGuard is active with UEFI lock");
+                }
+                else if (lsaCfgFlags == "2")
+                {
+                    System.Console.WriteLine("    Please, note that this only checks the LsaCfgFlags key value. This is not enough to enable Credentials Guard (but it's a strong indicator).");
+                    Beaprint.GoodPrint("    CredentialGuard is active without UEFI lock");
+                }
+                else
+                    Beaprint.BadPrint("    CredentialGuard is not enabled");
+            }
+
+            void PrintCachedCreds()
+            {
+                Beaprint.MainPrint("Cached Creds", "");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#cached-credentials", "If > 0, credentials will be cached in the registry and accessible by SYSTEM user");
+                string cachedlogonscount = MyUtils.GetRegValue("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "CACHEDLOGONSCOUNT");
+                if (!String.IsNullOrEmpty(cachedlogonscount))
+                {
+                    int clc = Int16.Parse(cachedlogonscount);
+                    if (clc > 0)
+                        Beaprint.BadPrint("    cachedlogonscount is "+ cachedlogonscount);
+                    else
+                        Beaprint.BadPrint("    cachedlogonscount is " + cachedlogonscount);
                 }
             }
 
@@ -401,6 +457,10 @@ namespace winPEAS
             PrintAuditInfo();
             PrintWEFInfo();
             PrintLAPSInfo();
+            PrintWdigest();
+            PrintLSAProtection();
+            PrintCredentialGuard();
+            PrintCachedCreds();
             PrintUserEV();
             PrintSystemEV();
             PrintInetInfo();
@@ -577,7 +637,7 @@ namespace winPEAS
                             {
                                 if (!ban)
                                 {
-                                    Beaprint.BadPrint("Some AutoLogon credentials were found!!");
+                                    Beaprint.BadPrint("    Some AutoLogon credentials were found!!");
                                     ban = true;
                                 }
                                 Beaprint.AnsiPrint(String.Format("    {0,-30}:  {1}", entry.Key, entry.Value), colorsU());
@@ -740,7 +800,7 @@ namespace winPEAS
                 try
                 {
                     Beaprint.MainPrint("Interesting Services -non Microsoft-", "T1007");
-                    Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#services", "Check if you can overwrite some service binary or perform a DLL hijacking, also cehck for unquoted paths");
+                    Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#services", "Check if you can overwrite some service binary or perform a DLL hijacking, also check for unquoted paths");
 
                     List<Dictionary<string, string>> services_info = ServicesInfo.GetNonstandardServices();
                     
@@ -774,7 +834,12 @@ namespace winPEAS
                         if (no_quotes_and_space)
                             formString += " - {7}";
                         if (mod_services.ContainsKey(service_info["Name"]))
-                            formString += "\n    YOU CAN MODIFY THIS SERVICE: "+ mod_services[service_info["Name"]];
+                        {
+                            if (mod_services[service_info["Name"]] == "Start")
+                                formString += "\n    You can START this service";
+                            else
+                                formString += "\n    YOU CAN MODIFY THIS SERVICE: " + mod_services[service_info["Name"]];
+                        }
                         if (file_rights.Count > 0)
                             formString += "\n    File Permissions: {8}";
                         if (dir_rights.Count > 0)
@@ -789,6 +854,7 @@ namespace winPEAS
                                 { "Possible DLL Hijacking.*", Beaprint.ansi_color_bad },
                                 { "No quotes and Space detected", Beaprint.ansi_color_bad },
                                 { "YOU CAN MODIFY THIS SERVICE:.*", Beaprint.ansi_color_bad },
+                                { " START ", Beaprint.ansi_color_bad },
                                 { service_info["PathName"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+"), (file_rights.Count > 0 || dir_rights.Count > 0 || no_quotes_and_space) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                             };
 
@@ -926,9 +992,9 @@ namespace winPEAS
             {
                 try
                 {
-                    Beaprint.MainPrint("Installed Applications --Via Program Files--", "T1083&T1012&T1010&T1518");
+                    Beaprint.MainPrint("Installed Applications --Via Program Files/Uninstall registry--", "T1083&T1012&T1010&T1518");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#software", "Check if you can modify installed software");
-                    Dictionary<string, Dictionary<string, string>> InstalledAppsPerms = ApplicationInfo.GetInstalledAppsPerms();
+                    SortedDictionary<string, Dictionary<string, string>> InstalledAppsPerms = ApplicationInfo.GetInstalledAppsPerms();
                     string format = "    ==>  {0} ({1})";
                     foreach (KeyValuePair<string, Dictionary<string, string>> app in InstalledAppsPerms)
                     {
@@ -957,13 +1023,13 @@ namespace winPEAS
                     }
                     System.Console.WriteLine();
 
-                    Beaprint.MainPrint("Installed Applications --Via Registry--", "T1083&T1012&T1010");
+                    /*Beaprint.MainPrint("Installed Applications --Via Registry--", "T1083&T1012&T1010");
 
                     Dictionary<string, string> colorsA = new Dictionary<string, string>()
                     {
                         { goodSoft, Beaprint.ansi_color_good }
                     };
-                    Beaprint.ListPrint(ApplicationInfo.GetAppsRegistry(), colorsA);
+                    Beaprint.ListPrint(ApplicationInfo.GetAppsRegistry(), colorsA);*/
                 }
                 catch
                 {
@@ -1163,7 +1229,11 @@ namespace winPEAS
                     foreach (List<string> conn in conns)
                     {
                         if (conn[0].Contains("UDP") && conn[1].Contains("0.0.0.0:") && (conn[1].Split(':')[1].Length > 4))
-                            continue;
+                            continue; //Delete useless UDP listening ports
+
+                        if (conn[0].Contains("UDP") && conn[1].Contains("[::]:") && (conn[1].Split(']')[1].Length > 4))
+                            continue; //Delete useless UDP listening ports
+
                         Beaprint.AnsiPrint(String.Format("    {0,-10}{1,-23}{2,-23}{3}", conn[0], conn[1], conn[2], conn[3]), colorsN);
                     }
                 }
@@ -1747,7 +1817,7 @@ namespace winPEAS
         /////////////////////////////////////////////////
         /////////////// INTERESTING FILES ///////////////
         /////////////////////////////////////////////////
-        private static void PrintInterestingFiles(bool is_fast)
+        private static void PrintInterestingFiles()
         {
             void PrintPuttySess()
             {
@@ -1833,12 +1903,89 @@ namespace winPEAS
                 }
             }
 
+            void PrintUnattendFiles()
+            {
+                try
+                {
+                    Beaprint.MainPrint("Unnattend Files", "");
+                    //Beaprint.LinkPrint("");
+                    List<string> unattended_files = InterestingFiles.GetUnattendedInstallFiles();
+                    foreach (string path in unattended_files)
+                    {
+                        List<string> pwds = InterestingFiles.ExtractUnattenededPwd(path);
+                        Beaprint.BadPrint("    "+path);
+                        System.Console.WriteLine(String.Join("\n", pwds));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                }
+            }
+
+            void PrintSAMBackups()
+            {
+                try
+                {
+                    Beaprint.MainPrint("Looking for common SAM & SYSTEM backups", "");
+                    List<string> sam_files = InterestingFiles.GetSAMBackups();
+                    foreach (string path in sam_files)
+                        Beaprint.BadPrint("    " + path);
+                    
+                }
+                catch (Exception ex)
+                {
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                }
+            }
+
+            void PrintMcAffeSitelistFiles()
+            {
+                try
+                {
+                    Beaprint.MainPrint("Looking for McAfee Sitelist.xml Files", "");
+                    List<string> sam_files = InterestingFiles.GetMcAfeeSitelistFiles();
+                    foreach (string path in sam_files)
+                        Beaprint.BadPrint("    " + path);
+
+                }
+                catch (Exception ex)
+                {
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                }
+            }
+
+            void PrintCachedGPPPassword()
+            {
+                try
+                {
+                    Beaprint.MainPrint("Cached GPP Passwords", "");
+                    Dictionary<string, Dictionary<string, string>> gpp_passwords = InterestingFiles.GetCachedGPPPassword();
+
+                    Dictionary<string, string> gppColors = new Dictionary<string, string>()
+                    {
+                        { "cpassword.*", Beaprint.ansi_color_bad },
+                    };
+
+                    foreach (KeyValuePair<string, Dictionary<string, string>> entry in gpp_passwords)
+                    {
+                        Beaprint.BadPrint("    Found "+ entry.Key);
+                        Beaprint.DictPrint(entry.Value, gppColors, true);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                }
+            }
+
             void PrintPossCredsRegs()
             {
                 try
                 {
                     string[] pass_reg_hkcu = new string[] { @"Software\ORL\WinVNC3\Password", @"Software\TightVNC\Server", @"Software\SimonTatham\PuTTY\Sessions" };
-                    string[] pass_reg_hklm = new string[] { @"SOFTWARE\Microsoft\Windows NT\Currentversion\WinLogon", @"SYSTEM\CurrentControlSet\Services\SNMP" };
+                    string[] pass_reg_hklm = new string[] { @"SYSTEM\CurrentControlSet\Services\SNMP" };
 
                     Beaprint.MainPrint("Looking for possible regs with creds", "T1012&T1214");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#inside-the-registry");
@@ -1931,7 +2078,7 @@ namespace winPEAS
                 }
             }
 
-            void PrintPossCredsFiles()
+            void PrintUsersInterestingFiles()
             {
                 try
                 {
@@ -1940,9 +2087,9 @@ namespace winPEAS
                         { patterns_file_creds_color, Beaprint.ansi_color_bad },
                     };
 
-                    Beaprint.MainPrint("Looking for possible known files that can contain creds", "T1083&T1081");
+                    Beaprint.MainPrint("Searching known files that can contain creds in home", "T1083&T1081");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files");
-                    string searchPath = String.Format("{0}\\", Environment.GetEnvironmentVariable("SystemDrive"));
+                    string searchPath = Environment.GetEnvironmentVariable("USERPROFILE");
                     MyUtils.FindFiles(searchPath, patterns_file_creds, colorF);
                 }
                 catch (Exception ex)
@@ -1971,9 +2118,18 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Recent files --limit 70--", "T1083&T1081");
                     List<Dictionary<string, string>> rec_files = KnownFileCredsInfo.GetRecentFiles();
+
+                    Dictionary<string, string> colorF = new Dictionary<string, string>()
+                    {
+                        { patterns_file_creds_color, Beaprint.ansi_color_bad },
+                    };
+
                     if (rec_files.Count != 0)
-                        Beaprint.DictPrint(rec_files.GetRange(0, rec_files.Count <= 70 ? rec_files.Count : 70), false);
-                    
+                    {
+                        foreach (Dictionary<string, string> rec_f in rec_files.GetRange(0, rec_files.Count <= 70 ? rec_files.Count : 70))
+                            Beaprint.AnsiPrint("    " + rec_f["Target"] + "(" + rec_f["Accessed"] + ")", colorF);
+                        
+                    }
                     else
                         Beaprint.NotFoundPrint();
                 }
@@ -1989,15 +2145,16 @@ namespace winPEAS
             PrintPuttySSH();
             PrintSSHKeysReg();
             PrintCloudCreds();
+            PrintUnattendFiles();
+            PrintSAMBackups();
+            PrintMcAffeSitelistFiles();
+            PrintCachedGPPPassword();
             PrintPossCredsRegs();
             PrintUserCredsFiles();
             PrintRecycleBin();
-            if (!is_fast)
-            {
-                PrintPossCredsFiles();
-                PrintUsersDocsKeys();
-            }
-            PrintRecentFiles();
+            PrintUsersInterestingFiles();
+            PrintUsersDocsKeys();
+            PrintRecentFiles();            
         }
 
 
@@ -2021,9 +2178,6 @@ namespace winPEAS
             bool check_if = false;
             foreach (string arg in args)
             {
-                if (string.Equals(arg, "fast", StringComparison.CurrentCultureIgnoreCase))
-                    is_fast = true;
-
                 if (string.Equals(arg, "cmd", StringComparison.CurrentCultureIgnoreCase))
                     exec_cmd = true;
 
@@ -2032,6 +2186,9 @@ namespace winPEAS
 
                 if (string.Equals(arg, "quiet", StringComparison.CurrentCultureIgnoreCase))
                     banner = false;
+
+                if (string.Equals(arg, "searchall", StringComparison.CurrentCultureIgnoreCase))
+                    patterns_file_creds = patterns_file_creds + complete_patterns_file_creds;
 
                 if (string.Equals(arg, "searchfast", StringComparison.CurrentCultureIgnoreCase))
                     search_fast = false;
@@ -2141,7 +2298,7 @@ namespace winPEAS
             if (check_bi || check_all)
                 PrintBrowserInfo();
             if (check_if || check_all)
-                PrintInterestingFiles(is_fast);
+                PrintInterestingFiles();
 
             /*
              * Wifi (passwords?)
@@ -2151,7 +2308,7 @@ namespace winPEAS
              * List Drivers ==> but how do I know if a driver is malicious?
              */
 
-            System.Console.ReadLine(); //For debugging
+            //System.Console.ReadLine(); //For debugging
         }
     }
 }

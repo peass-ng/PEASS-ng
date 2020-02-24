@@ -843,7 +843,7 @@ namespace winPEAS
                         string[] subkeys = MyUtils.GetRegSubkeys("HKU", String.Format("{0}\\Software\\Microsoft\\Terminal Server Client\\Servers", SID));
                         if (subkeys != null)
                         {
-                            Console.WriteLine("\r\n\r\n=== Saved RDP Connection Information ({0}) ===", SID);
+                            //Console.WriteLine("\r\n\r\n=== Saved RDP Connection Information ({0}) ===", SID);
                             foreach (string host in subkeys)
                             {
                                 string usernameHint = MyUtils.GetRegValue("HKCU", String.Format("Software\\Microsoft\\Terminal Server Client\\Servers\\{0}", host), "UsernameHint");
@@ -1351,27 +1351,33 @@ namespace winPEAS
                         string userName = parts[parts.Length - 1];
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
-                            string userDPAPIBasePath = String.Format("{0}\\AppData\\Roaming\\Microsoft\\Protect\\", dir);
-                            if (System.IO.Directory.Exists(userDPAPIBasePath))
-                            {
-                                string[] directories = Directory.GetDirectories(userDPAPIBasePath);
-                                foreach (string directory in directories)
-                                {
-                                    string[] files = Directory.GetFiles(directory);
+                            List<string> userDPAPIBasePaths = new List<string>();
+                            userDPAPIBasePaths.Add(String.Format("{0}\\AppData\\Roaming\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
+                            userDPAPIBasePaths.Add(String.Format("{0}\\AppData\\Local\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
 
-                                    foreach (string file in files)
+                            foreach (string userDPAPIBasePath in userDPAPIBasePaths)
+                            {
+                                if (System.IO.Directory.Exists(userDPAPIBasePath))
+                                {
+                                    string[] directories = Directory.GetDirectories(userDPAPIBasePath);
+                                    foreach (string directory in directories)
                                     {
-                                        if (Regex.IsMatch(file, @"[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}"))
+                                        string[] files = Directory.GetFiles(directory);
+
+                                        foreach (string file in files)
                                         {
-                                            DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                                            DateTime lastModified = System.IO.File.GetLastWriteTime(file);
-                                            string fileName = System.IO.Path.GetFileName(file);
-                                            results.Add(new Dictionary<string, string>()
+                                            if (Regex.IsMatch(file, @"[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}"))
+                                            {
+                                                DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
+                                                DateTime lastModified = System.IO.File.GetLastWriteTime(file);
+                                                string fileName = System.IO.Path.GetFileName(file);
+                                                results.Add(new Dictionary<string, string>()
                                             {
                                                 { "MasterKey", file },
                                                 { "Accessed", String.Format("{0}", lastAccessed) },
                                                 { "Modified", String.Format("{0}", lastModified) },
                                             });
+                                            }
                                         }
                                     }
                                 }
@@ -1382,28 +1388,33 @@ namespace winPEAS
                 else
                 {
                     string userName = Environment.GetEnvironmentVariable("USERNAME");
-                    string userDPAPIBasePath = String.Format("{0}\\AppData\\Roaming\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    List<string> userDPAPIBasePaths = new List<string>();
+                    userDPAPIBasePaths.Add(String.Format("{0}\\AppData\\Roaming\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
+                    userDPAPIBasePaths.Add(String.Format("{0}\\AppData\\Local\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
 
-                    if (System.IO.Directory.Exists(userDPAPIBasePath))
+                    foreach (string userDPAPIBasePath in userDPAPIBasePaths) 
                     {
-                        string[] directories = Directory.GetDirectories(userDPAPIBasePath);
-                        foreach (string directory in directories)
+                        if (System.IO.Directory.Exists(userDPAPIBasePath))
                         {
-                            string[] files = Directory.GetFiles(directory);
-
-                            foreach (string file in files)
+                            string[] directories = Directory.GetDirectories(userDPAPIBasePath);
+                            foreach (string directory in directories)
                             {
-                                if (Regex.IsMatch(file, @"[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}"))
+                                string[] files = Directory.GetFiles(directory);
+
+                                foreach (string file in files)
                                 {
-                                    DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                                    DateTime lastModified = System.IO.File.GetLastWriteTime(file);
-                                    string fileName = System.IO.Path.GetFileName(file);
-                                    results.Add(new Dictionary<string, string>()
+                                    if (Regex.IsMatch(file, @"[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}"))
+                                    {
+                                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
+                                        DateTime lastModified = System.IO.File.GetLastWriteTime(file);
+                                        string fileName = System.IO.Path.GetFileName(file);
+                                        results.Add(new Dictionary<string, string>()
                                     {
                                         { "MasterKey", file },
                                         { "Accessed", String.Format("{0}", lastAccessed) },
                                         { "Modified", String.Format("{0}", lastModified) },
                                     });
+                                    }
                                 }
                             }
                         }
@@ -1435,35 +1446,40 @@ namespace winPEAS
                         string userName = parts[parts.Length - 1];
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
-                            string userCredFilePath = String.Format("{0}\\AppData\\Local\\Microsoft\\Credentials\\", dir);
-                            if (System.IO.Directory.Exists(userCredFilePath))
+                            List<string> userCredFilePaths = new List<string>();
+                            userCredFilePaths.Add(String.Format("{0}\\AppData\\Local\\Microsoft\\Credentials\\", dir));
+                            userCredFilePaths.Add(String.Format("{0}\\AppData\\Roaming\\Microsoft\\Credentials\\", dir));
+
+                            foreach (string userCredFilePath in userCredFilePaths)
                             {
-                                string[] systemFiles = Directory.GetFiles(userCredFilePath);
-                                if ((systemFiles != null) && (systemFiles.Length != 0))
+                                if (System.IO.Directory.Exists(userCredFilePath))
                                 {
-                                    foreach (string file in systemFiles)
+                                    string[] systemFiles = Directory.GetFiles(userCredFilePath);
+                                    if ((systemFiles != null) && (systemFiles.Length != 0))
                                     {
-                                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                                        DateTime lastModified = System.IO.File.GetLastWriteTime(file);
-                                        long size = new System.IO.FileInfo(file).Length;
-                                        string fileName = System.IO.Path.GetFileName(file);
+                                        foreach (string file in systemFiles)
+                                        {
+                                            DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
+                                            DateTime lastModified = System.IO.File.GetLastWriteTime(file);
+                                            long size = new System.IO.FileInfo(file).Length;
+                                            string fileName = System.IO.Path.GetFileName(file);
 
-                                        // jankily parse the bytes to extract the credential type and master key GUID
-                                        // reference- https://github.com/gentilkiwi/mimikatz/blob/3d8be22fff9f7222f9590aa007629e18300cf643/modules/kull_m_dpapi.h#L24-L54
-                                        byte[] credentialArray = File.ReadAllBytes(file);
-                                        byte[] guidMasterKeyArray = new byte[16];
-                                        Array.Copy(credentialArray, 36, guidMasterKeyArray, 0, 16);
-                                        Guid guidMasterKey = new Guid(guidMasterKeyArray);
+                                            // jankily parse the bytes to extract the credential type and master key GUID
+                                            // reference- https://github.com/gentilkiwi/mimikatz/blob/3d8be22fff9f7222f9590aa007629e18300cf643/modules/kull_m_dpapi.h#L24-L54
+                                            byte[] credentialArray = File.ReadAllBytes(file);
+                                            byte[] guidMasterKeyArray = new byte[16];
+                                            Array.Copy(credentialArray, 36, guidMasterKeyArray, 0, 16);
+                                            Guid guidMasterKey = new Guid(guidMasterKeyArray);
 
-                                        byte[] stringLenArray = new byte[16];
-                                        Array.Copy(credentialArray, 56, stringLenArray, 0, 4);
-                                        int descLen = BitConverter.ToInt32(stringLenArray, 0);
+                                            byte[] stringLenArray = new byte[16];
+                                            Array.Copy(credentialArray, 56, stringLenArray, 0, 4);
+                                            int descLen = BitConverter.ToInt32(stringLenArray, 0);
 
-                                        byte[] descBytes = new byte[descLen];
-                                        Array.Copy(credentialArray, 60, descBytes, 0, descLen - 4);
+                                            byte[] descBytes = new byte[descLen];
+                                            Array.Copy(credentialArray, 60, descBytes, 0, descLen - 4);
 
-                                        string desc = Encoding.Unicode.GetString(descBytes);
-                                        results.Add(new Dictionary<string, string>()
+                                            string desc = Encoding.Unicode.GetString(descBytes);
+                                            results.Add(new Dictionary<string, string>()
                                         {
                                             { "CredFile", file },
                                             { "Description", desc },
@@ -1472,6 +1488,7 @@ namespace winPEAS
                                             { "Modified", String.Format("{0}", lastModified) },
                                             { "Size", String.Format("{0}", size) },
                                         });
+                                        }
                                     }
                                 }
                             }
@@ -1519,35 +1536,39 @@ namespace winPEAS
                 else
                 {
                     string userName = Environment.GetEnvironmentVariable("USERNAME");
-                    string userCredFilePath = String.Format("{0}\\AppData\\Local\\Microsoft\\Credentials\\", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    List<string> userCredFilePaths = new List<string>();
+                    userCredFilePaths.Add(String.Format("{0}\\AppData\\Local\\Microsoft\\Credentials\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
+                    userCredFilePaths.Add(String.Format("{0}\\AppData\\Roaming\\Microsoft\\Credentials\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
 
-                    if (System.IO.Directory.Exists(userCredFilePath))
+                    foreach (string userCredFilePath in userCredFilePaths)
                     {
-                        string[] files = Directory.GetFiles(userCredFilePath);
-
-                        foreach (string file in files)
+                        if (System.IO.Directory.Exists(userCredFilePath))
                         {
-                            DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                            DateTime lastModified = System.IO.File.GetLastWriteTime(file);
-                            long size = new System.IO.FileInfo(file).Length;
-                            string fileName = System.IO.Path.GetFileName(file);
+                            string[] files = Directory.GetFiles(userCredFilePath);
 
-                            // jankily parse the bytes to extract the credential type and master key GUID
-                            // reference- https://github.com/gentilkiwi/mimikatz/blob/3d8be22fff9f7222f9590aa007629e18300cf643/modules/kull_m_dpapi.h#L24-L54
-                            byte[] credentialArray = File.ReadAllBytes(file);
-                            byte[] guidMasterKeyArray = new byte[16];
-                            Array.Copy(credentialArray, 36, guidMasterKeyArray, 0, 16);
-                            Guid guidMasterKey = new Guid(guidMasterKeyArray);
+                            foreach (string file in files)
+                            {
+                                DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
+                                DateTime lastModified = System.IO.File.GetLastWriteTime(file);
+                                long size = new System.IO.FileInfo(file).Length;
+                                string fileName = System.IO.Path.GetFileName(file);
 
-                            byte[] stringLenArray = new byte[16];
-                            Array.Copy(credentialArray, 56, stringLenArray, 0, 4);
-                            int descLen = BitConverter.ToInt32(stringLenArray, 0);
+                                // jankily parse the bytes to extract the credential type and master key GUID
+                                // reference- https://github.com/gentilkiwi/mimikatz/blob/3d8be22fff9f7222f9590aa007629e18300cf643/modules/kull_m_dpapi.h#L24-L54
+                                byte[] credentialArray = File.ReadAllBytes(file);
+                                byte[] guidMasterKeyArray = new byte[16];
+                                Array.Copy(credentialArray, 36, guidMasterKeyArray, 0, 16);
+                                Guid guidMasterKey = new Guid(guidMasterKeyArray);
 
-                            byte[] descBytes = new byte[descLen];
-                            Array.Copy(credentialArray, 60, descBytes, 0, descLen - 4);
+                                byte[] stringLenArray = new byte[16];
+                                Array.Copy(credentialArray, 56, stringLenArray, 0, 4);
+                                int descLen = BitConverter.ToInt32(stringLenArray, 0);
 
-                            string desc = Encoding.Unicode.GetString(descBytes);
-                            results.Add(new Dictionary<string, string>()
+                                byte[] descBytes = new byte[descLen];
+                                Array.Copy(credentialArray, 60, descBytes, 0, descLen - 4);
+
+                                string desc = Encoding.Unicode.GetString(descBytes);
+                                results.Add(new Dictionary<string, string>()
                                 {
                                 { "CredFile", file },
                                 { "Description", desc },
@@ -1556,6 +1577,7 @@ namespace winPEAS
                                 { "Modified", String.Format("{0}", lastModified) },
                                 { "Size", String.Format("{0}", size) },
                             });
+                            }
                         }
                     }
                 }

@@ -8,19 +8,19 @@
   <input>
     <loadpaths />
     <asmlist>
-      <inputassembly refid="e530c479-7674-4845-a184-2dc88a7a642f">
+      <inputassembly refid="ab1132df-ee7b-445f-92fd-fb405cce20f6">
         <option>honoroas</option>
         <option>stripoa</option>
         <option>library</option>
         <option>transformxaml</option>
-        <file dir="D:\shared\cambiado-privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x86\Release" name="Microsoft.Win32.TaskScheduler.dll" />
+        <file dir="D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x86\Release" name="Microsoft.Win32.TaskScheduler.dll" />
       </inputassembly>
-      <inputassembly refid="bf3fde19-95ca-4d0e-b46f-6136ba4e2100">
+      <inputassembly refid="f33839ff-b6f0-4afa-921f-50f70c620cb7">
         <option>honoroas</option>
         <option>stripoa</option>
         <option>library</option>
         <option>transformxaml</option>
-        <file dir="D:\shared\cambiado-privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x86\Release" name="winPEAS.exe" />
+        <file dir="D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x86\Release" name="winPEAS.exe" />
       </inputassembly>
     </asmlist>
   </input>

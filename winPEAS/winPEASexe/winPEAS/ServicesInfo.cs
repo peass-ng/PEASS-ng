@@ -207,7 +207,7 @@ namespace winPEAS
                     RawAcl racl = rsd.DiscretionaryAcl;
                     DiscretionaryAcl dacl = new DiscretionaryAcl(false, false, racl);
 
-                    string permissions = "";
+                    List<string> permissions = new List<string>();
 
                     foreach (System.Security.AccessControl.CommonAce ace in dacl)
                     {
@@ -215,14 +215,18 @@ namespace winPEAS
                         {
                             int serviceRights = ace.AccessMask;
 
-                            string current_perm_str = MyUtils.PermInt2Str(serviceRights, true);
-                            if (!String.IsNullOrEmpty(current_perm_str))
-                                permissions += current_perm_str;
+                            string current_perm_str = MyUtils.PermInt2Str(serviceRights, true, true);
+                            if (!String.IsNullOrEmpty(current_perm_str) && !permissions.Contains(current_perm_str))
+                                permissions.Add(current_perm_str);
                         }
                     }
 
-                    if (!String.IsNullOrEmpty(permissions))
-                        results.Add(sc.ServiceName, permissions);
+                    if (permissions.Count > 0)
+                    {
+                        string perms = String.Join(", ", permissions);
+                        if (perms.Replace("Start", "").Replace("Stop","").Length > 3) //Check if any other permissions appart from Start and Stop
+                            results.Add(sc.ServiceName, perms);
+                    }
 
                 }
                 catch (Exception ex)

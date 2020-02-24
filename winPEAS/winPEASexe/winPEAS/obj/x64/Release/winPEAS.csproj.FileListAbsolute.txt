@@ -18,7 +18,6 @@ D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\w
 D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\winPEAS.exe
 D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\winPEAS.pdb
 D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\Microsoft.Win32.TaskScheduler.xml
-D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\x64\Release\winPEAS.csproj.Fody.CopyLocal.cache
 D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\x64\Release\winPEAS.csproj.CopyComplete
 D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\x64\Release\winPEAS.exe
 D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\x64\Release\winPEAS.pdb
@@ -39,3 +38,11 @@ D:\shared\cambiado-privilege-escalation-awesome-scripts-suite-master\winPEAS\win
 D:\shared\cambiado-privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\pl\Microsoft.Win32.TaskScheduler.resources.dll
 D:\shared\cambiado-privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\ru\Microsoft.Win32.TaskScheduler.resources.dll
 D:\shared\cambiado-privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\zh-CN\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\Microsoft.Win32.TaskScheduler.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\de\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\es\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\fr\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\it\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\pl\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\ru\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x64\Release\zh-CN\Microsoft.Win32.TaskScheduler.resources.dll

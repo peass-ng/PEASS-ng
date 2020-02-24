@@ -49,9 +49,9 @@ namespace winPEAS
             return retList;
         }
 
-        public static Dictionary<string, Dictionary<string, string>> GetInstalledAppsPermsPath(string fpath)
+        public static SortedDictionary<string, Dictionary<string, string>> GetInstalledAppsPermsPath(string fpath)
         {
-            Dictionary<string, Dictionary<string, string>> results = new Dictionary<string, Dictionary<string, string>>();
+            SortedDictionary<string, Dictionary<string, string>> results = new SortedDictionary<string, Dictionary<string, string>>();
             try
             {
                 foreach (string f in Directory.GetFiles(fpath))
@@ -62,7 +62,7 @@ namespace winPEAS
                 }
                 foreach (string d in Directory.GetDirectories(fpath))
                 {
-                    results[d] = MyUtils.GecRecursivePrivs(d);
+                    results[d] = MyUtils.GetRecursivePrivs(d);
                 }
             }
             catch (Exception ex)
@@ -72,12 +72,77 @@ namespace winPEAS
             return results;
         }
 
-        public static Dictionary<string, Dictionary<string, string>> GetInstalledAppsPerms()
+        public static SortedDictionary<string, Dictionary<string, string>> GetInstalledAppsPerms()
         {
-            Dictionary<string, Dictionary<string, string>> results1 = GetInstalledAppsPermsPath(@Path.GetPathRoot(Environment.SystemDirectory) + "Program Files");
-            Dictionary<string, Dictionary<string, string>> results2 = GetInstalledAppsPermsPath(@Path.GetPathRoot(Environment.SystemDirectory) + "Program Files (x86)");
-            results1.Concat(results2).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            return results1;
+            //Get from Program Files
+            SortedDictionary<string, Dictionary<string, string>> results = GetInstalledAppsPermsPath(@Path.GetPathRoot(Environment.SystemDirectory) + "Program Files");
+            SortedDictionary<string, Dictionary<string, string>> results2 = GetInstalledAppsPermsPath(@Path.GetPathRoot(Environment.SystemDirectory) + "Program Files (x86)");
+            results.Concat(results2).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            //Get from Uninstall
+            string[] subkeys = MyUtils.GetRegSubkeys("HKLM", @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
+            if (subkeys != null)
+            {
+                foreach (string app in subkeys)
+                {
+                    string installLocation = MyUtils.GetRegValue("HKLM", String.Format(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{0}", app), "InstallLocation");
+                    if (String.IsNullOrEmpty(installLocation))
+                        continue;
+
+                    installLocation = installLocation.Replace("\"", "");
+
+                    if (installLocation.EndsWith(@"\"))
+                        installLocation = installLocation.Substring(0, installLocation.Length - 1);
+
+                    if (!results.ContainsKey(installLocation) && Directory.Exists(installLocation))
+                    {
+                        bool already = false;
+                        foreach (string path in results.Keys)
+                        {
+                            if (installLocation.IndexOf(path) != -1) //Check for subfoldres of already found folders
+                            { 
+                                already = true;
+                                break;
+                            }
+                        }
+                        if (!already)
+                            results[installLocation] = MyUtils.GetRecursivePrivs(installLocation);
+                    }
+                }
+            }
+
+            subkeys = MyUtils.GetRegSubkeys("HKLM", @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
+            if (subkeys != null)
+            {
+                foreach (string app in subkeys)
+                {
+                    string installLocation = MyUtils.GetRegValue("HKLM", String.Format(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{0}", app), "InstallLocation");
+                    if (String.IsNullOrEmpty(installLocation))
+                        continue;
+
+                    installLocation = installLocation.Replace("\"", "");
+
+                    if (installLocation.EndsWith(@"\"))
+                        installLocation = installLocation.Substring(0, installLocation.Length - 1);
+
+                    if (!results.ContainsKey(installLocation) && Directory.Exists(installLocation))
+                    {
+                        bool already = false;
+                        foreach (string path in results.Keys)
+                        {
+                            if (installLocation.IndexOf(path) != -1) //Check for subfoldres of already found folders
+                            {
+                                already = true;
+                                break;
+                            }
+                        }
+                        if (!already)
+                            results[installLocation] = MyUtils.GetRecursivePrivs(installLocation);
+                    }
+                }
+            }
+
+            return results;
         }
 
         public static List<Dictionary<string, string>> GetAutoRunsFolder()

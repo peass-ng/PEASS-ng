@@ -392,10 +392,11 @@ namespace winPEAS
             return results;
         }
 
-        public static string PermInt2Str(int current_perm, bool only_write_or_equivalent = false)
+        public static string PermInt2Str(int current_perm, bool only_write_or_equivalent = false, bool is_service=false)
         {
             Dictionary<string, int> interesting_perms = new Dictionary<string, int>()
                 {
+                    // This isn't an exhaustive list of possible permissions. Just the interesting ones.
                     { "AllAccess", 0xf01ff},
                     { "GenericAll", 0x10000000},
                     { "FullControl", (int)FileSystemRights.FullControl },
@@ -418,14 +419,20 @@ namespace winPEAS
                 {
                     { "AllAccess", 0xf01ff},
                     { "GenericAll", 0x10000000},
-                    { "FullControl", (int)FileSystemRights.FullControl },
-                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
+                    { "FullControl", (int)FileSystemRights.FullControl }, //0x1f01ff
+                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership }, //0x80000
                     { "GenericWrite", 0x40000000 },
-                    { "WriteData/CreateFiles", (int)FileSystemRights.WriteData },
-                    { "Modify", (int)FileSystemRights.Modify },
-                    { "Write", (int)FileSystemRights.Write },
-                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
+                    { "WriteData/CreateFiles", (int)FileSystemRights.WriteData }, //0x2
+                    { "Modify", (int)FileSystemRights.Modify }, //0x301bf
+                    { "Write", (int)FileSystemRights.Write }, //0x116
+                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions }, //0x40000
                 };
+            }
+
+            if (is_service)
+            {
+                interesting_perms["Start"] = 0x00000010;
+                interesting_perms["Stop"] = 0x00000020;
             }
 
             try
@@ -444,12 +451,16 @@ namespace winPEAS
         }
 
         //From https://stackoverflow.com/questions/929276/how-to-recursively-list-all-the-files-in-a-directory-in-c
-        public static Dictionary<string, string> GecRecursivePrivs(string path)
+        public static Dictionary<string, string> GetRecursivePrivs(string path, int cont=0)
         {
             /*string root = @Path.GetPathRoot(Environment.SystemDirectory) + path;
             var dirs = from dir in Directory.EnumerateDirectories(root) select dir;
             return dirs.ToList();*/
             Dictionary<string, string> results = new Dictionary<string, string>();
+            int max_dir_recurse = 130;
+            if (cont > max_dir_recurse)
+                return results; //"Limit" for apps with hundreds of thousands of folders
+            
             results[path] = ""; //If you cant open, then there are no privileges for you (and the try will explode)
             try
             {
@@ -462,7 +473,8 @@ namespace winPEAS
                         {
                             results[f] = String.Join(", ", GetPermissionsFile(f, Program.currentUserSIDs));
                         }
-                        results.Concat(GecRecursivePrivs(d)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                        cont += 1;
+                        results.Concat(GetRecursivePrivs(d, cont)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                     }
                 }
             }
@@ -604,15 +616,18 @@ namespace winPEAS
                 // search every pattern in this directory's files
                 foreach (string pattern in patterns.Split(';'))
                 {
-                    Beaprint.AnsiPrint(String.Join("\n", Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly).Where(filepath => !filepath.Contains(".dll"))), color);
+                    Beaprint.AnsiPrint("    "+String.Join("\n    ", Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly).Where(filepath => !filepath.Contains(".dll"))), color);
                 }
 
                 if (!Program.search_fast)
                     Thread.Sleep(Program.search_time);
 
                 // go recurse in all sub-directories
-                foreach (var directory in Directory.GetDirectories(path))
-                    FindFiles(directory, patterns, color);
+                foreach (string directory in Directory.GetDirectories(path))
+                {
+                    if (!directory.Contains("AppData"))
+                        FindFiles(directory, patterns, color);
+                }
             }
             catch (UnauthorizedAccessException) { }
             catch (PathTooLongException) { }

@@ -2,8 +2,14 @@ D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\w
 D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Debug\winPEAS.exe
 D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Debug\winPEAS.pdb
 D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Debug\Microsoft.Win32.TaskScheduler.xml
-D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Debug\winPEAS.csprojAssemblyReference.cache
-D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Debug\winPEAS.csproj.Fody.CopyLocal.cache
 D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Debug\winPEAS.csproj.CopyComplete
 D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Debug\winPEAS.exe
 D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Debug\winPEAS.pdb
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Debug\Microsoft.Win32.TaskScheduler.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Debug\de\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Debug\es\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Debug\fr\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Debug\it\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Debug\pl\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Debug\ru\Microsoft.Win32.TaskScheduler.resources.dll
+D:\shared\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Debug\zh-CN\Microsoft.Win32.TaskScheduler.resources.dll

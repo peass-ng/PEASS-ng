@@ -12,10 +12,9 @@ Check also the **Local Windows Privilege Escalation checklist** from **[book.hac
 
 Download the **[latest obfuscated version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/winPEAS/bin/Obfuscated%20Releases)** or **compile it yourself** (read instructions for compilation).
 ```bash
-winpeas.exe cmd searchfast #cmd commands and avoid sleepig (noisy - CTFs)
+winpeas.exe cmd searchall searchfast #cmd commands, search all filenames and avoid sleepig (noisy - CTFs)
 winpeas.exe #Will execute all checks except the ones that use a CMD
 winpeas.exe cmd #All checks
-winpeas.exe cmd fast #All except the one that search for files
 winpeas.exe systeminfo userinfo #Only systeminfo and userinfo checks executed
 winpeas.exe notcolor #Do not color the output
 ```
@@ -24,11 +23,11 @@ winpeas.exe notcolor #Do not color the output
 
 The goal of this project is to search for possible **Privilege Escalation Paths** in Windows environments.
 
-It should take only a **few seconds** to execute almost all the checks and **some minutes during the last check searching in the whole main drive** for known files that could contain passwords (the time depened on the number of files in your drive). Get rid of that time consuming check using the parameter `fast`.
+It should take only a **few seconds** to execute almost all the checks and **some seconds/minutes during the lasts checks searching for known filenames** that could contain passwords (the time depened on the number of files in your home folder). By default only **some** filenames that could contain credentials are searched, you can use the **searchall** parameter to search all the list (this could will add some minutes).
 
-By default, the progam **sleeps 150ms** before start searching files in each directory. This is made to consume less resources (**stealthier**). You can **avoid this sleep using `searchfast` parameter**.
+By default, the progam **sleeps 100ms** before start searching files in each directory. This is made to consume less resources (**stealthier**). You can **avoid this sleep using `searchfast` parameter**.
 
-The **ouput will be colored** using **ansi** colors. If you are executing `winpeas.exe` **from a Windows console**, you need to set a registry value to see the colors:
+The **ouput will be colored** using **ansi** colors. If you are executing `winpeas.exe` **from a Windows console**, you need to set a registry value to see the colors (and open a new CMD):
 ```
 REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
 ```
@@ -52,7 +51,7 @@ Once you have installed and activated it you need to:
 4. Click on **Build**
 5. The **single, minimized and obfuscated binary** will appear in a **folder called Dotfuscator inside the folder were winPEAS.exe** and the DLL were (this location will be saved by dotfuscator and by default all the following builds will appear in this folder).
 
-**I'm sorry that all of this is necessary but is worth it. Dotfuscator will merge the DLL and EXE in a single executable, will minimize the size of the executable (winpeas size was reduced to the half) and will obfuscate the code** (F\*\*k you Defender).
+**I'm sorry that all of this is necessary but is worth it. Dotfuscator minimizes the size of the executable and obfuscates the code** (F\*\*k you Defender).
 
 ![](https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/winPEAS/winPEASexe/images/dotfuscator.PNG)
 
@@ -73,6 +72,10 @@ Once you have installed and activated it you need to:
   - [x] Basic System info information
   - [x] Use Watson to search for vulnerabilities
   - [x] PS, Audit, WEF and LAPS Settings
+  - [x] LSA protection?
+  - [x] Credential Guard?
+  - [x] WDigest?
+  - [x] Number of cached cred
   - [x] Environment Variables
   - [x] Internet Settings
   - [x] Current drives information
@@ -141,6 +144,10 @@ Once you have installed and activated it you need to:
   - [x] Putty SSH host keys
   - [x] SSH Keys inside registry
   - [x] Cloud credentials
+  - [x] Check for unattended files
+  - [x] Check for SAM & SYSTEM backups
+  - [x] Check for cached GPP Passwords
+  - [x] Check for McAffe SiteList.xml files
   - [x] Possible registries with credentials
   - [x] Possible credentials files in users homes
   - [x] Possible password files inside the Recycle bin

@@ -227,6 +227,9 @@ namespace winPEAS
                 results["Scriptblock Logging Settings"] = "";
 
                 Dictionary<string, object> transcriptionSettings = MyUtils.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\Transcription");
+                if ((transcriptionSettings == null) || (transcriptionSettings.Count == 0))
+                    transcriptionSettings = MyUtils.GetRegValues("HKLM", @"HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\Transcription");
+
                 if ((transcriptionSettings != null) && (transcriptionSettings.Count != 0))
                 {
                     foreach (KeyValuePair<string, object> kvp in transcriptionSettings)
@@ -236,6 +239,9 @@ namespace winPEAS
                 }
 
                 Dictionary<string, object> moduleLoggingSettings = MyUtils.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging");
+                if ((moduleLoggingSettings == null) || (moduleLoggingSettings.Count == 0))
+                    moduleLoggingSettings = MyUtils.GetRegValues("HKLM", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging");
+
                 if ((moduleLoggingSettings != null) && (moduleLoggingSettings.Count != 0))
                 {
                     foreach (KeyValuePair<string, object> kvp in moduleLoggingSettings)
@@ -245,6 +251,9 @@ namespace winPEAS
                 }
 
                 Dictionary<string, object> scriptBlockSettings = MyUtils.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging");
+                if ((scriptBlockSettings == null) || (scriptBlockSettings.Count == 0))
+                    scriptBlockSettings = MyUtils.GetRegValues("HKLM", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging");
+
                 if ((scriptBlockSettings != null) && (scriptBlockSettings.Count != 0))
                 {
                     foreach (KeyValuePair<string, object> kvp in scriptBlockSettings)

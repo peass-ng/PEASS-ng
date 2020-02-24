@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+{% if not procs %}
+     <h2> Nothing is being executed yet.</h2>
+
+{% else %}
+    <h2>Current Processes <a href="/killall" style="color:red;">[Kill All]</a></h2>
+    {% for p in procs %}
+    <pre style="border: 1px solid; margin: 10px; padding-left:3px; {% if p.terminated == 'Stopped' %} color:green; {% endif %}" >
+        <h4>{{p.name}} {% if p.terminated == 'Running' %} <a href="/kill/{{p.name}}" style="color:red;">[Kill]</a> {% endif %} ({{p.terminated}})</h4>
+{{p.tail}}
+    </pre>
+    {% endfor %}
+<script>setTimeout(function(){window.location.reload(1);}, 5000);</script>
+{% endif %}
+{% endblock %}

@@ -218,7 +218,14 @@ namespace winPEAS
             {
                 if (Buffer != IntPtr.Zero)
                 {
-                    Marshal.FreeHGlobal(Buffer);
+                    try
+                    {
+                        Marshal.FreeHGlobal(Buffer);
+                    }
+                    catch(Exception ex)
+                    {
+                        Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
+                    }
                     Buffer = IntPtr.Zero;
                 }
             }
@@ -396,6 +403,7 @@ namespace winPEAS
                 { "S-1-5-21.+-518", "Schema Admins" }, //A universal group in a native-mode domain; a global group in a mixed-mode domain. The group is authorized to make schema changes in Active Directory. By default, the only member of the group is the Administrator account for the forest root domain.
                 { "S-1-5-21.+-519", "Enterprise Admins" }, //A universal group in a native-mode domain; a global group in a mixed-mode domain. The group is authorized to make forest-wide changes in Active Directory, such as adding child domains. By default, the only member of the group is the Administrator account for the forest root domain.
                 { "S-1-5-21.+-520", "Group Policy Creator Owners" }, //A global group that is authorized to create new Group Policy objects in Active Directory. By default, the only member of the group is Administrator.
+                { "S-1-5-21.+-525", "Protected Users" }, //https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#protected-users
                 { "S-1-5-21.+-526", "Key Admins" }, //A security group. The intention for this group is to have delegated write access on the msdsKeyCredentialLink attribute only. The group is intended for use in scenarios where trusted external authorities (for example, Active Directory Federated Services) are responsible for modifying this attribute. Only trusted administrators should be made a member of this group.
                 { "S-1-5-21.+-527", "Enterprise Key Admins" }, //A security group. The intention for this group is to have delegated write access on the msdsKeyCredentialLink attribute only. The group is intended for use in scenarios where trusted external authorities (for example, Active Directory Federated Services) are responsible for modifying this attribute. Only trusted administrators should be made a member of this group.
                 { "S-1-5-21.+-553", "RAS and IAS Servers" }, //A domain local group. By default, this group has no members. Servers in this group have Read Account Restrictions and Read Logon Information access to User objects in the Active Directory domain local group.

@@ -116,6 +116,26 @@ echo [i] Check what is being logged
 REG QUERY "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft Services\AdmPwd" /v AdmPwdEnabled
 echo.
 echo.
+echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] LSA protection? ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+echo [i] Active if "1"
+REG QUERY "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\LSA" /v RunAsPPL
+echo.
+echo.
+echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] Credential Guard? ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+echo [i] Active if "1" or "2"
+REG QUERY "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\LSA" /v LsaCfgFlags
+echo.
+echo.
+echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] WDigest? ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+echo [i] Plain-text creds in memory if "1"
+reg query HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest\UseLogonCredential
+echo.
+echo.
+echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] Number of cached creds ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+echo [i] You need System to extract them
+reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v CACHEDLOGONSCOUNT
+echo.
+echo.
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] UAC Settings ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 echo [i] If the results read ENABLELUA REG_DWORD 0x1, part or all of the UAC components are on
 echo   [?] https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#basic-uac-bypass-full-file-system-access
@@ -153,7 +173,8 @@ echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] INSTALLED SOFTWARE ^<_-_-_-_-_-_-_-_-_
 echo [i] Some weird software? Check for vulnerabilities in unknow software installed
 echo   [?] https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#software
 dir /b "C:\Program Files" "C:\Program Files (x86)" | sort
-reg query HKEY_LOCAL_MACHINE\SOFTWARE
+reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall /s | findstr InstallLocation | findstr ":\\"
+reg query HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\ /s | findstr InstallLocation | findstr ":\\"
 IF exist C:\Windows\CCM\SCClient.exe echo SCCM is installed (installers are run with SYSTEM privileges, many are vulnerable to DLL Sideloading)
 echo.
 echo.
@@ -370,6 +391,54 @@ echo Looking inside %localappdata%\Microsoft\Credentials\
 dir /b/a %localappdata%\Microsoft\Credentials\ 2>nul
 echo.
 echo.
+echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] Unattended files ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+IF EXIST %WINDIR%\sysprep\sysprep.xml ECHO %WINDIR%\sysprep\sysprep.xml exists. 
+IF EXIST %WINDIR%\sysprep\sysprep.inf ECHO %WINDIR%\sysprep\sysprep.inf exists. 
+IF EXIST %WINDIR%\sysprep.inf ECHO %WINDIR%\sysprep.inf exists. 
+IF EXIST %WINDIR%\Panther\Unattended.xml ECHO %WINDIR%\Panther\Unattended.xml exists. 
+IF EXIST %WINDIR%\Panther\Unattend.xml ECHO %WINDIR%\Panther\Unattend.xml exists. 
+IF EXIST %WINDIR%\Panther\Unattend\Unattend.xml ECHO %WINDIR%\Panther\Unattend\Unattend.xml exists. 
+IF EXIST %WINDIR%\Panther\Unattend\Unattended.xml ECHO %WINDIR%\Panther\Unattend\Unattended.xml exists.
+IF EXIST %WINDIR%\System32\Sysprep\unattend.xml ECHO %WINDIR%\System32\Sysprep\unattend.xml exists.
+IF EXIST %WINDIR%\System32\Sysprep\unattended.xml ECHO %WINDIR%\System32\Sysprep\unattended.xml exists.
+IF EXIST %WINDIR%\..\unattend.txt ECHO %WINDIR%\..\unattend.txt exists.
+IF EXIST %WINDIR%\..\unattend.inf ECHO %WINDIR%\..\unattend.inf exists. 
+echo.
+echo.
+echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] SAM & SYSTEM backups ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+IF EXIST %WINDIR%\repair\SAM ECHO %WINDIR%\repair\SAM exists. 
+IF EXIST %WINDIR%\System32\config\RegBack\SAM ECHO %WINDIR%\System32\config\RegBack\SAM exists.
+IF EXIST %WINDIR%\System32\config\SAM ECHO %WINDIR%\System32\config\SAM exists.
+IF EXIST %WINDIR%\repair\SYSTEM ECHO %WINDIR%\repair\SYSTEM exists.
+IF EXIST %WINDIR%\System32\config\SYSTEM ECHO %WINDIR%\System32\config\SYSTEM exists.
+IF EXIST %WINDIR%\System32\config\RegBack\SYSTEM ECHO %WINDIR%\System32\config\RegBack\SYSTEM exists.
+echo.
+echo.
+echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] McAffe SiteList.xml ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+cd %ProgramFiles% 2>nul
+dir /s SiteList.xml
+cd %ProgramFiles(x86)% 2>nul
+dir /s SiteList.xml
+cd "%windir%\..\Documents and Settings" 2>nul
+dir /s SiteList.xml
+cd %windir%\..\Users 2>nul
+dir /s SiteList.xml
+echo.
+echo.
+echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] GPP Password ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+cd "%SystemDrive%\Microsoft\Group Policy\history"
+dir /s/b Groups.xml == Services.xml == Scheduledtasks.xml == DataSources.xml == Printers.xml == Drives.xml
+cd "%windir%\..\Documents and Settings\All Users\Application Data\Microsoft\Group Policy\history"
+dir /s/b Groups.xml == Services.xml == Scheduledtasks.xml == DataSources.xml == Printers.xml == Drives.xml
+echo.
+echo.
+echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] Cloud Creds ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+cd "%SystemDrive%\Users"
+dir /s/b .aws == credentials == gcloud == credentials.db == legacy_credentials == access_tokens.db == .azure == accessTokens.json == azureProfile.json
+cd "%windir%\..\Documents and Settings"
+dir /s/b .aws == credentials == gcloud == credentials.db == legacy_credentials == access_tokens.db == .azure == accessTokens.json == azureProfile.json
+echo.
+echo.
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] AppCmd ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 echo   [?] https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#appcmd-exe
 IF EXIST %systemroot%\system32\inetsrv\appcmd.exe ECHO %systemroot%\system32\inetsrv\appcmd.exe exists. 
@@ -383,7 +452,7 @@ reg query HKCU\Software\ORL\WinVNC3\Password 2>nul
 echo Looking inside HKEY_LOCAL_MACHINE\SOFTWARE\RealVNC\WinVNC4/password
 reg query HKEY_LOCAL_MACHINE\SOFTWARE\RealVNC\WinVNC4 /v password 2>nul
 echo Looking inside HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\WinLogon
-reg query HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon 2>nul
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon" 2>nul | findstr /i "DefaultDomainName DefaultUserName DefaultPassword AltDefaultDomainName AltDefaultUserName AltDefaultPassword LastUsedUsername"
 echo Looking inside HKLM\SYSTEM\CurrentControlSet\Services\SNMP
 reg query HKLM\SYSTEM\CurrentControlSet\Services\SNMP /s 2>nul
 echo Looking inside HKCU\Software\TightVNC\Server

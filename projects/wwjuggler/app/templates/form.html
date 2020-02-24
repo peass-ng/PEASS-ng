@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>{{ formtype }}</h1>
+    <div class="alert alert-secondary" role="alert"><h4>Information about the attack</h4><p id="option_msg"></p></div>
+    <p><i>Notice that ESSID2, BSSID2 and Client2 have priority over ESSID1, BSSID1 and Client1</i></p>
+    <div class="row">
+        <div class="col-md-4">
+            {{ wtf.quick_form(form) }}
+        </div>
+    </div>
+    <br>
+    
+{% endblock %}
+
+{% block scripts %}
+<script type=text/javascript src="{{ url_for('static', filename='form.js') }}"></script>
+{% endblock %}
