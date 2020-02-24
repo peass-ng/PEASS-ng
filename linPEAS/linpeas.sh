@@ -495,7 +495,7 @@ echo ""
 printf $Y"ADVISORY: "$B"$ADVISORY\n"$NC
 echo ""
 printf $B"Linux Privesc Checklist: "$Y"https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist\n"$NC
-echo " LEYEND:" | sed "s,LEYEND,${C}[1;4m&${C}[0m,"
+echo " LEGEND:" | sed "s,LEGEND,${C}[1;4m&${C}[0m,"
 echo "  RED/YELLOW: 99% a PE vector" | sed "s,RED/YELLOW,${C}[1;31;103m&${C}[0m,"
 echo "  RED: You must take a look at it" | sed "s,RED,${C}[1;31m&${C}[0m,"
 echo "  LightCyan: Users with console" | sed "s,LightCyan,${C}[1;96m&${C}[0m,"
