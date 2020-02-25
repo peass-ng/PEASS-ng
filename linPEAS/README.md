@@ -220,6 +220,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] .sh scripts in PATH
   - [x] scripts in /etc/profile.d
   - [x] Hashes (passwd, shadow & master.passwd)
+  - [x] Credentials in fstab
   - [x] Try to read root dir
   - [x] Files owned by root inside /home
   - [x] List of readable files belonging to root and not world readable
