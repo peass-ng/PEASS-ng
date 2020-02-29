@@ -224,6 +224,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Try to read root dir
   - [x] Files owned by root inside /home
   - [x] List of readable files belonging to root and not world readable
+  - [x] Files modified in the last 5 minutes
   - [x] Others files inside a folder owned by the current user
   - [x] Reduced list of files inside my home and /home
   - [x] Mail applications
@@ -239,6 +240,8 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Get IPs, passwords and emails from logs
   - [x] password or credential files in home
   - [x] "pwd" and "passw" inside files (and get most probable lines)
+  - [x] Check for posible variable names containing credentials in files
+  - [x] Find "username" in fils
   - [x] Specific hashes (blowfish, joomla&vbulletin, phpbb3, wp, drupal, linuxmd5, apr1md5, sha512crypt, apachesha)
   - [x] Generic hashes MD5, SHA1, SHA256, SHA512
 </details>
