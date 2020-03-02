@@ -225,6 +225,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Files owned by root inside /home
   - [x] List of readable files belonging to root and not world readable
   - [x] Files modified in the last 5 minutes
+  - [x] Log files (logrotten)
   - [x] Others files inside a folder owned by the current user
   - [x] Reduced list of files inside my home and /home
   - [x] Mail applications
