@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.3.6"
+VERSION="v2.3.7"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -1440,6 +1440,17 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     if [ -r $d ]; then 
       echo "Found readable $d"
       find $d -type f -name "auth" -exec cat {} \; 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m," 2>/dev/null
+    fi
+  done
+  echo ""
+
+  ##-- 40SI) Cloud-Init
+  printf $Y"[+] "$GREEN"Looking Cloud-Init conf file\n"$NC
+  cloudcfg=`find /var /etc /home /root /tmp /usr /opt -type f -name "cloud.cfg" 2>/dev/null`
+  for f in $cloudcfg; do
+    if [ -r $f ]; then 
+      echo "Found readable $f"
+      cat "$f" | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | grep "consumer_key\|token_key\|token_secret\|metadata_url\|username:\|password:\|passwd:\|PRIVATE KEY\|PRIVATE KEY\|encrypted_data_bag_secret\|sudo\|_proxy" | sed "s,consumer_key\|token_key\|token_secret\|metadata_url\|password:\|[^_]passwd:\|PRIVATE KEY\|PRIVATE KEY\|encrypted_data_bag_secret\|_proxy,${C}[1;31m&${C}[0m,"
     fi
   done
   echo ""
