@@ -867,7 +867,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
       su_brute_user_num $u $PASSTRY
     done
   else
-    printf $Y"[+] "$GREEN"Don forget to test 'su' as any other user with shell: without password and with their names as password (I can't do it...)\n"$NC
+    printf $Y"[+] "$GREEN"Do not forget to test 'su' as any other user with shell: without password and with their names as password (I can't do it...)\n"$NC
   fi
   printf $Y"[+] "$GREEN"Do not forget to execute 'sudo -l' without password or with valid password (if you know it)!!\n"$NC
   echo ""
