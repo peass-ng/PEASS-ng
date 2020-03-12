@@ -518,7 +518,7 @@ echo "  RED: You must take a look at it" | sed "s,RED,${C}[1;31m&${C}[0m,"
 echo "  LightCyan: Users with console" | sed "s,LightCyan,${C}[1;96m&${C}[0m,"
 echo "  Blue: Users without console & mounted devs" | sed "s,Blue,${C}[1;34m&${C}[0m,"
 echo "  Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts, cronjobs) " | sed "s,Green,${C}[1;32m&${C}[0m,"
-echo "  LightMangenta: Your username" | sed "s,LightMangenta,${C}[1;95m&${C}[0m,"
+echo "  LightMangeta: Your username" | sed "s,LightMagenta,${C}[1;95m&${C}[0m,"
 if [ "$IAMROOT" ]; then
   echo ""
   echo "  YOU ARE ALREADY ROOT!!! (it could take longer to complete execution)" | sed "s,YOU ARE ALREADY ROOT!!!,${C}[1;31;103m&${C}[0m,"
@@ -879,7 +879,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
       printf $GREEN"It's not possible to brute-force su.\n\n"$NC
     fi
   else
-    printf $Y"[+] "$GREEN"Don forget to test 'su' as any other user with shell: without password and with their names as password (I can't do it...)\n"$NC
+    printf $Y"[+] "$GREEN"Do not forget to test 'su' as any other user with shell: without password and with their names as password (I can't do it...)\n"$NC
   fi
   printf $Y"[+] "$GREEN"Do not forget to execute 'sudo -l' without password or with valid password (if you know it)!!\n"$NC
   echo ""
