@@ -633,7 +633,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 
   #-- 5SY) System stats
   printf $Y"[+] "$GREEN"System stats\n"$NC
-  df -h 2>/dev/null || echo_not_found "df"
+  (df -h || lsblk) 2>/dev/null || echo_not_found "df and lsblk"
   free 2>/dev/null || echo_not_found "free"
   echo ""
 
