@@ -20,7 +20,7 @@ namespace winPEAS
         // Static blacklists
         static string strTrue = "True";
         static string strFalse = "False";
-        static string badgroups = "docker|Remote |Admins|DNSAdmin|Azure Admins";//The space in Remote is important to not mix with SeShutdownRemotePrivilege
+        static string badgroups = "docker|Remote |DNSAdmins|Azure Admins|Admins";//The space in Remote is important to not mix with SeShutdownRemotePrivilege
         static string badpasswd = "NotChange|NotExpi";
         static string badPrivileges = "SeImpersonatePrivilege|SeAssignPrimaryPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege";
         static string goodSoft = "Windows Phone Kits|Windows Kits|Windows Defender|Windows Mail|Windows Media Player|Windows Multimedia Platform|windows nt|Windows Photo Viewer|Windows Portable Devices|Windows Security|Windows Sidebar|WindowsApps|WindowsPowerShell| Windows$|Microsoft|WOW6432Node|internet explorer|Internet Explorer|Common Files";
@@ -495,7 +495,7 @@ namespace winPEAS
                 {
                     { paint_activeUsers_no_Administrator, Beaprint.ansi_users_active },
                     { currentUserName + "|"+ currentUserDomainName, Beaprint.ansi_current_user },
-                    { paint_adminUsers+"|"+ badgroups + "|" + badgroups + "|" + badpasswd + "|" + badPrivileges + "|" + "DefaultPassword.*", Beaprint.ansi_color_bad },
+                    { paint_adminUsers+"|"+ badgroups + "|" + badpasswd + "|" + badPrivileges + "|" + "DefaultPassword.*", Beaprint.ansi_color_bad },
                     { @"Disabled", Beaprint.ansi_users_disabled },
                 };
 

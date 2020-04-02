@@ -1365,7 +1365,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   ##-- 32SI) Cached AD Hashes
   adhashes=`ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null`
-  printf $Y"[+] "$GREEN"Looking for AD cached hahses\n"$NC
+  printf $Y"[+] "$GREEN"Looking for AD cached hashes\n"$NC
   if [ "$adhashes" ]; then
     ls -l "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null
   else echo_not_found "cached hashes"
