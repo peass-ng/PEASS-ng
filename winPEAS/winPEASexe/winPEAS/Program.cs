@@ -410,7 +410,7 @@ namespace winPEAS
                     else
                         Beaprint.BadPrint("    No AV was detected!!");
 
-                    Beaprint.DictPrint(AVInfo, false);
+                    Beaprint.DictPrint(AVInfo, true);
                 }
                 catch (Exception ex)
                 {
@@ -1403,6 +1403,36 @@ namespace winPEAS
                 }
             }
 
+            void PrintTranscriptPS()
+            {
+                try
+                {
+                    Beaprint.MainPrint("PS default transcripts history", "");
+                    Beaprint.InfoPrint("Read the PS histpry inside these files (if any)");
+                    string drive = Path.GetPathRoot(Environment.SystemDirectory);
+                    string path = drive + @"transcripts\";
+                    if (Directory.Exists(path))
+                    {
+                        string[] fileEntries = Directory.GetFiles(path);
+                        List<string> fileEntriesl = new List<string>(fileEntries);
+                        if (fileEntries.Length > 0) 
+                        {
+                            Dictionary<string, string> colors = new Dictionary<string, string>()
+                            {
+                                { "^.*", Beaprint.ansi_color_bad },
+                            };
+                            Beaprint.ListPrint(fileEntriesl, colors);
+                        }
+                    }
+
+                        
+                }
+                catch (Exception ex)
+                {
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                }
+            }
+
             void PrintDPAPIMasterKeys()
             {
                 try
@@ -1611,6 +1641,7 @@ namespace winPEAS
             PrintCredManag();
             PrintSavedRDPInfo();
             PrintRecentRunCommands();
+            PrintTranscriptPS();
             PrintDPAPIMasterKeys();
             PrintDpapiCredFiles();
             PrintRCManFiles();

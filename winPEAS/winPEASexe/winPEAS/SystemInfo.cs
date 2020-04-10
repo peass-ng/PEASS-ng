@@ -145,8 +145,10 @@ namespace winPEAS
         public static Dictionary<string, string> GetAVInfo()
         {
             Dictionary<string, string> results = new Dictionary<string, string>();
+            string whitelistpaths = "";
             try
             {
+                whitelistpaths = String.Join("\n    ", MyUtils.GetRegValues("HKLM", @"SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths").Keys);
                 ManagementObjectSearcher wmiData = new ManagementObjectSearcher(@"root\SecurityCenter2", "SELECT * FROM AntiVirusProduct");
                 ManagementObjectCollection data = wmiData.Get();
 
@@ -161,6 +163,9 @@ namespace winPEAS
             {
                 Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
             }
+            if (!String.IsNullOrEmpty(whitelistpaths))
+                results["whitelistpaths"] = "    " + whitelistpaths; //Add this info the last
+            
             return results;
         }
 

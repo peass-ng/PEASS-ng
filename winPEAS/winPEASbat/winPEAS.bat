@@ -146,6 +146,10 @@ echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] Registered Anti-Virus(AV) ^<_-_-_-_-_-
 WMIC /Node:localhost /Namespace:\\root\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List | more 
 echo.
 echo.
+echo Checking for defender whitelisted PATHS
+reg query "HKLM\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths"
+echo.
+echo.
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] PS settings ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 echo PowerShell v2 Version:
 REG QUERY HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PowerShell\1\PowerShellEngine /v PowerShellVersion
@@ -157,6 +161,9 @@ echo Module logging settings:
 REG QUERY HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging
 echo Scriptblog logging settings:
 REG QUERY HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+echo.
+echo PS default transcript history
+dir %SystemDrive%\transcripts\
 echo.
 echo.
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] MOUNTED DISKS ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
@@ -445,7 +452,7 @@ IF EXIST %systemroot%\system32\inetsrv\appcmd.exe ECHO %systemroot%\system32\ine
 echo.
 echo.
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] Files an registry that may contain credentials ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
-echo [i] Searching specific files that may contains credentias.
+echo [i] Searching specific files that may contains credentials.
 echo   [?] https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files
 echo Looking inside HKCU\Software\ORL\WinVNC3\Password
 reg query HKCU\Software\ORL\WinVNC3\Password 2>nul

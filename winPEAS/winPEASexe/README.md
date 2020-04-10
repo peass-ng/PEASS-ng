@@ -27,6 +27,9 @@ It should take only a **few seconds** to execute almost all the checks and **som
 
 By default, the progam **sleeps 100ms** before start searching files in each directory. This is made to consume less resources (**stealthier**). You can **avoid this sleep using `searchfast` parameter**.
 
+
+## Where are my COLORS?!?!?!
+
 The **ouput will be colored** using **ansi** colors. If you are executing `winpeas.exe` **from a Windows console**, you need to set a registry value to see the colors (and open a new CMD):
 ```
 REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
@@ -79,7 +82,7 @@ Once you have installed and activated it you need to:
   - [x] Environment Variables
   - [x] Internet Settings
   - [x] Current drives information
-  - [x] AV?
+  - [x] AV? whitelisted defender paths?
   - [x] UAC configuration
 
 - **Users Information**
@@ -120,6 +123,7 @@ Once you have installed and activated it you need to:
   - [x] Credential Manager
   - [x] Saved RDP connections
   - [x] Recently run commands
+  - [x] Default PS transcripts files
   - [x] DPAPI Masterkeys
   - [x] DPAPI Credential files
   - [x] Remote Desktop Connection Manager credentials
