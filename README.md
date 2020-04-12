@@ -2,6 +2,8 @@
 
 ![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/peass.png)
 
+![](https://img.shields.io/badge/Black-Arch-black) ![](https://img.shields.io/badge/Arch-AUR-brightgreen) ![](https://img.shields.io/badge/BHAsiaArsenal-2020-red)
+
 Here you will find **privilege escalation tools for Windows and Linux/Unix\*** (in some near future  also for Mac).
 
 These tools search for possible **local privilege escalation paths** that you could exploit and print them to you **with nice colors** so you can recognize the misconfigurations easily.
