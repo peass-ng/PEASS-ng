@@ -12,7 +12,7 @@ if [ "$(/usr/bin/id -u)" -eq "0" ]; then
   MAXPATH_FIND_W="3"
 else
   IAMROOT=""
-  MAXPATH_FIND_W="3"
+  MAXPATH_FIND_W="7"
 fi
 
 
@@ -48,7 +48,6 @@ kernelDCW_Rhel7="3.10.0-229.rt56.141.el7\|3.10.0-229.1.2.rt56.141.2.el7_1\|3.10.
 
 if [ `echo $UID` ]; then myuid=$UID; elif [ `id -u $(whoami) 2>/dev/null` ]; then myuid=`id -u $(whoami) 2>/dev/null`; elif [ `id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1` ]; then myuid=`id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1`; fi
 if [ $myuid -gt 2147483646 ]; then baduid="\|$myuid"; fi
-
 idB="euid\|egid$baduid"
 sudovB="1.6.8p9\|1.6.9p18\|1.8.14\|1.8.20\|1.6.9p21\|1.7.2p4\|1\.8\.[0123]$\|1\.3\.[^1]\|1\.4\.\d*\|1\.5\.\d*\|1\.6\.\d*\|1.5$\|1.6$"
 
@@ -926,6 +925,110 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   echo ""
 fi
 
+###########################################
+#----------) Caching Finds (--------------#
+###########################################
+prep_to_find() {
+    echo "$1" | sed 's/ / -o -name /g' | sed 's/^/\\( -name /g' | sed 's/$/ \\)/g'
+}
+
+printf "Caching directories "
+MYSQL_RELEVANT_NAMES="mysql"
+POSTGRESQL_RELEVANT_NAMES="pgadmin*.db pg_hba.conf postgresql.conf pgsql.conf"
+APACHE_RELEVANT_NAMES="sites-enabled 000-default"
+PHP_RELEVANT_NAMES="sess_* *config*.php"
+WORDPRESS_RELEVANT_NAMES="wp-config.php"
+TOMCAT_RELEVANT_NAMES="tomcat-users.xml"
+MONGO_RELEVANT_NAMES="mongod*.conf"
+SUPERVISORD_RELEVANT_NAMES="supervisord.conf"
+CESI_RELEVANT_NAMES="cesi.conf"
+RSYNCD_RELEVANT_NAMES="rsyncd.conf rsyncd.secrets"
+HOSTAPAD_RELEVANT_NAMES="hostapd.conf"
+ANACONDA_KS_RELEVANT_NAMES="anaconda-ks.cfg"
+VNC_RELEVANT_NAMES=".vnc"
+LDAP_RELEVANT_NAMES="ldap"
+OVPN_RELEVANT_NAMES=".ovpn"
+SSH_RELEVANT_NAMES="id_dsa* id_rsa* known_hosts authorized_hosts authorized_keys *.pem *.cer *.crt *.csr *.der *.pfx *.p12 agent* config vault-ssh-helper.hcl .vault-token"
+CLOUD_KEYS_RELEVANT_NAMES="credentials credentials.db legacy_credentials.db access_tokens.db accessTokens.json azureProfile.json cloud.cfg"
+KERBEROS_RELEVANT_NAMES="krb5.conf"
+KIBANA_RELEVANT_NAMES="kibana.y*ml"
+KNOCK_RELEVANT_NAMES="knockd"
+LOGSTASH_RELEVANT_NAMES="logstash"
+ELASTICSEARCH_RELEVANT_NAMES="elasticsearch.y*ml"
+COUCHDB_RELEVANT_NAMES="couchdb"
+REDIS_RELEVANT_NAMES="redis.conf"
+MOSQUITTO_RELEVANT_NAMES="mosquitto.conf"
+NEO4J_RELEVANT_NAMES="neo4j"
+DB_RELEVANT_NAMES="*.db *.sqlite *.sqlite3"
+INSTERESTING_RELEVANT_NAMES="*_history .sudo_as_admin_successful .profile *bashrc *httpd.conf *.plan .htpasswd .gitconfig .git-credentials .git .svn *.rhost hosts.equiv Dockerfile docker-compose.yml"
+PASSWORD_RELEVANT_NAMES="*password* *credential* creds*"
+
+FIND_MYSQL_RELEVANT_NAMES=$(prep_to_find "$MYSQL_RELEVANT_NAMES")
+FIND_POSTGRESQL_RELEVANT_NAMES=$(prep_to_find "$POSTGRESQL_RELEVANT_NAMES")
+FIND_APACHE_RELEVANT_NAMES=$(prep_to_find "$APACHE_RELEVANT_NAMES")
+FIND_PHP_RELEVANT_NAMES=$(prep_to_find "$PHP_RELEVANT_NAMES")
+FIND_WORDPRESS_RELEVANT_NAMES=$(prep_to_find "$WORDPRESS_RELEVANT_NAMES")
+FIND_TOMCAT_RELEVANT_NAMES=$(prep_to_find "$TOMCAT_RELEVANT_NAMES")
+FIND_MONGO_RELEVANT_NAMES=$(prep_to_find "$MONGO_RELEVANT_NAMES")
+FIND_SUPERVISORD_RELEVANT_NAMES=$(prep_to_find "$SUPERVISORD_RELEVANT_NAMES")
+FIND_CESI_RELEVANT_NAMES=$(prep_to_find "$CESI_RELEVANT_NAMES")
+FIND_RSYNCD_RELEVANT_NAMES=$(prep_to_find "$RSYNCD_RELEVANT_NAMES")
+FIND_HOSTAPAD_RELEVANT_NAMES=$(prep_to_find "$HOSTAPAD_RELEVANT_NAMES")
+FIND_ANACONDA_KS_RELEVANT_NAMES=$(prep_to_find "$ANACONDA_KS_RELEVANT_NAMES")
+FIND_VNC_RELEVANT_NAMES=$(prep_to_find "$VNC_RELEVANT_NAMES")
+FIND_LDAP_RELEVANT_NAMES=$(prep_to_find "$LDAP_RELEVANT_NAMES")
+FIND_OVPN_RELEVANT_NAMES=$(prep_to_find "$OVPN_RELEVANT_NAMES")
+FIND_SSH_RELEVANT_NAMES=$(prep_to_find "$SSH_RELEVANT_NAMES")
+FIND_CLOUD_KEYS_RELEVANT_NAMES=$(prep_to_find "$CLOUD_KEYS_RELEVANT_NAMES")
+FIND_KERBEROS_RELEVANT_NAMES=$(prep_to_find "$KERBEROS_RELEVANT_NAMES")
+FIND_KIBANA_RELEVANT_NAMES=$(prep_to_find "$KIBANA_RELEVANT_NAMES")
+FIND_KNOCK_RELEVANT_NAMES=$(prep_to_find "$KNOCK_RELEVANT_NAMES")
+FIND_LOGSTASH_RELEVANT_NAMES=$(prep_to_find "$LOGSTASH_RELEVANT_NAMES")
+FIND_ELASTICSEARCH_RELEVANT_NAMES=$(prep_to_find "$ELASTICSEARCH_RELEVANT_NAMES")
+FIND_COUCHDB_RELEVANT_NAMES=$(prep_to_find "$COUCHDB_RELEVANT_NAMES")
+FIND_REDIS_RELEVANT_NAMES=$(prep_to_find "$REDIS_RELEVANT_NAMES")
+FIND_MOSQUITTO_RELEVANT_NAMES=$(prep_to_find "$MOSQUITTO_RELEVANT_NAMES")
+FIND_NEO4J_RELEVANT_NAMES=$(prep_to_find "$NEO4J_RELEVANT_NAMES")
+FIND_DB_RELEVANT_NAMES=$(prep_to_find "$DB_RELEVANT_NAMES")
+FIND_INSTERESTING_RELEVANT_NAMES=$(prep_to_find "$INSTERESTING_RELEVANT_NAMES")
+FIND_PASSWORD_RELEVANT_NAMES=$(prep_to_find "$PASSWORD_RELEVANT_NAMES")
+
+printf ". "
+# Directories
+FIND_DIR_VAR=$(eval find /var -type d $FIND_MYSQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_LDAP_RELEVANT_NAMES -o $FIND_KERBEROS_RELEVANT_NAMES -o $FIND_LOGSTASH_RELEVANT_NAMES -o $FIND_COUCHDB_RELEVANT_NAMES -o $FIND_NEO4J_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_DIR_ETC=$(eval find /etc -type d $FIND_MYSQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_LDAP_RELEVANT_NAMES -o $FIND_KERBEROS_RELEVANT_NAMES -o $FIND_LOGSTASH_RELEVANT_NAMES -o $FIND_COUCHDB_RELEVANT_NAMES -o $FIND_NEO4J_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_DIR_HOME=$(eval find /home -type d $FIND_APACHE_RELEVANT_NAMES -o $FIND_VNC_RELEVANT_NAMES -o $FIND_LDAP_RELEVANT_NAMES -o $FIND_KERBEROS_RELEVANT_NAMES -o $FIND_LOGSTASH_RELEVANT_NAMES -o $FIND_COUCHDB_RELEVANT_NAMES -o $FIND_NEO4J_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_DIR_ROOT=$(eval find /root -type d $FIND_APACHE_RELEVANT_NAMES -o $FIND_VNC_RELEVANT_NAMES -o $FIND_LDAP_RELEVANT_NAMES -o $FIND_KERBEROS_RELEVANT_NAMES -o $FIND_LOGSTASH_RELEVANT_NAMES -o $FIND_COUCHDB_RELEVANT_NAMES -o $FIND_NEO4J_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_DIR_TMP=$(eval find /tmp -type d $FIND_APACHE_RELEVANT_NAMES -o $FIND_LDAP_RELEVANT_NAMES -o $FIND_KERBEROS_RELEVANT_NAMES -o $FIND_LOGSTASH_RELEVANT_NAMES -o $FIND_COUCHDB_RELEVANT_NAMES -o $FIND_NEO4J_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_DIR_USR=$(eval find /usr -type d $FIND_MYSQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_LDAP_RELEVANT_NAMES -o $FIND_KERBEROS_RELEVANT_NAMES -o $FIND_LOGSTASH_RELEVANT_NAMES -o $FIND_COUCHDB_RELEVANT_NAMES -o $FIND_NEO4J_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_DIR_OPT=$(eval find /opt -type d $FIND_APACHE_RELEVANT_NAMES -o $FIND_LDAP_RELEVANT_NAMES -o $FIND_KERBEROS_RELEVANT_NAMES -o $FIND_LOGSTASH_RELEVANT_NAMES -o $FIND_COUCHDB_RELEVANT_NAMES -o $FIND_NEO4J_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+
+# Files
+FIND_HOME=$(eval find /home $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_PASSWORD_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_ETC=$(eval find /etc $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_KNOCK_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_ROOT=$(eval find /root $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_PASSWORD_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_VAR=$(eval find /var $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_TMP=$(eval find /tmp $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_OPT=$(eval find /opt $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_USR=$(eval find /usr $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+FIND_MNT=$(eval find /mnt $FIND_SSH_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES 2>/dev/null | sort)
+printf ". "
+
+printf "DONE\n"
 
 if [ "`echo $CHECKS | grep SofI`" ]; then
   ###########################################
@@ -964,50 +1067,6 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     mysql -u root -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
   else echo_no
   fi
-
-###########################################
-#----------) Caching Finds (--------------#
-###########################################
-
-FIND_DIR_DEV=$(find /dev -type d 2>/dev/null | sort)
-
-FIND_DIR_SRV=$(find /srv -type d 2>/dev/null | sort)
-
-FIND_DIR_PROC=$(find /proc -type d 2>/dev/null | sort)
-
-FIND_DIR_MEDIA=$(find /media -type d 2>/dev/null | sort)
-
-FIND_DIR_SYS=$(find /sys -type d 2>/dev/null | sort)
-
-FIND_DIR_LOST_FOUND=$(find /lost+found -type d 2>/dev/null | sort)
-
-FIND_DIR_RUN=$(find /run -type d 2>/dev/null | sort)
-
-FIND_DIR_HOME=$(find /home -type d 2>/dev/null | sort)
-FIND_HOME=$(find /home 2>/dev/null | sort)
-
-FIND_DIR_ETC=$(find /etc -type d 2>/dev/null | sort)
-FIND_ETC=$(find /etc 2>/dev/null | sort)
-
-FIND_DIR_ROOT=$(find /root -type d 2>/dev/null | sort)
-FIND_ROOT=$(find /root 2>/dev/null | sort)
-
-FIND_DIR_VAR=$(find /var -type d 2>/dev/null | sort)
-FIND_VAR=$(find /var 2>/dev/null | sort)
-
-FIND_DIR_TMP=$(find /tmp -type d 2>/dev/null | sort)
-FIND_TMP=$(find /tmp 2>/dev/null | sort)
-
-FIND_DIR_MNT=$(find /mnt -type d 2>/dev/null | sort)
-FIND_MNT=$(find /mnt 2>/dev/null | sort)
-
-FIND_DIR_BOOT=$(find /boot -type d 2>/dev/null | sort)
-
-FIND_DIR_OPT=$(find /opt -type d 2>/dev/null | sort)
-FIND_OPT=$(find /opt 2>/dev/null | sort)
-
-FIND_DIR_USR=$(find /usr -type d 2>/dev/null | sort)
-FIND_USR=$(find /usr 2>/dev/null | sort)
 
   #-- 5SI) Mysql credentials
   printf $Y"[+] "$GREEN"Looking for mysql credentials and exec\n"$NC
@@ -1238,7 +1297,7 @@ FIND_USR=$(find /usr 2>/dev/null | sort)
     printf "$ldap\n"
     echo "The password hash is from the {SSHA} to 'structural'";
     for d in $ldap; do cat "$d/*.bdb" 2>/dev/null | grep -i -a -E -o "description.*" | sort | uniq | sed "s,administrator\|password\|ADMINISTRATOR\|PASSWORD\|Password\|Administrator,${C}[1;31m&${C}[0m,g"; done
-  else echo_not_found ".vnc"
+  else echo_not_found "ldap"
   fi
   echo ""
 
@@ -1397,13 +1456,13 @@ FIND_USR=$(find /usr 2>/dev/null | sort)
 
   ##-- 31SI) Vault-ssh
   printf $Y"[+] "$GREEN"Looking for Vault-ssh files\n"$NC
-  vaultssh=`$(echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_ROOT | grep -E 'vault-ssh-helper\.hcl')
+  vaultssh=$(echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_ROOT" | grep -E 'vault-ssh-helper\.hcl')
   if [ "$vaultssh" ]; then
     printf "$vaultssh\n"
     for f in $vaultssh; do cat $f 2>/dev/null; vault-ssh-helper -verify-only -config $f 2>/dev/null; done
     echo ""
     vault secrets list 2>/dev/null
-    echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_ROOT | grep -E '\.vault-token' | sed "s,.*,${C}[1;31m&${C}[0m," 2>/dev/null
+    echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_ROOT" | grep -E '\.vault-token' | sed "s,.*,${C}[1;31m&${C}[0m," 2>/dev/null
   else echo_not_found "vault-ssh-helper.hcl"
   fi
   echo ""
@@ -1658,7 +1717,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- 18IF) Files inside /home
   printf $Y"[+] "$GREEN"Files inside others home (limit 20)\n"$NC
-  (echo "FIND_HOME" | grep -v -i "/"$USER | head -n 20) || echo_not_found
+  (find /home -type f 2>/dev/null | grep -v -i "/"$USER | head -n 20) || echo_not_found
   echo ""
 
   ##-- 19IF) Mail applications
