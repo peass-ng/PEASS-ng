@@ -1035,7 +1035,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   FIND_MNT=$(eval find /mnt $FIND_SSH_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES 2>/dev/null | sort)
   printf ". "
 
-printf "DONE\n"
+  printf $GREEN"DONE\n"$NC
 
   #-- 1SI) Mysql version
   printf $Y"[+] "$GREEN"MySQL version\n"$NC
@@ -1374,7 +1374,7 @@ printf "DONE\n"
   printf $Y"[+] "$GREEN"Looking for Cloud credentials (AWS, Azure, GC)\n"$NC
   cloudcreds=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_ROOT $FIND_TMP $FIND_USR $FIND_OPT" | grep -E 'credentials$|credentials\.db$|legacy_credentials\.db$|access_tokens\.db$|accessTokens\.json$|azureProfile\.json$')
   if [ "$cloudcreds" ]; then
-    for f in "$cloudcreds"; do 
+    for f in $cloudcreds; do 
       printf "Reading $f\n" | sed "s,credentials\|credentials.db\|legacy_credentials.db\|access_tokens.db\|accessTokens.json\|azureProfile.json,${C}[1;31m&${C}[0m,g"
       cat "$f" | sed "s,.*,${C}[1;31m&${C}[0m,g"
       echo ""
