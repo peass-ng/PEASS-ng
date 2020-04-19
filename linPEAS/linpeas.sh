@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.4.2"
+VERSION="v2.4.3"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -950,7 +950,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ] || [ "`echo $CHECKS | grep SofI`" ]; the
   ANACONDA_KS_RELEVANT_NAMES="anaconda-ks.cfg"
   VNC_RELEVANT_NAMES=".vnc"
   LDAP_RELEVANT_NAMES="ldap"
-  OVPN_RELEVANT_NAMES=".ovpn"
+  OVPN_RELEVANT_NAMES="*.ovpn"
   SSH_RELEVANT_NAMES="id_dsa* id_rsa* known_hosts authorized_hosts authorized_keys *.pem *.cer *.crt *.csr *.der *.pfx *.p12 agent* config vault-ssh-helper.hcl .vault-token"
   CLOUD_KEYS_RELEVANT_NAMES="credentials credentials.db legacy_credentials.db access_tokens.db accessTokens.json azureProfile.json cloud.cfg"
   KERBEROS_RELEVANT_NAMES="krb5.conf"
