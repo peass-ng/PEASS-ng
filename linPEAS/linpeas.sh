@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.4.4"
+VERSION="v2.4.5"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -28,6 +28,7 @@ B="${C}[1;34m"
 LG="${C}[1;37m" #LightGray
 DG="${C}[1;90m" #DarkGray
 NC="${C}[0m"
+UNDERLINED="${C}[5m"
 
 
 ###########################################
@@ -131,7 +132,7 @@ for P in $ADDPATH; do
   if [ ! -z "${spath##*$P*}" ]; then export PATH="$PATH$P" 2>/dev/null; fi
 done
 writeB="00-header\|10-help-text\|50-motd-news\|80-esm\|91-release-upgrade\|\.sh$\|\./\|/authorized_keys\|/bin/\|/boot/\|/etc/apache2/apache2.conf\|/etc/apache2/httpd.conf\|/etc/hosts.allow\|/etc/hosts.deny\|/etc/httpd/conf/httpd.conf\|/etc/httpd/httpd.conf\|/etc/inetd.conf\|/etc/incron.conf\|/etc/login.defs\|/etc/logrotate.d/\|/etc/modprobe.d/\|/etc/pam.d/\|/etc/php.*/fpm/pool.d/\|/etc/php/.*/fpm/pool.d/\|/etc/rsyslog.d/\|/etc/skel/\|/etc/sysconfig/network-scripts/\|/etc/sysctl.conf\|/etc/sysctl.d/\|/etc/uwsgi/apps-enabled/\|/etc/xinetd.conf\|/etc/xinetd.d/\|/etc/\|/home//\|/lib/\|/log/\|/mnt/\|/root\|/sys/\|/usr/bin\|/usr/games\|/usr/lib\|/usr/local/bin\|/usr/local/games\|/usr/local/sbin\|/usr/sbin\|/sbin/\|/var/log/"
-writeVB="/etc/anacrontab\|/etc/bash.bashrc\|/etc/bash_completion\|/etc/bash_completion.d/\|/etc/cron\|/etc/environment\|/etc/environment.d/\|/etc/group\|/etc/incron.d/\|/etc/init\|/etc/master.passwd\|/etc/passwd\|/etc/profile.d/\|/etc/profile\|/etc/rc.d\|/etc/shadow\|/etc/sudoers\|/etc/sudoers.d/\|/etc/supervisor/conf.d/\|/etc/supervisor/supervisord.conf\|/etc/systemd\|/etc/sys\|/lib/systemd/\|/etc/update-motd.d/\|/root/.ssh/\|/systemd/system\|/var/spool/anacron\|/var/spool/cron/crontabs\|"`echo $PATH 2>/dev/null| sed 's/:/\\\|/g'`
+writeVB="/etc/anacrontab\|/etc/bash.bashrc\|/etc/bash_completion\|/etc/bash_completion.d/\|/etc/cron\|/etc/environment\|/etc/environment.d/\|/etc/group\|/etc/incron.d/\|/etc/init\|/etc/master.passwd\|/etc/passwd\|/etc/profile.d/\|/etc/profile\|/etc/rc.d\|/etc/shadow\|/etc/sudoers\|/etc/sudoers.d/\|/etc/supervisor/conf.d/\|/etc/supervisor/supervisord.conf\|/etc/systemd\|/etc/sys\|/lib/systemd/\|/etc/update-motd.d/\|/root/.ssh/\|/systemd/system\|/var/spool/anacron\|/var/spool/cron/crontabs\|"`echo $PATH 2>/dev/null | sed 's/:\.:/:/g' | sed 's/:\.$//g' | sed 's/^\.://g' | sed 's/:/\\\|/g'` #Add Path but remove simple dot in PATH
 
 sh_usrs=`cat /etc/passwd 2>/dev/null | grep -v "^root:" | grep -i "sh$" | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|bin|/|bin[\\\s:]|^bin$|/' | sed 's/|sys|/|sys[\\\s:]|^sys$|/' | sed 's/|daemon|/|daemon[\\\s:]|^daemon$|/' | sed 's/|/\\\|/g'`"ImPoSSssSiBlEee" #Modified bin, sys and daemon so they are not colored everywhere
 nosh_usrs=`cat /etc/passwd 2>/dev/null | grep -i -v "sh$" | sort | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|bin|/|bin[\\\s:]|^bin$|/' | sed 's/|/\\\|/g'`"ImPoSSssSiBlEee"
@@ -1833,7 +1834,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     printf $Y"[+] "$GREEN"Interesting writable files owned by me or writable by everyone (not in Home)\n"$NC
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files\n"$NC
     #In the next file, you need to specify type "d" and "f" to avoid fake link files apparently writable by all
-    for entry in `find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -v $notExtensions | sort | uniq | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 10){ print line_init; } if (cont == "10"){print "  You can write even more files inside last directory"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }'`; do
+    for entry in `find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -v $notExtensions | sort | uniq | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 10){ print line_init; } if (cont == "10"){print "-->You_can_write_even_more_files_inside_last_directory"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }'`; do
       if [ `echo $entry | grep "$writeVB"` ]; then 
         echo $entry | sed "s,$writeVB,${C}[1;31;103m&${C}[0m,"
       else
@@ -1849,7 +1850,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files\n"$NC
     for g in `groups`; 
       do printf "  Group "$GREEN"$g:\n"$NC; 
-      for entry in `find / '(' -type f -or -type d ')' -group $g -perm -g=w ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -v $notExtensions | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 10){ print line_init; } if (cont == "10"){print "  You can write even more files inside last directory"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }'`; do
+      for entry in `find / '(' -type f -or -type d ')' -group $g -perm -g=w ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -v $notExtensions | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 10){ print line_init; } if (cont == "10"){print "-->You_can_write_even_more_files_inside_last_directory"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }'`; do
         if [ `echo $entry | grep "$writeVB"` ]; then 
           echo $entry | sed "s,$writeVB,${C}[1;31;103m&${C}[0m,"
         else
