@@ -163,7 +163,7 @@ while $SEDOVERFLOW; do
   if [ $? -eq 0 ]; then
       SEDOVERFLOW=false
   else
-      $MAXPATH_FIND_W=$(($MAXPATH_FIND_W-1)) #If overflow of directories, check again with MAXPATH_FIND_W - 1
+      MAXPATH_FIND_W=$(($MAXPATH_FIND_W-1)) #If overflow of directories, check again with MAXPATH_FIND_W - 1
   fi
 done
 
