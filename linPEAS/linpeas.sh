@@ -728,10 +728,10 @@ fi
 
 
 if [ "`echo $CHECKS | grep ProCronSrvcs`" ]; then
-  ###########################################
-  #-----) Processes & Cron & Services (-----#
-  ###########################################
-  printf $B"================================( "$GREEN"Processes, Cron & Services"$B" )================================\n"$NC
+  ####################################################
+  #-----) Processes & Cron & Services & Timers (-----#
+  ####################################################
+  printf $B"================================( "$GREEN"Processes, Cron, Services & Timers"$B" )================================\n"$NC
 
   #-- 1PCS) Cleaned proccesses
   printf $Y"[+] "$GREEN"Cleaned processes\n"$NC
@@ -774,6 +774,11 @@ if [ "`echo $CHECKS | grep ProCronSrvcs`" ]; then
   printf $Y"[+] "$GREEN"Services\n"$NC
   printf $B"[i] "$Y"Search for outdated versions\n"$NC
   (service --status-all || chkconfig --list || rc-status) 2>/dev/null || echo_not_found "service|chkconfig|rc-status" 
+  echo ""
+  
+  #-- 6PSC) System timers
+  printf $Y"[+] "$GREEN"System timers\n"$NC
+  (systemctl list-timers --all 2>/dev/null | grep -Ev "(^$|timers listed)") || echo_not_found
   echo ""
   echo ""
 fi
@@ -927,11 +932,6 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   #-- 14UI) Password policy
   printf $Y"[+] "$GREEN"Password policy\n"$NC
   grep "^PASS_MAX_DAYS\|^PASS_MIN_DAYS\|^PASS_WARN_AGE\|^ENCRYPT_METHOD" /etc/login.defs 2>/dev/null || echo_not_found "/etc/login.defs"
-  echo ""
-
-  #-- 15UI) User timer
-  printf $Y"[+] "$GREEN"User timers\n"$NC
-  (systemctl --user list-timers --all 2>/dev/null | grep -Ev "(^$|timers listed)") || echo_not_found
   echo ""
 fi
 
