@@ -156,12 +156,13 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Useful software
   - [x] Installed compilers
 
-- **Processes & Cron & Services**
+- **Processes, Cron, Services & Timers**
   - [x] Cleaned processes
   - [x] Binary processes permissions
   - [x] Different processes executed during 1 min
   - [x] Cron jobs
   - [x] Services
+  - [x] All timers
 
 - **Network Information**
   - [x] Hostname, hosts & dns
