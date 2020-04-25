@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.4.5"
+VERSION="v2.4.6"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -186,7 +186,9 @@ mail_apps="Postfix\|Dovecot\|Exim\|SquirrelMail\|Cyrus\|Sendmail\|Courier"
 
 profiledG="01-locale-fix.sh\|apps-bin-path.sh\|bash_completion.sh\|cedilla-portuguese.sh\|colorgrep.csh\|colorgrep.sh\|colorxzgrep.csh\|colorxzgrep.sh\|colorzgrep.csh\|colorzgrep.sh\|csh.local\|gawk.csh\|gawk.sh\|kali.sh\|lang.csh\|lang.sh\|less.csh\|less.sh\|sh.local\|vte-2.91.sh"
 
-knw_emails="aeb@debian.org\|anibal@debian.org\|berni@debian.org\|daniel@lists.debian-maintainers.org\|debian@jff.email\|debian-boot@lists.debian.org\|debian-bsd@lists.debian.org\|debian-glibc@lists.debian.org\|debian-med-packaging@lists.alioth.debian.org\|devel@kali.org\|dm-devel@redhat.com\|djpig@debian.org\|ender@debian.org\|ftpmaster@ubuntu.com\|gcs@debian.org\|guillem@debian.org\|guus@debian.org\|isc-dhcp@packages.debian.org\|kernel-team@lists.ubuntu.com\|kilobyte@angband.pl\|lamont@debian.org\|linux-xfs@vger.kernel.org\|mattia@debian.org\|mmind@debian.org\|open-iscsi@packages.debian.org\|open-isns@packages.debian.org\|packages@qa.debian.org\|packages@release.debian.org\|parted-maintainers@alioth-lists.debian.net\|parted-maintainers@lists.alioth.debian.org\|petere@debian.org\|pkg-gnupg-maint@lists.alioth.debian.org\|pkg-gnutls-maint@lists.alioth.debian.org\|pkg-lvm-maintainers@lists.alioth.debian.org\|pkg-mdadm-devel@lists.alioth.debian.org\|racke@linuxia.de\|rogershimizu@gmail.com\|team+dns@tracker.debian.org\|team+lvm@tracker.debian.org\|thmarques@gmail.com\|tytso@mit.edu\|ubuntu-devel-discuss@lists.ubuntu.com\|ubuntu-installer@lists.ubuntu.com\|wpa@packages.debian.org\|xfs@oss.sgi.com"
+knw_emails="aeb@debian.org\|ah-util-linux@debian.org\|anibal@debian.org\|berni@debian.org\|daniel@lists.debian-maintainers.org\|debian@jff.email\|debian-boot@lists.debian.org\|debian-bsd@lists.debian.org\|debian-glibc@lists.debian.org\|debian-kernel@lists.debian.org\|debian-med-packaging@lists.alioth.debian.org\|devel@kali.org\|dm-devel@redhat.com\|djpig@debian.org\|ender@debian.org\|ftpmaster@ubuntu.com\|gcs@debian.org\|guillem@debian.org\|guus@debian.org\|isc-dhcp@packages.debian.org\|kernel-team@lists.ubuntu.com\|kilobyte@angband.pl\|lamont@debian.org\|linux-xfs@vger.kernel.org\|mattia@debian.org\|mmind@debian.org\|open-iscsi@packages.debian.org\|open-isns@packages.debian.org\|packages@qa.debian.org\|packages@release.debian.org\|parted-maintainers@alioth-lists.debian.net\|parted-maintainers@lists.alioth.debian.org\|petere@debian.org\|pkg-gnupg-maint@lists.alioth.debian.org\|pkg-gnutls-maint@lists.alioth.debian.org\|pkg-grub-devel@lists.alioth.debian.org\|pkg-iscsi-maintainers@lists.alioth.debian.org\|pkg-lvm-maintainers@lists.alioth.debian.org\|pkg-mdadm-devel@lists.alioth.debian.org\|pkg-openssl-devel@lists.alioth.debian.org\|pkg-wpa-devel@lists.alioth.debian.org\|racke@linuxia.de\|rogershimizu@gmail.com\|team+dns@tracker.debian.org\|team+lvm@tracker.debian.org\|thmarques@gmail.com\|tytso@mit.edu\|ubuntu-devel-discuss@lists.ubuntu.com\|ubuntu-installer@lists.ubuntu.com\|wpa@packages.debian.org\|xfs@oss.sgi.com\|xnox@debian.org"
+
+timersG="apt-daily.timer\|apt-daily-upgrade.timer\|e2scrub_all.timer\|logrotate.timer\|man-db.timer\|phpsessionclean.timer\|systemd-tmpfiles-clean.timer"
 
 ###########################################
 #---------) Checks before start (---------#
@@ -650,7 +652,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   #-- 6SY) Environment vars 
   printf $Y"[+] "$GREEN"Environment\n"$NC
   printf $B"[i] "$Y"Any private information inside environment variables?\n"$NC
-  (env || set) 2>/dev/null | grep -v "^VERSION=\|pwd_inside_history\|kernelDCW_Ubuntu_Precise_1\|kernelDCW_Ubuntu_Precise_2\|kernelDCW_Ubuntu_Trusty_1\|kernelDCW_Ubuntu_Trusty_2\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel5\|kernelDCW_Rhel6_1\|kernelDCW_Rhel6_2\|kernelDCW_Rhel7\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=" | sed "s,pwd\|passw\|PWD\|PASSW\|Passwd\|Pwd,${C}[1;31m&${C}[0m,g" || echo_not_found "env || set"
+  (env || set) 2>/dev/null | grep -v "^VERSION=\|pwd_inside_history\|kernelDCW_Ubuntu_Precise_1\|kernelDCW_Ubuntu_Precise_2\|kernelDCW_Ubuntu_Trusty_1\|kernelDCW_Ubuntu_Trusty_2\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel5\|kernelDCW_Rhel6_1\|kernelDCW_Rhel6_2\|kernelDCW_Rhel7\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|timersG=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=" | sed "s,pwd\|passw\|PWD\|PASSW\|Passwd\|Pwd,${C}[1;31m&${C}[0m,g" || echo_not_found "env || set"
   echo ""
 
   #-- 7SY) Dmesg
@@ -720,8 +722,8 @@ if [ "`echo $CHECKS | grep AvaSof`" ]; then
   echo ""
 
   #-- 2AS) Search for compilers
-  printf $Y"[+] "$GREEN"Compilers Installed\n"$NC
-  (dpkg --list 2>/dev/null | grep compiler | grep -v "decompiler\|lib" 2>/dev/null || yum list installed 'gcc*' 2>/dev/null | grep gcc 2>/dev/null; which gcc g++ 2>/dev/null || locate -r "/gcc[0-9\.-]\+$" 2>/dev/null | grep -v "/doc/") || echo_not_found "Compilers"; 
+  printf $Y"[+] "$GREEN"Installed Compiler\n"$NC
+  (dpkg --list 2>/dev/null | grep "compiler" | grep -v "decompiler\|lib" 2>/dev/null || yum list installed 'gcc*' 2>/dev/null | grep gcc 2>/dev/null; which gcc g++ 2>/dev/null || locate -r "/gcc[0-9\.-]\+$" 2>/dev/null | grep -v "/doc/"); 
   echo ""
   echo ""
 fi
@@ -778,7 +780,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcs`" ]; then
   
   #-- 6PSC) System timers
   printf $Y"[+] "$GREEN"System timers\n"$NC
-  (systemctl list-timers --all 2>/dev/null | grep -Ev "(^$|timers listed)") || echo_not_found
+  (systemctl list-timers --all 2>/dev/null | grep -Ev "(^$|timers listed)" | sed "s,$timersG,${C}[1;32m&${C}[0m,") || echo_not_found
   echo ""
   echo ""
 fi
@@ -1335,12 +1337,14 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   sshagents=$(echo "$FIND_TMP" | grep -E 'agent.*')
   homesshconfig=$(echo "$FIND_HOME $FIND_ROOT" | grep -E 'config' | grep "ssh")
   sshconfig="`ls /etc/ssh/ssh_config`"
+  hostsdenied="`ls /etc/hosts.denied`"
+  hostsallow="`ls /etc/hosts.allow`"
 
   if [ "$ssh"  ]; then
     printf "$ssh\n"
   fi
 
-  grep "PermitRootLogin \|ChallengeResponseAuthentication \|PasswordAuthentication \|UsePAM \|Port\|PermitEmptyPasswords\|PubkeyAuthentication\|ListenAddress\|FordwardAgent" /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | sed "s,PermitRootLogin.*es\|PermitEmptyPasswords.*es\|ChallengeResponseAuthentication.*es\|FordwardAgent.*es,${C}[1;31m&${C}[0m,"
+  grep "PermitRootLogin \|ChallengeResponseAuthentication \|PasswordAuthentication \|UsePAM \|Port\|PermitEmptyPasswords\|PubkeyAuthentication\|ListenAddress\|ForwardAgent\|AllowAgentForwarding\|AuthorizedKeysFiles" /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | sed "s,PermitRootLogin.*es\|PermitEmptyPasswords.*es\|ChallengeResponseAuthentication.*es\|FordwardAgent.*es,${C}[1;31m&${C}[0m,"
 
   privatekeyfiles=`grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /home /root /mnt /etc 2>/dev/null`
   if [ "$privatekeyfiles" ]; then
@@ -1367,10 +1371,22 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     printf "$homesshconfig\n"
     for f in $homesshconfig; do cat $f 2>/dev/null | grep -v "^$" | sed "s,User\|ProxyCommand\|P,${C}[1;31m&${C}[0m,"; done
   fi
+  if [ "$hostsdenied" ]; then
+    echo " --> Hosts.denied file found, read the rules:"
+    printf "$homesshconfig\n"
+    cat "/etc/hosts.denied" 2>/dev/null | grep -v "#" | grep -v "^$" | sed "s,.*,${C}[1;32m&${C}[0m,"
+    echo ""
+  fi
+  if [ "$hostsallow" ]; then
+    echo " --> Hosts.allow file found, read the rules:"
+    printf "$homesshconfig\n"
+    cat "/etc/hosts.allow" 2>/dev/null | grep -v "#" | grep -v "^$" | sed "s,.*,${C}[1;31m&${C}[0m,"
+    echo ""
+  fi
   if [ "$sshconfig" ]; then
     echo ""
     echo "Looking inside /etc/ssh/ssh_config for interesting info"
-    cat "$sshconfig" 2>/dev/null | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | sed "s,User\|ProxyCommand,${C}[1;31m&${C}[0m,"
+    cat /etc/ssh/ssh_config 2>/dev/null | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | sed "s,Host\|ForwardAgent\|User\|ProxyCommand,${C}[1;31m&${C}[0m,"
   fi
   echo ""
 
