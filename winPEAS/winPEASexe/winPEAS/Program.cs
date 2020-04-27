@@ -187,9 +187,14 @@ namespace winPEAS
             {
                 try
                 {
+                    Dictionary<string, string> colorsPSI = new Dictionary<string, string>()
+                        {
+                            { "PS history file: .+", Beaprint.ansi_color_bad },
+                            { "PS history size: .+", Beaprint.ansi_color_bad }
+                        };
                     Beaprint.MainPrint("PowerShell Settings", "");
                     Dictionary<string, string> PSs = SystemInfo.GetPowerShellSettings();
-                    Beaprint.DictPrint(PSs, false);
+                    Beaprint.DictPrint(PSs, colorsPSI, false);
                 }
                 catch (Exception ex)
                 {
