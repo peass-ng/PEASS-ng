@@ -165,6 +165,8 @@ echo.
 echo PS default transcript history
 dir %SystemDrive%\transcripts\
 echo.
+echo Checking PS history file
+dir "%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 echo.
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] MOUNTED DISKS ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 echo [i] Maybe you find something interesting
