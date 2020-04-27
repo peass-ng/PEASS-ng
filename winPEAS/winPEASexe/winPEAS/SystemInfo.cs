@@ -230,6 +230,8 @@ namespace winPEAS
                 results["Transcription Settings"] = "";
                 results["Module Logging Settings"] = "";
                 results["Scriptblock Logging Settings"] = "";
+                results["PS history file"] = "";
+                results["PS history size"] = "";
 
                 Dictionary<string, object> transcriptionSettings = MyUtils.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\Transcription");
                 if ((transcriptionSettings == null) || (transcriptionSettings.Count == 0))
@@ -265,6 +267,15 @@ namespace winPEAS
                     {
                         results["Scriptblock Logging Settings"] = String.Format("  {0,30} : {1}\r\n", kvp.Key, kvp.Value);
                     }
+                }
+                
+                string ps_history_path = Environment.ExpandEnvironmentVariables(@"%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt");
+                if (File.Exists(ps_history_path))
+                {
+                    FileInfo fi = new FileInfo(ps_history_path);
+                    long size = fi.Length;
+                    results["PS history file"] = ps_history_path;
+                    results["PS history size"] = size.ToString() + "B";
                 }
             }
             catch (Exception ex)
