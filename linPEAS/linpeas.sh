@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.4.9"
+VERSION="v2.5.0"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -1389,12 +1389,22 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   grep "PermitRootLogin \|ChallengeResponseAuthentication \|PasswordAuthentication \|UsePAM \|Port\|PermitEmptyPasswords\|PubkeyAuthentication\|ListenAddress\|ForwardAgent\|AllowAgentForwarding\|AuthorizedKeysFiles" /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | sed "s,PermitRootLogin.*es\|PermitEmptyPasswords.*es\|ChallengeResponseAuthentication.*es\|FordwardAgent.*es,${C}[1;31m&${C}[0m,"
 
-  privatekeyfiles=`grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /home /root /mnt /etc 2>/dev/null`
-  if [ "$privatekeyfiles" ]; then
-    privatekeyfilesgrep=`grep -L "\"\|'\|(" "$privatekeyfiles"` # Check there aren't unexpected symbols in the file
+  if [ "$TIMEOUT" ]; then
+    privatekeyfilesetc=`timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /etc 2>/dev/null`
+    privatekeyfileshome=`timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /home 2>/dev/null`
+    privatekeyfilesroot=`timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /root 2>/dev/null`
+    privatekeyfilesmnt=`timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /mnt 2>/dev/null`
+  else
+    privatekeyfilesetc=`grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /etc 2>/dev/null` #If there is tons of files linpeas gets frozen here without a timeout
+    privatekeyfileshome=`grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' $HOME 2>/dev/null`
   fi
-  if [ "$privatekeyfilesgrep" ]; then
-    printf "Private SSH keys found!:\n$privatekeyfilesgrep\n" | sed "s,.*,${C}[1;31m&${C}[0m,"
+    
+  if [ "$privatekeyfilesetc" ] || [ "$privatekeyfileshome" ] || [ "$privatekeyfilesroot" ] || [ "$privatekeyfilesmnt" ] ; then
+    printf "Possible private SSH keys were found!\n" | sed "s,.*,${C}[1;31m&${C}[0m,"
+    if [ "$privatekeyfilesetc" ]; then printf "$privatekeyfilesetc" | sed "s,.*,${C}[1;31m&${C}[0m,"; fi
+    if [ "$privatekeyfileshome" ]; then printf "$privatekeyfileshome" | sed "s,.*,${C}[1;31m&${C}[0m,"; fi
+    if [ "$privatekeyfilesroot" ]; then printf "$privatekeyfilesroot" | sed "s,.*,${C}[1;31m&${C}[0m,"; fi
+    if [ "$privatekeyfilesmnt" ]; then printf "$privatekeyfilesmnt" | sed "s,.*,${C}[1;31m&${C}[0m,"; fi
   fi
   if [ "$certsb4_grep" ] || [ "$certsbin" ]; then
     echo "  --> Some certificates were found:"
