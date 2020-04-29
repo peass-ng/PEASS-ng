@@ -1978,20 +1978,20 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   (echo "$FIND_HOME $FIND_ROOT" | grep -E '.*password.*|.*credential.*|creds.*' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 3){ print line_init; } if (cont == "3"){print "  There are more creds/passwds files in the previous parent folder"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 70 | sed "s,password\|credential,${C}[1;31m&${C}[0m," | sed "s,There are more creds/passwds files in the previous parent folder,${C}[1;32m&${C}[0m,") || echo_not_found
   echo ""
 
-  if ! [ "$SUPERFAST" ]; then
+  if ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
 	  ##-- 36IF) Find possible files with passwords
     printf $Y"[+] "$GREEN"Finding 'pwd' or 'passw' variables inside /home /var/www /var/backups /tmp /etc /root /mnt (limit 70)\n"$NC
-    grep -RiIE "(pwd|passwd).*[=:].+|define.*passw" /home /var/www /var/backups /tmp /etc /root /mnt 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | head -n 70 | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,gI"
+    timeout 100 grep -RiIE "(pwd|passwd).*[=:].+|define.*passw" /home /var/www /var/backups /tmp /etc /root /mnt 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | head -n 70 | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,gI"
     echo ""
 
     ##-- 37IF) Find possible files with passwords
     printf $Y"[+] "$GREEN"Finding possible password variables inside /home /var/www /var/backups /tmp /etc /root /mnt (limit 70)\n"$NC
-    grep -RiIE "($pwd_in_variables).*[=:].+" /home /var/www /var/backups /tmp /etc /root /mnt 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | head -n 70 | sed -E "s,$pwd_in_variables,${C}[1;31m&${C}[0m,gI"
+    timeout 100 grep -RiIE "($pwd_in_variables).*[=:].+" /home /var/www /var/backups /tmp /etc /root /mnt 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | head -n 70 | sed -E "s,$pwd_in_variables,${C}[1;31m&${C}[0m,gI"
     echo ""
 
     ##-- 38IF) Find possible files with usernames
     printf $Y"[+] "$GREEN"Finding 'username' string inside /home /var/www /var/backups /tmp /etc /root /mnt (limit 70)\n"$NC
-    grep -RiIE "username.*[=:].+" /home /var/www /var/backups /tmp /etc /root /mnt 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | head -n 70 | sed "s,username,${C}[1;31m&${C}[0m,gI"
+    timeout 100 grep -RiIE "username.*[=:].+" /home /var/www /var/backups /tmp /etc /root /mnt 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | head -n 70 | sed "s,username,${C}[1;31m&${C}[0m,gI"
     echo ""
 
     ##-- 39IF) Specific hashes inside files
@@ -2005,18 +2005,18 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     regexapr1md5='\$apr1\$[a-zA-Z0-9_/\.]{8}\$[a-zA-Z0-9_/\.]{22}'
     regexsha512crypt='\$6\$[a-zA-Z0-9_/\.]{16}\$[a-zA-Z0-9_/\.]{86}'
     regexapachesha='\{SHA\}[0-9a-zA-Z/_=]{10,}'
-    grep -RIEHo "$regexblowfish|$regexjoomlavbulletin|$regexphpbb3|$regexwp|$regexdrupal|$regexlinuxmd5|$regexapr1md5|$regexsha512crypt|$regexapachesha" /etc /var/backups /tmp /var/tmp /var/www /root /home /mnt 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -v $notExtensions | grep -Ev "0{20,}" | awk -F: '{if (pre != $1){ print $0; }; pre=$1}' | head -n 70 | sed "s,:.*,${C}[1;31m&${C}[0m,"
+    timeout 100 grep -RIEHo "$regexblowfish|$regexjoomlavbulletin|$regexphpbb3|$regexwp|$regexdrupal|$regexlinuxmd5|$regexapr1md5|$regexsha512crypt|$regexapachesha" /etc /var/backups /tmp /var/tmp /var/www /root /home /mnt 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -v $notExtensions | grep -Ev "0{20,}" | awk -F: '{if (pre != $1){ print $0; }; pre=$1}' | head -n 70 | sed "s,:.*,${C}[1;31m&${C}[0m,"
     echo ""
   fi
 
-  if ! [ "$FAST" ] && ! [ "$SUPERFAST" ]; then
+  if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
     ##-- 40IF) Specific hashes inside files
     printf $Y"[+] "$GREEN"Looking for md5/sha1/sha256/sha512 hashes inside files (limit 50)\n"$NC
     regexmd5='(^|[^a-zA-Z0-9])[a-fA-F0-9]{32}([^a-zA-Z0-9]|$)'
     regexsha1='(^|[^a-zA-Z0-9])[a-fA-F0-9]{40}([^a-zA-Z0-9]|$)'
     regexsha256='(^|[^a-zA-Z0-9])[a-fA-F0-9]{64}([^a-zA-Z0-9]|$)'
     regexsha512='(^|[^a-zA-Z0-9])[a-fA-F0-9]{128}([^a-zA-Z0-9]|$)'
-    grep -RIEHo "$regexmd5|$regexsha1|$regexsha256|$regexsha512" /etc /var/backups /tmp /var/tmp /var/www /root /home /mnt 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -v $notExtensions | grep -Ev "0{20,}" | awk -F: '{if (pre != $1){ print $0; }; pre=$1}' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 2){ print line_init; } if (cont == "2"){print "  There are more hashes files in the previous parent folder"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 50 | sed "s,:.*,${C}[1;31m&${C}[0m," | sed "s,There are more hashes files in the previous parent folder,${C}[1;32m&${C}[0m,"
+    timeout 200 grep -RIEHo "$regexmd5|$regexsha1|$regexsha256|$regexsha512" /etc /var/backups /tmp /var/tmp /var/www /root /home /mnt 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -v $notExtensions | grep -Ev "0{20,}" | awk -F: '{if (pre != $1){ print $0; }; pre=$1}' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 2){ print line_init; } if (cont == "2"){print "  There are more hashes files in the previous parent folder"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 50 | sed "s,:.*,${C}[1;31m&${C}[0m," | sed "s,There are more hashes files in the previous parent folder,${C}[1;32m&${C}[0m,"
     echo ""
   fi
 fi
