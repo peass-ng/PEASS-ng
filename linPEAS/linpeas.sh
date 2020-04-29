@@ -1704,7 +1704,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- 3IF) Misconfigured /etc/ld.so.conf.d/
   printf $Y"[+] "$GREEN"Writable folders configured in /etc/ld.so.conf.d/\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#etc-ld-so-conf-d\n"$NC
-  (cat /etc/ld.so.conf.d/* 2>/dev/null | grep -v "#" | sed "s,$ldsoconfdG,${C}[1;32m&${C}[0m," | sed "s,$writeVB,${C}[1;31;103m&${C}[0m,") || echo_not_found
+  (cat /etc/ld.so.conf.d/* 2>/dev/null | grep -v "#" | sed "s,$ldsoconfdG,${C}[1;32m&${C}[0m," | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g") || echo_not_found
   echo ""
 
   ##-- 4IF) Capabilities
