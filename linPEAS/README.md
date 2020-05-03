@@ -43,8 +43,8 @@ It uses **/bin/sh** sintax, so can run in anything supporting `sh` (and the bina
 
 By default, **linpeas won't write anything to disk and won't try to login as any other user using `su`**.
 
-By default linpeas takes around **1 min** to complete, but It could take from **3 to 4 minutes** to execute all the checks using **-a** parameter *(Recommended option for CTFs)*:
-- Less than 1 min to make almost all the checks
+By default linpeas takes around **2 mins** to complete, but It could take from **4 to 5 minutes** to execute all the checks using **-a** parameter *(Recommended option for CTFs)*:
+- From less than 1 min to 2 mins to make almost all the checks
 - Almost 1 min to search for possible passwords inside all the accesible files of the system
 - 20s/user bruteforce with top2000 passwords *(need `-a`)* - Notice that this check is **super noisy**
 - 1 min to monitor the processes in order to find very frequent cron jobs *(need `-a`)* - Notice that this check will need to **write** some info inside a file that will be deleted
@@ -156,13 +156,15 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Useful software
   - [x] Installed compilers
 
-- **Processes, Cron, Services & Timers**
+- **Processes, Cron, Services, Timers & Sockets**
   - [x] Cleaned processes
   - [x] Binary processes permissions
   - [x] Different processes executed during 1 min
   - [x] Cron jobs
-  - [x] Services
-  - [x] All timers
+  - [x] Services (list, writable .service, writable services binaries, systemd path, service binaries using relative path)
+  - [x] All timers (list, writable .timer, writable binaries, relative paths)
+  - [x] Sockets
+  - [x] D-Bus
 
 - **Network Information**
   - [x] Hostname, hosts & dns
