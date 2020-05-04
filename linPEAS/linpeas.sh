@@ -1014,7 +1014,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
 
   #-- PSC) .socket files
   printf $Y"[+] "$GREEN"Analyzing .socket files\n"$NC
-  printf $B"[i] "$Y"hhttps://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets\n"$NC
   sockets=$(echo "$FIND_ETC $FIND_LIB $FIND_RUN $FIND_USR $FIND_SYSTEMD $FIND_VAR $FIND_SYS $FIND_SNAP" | grep -E '\.socket')
   for s in $sockets; do
     if [ -w "$s" ] && [ -f "$s" ]; then
