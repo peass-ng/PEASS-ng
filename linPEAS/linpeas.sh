@@ -2111,7 +2111,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- 32IF) IPs inside logs
   printf $Y"[+] "$GREEN"Finding IPs inside logs (limit 70)\n"$NC
-  grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /var/log/ 2>/dev/null | grep -v "\.0\.\|:0\|\.0$" | sort | uniq -c | sort -r -n | head -n 70
+  (timeout 100 grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /var/log/) 2>/dev/null | grep -v "\.0\.\|:0\|\.0$" | sort | uniq -c | sort -r -n | head -n 70
   echo ""
 
   ##-- 33IF) Passwords inside logs
@@ -2130,7 +2130,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   echo ""
 
   if ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
-	  ##-- 36IF) Find possible files with passwords
+    ##-- 36IF) Find possible files with passwords
     printf $Y"[+] "$GREEN"Finding 'pwd' or 'passw' variables inside /home /var/www /var/backups /tmp /etc /root /mnt (limit 70)\n"$NC
     timeout 100 grep -RiIE "(pwd|passwd|password).*[=:].+|define.*passw" /home /var/www /var/backups /tmp /etc /root /mnt 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | head -n 70 | sed "s,pwd\|passw,${C}[1;31m&${C}[0m,gI"
     echo ""
