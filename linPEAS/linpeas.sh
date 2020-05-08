@@ -664,7 +664,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
   printf $GREEN"Caching directories "$NC
   SYSTEMD_RELEVANT_NAMES="*.service"
   TIMERS_RELEVANT_NAMES="*.timer"
-  SOCKETS_RELEVANT_NAMES="*
+  SOCKETS_RELEVANT_NAMES="*.socket"
   DBUS_RELEVANT_NAMES="system.d session.d"
   MYSQL_RELEVANT_NAMES="mysql"
   POSTGRESQL_RELEVANT_NAMES="pgadmin*.db pg_hba.conf postgresql.conf pgsql.conf"
@@ -1029,7 +1029,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
     socketslistpaths="`grep -Po '^(Listen).*?=[!@+-]*/[\w/\-]+' \"$s\" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,'`"
     for sl in $socketsbinpaths; do
       if [ -w "$sl" ]; then
-        echo "$s is calling this writable listener: $sl" | sed "s,writable.*,${C}[1;31m&${C}[0m,g"
+        echo "$s is calling this writable listener: $sl" | sed "s,writable.*,${C}[1;31m&${C}[0m,g";
       fi
     done
   done
@@ -1052,20 +1052,22 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   printf $Y"[+] "$GREEN"D-Bus config files\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#d-bus\n"$NC
   dbusfols=$(echo "$FIND_DIR_ETC" | grep -E '/dbus-1/system.d|/dbus-1/session.d')
-  for d in "$dbusfols"; do
-    for f in $d/*; do
-      if [ -w "$f" ]; then
-        echo "Writable $f" | sed "s,.*,${C}[1;31m&${C}[0m,g"
-      fi
+  if [ "$dbusfols" ]; then
+    for d in "$dbusfols"; do
+      for f in $d/*; do
+        if [ -w "$f" ]; then
+          echo "Writable $f" | sed "s,.*,${C}[1;31m&${C}[0m,g"
+        fi
 
-      if [ "`grep \"<policy>\" \"$f\" 2>/dev/null`" ]; then printf "Weak general policy found on $f\n" | sed "s,/.*,${C}[1;31m&${C}[0m,g"; fi
-      if [ "`grep \"<policy user=\\\"$USER\\\">\" \"$f\" 2>/dev/null`" ]; then printf "Possible weak user policy found on $f\n" | sed "s,/.*,${C}[1;31m&${C}[0m,g"; fi
-      for g in `groups`; do
-        if [ "`grep \"<policy group=\\\"$g\\\">\" \"$f\" 2>/dev/null`" ]; then printf "Possible weak group ($g) policy found on $f\n" | sed "s,/.*,${C}[1;31m&${C}[0m,g"; fi
+        if [ "`grep \"<policy>\" \"$f\" 2>/dev/null`" ]; then printf "Weak general policy found on $f\n" | sed "s,/.*,${C}[1;31m&${C}[0m,g"; fi
+        if [ "`grep \"<policy user=\\\"$USER\\\">\" \"$f\" 2>/dev/null`" ]; then printf "Possible weak user policy found on $f\n" | sed "s,/.*,${C}[1;31m&${C}[0m,g"; fi
+        for g in `groups`; do
+          if [ "`grep \"<policy group=\\\"$g\\\">\" \"$f\" 2>/dev/null`" ]; then printf "Possible weak group ($g) policy found on $f\n" | sed "s,/.*,${C}[1;31m&${C}[0m,g"; fi
+        done
+        #TODO: identify allows in context="default"
       done
-      #TODO: identify allows in context="default"
     done
-  done
+  fi
   echo ""
   echo ""
 
