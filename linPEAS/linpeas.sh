@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.5.3"
+VERSION="v2.5.4"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -1568,8 +1568,12 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     printf "$clientcert\n"
   fi
   if [ "$sshagents" ]; then
-    echo "  --> Some SSH Agents were found:"
+    echo "  --> Some SSH Agent files were found:"
     printf "$sshagents\n"
+  fi
+  if [ "`ssh-add -l 2>/dev/null | grep -v 'no identities'`" ]; then
+    echo "  --> SSH Agents listed:"
+    ssh-add -l
   fi
   if [ "$homesshconfig" ]; then
     echo " --> Some home ssh config file was found"
