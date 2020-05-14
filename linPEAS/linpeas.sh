@@ -1846,7 +1846,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $Y"[+] "$GREEN"SUID - Check easy privesc, exploits and write perms\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC
   for s in `find / -perm -4000 2>/dev/null`; do
-    if [ "`ls -l \"$s\" | cut -d ' ' -f 3`" = "$USER" ]; then
+    if [ -O "$s" ]; then
       echo "You own the SUID file: $s" | sed "s,.*,${C}[1;31m&${C}[0m,"
     elif [ -w "$s" ]; then #If write permision, win found (no check exploits)
       echo "You can write SUID file: $s" | sed "s,.*,${C}[1;31;103m&${C}[0m,"
