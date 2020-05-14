@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.5.5"
+VERSION="v2.5.6"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -1907,8 +1907,12 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   else echo_not_found "/etc/security/capability.conf"
   fi
   echo ""
-  
 
+  ##-- 5IF) Files with ACLs
+  printf $Y"[+] "$GREEN"Files with ACLs\n"$NC
+  ((getfacl -t -s -R -p /bin /etc /home /opt /root /sbin /usr 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m,"
+  echo ""
+  
   ##-- 6IF) .sh files in PATH
   printf $Y"[+] "$GREEN".sh files in path\n"$NC
   for d in `echo $PATH | tr ":" "\n"`; do find $d -name "*.sh" 2>/dev/null | sed "s,$pathshG,${C}[1;32m&${C}[0m," ; done
