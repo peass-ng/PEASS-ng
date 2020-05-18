@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.5.6"
+VERSION="v2.5.7"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -29,6 +29,50 @@ LG="${C}[1;37m" #LightGray
 DG="${C}[1;90m" #DarkGray
 NC="${C}[0m"
 UNDERLINED="${C}[5m"
+
+
+###########################################
+#---------) Parsing parameters (----------#
+###########################################
+# --) FAST - Do not check 1min of procceses and su brute
+# --) SUPERFAST - FAST & do not search for special filaes in all the folders
+
+FAST="1" #By default stealth/fast mode
+SUPERFAST=""
+NOTEXPORT=""
+DISCOVERY=""
+PORTS=""
+QUIET=""
+CHECKS="SysI,Devs,AvaSof,ProCronSrvcsTmrsSocks,Net,UsrI,SofI,IntFiles"
+WAIT=""
+HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
+      $B This tool enum and search possible misconfigurations$DG (known vulns, user, processes and file permissions, special file permissions, readable/writable files, bruteforce other users(top1000pwds), passwords...)$B inside the host and highlight possible misconfigs with colors.
+      $Y-h$B To show this message
+      $Y-q$B Do not show banner
+      $Y-a$B All checks (1min of processes and su brute) - Noisy mode, for CTFs mainly
+      $Y-s$B SuperFast (don't check some time consuming checks) - Stealth mode
+      $Y-w$B Wait execution between big blocks
+      $Y-n$B Do not export env variables related with history
+      $Y-o$B Only execute selected checks (SysI, Devs, AvaSof, ProCronSrvcsTmrsSocks, Net, UsrI, SofI, IntFiles). Select a comma separated list.
+      $Y-d <IP/NETMASK>$B Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
+      $Y-p <PORT(s)> -d <IP/NETMASK>$B Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
+      $Y-i <IP> [-p <PORT(s)>]$B Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
+      $GREEN Notice$B that if you select some network action, no PE check will be performed\n\n"
+
+while getopts "h?asd:p:i:qo:w" opt; do
+  case "$opt" in
+    h|\?) printf "$HELP"$NC; exit 0;;
+    a)  FAST="";;
+    s)  SUPERFAST=1;;
+    n)  NOTEXPORT=1;;
+    d)  DISCOVERY=$OPTARG;;
+    p)  PORTS=$OPTARG;;
+    i)  IP=$OPTARG;;
+    q)  QUIET=1;;
+    o)  CHECKS=$OPTARG;;
+    w)  WAIT=1;;
+    esac
+done
 
 
 ###########################################
@@ -240,50 +284,6 @@ fi
 if [ "$FOUND_NC" ]; then
   SCAN_BAN_GOOD="$GREEN$FOUND_NC$B is available for network discover & port scanning$LG (linpeas can discover hosts and scan ports, learn more with -h)"
 fi
-
-
-###########################################
-#---------) Parsing parameters (----------#
-###########################################
-# --) FAST - Do not check 1min of procceses and su brute
-# --) SUPERFAST - FAST & do not search for special filaes in all the folders
-
-FAST="1" #By default stealth/fast mode
-SUPERFAST=""
-NOTEXPORT=""
-DISCOVERY=""
-PORTS=""
-QUIET=""
-CHECKS="SysI,Devs,AvaSof,ProCronSrvcsTmrsSocks,Net,UsrI,SofI,IntFiles"
-WAIT=""
-HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
-      $B This tool enum and search possible misconfigurations$DG (known vulns, user, processes and file permissions, special file permissions, readable/writable files, bruteforce other users(top1000pwds), passwords...)$B inside the host and highlight possible misconfigs with colors.
-      $Y-h$B To show this message
-      $Y-q$B Do not show banner
-      $Y-a$B All checks (1min of processes and su brute) - Noisy mode, for CTFs mainly
-      $Y-s$B SuperFast (don't check some time consuming checks) - Stealth mode
-      $Y-w$B Wait execution between big blocks
-      $Y-n$B Do not export env variables related with history
-      $Y-o$B Only execute selected checks (SysI, Devs, AvaSof, ProCronSrvcsTmrsSocks, Net, UsrI, SofI, IntFiles). Select a comma separated list.
-      $Y-d <IP/NETMASK>$B Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
-      $Y-p <PORT(s)> -d <IP/NETMASK>$B Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
-      $Y-i <IP> [-p <PORT(s)>]$B Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
-      $GREEN Notice$B that if you select some network action, no PE check will be performed\n\n"
-
-while getopts "h?asd:p:i:qo:w" opt; do
-  case "$opt" in
-    h|\?) printf "$HELP"$NC; exit 0;;
-    a)  FAST="";;
-    s)  SUPERFAST=1;;
-    n)  NOTEXPORT=1;;
-    d)  DISCOVERY=$OPTARG;;
-    p)  PORTS=$OPTARG;;
-    i)  IP=$OPTARG;;
-    q)  QUIET=1;;
-    o)  CHECKS=$OPTARG;;
-    w)  WAIT=1;;
-    esac
-done
 
 
 ###########################################
@@ -839,16 +839,40 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   (dmesg 2>/dev/null | grep signature) || echo_not_found
   echo ""
 
+  #-- SY) AppArmor
+  printf $Y"[+] "$GREEN"AppArmor enabled? .............. "$NC
+  if [ `which aa-status 2>/dev/null` ]; then
+    aa-status | sed "s,disabled,${C}[1;31m&${C}[0m,"
+  elif [ `which apparmor_status 2>/dev/null` ]; then
+    apparmor_status | sed "s,disabled,${C}[1;31m&${C}[0m,"
+  elif [ `ls -d /etc/apparmor* 2>/dev/null` ]; then
+    ls -d /etc/apparmor*
+  else
+    echo_not_found "AppArmor"
+  fi
+
+  #-- SY) grsecurity
+  printf $Y"[+] "$GREEN"grsecurity present? ............ "$NC
+  ((uname -r | grep "-grsec" >/dev/null 2>&1 || grep "grsecurity" /etc/sysctl.conf >/dev/null 2>&1) && echo "Yes" || echo_not_found "grsecurity")
+
+  #-- SY) Execshield
+  printf $Y"[+] "$GREEN"PaX bins present? .............. "$NC
+  (which paxctl-ng paxctl >/dev/null 2>&1 && echo "Yes" || echo_not_found "PaX")
+
+  #-- SY) PaX
+  printf $Y"[+] "$GREEN"Execshield enabled? ............ "$NC
+  (grep "exec-shield" /etc/sysctl.conf || echo_not_found "Execshield") | sed "s,=0,${C}[1;31m&${C}[0m,"
+
   #-- 8SY) SElinux
-  printf $Y"[+] "$GREEN"selinux enabled? .............. "$NC
+  printf $Y"[+] "$GREEN"SELinux enabled? ............... "$NC
   (sestatus 2>/dev/null || echo_not_found "sestatus") | sed "s,disabled,${C}[1;31m&${C}[0m,"
 
   #-- 9SY) Printer
-  printf $Y"[+] "$GREEN"Printer? ...................... "$NC
+  printf $Y"[+] "$GREEN"Printer? ....................... "$NC
   lpstat -a 2>/dev/null || echo_not_found "lpstat"
 
   #-- 10SY) Container
-  printf $Y"[+] "$GREEN"Is this a container? .......... "$NC
+  printf $Y"[+] "$GREEN"Is this a container? ........... "$NC
   dockercontainer=`grep -i docker /proc/self/cgroup  2>/dev/null; find / -maxdepth 3 -name "*dockerenv*" -exec ls -la {} \; 2>/dev/null`
   lxccontainer=`grep -qa container=lxc /proc/1/environ 2>/dev/null`
   if [ "$dockercontainer" ]; then echo "Looks like we're in a Docker container" | sed "s,.*,${C}[1;31m&${C}[0m,";
