@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.5.7"
+VERSION="v2.5.8"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -29,6 +29,7 @@ LG="${C}[1;37m" #LightGray
 DG="${C}[1;90m" #DarkGray
 NC="${C}[0m"
 UNDERLINED="${C}[5m"
+ITALIC="${C}[3m"
 
 
 ###########################################
@@ -867,6 +868,16 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   printf $Y"[+] "$GREEN"SELinux enabled? ............... "$NC
   (sestatus 2>/dev/null || echo_not_found "sestatus") | sed "s,disabled,${C}[1;31m&${C}[0m,"
 
+  #-- 11SY) ASLR
+  printf $Y"[+] "$GREEN"Is ASLR enabled? ............... "$NC
+  ASLR=`cat /proc/sys/kernel/randomize_va_space 2>/dev/null`
+  if [ -z "$ASLR" ]; then 
+    echo_not_found "/proc/sys/kernel/randomize_va_space"; 
+  else
+    if [ "$ASLR" -eq "0" ]; then printf $RED"No"$NC; else printf $GREEN"Yes"$NC; fi
+    echo ""
+  fi
+
   #-- 9SY) Printer
   printf $Y"[+] "$GREEN"Printer? ....................... "$NC
   lpstat -a 2>/dev/null || echo_not_found "lpstat"
@@ -880,15 +891,6 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   else echo_no
   fi
 
-  #-- 11SY) ASLR
-  printf $Y"[+] "$GREEN"Is ASLR enabled? .............. "$NC
-  ASLR=`cat /proc/sys/kernel/randomize_va_space 2>/dev/null`
-  if [ -z "$ASLR" ]; then 
-    echo_not_found "/proc/sys/kernel/randomize_va_space"; 
-  else
-    if [ "$ASLR" -eq "0" ]; then printf $RED"No"$NC; else printf $GREEN"Yes"$NC; fi
-    echo ""
-  fi
   echo ""
   echo ""
   if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi
@@ -1145,8 +1147,8 @@ if [ "`echo $CHECKS | grep Net`" ]; then
 
   #-- 6NI) tcpdump
   printf $Y"[+] "$GREEN"Can I sniff with tcpdump?\n"$NC
-  tcpd=`timeout 1 tcpdump 2>&1`
-  if [ "$tcpd" ] && [ ! "`echo \"a$tcpd\" | grep \"permission\"`" ]; then
+  timeout 1 tcpdump >/dev/null 2>&1
+  if [ $? -eq 124 ]; then #If 124, then timed out == It worked
       printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sniffing\n"$NC
       echo "You can sniff with tcpdump!" | sed "s,.*,${C}[1;31m&${C}[0m,"
   else echo_no
@@ -2001,17 +2003,20 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   fi
   
   ##-- 17IF) Modified interesting files into specific folders in the last 5mins 
-  printf $Y"[+] "$GREEN"Modified interesting files in the last 5mins\n"$NC
-  find / -type f -mmin -5 ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/dev/*" ! -path "/var/lib/*" 2>/dev/null | sed "s,$Wfolders,${C}[1;31m&${C}[0m,"
+  printf $Y"[+] "$GREEN"Modified interesting files in the last 5mins (limit 100)\n"$NC
+  find / -type f -mmin -5 ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/dev/*" ! -path "/var/lib/*" 2>/dev/null | head -n 100 | sed "s,$Wfolders,${C}[1;31m&${C}[0m,"
   echo ""
 
   ##-- 18IF) Writable log files
-  printf $Y"[+] "$GREEN"Writable log files (logrotten)\n"$NC
+  printf $Y"[+] "$GREEN"Writable log files (logrotten) (limit 100)\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#logrotate-exploitation\n"$NC
-  for log in $(find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null); do
-    if [ -w $log ]; then printf "Writable:$RED $log\n"$NC;
-    elif [ `echo $log | grep "$Wfolders"` ]; then echo "Writable folder: $log" | sed "s,$Wfolders,${C}[1;31m&${C}[0m,"; fi
+  for log in $(find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 3){ print line_init; } if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 100 ); do
+    if [ `echo "$log" | grep "You_can_write_more_log_files_inside_last_directory"` ]; then printf $ITALIC"$log\n"$NC;
+    elif [ -w "$log" ]; then printf "Writable:$RED $log\n"$NC;
+    elif [ `echo "$log" | grep "$Wfolders"` ]; then echo "Writable folder: $log" | sed "s,$Wfolders,${C}[1;31m&${C}[0m,";
+    fi
   done
+
   echo ""
 
   ##-- 19IF) Files inside my home
@@ -2071,7 +2076,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
             #Check found columns for interesting fields
             INTCOLUMN=`echo "$columns" | grep -i "username\|passw\|credential\|email\|hash\|salt"`
             if [ "$INTCOLUMN" ]; then
-              printf $B"  --> Found for interesting column names in$NC $t $DG(output limit 10)\n"$NC | sed "s,user.*\|credential.*,${C}[1;31m&${C}[0m,g"
+              printf $B"  --> Found interesting column names in$NC $t $DG(output limit 10)\n"$NC | sed "s,user.*\|credential.*,${C}[1;31m&${C}[0m,g"
               printf "$columns\n" | sed "s,username\|passw\|credential\|email\|hash\|salt\|$t,${C}[1;31m&${C}[0m,g"
               (sqlite3 $f "select * from $t" || $SQLITEPYTHON -c "print(', '.join([str(x) for x in __import__('sqlite3').connect('$f').cursor().execute('SELECT * FROM \'$t\';').fetchall()[0]]))") 2>/dev/null | head
             fi
@@ -2097,18 +2102,18 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   fils=$(echo "$FIND_ETC $FIND_HOME $FIND_ROOT $FIND_TMP $FIND_USR $FIND_OPT $FIND_MNT $FIND_VAR" | grep -E '.*_history|\.sudo_as_admin_successful|\.profile|.*bashrc|.*httpd\.conf|.*\.plan|\.htpasswd|\.gitconfig|\.git-credentials|\.git|\.svn|\.rhosts|hosts\.equiv|Dockerfile|docker-compose\.yml')
   for f in $fils; do 
     if [ -r $f ]; then 
-      ls -ld $f 2>/dev/null | sed "s,_history\|\.sudo_as_admin_successful\|.profile\|bashrc\|httpd.conf\|\.plan\|\.htpasswd\|.gitconfig\|\.git-credentials\|.git\|.svn\|\.rhosts\|hosts.equiv\|Dockerfile\|docker-compose.yml,${C}[1;31m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
+      ls -ld "$f" 2>/dev/null | sed "s,_history\|\.sudo_as_admin_successful\|.profile\|bashrc\|httpd.conf\|\.plan\|\.htpasswd\|.gitconfig\|\.git-credentials\|.git\|.svn\|\.rhosts\|hosts.equiv\|Dockerfile\|docker-compose.yml,${C}[1;31m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
       if [ `echo $f | grep "_history"` ]; then
-        printf $GREEN"Looking for possible passwords inside $f\n"$NC
-        cat $f | grep $pwd_inside_history | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
+        printf $GREEN"Looking for possible passwords inside $f (limit 100)\n"$NC
+        cat "$f" | grep $pwd_inside_history | sed '/^.\{150\}./d' | sed "s,$pwd_inside_history,${C}[1;31m&${C}[0m," | head -n 100
         echo ""
       elif [ `echo $f | grep "httpd.conf" ` ]; then
         printf $GREEN"Reading $f\n"$NC
-        cat $f | grep -v "^#" | grep -Pv "\W*\#" | grep -v "^$" | sed "s,htaccess.*\|htpasswd.*,${C}[1;31m&${C}[0m,"
+        cat "$f" | grep -v "^#" | grep -Pv "\W*\#" | grep -v "^$" | sed "s,htaccess.*\|htpasswd.*,${C}[1;31m&${C}[0m,"
         echo ""
       elif [ `echo $f | grep "htpasswd" ` ]; then
         printf $GREEN"Reading $f\n"$NC
-        cat $f | sed "s,.*,${C}[1;31m&${C}[0m,"
+        cat "$f" | sed "s,.*,${C}[1;31m&${C}[0m,"
         echo ""
       fi;
     fi; 
@@ -2123,16 +2128,17 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- 28IF) Readable files in /tmp, /var/tmp, /var/backups
   printf $Y"[+] "$GREEN"Readable files inside /tmp, /var/tmp, /var/backups(limit 70)\n"$NC
   filstmpback=`find /tmp /var/tmp /var/backups -type f 2>/dev/null | head -n 70`
-  for f in $filstmpback; do if [ -r $f ]; then ls -l $f 2>/dev/null; fi; done
+  for f in $filstmpback; do if [ -r "$f" ]; then ls -l "$f" 2>/dev/null; fi; done
   echo ""
 
   ##-- 29IF) Interesting writable files by ownership or all
   if ! [ "$IAMROOT" ]; then
-    printf $Y"[+] "$GREEN"Interesting writable files owned by me or writable by everyone (not in Home)\n"$NC
+    printf $Y"[+] "$GREEN"Interesting writable files owned by me or writable by everyone (not in Home) (max 500)\n"$NC
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files\n"$NC
     #In the next file, you need to specify type "d" and "f" to avoid fake link files apparently writable by all
-    for entry in `find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -v $notExtensions | sort | uniq | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 10){ print line_init; } if (cont == "10"){print "-->You_can_write_even_more_files_inside_last_directory"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }'`; do
-      if [ `echo $entry | grep "$writeVB"` ]; then 
+    for entry in `find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -v $notExtensions | sort | uniq | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 10){ print line_init; } if (cont == "10"){print "#)You_can_write_even_more_files_inside_last_directory"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n500`; do
+      if [ `echo "$entry" | grep "You_can_write_even_more_files_inside_last_directory"` ]; then printf $ITALIC"$entry\n"$NC;
+      elif [ `echo $entry | grep "$writeVB"` ]; then 
         echo $entry | sed "s,$writeVB,${C}[1;31;103m&${C}[0m,"
       else
         echo $entry | sed "s,$writeB,${C}[1;31m&${C}[0m,"
@@ -2143,12 +2149,13 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- 30IF) Interesting writable files by group
   if ! [ "$IAMROOT" ]; then
-    printf $Y"[+] "$GREEN"Interesting GROUP writable files (not in Home)\n"$NC
+    printf $Y"[+] "$GREEN"Interesting GROUP writable files (not in Home) (max 500)\n"$NC
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files\n"$NC
     for g in `groups`; 
       do printf "  Group "$GREEN"$g:\n"$NC; 
-      for entry in `find / '(' -type f -or -type d ')' -group $g -perm -g=w ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -v $notExtensions | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 10){ print line_init; } if (cont == "10"){print "-->You_can_write_even_more_files_inside_last_directory"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }'`; do
-        if [ `echo $entry | grep "$writeVB"` ]; then 
+      for entry in `find / '(' -type f -or -type d ')' -group $g -perm -g=w ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -v $notExtensions | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 10){ print line_init; } if (cont == "10"){print "#)You_can_write_even_more_files_inside_last_directory"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n500`; do
+        if [ `echo "$entry" | grep "You_can_write_even_more_files_inside_last_directory"` ]; then printf $ITALIC"$entry\n"$NC;
+        elif [ `echo $entry | grep "$writeVB"` ]; then 
           echo $entry | sed "s,$writeVB,${C}[1;31;103m&${C}[0m,"
         else
           echo $entry | sed "s,$writeB,${C}[1;31m&${C}[0m,"
