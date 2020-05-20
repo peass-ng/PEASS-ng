@@ -1145,8 +1145,8 @@ if [ "`echo $CHECKS | grep Net`" ]; then
 
   #-- 6NI) tcpdump
   printf $Y"[+] "$GREEN"Can I sniff with tcpdump?\n"$NC
-  tcpd=`timeout 1 tcpdump 2>/dev/null`
-  if [ "$tcpd" ]; then
+  tcpd=`timeout 1 tcpdump 2>&1`
+  if [ "$tcpd" ] && [ ! `echo "a$tcpd" | grep "permission"` ]; then
       printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sniffing\n"$NC
       echo "You can sniff with tcpdump!" | sed "s,.*,${C}[1;31m&${C}[0m,"
   else echo_no
