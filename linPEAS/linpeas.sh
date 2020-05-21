@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.5.8"
+VERSION="v2.5.9"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -225,7 +225,7 @@ notBackup="/tdbbackup$\|/db_hotbackup$"
 cronjobsG=".placeholder\|0anacron\|0hourly\|apache2\|apport\|aptitude\|apt-compat\|bsdmainutils\|certwatch\|debtags\|dpkg\|e2scrub_all\|fake-hwclock\|fstrim\|john\|logrotate\|man-db.cron\|man-db\|mdadm\|mlocate\|ntp\|passwd\|php\|popularity-contest\|raid-check\|rwhod\|samba\|sysstat\|ubuntu-advantage-tools\|update-notifier-common"
 cronjobsB="centreon"
 
-processesVB="jdwp\|tmux\|screen"
+processesVB="jdwp\|tmux\|screen\|--inspect\|--remote-debugging-port"
 processesB="knockd"
 
 mail_apps="Postfix\|Dovecot\|Exim\|SquirrelMail\|Cyrus\|Sendmail\|Courier"
