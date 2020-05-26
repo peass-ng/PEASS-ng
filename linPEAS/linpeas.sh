@@ -95,7 +95,7 @@ kernelDCW_Rhel7="3.10.0-229.rt56.141.el7\|3.10.0-229.1.2.rt56.141.2.el7_1\|3.10.
 if [ `echo $UID` ]; then myuid=$UID; elif [ `id -u $(whoami) 2>/dev/null` ]; then myuid=`id -u $(whoami) 2>/dev/null`; elif [ `id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1` ]; then myuid=`id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1`; fi
 if [ $myuid -gt 2147483646 ]; then baduid="\|$myuid"; fi
 idB="euid\|egid$baduid"
-sudovB="1.6.8p9\|1.6.9p18\|1.8.14\|1.8.20\|1.6.9p21\|1.7.2p4\|1\.8\.[0123]$\|1\.3\.[^1]\|1\.4\.\d*\|1\.5\.\d*\|1\.6\.\d*\|1.5$\|1.6$"
+sudovB="1.6.8p9\|1.6.9p18\|1.8.14\|1.8.20\|1.6.9p21\|1.7.2p4\|1\.8\.[0123]$\|1\.3\.[^1]\|1\.4\.\d*\|1\.5\.\d*\|1\.6\.\d*\|1.5$\|1.6$\|1\.8\.1\d*\|1\.8\.20\d*\|1\.8\.21\d*\|1\.8\.22\d*\|1\.8\.23\d*\|1\.8\.24\d*\|1\.8\.25\d*\|1\.8\.26\d*\|1\.8\.27\d*\|1\.8\.28\d*\|1\.7\.\d*\|1\.6\.\d*\|1\.5\.\d*\|1\.4\.\d*\|1\.3\.\d*\|1\.2\.\d*\|1\.1\.\d*\|1\.0\.\d*"
 
 mounted=`(mount -l || cat /proc/mounts || cat /proc/self/mounts) 2>/dev/null | grep "^/" | cut -d " " -f1 | tr '\n' '|' | sed 's/|/\\\|/g'``cat /etc/fstab | grep -v "#" | grep " / " | cut -d " " -f 1`
 mountG="swap\|/cdrom\|/floppy\|/dev/shm"
