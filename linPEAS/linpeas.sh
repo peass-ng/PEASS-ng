@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.6.0"
+VERSION="v2.6.1"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -1401,6 +1401,8 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
       default00=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_ROOT $FIND_TMP $FIND_USR $FIND_OPT" | grep "000-default")
       for f in $default00; do grep "AuthType\|AuthName\|AuthUserFile" "$f" 2>/dev/null | sed "s,.*AuthUserFile.*,${C}[1;31m&${C}[0m,"; done
     fi
+    echo "PHP exec extensions"
+    grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null
   else echo_not_found
   fi
   echo ""
