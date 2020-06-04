@@ -102,7 +102,7 @@ namespace winPEAS
             System.Console.WriteLine(LBLUE + "        searchfast" + GRAY + "        Avoid sleeping while searching files (notable amount of resources)" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        searchall" + GRAY + "         Search all known filenames whith possible credentials (coul take some mins)" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        cmd" + GRAY + "               Obtain wifi, cred manager and clipboard information executing CMD commands" + NOCOLOR);
-            System.Console.WriteLine(LBLUE + "        notansi" + GRAY + "           Don't use ansi colors (all white)" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        notcolor" + GRAY + "           Don't use ansi colors (all white)" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        systeminfo" + GRAY + "        Search system information" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        userinfo" + GRAY + "          Search user information" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        procesinfo" + GRAY + "        Search processes information" + NOCOLOR);
