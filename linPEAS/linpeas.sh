@@ -2234,4 +2234,11 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     timeout 200 grep -RIEHo "$regexmd5|$regexsha1|$regexsha256|$regexsha512" /etc /var/backups /tmp /var/tmp /var/www /root /home /mnt 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -v $notExtensions | grep -Ev "0{20,}" | awk -F: '{if (pre != $1){ print $0; }; pre=$1}' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 2){ print line_init; } if (cont == "2"){print "  There are more hashes files in the previous parent folder"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 50 | sed "s,:.*,${C}[1;31m&${C}[0m," | sed "s,There are more hashes files in the previous parent folder,${C}[1;32m&${C}[0m,"
     echo ""
   fi
+  
+  if ! [ "$SUPERFAST" ] && ! [ "$FAST" ]; then
+    ##-- 41IF) Find URIs with user:password@hoststrings
+    printf $Y"[+] "$GREEN"Finding URIs with user:password@host inside /home /var/www /var/backups /tmp /etc /root /mnt\n"$NC
+    timeout 200 grep -RiIE "://(.+):(.+)@" /home /var/www /var/backups /tmp /etc /root /mnt 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -E "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,gI"
+    echo  ""
+  fi
 fi
