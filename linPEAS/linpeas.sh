@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.6.1"
+VERSION="v2.6.2"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -2238,7 +2238,10 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   if ! [ "$SUPERFAST" ] && ! [ "$FAST" ]; then
     ##-- 41IF) Find URIs with user:password@hoststrings
     printf $Y"[+] "$GREEN"Finding URIs with user:password@host inside /home /var/www /var/backups /tmp /etc /root /mnt\n"$NC
-    timeout 200 grep -RiIE "://(.+):(.+)@" /home /var/www /var/backups /tmp /etc /root /mnt 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -E "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,gI"
+    timeout 200 grep -RiIE "://(.+):(.+)@" /var/www /var/backups /tmp /etc 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -E "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,gI"
+    timeout 200 grep -RiIE "://(.+):(.+)@" /home 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -E "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,gI"
+    timeout 200 grep -RiIE "://(.+):(.+)@" /mnt 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -E "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,gI"
+    timeout 200 grep -RiIE "://(.+):(.+)@" /root 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -E "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,gI"
     echo  ""
   fi
 fi
