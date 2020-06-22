@@ -83,6 +83,7 @@ namespace winPEAS
             try { 
                 Beaprint.GrayPrint("   - Creating current user groups list...");
                 WindowsIdentity identity = WindowsIdentity.GetCurrent();
+                currentUserSIDs[identity.User.ToString()] = Environment.UserName;
                 IdentityReferenceCollection currentSIDs= identity.Groups;
                 foreach (IdentityReference group in identity.Groups)
                 {
@@ -521,8 +522,12 @@ namespace winPEAS
                     Beaprint.AnsiPrint("  Current user: " + currentUserName, colorsU());
 
                     List<string> currentGroupsNames = new List<string>();
-                    foreach (KeyValuePair<string,string> g in currentUserSIDs)
+                    foreach (KeyValuePair<string, string> g in currentUserSIDs)
+                    {
+                        if (g.Key == WindowsIdentity.GetCurrent().User.ToString())
+                            continue;
                         currentGroupsNames.Add(String.IsNullOrEmpty(g.Value) ? g.Key : g.Value);
+                    }
 
                     Beaprint.AnsiPrint("  Current groups: " + String.Join(", ", currentGroupsNames), colorsU());
                     Beaprint.PrintLineSeparator();
