@@ -437,6 +437,23 @@ namespace winPEAS
             return results;
         }
 
+        public static string GetConsoleHostHistory()
+        {
+            string result = "";
+            try
+            {
+                
+                string searchLocation = String.Format("{0}\\AppData\\Roaming\\Microsoft\\Windows\\PowerShell\\PSReadline\\ConsoleHost_history.txt", Environment.GetEnvironmentVariable("USERPROFILE"));
+                if (System.IO.File.Exists(searchLocation))
+                    result = searchLocation;
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("Error: " + ex);
+            }
+            return result;
+        }
+
         public static List<Dictionary<string, string>> GetRecycleBin()
         {
             List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
