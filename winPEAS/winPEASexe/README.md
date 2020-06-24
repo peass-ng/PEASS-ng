@@ -17,6 +17,7 @@ winpeas.exe #Will execute all checks except the ones that use a CMD
 winpeas.exe cmd #All checks
 winpeas.exe systeminfo userinfo #Only systeminfo and userinfo checks executed
 winpeas.exe notcolor #Do not color the output
+winpeas.exe cmd wait #cmd commands and wait between tests
 ```
 
 ## Basic information
@@ -28,6 +29,8 @@ It should take only a **few seconds** to execute almost all the checks and **som
 By default, the progam **sleeps 100ms** before start searching files in each directory. This is made to consume less resources (**stealthier**). You can **avoid this sleep using `searchfast` parameter**.
 
 
+The tool is based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)**.
+
 ## Where are my COLORS?!?!?!
 
 The **ouput will be colored** using **ansi** colors. If you are executing `winpeas.exe` **from a Windows console**, you need to set a registry value to see the colors (and open a new CMD):
@@ -37,13 +40,12 @@ REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
 
 Below you have some indications about what does each color means exacty, but keep in mind that **Red** is for something interesting (from a pentester perspective) and **Green** is something well configured (from a defender perspective).
 
-The tool is based in **[SeatBelt](https://github.com/GhostPack/Seatbelt)**.
 
 ## Instructions to compile
 
-There was a time when **winpeas.exe was detected as malicious by Defender:(** But not anymore thanks to **dotfuscator**. 
+In order to compile an **ofuscated version** of Winpeas and bypass some AVs you need to ** install dotfuscator ** in *VisualStudio*. 
 
-This means that to **compile winpeas** you will need to **install dotfuscator** in *VisualStudio*. To install it *open VisualStudio --> Go to Search (CTRL+Q) --> Write "dotfuscator"* and just follow the instructions to install it.
+To install it *open VisualStudio --> Go to Search (CTRL+Q) --> Write "dotfuscator"* and just follow the instructions to install it.
 
 To use **dotfuscator** you will need to **create an account** *(they will send you an email to the address you set during registration*).
 

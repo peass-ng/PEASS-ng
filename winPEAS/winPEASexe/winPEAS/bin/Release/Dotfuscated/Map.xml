@@ -2,7 +2,7 @@
 <!DOCTYPE dotfuscatorMap SYSTEM "http://www.preemptive.com/dotfuscator/dtd/dotfuscatorMap_v1.2.dtd">
 <dotfuscatorMap version="1.1">
     <header>
-        <timestamp>2020-04-10T18:38:47</timestamp>
+        <timestamp>2020-06-24T16:13:28</timestamp>
         <product version="5.44.0.10087" user="rhalyc gar" serial="297344-391">Dotfuscator Community</product>
     </header>
     <mapping>
@@ -19,7 +19,7 @@
                     <newname>b</newname>
                 </genericparameter>
                 <name>&lt;&gt;f__AnonymousType0`2</name>
-                <newname>x</newname>
+                <newname>a</newname>
                 <methodlist>
                     <method>
                         <signature>void(!0, !1)</signature>
@@ -87,7 +87,7 @@
                     <newname>c</newname>
                 </genericparameter>
                 <name>&lt;&gt;f__AnonymousType1`3</name>
-                <newname>y</newname>
+                <newname>b</newname>
                 <methodlist>
                     <method>
                         <signature>void(!0, !1, !2)</signature>
@@ -177,7 +177,7 @@
                     <newname>e</newname>
                 </genericparameter>
                 <name>&lt;&gt;f__AnonymousType2`5</name>
-                <newname>z</newname>
+                <newname>c</newname>
                 <methodlist>
                     <method>
                         <signature>void(!0, !1, !2, !3, !4)</signature>
@@ -311,7 +311,7 @@
                     <newname>i</newname>
                 </genericparameter>
                 <name>&lt;&gt;f__AnonymousType3`9</name>
-                <newname>aa</newname>
+                <newname>d</newname>
                 <methodlist>
                     <method>
                         <signature>void(!0, !1, !2, !3, !4, !5, !6, !7, !8)</signature>
@@ -464,7 +464,7 @@
             </type>
             <type>
                 <name>&lt;PrivateImplementationDetails&gt;</name>
-                <newname>ei</newname>
+                <newname>dv</newname>
                 <methodlist>
                     <method>
                         <signature>unsigned int32(string)</signature>
@@ -489,7 +489,7 @@
             </type>
             <type>
                 <name>&lt;PrivateImplementationDetails&gt;/__StaticArrayInitTypeSize=10</name>
-                <newname>ei/a</newname>
+                <newname>dv/a</newname>
                 <methodlist />
                 <fieldlist />
                 <propertylist />
@@ -497,7 +497,7 @@
             </type>
             <type>
                 <name>&lt;PrivateImplementationDetails&gt;/__StaticArrayInitTypeSize=64</name>
-                <newname>ei/b</newname>
+                <newname>dv/b</newname>
                 <methodlist />
                 <fieldlist />
                 <propertylist />
@@ -505,7 +505,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspChildControlTypeAttribute</name>
-                <newname>b2</newname>
+                <newname>bf</newname>
                 <methodlist>
                     <method>
                         <signature>void(string, System.Type)</signature>
@@ -549,7 +549,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspDataFieldAttribute</name>
-                <newname>b3</newname>
+                <newname>bg</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -562,7 +562,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspDataFieldsAttribute</name>
-                <newname>b4</newname>
+                <newname>bh</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -575,7 +575,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMethodPropertyAttribute</name>
-                <newname>b5</newname>
+                <newname>bi</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -588,7 +588,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcActionAttribute</name>
-                <newname>a9</newname>
+                <newname>am</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -621,7 +621,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcActionSelectorAttribute</name>
-                <newname>bm</newname>
+                <newname>az</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -634,7 +634,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcAreaAttribute</name>
-                <newname>ba</newname>
+                <newname>an</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -667,7 +667,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcAreaMasterLocationFormatAttribute</name>
-                <newname>a3</newname>
+                <newname>ag</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -696,7 +696,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcAreaPartialViewLocationFormatAttribute</name>
-                <newname>a4</newname>
+                <newname>ah</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -725,7 +725,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcAreaViewLocationFormatAttribute</name>
-                <newname>a5</newname>
+                <newname>ai</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -754,7 +754,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcControllerAttribute</name>
-                <newname>bb</newname>
+                <newname>ao</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -787,7 +787,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcDisplayTemplateAttribute</name>
-                <newname>bg</newname>
+                <newname>at</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -800,7 +800,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcEditorTemplateAttribute</name>
-                <newname>bh</newname>
+                <newname>au</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -813,7 +813,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcMasterAttribute</name>
-                <newname>bc</newname>
+                <newname>ap</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -826,7 +826,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcMasterLocationFormatAttribute</name>
-                <newname>a6</newname>
+                <newname>aj</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -855,7 +855,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcModelTypeAttribute</name>
-                <newname>bd</newname>
+                <newname>aq</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -868,7 +868,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcPartialViewAttribute</name>
-                <newname>be</newname>
+                <newname>ar</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -881,7 +881,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcPartialViewLocationFormatAttribute</name>
-                <newname>a7</newname>
+                <newname>ak</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -910,7 +910,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcSuppressViewErrorAttribute</name>
-                <newname>bf</newname>
+                <newname>as</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -923,7 +923,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcTemplateAttribute</name>
-                <newname>bi</newname>
+                <newname>av</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -936,7 +936,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcViewAttribute</name>
-                <newname>bj</newname>
+                <newname>aw</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -949,7 +949,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcViewComponentAttribute</name>
-                <newname>bk</newname>
+                <newname>ax</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -962,7 +962,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcViewComponentViewAttribute</name>
-                <newname>bl</newname>
+                <newname>ay</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -975,7 +975,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspMvcViewLocationFormatAttribute</name>
-                <newname>a8</newname>
+                <newname>al</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -1004,7 +1004,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspRequiredAttributeAttribute</name>
-                <newname>b6</newname>
+                <newname>bj</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -1033,7 +1033,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AspTypePropertyAttribute</name>
-                <newname>b7</newname>
+                <newname>bk</newname>
                 <methodlist>
                     <method>
                         <signature>void(bool)</signature>
@@ -1062,7 +1062,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AssertionConditionAttribute</name>
-                <newname>bt</newname>
+                <newname>a6</newname>
                 <methodlist>
                     <method>
                         <signature>void(JetBrains.Annotations.AssertionConditionType)</signature>
@@ -1091,7 +1091,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AssertionConditionType</name>
-                <newname>bu</newname>
+                <newname>a7</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -1124,7 +1124,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.AssertionMethodAttribute</name>
-                <newname>bs</newname>
+                <newname>a5</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1137,7 +1137,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.BaseTypeRequiredAttribute</name>
-                <newname>aq</newname>
+                <newname>t</newname>
                 <methodlist>
                     <method>
                         <signature>void(System.Type)</signature>
@@ -1166,7 +1166,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.CanBeNullAttribute</name>
-                <newname>af</newname>
+                <newname>i</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1179,7 +1179,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.CannotApplyEqualityOperatorAttribute</name>
-                <newname>ap</newname>
+                <newname>s</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1192,7 +1192,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.CollectionAccessAttribute</name>
-                <newname>bq</newname>
+                <newname>a3</newname>
                 <methodlist>
                     <method>
                         <signature>void(JetBrains.Annotations.CollectionAccessType)</signature>
@@ -1221,7 +1221,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.CollectionAccessType</name>
-                <newname>br</newname>
+                <newname>a4</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -1254,7 +1254,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.ContractAnnotationAttribute</name>
-                <newname>an</newname>
+                <newname>q</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -1302,7 +1302,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.HtmlAttributeValueAttribute</name>
-                <newname>bo</newname>
+                <newname>a1</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -1331,7 +1331,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.HtmlElementAttributesAttribute</name>
-                <newname>bn</newname>
+                <newname>a0</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1364,7 +1364,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.ImplicitUseKindFlags</name>
-                <newname>at</newname>
+                <newname>w</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -1402,7 +1402,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.ImplicitUseTargetFlags</name>
-                <newname>au</newname>
+                <newname>x</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -1435,7 +1435,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.InstantHandleAttribute</name>
-                <newname>aw</newname>
+                <newname>z</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1448,7 +1448,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.InvokerParameterNameAttribute</name>
-                <newname>al</newname>
+                <newname>o</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1461,7 +1461,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.ItemCanBeNullAttribute</name>
-                <newname>ai</newname>
+                <newname>l</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1474,7 +1474,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.ItemNotNullAttribute</name>
-                <newname>ah</newname>
+                <newname>k</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1487,7 +1487,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.LinqTunnelAttribute</name>
-                <newname>bw</newname>
+                <newname>a9</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1500,7 +1500,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.LocalizationRequiredAttribute</name>
-                <newname>ao</newname>
+                <newname>r</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1533,7 +1533,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.MacroAttribute</name>
-                <newname>a2</newname>
+                <newname>af</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1592,7 +1592,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.MeansImplicitUseAttribute</name>
-                <newname>as</newname>
+                <newname>v</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1648,7 +1648,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.MustUseReturnValueAttribute</name>
-                <newname>ay</newname>
+                <newname>ab</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1681,7 +1681,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.NoEnumerationAttribute</name>
-                <newname>bx</newname>
+                <newname>ba</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1694,7 +1694,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.NoReorderAttribute</name>
-                <newname>bz</newname>
+                <newname>bc</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1707,7 +1707,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.NotNullAttribute</name>
-                <newname>ag</newname>
+                <newname>j</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1720,7 +1720,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.NotifyPropertyChangedInvocatorAttribute</name>
-                <newname>am</newname>
+                <newname>p</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1753,7 +1753,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.PathReferenceAttribute</name>
-                <newname>a0</newname>
+                <newname>ad</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1786,7 +1786,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.ProvidesContextAttribute</name>
-                <newname>az</newname>
+                <newname>ac</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1799,7 +1799,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.PublicAPIAttribute</name>
-                <newname>av</newname>
+                <newname>y</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1832,7 +1832,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.PureAttribute</name>
-                <newname>ax</newname>
+                <newname>aa</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1845,7 +1845,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.RazorDirectiveAttribute</name>
-                <newname>ca</newname>
+                <newname>bn</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -1874,7 +1874,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.RazorHelperCommonAttribute</name>
-                <newname>cc</newname>
+                <newname>bp</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1887,7 +1887,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.RazorImportNamespaceAttribute</name>
-                <newname>b8</newname>
+                <newname>bl</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -1916,7 +1916,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.RazorInjectionAttribute</name>
-                <newname>b9</newname>
+                <newname>bm</newname>
                 <methodlist>
                     <method>
                         <signature>void(string, string)</signature>
@@ -1960,7 +1960,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.RazorLayoutAttribute</name>
-                <newname>cd</newname>
+                <newname>bq</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -1973,7 +1973,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.RazorPageBaseTypeAttribute</name>
-                <newname>cb</newname>
+                <newname>bo</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -2021,7 +2021,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.RazorSectionAttribute</name>
-                <newname>bp</newname>
+                <newname>a2</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -2034,7 +2034,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.RazorWriteLiteralMethodAttribute</name>
-                <newname>ce</newname>
+                <newname>br</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -2047,7 +2047,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.RazorWriteMethodAttribute</name>
-                <newname>cf</newname>
+                <newname>bs</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -2060,7 +2060,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.RazorWriteMethodParameterAttribute</name>
-                <newname>cg</newname>
+                <newname>bt</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -2073,7 +2073,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.RegexPatternAttribute</name>
-                <newname>by</newname>
+                <newname>bb</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -2086,7 +2086,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.SourceTemplateAttribute</name>
-                <newname>a1</newname>
+                <newname>ae</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -2099,7 +2099,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.StringFormatMethodAttribute</name>
-                <newname>aj</newname>
+                <newname>m</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -2128,7 +2128,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.TerminatesProgramAttribute</name>
-                <newname>bv</newname>
+                <newname>a8</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -2141,7 +2141,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.UsedImplicitlyAttribute</name>
-                <newname>ar</newname>
+                <newname>u</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -2197,7 +2197,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.ValueProviderAttribute</name>
-                <newname>ak</newname>
+                <newname>n</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -2226,7 +2226,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.XamlItemBindingOfItemsControlAttribute</name>
-                <newname>b1</newname>
+                <newname>be</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -2239,7 +2239,7 @@
             </type>
             <type>
                 <name>JetBrains.Annotations.XamlItemsControlAttribute</name>
-                <newname>b0</newname>
+                <newname>bd</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -2252,7 +2252,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods</name>
-                <newname>ch</newname>
+                <newname>bu</newname>
                 <methodlist>
                     <method>
                         <signature>bool(Microsoft.Win32.NativeMethods/SafeTokenHandle, bool, Microsoft.Win32.NativeMethods/TOKEN_PRIVILEGES&amp;, unsigned int32, Microsoft.Win32.NativeMethods/TOKEN_PRIVILEGES&amp;, unsigned int32&amp;)</signature>
@@ -2428,7 +2428,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/&lt;&gt;c</name>
-                <newname>ch/&lt;&gt;c</newname>
+                <newname>bu/&lt;&gt;c</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -2459,7 +2459,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/AccessTypes</name>
-                <newname>ch/a</newname>
+                <newname>bu/a</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -2627,7 +2627,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/DS_NAME_ERROR</name>
-                <newname>ch/t</newname>
+                <newname>bu/t</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -2680,7 +2680,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/DS_NAME_FLAGS</name>
-                <newname>ch/u</newname>
+                <newname>bu/u</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -2718,7 +2718,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/DS_NAME_FORMAT</name>
-                <newname>ch/v</newname>
+                <newname>bu/v</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -2781,7 +2781,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/DS_NAME_RESULT</name>
-                <newname>ch/x</newname>
+                <newname>bu/x</newname>
                 <methodlist>
                     <method>
                         <signature>Microsoft.Win32.NativeMethods/DS_NAME_RESULT_ITEM[]()</signature>
@@ -2806,7 +2806,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/DS_NAME_RESULT_ITEM</name>
-                <newname>ch/y</newname>
+                <newname>bu/y</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -2835,7 +2835,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/DomainService</name>
-                <newname>ch/w</newname>
+                <newname>bu/w</newname>
                 <methodlist>
                     <method>
                         <signature>void(string, string)</signature>
@@ -2868,7 +2868,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/LUID</name>
-                <newname>ch/f</newname>
+                <newname>bu/f</newname>
                 <methodlist>
                     <method>
                         <signature>Microsoft.Win32.NativeMethods/LUID(string, string)</signature>
@@ -2893,7 +2893,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/LUID_AND_ATTRIBUTES</name>
-                <newname>ch/g</newname>
+                <newname>bu/g</newname>
                 <methodlist>
                     <method>
                         <signature>void(Microsoft.Win32.NativeMethods/LUID, Microsoft.Win32.NativeMethods/PrivilegeAttributes)</signature>
@@ -2917,7 +2917,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/NetworkComputerInfo</name>
-                <newname>ch/s</newname>
+                <newname>bu/s</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -2982,7 +2982,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/PRIVILEGE_SET</name>
-                <newname>ch/h</newname>
+                <newname>bu/h</newname>
                 <methodlist>
                     <method>
                         <signature>void(unsigned int32, Microsoft.Win32.NativeMethods/LUID_AND_ATTRIBUTES[])</signature>
@@ -3015,7 +3015,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/PrivilegeAttributes</name>
-                <newname>ch/b</newname>
+                <newname>bu/b</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -3048,7 +3048,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/SECURITY_IMPERSONATION_LEVEL</name>
-                <newname>ch/c</newname>
+                <newname>bu/c</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -3081,7 +3081,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/SERVER_INFO_100</name>
-                <newname>ch/p</newname>
+                <newname>bu/p</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -3100,7 +3100,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/SERVER_INFO_101</name>
-                <newname>ch/q</newname>
+                <newname>bu/q</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -3139,7 +3139,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/SERVER_INFO_102</name>
-                <newname>ch/r</newname>
+                <newname>bu/r</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -3213,7 +3213,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/SID_AND_ATTRIBUTES</name>
-                <newname>ch/i</newname>
+                <newname>bu/i</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -3232,7 +3232,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/SYSTEMTIME</name>
-                <newname>ch/z</newname>
+                <newname>bu/z</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -3421,7 +3421,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/SafeTokenHandle</name>
-                <newname>ch/m</newname>
+                <newname>bu/m</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -3488,7 +3488,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/ServerPlatform</name>
-                <newname>ch/o</newname>
+                <newname>bu/o</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -3526,7 +3526,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/ServerTypes</name>
-                <newname>ch/n</newname>
+                <newname>bu/n</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -3704,7 +3704,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/TOKEN_ELEVATION</name>
-                <newname>ch/j</newname>
+                <newname>bu/j</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -3718,7 +3718,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/TOKEN_ELEVATION_TYPE</name>
-                <newname>ch/d</newname>
+                <newname>bu/d</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -3746,7 +3746,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/TOKEN_INFORMATION_CLASS</name>
-                <newname>ch/e</newname>
+                <newname>bu/e</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -3904,7 +3904,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/TOKEN_MANDATORY_LABEL</name>
-                <newname>ch/k</newname>
+                <newname>bu/k</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -3918,7 +3918,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/TOKEN_PRIVILEGES</name>
-                <newname>ch/l</newname>
+                <newname>bu/l</newname>
                 <methodlist>
                     <method>
                         <signature>void(Microsoft.Win32.NativeMethods/LUID, Microsoft.Win32.NativeMethods/PrivilegeAttributes)</signature>
@@ -3947,7 +3947,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.NativeMethods/TokenType</name>
-                <newname>ch/TokenType</newname>
+                <newname>bu/TokenType</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -4669,7 +4669,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.CalendarTrigger</name>
-                <newname>co</newname>
+                <newname>b1</newname>
                 <methodlist>
                     <method>
                         <signature>Microsoft.Win32.TaskScheduler.Trigger(System.Xml.XmlReader)</signature>
@@ -4693,7 +4693,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.CalendarTrigger/CalendarXmlReader</name>
-                <newname>co/a</newname>
+                <newname>b1/a</newname>
                 <methodlist>
                     <method>
                         <signature>void(object, native int)</signature>
@@ -4718,7 +4718,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.CalendarTrigger/CalendarXmlWriter</name>
-                <newname>co/b</newname>
+                <newname>b1/b</newname>
                 <methodlist>
                     <method>
                         <signature>void(object, native int)</signature>
@@ -4838,7 +4838,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.CultureSwitcher</name>
-                <newname>ck</newname>
+                <newname>bx</newname>
                 <methodlist>
                     <method>
                         <signature>void(System.Globalization.CultureInfo)</signature>
@@ -5071,7 +5071,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.DebugHelper</name>
-                <newname>cl</newname>
+                <newname>by</newname>
                 <methodlist>
                     <method>
                         <signature>string(object)</signature>
@@ -5085,7 +5085,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.DefaultValueExAttribute</name>
-                <newname>cn</newname>
+                <newname>b0</newname>
                 <methodlist>
                     <method>
                         <signature>void(System.Type, string)</signature>
@@ -5744,7 +5744,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.Fluent.BuilderInfo</name>
-                <newname>eh</newname>
+                <newname>du</newname>
                 <methodlist>
                     <method>
                         <signature>void(Microsoft.Win32.TaskScheduler.TaskService)</signature>
@@ -6012,7 +6012,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.IBindAsExecAction</name>
-                <newname>cj</newname>
+                <newname>bw</newname>
                 <methodlist />
                 <fieldlist />
                 <propertylist />
@@ -8328,7 +8328,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.RepetitionPatternConverter</name>
-                <newname>cp</newname>
+                <newname>b2</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -9208,7 +9208,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.TSInteropExt</name>
-                <newname>cm</newname>
+                <newname>bz</newname>
                 <methodlist>
                     <method>
                         <signature>string(Microsoft.Win32.TaskScheduler.V1Interop.ITask, string)</signature>
@@ -15701,7 +15701,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.User</name>
-                <newname>cq</newname>
+                <newname>b3</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -15809,7 +15809,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.CTask</name>
-                <newname>ef</newname>
+                <newname>ds</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -15822,7 +15822,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.CTaskScheduler</name>
-                <newname>ee</newname>
+                <newname>dr</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -15835,7 +15835,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.CoTaskMemString</name>
-                <newname>eg</newname>
+                <newname>dt</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -15873,7 +15873,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.Daily</name>
-                <newname>d4</newname>
+                <newname>dg</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -15887,7 +15887,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.HResult</name>
-                <newname>dz</newname>
+                <newname>db</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -16016,7 +16016,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.IEnumWorkItems</name>
-                <newname>eb</newname>
+                <newname>dn</newname>
                 <methodlist>
                     <method>
                         <signature>Microsoft.Win32.TaskScheduler.V1Interop.IEnumWorkItems()</signature>
@@ -16045,7 +16045,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.ITask</name>
-                <newname>ec</newname>
+                <newname>dp</newname>
                 <methodlist>
                     <method>
                         <signature>Microsoft.Win32.TaskScheduler.V1Interop.ITaskTrigger(unsigned int16&amp;)</signature>
@@ -16259,7 +16259,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.ITaskScheduler</name>
-                <newname>ea</newname>
+                <newname>dm</newname>
                 <methodlist>
                     <method>
                         <signature>Microsoft.Win32.TaskScheduler.V1Interop.ITask(string, System.Guid)</signature>
@@ -16308,7 +16308,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.ITaskTrigger</name>
-                <newname>ed</newname>
+                <newname>dq</newname>
                 <methodlist>
                     <method>
                         <signature>Microsoft.Win32.TaskScheduler.V1Interop.TaskTrigger()</signature>
@@ -16332,7 +16332,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.MonthlyDOW</name>
-                <newname>d7</newname>
+                <newname>dj</newname>
                 <methodlist>
                     <method>
                         <signature>Microsoft.Win32.TaskScheduler.WhichWeek()</signature>
@@ -16367,7 +16367,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.MonthlyDate</name>
-                <newname>d6</newname>
+                <newname>di</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -16386,7 +16386,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.TaskFlags</name>
-                <newname>d0</newname>
+                <newname>dc</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -16464,7 +16464,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.TaskStatus</name>
-                <newname>d1</newname>
+                <newname>dd</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -16522,7 +16522,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.TaskTrigger</name>
-                <newname>d9</newname>
+                <newname>dl</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -16641,7 +16641,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.TaskTriggerFlags</name>
-                <newname>d3</newname>
+                <newname>df</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -16669,7 +16669,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.TaskTriggerType</name>
-                <newname>d2</newname>
+                <newname>de</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -16722,7 +16722,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.TriggerTypeData</name>
-                <newname>d8</newname>
+                <newname>dk</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -16751,7 +16751,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V1Interop.Weekly</name>
-                <newname>d5</newname>
+                <newname>dh</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -16770,7 +16770,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IAction</name>
-                <newname>ct</newname>
+                <newname>b6</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -16794,7 +16794,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IActionCollection</name>
-                <newname>cu</newname>
+                <newname>b7</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -16853,7 +16853,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IBootTrigger</name>
-                <newname>cv</newname>
+                <newname>b8</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -16937,7 +16937,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IComHandlerAction</name>
-                <newname>cw</newname>
+                <newname>b9</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -16981,7 +16981,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IDailyTrigger</name>
-                <newname>cx</newname>
+                <newname>ca</newname>
                 <methodlist>
                     <method>
                         <signature>int16()</signature>
@@ -17075,7 +17075,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IEmailAction</name>
-                <newname>cy</newname>
+                <newname>cb</newname>
                 <methodlist>
                     <method>
                         <signature>object[]()</signature>
@@ -17199,7 +17199,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IEventTrigger</name>
-                <newname>cz</newname>
+                <newname>cc</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -17303,7 +17303,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IExecAction</name>
-                <newname>c0</newname>
+                <newname>cd</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -17357,7 +17357,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IIdleSettings</name>
-                <newname>c1</newname>
+                <newname>ce</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -17406,7 +17406,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IIdleTrigger</name>
-                <newname>c2</newname>
+                <newname>cf</newname>
                 <methodlist>
                     <method>
                         <signature>bool()</signature>
@@ -17480,7 +17480,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ILogonTrigger</name>
-                <newname>c3</newname>
+                <newname>cg</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -17574,7 +17574,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IMaintenanceSettings</name>
-                <newname>dt</newname>
+                <newname>c5</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -17613,7 +17613,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IMonthlyDOWTrigger</name>
-                <newname>c4</newname>
+                <newname>ch</newname>
                 <methodlist>
                     <method>
                         <signature>int16()</signature>
@@ -17737,7 +17737,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IMonthlyTrigger</name>
-                <newname>c5</newname>
+                <newname>ci</newname>
                 <methodlist>
                     <method>
                         <signature>int32()</signature>
@@ -17851,7 +17851,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.INetworkSettings</name>
-                <newname>c6</newname>
+                <newname>cj</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -17880,7 +17880,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IPrincipal</name>
-                <newname>c7</newname>
+                <newname>ck</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -17949,7 +17949,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IPrincipal2</name>
-                <newname>c8</newname>
+                <newname>cl</newname>
                 <methodlist>
                     <method>
                         <signature>void(string)</signature>
@@ -17983,7 +17983,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IRegisteredTask</name>
-                <newname>c9</newname>
+                <newname>cm</newname>
                 <methodlist>
                     <method>
                         <signature>Microsoft.Win32.TaskScheduler.V2Interop.IRunningTaskCollection(int32)</signature>
@@ -18082,7 +18082,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IRegisteredTaskCollection</name>
-                <newname>da</newname>
+                <newname>cn</newname>
                 <methodlist>
                     <method>
                         <signature>System.Collections.IEnumerator()</signature>
@@ -18106,7 +18106,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IRegistrationInfo</name>
-                <newname>db</newname>
+                <newname>co</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -18205,7 +18205,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IRegistrationTrigger</name>
-                <newname>dc</newname>
+                <newname>cp</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -18289,7 +18289,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IRepetitionPattern</name>
-                <newname>dd</newname>
+                <newname>cq</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -18328,7 +18328,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IRunningTask</name>
-                <newname>de</newname>
+                <newname>cr</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -18377,7 +18377,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IRunningTaskCollection</name>
-                <newname>df</newname>
+                <newname>cs</newname>
                 <methodlist>
                     <method>
                         <signature>System.Collections.IEnumerator()</signature>
@@ -18401,7 +18401,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ISessionStateChangeTrigger</name>
-                <newname>dg</newname>
+                <newname>ct</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -18505,7 +18505,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IShowMessageAction</name>
-                <newname>dh</newname>
+                <newname>cu</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -18549,7 +18549,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITaskDefinition</name>
-                <newname>di</newname>
+                <newname>cv</newname>
                 <methodlist>
                     <method>
                         <signature>Microsoft.Win32.TaskScheduler.V2Interop.IActionCollection()</signature>
@@ -18628,7 +18628,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITaskFolder</name>
-                <newname>dj</newname>
+                <newname>cw</newname>
                 <methodlist>
                     <method>
                         <signature>Microsoft.Win32.TaskScheduler.V2Interop.ITaskFolder(string, object)</signature>
@@ -18702,7 +18702,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITaskFolderCollection</name>
-                <newname>dk</newname>
+                <newname>cx</newname>
                 <methodlist>
                     <method>
                         <signature>System.Collections.IEnumerator()</signature>
@@ -18726,7 +18726,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITaskNamedValueCollection</name>
-                <newname>dl</newname>
+                <newname>cy</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -18765,7 +18765,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITaskNamedValuePair</name>
-                <newname>dm</newname>
+                <newname>cz</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -18794,7 +18794,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITaskService</name>
-                <newname>dn</newname>
+                <newname>c0</newname>
                 <methodlist>
                     <method>
                         <signature>void(object, object, object, object)</signature>
@@ -18848,7 +18848,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITaskSettings</name>
-                <newname>dq</newname>
+                <newname>c2</newname>
                 <methodlist>
                     <method>
                         <signature>bool()</signature>
@@ -19057,7 +19057,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITaskSettings2</name>
-                <newname>dr</newname>
+                <newname>c3</newname>
                 <methodlist>
                     <method>
                         <signature>bool()</signature>
@@ -19086,7 +19086,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITaskSettings3</name>
-                <newname>ds</newname>
+                <newname>c4</newname>
                 <methodlist>
                     <method>
                         <signature>Microsoft.Win32.TaskScheduler.V2Interop.IMaintenanceSettings()</signature>
@@ -19340,7 +19340,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITaskVariables</name>
-                <newname>du</newname>
+                <newname>c6</newname>
                 <methodlist>
                     <method>
                         <signature>string()</signature>
@@ -19364,7 +19364,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITimeTrigger</name>
-                <newname>dv</newname>
+                <newname>c7</newname>
                 <methodlist>
                     <method>
                         <signature>bool()</signature>
@@ -19448,7 +19448,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITrigger</name>
-                <newname>dw</newname>
+                <newname>c8</newname>
                 <methodlist>
                     <method>
                         <signature>bool()</signature>
@@ -19522,7 +19522,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.ITriggerCollection</name>
-                <newname>dx</newname>
+                <newname>c9</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -19561,7 +19561,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.IWeeklyTrigger</name>
-                <newname>dy</newname>
+                <newname>da</newname>
                 <methodlist>
                     <method>
                         <signature>int16()</signature>
@@ -19665,7 +19665,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.TaskEnumFlags</name>
-                <newname>cs</newname>
+                <newname>b5</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -19683,7 +19683,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.V2Interop.TaskSchedulerClass</name>
-                <newname>dp</newname>
+                <newname>c1</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -19851,7 +19851,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.XmlSerializationHelper</name>
-                <newname>cr</newname>
+                <newname>b4</newname>
                 <methodlist>
                     <method>
                         <signature>bool(System.Reflection.PropertyInfo, System.Type, string, bool, object&amp;)</signature>
@@ -19960,7 +19960,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.TaskScheduler.XmlSerializationHelper/PropertyConversionHandler</name>
-                <newname>cr/a</newname>
+                <newname>b4/a</newname>
                 <methodlist>
                     <method>
                         <signature>void(object, native int)</signature>
@@ -19985,7 +19985,7 @@
             </type>
             <type>
                 <name>Microsoft.Win32.WindowsImpersonatedIdentity</name>
-                <newname>ci</newname>
+                <newname>bv</newname>
                 <methodlist>
                     <method>
                         <signature>void(string, string, string)</signature>
@@ -20092,7 +20092,7 @@
             </type>
             <type>
                 <name>System.EnumUtil</name>
-                <newname>ab</newname>
+                <newname>e</newname>
                 <methodlist>
                     <method>
                         <arity>1</arity>
@@ -20184,7 +20184,7 @@
                     <newname>a</newname>
                 </genericparameter>
                 <name>System.EnumUtil/&lt;GetFlags&gt;d__9`1</name>
-                <newname>ab/a</newname>
+                <newname>e/a</newname>
                 <methodlist>
                     <method>
                         <signature>void(int32)</signature>
@@ -20268,7 +20268,7 @@
             </type>
             <type>
                 <name>System.Reflection.ReflectionHelper</name>
-                <newname>ac</newname>
+                <newname>f</newname>
                 <methodlist>
                     <method>
                         <arity>1</arity>
@@ -20332,7 +20332,7 @@
                     <name>T</name>
                 </genericparameter>
                 <name>System.Reflection.ReflectionHelper/&lt;&gt;c__5`1</name>
-                <newname>ac/&lt;&gt;c__5`1</newname>
+                <newname>f/&lt;&gt;c__5`1</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -20372,7 +20372,7 @@
                     <newname>b</newname>
                 </genericparameter>
                 <name>System.Runtime.InteropServices.ComEnumerator`2</name>
-                <newname>ae</newname>
+                <newname>h</newname>
                 <methodlist>
                     <method>
                         <signature>void(System.Func`1&lt;int32&gt;, System.Func`2&lt;int32,!1&gt;, System.Func`2&lt;!1,!0&gt;)</signature>
@@ -20430,7 +20430,7 @@
                     <newname>b</newname>
                 </genericparameter>
                 <name>System.Runtime.InteropServices.ComEnumerator`2/&lt;&gt;c__DisplayClass2_0</name>
-                <newname>ae/a</newname>
+                <newname>h/a</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -20468,7 +20468,7 @@
                     <newname>b</newname>
                 </genericparameter>
                 <name>System.Runtime.InteropServices.ComEnumerator`2/&lt;&gt;c__DisplayClass2_0/&lt;&lt;-ctor&gt;g__Enumerate|0&gt;d</name>
-                <newname>ae/a/a</newname>
+                <newname>h/a/a</newname>
                 <methodlist>
                     <method>
                         <signature>void(int32)</signature>
@@ -20536,7 +20536,7 @@
                     <newname>b</newname>
                 </genericparameter>
                 <name>System.Runtime.InteropServices.ComEnumerator`2/&lt;&gt;c__DisplayClass3_0</name>
-                <newname>ae/b</newname>
+                <newname>h/b</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -20574,7 +20574,7 @@
                     <newname>b</newname>
                 </genericparameter>
                 <name>System.Runtime.InteropServices.ComEnumerator`2/&lt;&gt;c__DisplayClass3_0/&lt;&lt;-ctor&gt;g__Enumerate|0&gt;d</name>
-                <newname>ae/b/a</newname>
+                <newname>h/b/a</newname>
                 <methodlist>
                     <method>
                         <signature>void(int32)</signature>
@@ -20633,7 +20633,7 @@
             </type>
             <type>
                 <name>System.Runtime.InteropServices.InteropUtil</name>
-                <newname>ad</newname>
+                <newname>g</newname>
                 <methodlist>
                     <method>
                         <signature>void(native int&amp;, unsigned int32&amp;)</signature>
@@ -20795,7 +20795,7 @@
                     <newname>d</newname>
                 </genericparameter>
                 <name>&lt;&gt;f__AnonymousType0`4</name>
-                <newname>a</newname>
+                <newname>dw</newname>
                 <methodlist>
                     <method>
                         <signature>void(!0, !1, !2, !3)</signature>
@@ -20878,7 +20878,7 @@
             </type>
             <type>
                 <name>&lt;PrivateImplementationDetails&gt;</name>
-                <newname>w</newname>
+                <newname>ei</newname>
                 <methodlist>
                     <method>
                         <signature>unsigned int32(string)</signature>
@@ -20898,7 +20898,7 @@
             </type>
             <type>
                 <name>&lt;PrivateImplementationDetails&gt;/__StaticArrayInitTypeSize=32</name>
-                <newname>w/a</newname>
+                <newname>ei/a</newname>
                 <methodlist />
                 <fieldlist />
                 <propertylist />
@@ -20906,7 +20906,7 @@
             </type>
             <type>
                 <name>winPEAS.ApplicationInfo</name>
-                <newname>b</newname>
+                <newname>dx</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -20972,7 +20972,7 @@
             </type>
             <type>
                 <name>winPEAS.ApplicationInfo/&lt;&gt;c</name>
-                <newname>b/&lt;&gt;c</newname>
+                <newname>dx/&lt;&gt;c</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -21012,7 +21012,7 @@
             </type>
             <type>
                 <name>winPEAS.ApplicationInfo/&lt;&gt;c__DisplayClass8_0</name>
-                <newname>b/a</newname>
+                <newname>dx/a</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -21026,7 +21026,7 @@
             </type>
             <type>
                 <name>winPEAS.Beaprint</name>
-                <newname>c</newname>
+                <newname>dy</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -21264,7 +21264,7 @@
             </type>
             <type>
                 <name>winPEAS.CVE_2019_0836</name>
-                <newname>m</newname>
+                <newname>d8</newname>
                 <methodlist>
                     <method>
                         <signature>void(winPEAS.VulnerabilityCollection, string, System.Collections.Generic.List`1&lt;string&gt;)</signature>
@@ -21284,7 +21284,7 @@
             </type>
             <type>
                 <name>winPEAS.CVE_2019_0841</name>
-                <newname>n</newname>
+                <newname>d9</newname>
                 <methodlist>
                     <method>
                         <signature>void(winPEAS.VulnerabilityCollection, string, System.Collections.Generic.List`1&lt;string&gt;)</signature>
@@ -21304,7 +21304,7 @@
             </type>
             <type>
                 <name>winPEAS.CVE_2019_1064</name>
-                <newname>o</newname>
+                <newname>ea</newname>
                 <methodlist>
                     <method>
                         <signature>void(winPEAS.VulnerabilityCollection, string, System.Collections.Generic.List`1&lt;string&gt;)</signature>
@@ -21324,7 +21324,7 @@
             </type>
             <type>
                 <name>winPEAS.CVE_2019_1130</name>
-                <newname>p</newname>
+                <newname>eb</newname>
                 <methodlist>
                     <method>
                         <signature>void(winPEAS.VulnerabilityCollection, string, System.Collections.Generic.List`1&lt;string&gt;)</signature>
@@ -21344,7 +21344,7 @@
             </type>
             <type>
                 <name>winPEAS.CVE_2019_1253</name>
-                <newname>q</newname>
+                <newname>ec</newname>
                 <methodlist>
                     <method>
                         <signature>void(winPEAS.VulnerabilityCollection, string, System.Collections.Generic.List`1&lt;string&gt;)</signature>
@@ -21364,7 +21364,7 @@
             </type>
             <type>
                 <name>winPEAS.CVE_2019_1315</name>
-                <newname>r</newname>
+                <newname>ed</newname>
                 <methodlist>
                     <method>
                         <signature>void(winPEAS.VulnerabilityCollection, string, System.Collections.Generic.List`1&lt;string&gt;)</signature>
@@ -21384,7 +21384,7 @@
             </type>
             <type>
                 <name>winPEAS.CVE_2019_1385</name>
-                <newname>s</newname>
+                <newname>ee</newname>
                 <methodlist>
                     <method>
                         <signature>void(winPEAS.VulnerabilityCollection, string, System.Collections.Generic.List`1&lt;string&gt;)</signature>
@@ -21404,7 +21404,7 @@
             </type>
             <type>
                 <name>winPEAS.CVE_2019_1388</name>
-                <newname>t</newname>
+                <newname>ef</newname>
                 <methodlist>
                     <method>
                         <signature>void(winPEAS.VulnerabilityCollection, string, System.Collections.Generic.List`1&lt;string&gt;)</signature>
@@ -21424,7 +21424,7 @@
             </type>
             <type>
                 <name>winPEAS.CVE_2019_1405</name>
-                <newname>u</newname>
+                <newname>eg</newname>
                 <methodlist>
                     <method>
                         <signature>void(winPEAS.VulnerabilityCollection, string, System.Collections.Generic.List`1&lt;string&gt;)</signature>
@@ -21444,7 +21444,7 @@
             </type>
             <type>
                 <name>winPEAS.InterestingFiles</name>
-                <newname>d</newname>
+                <newname>dz</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -21463,12 +21463,17 @@
                     <method>
                         <signature>System.Collections.Generic.Dictionary`2&lt;string,System.Collections.Generic.Dictionary`2&lt;string,string&gt;&gt;()</signature>
                         <name>GetCachedGPPPassword</name>
-                        <newname>c</newname>
+                        <newname>d</newname>
+                    </method>
+                    <method>
+                        <signature>string()</signature>
+                        <name>GetConsoleHostHistory</name>
+                        <newname>b</newname>
                     </method>
                     <method>
                         <signature>System.Collections.Generic.List`1&lt;string&gt;()</signature>
                         <name>GetMcAfeeSitelistFiles</name>
-                        <newname>d</newname>
+                        <newname>e</newname>
                     </method>
                     <method>
                         <signature>System.Collections.Generic.List`1&lt;System.Collections.Generic.Dictionary`2&lt;string,string&gt;&gt;()</signature>
@@ -21478,17 +21483,17 @@
                     <method>
                         <signature>System.Collections.Generic.List`1&lt;string&gt;()</signature>
                         <name>GetSAMBackups</name>
-                        <newname>e</newname>
-                    </method>
-                    <method>
-                        <signature>System.Collections.Generic.List`1&lt;string&gt;()</signature>
-                        <name>GetUnattendedInstallFiles</name>
                         <newname>f</newname>
                     </method>
                     <method>
                         <signature>System.Collections.Generic.List`1&lt;string&gt;()</signature>
+                        <name>GetUnattendedInstallFiles</name>
+                        <newname>g</newname>
+                    </method>
+                    <method>
+                        <signature>System.Collections.Generic.List`1&lt;string&gt;()</signature>
                         <name>ListUsersDocs</name>
-                        <newname>b</newname>
+                        <newname>c</newname>
                     </method>
                 </methodlist>
                 <fieldlist />
@@ -21497,7 +21502,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo</name>
-                <newname>e</newname>
+                <newname>d0</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -21706,7 +21711,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/KERB_CACHE_OPTIONS</name>
-                <newname>e/p</newname>
+                <newname>d0/p</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -21759,7 +21764,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/KERB_CRYPTO_KEY</name>
-                <newname>e/k</newname>
+                <newname>d0/k</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -21783,7 +21788,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/KERB_ENCRYPTION_TYPE</name>
-                <newname>e/KERB_ENCRYPTION_TYPE</newname>
+                <newname>d0/KERB_ENCRYPTION_TYPE</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -21896,7 +21901,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/KERB_EXTERNAL_NAME</name>
-                <newname>e/o</newname>
+                <newname>d0/o</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -21920,7 +21925,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/KERB_EXTERNAL_TICKET</name>
-                <newname>e/l</newname>
+                <newname>d0/l</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22009,7 +22014,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/KERB_PROTOCOL_MESSAGE_TYPE</name>
-                <newname>e/g</newname>
+                <newname>d0/g</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22182,7 +22187,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/KERB_QUERY_TKT_CACHE_REQUEST</name>
-                <newname>e/f</newname>
+                <newname>d0/f</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22201,7 +22206,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/KERB_QUERY_TKT_CACHE_RESPONSE</name>
-                <newname>e/h</newname>
+                <newname>d0/h</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22225,7 +22230,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/KERB_RETRIEVE_TKT_REQUEST</name>
-                <newname>e/m</newname>
+                <newname>d0/m</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22269,7 +22274,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/KERB_RETRIEVE_TKT_RESPONSE</name>
-                <newname>e/j</newname>
+                <newname>d0/j</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22283,7 +22288,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/KERB_TICKET_CACHE_INFO</name>
-                <newname>e/i</newname>
+                <newname>d0/i</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22327,7 +22332,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/KERB_TICKET_FLAGS</name>
-                <newname>e/KERB_TICKET_FLAGS</newname>
+                <newname>d0/KERB_TICKET_FLAGS</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22404,7 +22409,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/LSA_STRING_IN</name>
-                <newname>e/b</newname>
+                <newname>d0/b</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22428,7 +22433,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/LSA_STRING_OUT</name>
-                <newname>e/c</newname>
+                <newname>d0/c</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22452,7 +22457,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/LUID</name>
-                <newname>e/d</newname>
+                <newname>d0/d</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22471,7 +22476,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/SECURITY_HANDLE</name>
-                <newname>e/n</newname>
+                <newname>d0/n</newname>
                 <methodlist>
                     <method>
                         <signature>void(int32)</signature>
@@ -22495,7 +22500,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/SECURITY_LOGON_SESSION_DATA</name>
-                <newname>e/e</newname>
+                <newname>d0/e</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22564,7 +22569,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/SECURITY_LOGON_TYPE</name>
-                <newname>e/q</newname>
+                <newname>d0/q</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22637,7 +22642,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/VaultCli</name>
-                <newname>e/a</newname>
+                <newname>d0/a</newname>
                 <methodlist>
                     <method>
                         <signature>int32(native int&amp;)</signature>
@@ -22674,7 +22679,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/VaultCli/VAULT_ELEMENT_TYPE</name>
-                <newname>e/a/a</newname>
+                <newname>d0/a/a</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22762,7 +22767,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/VaultCli/VAULT_ITEM_ELEMENT</name>
-                <newname>e/a/e</newname>
+                <newname>d0/a/e</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22781,7 +22786,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/VaultCli/VAULT_ITEM_WIN7</name>
-                <newname>e/a/d</newname>
+                <newname>d0/a/d</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22835,7 +22840,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/VaultCli/VAULT_ITEM_WIN8</name>
-                <newname>e/a/c</newname>
+                <newname>d0/a/c</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22894,7 +22899,7 @@
             </type>
             <type>
                 <name>winPEAS.KnownFileCredsInfo/VaultCli/VAULT_SCHEMA_ELEMENT_ID</name>
-                <newname>e/a/b</newname>
+                <newname>d0/a/b</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -22947,7 +22952,7 @@
             </type>
             <type>
                 <name>winPEAS.MyUtils</name>
-                <newname>f</newname>
+                <newname>d1</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -23075,7 +23080,7 @@
             </type>
             <type>
                 <name>winPEAS.MyUtils/&lt;&gt;c</name>
-                <newname>f/&lt;&gt;c</newname>
+                <newname>d1/&lt;&gt;c</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -23160,7 +23165,7 @@
             </type>
             <type>
                 <name>winPEAS.MyUtils/Win32</name>
-                <newname>f/a</newname>
+                <newname>d1/a</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -23187,7 +23192,7 @@
             </type>
             <type>
                 <name>winPEAS.MyUtils/Win32/NetJoinStatus</name>
-                <newname>f/a/a</newname>
+                <newname>d1/a/a</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -23220,7 +23225,7 @@
             </type>
             <type>
                 <name>winPEAS.NetworkInfo</name>
-                <newname>g</newname>
+                <newname>d2</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -23282,7 +23287,7 @@
             </type>
             <type>
                 <name>winPEAS.NetworkInfo/&lt;&gt;c</name>
-                <newname>g/&lt;&gt;c</newname>
+                <newname>d2/&lt;&gt;c</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -23313,7 +23318,7 @@
             </type>
             <type>
                 <name>winPEAS.NetworkInfo/ArpEntryType</name>
-                <newname>g/ArpEntryType</newname>
+                <newname>d2/ArpEntryType</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -23342,7 +23347,7 @@
             </type>
             <type>
                 <name>winPEAS.NetworkInfo/FirewallProfiles</name>
-                <newname>g/FirewallProfiles</newname>
+                <newname>d2/FirewallProfiles</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -23371,7 +23376,7 @@
             </type>
             <type>
                 <name>winPEAS.NetworkInfo/MIB_IPNETROW</name>
-                <newname>g/a</newname>
+                <newname>d2/a</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -23440,7 +23445,7 @@
             </type>
             <type>
                 <name>winPEAS.ProcessesInfo</name>
-                <newname>h</newname>
+                <newname>d3</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -23486,7 +23491,7 @@
             </type>
             <type>
                 <name>winPEAS.ProcessesInfo/&lt;&gt;c</name>
-                <newname>h/&lt;&gt;c</newname>
+                <newname>d3/&lt;&gt;c</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -23535,7 +23540,7 @@
             </type>
             <type>
                 <name>winPEAS.Program</name>
-                <newname>i</newname>
+                <newname>d4</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -23548,87 +23553,87 @@
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintBrowserInfo&gt;g__PrintDBsChrome|47_2</name>
-                        <newname>r</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintBrowserInfo&gt;g__PrintDBsFirefox|47_0</name>
-                        <newname>t</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintBrowserInfo&gt;g__PrintHistBookChrome|47_3</name>
-                        <newname>q</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintBrowserInfo&gt;g__PrintHistFavIE|47_5</name>
-                        <newname>o</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintBrowserInfo&gt;g__PrintHistFirefox|47_1</name>
                         <newname>s</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintBrowserInfo&gt;g__PrinteCurrentIETabs|47_4</name>
+                        <name>&lt;PrintBrowserInfo&gt;g__PrintDBsFirefox|47_0</name>
+                        <newname>u</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintBrowserInfo&gt;g__PrintHistBookChrome|47_3</name>
+                        <newname>r</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintBrowserInfo&gt;g__PrintHistFavIE|47_5</name>
                         <newname>p</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
+                        <name>&lt;PrintBrowserInfo&gt;g__PrintHistFirefox|47_1</name>
+                        <newname>t</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintBrowserInfo&gt;g__PrinteCurrentIETabs|47_4</name>
+                        <newname>q</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
                         <name>&lt;PrintInfoApplications&gt;g__PrintActiveWindow|44_0</name>
-                        <newname>as</newname>
+                        <newname>at</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintInfoApplications&gt;g__PrintAutoRuns|44_2</name>
-                        <newname>aq</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoApplications&gt;g__PrintInstalledApps|44_1</name>
                         <newname>ar</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
+                        <name>&lt;PrintInfoApplications&gt;g__PrintInstalledApps|44_1</name>
+                        <newname>as</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
                         <name>&lt;PrintInfoApplications&gt;g__PrintScheduled|44_3</name>
-                        <newname>ap</newname>
+                        <newname>aq</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintInfoNetwork&gt;g__PrintDNSCache|45_5</name>
-                        <newname>aj</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoNetwork&gt;g__PrintFirewallRules|45_4</name>
                         <newname>ak</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInfoNetwork&gt;g__PrintHostsFile|45_1</name>
-                        <newname>an</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoNetwork&gt;g__PrintListeningPorts|45_3</name>
+                        <name>&lt;PrintInfoNetwork&gt;g__PrintFirewallRules|45_4</name>
                         <newname>al</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInfoNetwork&gt;g__PrintNetShares|45_0</name>
+                        <name>&lt;PrintInfoNetwork&gt;g__PrintHostsFile|45_1</name>
                         <newname>ao</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInfoNetwork&gt;g__PrintNetworkIfaces|45_2</name>
+                        <name>&lt;PrintInfoNetwork&gt;g__PrintListeningPorts|45_3</name>
                         <newname>am</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
+                        <name>&lt;PrintInfoNetwork&gt;g__PrintNetShares|45_0</name>
+                        <newname>ap</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInfoNetwork&gt;g__PrintNetworkIfaces|45_2</name>
+                        <newname>an</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
                         <name>&lt;PrintInfoProcesses&gt;g__PrintInterestingProcesses|42_0</name>
-                        <newname>av</newname>
+                        <newname>aw</newname>
                     </method>
                     <method>
                         <signature>void(winPEAS.Program/&lt;&gt;c__DisplayClass43_0&amp;)</signature>
@@ -23643,292 +23648,297 @@
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintInfoServices&gt;g__PrintPathDLLHijacking|43_3</name>
-                        <newname>at</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoServices&gt;g__PrintWritableRegServices|43_2</name>
                         <newname>au</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
+                        <name>&lt;PrintInfoServices&gt;g__PrintWritableRegServices|43_2</name>
+                        <newname>av</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
                         <name>&lt;PrintInfoUsers&gt;g__PrintAutoLogin|41_7</name>
-                        <newname>ay</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintCU|41_1</name>
-                        <newname>a4</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintClipboardText|41_3</name>
-                        <newname>a2</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintEverLoggedUsers|41_6</name>
                         <newname>az</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintHomeFolders|41_8</name>
-                        <newname>ax</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintLoggedUsers|41_4</name>
-                        <newname>a1</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintPasswordPolicies|41_9</name>
-                        <newname>aw</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintRdpSessions|41_5</name>
-                        <newname>a0</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintTokenP|41_2</name>
-                        <newname>a3</newname>
-                    </method>
-                    <method>
-                        <signature>System.Collections.Generic.Dictionary`2&lt;string,string&gt;()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__colorsU|41_0</name>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintCU|41_1</name>
                         <newname>a5</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInterestingFiles&gt;g__PrintCachedGPPPassword|48_7</name>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintClipboardText|41_3</name>
+                        <newname>a3</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintEverLoggedUsers|41_6</name>
+                        <newname>a0</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintHomeFolders|41_8</name>
+                        <newname>ay</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintLoggedUsers|41_4</name>
+                        <newname>a2</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintPasswordPolicies|41_9</name>
+                        <newname>ax</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintRdpSessions|41_5</name>
+                        <newname>a1</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintTokenP|41_2</name>
+                        <newname>a4</newname>
+                    </method>
+                    <method>
+                        <signature>System.Collections.Generic.Dictionary`2&lt;string,string&gt;()</signature>
+                        <name>&lt;PrintInfoUsers&gt;g__colorsU|41_0</name>
+                        <newname>a6</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInterestingFiles&gt;g__PrintCachedGPPPassword|48_8</name>
                         <newname>g</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintInterestingFiles&gt;g__PrintCloudCreds|48_3</name>
-                        <newname>k</newname>
+                        <newname>l</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInterestingFiles&gt;g__PrintMcAffeSitelistFiles|48_6</name>
+                        <name>&lt;PrintInterestingFiles&gt;g__PrintConsoleHostHistory|48_5</name>
+                        <newname>j</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInterestingFiles&gt;g__PrintMcAffeSitelistFiles|48_7</name>
                         <newname>h</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInterestingFiles&gt;g__PrintPossCredsRegs|48_8</name>
+                        <name>&lt;PrintInterestingFiles&gt;g__PrintPossCredsRegs|48_9</name>
                         <newname>f</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintInterestingFiles&gt;g__PrintPuttySSH|48_1</name>
-                        <newname>m</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInterestingFiles&gt;g__PrintPuttySess|48_0</name>
                         <newname>n</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInterestingFiles&gt;g__PrintRecentFiles|48_13</name>
+                        <name>&lt;PrintInterestingFiles&gt;g__PrintPuttySess|48_0</name>
+                        <newname>o</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInterestingFiles&gt;g__PrintRecentFiles|48_14</name>
                         <newname>a</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInterestingFiles&gt;g__PrintRecycleBin|48_10</name>
+                        <name>&lt;PrintInterestingFiles&gt;g__PrintRecycleBin|48_11</name>
                         <newname>d</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInterestingFiles&gt;g__PrintSAMBackups|48_5</name>
+                        <name>&lt;PrintInterestingFiles&gt;g__PrintSAMBackups|48_6</name>
                         <newname>i</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintInterestingFiles&gt;g__PrintSSHKeysReg|48_2</name>
-                        <newname>l</newname>
+                        <newname>m</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintInterestingFiles&gt;g__PrintUnattendFiles|48_4</name>
-                        <newname>j</newname>
+                        <newname>k</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInterestingFiles&gt;g__PrintUserCredsFiles|48_9</name>
+                        <name>&lt;PrintInterestingFiles&gt;g__PrintUserCredsFiles|48_10</name>
                         <newname>e</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInterestingFiles&gt;g__PrintUsersDocsKeys|48_12</name>
+                        <name>&lt;PrintInterestingFiles&gt;g__PrintUsersDocsKeys|48_13</name>
                         <newname>b</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInterestingFiles&gt;g__PrintUsersInterestingFiles|48_11</name>
+                        <name>&lt;PrintInterestingFiles&gt;g__PrintUsersInterestingFiles|48_12</name>
                         <newname>c</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintSystemInfo&gt;g__PrintAVInfo|40_13</name>
-                        <newname>a7</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintAuditInfo|40_2</name>
-                        <newname>bi</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintBasicSystemInfo|40_0</name>
-                        <newname>bk</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintCachedCreds|40_8</name>
-                        <newname>bc</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintCredentialGuard|40_7</name>
-                        <newname>bd</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintDrivesInfo|40_12</name>
                         <newname>a8</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintInetInfo|40_11</name>
-                        <newname>a9</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintLAPSInfo|40_4</name>
-                        <newname>bg</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintLSAProtection|40_6</name>
-                        <newname>be</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintPSInfo|40_1</name>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintAuditInfo|40_2</name>
                         <newname>bj</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintSystemEV|40_10</name>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintBasicSystemInfo|40_0</name>
+                        <newname>bl</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintCachedCreds|40_8</name>
+                        <newname>bd</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintCredentialGuard|40_7</name>
+                        <newname>be</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintDrivesInfo|40_12</name>
+                        <newname>a9</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintInetInfo|40_11</name>
                         <newname>ba</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintUACInfo|40_14</name>
-                        <newname>a6</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintUserEV|40_9</name>
-                        <newname>bb</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintWEFInfo|40_3</name>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintLAPSInfo|40_4</name>
                         <newname>bh</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintWdigest|40_5</name>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintLSAProtection|40_6</name>
                         <newname>bf</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintPSInfo|40_1</name>
+                        <newname>bk</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintSystemEV|40_10</name>
+                        <newname>bb</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintUACInfo|40_14</name>
+                        <newname>a7</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintUserEV|40_9</name>
+                        <newname>bc</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintWEFInfo|40_3</name>
+                        <newname>bi</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintWdigest|40_5</name>
+                        <newname>bg</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
                         <name>&lt;PrintWindowsCreds&gt;g__PrintAlwaysInstallElevated|46_13</name>
-                        <newname>v</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintAppCmd|46_11</name>
-                        <newname>x</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintCredManag|46_1</name>
-                        <newname>ah</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintDPAPIMasterKeys|46_5</name>
-                        <newname>ad</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintDpapiCredFiles|46_6</name>
-                        <newname>ac</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintKerberosTGTTickets|46_9</name>
-                        <newname>z</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintKerberosTickets|46_8</name>
-                        <newname>aa</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintRCManFiles|46_7</name>
-                        <newname>ab</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintRecentRunCommands|46_3</name>
-                        <newname>af</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintSCClient|46_12</name>
                         <newname>w</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintSavedRDPInfo|46_2</name>
-                        <newname>ag</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintTranscriptPS|46_4</name>
-                        <newname>ae</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintWSUS|46_14</name>
-                        <newname>u</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintWifi|46_10</name>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintAppCmd|46_11</name>
                         <newname>y</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintWindowsCreds&gt;g__PrintvaultCreds|46_0</name>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintCredManag|46_1</name>
                         <newname>ai</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintDPAPIMasterKeys|46_5</name>
+                        <newname>ae</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintDpapiCredFiles|46_6</name>
+                        <newname>ad</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintKerberosTGTTickets|46_9</name>
+                        <newname>aa</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintKerberosTickets|46_8</name>
+                        <newname>ab</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintRCManFiles|46_7</name>
+                        <newname>ac</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintRecentRunCommands|46_3</name>
+                        <newname>ag</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintSCClient|46_12</name>
+                        <newname>x</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintSavedRDPInfo|46_2</name>
+                        <newname>ah</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintTranscriptPS|46_4</name>
+                        <newname>af</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintWSUS|46_14</name>
+                        <newname>v</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintWifi|46_10</name>
+                        <newname>z</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintWindowsCreds&gt;g__PrintvaultCreds|46_0</name>
+                        <newname>aj</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
                         <name>CheckRegANSI</name>
-                        <newname>bu</newname>
+                        <newname>bw</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
                         <name>CreateDynamicLists</name>
-                        <newname>bv</newname>
+                        <newname>bx</newname>
                     </method>
                     <method>
                         <signature>void(string[])</signature>
@@ -23938,47 +23948,52 @@
                     <method>
                         <signature>void()</signature>
                         <name>PrintBrowserInfo</name>
-                        <newname>bm</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>PrintInfoApplications</name>
-                        <newname>bp</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>PrintInfoNetwork</name>
                         <newname>bo</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>PrintInfoProcesses</name>
+                        <name>PrintInfoApplications</name>
                         <newname>br</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>PrintInfoServices</name>
+                        <name>PrintInfoNetwork</name>
                         <newname>bq</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>PrintInfoUsers</name>
-                        <newname>bs</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>PrintInterestingFiles</name>
-                        <newname>bl</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>PrintSystemInfo</name>
+                        <name>PrintInfoProcesses</name>
                         <newname>bt</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>PrintWindowsCreds</name>
+                        <name>PrintInfoServices</name>
+                        <newname>bs</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>PrintInfoUsers</name>
+                        <newname>bu</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>PrintInterestingFiles</name>
                         <newname>bn</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>PrintSystemInfo</name>
+                        <newname>bv</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>PrintWindowsCreds</name>
+                        <newname>bp</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>wait_enter</name>
+                        <newname>bm</newname>
                     </method>
                 </methodlist>
                 <fieldlist>
@@ -24178,7 +24193,7 @@
             </type>
             <type>
                 <name>winPEAS.Program/&lt;&gt;c__DisplayClass43_0</name>
-                <newname>i/a</newname>
+                <newname>d4/a</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -24708,7 +24723,7 @@
             </type>
             <type>
                 <name>winPEAS.ServicesInfo</name>
-                <newname>j</newname>
+                <newname>d5</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -24755,7 +24770,7 @@
             </type>
             <type>
                 <name>winPEAS.SystemInfo</name>
-                <newname>k</newname>
+                <newname>d6</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -24828,7 +24843,7 @@
             </type>
             <type>
                 <name>winPEAS.UserInfo</name>
-                <newname>l</newname>
+                <newname>d7</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -24969,7 +24984,7 @@
             </type>
             <type>
                 <name>winPEAS.UserInfo/LUID</name>
-                <newname>l/e</newname>
+                <newname>d7/e</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -24988,7 +25003,7 @@
             </type>
             <type>
                 <name>winPEAS.UserInfo/LUID_AND_ATTRIBUTES</name>
-                <newname>l/f</newname>
+                <newname>d7/f</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -25007,7 +25022,7 @@
             </type>
             <type>
                 <name>winPEAS.UserInfo/LuidAttributes</name>
-                <newname>l/LuidAttributes</newname>
+                <newname>d7/LuidAttributes</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -25040,7 +25055,7 @@
             </type>
             <type>
                 <name>winPEAS.UserInfo/TOKEN_INFORMATION_CLASS</name>
-                <newname>l/g</newname>
+                <newname>d7/g</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -25138,7 +25153,7 @@
             </type>
             <type>
                 <name>winPEAS.UserInfo/TOKEN_PRIVILEGES</name>
-                <newname>l/d</newname>
+                <newname>d7/d</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -25157,7 +25172,7 @@
             </type>
             <type>
                 <name>winPEAS.UserInfo/WTS_CLIENT_ADDRESS</name>
-                <newname>l/b</newname>
+                <newname>d7/b</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -25176,7 +25191,7 @@
             </type>
             <type>
                 <name>winPEAS.UserInfo/WTS_CONNECTSTATE_CLASS</name>
-                <newname>l/WTS_CONNECTSTATE_CLASS</newname>
+                <newname>d7/WTS_CONNECTSTATE_CLASS</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -25229,7 +25244,7 @@
             </type>
             <type>
                 <name>winPEAS.UserInfo/WTS_INFO_CLASS</name>
-                <newname>l/a</newname>
+                <newname>d7/a</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -25392,7 +25407,7 @@
             </type>
             <type>
                 <name>winPEAS.UserInfo/WTS_SESSION_INFO_1</name>
-                <newname>l/c</newname>
+                <newname>d7/c</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -25606,7 +25621,7 @@
             </type>
             <type>
                 <name>winPEAS.Watson</name>
-                <newname>v</newname>
+                <newname>eh</newname>
                 <methodlist>
                     <method>
                         <signature>void()</signature>
@@ -25651,7 +25666,7 @@
         </statisticline>
         <statisticline>
             <description>Total Methods</description>
-            <statistic>2851</statistic>
+            <statistic>2854</statistic>
         </statisticline>
         <statisticline>
             <description>Total Fields</description>
@@ -25672,8 +25687,8 @@
         </statisticline>
         <statisticline>
             <description>Total Methods Renamed</description>
-            <statistic>1439</statistic>
-            <statistic>50.47 %</statistic>
+            <statistic>1442</statistic>
+            <statistic>50.53 %</statistic>
         </statisticline>
         <statisticline>
             <description>Total Fields Renamed</description>
@@ -25693,7 +25708,7 @@
         <statisticline>
             <description>Methods Renamed to 'a'</description>
             <statistic>323</statistic>
-            <statistic>11.33 %</statistic>
+            <statistic>11.32 %</statistic>
         </statisticline>
         <statisticline>
             <description>Methods Renamed to 'b'</description>
@@ -25703,7 +25718,7 @@
         <statisticline>
             <description>Methods Renamed to 'c'</description>
             <statistic>116</statistic>
-            <statistic>4.07 %</statistic>
+            <statistic>4.06 %</statistic>
         </statisticline>
         <statisticline>
             <description>Methods Renamed to 'd'</description>
