@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.6.5"
+VERSION="v2.6.6"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -150,6 +150,7 @@ sidB="/apache2%Read_root_passwd__apache2_-f_/etc/shadow(CVE-2019-0211)\
  /sudoedit$%Sudo/SudoEdit_1.6.9p21/1.7.2p4/(RHEL_5/6/7/Ubuntu)/Sudo<=1.8.14\
  /tmux%Tmux_1.3_1.4_privesc(CVE-2011-1496)\
  /traceroute$%LBL_Traceroute_[2000-11-15]\
+ /ubuntu-core-launcher$%Befre_1.0.27.1(CVE-2016-1580)\
  /umount$%BSD/Linux(08-1996)\
  /umount-loop$%Rocks_Clusters<=4.1(07-2006)\
  /uucp$%Taylor_UUCP_1.0.6\
@@ -218,21 +219,21 @@ notExtensions="\.tif$\|\.tiff$\|\.gif$\|\.jpeg$\|\.jpg\|\.jif$\|\.jfif$\|\.jp2$\
 TIMEOUT=`which timeout 2>/dev/null`
 GCC=`which gcc 2>/dev/null`
 
-pathshG="/0trace.sh\|/blueranger.sh\|/dnsmap-bulk.sh\|/gettext.sh\|/go-rhn.sh\|/gvmap.sh\|/lesspipe.sh\|/mksmbpasswd.sh\|/setuporamysql.sh\|/setup-nsssysinit.sh\|/testacg.sh\|/testlahf.sh\|/url_handler.sh"
+pathshG="/0trace.sh\|/alsa-info.sh\|amuFormat.sh\|/blueranger.sh\|/dnsmap-bulk.sh\|/gettext.sh\|/go-rhn.sh\|/gvmap.sh\|/lesspipe.sh\|/mksmbpasswd.sh\|/setuporamysql.sh\|/setup-nsssysinit.sh\|/testacg.sh\|/testlahf.sh\|/url_handler.sh"
 
 notBackup="/tdbbackup$\|/db_hotbackup$"
 
-cronjobsG=".placeholder\|0anacron\|0hourly\|apache2\|apport\|aptitude\|apt-compat\|bsdmainutils\|certwatch\|debtags\|dpkg\|e2scrub_all\|fake-hwclock\|fstrim\|john\|logrotate\|man-db.cron\|man-db\|mdadm\|mlocate\|ntp\|passwd\|php\|popularity-contest\|raid-check\|rwhod\|samba\|sysstat\|ubuntu-advantage-tools\|update-notifier-common"
+cronjobsG=".placeholder\|0anacron\|0hourly\|anacron\|apache2\|apport\|aptitude\|apt-compat\|bsdmainutils\|certwatch\|cracklib-runtime\|debtags\|dpkg\|e2scrub_all\|fake-hwclock\|fstrim\|john\|logrotate\|man-db.cron\|man-db\|mdadm\|mlocate\|ntp\|passwd\|php\|popularity-contest\|raid-check\|rwhod\|samba\|sysstat\|ubuntu-advantage-tools\|update-notifier-common\|upstart"
 cronjobsB="centreon"
 
-processesVB="jdwp\|tmux\|screen\|--inspect\|--remote-debugging-port"
+processesVB="jdwp\|tmux \|screen \|--inspect\|--remote-debugging-port"
 processesB="knockd"
 
 mail_apps="Postfix\|Dovecot\|Exim\|SquirrelMail\|Cyrus\|Sendmail\|Courier"
 
-profiledG="01-locale-fix.sh\|256term.csh\|256term.sh\|abrt-console-notification.sh\|apps-bin-path.sh\|bash_completion.sh\|cedilla-portuguese.sh\|colorgrep.csh\|colorgrep.sh\|colorls.csh\|colorls.sh\|colorxzgrep.csh\|colorxzgrep.sh\|colorzgrep.csh\|colorzgrep.sh\|csh.local\|gawk.csh\|gawk.sh\|kali.sh\|lang.csh\|lang.sh\|less.csh\|less.sh\|sh.local\|vim.csh\|vim.sh\|vte-2.91.sh\|which2.csh\|which2.sh\|Z97-byobu.sh\|Z99-cloudinit-warnings.sh\|Z99-cloud-locale-test.sh"
+profiledG="01-locale-fix.sh\|256term.csh\|256term.sh\|abrt-console-notification.sh\|appmenu-qt5.sh\|apps-bin-path.sh\|bash_completion.sh\|cedilla-portuguese.sh\|colorgrep.csh\|colorgrep.sh\|colorls.csh\|colorls.sh\|colorxzgrep.csh\|colorxzgrep.sh\|colorzgrep.csh\|colorzgrep.sh\|csh.local\|gawk.csh\|gawk.sh\|kali.sh\|lang.csh\|lang.sh\|less.csh\|less.sh\|sh.local\|vim.csh\|vim.sh\|vte-2.91.sh\|which2.csh\|which2.sh\|Z97-byobu.sh\|Z99-cloudinit-warnings.sh\|Z99-cloud-locale-test.sh"
 
-knw_emails="aeb@debian.org\|ah-util-linux@debian.org\|anibal@debian.org\|berni@debian.org\|daniel@lists.debian-maintainers.org\|debian@jff.email\|debian-boot@lists.debian.org\|debian-bsd@lists.debian.org\|debian-glibc@lists.debian.org\|debian-kernel@lists.debian.org\|debian-med-packaging@lists.alioth.debian.org\|devel@kali.org\|dm-devel@redhat.com\|djpig@debian.org\|ender@debian.org\|ftpmaster@ubuntu.com\|gcs@debian.org\|guillem@debian.org\|guus@debian.org\|isc-dhcp@packages.debian.org\|kernel-team@lists.ubuntu.com\|kilobyte@angband.pl\|lamont@debian.org\|linux-xfs@vger.kernel.org\|mattia@debian.org\|mmind@debian.org\|mockbuild@kbuilder.bsys.centos.org\|open-iscsi@packages.debian.org\|open-isns@packages.debian.org\|packages@qa.debian.org\|packages@release.debian.org\|parted-maintainers@alioth-lists.debian.net\|parted-maintainers@lists.alioth.debian.org\|petere@debian.org\|pkg-gnupg-maint@lists.alioth.debian.org\|pkg-gnutls-maint@lists.alioth.debian.org\|pkg-grub-devel@lists.alioth.debian.org\|pkg-iscsi-maintainers@lists.alioth.debian.org\|pkg-lvm-maintainers@lists.alioth.debian.org\|pkg-mdadm-devel@lists.alioth.debian.org\|pkg-openssl-devel@lists.alioth.debian.org\|pkg-wpa-devel@lists.alioth.debian.org\|racke@linuxia.de\|rogershimizu@gmail.com\|team+dns@tracker.debian.org\|team+lvm@tracker.debian.org\|thmarques@gmail.com\|tytso@mit.edu\|ubuntu-devel-discuss@lists.ubuntu.com\|ubuntu-installer@lists.ubuntu.com\|wpa@packages.debian.org\|xfs@oss.sgi.com\|xnox@debian.org"
+knw_emails="aeb@debian.org\|ah-util-linux@debian.org\|anibal@debian.org\|berni@debian.org\|daniel@lists.debian-maintainers.org\|debian@jff.email\|debian-boot@lists.debian.org\|debian-bsd@lists.debian.org\|debian-glibc@lists.debian.org\|debian-kernel@lists.debian.org\|debian-med-packaging@lists.alioth.debian.org\|devel@kali.org\|dm-devel@redhat.com\|djpig@debian.org\|ender@debian.org\|ftpmaster@ubuntu.com\|gcs@debian.org\|guillem@debian.org\|guus@debian.org\|isc-dhcp@packages.debian.org\|kernel-team@lists.ubuntu.com\|kilobyte@angband.pl\|lamont@debian.org\|linux-xfs@vger.kernel.org\|mattia@debian.org\|maxk@qualcomm.com\|mmind@debian.org\|mockbuild@kbuilder.bsys.centos.org\|open-iscsi@packages.debian.org\|open-isns@packages.debian.org\|packages@qa.debian.org\|packages@release.debian.org\|parted-maintainers@alioth-lists.debian.net\|parted-maintainers@lists.alioth.debian.org\|petere@debian.org\|pkg-gnupg-maint@lists.alioth.debian.org\|pkg-gnutls-maint@lists.alioth.debian.org\|pkg-grub-devel@lists.alioth.debian.org\|pkg-iscsi-maintainers@lists.alioth.debian.org\|pkg-lvm-maintainers@lists.alioth.debian.org\|pkg-mdadm-devel@lists.alioth.debian.org\|pkg-openssl-devel@lists.alioth.debian.org\|pkg-wpa-devel@lists.alioth.debian.org\|racke@linuxia.de\|rogershimizu@gmail.com\|team+dns@tracker.debian.org\|team+lvm@tracker.debian.org\|thmarques@gmail.com\|tigran@aivazian.fsnet.co.uk\|tytso@mit.edu\|ubuntu-devel-discuss@lists.ubuntu.com\|ubuntu-installer@lists.ubuntu.com\|wpa@packages.debian.org\|xfs@oss.sgi.com\|xnox@debian.org"
 
 timersG="apt-daily.timer\|apt-daily-upgrade.timer\|e2scrub_all.timer\|fstrim.timer\|logrotate.timer\|man-db.timer\|motd-news.timer\|phpsessionclean.timer\|snapd.refresh.timer\|snapd.snap-repair.timer\|systemd-tmpfiles-clean.timer\|systemd-readahead-done.timer\|ureadahead-stop.timer"
 
@@ -858,7 +859,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 
   #-- SY) grsecurity
   printf $Y"[+] "$GREEN"grsecurity present? ............ "$NC
-  ((uname -r | grep "-grsec" >/dev/null 2>&1 || grep "grsecurity" /etc/sysctl.conf >/dev/null 2>&1) && echo "Yes" || echo_not_found "grsecurity")
+  ((uname -r | grep "\-grsec" >/dev/null 2>&1 || grep "grsecurity" /etc/sysctl.conf >/dev/null 2>&1) && echo "Yes" || echo_not_found "grsecurity")
 
   #-- SY) Execshield
   printf $Y"[+] "$GREEN"PaX bins present? .............. "$NC
@@ -2041,7 +2042,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- 18IF) Writable log files
   printf $Y"[+] "$GREEN"Writable log files (logrotten) (limit 100)\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#logrotate-exploitation\n"$NC
-  for log in $(find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 3){ print line_init; } if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 100 ); do
+  for log in $(find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 3){ print line_init; }; if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act}' | head -n 100 ); do
     if [ `echo "$log" | grep "You_can_write_more_log_files_inside_last_directory"` ]; then printf $ITALIC"$log\n"$NC;
     elif [ -w "$log" ]; then printf "Writable:$RED $log\n"$NC;
     elif [ `echo "$log" | grep "$Wfolders"` ]; then echo "Writable folder: $log" | sed "s,$Wfolders,${C}[1;31m&${C}[0m,";
@@ -2214,7 +2215,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- 34IF) Emails inside logs
   printf $Y"[+] "$GREEN"Finding emails inside logs (limit 70)\n"$NC
-  grep -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" /var/log/ 2>/dev/null | sort | uniq -c | sort -r -n | head -n 70 | sed "s,$knw_emails,${C}[1;32m&${C}[0m,g"
+  grep -I -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" /var/log/ 2>/dev/null | sort | uniq -c | sort -r -n | head -n 70 | sed "s,$knw_emails,${C}[1;32m&${C}[0m,g"
   echo "" 
 
   ##-- 35IF) Passwords files in home
