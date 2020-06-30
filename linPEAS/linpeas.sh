@@ -1362,7 +1362,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     for f in $postgconfs; do
       if [ -r "$f" ]; then 
         echo "Found readable $f"
-        cat "$f" | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | sed "s,auth\|password\|md5\|user=\|pass=,${C}[1;31m&${C}[0m," 2>/dev/null
+        cat "$f" | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | grep -v "^$" | sed "s,auth\|password\|md5\|user=\|pass=\|trust,${C}[1;31m&${C}[0m," 2>/dev/null
         echo ""
       fi
     done
