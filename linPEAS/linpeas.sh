@@ -896,6 +896,26 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   else echo_no
   fi
 
+  #-- ????) Containers Running
+  printf $Y"[+] "$GREEN"Any running containers? ........ "$NC
+  # Get counts of running containers for each platform
+  dockercontainers=`docker ps --format "{{.Names}}" 2>/dev/null | wc -l`
+  lxccontainers=`lxc list -c n --format csv 2>/dev/null | wc -l`
+  rktcontainers=`rkt list 2>/dev/null | tail -n +2  | wc -l`
+  if [ "$dockercontainers" -eq "0" ] && [ "$lxccontainers" -eq "0" ] && [ "$rktcontainers" -eq "0" ]; then
+    echo_no
+  else
+    containerCounts=""
+    if [ "$dockercontainers" -ne "0" ]; then containerCounts="${containerCounts}docker($dockercontainers) "; fi
+    if [ "$lxccontainers" -ne "0" ]; then containerCounts="${containerCounts}lxc($lxccontainers) "; fi
+    if [ "$rktcontainers" -ne "0" ]; then containerCounts="${containerCounts}rkt($rktcontainers) "; fi
+    echo "Yes $containerCounts" | sed "s,.*,${C}[1;31m&${C}[0m,"
+    # List any running containers
+    if [ "$dockercontainers" -ne "0" ]; then echo "Running Docker Containers" | sed "s,.*,${C}[1;31m&${C}[0m,"; docker ps | tail -n +2 2>/dev/null; echo ""; fi
+    if [ "$lxccontainers" -ne "0" ]; then echo "Running LXC Containers" | sed "s,.*,${C}[1;31m&${C}[0m,"; lxc list 2>/dev/null; echo ""; fi
+    if [ "$rktcontainers" -ne "0" ]; then echo "Running RKT Containers" | sed "s,.*,${C}[1;31m&${C}[0m,"; rkt list 2>/dev/null; echo ""; fi
+  fi
+
   echo ""
   echo ""
   if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi
