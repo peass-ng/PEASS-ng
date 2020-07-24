@@ -78,15 +78,15 @@ namespace winPEAS
 
             System.Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Program.version + NOCOLOR + YELLOW + " by carlospolop" + NOCOLOR);
             System.Console.WriteLine();
-            PrintLeyend();
+            PrintLegend();
             System.Console.WriteLine();
             LinkPrint("https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation", "You can find a Windows local PE Checklist here:");
 
         }
 
-        static void PrintLeyend()
+        static void PrintLegend()
         {
-            System.Console.WriteLine(YELLOW + "  [+] " + GREEN + "Leyend:" + NOCOLOR);
+            System.Console.WriteLine(YELLOW + "  [+] " + GREEN + "Legend:" + NOCOLOR);
             System.Console.WriteLine(RED + "         Red" + GRAY + "                Indicates a special privilege over an object or something is misconfigured" + NOCOLOR);
             System.Console.WriteLine(GREEN + "         Green" + GRAY + "              Indicates that some protection is enabled or something is well configured" + NOCOLOR);
             System.Console.WriteLine(CYAN + "         Cyan" + GRAY + "               Indicates active users" + NOCOLOR);
