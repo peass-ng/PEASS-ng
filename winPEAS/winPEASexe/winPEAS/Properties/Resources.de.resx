@@ -1,0 +1,355 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ActionTypeComHandler" xml:space="preserve">
+    <value>COM-Objekt aufrufen</value>
+  </data>
+  <data name="ActionTypeExecute" xml:space="preserve">
+    <value>Programm starten</value>
+  </data>
+  <data name="ActionTypeSendEmail" xml:space="preserve">
+    <value>E-Mail senden</value>
+  </data>
+  <data name="ActionTypeShowMessage" xml:space="preserve">
+    <value>Meldung anzeigen</value>
+  </data>
+  <data name="ComHandlerAction" xml:space="preserve">
+    <value>{3} {0:P}</value>
+    <comment>0 = Class GUID; 1 = Data; 2 = Id</comment>
+  </data>
+  <data name="DOWAllDays" xml:space="preserve">
+    <value>jeden Tag</value>
+  </data>
+  <data name="EmailAction" xml:space="preserve">
+    <value>{1} {0}</value>
+    <comment>0 = Subject; 1 = To; 2 = Cc, 3 = Bcc, 4 = From, 5 = ReplyTo, 6 = Body, 7 = Server, 8 = Id</comment>
+  </data>
+  <data name="EndSentence" xml:space="preserve">
+    <value>.</value>
+  </data>
+  <data name="ExecAction" xml:space="preserve">
+    <value>{0} {1}</value>
+    <comment>0 = Executable Path; 1 = Arguments; 2 = WorkingDirectory; 3 = Id</comment>
+  </data>
+  <data name="HyphenSeparator" xml:space="preserve">
+    <value>-</value>
+  </data>
+  <data name="ListSeparator" xml:space="preserve">
+    <value>,</value>
+  </data>
+  <data name="MOYAllMonths" xml:space="preserve">
+    <value>jeden Monat</value>
+  </data>
+  <data name="MultipleActions" xml:space="preserve">
+    <value>Mehrere Aktionen definiert</value>
+  </data>
+  <data name="MultipleTriggers" xml:space="preserve">
+    <value>Mehrere Trigger definiert</value>
+  </data>
+  <data name="ShowMessageAction" xml:space="preserve">
+    <value>{0}</value>
+    <comment>0 = Title; 1 = MessageBody; 2 = Id</comment>
+  </data>
+  <data name="TaskDefaultPrincipal" xml:space="preserve">
+    <value>Autor</value>
+  </data>
+  <data name="TaskStateDisabled" xml:space="preserve">
+    <value>Deaktiviert</value>
+  </data>
+  <data name="TaskStateQueued" xml:space="preserve">
+    <value>Eingereiht</value>
+  </data>
+  <data name="TaskStateReady" xml:space="preserve">
+    <value>Bereit</value>
+  </data>
+  <data name="TaskStateRunning" xml:space="preserve">
+    <value>Wird ausgeführt</value>
+  </data>
+  <data name="TaskStateUnknown" xml:space="preserve">
+    <value>Unbekannt</value>
+  </data>
+  <data name="TriggerAnyUser" xml:space="preserve">
+    <value>eines Benutzers</value>
+  </data>
+  <data name="TriggerBoot1" xml:space="preserve">
+    <value>Beim Systemstart</value>
+  </data>
+  <data name="TriggerCustom1" xml:space="preserve">
+    <value>Benutzerdefinierter Trigger</value>
+  </data>
+  <data name="TriggerDaily1" xml:space="preserve">
+    <value>Um {0:t} jeden Tag</value>
+  </data>
+  <data name="TriggerDaily2" xml:space="preserve">
+    <value>Um {0:t} alle {1} Tage</value>
+  </data>
+  <data name="TriggerDuration0" xml:space="preserve">
+    <value>Sofort</value>
+  </data>
+  <data name="TriggerDurationNot0" xml:space="preserve">
+    <value>für eine Dauer von {0}</value>
+    <comment>0 = Duration</comment>
+  </data>
+  <data name="TriggerEndBoundary" xml:space="preserve">
+    <value>Trigger läuft um {0:G} ab.</value>
+    <comment>0 = EndBoundary</comment>
+  </data>
+  <data name="TriggerEvent1" xml:space="preserve">
+    <value>Benutzerdefinierter Ereignisfilter</value>
+  </data>
+  <data name="TriggerEventBasic1" xml:space="preserve">
+    <value>Bei Ereignis - Protokoll: {0}</value>
+    <comment>0 = Log name</comment>
+  </data>
+  <data name="TriggerEventBasic2" xml:space="preserve">
+    <value>, Quelle: {0}</value>
+    <comment>0 = Source name (appended after log)</comment>
+  </data>
+  <data name="TriggerEventBasic3" xml:space="preserve">
+    <value>, EreignisID: {0}</value>
+    <comment>0 = Event ID (appended after log or source)</comment>
+  </data>
+  <data name="TriggerIdle1" xml:space="preserve">
+    <value>Wenn der Computer inaktiv ist</value>
+  </data>
+  <data name="TriggerLogon1" xml:space="preserve">
+    <value>Bei Anmeldung von {0}</value>
+  </data>
+  <data name="TriggerMonthly1" xml:space="preserve">
+    <value>Um {0:t} am {1} {2}, beginnend mit dem {0:d}</value>
+    <comment>0 = StartBoundary; 1 = list of Days; 2 = list of Months</comment>
+  </data>
+  <data name="TriggerMonthlyDOW1" xml:space="preserve">
+    <value>Um {0:t} am {1} {2:f} jeden {3}, beginnend mit dem {0:d}</value>
+    <comment>0 = StartBoundary; 1 = list of weeks of Month; 2 = list of Week Days; 3 = list of Months</comment>
+  </data>
+  <data name="TriggerRegistration1" xml:space="preserve">
+    <value>Bei Aufgabenerstellung oder -modifizierung</value>
+  </data>
+  <data name="TriggerRepetition" xml:space="preserve">
+    <value>Nach Auslösung, alle {0} {1} wiederholen</value>
+    <comment>0 = Interval; 1= Duration string</comment>
+  </data>
+  <data name="TriggerSessionConsoleConnect" xml:space="preserve">
+    <value>Bei lokaler Verbingung mit {0}.</value>
+    <comment>0 = UserId</comment>
+  </data>
+  <data name="TriggerSessionConsoleDisconnect" xml:space="preserve">
+    <value>Bei lokaler Trennung von {0}.</value>
+    <comment>0 = UserId</comment>
+  </data>
+  <data name="TriggerSessionRemoteConnect" xml:space="preserve">
+    <value>Bei Remotverbindung mit {0}.</value>
+    <comment>0 = UserId</comment>
+  </data>
+  <data name="TriggerSessionRemoteDisconnect" xml:space="preserve">
+    <value>Bei Remottrennung der {0}.</value>
+    <comment>0 = UserId</comment>
+  </data>
+  <data name="TriggerSessionSessionLock" xml:space="preserve">
+    <value>Beim Sperren der Arbeiststation von {0}.</value>
+    <comment>0 = UserId</comment>
+  </data>
+  <data name="TriggerSessionSessionUnlock" xml:space="preserve">
+    <value>Beim Entsperren der Arbeiststation von {0}.</value>
+    <comment>0 = UserId</comment>
+  </data>
+  <data name="TriggerSessionUserSession" xml:space="preserve">
+    <value>Benutzersitzung von {0}</value>
+    <comment>0 = UserId</comment>
+  </data>
+  <data name="TriggerTime1" xml:space="preserve">
+    <value>Um {0:t} am {0:d}</value>
+    <comment>0 = StartBoundary</comment>
+  </data>
+  <data name="TriggerTypeBoot" xml:space="preserve">
+    <value>Beim Start</value>
+  </data>
+  <data name="TriggerTypeCustom" xml:space="preserve">
+    <value>Nach einem Zeitplan</value>
+  </data>
+  <data name="TriggerTypeDaily" xml:space="preserve">
+    <value>Täglich</value>
+  </data>
+  <data name="TriggerTypeEvent" xml:space="preserve">
+    <value>Bei einem Ereignis</value>
+  </data>
+  <data name="TriggerTypeIdle" xml:space="preserve">
+    <value>Im Leerlauf</value>
+  </data>
+  <data name="TriggerTypeLogon" xml:space="preserve">
+    <value>Bei Anmeldung</value>
+  </data>
+  <data name="TriggerTypeMonthly" xml:space="preserve">
+    <value>Monatlich</value>
+  </data>
+  <data name="TriggerTypeMonthlyDOW" xml:space="preserve">
+    <value>Monatlich</value>
+  </data>
+  <data name="TriggerTypeRegistration" xml:space="preserve">
+    <value>Bei Aufgabenerstellung/-änderung</value>
+  </data>
+  <data name="TriggerTypeSessionStateChange" xml:space="preserve">
+    <value>Bei Zustandänderung</value>
+  </data>
+  <data name="TriggerTypeTime" xml:space="preserve">
+    <value>Einmal</value>
+  </data>
+  <data name="TriggerTypeWeekly" xml:space="preserve">
+    <value>Wöchentlich</value>
+  </data>
+  <data name="TriggerWeekly1Week" xml:space="preserve">
+    <value>Um {0:t} jeden {1}, beginnend mit dem {0:d}</value>
+    <comment>0 = StartBoundary; 1 = list of Week Days</comment>
+  </data>
+  <data name="TriggerWeeklyMultWeeks" xml:space="preserve">
+    <value>Um {0:t} jeden {1} alle {2} Wochen, beginnend mit dem {0:d}</value>
+    <comment>0 = StartBoundary; 1 = list of Week Days; 2 = WeekInterval</comment>
+  </data>
+  <data name="WWAllWeeks" xml:space="preserve">
+    <value>Jede</value>
+  </data>
+  <data name="WWFifthWeek" xml:space="preserve">
+    <value>Fünfte</value>
+  </data>
+  <data name="WWFirstWeek" xml:space="preserve">
+    <value>Erste</value>
+  </data>
+  <data name="WWFourthWeek" xml:space="preserve">
+    <value>Vierte</value>
+  </data>
+  <data name="WWLastWeek" xml:space="preserve">
+    <value>Letzte</value>
+  </data>
+  <data name="WWSecondWeek" xml:space="preserve">
+    <value>Zweite</value>
+  </data>
+  <data name="WWThirdWeek" xml:space="preserve">
+    <value>Dritte</value>
+  </data>
+  <data name="TriggerDurationNot0Short" xml:space="preserve">
+    <value>für {0}</value>
+  </data>
+  <data name="TriggerRepetitionShort" xml:space="preserve">
+    <value>Alle {0} {1}.</value>
+  </data>
+  <data name="Error_TriggerEndBeforeStart" xml:space="preserve">
+    <value>Das Datum und die Uhrzeit, zu der ein Trigger abläuft, müssen nach der Uhrzeit liegen, zu der er gestartet oder aktiviert wird.</value>
+  </data>
+</root>

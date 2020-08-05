@@ -86,3 +86,60 @@ D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master\winPE
 D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.csproj.CopyComplete
 D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.exe
 D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.pdb
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\winPEAS.exe.config
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\winPEAS.exe
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\winPEAS.pdb
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\de\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\es\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\fr\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\it\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\pl\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\ru\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\zh-CN\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.csprojAssemblyReference.cache
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.de.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.es.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.fr.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.it.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.pl.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.ru.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.zh-CN.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.csproj.GenerateResource.cache
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\de\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\es\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\fr\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\it\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\pl\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\ru\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\zh-CN\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.exe
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1)\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.pdb
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.de.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.es.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.fr.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.it.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.pl.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.ru.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.Properties.Resources.zh-CN.resources
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.csproj.GenerateResource.cache
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\de\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.exe
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\winPEAS.pdb
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\winPEAS.exe.config
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\winPEAS.exe
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\winPEAS.pdb
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\de\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\es\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\fr\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\it\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\pl\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\ru\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\Release\zh-CN\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\es\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\fr\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\it\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\pl\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\ru\winPEAS.resources.dll
+D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\obj\Release\zh-CN\winPEAS.resources.dll

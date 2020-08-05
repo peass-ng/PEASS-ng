@@ -11,6 +11,7 @@ namespace winPEAS
 {
     class InterestingFiles
     {
+        private InterestingFiles() {}
         public static List<string> GetUnattendedInstallFiles()
         { //From SharpUP
             List<string> results = new List<string>();

@@ -1,0 +1,333 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ActionTypeComHandler" xml:space="preserve">
+    <value>Llamar a un objeto COM</value>
+  </data>
+  <data name="ActionTypeExecute" xml:space="preserve">
+    <value>Iniciar un programa</value>
+  </data>
+  <data name="ActionTypeSendEmail" xml:space="preserve">
+    <value>Enviar un correo electrónico</value>
+  </data>
+  <data name="ActionTypeShowMessage" xml:space="preserve">
+    <value>Mostrar un mensaje</value>
+  </data>
+  <data name="ComHandlerAction" xml:space="preserve">
+    <value>{3} {0:P}</value>
+  </data>
+  <data name="DOWAllDays" xml:space="preserve">
+    <value>todos los días</value>
+  </data>
+  <data name="EmailAction" xml:space="preserve">
+    <value>{1} {0}</value>
+  </data>
+  <data name="EndSentence" xml:space="preserve">
+    <value>.</value>
+  </data>
+  <data name="ExecAction" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="HyphenSeparator" xml:space="preserve">
+    <value>-</value>
+  </data>
+  <data name="ListSeparator" xml:space="preserve">
+    <value>,</value>
+  </data>
+  <data name="MOYAllMonths" xml:space="preserve">
+    <value>mensualmente</value>
+  </data>
+  <data name="MultipleActions" xml:space="preserve">
+    <value>Varias acciones definidas.</value>
+  </data>
+  <data name="MultipleTriggers" xml:space="preserve">
+    <value>Se definieron varios desencadenadores</value>
+  </data>
+  <data name="ShowMessageAction" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="TaskDefaultPrincipal" xml:space="preserve">
+    <value>Autor</value>
+  </data>
+  <data name="TaskStateDisabled" xml:space="preserve">
+    <value>Deshabilitado</value>
+  </data>
+  <data name="TaskStateQueued" xml:space="preserve">
+    <value>En cola</value>
+  </data>
+  <data name="TaskStateReady" xml:space="preserve">
+    <value>Listo</value>
+  </data>
+  <data name="TaskStateRunning" xml:space="preserve">
+    <value>En ejecución</value>
+  </data>
+  <data name="TaskStateUnknown" xml:space="preserve">
+    <value>Desconocido</value>
+  </data>
+  <data name="TriggerAnyUser" xml:space="preserve">
+    <value>Cualquier usuario</value>
+  </data>
+  <data name="TriggerBoot1" xml:space="preserve">
+    <value>Al iniciar el sistema</value>
+  </data>
+  <data name="TriggerCustom1" xml:space="preserve">
+    <value>Desencadenador personalizado</value>
+  </data>
+  <data name="TriggerDaily1" xml:space="preserve">
+    <value>A las {0:t} cada día</value>
+  </data>
+  <data name="TriggerDaily2" xml:space="preserve">
+    <value>A las {0:t} cada {1} días </value>
+  </data>
+  <data name="TriggerDuration0" xml:space="preserve">
+    <value>indefinidamente</value>
+  </data>
+  <data name="TriggerDurationNot0" xml:space="preserve">
+    <value>para una duración de {0}</value>
+  </data>
+  <data name="TriggerEndBoundary" xml:space="preserve">
+    <value>El desencadenador expira en {0:G}.</value>
+  </data>
+  <data name="TriggerEvent1" xml:space="preserve">
+    <value>Filtro de eventos personalizado</value>
+  </data>
+  <data name="TriggerEventBasic1" xml:space="preserve">
+    <value>Al producirse un evento: {0}</value>
+  </data>
+  <data name="TriggerEventBasic2" xml:space="preserve">
+    <value>, Origen: {0}</value>
+  </data>
+  <data name="TriggerEventBasic3" xml:space="preserve">
+    <value>, Identificador del evento: {0}</value>
+  </data>
+  <data name="TriggerIdle1" xml:space="preserve">
+    <value>Cuando el equipo está inactivo</value>
+  </data>
+  <data name="TriggerLogon1" xml:space="preserve">
+    <value>Cuando {0} inicie sesión</value>
+  </data>
+  <data name="TriggerMonthly1" xml:space="preserve">
+    <value>A las {0:t} el día {1} de {2}, a partir del {0:d}</value>
+  </data>
+  <data name="TriggerMonthlyDOW1" xml:space="preserve">
+    <value>A las {0:t} el {1} {2:f} cada {3}, a partir del {0:d}</value>
+  </data>
+  <data name="TriggerRegistration1" xml:space="preserve">
+    <value>Al crear o modificar la tarea</value>
+  </data>
+  <data name="TriggerRepetition" xml:space="preserve">
+    <value>Después de desencadenarse, repetir cada {0} {1}.</value>
+  </data>
+  <data name="TriggerSessionConsoleConnect" xml:space="preserve">
+    <value>En la conexión local a {0}.</value>
+  </data>
+  <data name="TriggerSessionConsoleDisconnect" xml:space="preserve">
+    <value>En la desconexión local de {0}.</value>
+  </data>
+  <data name="TriggerSessionRemoteConnect" xml:space="preserve">
+    <value>En la conexión remota a {0}.</value>
+  </data>
+  <data name="TriggerSessionRemoteDisconnect" xml:space="preserve">
+    <value>En la desconexión remota desde {0}.</value>
+  </data>
+  <data name="TriggerSessionSessionLock" xml:space="preserve">
+    <value>Cuando {0} bloquee la estación de trabajo</value>
+  </data>
+  <data name="TriggerSessionSessionUnlock" xml:space="preserve">
+    <value>Cuando {0} desbloquee la estación de trabajo</value>
+  </data>
+  <data name="TriggerSessionUserSession" xml:space="preserve">
+    <value>sesión de usuario de {0}</value>
+  </data>
+  <data name="TriggerTime1" xml:space="preserve">
+    <value>A las {0:t} el {0:d}</value>
+  </data>
+  <data name="TriggerTypeBoot" xml:space="preserve">
+    <value>Al inicio</value>
+  </data>
+  <data name="TriggerTypeCustom" xml:space="preserve">
+    <value>Desencadenador personalizado</value>
+  </data>
+  <data name="TriggerTypeDaily" xml:space="preserve">
+    <value>Diariamente</value>
+  </data>
+  <data name="TriggerTypeEvent" xml:space="preserve">
+    <value>Al producirse un evento</value>
+  </data>
+  <data name="TriggerTypeIdle" xml:space="preserve">
+    <value>Al estar inactivo</value>
+  </data>
+  <data name="TriggerTypeLogon" xml:space="preserve">
+    <value>Al iniciar la sesión</value>
+  </data>
+  <data name="TriggerTypeMonthly" xml:space="preserve">
+    <value>Mensual</value>
+  </data>
+  <data name="TriggerTypeMonthlyDOW" xml:space="preserve">
+    <value>Mensual</value>
+  </data>
+  <data name="TriggerTypeRegistration" xml:space="preserve">
+    <value>Al crear o modificar tarea</value>
+  </data>
+  <data name="TriggerTypeSessionStateChange" xml:space="preserve">
+    <value>Al producirse un cambio de estado</value>
+  </data>
+  <data name="TriggerTypeTime" xml:space="preserve">
+    <value>Una vez</value>
+  </data>
+  <data name="TriggerTypeWeekly" xml:space="preserve">
+    <value>Semanalmente</value>
+  </data>
+  <data name="TriggerWeekly1Week" xml:space="preserve">
+    <value>A las {0:t} cada {1} de todas las semanas, a partir del {0:d}</value>
+  </data>
+  <data name="TriggerWeeklyMultWeeks" xml:space="preserve">
+    <value>A las {0:t} cada {1} cada {2} semanas, a partir del {0:d}</value>
+  </data>
+  <data name="WWAllWeeks" xml:space="preserve">
+    <value>cada</value>
+  </data>
+  <data name="WWFifthWeek" xml:space="preserve">
+    <value>quinto</value>
+  </data>
+  <data name="WWFirstWeek" xml:space="preserve">
+    <value>primero</value>
+  </data>
+  <data name="WWFourthWeek" xml:space="preserve">
+    <value>cuarto</value>
+  </data>
+  <data name="WWLastWeek" xml:space="preserve">
+    <value>último</value>
+  </data>
+  <data name="WWSecondWeek" xml:space="preserve">
+    <value>segundo</value>
+  </data>
+  <data name="WWThirdWeek" xml:space="preserve">
+    <value>tercer</value>
+  </data>
+  <data name="TriggerRepetitionShort" xml:space="preserve">
+    <value>Cada {0} {1}.</value>
+  </data>
+  <data name="TriggerDurationNot0Short" xml:space="preserve">
+    <value>para {0}</value>
+  </data>
+  <data name="Error_TriggerEndBeforeStart" xml:space="preserve">
+    <value>La fecha y hora en que expira el activador deben ser posteriores a la hora en que se inicia o se activa.</value>
+  </data>
+</root>

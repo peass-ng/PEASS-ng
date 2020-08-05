@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Management;
 using System.Text.RegularExpressions;
@@ -267,57 +269,7 @@ namespace winPEAS
             return results;
         }
 
-        //////////////////////////////////////
-        ///////  Get Autorun Registry ////////
-        //////////////////////////////////////
-        /// Find Autoru registry where you have write or equivalent access
-        public static List<Dictionary<string, string>> GetRegistryAutoRuns(Dictionary<string,string> NtAccountNames)
-        {
-            List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
-            try
-            {
-                string[] autorunLocations = new string[] {
-                "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
-                "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
-                "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
-                "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
-                "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunService",
-                "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnceService",
-                "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunService",
-                "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnceService"
-                };
-
-                foreach (string autorunLocation in autorunLocations)
-                {
-                    Dictionary<string, object> settings = MyUtils.GetRegValues("HKLM", autorunLocation);
-                    if ((settings != null) && (settings.Count != 0))
-                    {
-                        foreach (KeyValuePair<string, object> kvp in settings)
-                        {
-                            RegistryKey key = Registry.LocalMachine.OpenSubKey(autorunLocation);
-
-                            string filepath = Environment.ExpandEnvironmentVariables(String.Format("{0}", kvp.Value));
-                            string folder = System.IO.Path.GetDirectoryName(filepath.Replace("'", "").Replace("\"", ""));
-                            results.Add(new Dictionary<string, string>() {
-                            { "Reg", "HKLM\\"+autorunLocation },
-                            { "Folder", folder },
-                            { "File", filepath },
-                            { "RegPermissions", string.Join(", ", MyUtils.GetMyPermissionsR(key, NtAccountNames)) },
-                            { "interestingFolderRights", String.Join(", ", MyUtils.GetPermissionsFolder(folder, Program.currentUserSIDs))},
-                            { "interestingFileRights", String.Join(", ", MyUtils.GetPermissionsFile(filepath, Program.currentUserSIDs))},
-                            { "isUnquotedSpaced", MyUtils.CheckQuoteAndSpace(filepath).ToString() }
-                        });
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
-            }
-            return results;
-        }
-
+        
         //////////////////////////////////////
         ////////  PATH DLL Hijacking /////////
         //////////////////////////////////////

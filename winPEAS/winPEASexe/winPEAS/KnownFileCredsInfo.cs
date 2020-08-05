@@ -15,6 +15,8 @@ namespace winPEAS
 {
     class KnownFileCredsInfo
     {
+
+        private KnownFileCredsInfo() { }
         public static List<string> GetFirefoxDbs()
         {
             List<string> results = new List<string>();
@@ -79,7 +81,7 @@ namespace winPEAS
         }
 
 
-        public static List<string> ParseFirefoxHistory(string path, string user)
+        public static List<string> ParseFirefoxHistory(string path)
         {
             List<string> results = new List<string>();
             // parses a Firefox history file via regex
@@ -129,19 +131,17 @@ namespace winPEAS
                     foreach (string dir in dirs)
                     {
                         string[] parts = dir.Split('\\');
-                        string userName = parts[parts.Length - 1];
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
                             string userFirefoxBasePath = String.Format("{0}\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\", dir);
-                            results = ParseFirefoxHistory(userFirefoxBasePath, userName);
+                            results = ParseFirefoxHistory(userFirefoxBasePath);
                         }
                     }
                 }
                 else
                 {
-                    string userName = Environment.GetEnvironmentVariable("USERNAME");
                     string userFirefoxBasePath = String.Format("{0}\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\", System.Environment.GetEnvironmentVariable("USERPROFILE"));
-                    results = ParseFirefoxHistory(userFirefoxBasePath, userName);
+                    results = ParseFirefoxHistory(userFirefoxBasePath);
                 }
             }
             catch (Exception ex)
@@ -197,7 +197,7 @@ namespace winPEAS
 
 
 
-        public static List<string> ParseChromeHistory(string path, string user)
+        public static List<string> ParseChromeHistory(string path)
         {
             List<string> results = new List<string>();
 
@@ -234,7 +234,7 @@ namespace winPEAS
         }
 
 
-        public static List<string> ParseChromeBookmarks(string path, string user)
+        public static List<string> ParseChromeBookmarks(string path)
         {
             List<string> results = new List<string>();
             // parses a Chrome bookmarks
@@ -289,25 +289,24 @@ namespace winPEAS
                     foreach (string dir in dirs)
                     {
                         string[] parts = dir.Split('\\');
-                        string userName = parts[parts.Length - 1];
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
                             string userChromeHistoryPath = String.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History", dir);
-                            results["history"] = ParseChromeHistory(userChromeHistoryPath, userName);
+                            results["history"] = ParseChromeHistory(userChromeHistoryPath);
 
                             string userChromeBookmarkPath = String.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Bookmarks", dir);
-                            results["bookmarks"] = ParseChromeBookmarks(userChromeBookmarkPath, userName);
+                            results["bookmarks"] = ParseChromeBookmarks(userChromeBookmarkPath);
                         }
                     }
                 }
                 else
                 {
                     string userChromeHistoryPath = String.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History", System.Environment.GetEnvironmentVariable("USERPROFILE"));
-                    results["history"] = ParseChromeHistory(userChromeHistoryPath, System.Environment.GetEnvironmentVariable("USERNAME"));
+                    results["history"] = ParseChromeHistory(userChromeHistoryPath);
 
                     string userChromeBookmarkPath = String.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Bookmarks", System.Environment.GetEnvironmentVariable("USERPROFILE"));
 
-                    results["bookmarks"] = ParseChromeBookmarks(userChromeBookmarkPath, System.Environment.GetEnvironmentVariable("USERNAME"));
+                    results["bookmarks"] = ParseChromeBookmarks(userChromeBookmarkPath);
                 }
             }
             catch (Exception ex)
@@ -582,12 +581,6 @@ namespace winPEAS
 
             [DllImport("vaultcli.dll")]
             public extern static Int32 VaultOpenVault(ref Guid vaultGuid, UInt32 offset, ref IntPtr vaultHandle);
-
-            [DllImport("vaultcli.dll")]
-            public extern static Int32 VaultCloseVault(ref IntPtr vaultHandle);
-
-            [DllImport("vaultcli.dll")]
-            public extern static Int32 VaultFree(ref IntPtr vaultHandle);
 
             [DllImport("vaultcli.dll")]
             public extern static Int32 VaultEnumerateVaults(Int32 offset, ref Int32 vaultCount, ref IntPtr vaultGuid);

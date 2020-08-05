@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>winPEAS</RootNamespace>
     <AssemblyName>winPEAS</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
@@ -25,6 +25,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -35,6 +36,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>8.0</LangVersion>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -45,7 +49,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
@@ -56,7 +60,7 @@
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
@@ -67,7 +71,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
@@ -78,15 +82,12 @@
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Win32.TaskScheduler, Version=2.8.16.0, Culture=neutral, PublicKeyToken=c416bc1b32d97233, processorArchitecture=MSIL">
-      <HintPath>..\packages\TaskScheduler.2.8.16\lib\net40\Microsoft.Win32.TaskScheduler.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
@@ -110,14 +111,66 @@
     <Compile Include="ProcessesInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ServicesInfo.cs" />
     <Compile Include="SystemInfo.cs" />
+    <Compile Include="TaskScheduler\Action.cs" />
+    <Compile Include="TaskScheduler\ActionCollection.cs" />
+    <Compile Include="TaskScheduler\CultureSwitcher.cs" />
+    <Compile Include="TaskScheduler\EnumGlobalizer.cs" />
+    <Compile Include="TaskScheduler\JetBrains.Annotations.cs" />
+    <Compile Include="TaskScheduler\NamedValueCollection.cs" />
+    <Compile Include="TaskScheduler\Native\AccessControlExtension.cs" />
+    <Compile Include="TaskScheduler\Native\ADVAPI32.cs" />
+    <Compile Include="TaskScheduler\Native\EnumUtil.cs" />
+    <Compile Include="TaskScheduler\Native\InteropUtil.cs" />
+    <Compile Include="TaskScheduler\Native\KERNEL32.cs" />
+    <Compile Include="TaskScheduler\Native\NetServerEnum.cs" />
+    <Compile Include="TaskScheduler\Native\NTDSAPI.cs" />
+    <Compile Include="TaskScheduler\Native\SYSTEMTIME.cs" />
+    <Compile Include="TaskScheduler\Native\WindowsImpersonatedIdentity.cs" />
+    <Compile Include="TaskScheduler\NotV1SupportedException.cs" />
+    <Compile Include="TaskScheduler\ReflectionHelper.cs" />
+    <Compile Include="TaskScheduler\ResourceReferenceValue.cs" />
+    <Compile Include="TaskScheduler\Task.cs" />
+    <Compile Include="TaskScheduler\TaskCollection.cs" />
+    <Compile Include="TaskScheduler\TaskEvent.cs" />
+    <Compile Include="TaskScheduler\TaskEventWatcher.cs" />
+    <Compile Include="TaskScheduler\TaskFolder.cs" />
+    <Compile Include="TaskScheduler\TaskFolderCollection.cs" />
+    <Compile Include="TaskScheduler\TaskHandlerInterfaces.cs" />
+    <Compile Include="TaskScheduler\TaskSecurity.cs" />
+    <Compile Include="TaskScheduler\TaskService.cs" />
+    <Compile Include="TaskScheduler\TaskServiceCronExt.cs" />
+    <Compile Include="TaskScheduler\Trigger.cs" />
+    <Compile Include="TaskScheduler\TriggerCollection.cs" />
+    <Compile Include="TaskScheduler\User.cs" />
+    <Compile Include="TaskScheduler\V1\TaskSchedulerV1Interop.cs" />
+    <Compile Include="TaskScheduler\V2\TaskSchedulerV2Interop.cs" />
+    <Compile Include="TaskScheduler\Wildcard.cs" />
+    <Compile Include="TaskScheduler\XmlSerializationHelper.cs" />
     <Compile Include="UserInfo.cs" />
     <Compile Include="Watson.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.de.resx" />
+    <EmbeddedResource Include="Properties\Resources.es.resx" />
+    <EmbeddedResource Include="Properties\Resources.fr.resx" />
+    <EmbeddedResource Include="Properties\Resources.it.resx" />
+    <EmbeddedResource Include="Properties\Resources.pl.resx" />
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.ru.resx" />
+    <EmbeddedResource Include="Properties\Resources.zh-CN.resx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

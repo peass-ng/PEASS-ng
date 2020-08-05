@@ -12,8 +12,8 @@ Check also the **Local Windows Privilege Escalation checklist** from **[book.hac
 
 Download the **[latest obfuscated version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/winPEAS/bin/Obfuscated%20Releases)** or **compile it yourself** (read instructions for compilation).
 ```bash
-winpeas.exe cmd searchall searchfast #cmd commands, search all filenames and avoid sleepig (noisy - CTFs)
-winpeas.exe #Will execute all checks except the ones that use a CMD
+winpeas.exe cmd searchall #cmd commands, search all filenames and avoid sleepig (noisy - CTFs)
+winpeas.exe #Will execute all checks except the ones that use external Windows binaries
 winpeas.exe cmd #All checks
 winpeas.exe systeminfo userinfo #Only systeminfo and userinfo checks executed
 winpeas.exe notcolor #Do not color the output
@@ -52,11 +52,11 @@ To use **dotfuscator** you will need to **create an account** *(they will send y
 Once you have installed and activated it you need to:
 1. **Compile** winpeas in VisualStudio
 2. **Open dotfuscator** app
-3. **Open** in dotfuscator **winPEAS.exe compiled** before and **Microsoft.Win32.TaskScheduler.dll** (is in the same folder as winPEAS.exe)
+3. **Open** in dotfuscator **winPEAS.exe compiled**
 4. Click on **Build**
 5. The **single, minimized and obfuscated binary** will appear in a **folder called Dotfuscator inside the folder were winPEAS.exe** and the DLL were (this location will be saved by dotfuscator and by default all the following builds will appear in this folder).
 
-**I'm sorry that all of this is necessary but is worth it. Dotfuscator minimizes the size of the executable and obfuscates the code** (F\*\*k you Defender).
+**I'm sorry that all of this is necessary but is worth it. Dotfuscator minimizes a bit the size of the executable and obfuscates the code**.
 
 ![](https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/winPEAS/winPEASexe/images/dotfuscator.PNG)
 

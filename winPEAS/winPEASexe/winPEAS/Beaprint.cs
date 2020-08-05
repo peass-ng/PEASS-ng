@@ -71,6 +71,8 @@ namespace winPEAS
                 Thread.Sleep(700);
         }
 
+        private Beaprint(){}
+
         public static void PrintInit()
         {
             if (Program.banner)
@@ -99,10 +101,10 @@ namespace winPEAS
         {
             System.Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        quiet" + GRAY + "             Do not print banner" + NOCOLOR);
-            System.Console.WriteLine(LBLUE + "        searchfast" + GRAY + "        Avoid sleeping while searching files (notable amount of resources)" + NOCOLOR);
-            System.Console.WriteLine(LBLUE + "        searchall" + GRAY + "         Search all known filenames whith possible credentials (coul take some mins)" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        searchslow" + GRAY + "        Sleep while searching files to not consume a notable amount of resources" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        searchall" + GRAY + "         Search all known filenames whith possible credentials (could take some mins)" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        cmd" + GRAY + "               Obtain wifi, cred manager and clipboard information executing CMD commands" + NOCOLOR);
-            System.Console.WriteLine(LBLUE + "        notcolor" + GRAY + "           Don't use ansi colors (all white)" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        notcolor" + GRAY + "          Don't use ansi colors (all white)" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        systeminfo" + GRAY + "        Search system information" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        userinfo" + GRAY + "          Search user information" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        procesinfo" + GRAY + "        Search processes information" + NOCOLOR);
@@ -112,6 +114,7 @@ namespace winPEAS
             System.Console.WriteLine(LBLUE + "        windowscreds" + GRAY + "      Search windows credentials" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        browserinfo" + GRAY + "       Search browser information" + NOCOLOR);
             System.Console.WriteLine(LBLUE + "        filesinfo" + GRAY + "         Search files that can contains credentials" + NOCOLOR);
+            System.Console.WriteLine(LBLUE + "        wait" + GRAY + "              Wait for user input between checks" + NOCOLOR);
             System.Console.WriteLine(YELLOW + "        [+] " + LYELLOW + "By default all checks (except CMD checks) are executed" + NOCOLOR);
         }
 
@@ -128,10 +131,10 @@ namespace winPEAS
             System.Console.WriteLine(LCYAN + "  " + new String('=', halfTotal - toPrint.Length) + "(" + NOCOLOR + YELLOW + toPrint + LCYAN + ")" + new String('=', halfTotal - toPrint.Length) + NOCOLOR);
         }
 
-        public static void MainPrint(string toPrint, string attackid)
+        public static void MainPrint(string toPrint)
         {
             System.Console.WriteLine();
-            System.Console.WriteLine(YELLOW + "  [+] " + GREEN + toPrint + YELLOW + "(" + DGRAY + attackid + YELLOW + ")" + NOCOLOR);
+            System.Console.WriteLine(YELLOW + "  [+] " + GREEN + toPrint + NOCOLOR);
         }
 
         public static void LinkPrint(string link, string comment = "")
