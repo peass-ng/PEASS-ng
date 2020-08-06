@@ -10,6 +10,8 @@ Check also the **Local Windows Privilege Escalation checklist** from **[book.hac
 
 ## Quick Start
 
+**.Net >= 4.5 is required**
+
 Download the **[latest obfuscated version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/winPEAS/bin/Obfuscated%20Releases)** or **compile it yourself** (read instructions for compilation).
 ```bash
 winpeas.exe cmd searchall #cmd commands, search all filenames and avoid sleepig (noisy - CTFs)
