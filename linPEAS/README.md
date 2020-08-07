@@ -65,6 +65,7 @@ By default linpeas takes around **2 mins** to complete, but It could take from *
 **Other parameters:**
 - **-a** (all checks) - This will **execute also the check of processes during 1 min, will search more possible hashes inside files, and brute-force each user using `su` with the top2000 passwords.**
 - **-s** (superfast & stealth) - This will bypass some time consuming checks - **Stealth mode** (Nothing will be written to disk)
+- **-P** (Password) - Pass a password that will be used with `sudo -l` and bruteforcing other users
 
 This script has **several lists** included inside of it to be able to **color the results** in order to highlight PE vector.
 

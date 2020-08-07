@@ -71,7 +71,7 @@ while getopts "h?asd:p:i:qo:w" opt; do
     d)  DISCOVERY=$OPTARG;;
     p)  PORTS=$OPTARG;;
     i)  IP=$OPTARG;;
-    i)  PASSWORD=$OPTARG;;
+    P)  PASSWORD=$OPTARG;;
     q)  QUIET=1;;
     o)  CHECKS=$OPTARG;;
     w)  WAIT=1;;
