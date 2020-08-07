@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
@@ -489,5 +490,120 @@ namespace winPEAS
             return results;
         }
 
+        private class EnumAPI
+        {
+            [DllImport("psapi")]
+            public static extern bool EnumDeviceDrivers(
+                UIntPtr[] driversList,
+                UInt32 arraySizeBytes,
+                out UInt32 bytesNeeded
+            );
+
+            [DllImport("psapi")]
+            public static extern int GetDeviceDriverFileName(
+                UIntPtr baseAddr,
+                StringBuilder name,
+                UInt32 nameSize
+            );
+
+            [DllImport("psapi")]
+            public static extern int GetDeviceDriverBaseName(
+                UIntPtr baseAddr,
+                StringBuilder name,
+                UInt32 nameSize
+            );
+        }
+
+        public static Dictionary<string, FileVersionInfo> GetDeviceDriversNoMicrosoft()
+        {
+            Dictionary<string, FileVersionInfo> results = new Dictionary<string, FileVersionInfo>();
+
+            // ignore ghosts
+            // https://devblogs.microsoft.com/oldnewthing/20160913-00/?p=94305
+            Regex ignore_ghosts = new Regex("^dump_", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            // manufacturer/providers to ignore
+            Regex ignore_company = new Regex("^Microsoft", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+            string system32 = Environment.SystemDirectory;
+
+            // Get a list of loaded kernel modules
+            UInt32 neededBytes;
+            EnumAPI.EnumDeviceDrivers(null, 0, out neededBytes);
+            UIntPtr[] drivers = new UIntPtr[neededBytes / UIntPtr.Size];
+            EnumAPI.EnumDeviceDrivers(drivers, (UInt32)(drivers.Length * UIntPtr.Size), out neededBytes);
+
+            // iterate over modules
+            foreach (UIntPtr baseAddr in drivers)
+            {
+                StringBuilder buffer = new StringBuilder(1024);
+                EnumAPI.GetDeviceDriverBaseName(baseAddr, buffer, (UInt32)buffer.Capacity);
+                if (ignore_ghosts.IsMatch(buffer.ToString()))
+                {
+                    continue;
+                }
+                EnumAPI.GetDeviceDriverFileName(baseAddr, buffer, (UInt32)buffer.Capacity);
+                string pathname = buffer.ToString();
+
+                // GetDeviceDriverFileName can return a path in a various number of formats, below code tries to handle them.
+                // https://community.osr.com/discussion/228671/querying-device-driver-list-from-kernel-mode
+                if (pathname.StartsWith("\\??\\"))
+                {
+                    pathname = pathname.Remove(0, 4);
+                }
+
+                if (File.Exists(pathname))
+                {
+                    // intentionally empty
+                }
+                else if (pathname[0] == '\\')
+                {
+                    // path could be either in the NtObject namespace or from the filesystem root (without drive)
+                    if (File.Exists("\\\\.\\GLOBALROOT" + pathname))
+                    {
+                        pathname = "\\\\.\\GLOBALROOT" + pathname;
+                    }
+                    else if (File.Exists(system32.Substring(0, 2) + pathname))
+                    {
+                        pathname = system32.Substring(0, 2) + pathname;
+                    }
+                    else
+                    {
+                        Beaprint.GrayPrint(string.Format("Ignoring unknown path {0}", pathname));
+                        continue;
+                    }
+                }
+                else
+                {
+                    // probably module is a boot driver without a full path
+                    if (File.Exists(system32 + "\\drivers\\" + pathname))
+                    {
+                        pathname = system32 + "\\drivers\\" + pathname;
+                    }
+                    else if (File.Exists(system32 + "\\" + pathname))
+                    {
+                        pathname = system32 + "\\" + pathname;
+                    }
+                    else
+                    {
+                        Beaprint.GrayPrint(string.Format("Ignoring unknown path {0}", pathname));
+                        continue;
+                    }
+                }
+
+                try
+                {
+                    FileVersionInfo info = FileVersionInfo.GetVersionInfo(pathname.ToString());
+                    if (!ignore_company.IsMatch(info.CompanyName))
+                    {
+                        results[pathname] = info;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Beaprint.GrayPrint("Error: " + ex);
+                }
+            }
+            return results;
+        }
     }
 }

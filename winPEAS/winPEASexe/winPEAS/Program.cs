@@ -4,6 +4,7 @@ using System.IO;
 using System.Management;
 using System.Text.RegularExpressions;
 using System.Security.Principal;
+using System.Diagnostics;
 
 namespace winPEAS
 {
@@ -1154,12 +1155,34 @@ namespace winPEAS
                 }
             }
 
+            void PrintDeviceDrivers()
+            {
+                try
+                {
+                    Beaprint.MainPrint("Device Drivers --Non Microsoft--");
+                    // this link is not very specific, but its the best on hacktricks
+                    Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/basic-cmd-for-pentesters", "Check 3rd party drivers for known vulnerabilities/rootkits.");
+                    
+                    foreach (var driver in ApplicationInfo.GetDeviceDriversNoMicrosoft())
+                    {
+                        System.Console.WriteLine(String.Format("    {0}\n    {1} [{2}]", driver.Key, driver.Value.ProductName, driver.Value.ProductVersion));
+                        Beaprint.PrintLineSeparator();
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                }
+            }
+
 
             Beaprint.GreatPrint("Applications Information");
             PrintActiveWindow();
             //PrintInstalledApps();
             PrintAutoRuns();
             PrintScheduled();
+            PrintDeviceDrivers();
         }
 
 
