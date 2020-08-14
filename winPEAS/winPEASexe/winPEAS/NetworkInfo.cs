@@ -182,7 +182,7 @@ namespace winPEAS
             try
             {
                 var props = IPGlobalProperties.GetIPGlobalProperties();
-                results.Add(new List<string>() { "Proto", "Local Address", "Foreing Address", "State" });
+                results.Add(new List<string>() { "Proto", "Local Address", "Foreign Address", "State" });
 
                 //foreach (var conn in props.GetActiveTcpConnections())
                 //    results.Add(new List<string>() { "TCP", conn.LocalEndPoint.ToString(), conn.RemoteEndPoint.ToString(), conn.State.ToString() });
