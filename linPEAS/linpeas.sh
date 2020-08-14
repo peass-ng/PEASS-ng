@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.6.8"
+VERSION="v2.6.9"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -813,14 +813,14 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   ###########################################
   printf $B"====================================( "$GREEN"System Information"$B" )====================================\n"$NC
 
-  #-- 1SY) OS
+  #-- SY) OS
   printf $Y"[+] "$GREEN"Operative system\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#kernel-exploits\n"$NC
   (cat /proc/version || uname -a ) 2>/dev/null | sed "s,$kernelDCW_Ubuntu_Precise_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Precise_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Trusty_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Trusty_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Ubuntu_Xenial,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel5,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel6_1,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel6_2,${C}[1;31;103m&${C}[0m," | sed "s,$kernelDCW_Rhel7,${C}[1;31;103m&${C}[0m," | sed "s,$kernelB,${C}[1;31m&${C}[0m,"
   lsb_release -a 2>/dev/null
   echo ""
 
-  #-- 2SY) Sudo 
+  #-- SY) Sudo 
   printf $Y"[+] "$GREEN"Sudo version\n"$NC
   if [ "`which sudo 2>/dev/null`" ]; then
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-version\n"$NC
@@ -829,31 +829,36 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   fi
   echo ""
 
-  #-- 3SY) PATH
+  #-- SY) PATH
   printf $Y"[+] "$GREEN"PATH\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#usdpath\n"$NC
   echo $OLDPATH 2>/dev/null | sed "s,$Wfolders\|\./\|\.:\|:\.,${C}[1;31;103m&${C}[0m,g"
   echo "New path exported: $PATH" 2>/dev/null | sed "s,$Wfolders\|\./\|\.:\|:\. ,${C}[1;31;103m&${C}[0m,g" 
   echo ""
 
-  #-- 4SY) Date
+  #-- SY) Date
   printf $Y"[+] "$GREEN"Date\n"$NC
   date 2>/dev/null || echo_not_found "date"
   echo ""
 
-  #-- 5SY) System stats
+  #-- SY) System stats
   printf $Y"[+] "$GREEN"System stats\n"$NC
   (df -h || lsblk) 2>/dev/null || echo_not_found "df and lsblk"
   free 2>/dev/null || echo_not_found "free"
   echo ""
+  
+  #-- SY) CPU info
+  printf $Y"[+] "$GREEN"CPU info\n"$NC
+  lscpu 2>/dev/null || echo_not_found "lscpu"
+  echo ""
 
-  #-- 6SY) Environment vars 
+  #-- SY) Environment vars 
   printf $Y"[+] "$GREEN"Environment\n"$NC
   printf $B"[i] "$Y"Any private information inside environment variables?\n"$NC
   (env || set) 2>/dev/null | grep -v "RELEVANT*\|FIND*\|^VERSION=\|dbuslistG\|mygroups\|ldsoconfdG\|pwd_inside_history\|kernelDCW_Ubuntu_Precise_1\|kernelDCW_Ubuntu_Precise_2\|kernelDCW_Ubuntu_Trusty_1\|kernelDCW_Ubuntu_Trusty_2\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel5\|kernelDCW_Rhel6_1\|kernelDCW_Rhel6_2\|kernelDCW_Rhel7\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoVB=\|sudocapsB=\|timersG=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=" | sed "s,pwd\|passw\|PWD\|PASSW\|Passwd\|Pwd,${C}[1;31m&${C}[0m,g" || echo_not_found "env || set"
   echo ""
 
-  #-- 7SY) Dmesg
+  #-- SY) Dmesg
   printf $Y"[+] "$GREEN"Searching Signature verification failed in dmseg\n"$NC
   (dmesg 2>/dev/null | grep signature) || echo_not_found
   echo ""
