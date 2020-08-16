@@ -8,12 +8,12 @@
   <input>
     <loadpaths />
     <asmlist>
-      <inputassembly refid="3405f3ce-f41d-4c64-bcb7-fed2e75c472a">
+      <inputassembly refid="03432875-3f82-445c-a3fe-d9777df92e30">
         <option>honoroas</option>
         <option>stripoa</option>
         <option>library</option>
         <option>transformxaml</option>
-        <file dir="D:\Users\cpolo\Downloads\privilege-escalation-awesome-scripts-suite-master (1) - cambiado\privilege-escalation-awesome-scripts-suite-master\winPEAS\winPEASexe\winPEAS\bin\x86\Release" name="winPEAS.exe" />
+        <file dir="D:\Users\cpolo\Downloads\peass\privilege-escalation-awesome-scripts-suite\winPEAS\winPEASexe\winPEAS\bin\x86\Release" name="winPEAS.exe" />
       </inputassembly>
     </asmlist>
   </input>
