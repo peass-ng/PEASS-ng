@@ -10,7 +10,7 @@ namespace winPEAS
 {
     class Program
     {
-        public static string version = "v1";
+        public static string version = "v1.1";
         public static string advisory = "winpeas should be used for authorized penetration testing and/or educational purposes only.Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.";
         public static bool banner = true;
         public static bool search_fast = true;
@@ -1161,12 +1161,32 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Device Drivers --Non Microsoft--");
                     // this link is not very specific, but its the best on hacktricks
-                    Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/basic-cmd-for-pentesters", "Check 3rd party drivers for known vulnerabilities/rootkits.");
+                    Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#vulnerable-drivers", "Check 3rd party drivers for known vulnerabilities/rootkits.");
                     
                     foreach (var driver in ApplicationInfo.GetDeviceDriversNoMicrosoft())
                     {
-                        System.Console.WriteLine(String.Format("    {0}\n    {1} [{2}]", driver.Key, driver.Value.ProductName, driver.Value.ProductVersion));
-                        Beaprint.PrintLineSeparator();
+                        string path_driver = driver.Key;
+                        List<string> file_rights = MyUtils.GetPermissionsFile(path_driver, currentUserSIDs);
+                        List<string> dir_rights = MyUtils.GetPermissionsFolder(path_driver, currentUserSIDs);
+
+                        Dictionary<string, string> colorsD = new Dictionary<string, string>()
+                        {
+                            { "Permissions.*", Beaprint.ansi_color_bad },
+                            { path_driver.Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+"), (file_rights.Count > 0 || dir_rights.Count > 0) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
+                        };
+
+                        
+                        string formString = "    {0} - {1} [{2}]: {3}";
+                        if (file_rights.Count > 0)
+                            formString += "\n    Permissions file: {4}";
+                        if (dir_rights.Count > 0)
+                            formString += "\n    Permissions folder(DLL Hijacking): {5}";
+
+                        Beaprint.AnsiPrint(String.Format(formString, driver.Value.ProductName, driver.Value.ProductVersion, driver.Value.CompanyName, path_driver, String.Join(", ", file_rights), String.Join(", ", dir_rights)), colorsD);
+
+                        //If vuln, end with separator
+                        if ((file_rights.Count > 0) || (dir_rights.Count > 0))
+                            Beaprint.PrintLineSeparator();
                     }
 
                 }
@@ -1179,7 +1199,7 @@ namespace winPEAS
 
             Beaprint.GreatPrint("Applications Information");
             PrintActiveWindow();
-            //PrintInstalledApps();
+            PrintInstalledApps();
             PrintAutoRuns();
             PrintScheduled();
             PrintDeviceDrivers();
@@ -1967,8 +1987,8 @@ namespace winPEAS
                     {
                         foreach (Dictionary<string, string> cc in could_creds)
                         {
-                            string formString = "    {0}[{1}]\n    Accessed:{2} -- Size:{3}";
-                            System.Console.WriteLine(String.Format(formString, cc));
+                            string formString = "    {0} ({1})\n    Accessed:{2} -- Size:{3}";
+                            Beaprint.BadPrint(String.Format(formString, cc["file"], cc["Description"], cc["Accessed"], cc["Size"] ));
                             System.Console.WriteLine("");
                         }
                     }
@@ -2447,7 +2467,7 @@ namespace winPEAS
              * Wifi (passwords?)
              * Keylogger?
              * Input prompt ==> Better in PS
-             * List Drivers ==> but how do I know if a driver is malicious?
+             * Cretae list of malicious drives that could allow to privesc?
              */
 
             //System.Console.ReadLine(); //For debugging

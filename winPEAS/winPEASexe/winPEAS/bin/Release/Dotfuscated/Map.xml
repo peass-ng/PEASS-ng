@@ -2,7 +2,7 @@
 <!DOCTYPE dotfuscatorMap SYSTEM "http://www.preemptive.com/dotfuscator/dtd/dotfuscatorMap_v1.2.dtd">
 <dotfuscatorMap version="1.1">
     <header>
-        <timestamp>2020-08-06T00:06:30</timestamp>
+        <timestamp>2020-08-16T15:36:41</timestamp>
         <product version="5.44.0.10087" user="rhalyc gar" serial="297344-391">Dotfuscator Community</product>
     </header>
     <mapping>
@@ -14614,7 +14614,7 @@
                     <method>
                         <signature>string()</signature>
                         <name>GetActiveWindowTitle</name>
-                        <newname>e</newname>
+                        <newname>f</newname>
                     </method>
                     <method>
                         <signature>System.Collections.Generic.List`1&lt;System.Collections.Generic.Dictionary`2&lt;string,string&gt;&gt;(System.Collections.Generic.Dictionary`2&lt;string,string&gt;)</signature>
@@ -14624,12 +14624,17 @@
                     <method>
                         <signature>System.Collections.Generic.List`1&lt;System.Collections.Generic.Dictionary`2&lt;string,string&gt;&gt;()</signature>
                         <name>GetAutoRunsFolder</name>
-                        <newname>c</newname>
+                        <newname>d</newname>
                     </method>
                     <method>
                         <signature>System.Collections.Generic.List`1&lt;System.Collections.Generic.Dictionary`2&lt;string,string&gt;&gt;()</signature>
                         <name>GetAutoRunsWMIC</name>
-                        <newname>b</newname>
+                        <newname>c</newname>
+                    </method>
+                    <method>
+                        <signature>System.Collections.Generic.Dictionary`2&lt;string,System.Diagnostics.FileVersionInfo&gt;()</signature>
+                        <name>GetDeviceDriversNoMicrosoft</name>
+                        <newname>a</newname>
                     </method>
                     <method>
                         <signature>native int()</signature>
@@ -14638,7 +14643,7 @@
                     <method>
                         <signature>System.Collections.Generic.SortedDictionary`2&lt;string,System.Collections.Generic.Dictionary`2&lt;string,string&gt;&gt;()</signature>
                         <name>GetInstalledAppsPerms</name>
-                        <newname>d</newname>
+                        <newname>e</newname>
                     </method>
                     <method>
                         <signature>System.Collections.Generic.SortedDictionary`2&lt;string,System.Collections.Generic.Dictionary`2&lt;string,string&gt;&gt;(string)</signature>
@@ -14653,7 +14658,7 @@
                     <method>
                         <signature>System.Collections.Generic.List`1&lt;System.Collections.Generic.Dictionary`2&lt;string,string&gt;&gt;()</signature>
                         <name>GetScheduledAppsNoMicrosoft</name>
-                        <newname>a</newname>
+                        <newname>b</newname>
                     </method>
                     <method>
                         <signature>int32(native int, System.Text.StringBuilder, int32)</signature>
@@ -14706,7 +14711,7 @@
             </type>
             <type>
                 <name>winPEAS.ApplicationInfo/&lt;&gt;c__DisplayClass9_0</name>
-                <newname>b2/a</newname>
+                <newname>b2/b</newname>
                 <methodlist />
                 <fieldlist>
                     <field>
@@ -14715,6 +14720,31 @@
                         <newname>a</newname>
                     </field>
                 </fieldlist>
+                <propertylist />
+                <eventlist />
+            </type>
+            <type>
+                <name>winPEAS.ApplicationInfo/EnumAPI</name>
+                <newname>b2/a</newname>
+                <methodlist>
+                    <method>
+                        <signature>void()</signature>
+                        <name>.ctor</name>
+                    </method>
+                    <method>
+                        <signature>bool(native unsigned int[], unsigned int32, unsigned int32&amp;)</signature>
+                        <name>EnumDeviceDrivers</name>
+                    </method>
+                    <method>
+                        <signature>int32(native unsigned int, System.Text.StringBuilder, unsigned int32)</signature>
+                        <name>GetDeviceDriverBaseName</name>
+                    </method>
+                    <method>
+                        <signature>int32(native unsigned int, System.Text.StringBuilder, unsigned int32)</signature>
+                        <name>GetDeviceDriverFileName</name>
+                    </method>
+                </methodlist>
+                <fieldlist />
                 <propertylist />
                 <eventlist />
             </type>
@@ -17274,22 +17304,27 @@
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintInfoApplications&gt;g__PrintActiveWindow|44_0</name>
-                        <newname>at</newname>
+                        <newname>au</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintInfoApplications&gt;g__PrintAutoRuns|44_2</name>
-                        <newname>ar</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoApplications&gt;g__PrintInstalledApps|44_1</name>
                         <newname>as</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInfoApplications&gt;g__PrintScheduled|44_3</name>
+                        <name>&lt;PrintInfoApplications&gt;g__PrintDeviceDrivers|44_4</name>
                         <newname>aq</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInfoApplications&gt;g__PrintInstalledApps|44_1</name>
+                        <newname>at</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInfoApplications&gt;g__PrintScheduled|44_3</name>
+                        <newname>ar</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
@@ -17324,7 +17359,7 @@
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintInfoProcesses&gt;g__PrintInterestingProcesses|42_0</name>
-                        <newname>aw</newname>
+                        <newname>ax</newname>
                     </method>
                     <method>
                         <signature>void(winPEAS.Program/&lt;&gt;c__DisplayClass43_0&amp;)</signature>
@@ -17339,62 +17374,62 @@
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintInfoServices&gt;g__PrintPathDLLHijacking|43_3</name>
-                        <newname>au</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoServices&gt;g__PrintWritableRegServices|43_2</name>
                         <newname>av</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
+                        <name>&lt;PrintInfoServices&gt;g__PrintWritableRegServices|43_2</name>
+                        <newname>aw</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
                         <name>&lt;PrintInfoUsers&gt;g__PrintAutoLogin|41_7</name>
-                        <newname>az</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintCU|41_1</name>
-                        <newname>a5</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintClipboardText|41_3</name>
-                        <newname>a3</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintEverLoggedUsers|41_6</name>
                         <newname>a0</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintHomeFolders|41_8</name>
-                        <newname>ay</newname>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintCU|41_1</name>
+                        <newname>a6</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintLoggedUsers|41_4</name>
-                        <newname>a2</newname>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintClipboardText|41_3</name>
+                        <newname>a4</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintPasswordPolicies|41_9</name>
-                        <newname>ax</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintInfoUsers&gt;g__PrintRdpSessions|41_5</name>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintEverLoggedUsers|41_6</name>
                         <newname>a1</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintHomeFolders|41_8</name>
+                        <newname>az</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintLoggedUsers|41_4</name>
+                        <newname>a3</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintPasswordPolicies|41_9</name>
+                        <newname>ay</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintInfoUsers&gt;g__PrintRdpSessions|41_5</name>
+                        <newname>a2</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
                         <name>&lt;PrintInfoUsers&gt;g__PrintTokenP|41_2</name>
-                        <newname>a4</newname>
+                        <newname>a5</newname>
                     </method>
                     <method>
                         <signature>System.Collections.Generic.Dictionary`2&lt;string,string&gt;()</signature>
                         <name>&lt;PrintInfoUsers&gt;g__colorsU|41_0</name>
-                        <newname>a6</newname>
+                        <newname>a7</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
@@ -17474,77 +17509,77 @@
                     <method>
                         <signature>void()</signature>
                         <name>&lt;PrintSystemInfo&gt;g__PrintAVInfo|40_13</name>
-                        <newname>a8</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintAuditInfo|40_2</name>
-                        <newname>bj</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintBasicSystemInfo|40_0</name>
-                        <newname>bl</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintCachedCreds|40_8</name>
-                        <newname>bd</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintCredentialGuard|40_7</name>
-                        <newname>be</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintDrivesInfo|40_12</name>
                         <newname>a9</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintInetInfo|40_11</name>
-                        <newname>ba</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintLAPSInfo|40_4</name>
-                        <newname>bh</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintLSAProtection|40_6</name>
-                        <newname>bf</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintPSInfo|40_1</name>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintAuditInfo|40_2</name>
                         <newname>bk</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintSystemEV|40_10</name>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintBasicSystemInfo|40_0</name>
+                        <newname>bm</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintCachedCreds|40_8</name>
+                        <newname>be</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintCredentialGuard|40_7</name>
+                        <newname>bf</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintDrivesInfo|40_12</name>
+                        <newname>ba</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintInetInfo|40_11</name>
                         <newname>bb</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintUACInfo|40_14</name>
-                        <newname>a7</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintUserEV|40_9</name>
-                        <newname>bc</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintWEFInfo|40_3</name>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintLAPSInfo|40_4</name>
                         <newname>bi</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>&lt;PrintSystemInfo&gt;g__PrintWdigest|40_5</name>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintLSAProtection|40_6</name>
                         <newname>bg</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintPSInfo|40_1</name>
+                        <newname>bl</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintSystemEV|40_10</name>
+                        <newname>bc</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintUACInfo|40_14</name>
+                        <newname>a8</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintUserEV|40_9</name>
+                        <newname>bd</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintWEFInfo|40_3</name>
+                        <newname>bj</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>&lt;PrintSystemInfo&gt;g__PrintWdigest|40_5</name>
+                        <newname>bh</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
@@ -17624,12 +17659,12 @@
                     <method>
                         <signature>void()</signature>
                         <name>CheckRegANSI</name>
-                        <newname>bw</newname>
+                        <newname>bx</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
                         <name>CreateDynamicLists</name>
-                        <newname>bx</newname>
+                        <newname>by</newname>
                     </method>
                     <method>
                         <signature>void(string[])</signature>
@@ -17639,52 +17674,52 @@
                     <method>
                         <signature>void()</signature>
                         <name>PrintBrowserInfo</name>
-                        <newname>bn</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>PrintInfoApplications</name>
-                        <newname>bq</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>PrintInfoNetwork</name>
-                        <newname>bp</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>PrintInfoProcesses</name>
-                        <newname>bs</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>PrintInfoServices</name>
-                        <newname>br</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>PrintInfoUsers</name>
-                        <newname>bt</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>PrintInterestingFiles</name>
-                        <newname>bm</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>PrintSystemInfo</name>
-                        <newname>bu</newname>
-                    </method>
-                    <method>
-                        <signature>void()</signature>
-                        <name>PrintWindowsCreds</name>
                         <newname>bo</newname>
                     </method>
                     <method>
                         <signature>void()</signature>
-                        <name>waitInput</name>
+                        <name>PrintInfoApplications</name>
+                        <newname>br</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>PrintInfoNetwork</name>
+                        <newname>bq</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>PrintInfoProcesses</name>
+                        <newname>bt</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>PrintInfoServices</name>
+                        <newname>bs</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>PrintInfoUsers</name>
+                        <newname>bu</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>PrintInterestingFiles</name>
+                        <newname>bn</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>PrintSystemInfo</name>
                         <newname>bv</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>PrintWindowsCreds</name>
+                        <newname>bp</newname>
+                    </method>
+                    <method>
+                        <signature>void()</signature>
+                        <name>waitInput</name>
+                        <newname>bw</newname>
                     </method>
                 </methodlist>
                 <fieldlist>
@@ -20029,11 +20064,11 @@
     <statistics>
         <statisticline>
             <description>Total Classes</description>
-            <statistic>304</statistic>
+            <statistic>305</statistic>
         </statisticline>
         <statisticline>
             <description>Total Methods</description>
-            <statistic>2204</statistic>
+            <statistic>2210</statistic>
         </statisticline>
         <statisticline>
             <description>Total Fields</description>
@@ -20049,13 +20084,13 @@
         </statisticline>
         <statisticline>
             <description>Total Classes Renamed</description>
-            <statistic>206</statistic>
-            <statistic>67.76 %</statistic>
+            <statistic>207</statistic>
+            <statistic>67.87 %</statistic>
         </statisticline>
         <statisticline>
             <description>Total Methods Renamed</description>
-            <statistic>1206</statistic>
-            <statistic>54.72 %</statistic>
+            <statistic>1208</statistic>
+            <statistic>54.66 %</statistic>
         </statisticline>
         <statisticline>
             <description>Total Fields Renamed</description>
@@ -20075,32 +20110,32 @@
         <statisticline>
             <description>Methods Renamed to 'a'</description>
             <statistic>270</statistic>
-            <statistic>12.25 %</statistic>
+            <statistic>12.22 %</statistic>
         </statisticline>
         <statisticline>
             <description>Methods Renamed to 'b'</description>
             <statistic>93</statistic>
-            <statistic>4.22 %</statistic>
+            <statistic>4.21 %</statistic>
         </statisticline>
         <statisticline>
             <description>Methods Renamed to 'c'</description>
             <statistic>92</statistic>
-            <statistic>4.17 %</statistic>
+            <statistic>4.16 %</statistic>
         </statisticline>
         <statisticline>
             <description>Methods Renamed to 'd'</description>
             <statistic>79</statistic>
-            <statistic>3.58 %</statistic>
+            <statistic>3.57 %</statistic>
         </statisticline>
         <statisticline>
             <description>Methods Renamed to 'e'</description>
             <statistic>55</statistic>
-            <statistic>2.50 %</statistic>
+            <statistic>2.49 %</statistic>
         </statisticline>
         <statisticline>
             <description>Methods Renamed to 'f'</description>
-            <statistic>46</statistic>
-            <statistic>2.09 %</statistic>
+            <statistic>47</statistic>
+            <statistic>2.13 %</statistic>
         </statisticline>
         <statisticline>
             <description>Methods Renamed to 'h'</description>
