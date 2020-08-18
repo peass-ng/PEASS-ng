@@ -118,3 +118,4 @@ D:\Users\cpolo\Downloads\peass\privilege-escalation-awesome-scripts-suite\winPEA
 D:\Users\cpolo\Downloads\peass\privilege-escalation-awesome-scripts-suite\winPEAS\winPEASexe\winPEAS\obj\x64\Release\zh-CN\winPEAS.resources.dll
 D:\Users\cpolo\Downloads\peass\privilege-escalation-awesome-scripts-suite\winPEAS\winPEASexe\winPEAS\obj\x64\Release\winPEAS.exe
 D:\Users\cpolo\Downloads\peass\privilege-escalation-awesome-scripts-suite\winPEAS\winPEASexe\winPEAS\obj\x64\Release\winPEAS.pdb
+D:\Users\cpolo\Downloads\peass\privilege-escalation-awesome-scripts-suite\winPEAS\winPEASexe\winPEAS\obj\x64\Release\winPEAS.csprojAssemblyReference.cache

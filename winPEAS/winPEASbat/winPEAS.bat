@@ -280,8 +280,7 @@ ipconfig /displaydns | findstr "Record" | findstr "Name Host"
 echo.
 echo.
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] WIFI ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
-echo [i] To get the clear-text password use: netsh wlan show profile <SSID> key=clear
-netsh wlan show profile
+for /f "tokens=4 delims=: " %%a in ('netsh wlan show profiles ^| find "Profile "') do (netsh wlan show profiles name=%%a key=clear | findstr "SSID Cipher Content" | find /v "Number" & echo.)
 echo.
 echo.
 echo.
