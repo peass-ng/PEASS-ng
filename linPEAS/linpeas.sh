@@ -1157,7 +1157,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
 
   printf $Y"[+] "$GREEN"D-Bus Service Objects list\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#d-bus\n"$NC
-  dbuslist=$(busctl list)
+  dbuslist=$(busctl list 2>/dev/null)
   if [ "$dbuslist" ]; then
     busctl list | while read line; do
       echo "$line" | sed -E "s,$dbuslistG,${C}[1;32m&${C}[0m,g";
