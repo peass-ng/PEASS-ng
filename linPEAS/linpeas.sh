@@ -62,7 +62,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
       $Y-i <IP> [-p <PORT(s)>]$B Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
       $GREEN Notice$B that if you select some network action, no PE check will be performed\n\n$NC"
 
-while getopts "h?asd:p:i:qo:w" opt; do
+while getopts "h?asnd:p:i:P:qo:w" opt; do
   case "$opt" in
     h|\?) printf "$HELP"$NC; exit 0;;
     a)  FAST="";;
