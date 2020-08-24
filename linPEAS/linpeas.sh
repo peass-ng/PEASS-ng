@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.7.1"
+VERSION="v2.7.2"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -834,7 +834,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 
   #-- SY) PATH
   printf $Y"[+] "$GREEN"PATH\n"$NC
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#usdpath\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-path-abuses\n"$NC
   echo $OLDPATH 2>/dev/null | sed "s,$Wfolders\|\./\|\.:\|:\.,${C}[1;31;103m&${C}[0m,g"
   echo "New path exported: $PATH" 2>/dev/null | sed "s,$Wfolders\|\./\|\.:\|:\. ,${C}[1;31;103m&${C}[0m,g" 
   echo ""
@@ -863,6 +863,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 
   #-- SY) Dmesg
   printf $Y"[+] "$GREEN"Searching Signature verification failed in dmseg\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#dmesg-signature-verification-failed\n"$NC
   (dmesg 2>/dev/null | grep "signature") || echo_not_found
   echo ""
 
@@ -1020,7 +1021,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
 
   #-- 4PCS) Cron
   printf $Y"[+] "$GREEN"Cron jobs\n"$NC
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#scheduled-jobs\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#scheduled-cron-jobs\n"$NC
   crontab -l 2>/dev/null | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
   ls -al /etc/cron* 2>/dev/null | sed "s,$cronjobsG,${C}[1;32m&${C}[0m,g" | sed "s,$cronjobsB,${C}[1;31m&${C}[0m,g"
   cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs /var/spool/cron/crontabs/* /var/spool/anacron /etc/incron.d/* /var/spool/incron/* 2>/dev/null | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m,"  | sed "s,root,${C}[1;31m&${C}[0m,"
@@ -1035,7 +1036,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
 
   #-- PSC) systemd PATH
   printf $Y"[+] "$GREEN"Systemd PATH\n"$NC
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#systemd-path\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#systemd-path-relative-paths\n"$NC
   systemctl show-environment 2>/dev/null | grep "PATH" | sed "s,$Wfolders\|\./\|\.:\|:\.,${C}[1;31;103m&${C}[0m,g"
   WRITABLESYSTEMDPATH=`systemctl show-environment 2>/dev/null | grep "PATH" | grep "$Wfolders"`
   echo ""
@@ -1217,7 +1218,7 @@ if [ "`echo $CHECKS | grep Net`" ]; then
 
   #-- NI) Ports
   printf $Y"[+] "$GREEN"Active Ports\n"$NC
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#internal-open-ports\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-ports\n"$NC
   (netstat -punta || ss --ntpu) 2>/dev/null | sed "s,127.0.0.1,${C}[1;31m&${C}[0m,"
   echo ""
 
@@ -1243,7 +1244,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
 
   #-- UI) My user
   printf $Y"[+] "$GREEN"My user\n"$NC
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#groups\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#users\n"$NC
   (id || (whoami && groups)) 2>/dev/null | sed "s,$groupsB,${C}[1;31m&${C}[0m,g" | sed "s,$groupsVB,${C}[1;31;103m&${C}[0m,g" | sed "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m,g" | sed "s,$knw_usrs,${C}[1;32m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,$knw_grps,${C}[1;32m&${C}[0m,g" | sed "s,$idB,${C}[1;31m&${C}[0m,g"
   echo ""
 
@@ -1266,7 +1267,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
 
   #-- UI) Sudo -l
   printf $Y"[+] "$GREEN"Checking 'sudo -l', /etc/sudoers, and /etc/sudoers.d\n"$NC
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid\n"$NC
   (echo '' | sudo -S -l | sed "s,_proxy,${C}[1;31m&${C}[0m,g" | sed "s,$sudoG,${C}[1;32m&${C}[0m,g" | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m,") 2>/dev/null  || echo_not_found "sudo" 
   if [ "$PASSWORD" ]; then
     (echo "$PASSWORD" | sudo -S -l | sed "s,_proxy,${C}[1;31m&${C}[0m,g" | sed "s,$sudoG,${C}[1;32m&${C}[0m,g" | sed "s,$sudoB,${C}[1;31m&${C}[0m,g" | sed "s,$sudoVB,${C}[1;31;103m&${C}[0m,") 2>/dev/null  || echo_not_found "sudo"
@@ -1315,6 +1316,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
 
   #-- UI) Pkexec policy
   printf $Y"[+] "$GREEN"Checking Pkexec policy\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation/interesting-groups-linux-pe#pe-method-2\n"$NC
   (cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null | grep -v "^#" | grep -Pv "\W*\#" 2>/dev/null | sed "s,$groupsB,${C}[1;31m&${C}[0m," | sed "s,$groupsVB,${C}[1;31m&${C}[0m," | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | sed "s,$GROUPS,${C}[1;31;103m&${C}[0m,") || echo_not_found "/etc/polkit-1/localauthority.conf.d"
   echo ""
 
@@ -2019,7 +2021,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) SUID
   printf $Y"[+] "$GREEN"SUID - Check easy privesc, exploits and write perms\n"$NC
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid\n"$NC
   for s in `find / -perm -4000 2>/dev/null`; do
     if [ -O "$s" ]; then
       echo "You own the SUID file: $s" | sed "s,.*,${C}[1;31m&${C}[0m,"
@@ -2043,7 +2045,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) SGID
   printf $Y"[+] "$GREEN"SGID\n"$NC
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#commands-with-sudo-and-suid-commands\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid\n"$NC
   for s in `find / -perm -g=s -type f 2>/dev/null`; do
     if [ -w $s ]; then #If write permision, win found (no check exploits)
       echo "You can write SUID file: $s" | sed "s,.*,${C}[1;31;103m&${C}[0m,"
@@ -2083,6 +2085,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Users with capabilities
   printf $Y"[+] "$GREEN"Users with capabilities\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#capabilities\n"$NC
   if [ -f "/etc/security/capability.conf" ]; then
     grep -v '^#\|none\|^$' /etc/security/capability.conf 2>/dev/null | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m,"
   else echo_not_found "/etc/security/capability.conf"
@@ -2091,11 +2094,13 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Files with ACLs
   printf $Y"[+] "$GREEN"Files with ACLs\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#acls\n"$NC
   ((getfacl -t -s -R -p /bin /etc /home /opt /root /sbin /usr /tmp 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | sed "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m,"
   echo ""
   
   ##-- IF) .sh files in PATH
   printf $Y"[+] "$GREEN".sh files in path\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#script-binaries-in-path\n"$NC
   for d in `echo $PATH | tr ":" "\n"`; do find $d -name "*.sh" 2>/dev/null | sed "s,$pathshG,${C}[1;32m&${C}[0m," ; done
   echo ""
 
@@ -2106,6 +2111,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Files (scripts) in /etc/profile.d/
   printf $Y"[+] "$GREEN"Files (scripts) in /etc/profile.d/\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#profiles-files\n"$NC
   (ls -la /etc/profile.d/ | sed "s,$profiledG,${C}[1;32m&${C}[0m,") || echo_not_found "/etc/profile.d/"
   if [ -w "/etc/profile" ]; then echo "You can modify /etc/profile" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/etc/profile.d/" ]; then echo "You have write privileges over /etc/profile.d/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
@@ -2113,7 +2119,8 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   echo ""
 
    ##-- IF) Files (scripts) in /etc/init.d/
-  printf $Y"[+] "$GREEN"Permissions in init, init.d and systemd\n"$NC
+  printf $Y"[+] "$GREEN"Permissions in init, init.d, systemd, and rc.d\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#init-init-d-systemd-and-rc-d\n"$NC
   if [ -w "/etc/init/" ]; then echo "You have write privileges over /etc/init/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ "`find /etc/init/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/init/ -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/etc/init.d/" ]; then echo "You have write privileges over /etc/init.d/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
@@ -2122,6 +2129,8 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   if [ "`find /etc/rc.d/init.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d/init.d -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/usr/local/etc/rc.d" ]; then echo "You have write privileges over /usr/local/etc/rc.d" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ "`find /usr/local/etc/rc.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /usr/local/etc/rc.d -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ -w "/etc/rc.d" ]; then echo "You have write privileges over /etc/rc.d" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /etc/rc.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/etc/systemd/" ]; then echo "You have write privileges over /etc/systemd/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ "`find /etc/systemd/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/systemd/ -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/lib/systemd/" ]; then echo "You have write privileges over /lib/systemd/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
@@ -2200,9 +2209,11 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $Y"[+] "$GREEN"Writable log files (logrotten) (limit 100)\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#logrotate-exploitation\n"$NC
   for log in $(find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 3){ print line_init; }; if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; pre=act}' | head -n 100 ); do
-    if [ `echo "$log" | grep "You_can_write_more_log_files_inside_last_directory"` ]; then printf $ITALIC"$log\n"$NC;
-    elif [ -w "$log" ]; then printf "Writable:$RED $log\n"$NC;
-    elif [ `echo "$log" | grep "$Wfolders"` ]; then echo "Writable folder: $log" | sed "s,$Wfolders,${C}[1;31m&${C}[0m,";
+    if [ -w "$log" ] || [ `echo "$log" | grep "$Wfolders"` ]; then #Only print info if something interesting found
+      if [ `echo "$log" | grep "You_can_write_more_log_files_inside_last_directory"` ]; then printf $ITALIC"$log\n"$NC;
+      elif [ -w "$log" ]; then printf "Writable:$RED $log\n"$NC;
+      elif [ `echo "$log" | grep "$Wfolders"` ]; then echo "Writable folder: $log" | sed "s,$Wfolders,${C}[1;31m&${C}[0m,g";
+      fi
     fi
   done
 
