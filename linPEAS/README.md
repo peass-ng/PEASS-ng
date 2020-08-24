@@ -238,6 +238,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Erlang Cookie
   - [X] GVM config
   - [x] IPSEC files
+  - [x] IRSSI config file
 
 
 - **Generic Interesting Files**
@@ -248,6 +249,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Files with ACLs
   - [x] .sh scripts in PATH
   - [x] scripts in /etc/profile.d
+  - [x] scripts in init, init.d and systemd
   - [x] Hashes (passwd, group, shadow & master.passwd)
   - [x] Credentials in fstab
   - [x] Try to read root dir
