@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.7.3"
+VERSION="v2.7.4"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -209,7 +209,8 @@ PASSTRY="2000" #Default num of passwds to try (all by default)
 
 SEDOVERFLOW=true
 while $SEDOVERFLOW; do
-  WF=`find /dev /srv /proc /home /media /sys /lost+found /run /etc /root /var /tmp /mnt /boot /opt -type d -maxdepth $MAXPATH_FIND_W -writable 2>/dev/null | sort`
+  WF=`find / -type d -maxdepth $MAXPATH_FIND_W -writable 2>/dev/null | sort`
+  #WF=`find /dev /srv /proc /home /media /sys /lost+found /run /etc /root /var /tmp /mnt /boot /opt -type d -maxdepth $MAXPATH_FIND_W -writable 2>/dev/null | sort`
   Wfolders=`echo $WF | tr ' ' '|' | sed 's/|/\\\|/g'`"\|[^\*]\ \*"
   printf "test\ntest\ntest\ntest"| sed "s,$Wfolders\|\./\|\.:\|:\.,${C}[1;31;103m&${C}[0m,g" >/dev/null 2>&1
   if [ $? -eq 0 ]; then
@@ -239,7 +240,7 @@ mail_apps="Postfix\|Dovecot\|Exim\|SquirrelMail\|Cyrus\|Sendmail\|Courier"
 
 profiledG="01-locale-fix.sh\|256term.csh\|256term.sh\|abrt-console-notification.sh\|appmenu-qt5.sh\|apps-bin-path.sh\|bash_completion.sh\|cedilla-portuguese.sh\|colorgrep.csh\|colorgrep.sh\|colorls.csh\|colorls.sh\|colorxzgrep.csh\|colorxzgrep.sh\|colorzgrep.csh\|colorzgrep.sh\|csh.local\|gawk.csh\|gawk.sh\|kali.sh\|lang.csh\|lang.sh\|less.csh\|less.sh\|sh.local\|vim.csh\|vim.sh\|vte.csh\|vte-2.91.sh\|which2.csh\|which2.sh\|Z97-byobu.sh\|Z99-cloudinit-warnings.sh\|Z99-cloud-locale-test.sh"
 
-knw_emails=".*@aivazian.fsnet.co.uk\|.*@angband.pl\|.*@canonical.com\|.*centos.org\|.*debian.net\|.*debian.org\|.*@jff.email\|.*kali.org\|.*linux.it\|.*@linuxia.de\|.*@lists.debian-maintainers.org\|.*@mit.edu\|.*@oss.sgi.com\|.*@qualcomm.com\|.*redhat.com\|.*ubuntu.com\|.*@vger.kernel.org\|rogershimizu@gmail.com\|thmarques@gmail.com"
+knw_emails=".*@aivazian.fsnet.co.uk\|.*@angband.pl\|.*@canonical.com\|.*centos.org\|.*debian.net\|.*debian.org\|.*@jff.email\|.*kali.org\|.*linux.it\|.*@linuxia.de\|.*@lists.debian-maintainers.org\|.*@mit.edu\|.*@monad.swb.de\|.*@oss.sgi.com\|.*@qualcomm.com\|.*redhat.com\|.*ubuntu.com\|.*@vger.kernel.org\|rogershimizu@gmail.com\|thmarques@gmail.com"
 
 timersG="apt-daily.timer\|apt-daily-upgrade.timer\|e2scrub_all.timer\|fstrim.timer\|logrotate.timer\|man-db.timer\|motd-news.timer\|phpsessionclean.timer\|snapd.refresh.timer\|snapd.snap-repair.timer\|systemd-tmpfiles-clean.timer\|systemd-readahead-done.timer\|ureadahead-stop.timer"
 
@@ -247,7 +248,7 @@ commonrootdirsG="^/$\|/bin$\|/boot$\|/.cache$\|/dev$\|/etc$\|/home$\|/lost+found
 
 ldsoconfdG="/lib32\|/lib/x86_64-linux-gnu\|/usr/lib32\|/usr/lib/oracle/19.6/client64/lib/\|/usr/lib/x86_64-linux-gnu/libfakeroot\|/usr/lib/x86_64-linux-gnu\|/usr/local/lib/x86_64-linux-gnu\|/usr/local/lib"
 
-dbuslistG="^:1\.[0-9\.]+|com.redhat.NewPrinterNotification|com.redhat.PrinterDriversInstaller|com.ubuntu.SoftwareProperties|fi.epitest.hostap.WPASupplicant|fi.w1.wpa_supplicant1|NAME|org.blueman.Mechanism|org.bluez|org.freedesktop.Avahi|org.freedesktop.ColorManager|org.freedesktop.DBus|org.freedesktop.DisplayManager|org.freedesktop.GeoClue2|org.freedesktop.hostname1|org.freedesktop.locale1|org.freedesktop.login1|org.freedesktop.ModemManager1|org.freedesktop.NetworkManager|org.freedesktop.network1|org.freedesktop.nm_dispatcher|org.freedesktop.PackageKit|org.freedesktop.PolicyKit1|org.freedesktop.RealtimeKit1|org.freedesktop.resolve1|org.freedesktop.systemd1|org.freedesktop.timedate1|org.freedesktop.timesync1|org.freedesktop.UDisks2|org.freedesktop.UPower|org.opensuse.CupsPkHelper.Mechanism"
+dbuslistG="^:1\.[0-9\.]+|com.hp.hplip|com.redhat.NewPrinterNotification|com.redhat.PrinterDriversInstaller|com.ubuntu.LanguageSelector|com.ubuntu.SoftwareProperties|com.ubuntu.SystemService|com.ubuntu.USBCreator|com.ubuntu.WhoopsiePreferences|io.snapcraft.SnapdLoginService|fi.epitest.hostap.WPASupplicant|fi.w1.wpa_supplicant1|NAME|org.blueman.Mechanism|org.bluez|org.debian.apt|org.freedesktop.Accounts|org.freedesktop.Avahi|org.freedesktop.ColorManager|org.freedesktop.DBus|org.freedesktop.DisplayManager|org.freedesktop.fwupd|org.freedesktop.GeoClue2|org.freedesktop.hostname1|org.freedesktop.locale1|org.freedesktop.login1|org.freedesktop.ModemManager1|org.freedesktop.NetworkManager|org.freedesktop.network1|org.freedesktop.nm_dispatcher|org.freedesktop.PackageKit|org.freedesktop.PolicyKit1|org.freedesktop.RealtimeKit1|org.freedesktop.resolve1|org.freedesktop.systemd1|org.freedesktop.thermald|org.freedesktop.timedate1|org.freedesktop.timesync1|org.freedesktop.UDisks2|org.freedesktop.UPower|org.opensuse.CupsPkHelper.Mechanism"
 
 ###########################################
 #---------) Checks before start (---------#
@@ -1010,7 +1011,13 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
     #-- PCS) Binary processes permissions
     printf $Y"[+] "$GREEN"Binary processes permissions\n"$NC
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes\n"$NC
-    ps aux 2>/dev/null | awk '{print $11}'|xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | sed "s,$Wfolders,${C}[1;31m&${C}[0m,g" | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;32m&${C}[0m,"
+    binW="IniTialiZZinnggg"
+    for bpath in "`ps aux 2>/dev/null | awk '{print $11}'`"; do
+      if [ -w "$bpath" ]
+        binW="$binW\|$bpath"
+      fi
+    done
+    ps aux 2>/dev/null | awk '{print $11}' | xargs -r ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g" | sed "s,$binW,${C}[1;31;103m&${C}[0m,g" | sed "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;32m&${C}[0m,"
   fi
   echo ""
 
@@ -1320,6 +1327,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
     else echo "The escalation didn't work... (try again later?)"
     fi
   fi
+  echo ""
 
   #-- UI) Doas
   printf $Y"[+] "$GREEN"Checking /etc/doas.conf\n"$NC
@@ -2136,19 +2144,19 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $Y"[+] "$GREEN"Permissions in init, init.d, systemd, and rc.d\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#init-init-d-systemd-and-rc-d\n"$NC
   if [ -w "/etc/init/" ]; then echo "You have write privileges over /etc/init/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /etc/init/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/init/ -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /etc/init/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/init/ -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/etc/init.d/" ]; then echo "You have write privileges over /etc/init.d/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /etc/init.d/ -writable `" ]; then echo "You have write privileges over `find /etc/init.d/ -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /etc/init.d/ -writable -type f`" ]; then echo "You have write privileges over `find /etc/init.d/ -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/etc/rc.d/init.d" ]; then echo "You have write privileges over /etc/rc.d/init.d" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /etc/rc.d/init.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d/init.d -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /etc/rc.d/init.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d/init.d -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/usr/local/etc/rc.d" ]; then echo "You have write privileges over /usr/local/etc/rc.d" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /usr/local/etc/rc.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /usr/local/etc/rc.d -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /usr/local/etc/rc.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /usr/local/etc/rc.d -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/etc/rc.d" ]; then echo "You have write privileges over /etc/rc.d" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /etc/rc.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /etc/rc.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/etc/systemd/" ]; then echo "You have write privileges over /etc/systemd/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /etc/systemd/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/systemd/ -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /etc/systemd/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/systemd/ -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/lib/systemd/" ]; then echo "You have write privileges over /lib/systemd/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /lib/systemd/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /lib/systemd/ -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /lib/systemd/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /lib/systemd/ -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   echo ""
 
   ##-- IF) Hashes in passwd file
