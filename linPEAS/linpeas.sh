@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.7.4"
+VERSION="v2.7.3"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -209,8 +209,7 @@ PASSTRY="2000" #Default num of passwds to try (all by default)
 
 SEDOVERFLOW=true
 while $SEDOVERFLOW; do
-  WF=`find / -type d -maxdepth $MAXPATH_FIND_W -writable 2>/dev/null | sort`
-  #WF=`find /dev /srv /proc /home /media /sys /lost+found /run /etc /root /var /tmp /mnt /boot /opt -type d -maxdepth $MAXPATH_FIND_W -writable 2>/dev/null | sort`
+  WF=`find /dev /srv /proc /home /media /sys /lost+found /run /etc /root /var /tmp /mnt /boot /opt -type d -maxdepth $MAXPATH_FIND_W -writable 2>/dev/null | sort`
   Wfolders=`echo $WF | tr ' ' '|' | sed 's/|/\\\|/g'`"\|[^\*]\ \*"
   printf "test\ntest\ntest\ntest"| sed "s,$Wfolders\|\./\|\.:\|:\.,${C}[1;31;103m&${C}[0m,g" >/dev/null 2>&1
   if [ $? -eq 0 ]; then
@@ -240,7 +239,7 @@ mail_apps="Postfix\|Dovecot\|Exim\|SquirrelMail\|Cyrus\|Sendmail\|Courier"
 
 profiledG="01-locale-fix.sh\|256term.csh\|256term.sh\|abrt-console-notification.sh\|appmenu-qt5.sh\|apps-bin-path.sh\|bash_completion.sh\|cedilla-portuguese.sh\|colorgrep.csh\|colorgrep.sh\|colorls.csh\|colorls.sh\|colorxzgrep.csh\|colorxzgrep.sh\|colorzgrep.csh\|colorzgrep.sh\|csh.local\|gawk.csh\|gawk.sh\|kali.sh\|lang.csh\|lang.sh\|less.csh\|less.sh\|sh.local\|vim.csh\|vim.sh\|vte.csh\|vte-2.91.sh\|which2.csh\|which2.sh\|Z97-byobu.sh\|Z99-cloudinit-warnings.sh\|Z99-cloud-locale-test.sh"
 
-knw_emails=".*@aivazian.fsnet.co.uk\|.*@angband.pl\|.*@canonical.com\|.*centos.org\|.*debian.net\|.*debian.org\|.*@jff.email\|.*kali.org\|.*linux.it\|.*@linuxia.de\|.*@lists.debian-maintainers.org\|.*@mit.edu\|.*@monad.swb.de\|.*@oss.sgi.com\|.*@qualcomm.com\|.*redhat.com\|.*ubuntu.com\|.*@vger.kernel.org\|rogershimizu@gmail.com\|thmarques@gmail.com"
+knw_emails=".*@aivazian.fsnet.co.uk\|.*@angband.pl\|.*@canonical.com\|.*centos.org\|.*debian.net\|.*debian.org\|.*@jff.email\|.*kali.org\|.*linux.it\|.*@linuxia.de\|.*@lists.debian-maintainers.org\|.*@mit.edu\|.*@oss.sgi.com\|.*@qualcomm.com\|.*redhat.com\|.*ubuntu.com\|.*@vger.kernel.org\|rogershimizu@gmail.com\|thmarques@gmail.com"
 
 timersG="apt-daily.timer\|apt-daily-upgrade.timer\|e2scrub_all.timer\|fstrim.timer\|logrotate.timer\|man-db.timer\|motd-news.timer\|phpsessionclean.timer\|snapd.refresh.timer\|snapd.snap-repair.timer\|systemd-tmpfiles-clean.timer\|systemd-readahead-done.timer\|ureadahead-stop.timer"
 
@@ -1013,7 +1012,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes\n"$NC
     binW="IniTialiZZinnggg"
     for bpath in "`ps aux 2>/dev/null | awk '{print $11}'`"; do
-      if [ -w "$bpath" ]
+      if [ -w "$bpath" ]; then
         binW="$binW\|$bpath"
       fi
     done
@@ -2144,19 +2143,19 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $Y"[+] "$GREEN"Permissions in init, init.d, systemd, and rc.d\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#init-init-d-systemd-and-rc-d\n"$NC
   if [ -w "/etc/init/" ]; then echo "You have write privileges over /etc/init/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /etc/init/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/init/ -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /etc/init/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/init/ -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/etc/init.d/" ]; then echo "You have write privileges over /etc/init.d/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /etc/init.d/ -writable -type f`" ]; then echo "You have write privileges over `find /etc/init.d/ -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /etc/init.d/ -writable -type f`" ]; then echo "You have write privileges over `find /etc/init.d/ -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/etc/rc.d/init.d" ]; then echo "You have write privileges over /etc/rc.d/init.d" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /etc/rc.d/init.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d/init.d -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /etc/rc.d/init.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d/init.d -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/usr/local/etc/rc.d" ]; then echo "You have write privileges over /usr/local/etc/rc.d" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /usr/local/etc/rc.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /usr/local/etc/rc.d -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /usr/local/etc/rc.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /usr/local/etc/rc.d -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/etc/rc.d" ]; then echo "You have write privileges over /etc/rc.d" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /etc/rc.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /etc/rc.d -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/etc/systemd/" ]; then echo "You have write privileges over /etc/systemd/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /etc/systemd/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/systemd/ -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /etc/systemd/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/systemd/ -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   if [ -w "/lib/systemd/" ]; then echo "You have write privileges over /lib/systemd/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
-  if [ "`find /lib/systemd/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /lib/systemd/ -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+  if [ "`find /lib/systemd/ -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find /lib/systemd/ -writable`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
   echo ""
 
   ##-- IF) Hashes in passwd file
