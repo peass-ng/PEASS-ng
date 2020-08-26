@@ -209,7 +209,8 @@ PASSTRY="2000" #Default num of passwds to try (all by default)
 
 SEDOVERFLOW=true
 while $SEDOVERFLOW; do
-  WF=`find /dev /srv /proc /home /media /sys /lost+found /run /etc /root /var /tmp /mnt /boot /opt -type d -maxdepth $MAXPATH_FIND_W -writable 2>/dev/null | sort`
+  #WF=`find /dev /srv /proc /home /media /sys /lost+found /run /etc /root /var /tmp /mnt /boot /opt -type d -maxdepth $MAXPATH_FIND_W -writable 2>/dev/null | sort`
+  WF=`find / -type d -maxdepth $MAXPATH_FIND_W -writable 2>/dev/null | sort`
   Wfolders=`echo $WF | tr ' ' '|' | sed 's/|/\\\|/g'`"\|[^\*]\ \*"
   printf "test\ntest\ntest\ntest"| sed "s,$Wfolders\|\./\|\.:\|:\.,${C}[1;31;103m&${C}[0m,g" >/dev/null 2>&1
   if [ $? -eq 0 ]; then
