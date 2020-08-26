@@ -1134,6 +1134,9 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
         echo "$s is calling this writable listener: $sl" | sed "s,writable.*,${C}[1;31m&${C}[0m,g";
       fi
     done
+    if [ -w "/var/run/docker.sock" ]; then
+      echo "Docker socket /var/run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${C}[1;31;103m&${C}[0m,g"
+    fi
   done
   echo ""
 
