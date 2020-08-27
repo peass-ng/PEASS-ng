@@ -2251,10 +2251,12 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Writable log files
   printf $Y"[+] "$GREEN"Writable log files (logrotten) (limit 100)\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#logrotate-exploitation\n"$NC
+  logrotate --version 2>/dev/null || echo_not_found "logrotate"
   for log in $(find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 3){ print line_init; }; if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; pre=act}' | head -n 100 ); do
     if [ -w "$log" ] || [ `echo "$log" | grep "$Wfolders"` ]; then #Only print info if something interesting found
       if [ `echo "$log" | grep "You_can_write_more_log_files_inside_last_directory"` ]; then printf $ITALIC"$log\n"$NC;
-      elif [ -w "$log" ]; then printf "Writable:$RED $log\n"$NC;
+      elif [ -w "$log" ] && [ "`which logrotate`" ] && [ "`logrotate --version 2>&1 | grep -E ' 1| 2| 3.1'`" ]; then printf "Writable:$RED $log\n"$NC; #Check vuln version of logrotate is used and print red in that case
+      elif [ -w "$log" ]; then echo "Writable: $log";
       elif [ `echo "$log" | grep "$Wfolders"` ]; then echo "Writable folder: $log" | sed "s,$Wfolders,${C}[1;31m&${C}[0m,g";
       fi
     fi
