@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.7.3"
+VERSION="v2.7.4"
 ADVISORY="linpeas should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -2090,15 +2090,33 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   done;
   echo ""
 
-  ##-- IF) Misconfigured /etc/ld.so.conf.d/
-  printf $Y"[+] "$GREEN"Writable folders configured in /etc/ld.so.conf.d/\n"$NC
-  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#etc-ld-so-conf-d\n"$NC
-  (cat /etc/ld.so.conf.d/* 2>/dev/null | grep -v "#" | sed "s,$ldsoconfdG,${C}[1;32m&${C}[0m," | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g") || echo_not_found
+  ##-- IF) Misconfigured ld.so
+  printf $Y"[+] "$GREEN"Cheking missconfigurations of ld.so\n"$NC
+  printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#ld-so\n"$NC
+  printf $ITALIC"/etc/ld.so.conf\n"$NC;
+  cat /etc/ld.so.conf 2>/dev/null | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g"
+  for l in "`cat /etc/ld.so.conf 2>/dev/null`"; do
+    if [ "`echo \"$l\" | grep include`" ]; then
+      ini_path="`echo \"$l\" | cut -d " " -f 2`"
+      fpath="`dirname \"$ini_path\"`"
+      if [ "`find \"$fpath\" -writable -type f 2>/dev/null`" ]; then echo "You have write privileges over `find \"$fpath\" -writable -type f 2>/dev/null`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
+      printf $ITALIC"$fpath\n"$NC | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g"
+      for f in $fpath/*; do
+        printf $ITALIC"  $f\n"$NC | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g"
+        cat "$f" | grep -v "^#" | sed "s,$ldsoconfdG,${C}[1;32m&${C}[0m," | sed "s,$Wfolders,${C}[1;31;103m&${C}[0m,g"
+      done
+    fi
+  done
   echo ""
 
   ##-- IF) Capabilities
   printf $Y"[+] "$GREEN"Capabilities\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#capabilities\n"$NC
+  echo "Current capabilities:"
+  cat "/proc/$$/status" | grep Cap | sed "s,.*0000000000000000\|CapBnd:	0000003fffffffff,${C}[1;32m&${C}[0m,"
+  echo "Shell capabilities:"
+  cat "/proc/$PPID/status" | grep Cap | sed "s,.*0000000000000000\|CapBnd:	0000003fffffffff,${C}[1;32m&${C}[0m,"
+  echo "Files with capabilities:"
   capbins=`getcap -r / 2>/dev/null | cut -d " " -f1`
   for cb in "`getcap -r / 2>/dev/null`"; do
     echo "$cb" | sed "s,$sudocapsB,${C}[1;31m&${C}[0m," | sed "s,$capsB,${C}[1;31m&${C}[0m,"
