@@ -233,43 +233,83 @@ namespace winPEAS
                 results["PS history file"] = "";
                 results["PS history size"] = "";
 
-                Dictionary<string, object> transcriptionSettings = MyUtils.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\Transcription");
-                if ((transcriptionSettings == null) || (transcriptionSettings.Count == 0))
-                    transcriptionSettings = MyUtils.GetRegValues("HKLM", @"HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\Transcription");
+                Dictionary<string, object> transcriptionSettingsCU = MyUtils.GetRegValues("HKCU",
+                    "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\Transcription");
+                if ((transcriptionSettingsCU == null) || (transcriptionSettingsCU.Count == 0))
+                    transcriptionSettingsCU = MyUtils.GetRegValues("HKCU", @"HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\Transcription");
 
-                if ((transcriptionSettings != null) && (transcriptionSettings.Count != 0))
+                if ((transcriptionSettingsCU != null) && (transcriptionSettingsCU.Count != 0))
                 {
-                    foreach (KeyValuePair<string, object> kvp in transcriptionSettings)
+                    foreach (KeyValuePair<string, object> kvp in transcriptionSettingsCU)
                     {
-                        results["Transcription Settings"] += String.Format("  {0,30} : {1}\r\n", kvp.Key, kvp.Value);
+                        results["Transcription Settings CU"] += String.Format("  {0,30} : {1}\r\n", kvp.Key, kvp.Value);
                     }
                 }
 
-                Dictionary<string, object> moduleLoggingSettings = MyUtils.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging");
-                if ((moduleLoggingSettings == null) || (moduleLoggingSettings.Count == 0))
-                    moduleLoggingSettings = MyUtils.GetRegValues("HKLM", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging");
+                Dictionary<string, object> transcriptionSettingsLM = MyUtils.GetRegValues("HKLM",
+                    "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\Transcription");
+                if ((transcriptionSettingsLM == null) || (transcriptionSettingsLM.Count == 0))
+                    transcriptionSettingsLM = MyUtils.GetRegValues("HKLM", @"HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\Transcription");
 
-                if ((moduleLoggingSettings != null) && (moduleLoggingSettings.Count != 0))
+                if ((transcriptionSettingsLM != null) && (transcriptionSettingsLM.Count != 0))
                 {
-                    foreach (KeyValuePair<string, object> kvp in moduleLoggingSettings)
+                    foreach (KeyValuePair<string, object> kvp in transcriptionSettingsLM)
+                    {
+                        results["Transcription Settings LM"] += String.Format("  {0,30} : {1}\r\n", kvp.Key, kvp.Value);
+                    }
+                }
+
+                Dictionary<string, object> moduleLoggingSettingsLM = MyUtils.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging");
+                if ((moduleLoggingSettingsLM == null) || (moduleLoggingSettingsLM.Count == 0))
+                    moduleLoggingSettingsLM = MyUtils.GetRegValues("HKLM", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging");
+
+                if ((moduleLoggingSettingsLM != null) && (moduleLoggingSettingsLM.Count != 0))
+                {
+                    foreach (KeyValuePair<string, object> kvp in moduleLoggingSettingsLM)
                     {
                         results["Module Logging Settings"] += String.Format("  {0,30} : {1}\r\n", kvp.Key, kvp.Value);
                     }
                 }
 
-                Dictionary<string, object> scriptBlockSettings = MyUtils.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging");
-                if ((scriptBlockSettings == null) || (scriptBlockSettings.Count == 0))
-                    scriptBlockSettings = MyUtils.GetRegValues("HKLM", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging");
+                Dictionary<string, object> moduleLoggingSettingsCU = MyUtils.GetRegValues("HKCU", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging");
+                if ((moduleLoggingSettingsCU == null) || (moduleLoggingSettingsCU.Count == 0))
+                    moduleLoggingSettingsCU = MyUtils.GetRegValues("HKCU", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging");
 
-                if ((scriptBlockSettings != null) && (scriptBlockSettings.Count != 0))
+                if ((moduleLoggingSettingsCU != null) && (moduleLoggingSettingsCU.Count != 0))
                 {
-                    foreach (KeyValuePair<string, object> kvp in scriptBlockSettings)
+                    foreach (KeyValuePair<string, object> kvp in moduleLoggingSettingsCU)
                     {
-                        results["Scriptblock Logging Settings"] = String.Format("  {0,30} : {1}\r\n", kvp.Key, kvp.Value);
+                        results["Module Logging Settings CU"] += String.Format("  {0,30} : {1}\r\n", kvp.Key, kvp.Value);
                     }
                 }
-                
+
+                Dictionary<string, object> scriptBlockSettingsLM = MyUtils.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging");
+                if ((scriptBlockSettingsLM == null) || (scriptBlockSettingsLM.Count == 0))
+                    scriptBlockSettingsLM = MyUtils.GetRegValues("HKLM", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging");
+
+                if ((scriptBlockSettingsLM != null) && (scriptBlockSettingsLM.Count != 0))
+                {
+                    foreach (KeyValuePair<string, object> kvp in scriptBlockSettingsLM)
+                    {
+                        results["Scriptblock Logging Settings LM"] = String.Format("  {0,30} : {1}\r\n", kvp.Key, kvp.Value);
+                    }
+                }
+
+                Dictionary<string, object> scriptBlockSettingsCU = MyUtils.GetRegValues("HKCU", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging");
+                if ((scriptBlockSettingsCU == null) || (scriptBlockSettingsCU.Count == 0))
+                    scriptBlockSettingsCU = MyUtils.GetRegValues("HKCU", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging");
+
+                if ((scriptBlockSettingsCU != null) && (scriptBlockSettingsCU.Count != 0))
+                {
+                    foreach (KeyValuePair<string, object> kvp in scriptBlockSettingsCU)
+                    {
+                        results["Scriptblock Logging Settings CU"] = String.Format("  {0,30} : {1}\r\n", kvp.Key, kvp.Value);
+                    }
+                }
+
                 string ps_history_path = Environment.ExpandEnvironmentVariables(@"%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt");
+                string ps_history_path2 = String.Format("{0}\\AppData\\Roaming\\Microsoft\\Windows\\PowerShell\\PSReadline\\ConsoleHost_history.txt", Environment.GetEnvironmentVariable("USERPROFILE"));
+                ps_history_path = File.Exists(ps_history_path) ? ps_history_path : ps_history_path2;
                 if (File.Exists(ps_history_path))
                 {
                     FileInfo fi = new FileInfo(ps_history_path);
