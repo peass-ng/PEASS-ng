@@ -238,32 +238,7 @@ namespace winPEAS
                 }
             }
 
-            void PrintConsoleHostHistory()
-            {
-                try
-                {
-                    Beaprint.MainPrint("Powershell Console Host History");
-                    string console_host_history = InterestingFiles.GetConsoleHostHistory();
-                    if (console_host_history != "")
-                    {
-
-                        string text = File.ReadAllText(console_host_history);
-                        List<string> credStringsRegexPowershell = new List<string>(credStringsRegex);
-                        credStringsRegexPowershell.Add("CONVERTTO-SECURESTRING");
-
-                        if (MyUtils.ContainsAnyRegex(text.ToUpper(), credStringsRegexPowershell))
-                            Beaprint.BadPrint("    " + console_host_history + " (Potential credentials found)");
-                        else
-                            System.Console.WriteLine("    " + console_host_history);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
-                }
-            }
-
-            void PrintAuditInfo()
+           void PrintAuditInfo()
             {
                 try
                 {
@@ -589,7 +564,6 @@ namespace winPEAS
             PrintUACInfo();
             PrintPSInfo();
             PrintTranscriptPS();
-            PrintConsoleHostHistory();
             PrintInetInfo();
             PrintDrivesInfo();
             PrintWSUS();
