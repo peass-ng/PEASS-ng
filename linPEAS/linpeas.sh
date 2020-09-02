@@ -207,6 +207,7 @@ andy achilles a1s2d3f4 violin veronika vegeta tyler test1234 teddybear tatiana s
 plymouth pepsi patrick1 paradox milano maxima loser lestat gizmo ghetto faithful emerson elliott dominique doberman dillon criminal crackers converse chrissy casanova blowme attitude"
 PASSTRY="2000" #Default num of passwds to try (all by default)
 
+if [ "$PORTS" ] || [ "$DISCOVERY" ] || [ "$IP" ]; then MAXPATH_FIND_W="1"; fi #If Network reduce this time
 SEDOVERFLOW=true
 while $SEDOVERFLOW; do
   #WF=`find /dev /srv /proc /home /media /sys /lost+found /run /etc /root /var /tmp /mnt /boot /opt -type d -maxdepth $MAXPATH_FIND_W -writable 2>/dev/null | sort`
@@ -453,7 +454,8 @@ tcp_port_scan (){
 
   printf $B"===================================( "$GREEN"Network Port Scanning"$B" )===================================\n"$NC
   IP=$1
-	PORTS=$2
+	PORTS="$2"
+  PORTS="`echo \"$PORTS\" | tr ',' ' '`"
 
   if [ -z "$PORTS" ]; then
     printf $Y"[+]$B Ports going to be scanned: DEFAULT (nmap top 1000)" $NC | tr '\n' " "
@@ -630,7 +632,6 @@ fi
 echo ""
 echo ""
 
-
 ###########################################
 #--------) Check if network jobs (--------#
 ###########################################
@@ -665,7 +666,7 @@ if [ "$DISCOVERY" ]; then
 
 elif [ "$IP" ]; then
   select_nc 
-  tcp_port_scan $IP $PORTS
+  tcp_port_scan $IP "$PORTS"
   exit 0
 fi
 
