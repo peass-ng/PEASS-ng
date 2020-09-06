@@ -7,3 +7,5 @@ winPEAS/winPEASexe/winPEAS/bin/Debug/*
 .DS_Store
 ./.DS_Store
 ./*/.DS_Store
+./*/.tmp1
+.tmp1
