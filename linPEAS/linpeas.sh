@@ -113,8 +113,8 @@ kernelDCW_Rhel6_4="2.6.32-431.71.1.el6|2.6.32-431.72.1.el6|2.6.32-431.73.2.el6|2
 kernelDCW_Rhel7="3.10.0-229.rt56.141.el7|3.10.0-229.1.2.rt56.141.2.el7_1|3.10.0-229.4.2.rt56.141.6.el7_1|3.10.0-229.7.2.rt56.141.6.el7_1|3.10.0-229.11.1.rt56.141.11.el7_1|3.10.0-229.14.1.rt56.141.13.el7_1|3.10.0-229.20.1.rt56.141.14.el7_1|3.10.0-229.rt56.141.el7|3.10.0-327.rt56.204.el7|3.10.0-327.4.5.rt56.206.el7_2|3.10.0-327.10.1.rt56.211.el7_2|3.10.0-327.13.1.rt56.216.el7_2|3.10.0-327.18.2.rt56.223.el7_2|3.10.0-327.22.2.rt56.230.el7_2|3.10.0-327.28.2.rt56.234.el7_2|3.10.0-327.28.3.rt56.235.el7|3.10.0-327.36.1.rt56.237.el7|3.10.0-123.el7|3.10.0-123.1.2.el7|3.10.0-123.4.2.el7|3.10.0-123.4.4.el7|3.10.0-123.6.3.el7|3.10.0-123.8.1.el7|3.10.0-123.9.2.el7|3.10.0-123.9.3.el7|3.10.0-123.13.1.el7|3.10.0-123.13.2.el7|3.10.0-123.20.1.el7|3.10.0-229.el7|3.10.0-229.1.2.el7|3.10.0-229.4.2.el7|3.10.0-229.7.2.el7|3.10.0-229.11.1.el7|3.10.0-229.14.1.el7|3.10.0-229.20.1.el7|3.10.0-229.24.2.el7|3.10.0-229.26.2.el7|3.10.0-229.28.1.el7|3.10.0-229.30.1.el7|3.10.0-229.34.1.el7|3.10.0-229.38.1.el7|3.10.0-229.40.1.el7|3.10.0-229.42.1.el7|3.10.0-327.el7|3.10.0-327.3.1.el7|3.10.0-327.4.4.el7|3.10.0-327.4.5.el7|3.10.0-327.10.1.el7|3.10.0-327.13.1.el7|3.10.0-327.18.2.el7|3.10.0-327.22.2.el7|3.10.0-327.28.2.el7|3.10.0-327.28.3.el7|3.10.0-327.36.1.el7|3.10.0-327.36.2.el7|3.10.0-229.1.2.ael7b|3.10.0-229.4.2.ael7b|3.10.0-229.7.2.ael7b|3.10.0-229.11.1.ael7b|3.10.0-229.14.1.ael7b|3.10.0-229.20.1.ael7b|3.10.0-229.24.2.ael7b|3.10.0-229.26.2.ael7b|3.10.0-229.28.1.ael7b|3.10.0-229.30.1.ael7b|3.10.0-229.34.1.ael7b|3.10.0-229.38.1.ael7b|3.10.0-229.40.1.ael7b|3.10.0-229.42.1.ael7b|4.2.0-0.21.el7"
 
 
-UID=`id -u $(whoami)`
-if [ `echo $UID` ]; then myuid=$UID; elif [ `id -u $(whoami) 2>/dev/null` ]; then myuid=`id -u $(whoami) 2>/dev/null`; elif [ `id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1` ]; then myuid=`id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1`; fi
+MyUID=`id -u $(whoami)`
+if [ `echo $MyUID` ]; then myuid=$MyUID; elif [ `id -u $(whoami) 2>/dev/null` ]; then myuid=`id -u $(whoami) 2>/dev/null`; elif [ `id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1` ]; then myuid=`id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1`; fi
 if [ $myuid -gt 2147483646 ]; then baduid="|$myuid"; fi
 idB="euid|egid$baduid"
 sudovB="1.[01234567].[0-9]+|1.8\.1[0-9]*|1.8.2[01234567]"
@@ -132,56 +132,58 @@ groupsVB="\(sudo\)|\(docker\)|\(lxd\)|\(wheel\)|\(disk\)|\(lxc\)"
 knw_grps='\(lpadmin\)|\(adm\)|\(cdrom\)|\(plugdev\)|\(nogroup\)' #https://www.togaware.com/linux/survivor/Standard_Groups.html
 mygroups=`groups 2>/dev/null | tr " " "|"`
 
-sidG="/abuild-sudo$|/accton$|/allocate$|/arping$|/atq$|/atrm$|/authpf$|/authpf-noip$|/batch$|/bbsuid$|/bsd-write$|/btsockstat$|/bwrap$|/cacaocsc$|/camel-lock-helper-1.2$|/ccreds_validate$|/cdrw$|/chage$|/check-foreground-console$|/chrome-sandbox$|/chsh$|/cons.saver$|/crontab$|/ct$|/cu$|/dbus-daemon-launch-helper$|/deallocate$|/desktop-create-kmenu$|/dma$|/dmcrypt-get-device$|/doas$|/dotlockfile$|/dotlock.mailutils$|/dtaction$|/dtfile$|/eject$|/execabrt-action-install-debuginfo-to-abrt-cache$|/execdbus-daemon-launch-helper$|/execdma-mbox-create$|/execlockspool$|/execlogin_chpass$|/execlogin_lchpass$|/execlogin_passwd$|/execssh-keysign$|/execulog-helper$|/expiry$|/fdformat$|/fusermount$|/fusermount3$|/gnome-pty-helper$|/glines$|/gnibbles$|/gnobots2$|/gnome-suspend$|/gnometris$|/gnomine$|/gnotski$|/gnotravex$|/gpasswd$|/gpg$|/gpio$|/gtali|/.hal-mtab-lock$|/imapd$|/inndstart$|/kismet_cap_nrf_51822$|/kismet_cap_nxp_kw41z$|/kismet_cap_ti_cc_2531$|/kismet_cap_ti_cc_2540$|/kismet_capture$|/kismet_cap_linux_bluetooth$|/kismet_cap_linux_wifi$|/kismet_cap_nrf_mousejack$|/ksu$|/list_devices$|/locate$|/lock$|/lockdev$|/lockfile$|/login_activ$|/login_crypto$|/login_radius$|/login_skey$|/login_snk$|/login_token$|/login_yubikey$|/lpd$|/lpd-port$|/lppasswd$|/lpq$|/lprm$|/lpset$|/lxc-user-nic$|/mahjongg$|/mail-lock$|/mailq$|/mail-touchlock$|/mail-unlock$|/mksnap_ffs$|/mlocate$|/mlock$|/mount.cifs$|/mount.nfs$|/mount.nfs4$|/mtr$|/mutt_dotlock$|/ncsa_auth$|/netpr$|/netreport$|/netstat$|/newgidmap$|/newtask$|/newuidmap$|/opieinfo$|/opiepasswd$|/pam_auth$|/pam_extrausers_chkpwd$|/pam_timestamp_check$|/pamverifier$|/pfexec$|/ping$|/ping6$|/pmconfig$|/polkit-agent-helper-1$|/polkit-explicit-grant-helper$|/polkit-grant-helper$|/polkit-grant-helper-pam$|/polkit-read-auth-helper$|/polkit-resolve-exe-helper$|/polkit-revoke-helper$|/polkit-set-default-helper$|/postdrop$|/postqueue$|/poweroff$|/ppp$|/procmail$|/pt_chmod$|/pwdb_chkpwd$|/quota$|/remote.unknown$|/rlogin$|/rmformat$|/rnews$|/run-mailcap$|/sacadm$|/same-gnome$|screen.real$|/sendmail.sendmail$|/shutdown$|/skeyaudit$|/skeyinfo$|/skeyinit$|/slocate$|/smbmnt$|/smbumount$|/smpatch$|/smtpctl$|/snap-confine$|/sperl5.8.8$|/ssh-agent$|/ssh-keysign$|/staprun$|/startinnfeed$|/stclient$|/su$|/suexec$|/sys-suspend$|/telnetlogin$|/timedc$|/tip$|/traceroute6$|/traceroute6.iputils$|/trpt$|/tsoldtlabel$|/tsoljdslabel$|/tsolxagent$|/ufsdump$|/ufsrestore$|/umount.cifs$|/umount.nfs$|/umount.nfs4$|/unix_chkpwd$|/uptime$|/userhelper$|/userisdnctl$|/usernetctl$|/utempter$|/utmp_update$|/uucico$|/uuglist$|/uuidd$|/uuname$|/uusched$|/uustat$|/uux$|/uuxqt$|/vmware-user-suid-wrapper$|/vncserver-x11$|/volrmmount$|/w$|/wall$|/whodo$|/write$|/X$|/Xorg.wrap$|/Xsun$|/Xvnc$"
+sidG1="/abuild-sudo$|/accton$|/allocate$|/ARDAgent|/arping$|/atq$|/atrm$|/authpf$|/authpf-noip$|/authopen$|/batch$|/bbsuid$|/bsd-write$|/btsockstat$|/bwrap$|/cacaocsc$|/camel-lock-helper-1.2$|/ccreds_validate$|/cdrw$|/chage$|/check-foreground-console$|/chrome-sandbox$|/chsh$|/cons.saver$|/crontab$|/ct$|/cu$|/dbus-daemon-launch-helper$|/deallocate$|/desktop-create-kmenu$|/dma$|/dmcrypt-get-device$|/doas$|/dotlockfile$|/dotlock.mailutils$|/dtaction$|/dtfile$|/eject$|/execabrt-action-install-debuginfo-to-abrt-cache$|/execdbus-daemon-launch-helper$|/execdma-mbox-create$|/execlockspool$|/execlogin_chpass$|/execlogin_lchpass$|/execlogin_passwd$|/execssh-keysign$|/execulog-helper$|/expiry$|/fdformat$|/fusermount$|/fusermount3$|/gnome-pty-helper$|/glines$|/gnibbles$|/gnobots2$|/gnome-suspend$|/gnometris$|/gnomine$|/gnotski$|/gnotravex$|/gpasswd$|/gpg$|/gpio$|/gtali|/.hal-mtab-lock$|/imapd$|/inndstart$|/kismet_cap_nrf_51822$|/kismet_cap_nxp_kw41z$|/kismet_cap_ti_cc_2531$|/kismet_cap_ti_cc_2540$|/kismet_capture$|/kismet_cap_linux_bluetooth$|/kismet_cap_linux_wifi$|/kismet_cap_nrf_mousejack$|/ksu$|/list_devices$|/locate$|/lock$|/lockdev$|/lockfile$|/login_activ$|/login_crypto$|/login_radius$|/login_skey$|/login_snk$|/login_token$|/login_yubikey$|/lpd$|/lpd-port$|/lppasswd$|/lpq$|/lprm$|/lpset$|/lxc-user-nic$"
+sidG2="/mahjongg$|/mail-lock$|/mailq$|/mail-touchlock$|/mail-unlock$|/mksnap_ffs$|/mlocate$|/mlock$|/mount.cifs$|/mount.nfs$|/mount.nfs4$|/mtr$|/mutt_dotlock$|/ncsa_auth$|/netpr$|/netreport$|/netstat$|/newgidmap$|/newtask$|/newuidmap$|/opieinfo$|/opiepasswd$|/pam_auth$|/pam_extrausers_chkpwd$|/pam_timestamp_check$|/pamverifier$|/pfexec$|/ping$|/ping6$|/pmconfig$|/polkit-agent-helper-1$|/polkit-explicit-grant-helper$|/polkit-grant-helper$|/polkit-grant-helper-pam$|/polkit-read-auth-helper$|/polkit-resolve-exe-helper$|/polkit-revoke-helper$|/polkit-set-default-helper$|/postdrop$|/postqueue$|/poweroff$|/ppp$|/procmail$|/pt_chmod$|/pwdb_chkpwd$|/quota$|/remote.unknown$|/rlogin$|/rmformat$|/rnews$|/run-mailcap$|/sacadm$|/same-gnome$|screen.real$|/security_authtrampoline$|/sendmail.sendmail$|/shutdown$|/skeyaudit$|/skeyinfo$|/skeyinit$|/slocate$|/smbmnt$|/smbumount$|/smpatch$|/smtpctl$|/snap-confine$|/sperl5.8.8$|/ssh-agent$|/ssh-keysign$|/staprun$|/startinnfeed$|/stclient$|/su$|/suexec$|/sys-suspend$|/telnetlogin$|/timedc$|/tip$|/top$|/traceroute6$|/traceroute6.iputils$|/trpt$|/tsoldtlabel$|/tsoljdslabel$|/tsolxagent$|/ufsdump$|/ufsrestore$|/umount.cifs$|/umount.nfs$|/umount.nfs4$|/unix_chkpwd$|/uptime$|/userhelper$|/userisdnctl$|/usernetctl$|/utempter$|/utmp_update$|/uucico$|/uuglist$|/uuidd$|/uuname$|/uusched$|/uustat$|/uux$|/uuxqt$|/vmware-user-suid-wrapper$|/vncserver-x11$|/volrmmount$|/w$|/wall$|/whodo$|/write$|/X$|/Xorg.wrap$|/Xsun$|/Xvnc$"
+
 #Rules: Start path " /", end path "$", divide path and vulnversion "%". SPACE IS ONLY ALLOWED AT BEGINNING, DONT USE IT IN VULN DESCRIPTION
-sidB="/apache2%Read_root_passwd__apache2_-f_/etc/shadow(CVE-2019-0211)\
- /at%RTru64_UNIX_4.0g(CVE-2002-1614)\
- /abrt-action-install-debuginfo-to-abrt-cache%CENTOS 7.1/Fedora22
+sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
+ /at$%RTru64_UNIX_4.0g\(CVE-2002-1614\)\
+ /abrt-action-install-debuginfo-to-abrt-cache$%CENTOS 7.1/Fedora22
  /chfn$%SuSE_9.3/10\
  /chkey$%Solaris_2.5.1\
  /chkperm$%Solaris_7.0_\
- /chpass$%2Vulns:OpenBSD_6.1_to_OpenBSD 6.6(CVE-2019-19726)--OpenBSD_2.7_i386/OpenBSD_2.6_i386/OpenBSD_2.5_1999/08/06/OpenBSD_2.5_1998/05/28/FreeBSD_4.0-RELEASE/FreeBSD_3.5-RELEASE/FreeBSD_3.4-RELEASE/NetBSD_1.4.2\
- /chpasswd$%SquirrelMail(2004-04)\
- /dtappgather$%Solaris_7_<_11_(SPARC/x86)(CVE-2017-3622)\
- /dtprintinfo$%Solaris_10_(x86)_and_lower_versions_also_SunOS_5.7_to_5.10\
- /dtsession$%Oracle_Solaris_10_1/13_and_earlier(CVE-2020-2696)\
+ /chpass$%2Vulns:OpenBSD_6.1_to_OpenBSD 6.6\(CVE-2019-19726\)--OpenBSD_2.7_i386/OpenBSD_2.6_i386/OpenBSD_2.5_1999/08/06/OpenBSD_2.5_1998/05/28/FreeBSD_4.0-RELEASE/FreeBSD_3.5-RELEASE/FreeBSD_3.4-RELEASE/NetBSD_1.4.2\
+ /chpasswd$%SquirrelMail\(2004-04\)\
+ /dtappgather$%Solaris_7_<_11_\(SPARC/x86\)\(CVE-2017-3622\)\
+ /dtprintinfo$%Solaris_10_\(x86\)_and_lower_versions_also_SunOS_5.7_to_5.10\
+ /dtsession$%Oracle_Solaris_10_1/13_and_earlier\(CVE-2020-2696\)\
  /eject$%FreeBSD_mcweject_0.9/SGI_IRIX_6.2\
- /ibstat%IBM_AIX_Version_6.1/7.1(09-2013)\
- /kcheckpass$%KDE_3.2.0_<-->_3.4.2_(both_included)\
+ /ibstat$%IBM_AIX_Version_6.1/7.1\(09-2013\)\
+ /kcheckpass$%KDE_3.2.0_<-->_3.4.2_\(both_included\)\
  /kdesud$%KDE_1.1/1.1.1/1.1.2/1.2\
  /keybase-redirector%CentOS_Linux_release_7.4.1708\
  /login$%IBM_AIX_3.2.5/SGI_IRIX_6.4\
  /lpc$%S.u.S.E_Linux_5.2\
- /lpr$%BSD/OS2.1/FreeBSD2.1.5/NeXTstep4.x/IRIX6.4/SunOS4.1.3/4.1.4(09-1996)\
- /mount$%Apple_Mac_OSX(Lion)_Kernel_xnu-1699.32.7_except_xnu-1699.24.8\
- /movemail$%Emacs(08-1986)\
+ /lpr$%BSD/OS2.1/FreeBSD2.1.5/NeXTstep4.x/IRIX6.4/SunOS4.1.3/4.1.4\(09-1996\)\
+ /mount$%Apple_Mac_OSX\(Lion\)_Kernel_xnu-1699.32.7_except_xnu-1699.24.8\
+ /movemail$%Emacs\(08-1986\)\
  /netprint$%IRIX_5.3/6.2/6.3/6.4/6.5/6.5.11\
  /newgrp$%HP-UX_10.20\
- /ntfs-3g$%Debian9/8/7/Ubuntu/Gentoo/others/Ubuntu_Server_16.10_and_others(02-2017)\
- /passwd$%Apple_Mac_OSX(03-2006)/Solaris_8/9(12-2004)/SPARC_8/9/Sun_Solaris_2.3_to_2.5.1(02-1997)\
- /pkexec$%Linux4.10_to_5.1.17(CVE-2019-13272)/rhel_6(CVE-2011-1485)\
- /pppd$%Apple_Mac_OSX_10.4.8(05-2007)\
- /pt_chown$%GNU_glibc_2.1/2.1.1_-6(08-1999)\
- /pulseaudio$%(Ubuntu_9.04/Slackware_12.2.0)\
+ /ntfs-3g$%Debian9/8/7/Ubuntu/Gentoo/others/Ubuntu_Server_16.10_and_others\(02-2017\)\
+ /passwd$%Apple_Mac_OSX\(03-2006\)/Solaris_8/9\(12-2004\)/SPARC_8/9/Sun_Solaris_2.3_to_2.5.1\(02-1997\)\
+ /pkexec$%Linux4.10_to_5.1.17\(CVE-2019-13272\)/rhel_6\(CVE-2011-1485\)\
+ /pppd$%Apple_Mac_OSX_10.4.8\(05-2007\)\
+ /pt_chown$%GNU_glibc_2.1/2.1.1_-6\(08-1999\)\
+ /pulseaudio$%\(Ubuntu_9.04/Slackware_12.2.0\)\
  /rcp$%RedHat_6.2\
  /rdist$%Solaris_10/OpenSolaris\
- /rsh$%Apple_Mac_OSX_10.9.5/10.10.5(09-2015)\
+ /rsh$%Apple_Mac_OSX_10.9.5/10.10.5\(09-2015\)\
  /screen$%GNU_Screen_4.5.0\
  /sdtcm_convert$%Sun_Solaris_7.0\
- /sendmail$%Sendmail_8.10.1/Sendmail_8.11.x/Linux_Kernel_2.2.x_2.4.0-test1_(SGI_ProPack_1.2/1.3)\
+ /sendmail$%Sendmail_8.10.1/Sendmail_8.11.x/Linux_Kernel_2.2.x_2.4.0-test1_\(SGI_ProPack_1.2/1.3\)\
  /sudo$\
- /sudoedit$%Sudo/SudoEdit_1.6.9p21/1.7.2p4/(RHEL_5/6/7/Ubuntu)/Sudo<=1.8.14\
- /tmux%Tmux_1.3_1.4_privesc(CVE-2011-1496)\
- /traceroute$%LBL_Traceroute_[2000-11-15]\
- /ubuntu-core-launcher$%Befre_1.0.27.1(CVE-2016-1580)\
- /umount$%BSD/Linux(08-1996)\
- /umount-loop$%Rocks_Clusters<=4.1(07-2006)\
+ /sudoedit$%Sudo/SudoEdit_1.6.9p21/1.7.2p4/\(RHEL_5/6/7/Ubuntu\)/Sudo<=1.8.14\
+ /tmux$%Tmux_1.3_1.4_privesc\(CVE-2011-1496\)\
+ /traceroute$%LBL_Traceroute_\[2000-11-15\]\
+ /ubuntu-core-launcher$%Befre_1.0.27.1\(CVE-2016-1580\)\
+ /umount$%BSD/Linux\(08-1996\)\
+ /umount-loop$%Rocks_Clusters<=4.1\(07-2006\)\
  /uucp$%Taylor_UUCP_1.0.6\
- /XFree86$%XFree86_X11R6_3.3.x/4.0/4.x/3.3(03-2003)\
- /xlock$%BSD/OS_2.1/DG/UX_7.0/Debian_1.3/HP-UX_10.34/IBM_AIX_4.2/SGI_IRIX_6.4/Solaris_2.5.1(04-1997)\
- /xscreensaver%Solaris_11.x(CVE-2019-3010)\
- /xorg$%Xorg_1.19_to_1.20.x(CVE_2018-14665)/xorg-x11-server<=1.20.3/AIX_7.1_(6.x_to_7.x_should_be_vulnerable)_X11.base.rte<7.1.5.32_and_\
- /xterm$%Solaris_5.5.1_X11R6.3(05-1997)/Debian_xterm_version_222-1etch2(01-2009)"
+ /XFree86$%XFree86_X11R6_3.3.x/4.0/4.x/3.3\(03-2003\)\
+ /xlock$%BSD/OS_2.1/DG/UX_7.0/Debian_1.3/HP-UX_10.34/IBM_AIX_4.2/SGI_IRIX_6.4/Solaris_2.5.1\(04-1997\)\
+ /xscreensaver%Solaris_11.x\(CVE-2019-3010\)\
+ /xorg$%Xorg_1.19_to_1.20.x\(CVE_2018-14665\)/xorg-x11-server<=1.20.3/AIX_7.1_\(6.x_to_7.x_should_be_vulnerable\)_X11.base.rte<7.1.5.32_and_\
+ /xterm$%Solaris_5.5.1_X11R6.3\(05-1997\)/Debian_xterm_version_222-1etch2\(01-2009\)"
 sidVB='/aria2c$|/arp$|/ash$|/awk$|/base64$|/bash$|/busybox$|/cat$|/chmod$|/chown$|/cp$|/csh$|/curl$|/cut$|/dash$|/date$|/dd$|/diff$|/dmsetup$|/docker$|/ed$|/emacs$|/env$|/expand$|/expect$|/file$|/find$|/flock$|/fmt$|/fold$|/gdb$|/gimp$|/git$|/grep$|/head$|/ionice$|/ip$|/jjs$|/jq$|/jrunscript$|/ksh$|/ld.so$|/less$|/logsave$|/lua$|/make$|/more$|/mv$|/mysql$|/nano$|/nc$|/nice$|/nl$|/nmap$|/node$|/od$|/openssl$|/perl$|/pg$|/php$|/pic$|/pico$|/python$|/readelf$|/rlwrap$|/rpm$|/rpmquery$|/rsync$|/rvim$|/screen-4.5.0|/scp$|/sed$|/setarch$|/shuf$|/socat$|/sort$|/sqlite3$|/stdbuf$|/strace$|/systemctl$|/tail$|/tar$|/taskset$|/tclsh$|/tee$|/telnet$|/tftp$|/time$|/timeout$|/ul$|/unexpand$|/uniq$|/unshare$|/vim$|/watch$|/wget$|/xargs$|/xxd$|/zip$|/zsh$'
 
 sudoVB=" \*|env_keep\+=LD_PRELOAD|apt-get$|apt$|aria2c$|arp$|ash$|awk$|base64$|bash$|busybox$|cat$|chmod$|chown$|cp$|cpan$|cpulimit$|crontab$|csh$|curl$|cut$|dash$|date$|dd$|diff$|dmesg$|dmsetup$|dnf$|docker$|dpkg$|easy_install$|ed$|emacs$|env$|expand$|expect$|facter$|file$|find$|flock$|fmt$|fold$|ftp$|gdb$|gimp$|git$|grep$|head$|ionice$|ip$|irb$|jjs$|journalctl$|jq$|jrunscript$|ksh$|ld.so$|less$|logsave$|ltrace$|lua$|mail$|make$|man$|more$|mount$|mtr$|mv$|mysql$|nano$|nc$|nice$|nl$|nmap$|node$|od$|openssl$|perl$|pg$|php$|pic$|pico$|pip$|puppet$|python$|readelf$|red$|rlwrap$|rpm$|rpmquery$|rsync$|ruby$|run-mailcap$|run-parts$|rvim$|scp$|screen$|script$|sed$|service$|setarch$|sftp$|smbclient$|socat$|sort$|sqlite3$|ssh$|start-stop-daemon$|stdbuf$|strace$|systemctl$|tail$|tar$|taskset$|tclsh$|tcpdump$|tee$|telnet$|tftp$|time$|timeout$|tmux$|ul$|unexpand$|uniq$|unshare$|vi$|vim$|watch$|wget$|wish$|xargs$|xxd$|yum$|zip$|zsh$|zypper$"
@@ -241,7 +243,7 @@ PASSTRY="2000" #Default num of passwds to try (all by default)
 
 if [ "$PORTS" ] || [ "$DISCOVERY" ] || [ "$IP" ]; then MAXPATH_FIND_W="1"; fi #If Network reduce the time on this
 SEDOVERFLOW=true
-for grp in `groups kali | cut -d ":" -f2`; do 
+for grp in `groups $USER | cut -d ":" -f2`; do 
   wgroups="$wgroups -group $grp -or "
 done
 wgroups="`echo $wgroups | rev | cut -c5- | rev`"
@@ -355,8 +357,8 @@ print_ps (){
   (for f in `ls -d /proc/*/`; do 
     CMDLINE=`cat $f/cmdline 2>/dev/null | grep -v "seds,"`; #Delete my own sed processess
     if [ "$CMDLINE" ]; 
-      then USER=ls -ld $f | awk '{print $3}'; PID=`echo $f | cut -d "/" -f3`; 
-      printf "  %-13s  %-8s  %s\n" "$USER" "$PID" "$CMDLINE"; 
+      then USER2=ls -ld $f | awk '{print $3}'; PID=`echo $f | cut -d "/" -f3`; 
+      printf "  %-13s  %-8s  %s\n" "$USER2" "$PID" "$CMDLINE"; 
     fi; 
   done) 2>/dev/null | sort -r
 }
@@ -951,7 +953,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   #-- SY) Environment vars 
   printf $Y"[+] "$GREEN"Environment\n"$NC
   printf $B"[i] "$Y"Any private information inside environment variables?\n"$NC
-  (env || set) 2>/dev/null | grep -v "RELEVANT*\|FIND*\|^VERSION=\|dbuslistG\|mygroups\|ldsoconfdG\|pwd_inside_history\|kernelDCW_Ubuntu_Precise\|kernelDCW_Ubuntu_Trusty\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG=\|sidB=\|sidVB=\|sudoB=\|sudoG=\|sudoVB=\|sudocapsB=\|timersG=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=\|processesDump\|processesB\|commonrootdirs" | sed -E "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[aA][pP][iI][kK][eE][yY]|[aA][pP][iI][_][kK][eE][yY],${C}[1;31m&${C}[0m,g" || echo_not_found "env || set"
+  (env || set) 2>/dev/null | grep -v "RELEVANT*\|FIND*\|^VERSION=\|dbuslistG\|mygroups\|ldsoconfdG\|pwd_inside_history\|kernelDCW_Ubuntu_Precise\|kernelDCW_Ubuntu_Trusty\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG\|sidB=\|sidVB=\|sudoB=\|sudoG=\|sudoVB=\|sudocapsB=\|timersG=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=\|processesDump\|processesB\|commonrootdirs" | sed -E "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[aA][pP][iI][kK][eE][yY]|[aA][pP][iI][_][kK][eE][yY],${C}[1;31m&${C}[0m,g" || echo_not_found "env || set"
   echo ""
 
   #-- SY) Dmesg
@@ -2189,15 +2191,14 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     else
       c="a"
       for b in $sidB; do
-        if [ "`echo $s | grep $(echo $b | cut -d "%" -f 1)`" ]; then
-          echo "holaaa"
-          echo $s | sed "s,$(echo $b | cut -d "%" -f 1),${C}[1;31m&\t\t--->\t$(echo $b | cut -d "%" -f 2)${C}[0m,"
+        if [ "`echo $s | grep $(echo $b | cut -d % -f 1)`" ]; then
+          echo "$s" | sed -E "s,$(echo $b | cut -d % -f 1),${C}[1;31m&  --->  $(echo $b | cut -d % -f 2)${C}[0m,"
           c=""
           break;
         fi
       done;
       if [ "$c" ]; then
-        echo $s | sed -E "s,$sidG,${C}[1;32m&${C}[0m," | sed -E "s,$sidVB,${C}[1;31;103m&${C}[0m,"
+        echo "$s" | sed -E "s,$sidG1,${C}[1;32m&${C}[0m," | sed -E "s,$sidG2,${C}[1;32m&${C}[0m," | sed -E "s,$sidVB,${C}[1;31;103m&${C}[0m,"
       fi
     fi
   done;
@@ -2212,14 +2213,14 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     else
       c="a"
       for b in $sidB; do
-        if [ "`echo $s | grep $(echo $b | cut -d "%" -f 1)`" ]; then
-          echo $s | sed "s,$(echo $b | cut -d "%" -f 1),${C}[1;31m&\t\t--->\t$(echo $b | cut -d "%" -f 2)${C}[0m,"
+        if [ "`echo $s | grep $(echo $b | cut -d % -f 1)`" ]; then
+          echo $s | sed "s,$(echo $b | cut -d % -f 1),${C}[1;31m&  --->  $(echo $b | cut -d % -f 2)${C}[0m,"
           c=""
           break;
         fi
       done;
       if [ "$c" ]; then
-        echo $s | sed -E "s,$sidG,${C}[1;32m&${C}[0m," | sed -E "s,$sidVB,${C}[1;31;103m&${C}[0m,"
+        echo "$s" | sed -E "s,$sidG,${C}[1;32m&${C}[0m," | sed -E "s,$sidVB,${C}[1;31;103m&${C}[0m,"
       fi
     fi
   done;
@@ -2296,7 +2297,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Files (scripts) in /etc/profile.d/
   printf $Y"[+] "$GREEN"Files (scripts) in /etc/profile.d/\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#profiles-files\n"$NC
-  if [ ! "$MACPEAS "]; then #Those folders don´t exist on a MacOS
+  if [ ! "$MACPEAS" ]; then #Those folders don´t exist on a MacOS
     (ls -la /etc/profile.d/ | sed -E "s,$profiledG,${C}[1;32m&${C}[0m,") || echo_not_found "/etc/profile.d/"
     if [ -w "/etc/profile" ]; then echo "You can modify /etc/profile" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
     if [ -w "/etc/profile.d/" ]; then echo "You have write privileges over /etc/profile.d/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
@@ -2307,7 +2308,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
    ##-- IF) Files (scripts) in /etc/init.d/
   printf $Y"[+] "$GREEN"Permissions in init, init.d, systemd, and rc.d\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#init-init-d-systemd-and-rc-d\n"$NC
-  if [ ! "$MACPEAS "]; then #Those folders don´t exist on a MacOS
+  if [ ! "$MACPEAS" ]; then #Those folders don´t exist on a MacOS
     if [ -w "/etc/init/" ]; then echo "You have write privileges over /etc/init/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
     if [ "`find /etc/init/ -type f -writable -or -user $USER 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/init/ -type f -writable -or -user $USER`" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
     if [ -w "/etc/init.d/" ]; then echo "You have write privileges over /etc/init.d/" | sed "s,.*,${C}[1;31;103m&${C}[0m,"; fi
@@ -2397,12 +2398,13 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $Y"[+] "$GREEN"Writable log files (logrotten) (limit 100)\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#logrotate-exploitation\n"$NC
   logrotate --version 2>/dev/null || echo_not_found "logrotate"
+  lastWlogFolder="ImPOsSiBleeE"
   for log in $(find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 3){ print line_init; }; if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; pre=act}' | head -n 100 ); do
     if [ -w "$log" ] || [ `echo "$log" | grep -E "$Wfolders"` ]; then #Only print info if something interesting found
-      if [ `echo "$log" | grep "You_can_write_more_log_files_inside_last_directory"` ]; then printf $ITALIC"$log\n"$NC;
+      if [ "`echo \"$log\" | grep \"You_can_write_more_log_files_inside_last_directory\"`" ]; then printf $ITALIC"$log\n"$NC;
       elif [ -w "$log" ] && [ "`which logrotate`" ] && [ "`logrotate --version 2>&1 | grep -E ' 1| 2| 3.1'`" ]; then printf "Writable:$RED $log\n"$NC; #Check vuln version of logrotate is used and print red in that case
       elif [ -w "$log" ]; then echo "Writable: $log";
-      elif [ `echo "$log" | grep -E "$Wfolders"` ]; then echo "Writable folder: $log" | sed -E "s,$Wfolders,${C}[1;31m&${C}[0m,g";
+      elif [ "`echo \"$log\" | grep -E \"$Wfolders\"`" ] && [ ! "$lastWlogFolder" == "$log" ]; then lastWlogFolder="$log"; echo "Writable folder: $log" | sed -E "s,$Wfolders,${C}[1;31m&${C}[0m,g";
       fi
     fi
   done
