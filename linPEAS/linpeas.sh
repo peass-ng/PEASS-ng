@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.7.7"
+VERSION="v2.7.8"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 
@@ -83,14 +83,14 @@ while getopts "h?asnd:p:i:P:qo:LMw" opt; do
     esac
 done
 
-if [ "$MACPEAS" ]; then printf " ${DG}Starting macpeas. Building blacklists...$NC"
-else printf " ${DG}Starting linpeas. Building blacklists...$NC"; fi
+if [ "$MACPEAS" ]; then SCRIPTNAME="macpeas"; else SCRIPTNAME="linpeas"; fi
+printf " ${DG}Starting $SCRIPTNAME. Building blacklists...$NC"
 
 ###########################################
 #---------------) Lists (-----------------#
 ###########################################
 
-filename="linpeas.txt$RANDOM"
+filename="$SCRIPTNAME.txt$RANDOM"
 kernelB=" 4.0.[0-9]+| 4.1.[0-9]+| 4.2.[0-9]+| 4.3.[0-9]+| 4.4.[0-9]+| 4.5.[0-9]+| 4.6.[0-9]+| 4.7.[0-9]+| 4.8.[0-9]+| 4.9.[0-9]+| 4.10.[0-9]+| 4.11.[0-9]+| 4.12.[0-9]+| 4.13.[0-9]+| 3.9.6| 3.9.0| 3.9| 3.8.9| 3.8.8| 3.8.7| 3.8.6| 3.8.5| 3.8.4| 3.8.3| 3.8.2| 3.8.1| 3.8.0| 3.8| 3.7.6| 3.7.0| 3.7| 3.6.0| 3.6| 3.5.0| 3.5| 3.4.9| 3.4.8| 3.4.6| 3.4.5| 3.4.4| 3.4.3| 3.4.2| 3.4.1| 3.4.0| 3.4| 3.3| 3.2| 3.19.0| 3.16.0| 3.15| 3.14| 3.13.1| 3.13.0| 3.13| 3.12.0| 3.12| 3.11.0| 3.11| 3.10.6| 3.10.0| 3.10| 3.1.0| 3.0.6| 3.0.5| 3.0.4| 3.0.3| 3.0.2| 3.0.1| 3.0.0| 2.6.9| 2.6.8| 2.6.7| 2.6.6| 2.6.5| 2.6.4| 2.6.39| 2.6.38| 2.6.37| 2.6.36| 2.6.35| 2.6.34| 2.6.33| 2.6.32| 2.6.31| 2.6.30| 2.6.3| 2.6.29| 2.6.28| 2.6.27| 2.6.26| 2.6.25| 2.6.24.1| 2.6.24| 2.6.23| 2.6.22| 2.6.21| 2.6.20| 2.6.2| 2.6.19| 2.6.18| 2.6.17| 2.6.16| 2.6.15| 2.6.14| 2.6.13| 2.6.12| 2.6.11| 2.6.10| 2.6.1| 2.6.0| 2.4.9| 2.4.8| 2.4.7| 2.4.6| 2.4.5| 2.4.4| 2.4.37| 2.4.36| 2.4.35| 2.4.34| 2.4.33| 2.4.32| 2.4.31| 2.4.30| 2.4.29| 2.4.28| 2.4.27| 2.4.26| 2.4.25| 2.4.24| 2.4.23| 2.4.22| 2.4.21| 2.4.20| 2.4.19| 2.4.18| 2.4.17| 2.4.16| 2.4.15| 2.4.14| 2.4.13| 2.4.12| 2.4.11| 2.4.10| 2.2.24"
 kernelDCW_Ubuntu_Precise_1="3.1.1-1400-linaro-lt-mx5|3.11.0-13-generic|3.11.0-14-generic|3.11.0-15-generic|3.11.0-17-generic|3.11.0-18-generic|3.11.0-20-generic|3.11.0-22-generic|3.11.0-23-generic|3.11.0-24-generic|3.11.0-26-generic|3.13.0-100-generic|3.13.0-24-generic|3.13.0-27-generic|3.13.0-29-generic|3.13.0-30-generic|3.13.0-32-generic|3.13.0-33-generic|3.13.0-34-generic|3.13.0-35-generic|3.13.0-36-generic|3.13.0-37-generic|3.13.0-39-generic|3.13.0-40-generic|3.13.0-41-generic|3.13.0-43-generic|3.13.0-44-generic|3.13.0-46-generic|3.13.0-48-generic|3.13.0-49-generic|3.13.0-51-generic|3.13.0-52-generic|3.13.0-53-generic|3.13.0-54-generic|3.13.0-55-generic|3.13.0-57-generic|3.13.0-58-generic|3.13.0-59-generic|3.13.0-61-generic|3.13.0-62-generic|3.13.0-63-generic|3.13.0-65-generic|3.13.0-66-generic|3.13.0-67-generic|3.13.0-68-generic|3.13.0-71-generic|3.13.0-73-generic|3.13.0-74-generic|3.13.0-76-generic|3.13.0-77-generic|3.13.0-79-generic|3.13.0-83-generic|3.13.0-85-generic|3.13.0-86-generic|3.13.0-88-generic|3.13.0-91-generic|3.13.0-92-generic|3.13.0-93-generic|3.13.0-95-generic|3.13.0-96-generic|3.13.0-98-generic|3.2.0-101-generic|3.2.0-101-generic-pae|3.2.0-101-virtual|3.2.0-102-generic|3.2.0-102-generic-pae|3.2.0-102-virtual"
 kernelDCW_Ubuntu_Precise_2="3.2.0-104-generic|3.2.0-104-generic-pae|3.2.0-104-virtual|3.2.0-105-generic|3.2.0-105-generic-pae|3.2.0-105-virtual|3.2.0-106-generic|3.2.0-106-generic-pae|3.2.0-106-virtual|3.2.0-107-generic|3.2.0-107-generic-pae|3.2.0-107-virtual|3.2.0-109-generic|3.2.0-109-generic-pae|3.2.0-109-virtual|3.2.0-110-generic|3.2.0-110-generic-pae|3.2.0-110-virtual|3.2.0-111-generic|3.2.0-111-generic-pae|3.2.0-111-virtual|3.2.0-1412-omap4|3.2.0-1602-armadaxp|3.2.0-23-generic|3.2.0-23-generic-pae|3.2.0-23-lowlatency|3.2.0-23-lowlatency-pae|3.2.0-23-omap|3.2.0-23-powerpc-smp|3.2.0-23-powerpc64-smp|3.2.0-23-virtual|3.2.0-24-generic|3.2.0-24-generic-pae|3.2.0-24-virtual|3.2.0-25-generic|3.2.0-25-generic-pae|3.2.0-25-virtual|3.2.0-26-generic|3.2.0-26-generic-pae|3.2.0-26-virtual|3.2.0-27-generic|3.2.0-27-generic-pae|3.2.0-27-virtual|3.2.0-29-generic|3.2.0-29-generic-pae|3.2.0-29-virtual|3.2.0-31-generic|3.2.0-31-generic-pae|3.2.0-31-virtual|3.2.0-32-generic|3.2.0-32-generic-pae|3.2.0-32-virtual|3.2.0-33-generic|3.2.0-33-generic-pae|3.2.0-33-lowlatency|3.2.0-33-lowlatency-pae|3.2.0-33-virtual|3.2.0-34-generic|3.2.0-34-generic-pae|3.2.0-34-virtual|3.2.0-35-generic|3.2.0-35-generic-pae|3.2.0-35-lowlatency|3.2.0-35-lowlatency-pae|3.2.0-35-virtual"
@@ -313,10 +313,10 @@ DISCOVER_BAN_BAD="No network discovery capabilities (fping or ping not found)"
 FPING=$(which fping)
 PING=$(which ping)
 if [ "$FPING" ]; then
-  DISCOVER_BAN_GOOD="$GREEN$FPING$B is available for network discovery$LG (linpeas can discover hosts, learn more with -h)"
+  DISCOVER_BAN_GOOD="$GREEN$FPING$B is available for network discovery$LG ($SCRIPTNAME can discover hosts, learn more with -h)"
 else
   if [ "$PING" ]; then
-    DISCOVER_BAN_GOOD="$GREEN$PING$B is available for network discovery$LG (linpeas can discover hosts, learn more with -h)"
+    DISCOVER_BAN_GOOD="$GREEN$PING$B is available for network discovery$LG ($SCRIPTNAME can discover hosts, learn more with -h)"
   fi
 fi
 
@@ -335,7 +335,7 @@ if [ -z "$FOUND_NC" ]; then
 	FOUND_NC=$(which nc.openbsd 2>/dev/null);
 fi
 if [ "$FOUND_NC" ]; then
-  SCAN_BAN_GOOD="$GREEN$FOUND_NC$B is available for network discover & port scanning$LG (linpeas can discover hosts and scan ports, learn more with -h)"
+  SCAN_BAN_GOOD="$GREEN$FOUND_NC$B is available for network discover & port scanning$LG ($SCRIPTNAME can discover hosts and scan ports, learn more with -h)"
 fi
 
 
@@ -652,8 +652,7 @@ fi
 
 echo ""
 if [ !"$QUIET" ]; then print_banner; fi
-if [ "$MACPEAS" ]; then printf $B"  macpeas $VERSION ${Y}by carlospolop\n"$NC
-else printf $B"  linpeas $VERSION ${Y}by carlospolop\n"$NC; fi
+printf $B"  $SCRIPTNAME $VERSION ${Y}by carlospolop\n"$NC;
 echo ""
 printf $Y"ADVISORY: "$B"$ADVISORY\n"$NC
 echo ""
@@ -1808,7 +1807,11 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ovpn=$(echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_ROOT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '\.ovpn')
   if [ "$ovpn" ]; then
     printf "$ovpn\n"
-    for f in $ovpn; do cat "$f" 2>/dev/null | grep "auth-user-pass" | sed "s,auth-user-pass.*,${C}[1;31m&${C}[0m,"; done
+    for f in $ovpn; do 
+      if [ -r "$f" ]; then
+        cat "$f" 2>/dev/null | grep "auth-user-pass" | sed "s,auth-user-pass.*,${C}[1;31m&${C}[0m,";
+      fi
+    done
   else echo_not_found ".ovpn"
   fi
   echo ""
@@ -1905,8 +1908,10 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   if [ "$cloudcreds" ]; then
     for f in $cloudcreds; do 
       if [ -f "$f" ]; then #Check if file, here we only look for filenames, not dirs
-        printf "Reading $f\n" | sed -E "s,credentials|credentials.db|legacy_credentials.db|access_tokens.db|accessTokens.json|azureProfile.json,${C}[1;31m&${C}[0m,g"
-        cat "$f" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,g"
+        printf "Trying to read $f\n" | sed -E "s,credentials|credentials.db|legacy_credentials.db|access_tokens.db|accessTokens.json|azureProfile.json,${C}[1;31m&${C}[0m,g"
+        if [ -r "$f" ]; then
+          cat "$f" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,g"
+        fi
         echo ""
       fi
     done
@@ -1926,7 +1931,11 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $B"[i] "$Y"https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88#pass-the-ticket-ptt\n"$NC
   krb5=$(echo "$FIND_DIR_VAR $FIND_DIR_ETC $FIND_DIR_HOME $FIND_DIR_ROOT $FIND_DIR_TMP $FIND_DIR_USR $FIND_DIR_OPT $FIND_DIR_USERS $FIND_DIR_PRIVATE $FIND_DIR_APPLICATIONS" | grep -E 'krb5\.conf')
   if [ "$krb5" ]; then
-    for f in $krb5; do cat "$f" 2>/dev/null | grep default_ccache_name | sed "s,default_ccache_name,${C}[1;31m&${C}[0m,"; done
+    for f in $krb5; do
+      if [ -r "$f" ]; then
+        cat "$f" 2>/dev/null | grep default_ccache_name | sed "s,default_ccache_name,${C}[1;31m&${C}[0m,"; 
+      fi
+    done
   else echo_not_found "krb5.conf"
   fi
   ls -l "/tmp/krb5cc*" "/var/lib/sss/db/ccache_*" "/etc/opt/quest/vas/host.keytab" 2>/dev/null || echo_not_found "tickets kerberos"
@@ -1938,7 +1947,11 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   kibana=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_ROOT $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'kibana\.y.*ml')
   if [ "$kibana" ]; then
     printf "$kibana\n"
-    for f in $kibana; do cat "$f" 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v "^$" | grep -v -e '^[[:space:]]*$' | sed -E "s,username|password|host|port|elasticsearch|ssl,${C}[1;31m&${C}[0m,"; done
+    for f in $kibana; do
+      if [ -r "$f" ]; then
+        cat "$f" 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v "^$" | grep -v -e '^[[:space:]]*$' | sed -E "s,username|password|host|port|elasticsearch|ssl,${C}[1;31m&${C}[0m,"; 
+      fi
+    done
   else echo_not_found "kibana.yml"
   fi
   echo ""
@@ -1980,7 +1993,11 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   elasticsearch=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_ROOT $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'elasticsearch\.y.*ml')
   if [ "$elasticsearch" ]; then
     printf "$elasticsearch\n"
-    for f in $elasticsearch; do cat $f 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v -e '^[[:space:]]*$' | grep "path.data\|path.logs\|cluster.name\|node.name\|network.host\|discovery.zen.ping.unicast.hosts"; done
+    for f in $elasticsearch; do
+      if [ -r "$f" ]; then
+        cat $f 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v -e '^[[:space:]]*$' | grep "path.data\|path.logs\|cluster.name\|node.name\|network.host\|discovery.zen.ping.unicast.hosts"; 
+      fi
+    done
     echo "Version: $(curl -X GET '10.10.10.115:9200' 2>/dev/null | grep number | cut -d ':' -f 2)"
   else echo_not_found
   fi
@@ -1991,7 +2008,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   vaultssh=$(echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_ROOT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'vault-ssh-helper\.hcl')
   if [ "$vaultssh" ]; then
     printf "$vaultssh\n"
-    for f in $vaultssh; do cat $f 2>/dev/null; vault-ssh-helper -verify-only -config $f 2>/dev/null; done
+    for f in $vaultssh; do cat "$f" 2>/dev/null; vault-ssh-helper -verify-only -config "$f" 2>/dev/null; done
     echo ""
     vault secrets list 2>/dev/null
     echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_ROOT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '\.vault-token' | sed "s,.*,${C}[1;31m&${C}[0m," 2>/dev/null
