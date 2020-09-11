@@ -1439,7 +1439,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   if [ "$is_gdb" ]; then echo "gdb was found in PATH" | sed -E "s,.*,${C}[1;31m&${C}[0m,g";
   else echo "gdb wasn't found in PATH" | sed "s,gdb,${C}[1;32m&${C}[0m,g";
   fi
-  if [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ] && [ "$is_gdb" ]; then
+  if ![ "$SUPERFAST" ] && [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ] && [ "$is_gdb" ]; then
     echo "Checking for sudo tokens in other shells owned by current user"
     for pid in $(pgrep '^(ash|ksh|csh|dash|bash|zsh|tcsh|sh)$' -u "$(id -u)" 2>/dev/null | grep -v "^$$\$"); do
       echo "Injecting process $pid -> "$(cat "/proc/$pid/comm" 2>/dev/null)
