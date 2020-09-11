@@ -1335,8 +1335,8 @@ if [ "`echo $CHECKS | grep Net`" ]; then
 
   #-- NI) Neighbours
   printf $Y"[+] "$GREEN"Networks and neighbours\n"$NC
-  (route || ip n) 2>/dev/null
-  (arp -e || arp -a) 2>/dev/null
+  (route || ip n || cat /proc/net/route) 2>/dev/null
+  (arp -e || arp -a || cat /proc/net/arp) 2>/dev/null
   echo ""
 
   #-- NI) Iptables
