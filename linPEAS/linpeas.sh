@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.8.0"
+VERSION="v2.8.1"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -1440,7 +1440,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   if [ "$is_gdb" ]; then echo "gdb was found in PATH" | sed -E "s,.*,${C}[1;31m&${C}[0m,g";
   else echo "gdb wasn't found in PATH" | sed "s,gdb,${C}[1;32m&${C}[0m,g";
   fi
-  if ![ "$SUPERFAST" ] && [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ] && [ "$is_gdb" ]; then
+  if [ ! "$SUPERFAST" ] && [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ] && [ "$is_gdb" ]; then
     echo "Checking for sudo tokens in other shells owned by current user"
     for pid in $(pgrep '^(ash|ksh|csh|dash|bash|zsh|tcsh|sh)$' -u "$(id -u)" 2>/dev/null | grep -v "^$$\$"); do
       echo "Injecting process $pid -> "$(cat "/proc/$pid/comm" 2>/dev/null)
@@ -1720,10 +1720,12 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) Mongo Information
   printf $Y"[+] "$GREEN"Mongo information\n"$NC
   mongos=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_ROOT $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'mongod.*\.conf$')
-  (mongo --version 2>/dev/null || mongod --version 2>/dev/null) || echo_not_found
+  (mongo --version 2>/dev/null || mongod --version 2>/dev/null) || echo_not_found "mongo binary"
   printf "$mongos\n" | while read f; do
-    echo "Found $f"
-    cat "$f" | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v "^$" | sed -E "s,auth*=*true|pass.*,${C}[1;31m&${C}[0m," 2>/dev/null
+    if [ "$f" ]; then
+      echo "Found $f"
+      cat "$f" | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v "^$" | sed -E "s,auth*=*true|pass.*,${C}[1;31m&${C}[0m," 2>/dev/null
+    fi
   done
 
   #TODO: Check if you can login without password and warn the user
@@ -1778,10 +1780,9 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Wifi conns
   printf $Y"[+] "$GREEN"Searching wifi conns file\n"$NC
-  wifi=`find /etc/NetworkManager/system-connections/ 2>/dev/null`
+  wifi=`find /etc/NetworkManager/system-connections/ -type f 2>/dev/null`
   if [ "$wifi" ]; then
-    printf "$wifi\n"
-    printf "$wifi\n" | while read f; do cat "$f" 2>/dev/null | grep "psk.*=" | sed "s,psk.*,${C}[1;31m&${C}[0m,"; done
+    printf "$wifi\n" | while read f; do echo "$f"; cat "$f" 2>/dev/null | grep "psk.*=" | sed "s,psk.*,${C}[1;31m&${C}[0m,"; done
   else echo_not_found
   fi
   echo ""
@@ -2475,7 +2476,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   if [ "$dbfiles" ]; then
     SQLITEPYTHON=""
     printf "$dbfiles\n" | while read f; do 
-      if [ -r $f ]; then 
+      if [ -r "$f" ]; then 
         printf $GREEN" -> Extracting tables from$NC $f $DG(limit 20)\n"$NC
         if [ "`which sqlite3 2>/dev/null`" ]; then
           tables=`sqlite3 $f ".tables" 2>/dev/null`
@@ -2552,7 +2553,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Readable files in /tmp, /var/tmp, /var/backups
   printf $Y"[+] "$GREEN"Readable files inside /tmp, /var/tmp, /var/backups, /private/tmp /private/var/at/tmp /private/var/tmp (limit 70)\n"$NC
   filstmpback=`find /tmp /var/tmp /var/backups /private/tmp /private/var/at/tmp /private/var/tmp -type f 2>/dev/null | head -n 70`
-  printf "$filstmpback\n" | while f; do if [ -r "$f" ]; then ls -l "$f" 2>/dev/null; fi; done
+  printf "$filstmpback\n" | while read f; do if [ -r "$f" ]; then ls -l "$f" 2>/dev/null; fi; done
   echo ""
 
   ##-- IF) Interesting writable files by ownership or all
