@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.8.1"
+VERSION="v2.8.2"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -348,7 +348,7 @@ echo_no (){
 
 print_ps (){
   (ls -d /proc/*/ 2>/dev/null | while read f; do 
-    CMDLINE=`cat $f/cmdline 2>/dev/null | grep -v "seds,"`; #Delete my own sed processess
+    CMDLINE=`cat $f/cmdline 2>/dev/null | grep -av "seds,"`; #Delete my own sed processess
     if [ "$CMDLINE" ]; 
       then USER2=ls -ld $f | awk '{print $3}'; PID=`echo $f | cut -d "/" -f3`; 
       printf "  %-13s  %-8s  %s\n" "$USER2" "$PID" "$CMDLINE"; 
@@ -797,8 +797,8 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
   IRSSI_RELEVANT_NAMES=".irssi"
   KEYRING_RELEVANT_NAMES="keyrings *.keyring *.keystore"
 
-  DB_RELEVANT_NAMES="*.db *.sqlite *.sqlite3"
-  INSTERESTING_RELEVANT_NAMES="*_history .sudo_as_admin_successful .profile *bashrc *httpd.conf *.plan .htpasswd .gitconfig .git-credentials .git .svn *.rhost hosts.equiv Dockerfile docker-compose.yml"
+  DB_RELEVANT_NAMES="*.db *.sqlite *.sqlite3 *.sql"
+  INSTERESTING_RELEVANT_NAMES="*_history .sudo_as_admin_successful .profile *bashrc *httpd.conf *.plan .htpasswd .gitconfig .git-credentials .git .svn *.rhost hosts.equiv Dockerfile docker-compose.yml .viminfo .ldaprc"
   PASSWORD_RELEVANT_NAMES="*password* *credential* creds*"
 
 
@@ -2471,12 +2471,20 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   echo ""
 
   ##-- IF) DB files
-  printf $Y"[+] "$GREEN"Searching tables inside readable .db/.sqlite files (limit 100)\n"$NC
+  printf $Y"[+] "$GREEN"Searching tables inside readable .db/.sql/.sqlite files (limit 100)\n"$NC
   dbfiles=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_ROOT $FIND_TMP $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*\.db$|.*\.sqlite$|.*\.sqlite3$' | grep -E -v '/man/.*|/usr/.*|/var/cache/.*' | head -n 100)
+  FILECMD="`which file`"
   if [ "$dbfiles" ]; then
+    printf "$dbfiles\n" | while read f; do
+      if [ "$FILECMD" ]; then
+        echo "Found: `file \"$f\"`" | sed -E "s,\.db|\.sql|\.sqlite|\.sqlite3,${C}[1;31m&${C}[0m,g"; 
+      else
+        echo "Found: $f" | sed -E "s,\.db|\.sql|\.sqlite|\.sqlite3,${C}[1;31m&${C}[0m,g"; 
+      fi
+    done
     SQLITEPYTHON=""
     printf "$dbfiles\n" | while read f; do 
-      if [ -r "$f" ]; then 
+      if ([ -r "$f" ] && [ "$FILECMD" ] && [ "`file \"$f\" | grep -i sqlite`" ]) || ([ -r "$f" ] && [ ! "$FILECMD" ]); then #If readable and filecmd and sqlite, or readable and not filecmd
         printf $GREEN" -> Extracting tables from$NC $f $DG(limit 20)\n"$NC
         if [ "`which sqlite3 2>/dev/null`" ]; then
           tables=`sqlite3 $f ".tables" 2>/dev/null`
@@ -2527,7 +2535,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   fils=$(echo "$FIND_ETC $FIND_HOME $FIND_ROOT $FIND_TMP $FIND_USR $FIND_OPT $FIND_MNT $FIND_VAR $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*_history|\.sudo_as_admin_successful|\.profile|.*bashrc|.*httpd\.conf|.*\.plan|\.htpasswd|\.gitconfig|\.git-credentials|\.git|\.svn|\.rhosts|hosts\.equiv|Dockerfile|docker-compose\.yml')
   printf "$fils\n" | while read f; do 
     if [ -r $f ]; then 
-      ls -ld "$f" 2>/dev/null | sed "s,_history|\.sudo_as_admin_successful|.profile|bashrc|httpd.conf|\.plan|\.htpasswd|.gitconfig|\.git-credentials|.git|.svn|\.rhosts|hosts.equiv|Dockerfile|docker-compose.yml,${C}[1;31m&${C}[0m," | sed -E "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
+      ls -ld "$f" 2>/dev/null | sed "s,_history|\.sudo_as_admin_successful|.profile|bashrc|httpd.conf|\.plan|\.htpasswd|.gitconfig|\.git-credentials|.git|.svn|\.rhosts|hosts.equiv|Dockerfile|docker-compose.yml|\.viminfo|\.ldaprc,${C}[1;31m&${C}[0m," | sed -E "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
       if [ `echo $f | grep "_history"` ]; then
         printf $GREEN"Searching possible passwords inside $f (limit 100)\n"$NC
         cat "$f" | grep -aE "$pwd_inside_history" | sed '/^.\{150\}./d' | sed -E "s,$pwd_inside_history,${C}[1;31m&${C}[0m," | head -n 100
@@ -2537,6 +2545,10 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
         cat "$f" | grep -v "^#" | grep -Ev "\W+\#|^#" | grep -E "htaccess|htpasswd" | grep -v "^$" | sed -E "s,htaccess.*|htpasswd.*,${C}[1;31m&${C}[0m,"
         echo ""
       elif [ `echo $f | grep "htpasswd" ` ]; then
+        printf $GREEN"Reading $f\n"$NC
+        cat "$f" | grep -v "^#" | sed -E "s,.*,${C}[1;31m&${C}[0m,"
+        echo ""
+      elif [ `echo $f | grep "ldaprc" ` ]; then
         printf $GREEN"Reading $f\n"$NC
         cat "$f" | grep -v "^#" | sed -E "s,.*,${C}[1;31m&${C}[0m,"
         echo ""
@@ -2605,12 +2617,12 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Passwords inside logs
   printf $Y"[+] "$GREEN"Finding passwords inside logs (limit 70)\n"$NC
-  grep -R -i "pwd\|passw" /var/log/ /private/var/log 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | grep -v "File does not exist:\|script not found or unable to stat:\|\"GET /.*\" 404" | head -n 70 | sed -E "s,pwd|passw,${C}[1;31m&${C}[0m,"
+  (timeout 100 grep -R -i "pwd\|passw" /var/log/ /private/var/log) 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | grep -v "File does not exist:\|script not found or unable to stat:\|\"GET /.*\" 404" | head -n 70 | sed -E "s,pwd|passw,${C}[1;31m&${C}[0m,"
   echo ""
 
   ##-- IF) Emails inside logs
   printf $Y"[+] "$GREEN"Finding emails inside logs (limit 70)\n"$NC
-  grep -I -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" /var/log/ /private/var/log 2>/dev/null | sort | uniq -c | sort -r -n | head -n 70 | sed -E "s,$knw_emails,${C}[1;32m&${C}[0m,g"
+  (timeout 100 grep -I -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" /var/log/ /private/var/log) 2>/dev/null | sort | uniq -c | sort -r -n | head -n 70 | sed -E "s,$knw_emails,${C}[1;32m&${C}[0m,g"
   echo "" 
 
   ##-- IF) Passwords files in home
