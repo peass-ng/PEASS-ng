@@ -37,7 +37,7 @@ ITALIC="${C}[3m"
 # --) FAST - Do not check 1min of procceses and su brute
 # --) SUPERFAST - FAST & do not search for special filaes in all the folders
 
-if [ "`uname | grep 'Darwin'`" ]; then MACPEAS="1"; else MACPEAS=""; fi
+if [ "`uname | grep 'Darwin'`" ] || [ "`/usr/bin/uname | grep 'Darwin'`" ]; then MACPEAS="1"; else MACPEAS=""; fi
 FAST="1" #By default stealth/fast mode
 SUPERFAST=""
 NOTEXPORT=""
