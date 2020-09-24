@@ -155,6 +155,7 @@
     <Compile Include="TaskScheduler\XmlSerializationHelper.cs" />
     <Compile Include="UserInfo.cs" />
     <Compile Include="Watson.cs" />
+    <Compile Include="Wifi.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
