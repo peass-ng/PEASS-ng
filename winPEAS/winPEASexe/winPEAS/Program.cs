@@ -21,7 +21,7 @@ namespace winPEAS
         // Static blacklists
         static string strTrue = "True";
         static string strFalse = "False";
-        static string badgroups = "docker|Remote |DNSAdmins|AD Recycle Bin|Azure Admins|Admins";//The space in Remote is important to not mix with SeShutdownRemotePrivilege
+        static string badgroups = "docker|Remote |DNSAdmins|AD Recycle Bin|Azure Admins|Admins|Server Operators";//The space in Remote is important to not mix with SeShutdownRemotePrivilege
         static string badpasswd = "NotChange|NotExpi";
         static string badPrivileges = "SeImpersonatePrivilege|SeAssignPrimaryPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege";
         //static string goodSoft = "Windows Phone Kits|Windows Kits|Windows Defender|Windows Mail|Windows Media Player|Windows Multimedia Platform|windows nt|Windows Photo Viewer|Windows Portable Devices|Windows Security|Windows Sidebar|WindowsApps|WindowsPowerShell| Windows$|Microsoft|WOW6432Node|internet explorer|Internet Explorer|Common Files";
@@ -1649,21 +1649,25 @@ namespace winPEAS
             {
                 try
                 {
-                    Beaprint.MainPrint("Looking saved Wifis");
+                    Beaprint.MainPrint("Looking for saved Wifi credentials");
                     if (exec_cmd)
                     {
-                        Dictionary<string, string> colorsC = new Dictionary<string, string>()
+                        Dictionary<string, string> networkConnections = Wifi.Retrieve();
+                        Dictionary<string, string> ansi_colors_regexp = new Dictionary<string, string>();
+
+                        //Make sure the passwords are all flagged as ansi_color_bad.
+                        foreach (var connection in networkConnections)
                         {
-                            { ": .*", Beaprint.ansi_color_bad },
-                        };
-                        Beaprint.AnsiPrint("    " + MyUtils.ExecCMD("wlan show profile", "netsh.exe"), colorsC);
+                            ansi_colors_regexp.Add(connection.Value, Beaprint.ansi_color_bad);
+                        }
+                        Beaprint.DictPrint(networkConnections, ansi_colors_regexp, false);
                     }
                     else
                     {
                         Beaprint.GrayPrint("    This function is not yet implemented.");
                         Beaprint.InfoPrint("If you want to list saved Wifis connections you can list the using 'netsh wlan show profile'");
+                        Beaprint.InfoPrint("If you want to get the clear-text password use 'netsh wlan show profile <SSID> key=clear'");
                     }
-                    Beaprint.InfoPrint("If you want to get the clear-text password use 'netsh wlan show profile <SSID> key=clear'");
                 }
                 catch (Exception ex)
                 {
@@ -2434,7 +2438,6 @@ namespace winPEAS
                 
 
             /*
-             * Wifi (passwords?)
              * Keylogger?
              * Input prompt ==> Better in PS
              * Cretae list of malicious drives that could allow to privesc?
