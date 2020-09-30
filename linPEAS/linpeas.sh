@@ -2220,6 +2220,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     if [ -f "$f" ]; then 
       echo "backup-manager file: $f" | sed "s,$f,${C}[1;31m&${C}[0m,"
       cat "$f" 2>/dev/null | grep "'pass'|'password'|'user'|'database'|'host'" | sed -E "s,password|pass|user|database|host,${C}[1;31m&${C}[0m,"
+    fi
   done
   echo ""
   echo ""
