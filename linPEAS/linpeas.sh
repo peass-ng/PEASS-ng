@@ -2284,7 +2284,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   echo ""
 
   ##-- IF) Misconfigured ld.so
-  printf $Y"[+] "$GREEN"Cheking missconfigurations of ld.so\n"$NC
+  printf $Y"[+] "$GREEN"Checking misconfigurations of ld.so\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#ld-so\n"$NC
   printf $ITALIC"/etc/ld.so.conf\n"$NC;
   cat /etc/ld.so.conf 2>/dev/null | sed -E "s,$Wfolders,${C}[1;31;103m&${C}[0m,g"
