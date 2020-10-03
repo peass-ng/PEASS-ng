@@ -797,7 +797,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
   IRSSI_RELEVANT_NAMES=".irssi"
   KEYRING_RELEVANT_NAMES="keyrings *.keyring *.keystore"
   FILEZILLA_RELEVANT_NAMES="filezilla"
-  BACKUPMANAGER_RELEVANT_NAMES="storage.php"
+  BACKUPMANAGER_RELEVANT_NAMES="storage.php database.php"
 
   DB_RELEVANT_NAMES="*.db *.sqlite *.sqlite3 *.sql"
   INSTERESTING_RELEVANT_NAMES="*_history .sudo_as_admin_successful .profile *bashrc *httpd.conf *.plan .htpasswd .gitconfig .git-credentials .git .svn *.rhost hosts.equiv Dockerfile docker-compose.yml .viminfo .ldaprc"
@@ -2451,7 +2451,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $Y"[+] "$GREEN"Writable log files (logrotten) (limit 100)\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#logrotate-exploitation\n"$NC
   logrotate --version 2>/dev/null || echo_not_found "logrotate"
-  lastWlogFolder="ImPOsSiBleeE"
+  lastWlogFolder="ImPOsSiBleeElastWlogFolder"
   logfind=`find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 3){ print line_init; }; if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; pre=act}' | head -n 100`
   printf "$logfind\n" | while read log; do
     if [ -w "$log" ] || [ `echo "$log" | grep -E "$Wfolders"` ]; then #Only print info if something interesting found
