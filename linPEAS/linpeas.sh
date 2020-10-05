@@ -1693,7 +1693,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   wp=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'wp-config\.php$')
   if [ "$wp" ]; then
     echo "wp-config.php files found:\n$wp"
-    prtinf "$wp\n" | while read f; do grep "PASSWORD\|USER\|NAME\|HOST" "$f" 2>/dev/null | sed -E "s,.*,${C}[1;31m&${C}[0m,"; done
+    printf "$wp\n" | while read f; do grep "PASSWORD\|USER\|NAME\|HOST" "$f" 2>/dev/null | sed -E "s,.*,${C}[1;31m&${C}[0m,"; done
   else echo_not_found "wp-config.php"
   fi
   echo ""
