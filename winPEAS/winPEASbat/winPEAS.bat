@@ -30,9 +30,9 @@ echo        (((((((((/,  ,####################(/..((((((((((.
 echo              (((((((((/,.  ,*//////*,. ./(((((((((((.
 echo                 (((((((((((((((((((((((((((/"
 echo                        by carlospolop
-echo
+echo.
 echo Advisory: winpeas should be used for authorized penetration testing and/or educational purposes only.Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
-echo
+echo.
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [*] BASIC SYSTEM INFO ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] WINDOWS OS ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 echo [i] Check for vulnerabilities for the OS version with the applied patches
@@ -422,7 +422,7 @@ IF EXIST %WINDIR%\System32\config\SYSTEM ECHO %WINDIR%\System32\config\SYSTEM ex
 IF EXIST %WINDIR%\System32\config\RegBack\SYSTEM ECHO %WINDIR%\System32\config\RegBack\SYSTEM exists.
 echo.
 echo.
-echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] McAffe SiteList.xml ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+echo _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-^> [+] McAffee SiteList.xml ^<_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 cd %ProgramFiles% 2>nul
 dir /s SiteList.xml
 cd %ProgramFiles(x86)% 2>nul
