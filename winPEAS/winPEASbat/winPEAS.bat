@@ -1,6 +1,6 @@
 @ECHO OFF & SETLOCAL EnableDelayedExpansion
 TITLE WinPEAS - Windows local Privilege Escalation Awesome Script
-COLOR 5F
+COLOR 0F
 CALL :SetOnce
 
 REM :: WinPEAS - Windows local Privilege Escalation Awesome Script
@@ -12,32 +12,32 @@ SET long=false
 
 :Splash
 ECHO.
-CALL :ColorLine "            %E%32m((,.,/((((((((((((((((((((/,  */%E%45;97m"
-CALL :ColorLine "     %E%32m,/*,..*(((((((((((((((((((((((((((((((((,%E%45;97m"              
-CALL :ColorLine "   %E%32m,*/((((((((((((((((((/,  %E%92m.*//((//**,%E%32m .*((((((*%E%45;97m"       
-CALL :ColorLine "   %E%32m((((((((((((((((* %E%94m*****%E%32m,,,/########## %E%32m.(* ,((((((%E%45;97m"   
-CALL :ColorLine "   %E%32m(((((((((((/* %E%94m******************%E%32m/####### %E%32m.(. ((((((%E%45;97m"
-CALL :ColorLine "   %E%32m((((((.%E%92m.%E%94m******************%E%97m/@@@@@/%E%94m***%E%92m/######%E%32m /((((((%E%45;97m"
-CALL :ColorLine "   %E%32m,,.%E%92m.%E%94m**********************%E%97m@@@@@@@@@@(%E%94m***%E%92m,####%E%32m ../(((((%E%45;97m"
-CALL :ColorLine "   %E%32m, ,%E%92m%E%94m**********************%E%97m#@@@@@#@@@@%E%94m*********%E%92m##%E%32m((/ /((((%E%45;97m"
-CALL :ColorLine "   %E%32m..((%E%92m(##########%E%94m*********%E%97m/#@@@@@@@@@/%E%94m*************%E%32m,,..((((%E%45;97m"
-CALL :ColorLine "   %E%32m.((%E%92m(################(/%E%94m******%E%97m/@@@@@#%E%94m****************%E%32m.. /((%E%45;97m"
-CALL :ColorLine "   %E%32m.(%E%92m(########################(/%E%94m************************%E%32m..*(%E%45;97m"
-CALL :ColorLine "   %E%32m.(%E%92m(#############################(/%E%94m********************%E%32m.,(%E%45;97m"
-CALL :ColorLine "   %E%32m.(%E%92m(##################################(/%E%94m***************%E%32m..(%E%45;97m"
-CALL :ColorLine "   %E%32m.(%E%92m(######################################(%E%94m************%E%32m..(%E%45;97m"
-CALL :ColorLine "   %E%32m.(%E%92m(######(,.***.,(###################(..***(/%E%94m*********%E%32m..(%E%45;97m"
-CALL :ColorLine "   %E%32m.(%E%92m(######*(#####((##################((######/(%E%94m********%E%32m..(%E%45;97m"
-CALL :ColorLine "   %E%32m.(%E%92m(##################(/**********(################(%E%94m**%E%32m...(%E%45;97m"
-CALL :ColorLine "   %E%32m.((%E%92m(####################/*******(###################%E%32m.((((%E%45;97m" 
-CALL :ColorLine "   %E%32m.((((%E%92m(############################################/%E%32m  /((%E%45;97m"
-CALL :ColorLine "   %E%32m..((((%E%92m(#########################################(%E%32m..(((((.%E%45;97m"
-CALL :ColorLine "   %E%32m....((((%E%92m(#####################################(%E%32m .((((((.%E%45;97m"
-CALL :ColorLine "   %E%32m......((((%E%92m(#################################(%E%32m .(((((((.%E%45;97m"
-CALL :ColorLine "   %E%32m(((((((((. ,%E%92m(############################(%E%32m../(((((((((.%E%45;97m"
-CALL :ColorLine "       %E%32m(((((((((/,  %E%92m,####################(%E%32m/..((((((((((.%E%45;97m"
-CALL :ColorLine "             %E%32m(((((((((/,.  %E%92m,*//////*,.%E%32m ./(((((((((((.%E%45;97m"
-CALL :ColorLine "                %E%32m(((((((((((((((((((((((((((/%E%45;97m"
+CALL :ColorLine "            %E%32m((,.,/((((((((((((((((((((/,  */%E%97m"
+CALL :ColorLine "     %E%32m,/*,..*(((((((((((((((((((((((((((((((((,%E%97m"              
+CALL :ColorLine "   %E%32m,*/((((((((((((((((((/,  %E%92m.*//((//**,%E%32m .*((((((*%E%97m"       
+CALL :ColorLine "   %E%32m((((((((((((((((* %E%94m*****%E%32m,,,/########## %E%32m.(* ,((((((%E%97m"   
+CALL :ColorLine "   %E%32m(((((((((((/* %E%94m******************%E%32m/####### %E%32m.(. ((((((%E%97m"
+CALL :ColorLine "   %E%32m((((((.%E%92m.%E%94m******************%E%97m/@@@@@/%E%94m***%E%92m/######%E%32m /((((((%E%97m"
+CALL :ColorLine "   %E%32m,,.%E%92m.%E%94m**********************%E%97m@@@@@@@@@@(%E%94m***%E%92m,####%E%32m ../(((((%E%97m"
+CALL :ColorLine "   %E%32m, ,%E%92m%E%94m**********************%E%97m#@@@@@#@@@@%E%94m*********%E%92m##%E%32m((/ /((((%E%97m"
+CALL :ColorLine "   %E%32m..((%E%92m(##########%E%94m*********%E%97m/#@@@@@@@@@/%E%94m*************%E%32m,,..((((%E%97m"
+CALL :ColorLine "   %E%32m.((%E%92m(################(/%E%94m******%E%97m/@@@@@#%E%94m****************%E%32m.. /((%E%97m"
+CALL :ColorLine "   %E%32m.(%E%92m(########################(/%E%94m************************%E%32m..*(%E%97m"
+CALL :ColorLine "   %E%32m.(%E%92m(#############################(/%E%94m********************%E%32m.,(%E%97m"
+CALL :ColorLine "   %E%32m.(%E%92m(##################################(/%E%94m***************%E%32m..(%E%97m"
+CALL :ColorLine "   %E%32m.(%E%92m(######################################(%E%94m************%E%32m..(%E%97m"
+CALL :ColorLine "   %E%32m.(%E%92m(######(,.***.,(###################(..***(/%E%94m*********%E%32m..(%E%97m"
+CALL :ColorLine "   %E%32m.(%E%92m(######*(#####((##################((######/(%E%94m********%E%32m..(%E%97m"
+CALL :ColorLine "   %E%32m.(%E%92m(##################(/**********(################(%E%94m**%E%32m...(%E%97m"
+CALL :ColorLine "   %E%32m.((%E%92m(####################/*******(###################%E%32m.((((%E%97m" 
+CALL :ColorLine "   %E%32m.((((%E%92m(############################################/%E%32m  /((%E%97m"
+CALL :ColorLine "   %E%32m..((((%E%92m(#########################################(%E%32m..(((((.%E%97m"
+CALL :ColorLine "   %E%32m....((((%E%92m(#####################################(%E%32m .((((((.%E%97m"
+CALL :ColorLine "   %E%32m......((((%E%92m(#################################(%E%32m .(((((((.%E%97m"
+CALL :ColorLine "   %E%32m(((((((((. ,%E%92m(############################(%E%32m../(((((((((.%E%97m"
+CALL :ColorLine "       %E%32m(((((((((/,  %E%92m,####################(%E%32m/..((((((((((.%E%97m"
+CALL :ColorLine "             %E%32m(((((((((/,.  %E%92m,*//////*,.%E%32m ./(((((((((((.%E%97m"
+CALL :ColorLine "                %E%32m(((((((((((((((((((((((((((/%E%97m"
 ECHO.                       by carlospolop
 ECHO.
 ECHO.
@@ -46,9 +46,9 @@ ECHO.
 REM // Increase progress in title by n percent
 CALL :T_Progress 0
 ECHO./^^!\ Advisory: WinPEAS - Windows local Privilege Escalation Awesome Script
-CALL :ColorLine "   %E%41mWinPEAS should be used for authorized penetration testing and/or educational purposes only.%E%45m"
-CALL :ColorLine "   %E%41mAny misuse of this software will not be the responsibility of the author or of any other collaborator.%E%45m"
-CALL :ColorLine "   %E%41mUse it at your own networks and/or with the network owner's permission.%E%45m"
+CALL :ColorLine "   %E%41mWinPEAS should be used for authorized penetration testing and/or educational purposes only.%E%40;97m"
+CALL :ColorLine "   %E%41mAny misuse of this software will not be the responsibility of the author or of any other collaborator.%E%40;97m"
+CALL :ColorLine "   %E%41mUse it at your own networks and/or with the network owner's permission.%E%40;97m"
 ECHO.
 
 :SystemInfo
