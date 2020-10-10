@@ -2235,7 +2235,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) SUID
   printf $Y"[+] "$GREEN"SUID - Check easy privesc, exploits and write perms\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid\n"$NC
-  find / -perm -4000 2>/dev/null | while read s; do
+  find / -perm /4000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
     if [ -O "$s" ]; then
       echo "You own the SUID file: $s" | sed -E "s,.*,${C}[1;31m&${C}[0m,"
     elif [ -w "$s" ]; then #If write permision, win found (no check exploits)
@@ -2259,7 +2259,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) SGID
   printf $Y"[+] "$GREEN"SGID\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid\n"$NC
-  find / -perm -g=s -type f 2>/dev/null | while read s; do
+  find / -perm /2000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
     if [ -O "$s" ]; then
       echo "You own the SGID file: $s" | sed -E "s,.*,${C}[1;31m&${C}[0m,"
     elif [ -w $s ]; then #If write permision, win found (no check exploits)
