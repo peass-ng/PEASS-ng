@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.8.6"
+VERSION="v2.8.7"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -285,14 +285,14 @@ profiledG="01-locale-fix.sh|256term.csh|256term.sh|abrt-console-notification.sh|
 
 knw_emails=".*@aivazian.fsnet.co.uk|.*@angband.pl|.*@canonical.com|.*centos.org|.*debian.net|.*debian.org|.*@jff.email|.*kali.org|.*linux.it|.*@linuxia.de|.*@lists.debian-maintainers.org|.*@mit.edu|.*@oss.sgi.com|.*@qualcomm.com|.*redhat.com|.*ubuntu.com|.*@vger.kernel.org|rogershimizu@gmail.com|thmarques@gmail.com"
 
-timersG="apt-daily.timer|apt-daily-upgrade.timer|e2scrub_all.timer|fstrim.timer|logrotate.timer|man-db.timer|motd-news.timer|phpsessionclean.timer|snapd.refresh.timer|snapd.snap-repair.timer|systemd-tmpfiles-clean.timer|systemd-readahead-done.timer|ureadahead-stop.timer"
+timersG="apt-daily.timer|apt-daily-upgrade.timer|e2scrub_all.timer|fstrim.timer|fwupd-refresh.timer|logrotate.timer|man-db.timer|motd-news.timer|phpsessionclean.timer|snapd.refresh.timer|snapd.snap-repair.timer|systemd-tmpfiles-clean.timer|systemd-readahead-done.timer|ureadahead-stop.timer"
 
 commonrootdirsG="^/$|/bin$|/boot$|/.cache$|/cdrom|/dev$|/etc$|/home$|/lost+found$|/lib$|/lib64$|/media$|/mnt$|/opt$|/proc$|/root$|/run$|/sbin$|/snap$|/srv$|/sys$|/tmp$|/usr$|/var$"
 commonrootdirsMacG="^/$|/.DocumentRevisions-V100|/.fseventsd|/.PKInstallSandboxManager-SystemSoftware|/.Spotlight-V100|/.Trashes|/.vol|/Applications|/bin|/cores|/dev|/home|/Library|/macOS Install Data|/net|/Network|/opt|/private|/sbin|/System|/Users|/usr|/Volumes"
 
 ldsoconfdG="/lib32|/lib/x86_64-linux-gnu|/usr/lib32|/usr/lib/oracle/19.6/client64/lib/|/usr/lib/x86_64-linux-gnu/libfakeroot|/usr/lib/x86_64-linux-gnu|/usr/local/lib/x86_64-linux-gnu|/usr/local/lib"
 
-dbuslistG="^:1\.[0-9\.]+|com.hp.hplip|com.redhat.NewPrinterNotification|com.redhat.PrinterDriversInstaller|com.ubuntu.LanguageSelector|com.ubuntu.SoftwareProperties|com.ubuntu.SystemService|com.ubuntu.USBCreator|com.ubuntu.WhoopsiePreferences|io.snapcraft.SnapdLoginService|fi.epitest.hostap.WPASupplicant|fi.w1.wpa_supplicant1|NAME|org.blueman.Mechanism|org.bluez|org.debian.apt|org.freedesktop.Accounts|org.freedesktop.Avahi|org.freedesktop.ColorManager|org.freedesktop.DBus|org.freedesktop.DisplayManager|org.freedesktop.fwupd|org.freedesktop.GeoClue2|org.freedesktop.hostname1|org.freedesktop.locale1|org.freedesktop.login1|org.freedesktop.ModemManager1|org.freedesktop.NetworkManager|org.freedesktop.network1|org.freedesktop.nm_dispatcher|org.freedesktop.PackageKit|org.freedesktop.PolicyKit1|org.freedesktop.RealtimeKit1|org.freedesktop.resolve1|org.freedesktop.systemd1|org.freedesktop.thermald|org.freedesktop.timedate1|org.freedesktop.timesync1|org.freedesktop.UDisks2|org.freedesktop.UPower|org.opensuse.CupsPkHelper.Mechanism"
+dbuslistG="^:1\.[0-9\.]+|com.hp.hplip|com.redhat.NewPrinterNotification|com.redhat.PrinterDriversInstaller|com.ubuntu.LanguageSelector|com.ubuntu.SoftwareProperties|com.ubuntu.SystemService|com.ubuntu.USBCreator|com.ubuntu.WhoopsiePreferences|io.snapcraft.SnapdLoginService|fi.epitest.hostap.WPASupplicant|fi.w1.wpa_supplicant1|NAME|org.blueman.Mechanism|org.bluez|org.debian.apt|org.freedesktop.Accounts|org.freedesktop.Avahi|org.freedesktop.bolt|org.freedesktop.ColorManager|org.freedesktop.DBus|org.freedesktop.DisplayManager|org.freedesktop.fwupd|org.freedesktop.GeoClue2|org.freedesktop.hostname1|org.freedesktop.locale1|org.freedesktop.login1|org.freedesktop.ModemManager1|org.freedesktop.NetworkManager|org.freedesktop.network1|org.freedesktop.nm_dispatcher|org.freedesktop.PackageKit|org.freedesktop.PolicyKit1|org.freedesktop.RealtimeKit1|org.freedesktop.resolve1|org.freedesktop.systemd1|org.freedesktop.thermald|org.freedesktop.timedate1|org.freedesktop.timesync1|org.freedesktop.UDisks2|org.freedesktop.UPower|org.opensuse.CupsPkHelper.Mechanism"
 
 ###########################################
 #---------) Checks before start (---------#
@@ -2335,7 +2335,17 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) .sh files in PATH
   printf $Y"[+] "$GREEN".sh files in path\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#script-binaries-in-path\n"$NC
-  echo $PATH | tr ":" "\n" | while read d; do find "$d" -name "*.sh" 2>/dev/null | sed -E "s,$pathshG,${C}[1;32m&${C}[0m," ; done
+  echo $PATH | tr ":" "\n" | while read d; do 
+    for f in `find "$d" -name "*.sh" 2>/dev/null`; do
+      if [ -O "$f" ]; then
+        echo "You own the script: $f" | sed -E "s,.*,${C}[1;31m&${C}[0m,"
+      elif [ -w "$f" ]; then #If write permision, win found (no check exploits)
+        echo "You can write SUscript: $f" | sed -E "s,.*,${C}[1;31;103m&${C}[0m,"
+      else
+        echo $f #| sed -E "s,$pathshG,${C}[1;32m&${C}[0m," | sed -E "s,$Wfolders,${C}[1;31m&${C}[0m,"; 
+      fi
+    done
+  done
   echo ""
 
   ##-- IF) Unexpected folders in /
