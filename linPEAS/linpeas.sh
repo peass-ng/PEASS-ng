@@ -1012,6 +1012,17 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   #-- SY) Printer
   printf $Y"[+] "$GREEN"Printer? ....................... "$NC
   lpstat -a 2>/dev/null || echo_not_found "lpstat"
+  
+   #-- SY) Running in a virtual environment
+  printf $Y"[+] "$GREEN"Is this a virtual machine? ..... "$NC
+  hypervisorflag=`cat /proc/cpuinfo | grep flags | grep hypervisor 2>/dev/null`
+  if [ `which systemd-detect-virt 2>/dev/null` ]; then
+    detectedvirt=`systemd-detect-virt`
+    if [ "$hypervisorflag" ]; then printf $RED"Yes ("$detectedvirt")"$NC; else printf $GREEN"No"$NC; fi
+  else
+    if [ "$hypervisorflag" ]; then printf $RED"Yes"$NC; else printf $GREEN"No"$NC; fi
+  fi
+  echo ""
 
   #-- SY) Container
   printf $Y"[+] "$GREEN"Is this a container? ........... "$NC
