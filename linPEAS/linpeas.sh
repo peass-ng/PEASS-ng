@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.8.7"
+VERSION="v2.8.8"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -281,7 +281,7 @@ processesDump="gdm-password|gnome-keyring-daemon|lightdm|vsftpd|apache2|sshd:"
 
 mail_apps="Postfix|Dovecot|Exim|SquirrelMail|Cyrus|Sendmail|Courier"
 
-profiledG="01-locale-fix.sh|256term.csh|256term.sh|abrt-console-notification.sh|appmenu-qt5.sh|apps-bin-path.sh|bash_completion.sh|cedilla-portuguese.sh|colorgrep.csh|colorgrep.sh|colorls.csh|colorls.sh|colorxzgrep.csh|colorxzgrep.sh|colorzgrep.csh|colorzgrep.sh|csh.local|gawk.csh|gawk.sh|kali.sh|lang.csh|lang.sh|less.csh|less.sh|sh.local|vim.csh|vim.sh|vte.csh|vte-2.91.sh|which2.csh|which2.sh|Z97-byobu.sh|Z99-cloudinit-warnings.sh|Z99-cloud-locale-test.sh"
+profiledG="01-locale-fix.sh|256term.csh|256term.sh|abrt-console-notification.sh|appmenu-qt5.sh|apps-bin-path.sh|bash_completion.sh|cedilla-portuguese.sh|colorgrep.csh|colorgrep.sh|colorls.csh|colorls.sh|colorxzgrep.csh|colorxzgrep.sh|colorzgrep.csh|colorzgrep.sh|csh.local|gawk.csh|gawk.sh|kali.sh|lang.csh|lang.sh|less.csh|less.sh|sh.local|vim.csh|vim.sh|vte.csh|vte-2.91.sh|which2.csh|which2.sh|Z97-byobu.sh|xdg_dirs_desktop_session.sh|Z99-cloudinit-warnings.sh|Z99-cloud-locale-test.sh"
 
 knw_emails=".*@aivazian.fsnet.co.uk|.*@angband.pl|.*@canonical.com|.*centos.org|.*debian.net|.*debian.org|.*@jff.email|.*kali.org|.*linux.it|.*@linuxia.de|.*@lists.debian-maintainers.org|.*@mit.edu|.*@oss.sgi.com|.*@qualcomm.com|.*redhat.com|.*ubuntu.com|.*@vger.kernel.org|rogershimizu@gmail.com|thmarques@gmail.com"
 
@@ -798,6 +798,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
   KEYRING_RELEVANT_NAMES="keyrings *.keyring *.keystore"
   FILEZILLA_RELEVANT_NAMES="filezilla"
   BACKUPMANAGER_RELEVANT_NAMES="storage.php database.php"
+  PASSWD_SPLUNK="passwd"
 
   DB_RELEVANT_NAMES="*.db *.sqlite *.sqlite3 *.sql"
   INSTERESTING_RELEVANT_NAMES="*_history .sudo_as_admin_successful .profile *bashrc *httpd.conf *.plan .htpasswd .gitconfig .git-credentials .git .svn *.rhost hosts.equiv Dockerfile docker-compose.yml .viminfo .ldaprc"
@@ -843,6 +844,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
   FIND_KEYRING_RELEVANT_NAMES=$(prep_to_find "$KEYRING_RELEVANT_NAMES")
   FIND_FILEZILLA_RELEVANT_NAMES=$(prep_to_find "$FILEZILLA_RELEVANT_NAMES")
   FIND_BACKUPMANAGER_RELEVANT_NAMES=$(prep_to_find "$BACKUPMANAGER_RELEVANT_NAMES")
+  PASSWD_SPLUNK_RELEVANT_NAMES=$(prep_to_find "$PASSWD_SPLUNK_RELEVANT_NAMES")
 
   FIND_DB_RELEVANT_NAMES=$(prep_to_find "$DB_RELEVANT_NAMES")
   FIND_INSTERESTING_RELEVANT_NAMES=$(prep_to_find "$INSTERESTING_RELEVANT_NAMES")
@@ -875,19 +877,19 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
   if [ "$FIND_DIR_APPLICATIONS" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
 
   # All
-  FIND_HOME=$(eval find $HOMESEARCH $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_PASSWORD_RELEVANT_NAMES -o $FIND_ERLANG_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES 2>/dev/null | sort)
+  FIND_HOME=$(eval find $PASSWD_SPLUNK_RELEVANT_NAMES -o $HOMESEARCH $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_PASSWORD_RELEVANT_NAMES -o $FIND_ERLANG_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES 2>/dev/null | sort)
   if [ "$FIND_HOME" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
-  FIND_ETC=$(eval find /etc/ $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_KNOCK_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES -o $FIND_ERLANG_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES 2>/dev/null | sort)
+  FIND_ETC=$(eval find /etc/ $PASSWD_SPLUNK_RELEVANT_NAMES -o $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_KNOCK_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES -o $FIND_ERLANG_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES 2>/dev/null | sort)
   if [ "$FIND_ETC" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
-  FIND_VAR=$(eval find /var/ $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES -o $FIND_ERLANG_RELEVANT_NAMES 2>/dev/null | sort)
+  FIND_VAR=$(eval find /var/ $PASSWD_SPLUNK_RELEVANT_NAMES -o $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES -o $FIND_ERLANG_RELEVANT_NAMES 2>/dev/null | sort)
   if [ "$FIND_VAR" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
   FIND_TMP=$(eval find /tmp/ $FIND_KEYRING_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES 2>/dev/null | sort)
   if [ "$FIND_TMP" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
-  FIND_OPT=$(eval find /opt/ $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES 2>/dev/null | sort)
+  FIND_OPT=$(eval find /opt/ $PASSWD_SPLUNK_RELEVANT_NAMES -o $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES 2>/dev/null | sort)
   if [ "$FIND_OPT" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
-  FIND_USR=$(eval find /usr/ $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES -o $FIND_ERLANG_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES  2>/dev/null | sort)
+  FIND_USR=$(eval find /usr/ $PASSWD_SPLUNK_RELEVANT_NAMES -o $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES -o $FIND_ERLANG_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES  2>/dev/null | sort)
   if [ "$FIND_USR" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
-  FIND_MNT=$(eval find /mnt/ $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES 2>/dev/null | sort)
+  FIND_MNT=$(eval find /mnt/ $PASSWD_SPLUNK_RELEVANT_NAMES -o $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES 2>/dev/null | sort)
   if [ "$FIND_MNT" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
   FIND_LIB=$(eval find /lib/ $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES 2>/dev/null | sort)
   if [ "$FIND_LIB" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
@@ -895,7 +897,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
   if [ "$FIND_RUN" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
   FIND_SYSTEMD=$(eval find /systemd/ $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES 2>/dev/null | sort)
   if [ "$FIND_SYSTEMD" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
-  FIND_SYSTEM=$(eval find /system/ $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES 2>/dev/null | sort)
+  FIND_SYSTEM=$(eval find /system/ $PASSWD_SPLUNK_RELEVANT_NAMES -o $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES 2>/dev/null | sort)
   if [ "$FIND_SYSTEM" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
   FIND_SYS=$(eval find /sys/ $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES 2>/dev/null | sort)
   if [ "$FIND_SYS" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
@@ -903,9 +905,9 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
   if [ "$FIND_VAR" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
 
   #MacOS
-  FIND_PRIVATE=$(eval find /private/  $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES -O $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_ERLANG_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES 2>/dev/null | sort)
+  FIND_PRIVATE=$(eval find /private/  $PASSWD_SPLUNK_RELEVANT_NAMES -o $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_SYSTEMD_RELEVANT_NAMES -o $FIND_TIMERS_RELEVANT_NAMES -o $FIND_SOCKETS_RELEVANT_NAMES -O $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_ERLANG_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES 2>/dev/null | sort)
   if [ "$FIND_PRIVATE" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
-  FIND_APPLICATIONS=$(eval find /Applications/ $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_ERLANG_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES 2>/dev/null | sort)
+  FIND_APPLICATIONS=$(eval find /Applications/ $PASSWD_SPLUNK_RELEVANT_NAMES -o $FIND_BACKUPMANAGER_RELEVANT_NAMES -o $FIND_KEYRING_RELEVANT_NAMES -o $FIND_POSTGRESQL_RELEVANT_NAMES -o $FIND_APACHE_RELEVANT_NAMES -o $FIND_PHP_RELEVANT_NAMES -o $FIND_WORDPRESS_RELEVANT_NAMES -o $FIND_DRUPAL_RELEVANT_NAMES -o $FIND_TOMCAT_RELEVANT_NAMES -o $FIND_MONGO_RELEVANT_NAMES -o $FIND_SUPERVISORD_RELEVANT_NAMES -o $FIND_CESI_RELEVANT_NAMES -o $FIND_RSYNCD_RELEVANT_NAMES -o $FIND_HOSTAPAD_RELEVANT_NAMES -o $FIND_ANACONDA_KS_RELEVANT_NAMES -o $FIND_OVPN_RELEVANT_NAMES -o $FIND_SSH_RELEVANT_NAMES -o $FIND_CLOUD_KEYS_RELEVANT_NAMES -o $FIND_KIBANA_RELEVANT_NAMES -o $FIND_ELASTICSEARCH_RELEVANT_NAMES -o $FIND_REDIS_RELEVANT_NAMES -o $FIND_MOSQUITTO_RELEVANT_NAMES -o $FIND_DB_RELEVANT_NAMES -o $FIND_INSTERESTING_RELEVANT_NAMES -o $FIND_ERLANG_RELEVANT_NAMES -o $FIND_GVM_RELEVANT_NAMES -o $FIND_IPSEC_RELEVANT_NAMES 2>/dev/null | sort)
   if [ "$FIND_APPLICATIONS" ]; then printf $RED". "$NC; else printf $GREEN". "$NC; fi
 
   printf $Y"DONE\n"$NC
@@ -1619,8 +1621,8 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) PostgreSQL info
   printf $Y"[+] "$GREEN"PostgreSQL version and pgadmin credentials\n"$NC
   postgver=`psql -V 2>/dev/null`
-  postgdb=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'pgadmin.*\.db$')
-  postgconfs=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'pg_hba\.conf$|postgresql\.conf$|pgsql\.conf$')
+  postgdb=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'pgadmin.*\.db$')
+  postgconfs=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'pg_hba\.conf$|postgresql\.conf$|pgsql\.conf$')
   if [ "$postgver" ] || [ "$postgdb" ] || [ "$postgconfs" ]; then
     if [ "$postgver" ]; then echo "Version: $postgver"; fi
     if [ "$postgdb" ]; then echo "PostgreSQL database: $postgdb" | sed -E "s,.*,${C}[1;31m&${C}[0m,"; fi
@@ -1668,7 +1670,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     sitesenabled=$(echo "$FIND_DIR_VAR $FIND_DIR_ETC $FIND_DIR_HOME $FIND_DIR_TMP $FIND_DIR_USR $FIND_DIR_OPT $FIND_DIR_USERS $FIND_DIR_PRIVATE $FIND_DIR_APPLICATIONS" | grep "sites-enabled")
     printf "$sitesenabled\n" | while read d; do for f in "$d/*"; do grep "AuthType\|AuthName\|AuthUserFile\|ServerName\|ServerAlias" $f 2>/dev/null | grep -v "#" | sed "s,Auth|ServerName|ServerAlias,${C}[1;31m&${C}[0m,"; done; done
     if [ !"$sitesenabled" ]; then
-      default00=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS $FIND_DIR_USERS $FIND_DIR_PRIVATE $FIND_DIR_APPLICATIONS" | grep "000-default")
+      default00=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS $FIND_DIR_USERS $FIND_DIR_PRIVATE $FIND_DIR_APPLICATIONS" | grep "000-default")
       printf "$default00\n" | while read f; do grep "AuthType\|AuthName\|AuthUserFile\|ServerName\|ServerAlias" "$f" 2>/dev/null | grep -v "#" | sed -E "s,Auth|ServerName|ServerAlias,${C}[1;31m&${C}[0m,"; done
     fi
     echo "PHP exec extensions"
@@ -1690,7 +1692,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Wordpress user, password, databname and host
   printf $Y"[+] "$GREEN"Searching Wordpress wp-config.php files\n"$NC
-  wp=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'wp-config\.php$')
+  wp=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'wp-config\.php$')
   if [ "$wp" ]; then
     printf "wp-config.php files found:\n$wp"
     printf "$wp\n" | while read f; do grep "PASSWORD\|USER\|NAME\|HOST" "$f" 2>/dev/null | sed -E "s,.*,${C}[1;31m&${C}[0m,"; done
@@ -1700,7 +1702,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Drupal user, password, databname and host
   printf $Y"[+] "$GREEN"Searching Drupal settings.php files\n"$NC
-  drup=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'settings\.php$')
+  drup=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'settings\.php$')
   if [ "`echo $drup | grep '/default/settings.php'`" ]; then #Check path /default/settings.php
     printf "settings.php files found:\n$drup"
     printf "$drup\n" | while read f; do grep "drupal_hash_salt\|'database'\|'username'\|'password'\|'host'\|'port'\|'driver'\|'prefix'" $f 2>/dev/null | sed -E "s,.*,${C}[1;31m&${C}[0m,"; done
@@ -1710,7 +1712,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Tomcat users
   printf $Y"[+] "$GREEN"Searching Tomcat users file\n"$NC
-  tomcat=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'tomcat-users\.xml$')
+  tomcat=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'tomcat-users\.xml$')
   if [ "$tomcat" ]; then
     echo "tomcat-users.xml file found: $tomcat"
     printf "$tomcat\n" | while read f; do grep "username=" "$f" 2>/dev/null | grep "password=" | sed -E "s,.*,${C}[1;31m&${C}[0m,"; done
@@ -1720,7 +1722,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Mongo Information
   printf $Y"[+] "$GREEN"Mongo information\n"$NC
-  mongos=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'mongod.*\.conf$')
+  mongos=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'mongod.*\.conf$')
   (mongo --version 2>/dev/null || mongod --version 2>/dev/null) || echo_not_found "mongo binary"
   printf "$mongos\n" | while read f; do
     if [ "$f" ]; then
@@ -1734,7 +1736,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Supervisord conf file
   printf $Y"[+] "$GREEN"Searching supervisord configuration file\n"$NC
-  supervisor=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'supervisord\.conf')
+  supervisor=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'supervisord\.conf')
   if [ "$supervisor" ]; then
     printf "$supervisor\n"
     printf "$supervisor\n" | while read f; do cat "$f" 2>/dev/null | grep "port.*=\|username.*=\|password=.*" | sed -E "s,port|username|password,${C}[1;31m&${C}[0m,"; done
@@ -1743,7 +1745,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   echo ""
 
   #-- SI) Cesi conf file
-  cesi=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'cesi\.conf')
+  cesi=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'cesi\.conf')
   printf $Y"[+] "$GREEN"Searching cesi configuration file\n"$NC
   if [ "$cesi" ]; then
     printf "$cesi\n"
@@ -1753,7 +1755,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   echo ""
 
   #-- SI) Rsyncd conf file
-  rsyncd=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'rsyncd\.conf|rsyncd\.secrets')
+  rsyncd=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'rsyncd\.conf|rsyncd\.secrets')
   printf $Y"[+] "$GREEN"Searching Rsyncd config file\n"$NC
   if [ "$rsyncd" ]; then
     printf "$rsyncd\n" | while read f; do 
@@ -1770,7 +1772,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Hostapd conf file
   printf $Y"[+] "$GREEN"Searching Hostapd config file\n"$NC
-  hostapd=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'hostapd\.conf')
+  hostapd=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'hostapd\.conf')
   if [ "$hostapd" ]; then
     printf $Y"[+] "$GREEN"Hostapd conf was found\n"$NC
     printf "$hostapd\n"
@@ -1790,7 +1792,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Anaconda-ks conf files
   printf $Y"[+] "$GREEN"Searching Anaconda-ks config files\n"$NC
-  anaconda=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'anaconda-ks\.cfg')
+  anaconda=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'anaconda-ks\.cfg')
   if [ "$anaconda" ]; then
     printf "$anaconda\n"
     printf "$anaconda\n" | while read f; do cat "$f" 2>/dev/null | grep "rootpw" | sed "s,rootpw.*,${C}[1;31m&${C}[0m,"; done
@@ -1821,7 +1823,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) .ovpn files
   printf $Y"[+] "$GREEN"Searching .ovpn files and credentials\n"$NC
-  ovpn=$(echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_TMP $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '\.ovpn')
+  ovpn=$(echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_TMP $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '\.ovpn')
   if [ "$ovpn" ]; then
     printf "$ovpn\n"
     printf "$ovpn\n" | while read f; do 
@@ -1836,13 +1838,13 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) ssh files
   printf $Y"[+] "$GREEN"Searching ssl/ssh files\n"$NC
-  ssh=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_MNT $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'id_dsa.*|id_rsa.*|known_hosts|authorized_hosts|authorized_keys')
-  certsb4=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_MNT $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*\.pem|.*\.cer|.*\.crt' | grep -E -v '^/usr/share/.*' | grep -E -v '^/etc/ssl/.*' | grep -E -v '^/usr/local/lib/.*' | grep -E -v '^/usr/lib.*')
+  ssh=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_MNT $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'id_dsa.*|id_rsa.*|known_hosts|authorized_hosts|authorized_keys')
+  certsb4=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_MNT $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*\.pem|.*\.cer|.*\.crt' | grep -E -v '^/usr/share/.*' | grep -E -v '^/etc/ssl/.*' | grep -E -v '^/usr/local/lib/.*' | grep -E -v '^/usr/lib.*')
   if [ "$certsb4" ]; then certsb4_grep=`grep -L "\"\|'\|(" $certsb4 2>/dev/null`; fi
-  certsbin=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_MNT $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*\.csr|.*\.der' | grep -E -v '^/usr/share/.*' | grep -E -v '^/etc/ssl/.*' | grep -E -v '^/usr/local/lib/.*' | grep -E -v '^/usr/lib/.*')
-  clientcert=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_MNT $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*\.pfx|.*\.p12' | grep -E -v '^/usr/share/.*' | grep -E -v '^/etc/ssl/.*' | grep -E -v '^/usr/local/lib/.*' | grep -E -v '^/usr/lib/.*')
+  certsbin=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_MNT $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*\.csr|.*\.der' | grep -E -v '^/usr/share/.*' | grep -E -v '^/etc/ssl/.*' | grep -E -v '^/usr/local/lib/.*' | grep -E -v '^/usr/lib/.*')
+  clientcert=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_MNT $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*\.pfx|.*\.p12' | grep -E -v '^/usr/share/.*' | grep -E -v '^/etc/ssl/.*' | grep -E -v '^/usr/local/lib/.*' | grep -E -v '^/usr/lib/.*')
   sshagents=$(echo "$FIND_TMP" | grep -E 'agent.*')
-  homesshconfig=$(echo "$FIND_HOME $FIND_USERS" | grep -E 'config' | grep "ssh")
+  homesshconfig=$(echo "$FIND_HOME $FIND_USR" | grep -E 'config' | grep "ssh")
   sshconfig="`ls /etc/ssh/ssh_config 2>/dev/null`"
   hostsdenied="`ls /etc/hosts.denied 2>/dev/null`"
   hostsallow="`ls /etc/hosts.allow 2>/dev/null`"
@@ -1922,7 +1924,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Cloud keys
   printf $Y"[+] "$GREEN"Searching Cloud credentials (AWS, Azure, GC)\n"$NC
-  cloudcreds=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'credentials$|credentials\.db$|legacy_credentials\.db$|access_tokens\.db$|accessTokens\.json$|azureProfile\.json$')
+  cloudcreds=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'credentials$|credentials\.db$|legacy_credentials\.db$|access_tokens\.db$|accessTokens\.json$|azureProfile\.json$')
   if [ "$cloudcreds" ]; then
     printf "$cloudcreds\n" | while read f; do 
       if [ -f "$f" ]; then #Check if file, here we only look for filenames, not dirs
@@ -1962,7 +1964,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) kibana
   printf $Y"[+] "$GREEN"Searching Kibana yaml\n"$NC
-  kibana=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'kibana\.y.*ml')
+  kibana=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'kibana\.y.*ml')
   if [ "$kibana" ]; then
     printf "$kibana\n"
     printf "$kibana\n" | while read f; do
@@ -2008,7 +2010,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Elasticsearch
   printf $Y"[+] "$GREEN"Searching elasticsearch files\n"$NC
-  elasticsearch=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'elasticsearch\.y.*ml')
+  elasticsearch=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'elasticsearch\.y.*ml')
   if [ "$elasticsearch" ]; then
     printf "$elasticsearch\n"
     printf "$elasticsearch\n" | while read f; do
@@ -2023,13 +2025,13 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Vault-ssh
   printf $Y"[+] "$GREEN"Searching Vault-ssh files\n"$NC
-  vaultssh=$(echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'vault-ssh-helper\.hcl')
+  vaultssh=$(echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'vault-ssh-helper\.hcl')
   if [ "$vaultssh" ]; then
     printf "$vaultssh\n"
     printf "$vaultssh\n" | while read f; do cat "$f" 2>/dev/null; vault-ssh-helper -verify-only -config "$f" 2>/dev/null; done
     echo ""
     vault secrets list 2>/dev/null
-    echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '\.vault-token' | sed -E "s,.*,${C}[1;31m&${C}[0m," 2>/dev/null
+    echo "$FIND_ETC $FIND_USR $FIND_HOME $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '\.vault-token' | sed -E "s,.*,${C}[1;31m&${C}[0m," 2>/dev/null
   else echo_not_found "vault-ssh-helper.hcl"
   fi
   echo ""
@@ -2079,7 +2081,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Redis
   printf $Y"[+] "$GREEN"Searching redis.conf\n"$NC
-  redisconfs=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'redis\.conf$')
+  redisconfs=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'redis\.conf$')
   printf "$redisconfs\n" | while read f; do
     if [ -r "$f" ]; then 
       echo "Found readable $f"
@@ -2106,7 +2108,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Mosquitto
   printf $Y"[+] "$GREEN"Searching mosquitto.conf\n"$NC
-  mqttconfs=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'mosquitto\.conf$')
+  mqttconfs=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'mosquitto\.conf$')
   printf "$mqttconfs" | while read f; do
     if [ -r "$f" ]; then 
       echo "Found readable $f"
@@ -2128,7 +2130,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Cloud-Init
   printf $Y"[+] "$GREEN"Searching Cloud-Init conf file\n"$NC
-  cloudcfg=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'cloud\.cfg$')
+  cloudcfg=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'cloud\.cfg$')
   printf "$cloudcfg\n" | while read f; do
     if [ -r "$f" ]; then 
       echo "Found readable $f"
@@ -2139,7 +2141,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   ##-- SI) Erlang
   printf $Y"[+] "$GREEN"Searching Erlang cookie file\n"$NC
-  erlangcoo=$(echo "$FIND_ETC $FIND_HOME $FIND_USR $FIND_VAR $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.erlang.cookie$')
+  erlangcoo=$(echo "$FIND_ETC $FIND_HOME $FIND_USR $FIND_VAR $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.erlang.cookie$')
   printf "$erlangcoo\n" | while read f; do
     if [ -r "$f" ]; then 
       echo "Found Erlang cookie: $f"
@@ -2150,7 +2152,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   ##-- SI) GVM
   printf $Y"[+] "$GREEN"Searching GVM auth file\n"$NC
-  gvmconfs=$(echo "$FIND_HOME $FIND_ETC $FIND_TMP $FIND_OTP $FIND_USR $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'gvm-tools\.conf')
+  gvmconfs=$(echo "$FIND_HOME $FIND_ETC $FIND_TMP $FIND_OTP $FIND_USR $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'gvm-tools\.conf')
   printf "$gvmconfs\n" | while read f; do
     if [ -r "$f" ]; then 
       echo "Found GVM auth file: $f"
@@ -2164,7 +2166,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   ##-- SI) IPSEC
   printf $Y"[+] "$GREEN"Searching IPSEC files\n"$NC
-  ipsecconfs=$(echo "$FIND_HOME $FIND_ETC $FIND_TMP $FIND_OTP $FIND_USR $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'ipsec\.secrets|ipsec\.conf')
+  ipsecconfs=$(echo "$FIND_HOME $FIND_ETC $FIND_TMP $FIND_OTP $FIND_USR $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'ipsec\.secrets|ipsec\.conf')
   printf "$ipsecconfs\n" | while read f; do
     if [ -r "$f" ]; then 
       echo "Found IPSEC file: $f"
@@ -2175,7 +2177,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   ##-- SI) IRSSI
   printf $Y"[+] "$GREEN"Searching IRSSI files\n"$NC
-  irssifols=$(echo "$FIND_VAR $FIND_HOME $FIND_ETC $FIND_OTP $FIND_USR $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.irssi')
+  irssifols=$(echo "$FIND_VAR $FIND_HOME $FIND_ETC $FIND_OTP $FIND_USR $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.irssi')
   printf "$irssifols\n" | while read d; do
     if [ -r "$d/config" ]; then 
       echo "Found IRSSI config file: $d/config"
@@ -2186,7 +2188,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   ##-- SI) Keyring
   printf $Y"[+] "$GREEN"Searching Keyring files\n"$NC
-  keyringsfilesfolds=$(echo "$FIND_DIR_VAR $FIND_DIR_ETC $FIND_DIR_HOME $FIND_DIR_TMP $FIND_DIR_USR $FIND_DIR_OPT $FIND_DIR_USERS $FIND_DIR_PRIVATE $FIND_DIR_APPLICATIONS $FIND_HOME $FIND_ETC $FIND_VAR $FIND_USR $FIND_MNT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'keyrings|*\.keyring$|*\.keystore$')
+  keyringsfilesfolds=$(echo "$FIND_DIR_VAR $FIND_DIR_ETC $FIND_DIR_HOME $FIND_DIR_TMP $FIND_DIR_USR $FIND_DIR_OPT $FIND_DIR_USERS $FIND_DIR_PRIVATE $FIND_DIR_APPLICATIONS $FIND_HOME $FIND_ETC $FIND_VAR $FIND_USR $FIND_MNT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'keyrings|*\.keyring$|*\.keystore$')
   printf "$keyringsfilesfolds\n" | sort | uniq | while read f; do
     if [ -f "$f" ]; then 
       echo "Keyring file: $f" | sed "s,$f,${C}[1;31m&${C}[0m,"
@@ -2212,7 +2214,20 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   ##-- SI) BACKUP-MANAGER
   printf $Y"[+] "$GREEN"Searching backup-manager files\n"$NC
-  backupmanager=$(echo "$FIND_HOME $FIND_ETC $FIND_VAR $FIND_OPT $FIND_USR $FIND_MNT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'storage.php|database.php')
+  backupmanager=$(echo "$FIND_HOME $FIND_ETC $FIND_VAR $FIND_OPT $FIND_USR $FIND_MNT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E 'storage.php|database.php')
+  printf "$backupmanager\n" | sort | uniq | while read f; do
+    if [ -f "$f" ]; then 
+      echo "backup-manager file: $f" | sed "s,$f,${C}[1;31m&${C}[0m,"
+      cat "$f" 2>/dev/null | grep "'pass'|'password'|'user'|'database'|'host'" | sed -E "s,password|pass|user|database|host,${C}[1;31m&${C}[0m,"
+    fi
+  done
+  echo ""
+
+  ##-- SI) passwd files (splunk)
+  printf $Y"[+] "$GREEN"Searching uncommon passwd files (splunk)\n"$NC
+  backupmanager=$(echo "$FIND_HOME $FIND_ETC $FIND_VAR $FIND_OPT $FIND_USR $FIND_MNT $FIND_USR $FIND_SYSTEM $FIND_PRIVATE $FIND_APPLICATIONS" | grep -v "/etc/passwd$" | grep -E 'passwd$')
+  SPLUNK_BIN="`which splunk`"
+  if [ "$SPLUNK_BIN" ]; then echo "splunk binary was found installed on $SPLUNK_BIN" | sed "s,.*,${C}[1;31m&${C}[0m,"; fi
   printf "$backupmanager\n" | sort | uniq | while read f; do
     if [ -f "$f" ]; then 
       echo "backup-manager file: $f" | sed "s,$f,${C}[1;31m&${C}[0m,"
@@ -2236,10 +2251,11 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $Y"[+] "$GREEN"SUID - Check easy privesc, exploits and write perms\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid\n"$NC
   find / -perm /4000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
-    if [ -O "$s" ]; then
-      echo "You own the SUID file: $s" | sed -E "s,.*,${C}[1;31m&${C}[0m,"
-    elif [ -w "$s" ]; then #If write permision, win found (no check exploits)
-      echo "You can write SUID file: $s" | sed -E "s,.*,${C}[1;31;103m&${C}[0m,"
+    sname="`echo \"$s\" | awk '{print $9}'`"
+    if [ -O "$sname" ]; then
+      echo "You own the SUID file: $sname" | sed -E "s,.*,${C}[1;31m&${C}[0m,"
+    elif [ -w "$sname" ]; then #If write permision, win found (no check exploits)
+      echo "You can write SUID file: $sname" | sed -E "s,.*,${C}[1;31;103m&${C}[0m,"
     else
       c="a"
       for b in $sidB; do
@@ -2260,15 +2276,16 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $Y"[+] "$GREEN"SGID\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid\n"$NC
   find / -perm /2000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
-    if [ -O "$s" ]; then
-      echo "You own the SGID file: $s" | sed -E "s,.*,${C}[1;31m&${C}[0m,"
-    elif [ -w $s ]; then #If write permision, win found (no check exploits)
-      echo "You can write SGID file: $s" | sed -E "s,.*,${C}[1;31;103m&${C}[0m,"
+    sname="`echo \"$s\" | awk '{print $9}'`"
+    if [ -O "$sname" ]; then
+      echo "You own the SGID file: $sname" | sed -E "s,.*,${C}[1;31m&${C}[0m,"
+    elif [ -w "$sname" ]; then #If write permision, win found (no check exploits)
+      echo "You can write SGID file: $sname" | sed -E "s,.*,${C}[1;31;103m&${C}[0m,"
     else
       c="a"
       for b in $sidB; do
-        if [ "`echo $s | grep $(echo $b | cut -d % -f 1)`" ]; then
-          echo "$s" | sed -E "s,$(echo $b | cut -d % -f 1),${C}[1;31m&  --->  $(echo $b | cut -d % -f 2)${C}[0m,"
+        if [ "`echo \"$s\" | grep $(echo \"$b\" | cut -d % -f 1)`" ]; then
+          echo "$s" | sed -E "s,$(echo \"$b\" | cut -d % -f 1),${C}[1;31m&  --->  $(echo $b | cut -d % -f 2)${C}[0m,"
           c=""
           break;
         fi
@@ -2507,7 +2524,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) DB files
   printf $Y"[+] "$GREEN"Searching tables inside readable .db/.sql/.sqlite files (limit 100)\n"$NC
-  dbfiles=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*\.db$|.*\.sqlite$|.*\.sqlite3$' | grep -E -v '/man/.*|/usr/.*|/var/cache/.*' | head -n 100)
+  dbfiles=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*\.db$|.*\.sqlite$|.*\.sqlite3$' | grep -E -v '/man/.*|/usr/.*|/var/cache/.*' | head -n 100)
   FILECMD="`which file`"
   if [ "$dbfiles" ]; then
     printf "$dbfiles\n" | while read f; do
@@ -2567,7 +2584,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Interesting files
   printf $Y"[+] "$GREEN"Readable *_history, .sudo_as_admin_successful, profile, bashrc, httpd.conf, .plan, .htpasswd, .gitconfig, .git-credentials, .git, .svn, .rhosts, hosts.equiv, Dockerfile, docker-compose.yml\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#read-sensitive-data\n"$NC
-  fils=$(echo "$FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_MNT $FIND_VAR $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*_history|\.sudo_as_admin_successful|\.profile|.*bashrc|.*httpd\.conf|.*\.plan|\.htpasswd|\.gitconfig|\.git-credentials|\.git|\.svn|\.rhosts|hosts\.equiv|Dockerfile|docker-compose\.yml')
+  fils=$(echo "$FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_MNT $FIND_VAR $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*_history|\.sudo_as_admin_successful|\.profile|.*bashrc|.*httpd\.conf|.*\.plan|\.htpasswd|\.gitconfig|\.git-credentials|\.git|\.svn|\.rhosts|hosts\.equiv|Dockerfile|docker-compose\.yml')
   printf "$fils\n" | while read f; do 
     if [ -r "$f" ]; then 
       ls -ld "$f" 2>/dev/null | sed "s,_history|\.sudo_as_admin_successful|.profile|bashrc|httpd.conf|\.plan|\.htpasswd|.gitconfig|\.git-credentials|.git|.svn|\.rhosts|hosts.equiv|Dockerfile|docker-compose.yml|\.viminfo|\.ldaprc,${C}[1;31m&${C}[0m," | sed -E "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
@@ -2641,7 +2658,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Passwords in config PHP files
   printf $Y"[+] "$GREEN"Searching passwords in config PHP files\n"$NC
-  configs=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USERS $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*config.*\.php|database.php|db.php|storage.php')
+  configs=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*config.*\.php|database.php|db.php|storage.php')
   printf "$configs\n" | while read c; do grep -Eil "passw.*=>? ?['\"]|define.*passw|db_pass" $c 2>/dev/null | grep -Ev "function|password.*= ?\"\"|password.*= ?''" | sed '/^.\{150\}./d' | sort | uniq | sed -E "s,[pP][aA][sS][sS][wW]|[dD][bB]_[pP][aA][sS][sS],${C}[1;31m&${C}[0m,g"; done
   echo ""
 
@@ -2662,7 +2679,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Passwords files in home
   printf $Y"[+] "$GREEN"Finding *password* or *credential* files in home (limit 70)\n"$NC
-  (echo "$FIND_HOME $FIND_USERS" | grep -E '.*password.*|.*credential.*|creds.*' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 3){ print line_init; } if (cont == "3"){print "  There are more creds/passwds files in the previous parent folder"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 70 | sed -E "s,password|credential,${C}[1;31m&${C}[0m," | sed "s,There are more creds/passwds files in the previous parent folder,${C}[1;32m&${C}[0m,") || echo_not_found
+  (echo "$FIND_HOME $FIND_USR" | grep -E '.*password.*|.*credential.*|creds.*' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 3){ print line_init; } if (cont == "3"){print "  There are more creds/passwds files in the previous parent folder"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 70 | sed -E "s,password|credential,${C}[1;31m&${C}[0m," | sed "s,There are more creds/passwds files in the previous parent folder,${C}[1;32m&${C}[0m,") || echo_not_found
   echo ""
 
   if ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
