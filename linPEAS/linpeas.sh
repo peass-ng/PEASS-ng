@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.9.0"
+VERSION="v2.9.1"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -269,7 +269,7 @@ notExtensions="\.tif$|\.tiff$|\.gif$|\.jpeg$|\.jpg|\.jif$|\.jfif$|\.jp2$|\.jpx$|
 TIMEOUT=`which timeout 2>/dev/null`
 GCC=`which gcc 2>/dev/null`
 
-pathshG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/dnsmap-bulk.sh|/gettext.sh|/go-rhn.sh|/gvmap.sh|/lesspipe.sh|/mksmbpasswd.sh|/power_report.sh|/setuporamysql.sh|/setup-nsssysinit.sh|/readlink_f.sh|/testacg.sh|/testlahf.sh|/url_handler.sh"
+shscripsG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/dnsmap-bulk.sh|/gettext.sh|/go-rhn.sh|/gvmap.sh|/lesspipe.sh|/mksmbpasswd.sh|/power_report.sh|/setuporamysql.sh|/setup-nsssysinit.sh|/readlink_f.sh|/rescan-scsi-bus.sh|/testacg.sh|/testlahf.sh|/url_handler.sh"
 
 notBackup="/tdbbackup$|/db_hotbackup$"
 
@@ -665,7 +665,7 @@ printf $Y"ADVISORY: "$B"$ADVISORY\n"$NC
 echo ""
 printf $B"Linux Privesc Checklist: "$Y"https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist\n"$NC
 echo " LEGEND:" | sed "s,LEGEND,${C}[1;4m&${C}[0m,"
-echo "  RED/YELLOW: 99% a PE vector" | sed "s,RED/YELLOW,${C}[1;31;103m&${C}[0m,"
+echo "  RED/YELLOW: 95% a PE vector" | sed "s,RED/YELLOW,${C}[1;31;103m&${C}[0m,"
 echo "  RED: You must take a look at it" | sed "s,RED,${C}[1;31m&${C}[0m,"
 echo "  LightCyan: Users with console" | sed "s,LightCyan,${C}[1;96m&${C}[0m,"
 echo "  Blue: Users without console & mounted devs" | sed "s,Blue,${C}[1;34m&${C}[0m,"
@@ -2369,9 +2369,9 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
       if [ -O "$f" ]; then
         echo "You own the script: $f" | sed -E "s,.*,${C}[1;31m&${C}[0m,"
       elif [ -w "$f" ]; then #If write permision, win found (no check exploits)
-        echo "You can write SUscript: $f" | sed -E "s,.*,${C}[1;31;103m&${C}[0m,"
+        echo "You can write script: $f" | sed -E "s,.*,${C}[1;31;103m&${C}[0m,"
       else
-        echo $f #| sed -E "s,$pathshG,${C}[1;32m&${C}[0m," | sed -E "s,$Wfolders,${C}[1;31m&${C}[0m,"; 
+        echo $f | sed -E "s,$shscripsG,${C}[1;32m&${C}[0m," | sed -E "s,$Wfolders,${C}[1;31m&${C}[0m,"; 
       fi
     done
   done
@@ -2477,7 +2477,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Readable files belonging to root and not world readable
   if ! [ "$IAMROOT" ]; then
     printf $Y"[+] "$GREEN"Readable files belonging to root and readable by me but not world readable\n"$NC
-    (find / -type f -user root ! -perm -o=r 2>/dev/null | grep -v "\.journal" | while read f; do if [ -r "$f" ]; then ls -l "$f" 2>/dev/null | sed -E "s,.*,${C}[1;31m&${C}[0m,"; fi; done) || echo_not_found
+    (find / -type f -user root ! -perm -o=r 2>/dev/null | grep -v "\.journal" | while read f; do if [ -r "$f" ]; then ls -l "$f" 2>/dev/null | sed -E "s,/.*,${C}[1;31m&${C}[0m,"; fi; done) || echo_not_found
     echo ""
   fi
   
@@ -2672,6 +2672,12 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $Y"[+] "$GREEN"Searching passwords in config PHP files\n"$NC
   configs=$(echo "$FIND_VAR $FIND_ETC $FIND_HOME $FIND_TMP $FIND_USR $FIND_OPT $FIND_USR $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E '.*config.*\.php|database.php|db.php|storage.php')
   printf "$configs\n" | while read c; do grep -Eil "passw.*=>? ?['\"]|define.*passw|db_pass" $c 2>/dev/null | grep -Ev "function|password.*= ?\"\"|password.*= ?''" | sed '/^.\{150\}./d' | sort | uniq | sed -E "s,[pP][aA][sS][sS][wW]|[dD][bB]_[pP][aA][sS][sS],${C}[1;31m&${C}[0m,g"; done
+  echo ""
+
+  ##-- IF) TTY passwords
+  printf $Y"[+] "$GREEN"Checking for TTY (sudo/su) passwords in logs\n"$NC
+  aureport --tty | grep -E "su |sudo " | sed -E "s,su|sudo,${C}[1;31m&${C}[0m,g"
+  grep -RE 'comm="su"|comm="sudo"' /var/log* 2>/dev/null | sed -E "s,\"su\"|\"sudo\",${C}[1;31m&${C}[0m,g" | sed -E "s,data=.*,${C}[1;31m&${C}[0m,g"
   echo ""
 
   ##-- IF) IPs inside logs
