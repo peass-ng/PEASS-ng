@@ -1123,7 +1123,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
     pslist=`print_ps`
   else
     ps aux 2>/dev/null | grep -v "\[" | sort  | grep -v "%CPU" | sed -E "s,$Wfolders,${C}[1;31m&${C}[0m,g" | sed -E "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -E "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed -E "s,$rootcommon,${C}[1;32m&${C}[0m," | sed -E "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed -E "s,$processesVB,${C}[1;31;103m&${C}[0m,g" | sed "s,$processesB,${C}[1;31m&${C}[0m," | sed -E "s,$processesDump,${C}[1;31m&${C}[0m,"
-    pslist=`ps aux`
+    pslist=`ps faux`
     echo ""
 
     #-- PCS) Binary processes permissions
