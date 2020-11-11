@@ -10,54 +10,61 @@ namespace winPEAS
     //////////////////////////////
     public class Wmi
     {
-        public static List<string> GetInstalledKBs()
+        public static List<int> GetInstalledKBs()
         {
-            List<string> KbList = new List<string>();
+            var KbList = new List<int>();
 
             try
             {
-                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(@"root\cimv2", "SELECT HotFixID FROM Win32_QuickFixEngineering"))
+                using (var searcher = new ManagementObjectSearcher(@"root\cimv2", "SELECT HotFixID FROM Win32_QuickFixEngineering"))
                 {
-                    ManagementObjectCollection collection = searcher.Get();
+                    var hotFixes = searcher.Get();
 
-                    foreach (ManagementObject kb in collection)
+                    foreach (var hotFix in hotFixes)
                     {
-                        KbList.Add(kb["HotFixID"].ToString().Remove(0, 2));
+                        var line = hotFix["HotFixID"].ToString().Remove(0, 2);
+
+                        if (int.TryParse(line, out int kb))
+                        {
+                            KbList.Add(kb);
+                        }
                     }
-                }
+                }   
             }
             catch (ManagementException e)
             {
-                System.Console.Error.WriteLine(" [!] {0}", e.Message);
+                Console.Error.WriteLine(" [!] {0}", e.Message);
             }
 
             return KbList;
         }
 
-        public static string GetBuildNumber()
+        public static int GetBuildNumber()
         {
-            string buildNum = string.Empty;
-
             try
             {
-                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(@"root\cimv2", "SELECT BuildNumber FROM Win32_OperatingSystem"))
+                using (var searcher = new ManagementObjectSearcher(@"root\cimv2", "SELECT BuildNumber FROM Win32_OperatingSystem"))
                 {
-                    ManagementObjectCollection collection = searcher.Get();
+                    var collection = searcher.Get();
 
-                    foreach (ManagementObject num in collection)
+                    foreach (var num in collection)
                     {
-                        buildNum = (string)num["BuildNumber"];
+                        if (int.TryParse(num["BuildNumber"] as string, out int buildNumber))
+                        {
+                            return buildNumber;
+                        }
                     }
                 }
             }
             catch (ManagementException e)
             {
-                System.Console.Error.WriteLine(" [!] {0}", e.Message);
+                Console.Error.WriteLine(" [!] {0}", e.Message);
             }
 
-            return buildNum;
+            return 0;
         }
     }
+}
 
     //////////////////////////////
     ///// VULNERABILITY CLASS ////
