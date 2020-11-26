@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.9.1"
+VERSION="v2.9.2"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -2279,7 +2279,11 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
         fi
       done;
       if [ "$c" ]; then
-        echo "$s" | sed -E "s,$sidG1,${C}[1;32m&${C}[0m," | sed -E "s,$sidG2,${C}[1;32m&${C}[0m," | sed -E "s,$sidVB,${C}[1;31;103m&${C}[0m,"
+        if [ "`echo \"$s\" | grep -E \"$sidG1\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG2\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB\"`" ]; then
+          echo "$s" | sed -E "s,$sidG1,${C}[1;32m&${C}[0m," | sed -E "s,$sidG2,${C}[1;32m&${C}[0m," | sed -E "s,$sidVB,${C}[1;31;103m&${C}[0m,"
+        else
+          echo "$s" | sed -E "s,/.*,${C}[1m&${C}[0m,"
+        fi
       fi
     fi
   done;
@@ -2304,7 +2308,11 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
         fi
       done;
       if [ "$c" ]; then
-        echo "$s" | sed -E "s,$sidG1,${C}[1;32m&${C}[0m," | sed -E "s,$sidG2,${C}[1;32m&${C}[0m," | sed -E "s,$sidVB,${C}[1;31;103m&${C}[0m,"
+        if [ "`echo \"$s\" | grep -E \"$sidG1\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG2\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB\"`" ]; then
+          echo "$s" | sed -E "s,$sidG1,${C}[1;32m&${C}[0m," | sed -E "s,$sidG2,${C}[1;32m&${C}[0m," | sed -E "s,$sidVB,${C}[1;31;103m&${C}[0m,"
+        else
+          echo "$s" | sed -E "s,/.*,${C}[1m&${C}[0m,"
+        fi
       fi
     fi
   done;

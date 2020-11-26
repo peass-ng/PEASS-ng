@@ -432,6 +432,7 @@ namespace winPEAS
                     { "Modify", (int)FileSystemRights.Modify }, //0x301bf
                     { "Write", (int)FileSystemRights.Write }, //0x116
                     { "ChangePermissions", (int)FileSystemRights.ChangePermissions }, //0x40000
+                    { "AppendData/CreateDirectories", (int)FileSystemRights.AppendData },
                 };
             }
 
