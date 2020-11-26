@@ -2676,8 +2676,8 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   echo ""
 
   ##-- IF) TTY passwords
-  printf $Y"[+] "$GREEN"Checking for TTY (sudo/su) passwords in logs\n"$NC
-  aureport --tty | grep -E "su |sudo " | sed -E "s,su|sudo,${C}[1;31m&${C}[0m,g"
+  printf $Y"[+] "$GREEN"Checking for TTY (sudo/su) passwords in audit logs\n"$NC
+  aureport --tty 2>/dev/null | grep -E "su |sudo " | sed -E "s,su|sudo,${C}[1;31m&${C}[0m,g"
   grep -RE 'comm="su"|comm="sudo"' /var/log* 2>/dev/null | sed -E "s,\"su\"|\"sudo\",${C}[1;31m&${C}[0m,g" | sed -E "s,data=.*,${C}[1;31m&${C}[0m,g"
   echo ""
 
