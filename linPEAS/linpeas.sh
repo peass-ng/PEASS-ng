@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.9.3"
+VERSION="v2.9.4"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -2258,6 +2258,10 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     echo "gitlab-rails was found. Trying to dump users..."
     gitlab-rails runner 'User.where.not(username: "peasssssssss").each { |u| pp u.attributes }'
     echo "If you have enough privileges, you can change the password of any user runnig: gitlab-rails runner 'user = User.find_by(email: \"admin@example.com\"); user.password = \"pass_peass_pass\"; user.password_confirmation = \"pass_peass_pass\"; user.save!'"
+  fi
+  if [ "`which gitlab-backup`" ]; then
+    echo "If you have enough privileges, you can create a backup of all the repositories inside gitlab using 'gitlab-backup create'"
+    echo "Then you can get the plain-text with something like 'git clone \@hashed/19/23/14348274[...]38749234.bundle'"
   fi
   #Check gitlab files
   gitlabfiles=$(echo "$FIND_HOME $FIND_ETC $FIND_VAR $FIND_TMP $FIND_OPT $FIND_USR $FIND_MNT $FIND_SYSTEM $FIND_PRIVATE $FIND_APPLICATIONS" | grep -E "secrets.yml$|gitlab.yml$")
