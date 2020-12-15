@@ -153,6 +153,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 - **System Information**
   - [x] SO & kernel version 
   - [x] Sudo version
+  - [x] USBCreator PE
   - [x] PATH
   - [x] Date
   - [x] System stats
