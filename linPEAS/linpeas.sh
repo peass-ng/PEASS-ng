@@ -2299,10 +2299,12 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     echo "gitlab-rails was found. Trying to dump users..."
     gitlab-rails runner 'User.where.not(username: "peasssssssss").each { |u| pp u.attributes }' | sed -E "s,email|password,${C}[1;31m&${C}[0m,"
     echo "If you have enough privileges, you can change the password of any user runnig: gitlab-rails runner 'user = User.find_by(email: \"admin@example.com\"); user.password = \"pass_peass_pass\"; user.password_confirmation = \"pass_peass_pass\"; user.save!'"
+    echo ""
   fi
   if [ "`which gitlab-backup`" ]; then
     echo "If you have enough privileges, you can create a backup of all the repositories inside gitlab using 'gitlab-backup create'"
     echo "Then you can get the plain-text with something like 'git clone \@hashed/19/23/14348274[...]38749234.bundle'"
+    echo ""
   fi
   #Check gitlab files
   gitlabfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_MNT\n$FIND_SYSTEM\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -v "/lib" | grep -E "secrets.yml$|gitlab.yml$|gitlab.rb$")
