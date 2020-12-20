@@ -246,7 +246,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Splunk
   - [x] Gitlab
   - [x] PGP/GPG files
- 
+  - [x] Vim swp files
 
 - **Generic Interesting Files**
   - [x] SUID & SGID files
