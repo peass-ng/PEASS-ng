@@ -2300,7 +2300,8 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   if [ "`which gitlab-rails`" ]; then
     echo "gitlab-rails was found. Trying to dump users..."
     gitlab-rails runner 'User.where.not(username: "peasssssssss").each { |u| pp u.attributes }' | sed -E "s,email|password,${C}[1;31m&${C}[0m,"
-    echo "If you have enough privileges, you can change the password of any user running: gitlab-rails runner 'user = User.find_by(email: \"admin@example.com\"); user.password = \"pass_peass_pass\"; user.password_confirmation = \"pass_peass_pass\"; user.save!'"
+    echo "If you have enough privileges, you can make an account under your control administrator by running: gitlab-rails runner 'user = User.find_by(email: \"youruser@example.com\"); user.admin = TRUE; user.save!'"
+    echo "Alternatively, you could change the password of any user by running: gitlab-rails runner 'user = User.find_by(email: \"admin@example.com\"); user.password = \"pass_peass_pass\"; user.password_confirmation = \"pass_peass_pass\"; user.save!'"
     echo ""
   fi
   if [ "`which gitlab-backup`" ]; then
