@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.9.8"
+VERSION="v2.9.9"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -1181,6 +1181,14 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
     ps auxwww 2>/dev/null | awk '{print $11}' | xargs ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | sed -E "s,$Wfolders,${C}[1;31;103m&${C}[0m,g" | sed -E "s,$binW,${C}[1;31;103m&${C}[0m,g" | sed -E "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed -E "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed -E "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;32m&${C}[0m,"
   fi
   echo ""
+
+  #-- PCS) Files opened by processes belonging to other users
+  if ! [ "$IAMROOT" ]; then
+    printf $Y"[+] "$GREEN"Files opened by processes belonging to other users\n"$NC
+    printf $B"[i] "$Y"This is usually empty because of the lack of privileges to read other user processes information\n"$NC
+    lsof 2>/dev/null | grep -v "$USER" | grep -iv "permission denied" | sed -E "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed -E "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+    echo ""
+  fi
 
   #-- PCS) Processes with credentials inside memory 
   printf $Y"[+] "$GREEN"Processes with credentials in memory (root req)\n"$NC
