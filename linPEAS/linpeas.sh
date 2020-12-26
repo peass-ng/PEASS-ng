@@ -2359,10 +2359,8 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) vi swp files
   printf $Y"[+] "$GREEN"Searching vim files\n"$NC
   vimfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_MNT\n$FIND_SYSTEM\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E "\.swp$|\.viminfo$")
-  if [ "$vimfiles" ]; then echo "Vim files found:"; fi
   printf "$vimfiles\n" | sort | uniq | while read f; do
-    echo "$f"
-    ls -l "$f"
+    ls -l "$f" 2>/dev/null
   done
   echo ""
   echo ""
