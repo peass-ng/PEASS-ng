@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v2.9.9"
+VERSION="v3.0.0"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -1536,25 +1536,6 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   (cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | sed -E "s,$groupsB,${C}[1;31m&${C}[0m," | sed -E "s,$groupsVB,${C}[1;31m&${C}[0m," | sed -E "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -E "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | sed -E "s,$Groups,${C}[1;31;103m&${C}[0m,") || echo_not_found "/etc/polkit-1/localauthority.conf.d"
   echo ""
 
-  #-- UI) Brute su
-  if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ] && ! [ "$IAMROOT" ]; then
-    printf $Y"[+] "$GREEN"Testing 'su' as other users with shell using as passwords: null pwd, the username and top2000pwds\n"$NC
-    POSSIBE_SU_BRUTE=`check_if_su_brute`;
-    if [ "$POSSIBE_SU_BRUTE" ]; then
-      SHELLUSERS=`cat /etc/passwd 2>/dev/null | grep -i "sh$" | cut -d ":" -f 1`
-      printf "$SHELLUSERS\n" | while read u; do
-        echo "  Bruteforcing user $u..."
-        su_brute_user_num $u $PASSTRY
-      done
-    else
-      printf $GREEN"It's not possible to brute-force su.\n\n"$NC
-    fi
-  else
-    printf $Y"[+] "$GREEN"Do not forget to test 'su' as any other user with shell: without password and with their names as password (I can't do it...)\n"$NC
-  fi
-  printf $Y"[+] "$GREEN"Do not forget to execute 'sudo -l' without password or with valid password (if you know it)!!\n"$NC
-  echo ""
-
   #-- UI) Superusers
   printf $Y"[+] "$GREEN"Superusers\n"$NC
   awk -F: '($3 == "0") {print}' /etc/passwd 2>/dev/null | sed -E "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -E "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed -E "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
@@ -1571,7 +1552,23 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
       fi
     done
   else
+    no_shells="`cat /etc/passwd 2>/dev/null | grep -Ev "sh$" | cut -d ":" -f 7 | sort | uniq`"
+    unexpected_shells=""
+    printf "$no_shells\n" | while read f; do
+      if [ "`$f -c 'whoami' 2>/dev/null | grep \"$(whoami)\"`" ]; then 
+        unexpected_shells="$f\n$unexpected_shells"
+      fi
+    done
     cat /etc/passwd 2>/dev/null | grep "sh$" | sort | sed -E "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+    if [ "$unexpected_shells" ]; then
+      echo "These unexpected binaries are acting like shells:\n$unexpected_shells" | sed -E "s,/.*,${C}[1;31m&${C}[0m,g"
+      echo "Unexpected users with shells:"
+      printf "$unexpected_shells\n" | while read f; do
+        if [ "$f" ]; then
+          grep -E "${f}$" /etc/passwd | sed -E "s,/.*,${C}[1;31m&${C}[0m,g"
+        fi
+      done
+    fi
   fi
   echo ""
 
@@ -1591,7 +1588,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
 
   #-- UI) Last logons
   printf $Y"[+] "$GREEN"Last logons\n"$NC
-  last 2>/dev/null | tail | sed -E "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -E "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed -E "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+  (last -Faiw || last) 2>/dev/null | tail | sed -E "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -E "s,$nosh_usrs,${C}[1;31m&${C}[0m," | sed -E "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
   echo ""
 
   #-- UI) Login info
@@ -1602,6 +1599,25 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   #-- UI) Password policy
   printf $Y"[+] "$GREEN"Password policy\n"$NC
   grep "^PASS_MAX_DAYS\|^PASS_MIN_DAYS\|^PASS_WARN_AGE\|^ENCRYPT_METHOD" /etc/login.defs 2>/dev/null || echo_not_found "/etc/login.defs"
+  echo ""
+
+  #-- UI) Brute su
+  if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ] && ! [ "$IAMROOT" ]; then
+    printf $Y"[+] "$GREEN"Testing 'su' as other users with shell using as passwords: null pwd, the username and top2000pwds\n"$NC
+    POSSIBE_SU_BRUTE=`check_if_su_brute`;
+    if [ "$POSSIBE_SU_BRUTE" ]; then
+      SHELLUSERS=`cat /etc/passwd 2>/dev/null | grep -i "sh$" | cut -d ":" -f 1`
+      printf "$SHELLUSERS\n" | while read u; do
+        echo "  Bruteforcing user $u..."
+        su_brute_user_num $u $PASSTRY
+      done
+    else
+      printf $GREEN"It's not possible to brute-force su.\n\n"$NC
+    fi
+  else
+    printf $Y"[+] "$GREEN"Do not forget to test 'su' as any other user with shell: without password and with their names as password (I can't do it...)\n"$NC
+  fi
+  printf $Y"[+] "$GREEN"Do not forget to execute 'sudo -l' without password or with valid password (if you know it)!!\n"$NC
   echo ""
   echo ""
   if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi
