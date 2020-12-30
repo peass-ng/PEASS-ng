@@ -1433,7 +1433,7 @@ if [ "`echo $CHECKS | grep Net`" ]; then
   echo ""
 
   #-- NI) Internet access
-  if ! [ "$SUPERFAST" ] && ! [ "$NOTEXPORT" ] && [ -f "/bin/bash" ]; then
+  if ! [ "$SUPERFAST" ] && ! [ "$FAST" ] && ! [ "$NOTEXPORT" ] && [ -f "/bin/bash" ]; then
     printf $Y"[+] "$GREEN"Internet Access?\n"$NC
     check_tcp_80 &
     check_tcp_443 &
@@ -2420,23 +2420,28 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
           echo "$s" | sed -E "s,$sidG1,${C}[1;32m&${C}[0m," | sed -E "s,$sidG2,${C}[1;32m&${C}[0m," | sed -E "s,$sidVB,${C}[1;31;103m&${C}[0m,"
         else
           echo "$s" | sed -E "s,/.*,${C}[1m&${C}[0m,"
+          printf $ITALIC
           if [ "`command -v strings 2>/dev/null`" ]; then
             strings "$sname" | sort | uniq | while read sline; do
               sline_first="`echo \"$sline\" | cut -d ' ' -f1`"
               if [ "`echo \"$sline_first\" | grep -Ev \"$cfuncs\"`" ]; then
                 if [ "`echo \"$sline_first\" | grep \"/\"`" ] && [ -f "$sline_first" ]; then #If a path
                   if [ -O "$sline_first" ] || [ -w "$sline_first" ]; then #And modifiable
-                    echo "  --- It looks like $RED$sname$NC is executing $RED$sline_first$NC and you can modify it (strings line: $sline)"
+                    printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is using $RED$sline_first$NC$ITALIC and you can modify it (strings line: $sline)\n"
                   fi
                 else #If not a path
                   if [ ${#sline_first} -gt 2 ] && [ "`command -v \"$sline_first\" 2>/dev/null | grep '/' `" ]; then #Check if existing binary
-                    echo "  --- It looks like $RED$sname$NC is executing $RED$sline_first$NC and you can impersonate it (strings line: $sline)"
+                    printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is executing $RED$sline_first$NC$ITALIC and you can impersonate it (strings line: $sline)\n"
                   fi
                 fi
               fi
             done
-            if [ "$TIMEOUT" ] && [ "`command -v strace 2>/dev/null`" ] && [ ! "$SUPERFAST" ]; then
-              timeout 2 strace "$sname" 2>&1 | grep -i -E "open|access|no such file"
+            if [ "$TIMEOUT" ] && [ "`command -v strace 2>/dev/null`" ] && ! [ "$NOTEXPORT" ]; then
+              printf $ITALIC
+              echo "  --- Trying to execute $sname with strace in order to look for hijackable libraries..."
+              timeout 2 strace "$sname" 2>&1 | grep -i -E "open|access|no such file" | sed -E "s,open|access|No such file,${C}[1;31m&${C}[0m$ITALIC,g"
+              printf $NC
+              echo ""
             fi
           fi
         fi
@@ -2468,23 +2473,28 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
           echo "$s" | sed -E "s,$sidG1,${C}[1;32m&${C}[0m," | sed -E "s,$sidG2,${C}[1;32m&${C}[0m," | sed -E "s,$sidVB,${C}[1;31;103m&${C}[0m,"
         else
           echo "$s" | sed -E "s,/.*,${C}[1m&${C}[0m,"
+          printf $ITALIC
           if [ "`command -v strings 2>/dev/null`" ]; then
             strings "$sname" | sort | uniq | while read sline; do
               sline_first="`echo \"$sline\" | cut -d ' ' -f1`"
               if [ "`echo \"$sline_first\" | grep -Ev \"$cfuncs\"`" ]; then
                 if [ "`echo \"$sline_first\" | grep \"/\"`" ] && [ -f "$sline_first" ]; then #If a path
                   if [ -O "$sline_first" ] || [ -w "$sline_first" ]; then #And modifiable
-                    echo "  --- It looks like $RED$sname$NC is executing $RED$sline_first$NC and you can modify it (strings line: $sline)"
+                    printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is using $RED$sline_first$NC$ITALIC and you can modify it (strings line: $sline)\n"
                   fi
                 else #If not a path
                   if [ ${#sline_first} -gt 2 ] && [ "`command -v \"$sline_first\" 2>/dev/null | grep '/' `" ]; then #Check if existing binary
-                    echo "  --- It looks like $RED$sname$NC is executing $RED$sline_first$NC and you can impersonate it (strings line: $sline)"
+                    printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is executing $RED$sline_first$NC$ITALIC and you can impersonate it (strings line: $sline)\n"
                   fi
                 fi
               fi
             done
             if [ "$TIMEOUT" ] && [ "`command -v strace 2>/dev/null`" ] && [ ! "$SUPERFAST" ]; then
-              timeout 2 strace "$sname" 2>&1 | grep -i -E "open|access|no such file"
+              printf $ITALIC
+              echo "  --- Trying to execute $sname with strace in order to look for hijackable libraries..."
+              timeout 2 strace "$sname" 2>&1 | grep -i -E "open|access|no such file" | sed -E "s,open|access|No such file,${C}[1;31m&${C}[0m$ITALIC,g"
+              printf $NC
+              echo ""
             fi
           fi
         fi
