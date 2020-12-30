@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.0.0"
+VERSION="v3.0.1"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -132,7 +132,7 @@ groupsVB="\(sudo\)|\(docker\)|\(lxd\)|\(wheel\)|\(disk\)|\(lxc\)"
 knw_grps='\(lpadmin\)|\(cdrom\)|\(plugdev\)|\(nogroup\)' #https://www.togaware.com/linux/survivor/Standard_Groups.html
 mygroups=`groups 2>/dev/null | tr " " "|"`
 
-sidG1="/abuild-sudo$|/accton$|/allocate$|/ARDAgent|/arping$|/atq$|/atrm$|/authpf$|/authpf-noip$|/authopen$|/batch$|/bbsuid$|/bsd-write$|/btsockstat$|/bwrap$|/cacaocsc$|/camel-lock-helper-1.2$|/ccreds_validate$|/cdrw$|/chage$|/check-foreground-console$|/chrome-sandbox$|/chsh$|/cons.saver$|/crontab$|/ct$|/cu$|/dbus-daemon-launch-helper$|/deallocate$|/desktop-create-kmenu$|/dma$|/dmcrypt-get-device$|/doas$|/dotlockfile$|/dotlock.mailutils$|/dtaction$|/dtfile$|/eject$|/execabrt-action-install-debuginfo-to-abrt-cache$|/execdbus-daemon-launch-helper$|/execdma-mbox-create$|/execlockspool$|/execlogin_chpass$|/execlogin_lchpass$|/execlogin_passwd$|/execssh-keysign$|/execulog-helper$|/expiry$|/fdformat$|/fstat$|/fusermount$|/fusermount3$|/gnome-pty-helper$|/glines$|/gnibbles$|/gnobots2$|/gnome-suspend$|/gnometris$|/gnomine$|/gnotski$|/gnotravex$|/gpasswd$|/gpg$|/gpio$|/gtali|/.hal-mtab-lock$|/imapd$|/inndstart$|/kismet_cap_nrf_51822$|/kismet_cap_nxp_kw41z$|/kismet_cap_ti_cc_2531$|/kismet_cap_ti_cc_2540$|/kismet_capture$|/kismet_cap_linux_bluetooth$|/kismet_cap_linux_wifi$|/kismet_cap_nrf_mousejack$|/ksu$|/list_devices$|/locate$|/lock$|/lockdev$|/lockfile$|/login_activ$|/login_crypto$|/login_radius$|/login_skey$|/login_snk$|/login_token$|/login_yubikey$|/lpc$|/lpd$|/lpd-port$|/lppasswd$|/lpq$|/lpr$|/lprm$|/lpset$|/lxc-user-nic$|/mahjongg$|/mail-lock$|/mailq$|/mail-touchlock$|/mail-unlock$|/mksnap_ffs$|/mlocate$|/mlock$|/mount.cifs$|/mount.nfs$|/mount.nfs4$|/mtr$|/mutt_dotlock$"
+sidG1="/abuild-sudo$|/accton$|/allocate$|/ARDAgent|/arping$|/atq$|/atrm$|/authpf$|/authpf-noip$|/authopen$|/batch$|/bbsuid$|/bsd-write$|/btsockstat$|/bwrap$|/cacaocsc$|/camel-lock-helper-1.2$|/ccreds_validate$|/cdrw$|/chage$|/check-foreground-console$|/chrome-sandbox$|/chsh$|/cons.saver$|/crontab$|/ct$|/cu$|/dbus-daemon-launch-helper$|/deallocate$|/desktop-create-kmenu$|/dma$|/dmcrypt-get-device$|/doas$|/dotlockfile$|/dotlock.mailutils$|/dtaction$|/dtfile$|/eject$|/execabrt-action-install-debuginfo-to-abrt-cache$|/execdbus-daemon-launch-helper$|/execdma-mbox-create$|/execlockspool$|/execlogin_chpass$|/execlogin_lchpass$|/execlogin_passwd$|/execssh-keysign$|/execulog-helper$|/expiry$|/fdformat$|/fstat$|/fusermount$|/fusermount3$|/gnome-pty-helper$|/glines$|/gnibbles$|/gnobots2$|/gnome-suspend$|/gnometris$|/gnomine$|/gnotski$|/gnotravex$|/gpasswd$|/gpg$|/gpio$|/gtali|/.hal-mtab-lock$|/imapd$|/inndstart$|/kismet_cap_nrf_51822$|/kismet_cap_nxp_kw41z$|/kismet_cap_ti_cc_2531$|/kismet_cap_ti_cc_2540$|/kismet_cap_ubertooth_one$|/kismet_capture$|/kismet_cap_linux_bluetooth$|/kismet_cap_linux_wifi$|/kismet_cap_nrf_mousejack$|/ksu$|/list_devices$|/locate$|/lock$|/lockdev$|/lockfile$|/login_activ$|/login_crypto$|/login_radius$|/login_skey$|/login_snk$|/login_token$|/login_yubikey$|/lpc$|/lpd$|/lpd-port$|/lppasswd$|/lpq$|/lpr$|/lprm$|/lpset$|/lxc-user-nic$|/mahjongg$|/mail-lock$|/mailq$|/mail-touchlock$|/mail-unlock$|/mksnap_ffs$|/mlocate$|/mlock$|/mount.cifs$|/mount.nfs$|/mount.nfs4$|/mtr$|/mutt_dotlock$"
 sidG2="/ncsa_auth$|/netpr$|/netreport$|/netstat$|/newgidmap$|/newtask$|/newuidmap$|/nvmmctl$|/opieinfo$|/opiepasswd$|/pam_auth$|/pam_extrausers_chkpwd$|/pam_timestamp_check$|/pamverifier$|/pfexec$|/ping$|/ping6$|/pmconfig$|/pmap$|/polkit-agent-helper-1$|/polkit-explicit-grant-helper$|/polkit-grant-helper$|/polkit-grant-helper-pam$|/polkit-read-auth-helper$|/polkit-resolve-exe-helper$|/polkit-revoke-helper$|/polkit-set-default-helper$|/postdrop$|/postqueue$|/poweroff$|/ppp$|/procmail$|/pstat$|/pt_chmod$|/pwdb_chkpwd$|/quota$|/rcmd|/remote.unknown$|/rlogin$|/rmformat$|/rnews$|/run-mailcap$|/sacadm$|/same-gnome$|screen.real$|/security_authtrampoline$|/sendmail.sendmail$|/shutdown$|/skeyaudit$|/skeyinfo$|/skeyinit$|/sliplogin|/slocate$|/smbmnt$|/smbumount$|/smpatch$|/smtpctl$|/snap-confine$|/sperl5.8.8$|/ssh-agent$|/ssh-keysign$|/staprun$|/startinnfeed$|/stclient$|/su$|/suexec$|/sys-suspend$|/sysstat$|/systat$|/telnetlogin$|/timedc$|/tip$|/top$|/traceroute6$|/traceroute6.iputils$|/trpt$|/tsoldtlabel$|/tsoljdslabel$|/tsolxagent$|/ufsdump$|/ufsrestore$|/umount.cifs$|/umount.nfs$|/umount.nfs4$|/unix_chkpwd$|/uptime$|/userhelper$|/userisdnctl$|/usernetctl$|/utempter$|/utmp_update$|/uucico$|/uuglist$|/uuidd$|/uuname$|/uusched$|/uustat$|/uux$|/uuxqt$|/vmstat$|/vmware-user-suid-wrapper$|/vncserver-x11$|/volrmmount$|/w$|/wall$|/whodo$|/write$|/X$|/Xorg.wrap$|/Xsun$|/Xvnc$|/yppasswd$"
 
 #Rules: Start path " /", end path "$", divide path and vulnversion "%". SPACE IS ONLY ALLOWED AT BEGINNING, DONT USE IT IN VULN DESCRIPTION
@@ -189,6 +189,7 @@ sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
  /xterm$%Solaris_5.5.1_X11R6.3\(05-1997\)/Debian_xterm_version_222-1etch2\(01-2009\)"
 #To update sidVB: curl https://github.com/GTFOBins/GTFOBins.github.io/tree/master/_gtfobins 2>/dev/null | grep 'href="/GTFOBins/' | grep '.md">' | awk -F 'title="' '{print $2}' | cut -d '"' -f1 | cut -d "." -f1 | sed  -e 's,^,/,' | sed  -e 's,$,\$,' | tr '\n' '|'
 sidVB='/apt-get$|/apt$|/aria2c$|/arp$|/ash$|/awk$|/base32$|/base64$|/bash$|/bpftrace$|/bundler$|/busctl$|/busybox$|/byebug$|/cancel$|/cat$|/chmod$|/chown$|/chroot$|/cobc$|/composer$|/cp$|/cpan$|/cpulimit$|/crash$|/crontab$|/csh$|/curl$|/cut$|/dash$|/date$|/dd$|/dialog$|/diff$|/dmesg$|/dmsetup$|/dnf$|/docker$|/dpkg$|/easy_install$|/eb$|/ed$|/emacs$|/env$|/eqn$|/expand$|/expect$|/facter$|/file$|/find$|/finger$|/flock$|/fmt$|/fold$|/ftp$|/gawk$|/gcc$|/gdb$|/gem$|/genisoimage$|/ghc$|/ghci$|/gimp$|/git$|/grep$|/gtester$|/hd$|/head$|/hexdump$|/highlight$|/iconv$|/iftop$|/ionice$|/ip$|/irb$|/jjs$|/journalctl$|/jq$|/jrunscript$|/ksh$|/ksshell$|/ld$|/ldconfig$|/less$|/logsave$|/look$|/ltrace$|/lua$|/lwp-download$|/lwp-request$|/mail$|/make$|/man$|/mawk$|/more$|/mount$|/mtr$|/mv$|/mysql$|/nano$|/nawk$|/nc$|/nice$|/nl$|/nmap$|/node$|/nohup$|/nroff$|/nsenter$|/od$|/openssl$|/pdb$|/perl$|/pg$|/php$|/pic$|/pico$|/pip$|/pkexec$|/pry$|/puppet$|/python$|/rake$|/readelf$|/red$|/redcarpet$|/restic$|/rlogin$|/rlwrap$|/rpm$|/rpmquery$|/rsync$|/ruby$|/run-mailcap$|/run-parts$|/rview$|/rvim$|/scp$|/screen$|/script$|/sed$|/service$|/setarch$|/sftp$|/shuf$|/smbclient$|/socat$|/soelim$|/sort$|/sqlite3$|/ssh$|/start-stop-daemon$|/stdbuf$|/strace$|/strings$|/su$|/sysctl$|/systemctl$|/tac$|/tail$|/tar$|/taskset$|/tclsh$|/tcpdump$|/tee$|/telnet$|/tftp$|/time$|/timeout$|/tmux$|/top$|/ul$|/unexpand$|/uniq$|/unshare$|/uudecode$|/uuencode$|/valgrind$|/vi$|/view$|/vim$|/watch$|/wget$|/whois$|/wish$|/xargs$|/xxd$|/xz$|/yelp$|/yum$|/zip$|/zsh$|/zsoelim$|/zypper$'
+cfuncs='file|free|main|more|read|split|write'
 
 sudoVB=" \*|env_keep\+=LD_PRELOAD|apt-get$|apt$|aria2c$|arp$|ash$|awk$|base64$|bash$|busybox$|cat$|chmod$|chown$|cp$|cpan$|cpulimit$|crontab$|csh$|curl$|cut$|dash$|date$|dd$|diff$|dmesg$|dmsetup$|dnf$|docker$|dpkg$|easy_install$|ed$|emacs$|env$|expand$|expect$|facter$|file$|find$|flock$|fmt$|fold$|ftp$|gdb$|gimp$|git$|grep$|head$|ionice$|ip$|irb$|jjs$|journalctl$|jq$|jrunscript$|ksh$|ld.so$|less$|logsave$|ltrace$|lua$|mail$|make$|man$|more$|mount$|mtr$|mv$|mysql$|nano$|nc$|nice$|nl$|nmap$|node$|od$|openssl$|perl$|pg$|php$|pic$|pico$|pip$|puppet$|python$|readelf$|red$|rlwrap$|rpm$|rpmquery$|rsync$|ruby$|run-mailcap$|run-parts$|rvim$|scp$|screen$|script$|sed$|service$|setarch$|sftp$|smbclient$|socat$|sort$|sqlite3$|ssh$|start-stop-daemon$|stdbuf$|strace$|systemctl$|tail$|tar$|taskset$|tclsh$|tcpdump$|tee$|telnet$|tftp$|time$|timeout$|tmux$|ul$|unexpand$|uniq$|unshare$|vi$|vim$|watch$|wget$|wish$|xargs$|xxd$|yum$|zip$|zsh$|zypper$"
 sudoB="$(whoami)|ALL:ALL|ALL : ALL|ALL|NOPASSWD|SETENV|/apache2|/cryptsetup|/mount"
@@ -279,10 +280,9 @@ while $SEDOVERFLOW; do
   fi
 done
 
-notExtensions="\.tif$|\.tiff$|\.gif$|\.jpeg$|\.jpg|\.jif$|\.jfif$|\.jp2$|\.jpx$|\.j2k$|\.j2c$|\.fpx$|\.pcd$|\.png$|\.pdf$|\.flv$|\.mp4$|\.mp3$|\.gifv$|\.avi$|\.mov$|\.mpeg$|\.wav$|\.doc$|\.docx$|\.xls$|\.xlsx$"
+notExtensions="\.tif$|\.tiff$|\.gif$|\.jpeg$|\.jpg|\.jif$|\.jfif$|\.jp2$|\.jpx$|\.j2k$|\.j2c$|\.fpx$|\.pcd$|\.png$|\.pdf$|\.flv$|\.mp4$|\.mp3$|\.gifv$|\.avi$|\.mov$|\.mpeg$|\.wav$|\.doc$|\.docx$|\.xls$|\.xlsx$|\.svg$"
 
-TIMEOUT=`which timeout 2>/dev/null`
-GCC=`which gcc 2>/dev/null`
+TIMEOUT=`command -v timeout 2>/dev/null`
 
 shscripsG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/dnsmap-bulk.sh|/gettext.sh|/go-rhn.sh|/gvmap.sh|/lesspipe.sh|/mksmbpasswd.sh|/power_report.sh|/setuporamysql.sh|/setup-nsssysinit.sh|/readlink_f.sh|/rescan-scsi-bus.sh|/testacg.sh|/testlahf.sh|/url_handler.sh"
 
@@ -321,8 +321,8 @@ if [ `ps auxwww 2>/dev/null | wc -l 2>/dev/null` -lt 8 ]; then
 fi
 
 DISCOVER_BAN_BAD="No network discovery capabilities (fping or ping not found)"
-FPING=$(which fping 2>/dev/null)
-PING=$(which ping 2>/dev/null)
+FPING=$(command -v fping 2>/dev/null)
+PING=$(command -v ping 2>/dev/null)
 if [ "$FPING" ]; then
   DISCOVER_BAN_GOOD="$GREEN$FPING$B is available for network discovery$LG ($SCRIPTNAME can discover hosts, learn more with -h)"
 else
@@ -332,18 +332,18 @@ else
 fi
 
 SCAN_BAN_BAD="No port scan capabilities (nc not found)"
-FOUND_NC=$(which nc 2>/dev/null)
+FOUND_NC=$(command -v nc 2>/dev/null)
 if [ -z "$FOUND_NC" ]; then
-	FOUND_NC=$(which netcat 2>/dev/null);
+	FOUND_NC=$(command -v netcat 2>/dev/null);
 fi
 if [ -z "$FOUND_NC" ]; then
-	FOUND_NC=$(which ncat 2>/dev/null);
+	FOUND_NC=$(command -v ncat 2>/dev/null);
 fi
 if [ -z "$FOUND_NC" ]; then
-	FOUND_NC=$(which nc.traditional 2>/dev/null);
+	FOUND_NC=$(command -v nc.traditional 2>/dev/null);
 fi
 if [ -z "$FOUND_NC" ]; then
-	FOUND_NC=$(which nc.openbsd 2>/dev/null);
+	FOUND_NC=$(command -v nc.openbsd 2>/dev/null);
 fi
 if [ "$FOUND_NC" ]; then
   SCAN_BAN_GOOD="$GREEN$FOUND_NC$B is available for network discover & port scanning$LG ($SCRIPTNAME can discover hosts and scan ports, learn more with -h)"
@@ -719,7 +719,7 @@ if [ "$SCAN_BAN_GOOD" ]; then
 else
   printf $RED"[-] $SCAN_BAN_BAD\n"$NC
 fi
-if [ "`which nmap 2>/dev/null`" ];then
+if [ "`command -v nmap 2>/dev/null`" ];then
   NMAP_GOOD=$GREEN"nmap$B is available for network discover & port scanning, you should use it yourself"
   printf $Y"[+] $NMAP_GOOD\n"$NC
 fi
@@ -955,7 +955,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 
   #-- SY) Sudo 
   printf $Y"[+] "$GREEN"Sudo version\n"$NC
-  if [ "`which sudo 2>/dev/null`" ]; then
+  if [ "`command -v sudo 2>/dev/null`" ]; then
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-version\n"$NC
     sudo -V 2>/dev/null | grep "Sudo ver" | sed -E "s,$sudovB,${C}[1;31m&${C}[0m,"
   else echo_not_found "sudo"
@@ -1017,9 +1017,9 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 
   #-- SY) AppArmor
   printf $Y"[+] "$GREEN"AppArmor enabled? .............. "$NC
-  if [ `which aa-status 2>/dev/null` ]; then
+  if [ `command -v aa-status 2>/dev/null` ]; then
     aa-status 2>&1 | sed "s,disabled,${C}[1;31m&${C}[0m,"
-  elif [ `which apparmor_status 2>/dev/null` ]; then
+  elif [ `command -v apparmor_status 2>/dev/null` ]; then
     apparmor_status 2>&1 | sed "s,disabled,${C}[1;31m&${C}[0m,"
   elif [ `ls -d /etc/apparmor* 2>/dev/null` ]; then
     ls -d /etc/apparmor*
@@ -1060,7 +1060,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
    #-- SY) Running in a virtual environment
   printf $Y"[+] "$GREEN"Is this a virtual machine? ..... "$NC
   hypervisorflag=`cat /proc/cpuinfo | grep flags | grep hypervisor 2>/dev/null`
-  if [ `which systemd-detect-virt 2>/dev/null` ]; then
+  if [ `command -v systemd-detect-virt 2>/dev/null` ]; then
     detectedvirt=`systemd-detect-virt`
     if [ "$hypervisorflag" ]; then printf $RED"Yes ("$detectedvirt")"$NC; else printf $GREEN"No"$NC; fi
   else
@@ -1461,19 +1461,19 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
 
   #-- UI) PGP keys?
   printf $Y"[+] "$GREEN"Do I have PGP keys?\n"$NC
-  which gpg 2>/dev/null || echo_not_found "gpg"
+  command -v gpg 2>/dev/null || echo_not_found "gpg"
   gpg --list-keys 2>/dev/null
-  which netpgpkeys 2>/dev/null || echo_not_found "netpgpkeys"
+  command -v netpgpkeys 2>/dev/null || echo_not_found "netpgpkeys"
   netpgpkeys --list-keys 2>/dev/null
-  which netpgp 2>/dev/null || echo_not_found "netpgp"
+  command -v netpgp 2>/dev/null || echo_not_found "netpgp"
   echo ""
 
   #-- UI) Clipboard and highlighted text
   printf $Y"[+] "$GREEN"Clipboard or highlighted text?\n"$NC
-  if [ `which xclip 2>/dev/null` ]; then
+  if [ `command -v xclip 2>/dev/null` ]; then
     echo "Clipboard: "`xclip -o -selection clipboard 2>/dev/null` | sed -E "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
     echo "Highlighted text: "`xclip -o 2>/dev/null` | sed -E "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
-  elif [ `which xsel 2>/dev/null` ]; then
+  elif [ `command -v xsel 2>/dev/null` ]; then
     echo "Clipboard: "`xsel -ob 2>/dev/null` | sed -E "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
     echo "Highlighted text: "`xsel -o 2>/dev/null` | sed -E "s,$pwd_inside_history,${C}[1;31m&${C}[0m,"
   else echo_not_found "xsel and xclip"
@@ -1506,7 +1506,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   if [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ]; then echo "/proc/sys/kernel/yama/ptrace_scope is enabled (0)" | sed "s,0,${C}[1;31m&${C}[0m,g";
   else echo "/proc/sys/kernel/yama/ptrace_scope is not enabled ($ptrace_scope)" | sed "s,is not enabled,${C}[1;32m&${C}[0m,g";
   fi
-  is_gdb="`which gdb 2>/dev/null`"
+  is_gdb="`command -v gdb 2>/dev/null`"
   if [ "$is_gdb" ]; then echo "gdb was found in PATH" | sed -E "s,.*,${C}[1;31m&${C}[0m,g";
   else echo "gdb wasn't found in PATH" | sed "s,gdb,${C}[1;32m&${C}[0m,g";
   fi
@@ -1525,7 +1525,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
 
   #-- UI) Doas
   printf $Y"[+] "$GREEN"Checking doas.conf\n"$NC
-  if [ "`cat /etc/doas.conf "$(dirname $(which doas) 2>/dev/null)/doas.conf" "$(dirname $(which doas) 2>/dev/null)/../etc/doas.conf" "$(dirname $(which doas) 2>/dev/null)/etc/doas.conf" 2>/dev/null`" ]; then cat /etc/doas.conf "$(dirname $(which doas))/doas.conf" "$(dirname $(which doas))/../etc/doas.conf" "$(dirname $(which doas))/etc/doas.conf" 2>/dev/null | sed -E "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,nopass,${C}[1;31m&${C}[0m," | sed -E "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m,"
+  if [ "`cat /etc/doas.conf "$(dirname $(command -v doas) 2>/dev/null)/doas.conf" "$(dirname $(command -v doas) 2>/dev/null)/../etc/doas.conf" "$(dirname $(command -v doas) 2>/dev/null)/etc/doas.conf" 2>/dev/null`" ]; then cat /etc/doas.conf "$(dirname $(command -v doas))/doas.conf" "$(dirname $(command -v doas))/../etc/doas.conf" "$(dirname $(command -v doas))/etc/doas.conf" 2>/dev/null | sed -E "s,$sh_usrs,${C}[1;31m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed "s,nopass,${C}[1;31m&${C}[0m," | sed -E "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,$USER,${C}[1;31;103m&${C}[0m,"
   else echo_not_found "/etc/doas.conf"
   fi
   echo ""
@@ -2308,7 +2308,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) passwd files (splunk)
   printf $Y"[+] "$GREEN"Searching uncommon passwd files (splunk)\n"$NC
   splunkpwd=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_MNT\n$FIND_SYSTEM\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -v "/etc/passwd$" | grep -E 'passwd$')
-  SPLUNK_BIN="`which splunk 2>/dev/null`"
+  SPLUNK_BIN="`command -v splunk 2>/dev/null`"
   if [ "$SPLUNK_BIN" ]; then echo "splunk binary was found installed on $SPLUNK_BIN" | sed "s,.*,${C}[1;31m&${C}[0m,"; fi
   printf "$splunkpwd\n" | sort | uniq | while read f; do
     if [ -f "$f" ]; then 
@@ -2321,14 +2321,14 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) Gitlab
   printf $Y"[+] "$GREEN"Searching GitLab related files\n"$NC
   #Check gitlab-rails
-  if [ "`which gitlab-rails`" ]; then
+  if [ "`command -v gitlab-rails`" ]; then
     echo "gitlab-rails was found. Trying to dump users..."
     gitlab-rails runner 'User.where.not(username: "peasssssssss").each { |u| pp u.attributes }' | sed -E "s,email|password,${C}[1;31m&${C}[0m,"
     echo "If you have enough privileges, you can make an account under your control administrator by running: gitlab-rails runner 'user = User.find_by(email: \"youruser@example.com\"); user.admin = TRUE; user.save!'"
     echo "Alternatively, you could change the password of any user by running: gitlab-rails runner 'user = User.find_by(email: \"admin@example.com\"); user.password = \"pass_peass_pass\"; user.password_confirmation = \"pass_peass_pass\"; user.save!'"
     echo ""
   fi
-  if [ "`which gitlab-backup`" ]; then
+  if [ "`command -v gitlab-backup`" ]; then
     echo "If you have enough privileges, you can create a backup of all the repositories inside gitlab using 'gitlab-backup create'"
     echo "Then you can get the plain-text with something like 'git clone \@hashed/19/23/14348274[...]38749234.bundle'"
     echo ""
@@ -2365,11 +2365,11 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     echo ""
   fi
   echo "PGP/GPG software:"
-  which gpg 2>/dev/null || echo_not_found "gpg"
+  command -v gpg 2>/dev/null || echo_not_found "gpg"
   gpg --list-keys 2>/dev/null
-  which netpgpkeys 2>/dev/null || echo_not_found "netpgpkeys"
+  command -v netpgpkeys 2>/dev/null || echo_not_found "netpgpkeys"
   netpgpkeys --list-keys 2>/dev/null
-  which netpgp 2>/dev/null || echo_not_found "netpgp"
+  command -v netpgp 2>/dev/null || echo_not_found "netpgp"
   echo ""
 
   ##-- SI) vi swp files
@@ -2394,6 +2394,12 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) SUID
   printf $Y"[+] "$GREEN"SUID - Check easy privesc, exploits and write perms\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid\n"$NC
+  if ! [ "`command -v strings 2>/dev/null`" ]; then
+    echo_not_found "strings"
+  fi
+  if ! [ "`command -v strace 2>/dev/null`" ]; then
+    echo_not_found "strace"
+  fi
   find / -perm -4000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
     sname="`echo \"$s\" | awk '{print $9}'`"
     if [ -O "$sname" ]; then
@@ -2414,6 +2420,25 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
           echo "$s" | sed -E "s,$sidG1,${C}[1;32m&${C}[0m," | sed -E "s,$sidG2,${C}[1;32m&${C}[0m," | sed -E "s,$sidVB,${C}[1;31;103m&${C}[0m,"
         else
           echo "$s" | sed -E "s,/.*,${C}[1m&${C}[0m,"
+          if [ "`command -v strings 2>/dev/null`" ]; then
+            strings "$sname" | sort | uniq | while read sline; do
+              sline_first="`echo \"$sline\" | cut -d ' ' -f1`"
+              if [ "`echo \"$sline_first\" | grep -Ev \"$cfuncs\"`" ]; then
+                if [ "`echo \"$sline_first\" | grep \"/\"`" ] && [ -f "$sline_first" ]; then #If a path
+                  if [ -O "$sline_first" ] || [ -w "$sline_first" ]; then #And modifiable
+                    echo "  --- It looks like $RED$sname$NC is executing $RED$sline_first$NC and you can modify it (strings line: $sline)"
+                  fi
+                else #If not a path
+                  if [ ${#sline_first} -gt 2 ] && [ "`command -v \"$sline_first\" 2>/dev/null | grep '/' `" ]; then #Check if existing binary
+                    echo "  --- It looks like $RED$sname$NC is executing $RED$sline_first$NC and you can impersonate it (strings line: $sline)"
+                  fi
+                fi
+              fi
+            done
+            if [ "$TIMEOUT" ] && [ "`command -v strace 2>/dev/null`" ] && [ ! "$SUPERFAST" ]; then
+              timeout 2 strace "$sname" 2>&1 | grep -i -E "open|access|no such file"
+            fi
+          fi
         fi
       fi
     fi
@@ -2443,6 +2468,25 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
           echo "$s" | sed -E "s,$sidG1,${C}[1;32m&${C}[0m," | sed -E "s,$sidG2,${C}[1;32m&${C}[0m," | sed -E "s,$sidVB,${C}[1;31;103m&${C}[0m,"
         else
           echo "$s" | sed -E "s,/.*,${C}[1m&${C}[0m,"
+          if [ "`command -v strings 2>/dev/null`" ]; then
+            strings "$sname" | sort | uniq | while read sline; do
+              sline_first="`echo \"$sline\" | cut -d ' ' -f1`"
+              if [ "`echo \"$sline_first\" | grep -Ev \"$cfuncs\"`" ]; then
+                if [ "`echo \"$sline_first\" | grep \"/\"`" ] && [ -f "$sline_first" ]; then #If a path
+                  if [ -O "$sline_first" ] || [ -w "$sline_first" ]; then #And modifiable
+                    echo "  --- It looks like $RED$sname$NC is executing $RED$sline_first$NC and you can modify it (strings line: $sline)"
+                  fi
+                else #If not a path
+                  if [ ${#sline_first} -gt 2 ] && [ "`command -v \"$sline_first\" 2>/dev/null | grep '/' `" ]; then #Check if existing binary
+                    echo "  --- It looks like $RED$sname$NC is executing $RED$sline_first$NC and you can impersonate it (strings line: $sline)"
+                  fi
+                fi
+              fi
+            done
+            if [ "$TIMEOUT" ] && [ "`command -v strace 2>/dev/null`" ] && [ ! "$SUPERFAST" ]; then
+              timeout 2 strace "$sname" 2>&1 | grep -i -E "open|access|no such file"
+            fi
+          fi
         fi
       fi
     fi
@@ -2635,7 +2679,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf "$logfind\n" | while read log; do
     if [ -w "$log" ] || [ `echo "$log" | grep -E "$Wfolders"` ]; then #Only print info if something interesting found
       if [ "`echo \"$log\" | grep \"You_can_write_more_log_files_inside_last_directory\"`" ]; then printf $ITALIC"$log\n"$NC;
-      elif [ -w "$log" ] && [ "`which logrotate 2>/dev/null`" ] && [ "`logrotate --version 2>&1 | grep -E ' 1| 2| 3.1'`" ]; then printf "Writable:$RED $log\n"$NC; #Check vuln version of logrotate is used and print red in that case
+      elif [ -w "$log" ] && [ "`command -v logrotate 2>/dev/null`" ] && [ "`logrotate --version 2>&1 | grep -E ' 1| 2| 3.1'`" ]; then printf "Writable:$RED $log\n"$NC; #Check vuln version of logrotate is used and print red in that case
       elif [ -w "$log" ]; then echo "Writable: $log";
       elif [ "`echo \"$log\" | grep -E \"$Wfolders\"`" ] && [ "$log" ] && [ ! "$lastWlogFolder" == "$log" ]; then lastWlogFolder="$log"; echo "Writable folder: $log" | sed -E "s,$Wfolders,${C}[1;31m&${C}[0m,g";
       fi
@@ -2677,7 +2721,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   backs=`find / -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*\.bak\.*" -o -name "*\.bck" -o -name "*\.bck\.*" -o -name "*\.bk" -o -name "*\.bk\.*" -o -name "*\.old" -o -name "*\.old\.*" \) -not -path "/proc/*" 2>/dev/null` 
   printf "$backs\n" | while read b ; do 
     if [ -r "$b" ]; then 
-      ls -l "$b" | grep -Ev "$notBackup" | sed -E "s,backup|bck|\.bak|\.old,${C}[1;31m&${C}[0m,g"; 
+      ls -l "$b" | grep -Ev "$notBackup" | grep -Ev "$notExtensions" | sed -E "s,backup|bck|\.bak|\.old,${C}[1;31m&${C}[0m,g"; 
     fi; 
   done
   echo ""
@@ -2685,7 +2729,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) DB files
   printf $Y"[+] "$GREEN"Searching tables inside readable .db/.sql/.sqlite files (limit 100)\n"$NC
   dbfiles=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E '.*\.db$|.*\.sqlite$|.*\.sqlite3$' | grep -E -v '/man/.*|/usr/.*|/var/cache/.*' | head -n 100)
-  FILECMD="`which file 2>/dev/null`"
+  FILECMD="`command -v file 2>/dev/null`"
   if [ "$dbfiles" ]; then
     printf "$dbfiles\n" | while read f; do
       if [ "$FILECMD" ]; then
@@ -2698,11 +2742,11 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     printf "$dbfiles\n" | while read f; do 
       if ([ -r "$f" ] && [ "$FILECMD" ] && [ "`file \"$f\" | grep -i sqlite`" ]) || ([ -r "$f" ] && [ ! "$FILECMD" ]); then #If readable and filecmd and sqlite, or readable and not filecmd
         printf $GREEN" -> Extracting tables from$NC $f $DG(limit 20)\n"$NC
-        if [ "`which sqlite3 2>/dev/null`" ]; then
+        if [ "`command -v sqlite3 2>/dev/null`" ]; then
           tables=`sqlite3 $f ".tables" 2>/dev/null`
           #printf "$tables\n" | sed "s,user.*\|credential.*,${C}[1;31m&${C}[0m,g"
-        elif [ "`which python 2>/dev/null`" ] || [ "`which python3 2>/dev/null`" ]; then
-          SQLITEPYTHON=`which python 2>/dev/null || which python3 2>/dev/null`
+        elif [ "`command -v python 2>/dev/null`" ] || [ "`command -v python3 2>/dev/null`" ]; then
+          SQLITEPYTHON=`command -v python 2>/dev/null || command -v python3 2>/dev/null`
           tables=`$SQLITEPYTHON -c "print('\n'.join([t[0] for t in __import__('sqlite3').connect('$f').cursor().execute('SELECT name FROM sqlite_master WHERE type=\'table\' and tbl_name NOT like \'sqlite_%\';').fetchall()]))" 2>/dev/null`
           #printf "$tables\n" | sed "s,user.*\|credential.*,${C}[1;31m&${C}[0m,g"
         else
@@ -2867,7 +2911,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
     ##-- IF) Find possible conf files with passwords
     printf $Y"[+] "$GREEN"Finding possible password in config files\n"$NC
-    ppicf=`find $HOMESEARCH /etc /root /tmp /Users /private /Applications -name "*.conf" -o -name "*.cnf" -o -name "*.config" 2>/dev/null`
+    ppicf=`find $HOMESEARCH /etc /root /tmp /private /Applications -name "*.conf" -o -name "*.cnf" -o -name "*.config" -name "*.json" 2>/dev/null`
     printf "$ppicf\n" | while read f; do
       if [ "`grep -EiI 'passwd.*|creden.*' \"$f\" 2>/dev/null`" ]; then
         echo $ITALIC" $f"$NC
