@@ -982,7 +982,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
         pc_length=${#pc_version}
         pc_major=$(echo "$pc_version" | cut -d. -f1)
         pc_minor=$(echo "$pc_version" | cut -d. -f2)
-        if [[ $pc_length -eq 4 && $pc_major -eq 0 && $pc_minor  -lt 21 ]]; then
+        if [ $pc_length -eq 4 -a $pc_major -eq 0 -a $pc_minor  -lt 21 ]; then
             echo "Vulnerable!!" | sed -E "s,.*,${C}[1;31m&${C}[0m,"
         fi
     fi
