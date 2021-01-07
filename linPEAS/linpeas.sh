@@ -1183,7 +1183,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   else
     (ps fauxwww || ps auxwww | sort ) 2>/dev/null | grep -v "\[" | grep -v "%CPU" | while read psline; do
       echo "$psline"  | sed -E "s,$Wfolders,${C}[1;31m&${C}[0m,g" | sed -E "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -E "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed -E "s,$rootcommon,${C}[1;32m&${C}[0m," | sed -E "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed -E "s,$processesVB,${C}[1;31;103m&${C}[0m,g" | sed "s,$processesB,${C}[1;31m&${C}[0m," | sed -E "s,$processesDump,${C}[1;31m&${C}[0m,"
-      if ! [ "`echo \"$psline\" | grep root`" ]; then
+      if [ "`command -v capsh`" ] && ! [ "`echo \"$psline\" | grep root`" ]; then
         cpid="`echo \"$psline\" | awk '{print $2}'`"
         caphex=0x"`cat \"/proc/$cpid/status\" | grep \"CapEff\" | awk '{print $2}'`"
         if [ $caphex != "0x0000000000000000" ]; then
