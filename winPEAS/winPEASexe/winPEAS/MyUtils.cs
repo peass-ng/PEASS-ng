@@ -5,16 +5,16 @@ using System.IO;
 using Microsoft.Win32;
 using System.Security.Principal;
 using System.Diagnostics;
-using System.Net;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Runtime.InteropServices;
 using System.Threading;
+using FastSearchLibrary;
 
 namespace winPEAS
 {
-    class MyUtils
+    public class MyUtils
     {
         //////////////////////
         /// IsDomainJoined ///
@@ -598,13 +598,18 @@ namespace winPEAS
             return false;
         }
 
-        public static List<string> FindFiles(string path, string patterns)
+        public static List<string> FindFiles_old_implementation(string path, string patterns)
         {
             // finds files matching one or more patterns under a given path, recursive
             // adapted from http://csharphelper.com/blog/2015/06/find-files-that-match-multiple-patterns-in-c/
             //      pattern: "*pass*;*.png;"
 
             var files = new List<string>();
+
+            if (!Directory.Exists(path))
+            {
+                return files;
+            }
 
             try
             {
@@ -616,22 +621,78 @@ namespace winPEAS
 
                 // go recurse in all sub-directories
                 foreach (var directory in Directory.GetDirectories(path))
-                    files.AddRange(FindFiles(directory, patterns));
+                    files.AddRange(FindFiles_old_implementation(directory, patterns));
             }
             catch (UnauthorizedAccessException) { }
             catch (PathTooLongException) { }
+            catch (DirectoryNotFoundException) { }
 
             return files;
         }
 
-        public static void FindFiles(string path, string patterns, Dictionary<string, string> color)
+        public static List<string> FindFiles_fileSearcher(string path, string patterns)
+        {
+            var files = new List<string>();
+
+            foreach (string pattern in patterns.Split(';'))
+            {
+                // var found = Directory.GetFiles(path, pattern, SearchOption.AllDirectories);
+                List<FileInfo> res = FileSearcher.GetFilesFast(path, pattern);
+                files.AddRange(res.Select(s => s.FullName));
+            }
+
+            return files;
+        }
+
+        private static void MeasureMethod(Action action, string description = null)
+        {
+            var timer = new Stopwatch();
+            timer.Start();
+            action();
+            timer.Stop();
+
+            TimeSpan timeTaken = timer.Elapsed;
+            string log = $"({description ?? string.Empty}) Time taken: " + timeTaken.ToString(@"m\:ss\.fff");
+            Beaprint.LinkPrint(log);
+        }
+
+        private static void PrintSearchResults(IEnumerable<string> results, string description = null)
+        {
+            Beaprint.LinkPrint($"------------------------- results: {description ?? string.Empty} --------------------------------");
+            if (results != null)
+            {
+                Beaprint.LinkPrint(string.Join("\n", results ?? Enumerable.Empty<string>()));
+            }
+            Beaprint.LinkPrint($"------------------------- results: {description ?? string.Empty} --------------------------------");
+            Beaprint.LinkPrint("\n\n\n\n");
+        }
+
+        public static List<string> FindFiles(string path, string patterns)
+        {
+            List<string> result = new List<string>();
+           
+            MeasureMethod(() => result = FindFiles_old_implementation(path, patterns), "old implementation");
+            PrintSearchResults(result, "old implementation");
+
+            MeasureMethod(() => result = FindFiles_fileSearcher(path, patterns), "new implementation");
+            PrintSearchResults(result, "new implementation");
+         
+            return result;
+        }
+
+        public static void FindFiles_old_implementation(string path, string patterns, Dictionary<string, string> color)
         {
             try
             {
+                if (!Directory.Exists(path))
+                {
+                    return;
+                }
+
                 // search every pattern in this directory's files
                 foreach (string pattern in patterns.Split(';'))
                 {
-                    Beaprint.AnsiPrint("    "+String.Join("\n    ", Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly).Where(filepath => !filepath.Contains(".dll"))), color);
+                    Beaprint.AnsiPrint("    " + String.Join("\n    ", Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly).Where(filepath => !filepath.Contains(".dll"))), color);
                 }
 
                 if (!Program.search_fast)
@@ -641,13 +702,37 @@ namespace winPEAS
                 foreach (string directory in Directory.GetDirectories(path))
                 {
                     if (!directory.Contains("AppData"))
-                        FindFiles(directory, patterns, color);
+                        FindFiles_old_implementation(directory, patterns, color);
                 }
             }
             catch (UnauthorizedAccessException) { }
             catch (PathTooLongException) { }
+            catch (DirectoryNotFoundException) { }
         }
 
+        public static void FindFiles_fileSearcher(string path, string patterns, Dictionary<string, string> color, HashSet<string> excludedDirs = null)
+        {
+            // search every pattern in this directory's files
+            foreach (string pattern in patterns.Split(';'))
+            {
+                // var found = Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly).Where(filepath => !filepath.Contains(".dll"));
+                List<FileInfo> res = FileSearcher.GetFilesFast(path, pattern, excludedDirs);
+                var found = res.Where(filepath => filepath.Extension != null && !filepath.Extension.Equals("dll")).Select(s => s.FullName);
+                Beaprint.AnsiPrint("    " + String.Join("\n    ", found), color);
+            }
+        }
+
+        public static void FindFiles(string path, string patterns, Dictionary<string, string> color)
+        {
+            Beaprint.LinkPrint($"------------------------- results: old implementation --------------------------------");
+            MeasureMethod(() => FindFiles_old_implementation(path, patterns, color), "old implementation");
+            Beaprint.LinkPrint($"------------------------- results: old implementation --------------------------------");
+            Beaprint.LinkPrint("\n\n\n\n");
+            Beaprint.LinkPrint($"------------------------- results: new implementation --------------------------------");
+            HashSet<string> excludedDirs = new HashSet<string>() { "AppData" };
+            MeasureMethod(() => FindFiles_fileSearcher(path, patterns, color, excludedDirs), "new implementation");
+            Beaprint.LinkPrint($"------------------------- results: new implementation --------------------------------");
+        }
 
         //////////////////////
         //////// MISC ////////

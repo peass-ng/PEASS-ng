@@ -590,17 +590,13 @@ namespace winPEAS
                     }
                 }
 
-                try
+                if (!string.IsNullOrEmpty(pathname))
                 {
                     FileVersionInfo info = FileVersionInfo.GetVersionInfo(pathname.ToString());
                     if (!ignore_company.IsMatch(info.CompanyName))
                     {
                         results[pathname] = info;
                     }
-                }
-                catch (Exception ex)
-                {
-                    Beaprint.GrayPrint("Error: " + ex);
                 }
             }
             return results;
