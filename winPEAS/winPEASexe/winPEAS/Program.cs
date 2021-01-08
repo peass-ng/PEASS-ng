@@ -10,7 +10,7 @@ namespace winPEAS
 {
     class Program
     {
-        public static string version = "v1.1";
+        public static string version = "v2.0-beta";
         public static string advisory = "winpeas should be used for authorized penetration testing and/or educational purposes only.Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.";
         public static bool banner = true;
         public static bool search_fast = true;
@@ -179,7 +179,8 @@ namespace winPEAS
                         };
                     Beaprint.DictPrint(basicDictSystem, colorsSI, false);
                     System.Console.WriteLine();
-                    Watson.FindVulns();
+                    Watson.Watson.FindVulns();
+
                      //To update Watson, update the CVEs and add the new ones and update the main function so it uses new CVEs (becausfull with the Beaprints inside the FindVulns function)
                      //Usually you won't need to do anything with the classes Wmi, Vulnerability and VulnerabilityCollection
                 }

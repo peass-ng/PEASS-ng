@@ -158,7 +158,22 @@
     <Compile Include="TaskScheduler\Wildcard.cs" />
     <Compile Include="TaskScheduler\XmlSerializationHelper.cs" />
     <Compile Include="UserInfo.cs" />
-    <Compile Include="Watson.cs" />
+    <Compile Include="Watson\Msrc\CVE-2019-0836.cs" />
+    <Compile Include="Watson\Msrc\CVE-2019-0841.cs" />
+    <Compile Include="Watson\Msrc\CVE-2019-1064.cs" />
+    <Compile Include="Watson\Msrc\CVE-2019-1130.cs" />
+    <Compile Include="Watson\Msrc\CVE-2019-1253.cs" />
+    <Compile Include="Watson\Msrc\CVE-2019-1315.cs" />
+    <Compile Include="Watson\Msrc\CVE-2019-1385.cs" />
+    <Compile Include="Watson\Msrc\CVE-2019-1388.cs" />
+    <Compile Include="Watson\Msrc\CVE-2019-1405.cs" />
+    <Compile Include="Watson\Msrc\CVE-2020-0668.cs" />
+    <Compile Include="Watson\Msrc\CVE-2020-0683.cs" />
+    <Compile Include="Watson\Msrc\CVE-2020-1013.cs" />
+    <Compile Include="Watson\Vulnerability.cs" />
+    <Compile Include="Watson\VulnerabilityCollection.cs" />
+    <Compile Include="Watson\Watson.cs" />
+    <Compile Include="Watson\Wmi.cs" />
     <Compile Include="Wifi.cs" />
   </ItemGroup>
   <ItemGroup>
