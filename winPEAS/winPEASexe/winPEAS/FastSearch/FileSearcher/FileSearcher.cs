@@ -74,15 +74,15 @@ namespace FastSearchLibrary
                     return new List<DirectoryInfo>();
 
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
                 return new List<DirectoryInfo>();
             }
-            catch (PathTooLongException ex)
+            catch (PathTooLongException)
             {
                 return new List<DirectoryInfo>();
             }
-            catch (DirectoryNotFoundException ex)
+            catch (DirectoryNotFoundException)
             {
                 return new List<DirectoryInfo>();
             }
@@ -90,7 +90,7 @@ namespace FastSearchLibrary
             return GetStartDirectories(directories[0].FullName, files, pattern);
         }
 
-        static public List<FileInfo> GetFiles(string folder, string pattern = "*")
+        public static List<FileInfo> GetFiles(string folder, string pattern = "*")
         {
             DirectoryInfo dirInfo;
             DirectoryInfo[] directories;
@@ -102,15 +102,15 @@ namespace FastSearchLibrary
                 if (directories.Length == 0)
                     return new List<FileInfo>(dirInfo.GetFiles(pattern));
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
                 return new List<FileInfo>();
             }
-            catch (PathTooLongException ex)
+            catch (PathTooLongException)
             {
                 return new List<FileInfo>();
             }
-            catch (DirectoryNotFoundException ex)
+            catch (DirectoryNotFoundException)
             {
                 return new List<FileInfo>();
             }
@@ -126,13 +126,13 @@ namespace FastSearchLibrary
             {
                 result.AddRange(dirInfo.GetFiles(pattern));
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
             }
-            catch (PathTooLongException ex)
+            catch (PathTooLongException)
             {
             }
-            catch (DirectoryNotFoundException ex)
+            catch (DirectoryNotFoundException)
             {
             }
 

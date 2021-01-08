@@ -5,6 +5,13 @@ using System.Management;
 using System.Text.RegularExpressions;
 using System.Security.Principal;
 using System.Diagnostics;
+using System.Xml;
+using winPEAS.KnownFileCreds;
+using winPEAS.KnownFileCreds.Kerberos;
+using winPEAS.KnownFileCreds.Vault;
+using winPEAS.NativeWifiApi;
+using winPEAS.ProcessInfo;
+using winPEAS.Utils;
 
 namespace winPEAS
 {
@@ -108,7 +115,7 @@ namespace winPEAS
             try
             {
                 Beaprint.GrayPrint("   - Creating active users list...");
-                paint_activeUsers = String.Join("|", UserInfo.GetMachineUsers(true, false, false, false, false));
+                paint_activeUsers = string.Join("|", UserInfo.GetMachineUsers(true, false, false, false, false));
                 paint_activeUsers_no_Administrator = paint_activeUsers.Replace("|Administrator", "").Replace("Administrator|", "").Replace("Administrator", "");
             }
             catch (Exception ex)
@@ -119,7 +126,7 @@ namespace winPEAS
             try
             {
                 Beaprint.GrayPrint("   - Creating disabled users list...");
-                paint_disabledUsers = String.Join("|", UserInfo.GetMachineUsers(false, true, false, false, false));
+                paint_disabledUsers = string.Join("|", UserInfo.GetMachineUsers(false, true, false, false, false));
                 paint_disabledUsers_no_Administrator = paint_disabledUsers.Replace("|Administrator", "").Replace("Administrator|", "").Replace("Administrator", "");
             }
             catch (Exception ex)
@@ -127,12 +134,12 @@ namespace winPEAS
                 Beaprint.GrayPrint("Error while creating disabled users list: " + ex);
             }
 
-            //paint_lockoutUsers = String.Join("|", UserInfo.GetMachineUsers(false, false, true, false, false));
+            //paint_lockoutUsers = string.Join("|", UserInfo.GetMachineUsers(false, false, true, false, false));
 
             try
             {
                 Beaprint.GrayPrint("   - Admin users list...");
-                paint_adminUsers = String.Join("|", UserInfo.GetMachineUsers(false, false, false, true, false));
+                paint_adminUsers = string.Join("|", UserInfo.GetMachineUsers(false, false, false, true, false));
             }
             catch (Exception ex)
             {
@@ -144,7 +151,7 @@ namespace winPEAS
         {
             try
             {
-                if (MyUtils.GetRegValue("HKCU", "CONSOLE", "VirtualTerminalLevel") == "" && MyUtils.GetRegValue("HKCU", "CONSOLE", "VirtualTerminalLevel") == "")
+                if (RegistryHelper.GetRegValue("HKCU", "CONSOLE", "VirtualTerminalLevel") == "" && RegistryHelper.GetRegValue("HKCU", "CONSOLE", "VirtualTerminalLevel") == "")
                     System.Console.WriteLine(@"ANSI color bit for Windows is not set. If you are execcuting this from a Windows terminal inside the host you should run 'REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1' and then start a new CMD");
             }
             catch(Exception ex)
@@ -186,7 +193,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -205,7 +212,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -235,7 +242,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -250,7 +257,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -265,7 +272,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -284,7 +291,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -292,7 +299,7 @@ namespace winPEAS
             {
                 Beaprint.MainPrint("Wdigest");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#wdigest", "If enabled, plain-text crds could be stored in LSASS");
-                string useLogonCredential = MyUtils.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest", "UseLogonCredential");
+                string useLogonCredential = RegistryHelper.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest", "UseLogonCredential");
                 if (useLogonCredential == "1")
                     Beaprint.BadPrint("    Wdigest is active");
                 else
@@ -303,7 +310,7 @@ namespace winPEAS
             {
                 Beaprint.MainPrint("LSA Protection");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#lsa-protection", "If enabled, a driver is needed to read LSASS memory (If Secure Boot or UEFI, RunAsPPL cannot be disabled by deleting the registry key)");
-                string useLogonCredential = MyUtils.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\LSA", "RunAsPPL");
+                string useLogonCredential = RegistryHelper.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\LSA", "RunAsPPL");
                 if (useLogonCredential == "1")
                     Beaprint.GoodPrint("    LSA Protection is active");
                 else
@@ -314,7 +321,7 @@ namespace winPEAS
             {
                 Beaprint.MainPrint("Credentials Guard");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#credential-guard", "If enabled, a driver is needed to read LSASS memory");
-                string lsaCfgFlags = MyUtils.GetRegValue("HKLM", @"System\CurrentControlSet\Control\LSA", "LsaCfgFlags");
+                string lsaCfgFlags = RegistryHelper.GetRegValue("HKLM", @"System\CurrentControlSet\Control\LSA", "LsaCfgFlags");
                 if (lsaCfgFlags == "1")
                 {
                     System.Console.WriteLine("    Please, note that this only checks the LsaCfgFlags key value. This is not enough to enable Credentials Guard (but it's a strong indicator).");
@@ -333,8 +340,8 @@ namespace winPEAS
             {
                 Beaprint.MainPrint("Cached Creds");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#cached-credentials", "If > 0, credentials will be cached in the registry and accessible by SYSTEM user");
-                string cachedlogonscount = MyUtils.GetRegValue("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "CACHEDLOGONSCOUNT");
-                if (!String.IsNullOrEmpty(cachedlogonscount))
+                string cachedlogonscount = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "CACHEDLOGONSCOUNT");
+                if (!string.IsNullOrEmpty(cachedlogonscount))
                 {
                     int clc = Int16.Parse(cachedlogonscount);
                     if (clc > 0)
@@ -359,7 +366,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -378,7 +385,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -401,7 +408,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -418,15 +425,15 @@ namespace winPEAS
 
                     foreach (Dictionary<string, string> drive in SystemInfo.GetDrivesInfo())
                     {
-                        string drive_permissions = String.Join(", ", MyUtils.GetPermissionsFolder(drive["Name"], currentUserSIDs));
-                        string dToPrint = String.Format("    {0} (Type: {1})", drive["Name"], drive["Type"]);
-                        if (!String.IsNullOrEmpty(drive["Volume label"]))
+                        string drive_permissions = string.Join(", ", MyUtils.GetPermissionsFolder(drive["Name"], currentUserSIDs));
+                        string dToPrint = string.Format("    {0} (Type: {1})", drive["Name"], drive["Type"]);
+                        if (!string.IsNullOrEmpty(drive["Volume label"]))
                             dToPrint += "(Volume label: "+ drive["Volume label"] + ")";
 
-                        if (!String.IsNullOrEmpty(drive["Filesystem"]))
+                        if (!string.IsNullOrEmpty(drive["Filesystem"]))
                             dToPrint += "(Filesystem: "+ drive["Filesystem"] + ")";
 
-                        if (!String.IsNullOrEmpty(drive["Available space"]))
+                        if (!string.IsNullOrEmpty(drive["Available space"]))
                             dToPrint += "(Available space: "+ (((Int64.Parse(drive["Available space"]) / 1024) / 1024) / 1024).ToString() + " GB)";
 
                         if (drive_permissions.Length > 0)
@@ -437,7 +444,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -456,7 +463,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -489,7 +496,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -501,8 +508,8 @@ namespace winPEAS
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#wsus");
                     string path = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate";
                     string path2 = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU";
-                    string HKLM_WSUS = MyUtils.GetRegValue("HKLM", path, "WUServer");
-                    string using_HKLM_WSUS = MyUtils.GetRegValue("HKLM", path, "UseWUServer");
+                    string HKLM_WSUS = RegistryHelper.GetRegValue("HKLM", path, "WUServer");
+                    string using_HKLM_WSUS = RegistryHelper.GetRegValue("HKLM", path, "UseWUServer");
                     if (HKLM_WSUS.Contains("http://"))
                     {
                         Beaprint.BadPrint("    WSUS is using http: " + HKLM_WSUS);
@@ -516,7 +523,7 @@ namespace winPEAS
                     }
                     else
                     {
-                        if (String.IsNullOrEmpty(HKLM_WSUS))
+                        if (string.IsNullOrEmpty(HKLM_WSUS))
                             Beaprint.NotFoundPrint();
                         else
                             Beaprint.GoodPrint("    WSUS value: " + HKLM_WSUS);
@@ -524,7 +531,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -535,8 +542,8 @@ namespace winPEAS
                     Beaprint.MainPrint("Checking AlwaysInstallElevated");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#alwaysinstallelevated");
                     string path = "Software\\Policies\\Microsoft\\Windows\\Installer";
-                    string HKLM_AIE = MyUtils.GetRegValue("HKLM", path, "AlwaysInstallElevated");
-                    string HKCU_AIE = MyUtils.GetRegValue("HKCU", path, "AlwaysInstallElevated");
+                    string HKLM_AIE = RegistryHelper.GetRegValue("HKLM", path, "AlwaysInstallElevated");
+                    string HKCU_AIE = RegistryHelper.GetRegValue("HKCU", path, "AlwaysInstallElevated");
                     if (HKLM_AIE == "1")
                         Beaprint.BadPrint("    AlwaysInstallElevated set to 1 in HKLM!");
                     if (HKCU_AIE == "1")
@@ -546,7 +553,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -622,16 +629,16 @@ namespace winPEAS
                     {
                         if (g.Key == WindowsIdentity.GetCurrent().User.ToString())
                             continue;
-                        currentGroupsNames.Add(String.IsNullOrEmpty(g.Value) ? g.Key : g.Value);
+                        currentGroupsNames.Add(string.IsNullOrEmpty(g.Value) ? g.Key : g.Value);
                     }
 
-                    Beaprint.AnsiPrint("  Current groups: " + String.Join(", ", currentGroupsNames), colorsU());
+                    Beaprint.AnsiPrint("  Current groups: " + string.Join(", ", currentGroupsNames), colorsU());
                     Beaprint.PrintLineSeparator();
                     Beaprint.ListPrint(users_grps, colorsU());
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -646,7 +653,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -656,7 +663,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Clipboard text");
                     string clipb = UserInfo.GetClipboardText();
-                    if (String.IsNullOrEmpty(clipb))
+                    if (string.IsNullOrEmpty(clipb))
                         Beaprint.BadPrint(clipb);
                     else
                     {
@@ -672,7 +679,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -687,7 +694,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -700,17 +707,17 @@ namespace winPEAS
                     if (rdp_sessions.Count > 0)
                     {
                         string format = "    {0,-10}{1,-15}{2,-15}{3,-25}{4,-10}{5}";
-                        string header = String.Format(format, "SessID", "pSessionName", "pUserName", "pDomainName", "State", "SourceIP");
+                        string header = string.Format(format, "SessID", "pSessionName", "pUserName", "pDomainName", "State", "SourceIP");
                         Beaprint.GrayPrint(header);
                         foreach (Dictionary<string, string> rdp_ses in rdp_sessions)
-                            Beaprint.AnsiPrint(String.Format(format, rdp_ses["SessionID"], rdp_ses["pSessionName"], rdp_ses["pUserName"], rdp_ses["pDomainName"], rdp_ses["State"], rdp_ses["SourceIP"]), colorsU());
+                            Beaprint.AnsiPrint(string.Format(format, rdp_ses["SessionID"], rdp_ses["pSessionName"], rdp_ses["pUserName"], rdp_ses["pDomainName"], rdp_ses["State"], rdp_ses["SourceIP"]), colorsU());
                     }
                     else
                         Beaprint.NotFoundPrint();
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -724,7 +731,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -736,7 +743,7 @@ namespace winPEAS
                     List<string> user_folders = UserInfo.GetUsersFolders();
                     foreach (string ufold in user_folders)
                     {
-                        string perms = String.Join(", ", MyUtils.GetPermissionsFolder(ufold, currentUserSIDs));
+                        string perms = string.Join(", ", MyUtils.GetPermissionsFolder(ufold, currentUserSIDs));
                         if (perms.Length > 0)
                             Beaprint.BadPrint("    " + ufold + " : " + perms);
                         else
@@ -745,7 +752,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -760,14 +767,14 @@ namespace winPEAS
                     {
                         foreach (KeyValuePair<string, string> entry in autologon)
                         {
-                            if (!String.IsNullOrEmpty(entry.Value))
+                            if (!string.IsNullOrEmpty(entry.Value))
                             {
                                 if (!ban)
                                 {
                                     Beaprint.BadPrint("    Some AutoLogon credentials were found!!");
                                     ban = true;
                                 }
-                                Beaprint.AnsiPrint(String.Format("    {0,-30}:  {1}", entry.Key, entry.Value), colorsU());
+                                Beaprint.AnsiPrint(string.Format("    {0,-30}:  {1}", entry.Key, entry.Value), colorsU());
                             }
                         }
                         if (!ban)
@@ -778,7 +785,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -793,7 +800,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -833,16 +840,20 @@ namespace winPEAS
                             { "Possible DLL Hijacking.*", Beaprint.ansi_color_bad },
                         };
 
-                        if (ProcessesInfo.defensiveProcesses.ContainsKey(proc_info["Name"]))
+                        if (DefensiveProcesses.Definitions.ContainsKey(proc_info["Name"]))
                         {
-                            if (!String.IsNullOrEmpty(ProcessesInfo.defensiveProcesses[proc_info["Name"]].ToString()))
-                                proc_info["Product"] = ProcessesInfo.defensiveProcesses[proc_info["Name"]].ToString();
+                            if (!string.IsNullOrEmpty(DefensiveProcesses.Definitions[proc_info["Name"]]))
+                            {
+                                proc_info["Product"] = DefensiveProcesses.Definitions[proc_info["Name"]];
+                            }
                             colorsP[proc_info["Product"]] = Beaprint.ansi_color_good;
                         }
-                        else if (ProcessesInfo.interestingProcesses.ContainsKey(proc_info["Name"]))
+                        else if (InterestingProcesses.Definitions.ContainsKey(proc_info["Name"]))
                         {
-                            if (!String.IsNullOrEmpty(ProcessesInfo.defensiveProcesses[proc_info["Name"]].ToString()))
-                                proc_info["Product"] = ProcessesInfo.interestingProcesses[proc_info["Name"]].ToString();
+                            if (!string.IsNullOrEmpty(InterestingProcesses.Definitions[proc_info["Name"]].ToString()))
+                            {
+                                proc_info["Product"] = InterestingProcesses.Definitions[proc_info["Name"]].ToString();
+                            }
                             colorsP[proc_info["Product"]] = Beaprint.ansi_color_bad;
                         }
 
@@ -868,13 +879,13 @@ namespace winPEAS
                             formString += "\n    "+ Beaprint.ansi_color_gray + "Command Line: {9}";
 
                         
-                        Beaprint.AnsiPrint(String.Format(formString, proc_info["Name"], proc_info["ProcessID"], proc_info["ExecutablePath"], proc_info["Product"], proc_info["Owner"], proc_info["isDotNet"], String.Join(", ", file_rights), dir_rights.Count > 0 ? Path.GetDirectoryName(proc_info["ExecutablePath"]) : "", String.Join(", ", dir_rights), proc_info["CommandLine"]), colorsP);
+                        Beaprint.AnsiPrint(string.Format(formString, proc_info["Name"], proc_info["ProcessID"], proc_info["ExecutablePath"], proc_info["Product"], proc_info["Owner"], proc_info["isDotNet"], string.Join(", ", file_rights), dir_rights.Count > 0 ? Path.GetDirectoryName(proc_info["ExecutablePath"]) : "", string.Join(", ", dir_rights), proc_info["CommandLine"]), colorsP);
                         Beaprint.PrintLineSeparator();
                     }
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(ex.Message);
                 }
             }
 
@@ -897,7 +908,7 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("{0}", ex));
+                Beaprint.GrayPrint(string.Format("{0}", ex));
             }
 
 
@@ -964,7 +975,7 @@ namespace winPEAS
                                 { service_info["PathName"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+"), (file_rights.Count > 0 || dir_rights.Count > 0 || no_quotes_and_space) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                             };
 
-                            Beaprint.AnsiPrint(String.Format(formString, service_info["Name"], service_info["CompanyName"], service_info["DisplayName"], service_info["PathName"], service_info["StartMode"], service_info["State"], service_info["isDotNet"], "No quotes and Space detected", String.Join(", ", file_rights), dir_rights.Count > 0 ? Path.GetDirectoryName(service_info["FilteredPath"]) : "", String.Join(", ", dir_rights), service_info["Description"]), colorsS);
+                            Beaprint.AnsiPrint(string.Format(formString, service_info["Name"], service_info["CompanyName"], service_info["DisplayName"], service_info["PathName"], service_info["StartMode"], service_info["State"], service_info["isDotNet"], "No quotes and Space detected", string.Join(", ", file_rights), dir_rights.Count > 0 ? Path.GetDirectoryName(service_info["FilteredPath"]) : "", string.Join(", ", dir_rights), service_info["Description"]), colorsS);
                         }
 
                         Beaprint.PrintLineSeparator();
@@ -972,7 +983,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -997,7 +1008,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1019,13 +1030,13 @@ namespace winPEAS
                     else
                     {
                         foreach (Dictionary<string,string> writeServReg in regPerms)
-                            Beaprint.AnsiPrint(String.Format("    {0} ({1})", writeServReg["Path"], writeServReg["Permissions"]), colorsWR);
+                            Beaprint.AnsiPrint(string.Format("    {0} ({1})", writeServReg["Path"], writeServReg["Permissions"]), colorsWR);
                         
                     }
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1038,7 +1049,7 @@ namespace winPEAS
                     Dictionary<string, string> path_dllhijacking = ServicesInfo.GetPathDLLHijacking();
                     foreach (KeyValuePair<string, string> entry in path_dllhijacking)
                     {
-                        if (String.IsNullOrEmpty(entry.Value))
+                        if (string.IsNullOrEmpty(entry.Value))
                             Beaprint.GoodPrint("    " + entry.Key);
                         else
                             Beaprint.BadPrint("    (DLL Hijacking) " + entry.Key + ": " + entry.Value);
@@ -1046,7 +1057,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1077,7 +1088,7 @@ namespace winPEAS
                     if (permsFile.Count > 0)
                     {
                         Beaprint.BadPrint("    " + title);
-                        Beaprint.BadPrint("    FilePermissions: " + String.Join(",", permsFile));
+                        Beaprint.BadPrint("    FilePermissions: " + string.Join(",", permsFile));
                     }
                     else
                         Beaprint.GoodPrint("    " + title);
@@ -1085,12 +1096,12 @@ namespace winPEAS
                     if (permsFolder.Count > 0)
                     {
                         Beaprint.BadPrint("    Possible DLL Hijacking, folder is writable: " + MyUtils.GetFolderFromString(title));
-                        Beaprint.BadPrint("    FolderPermissions: " + String.Join(",", permsFile));
+                        Beaprint.BadPrint("    FolderPermissions: " + string.Join(",", permsFile));
                     }
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1104,26 +1115,26 @@ namespace winPEAS
                     string format = "    ==>  {0} ({1})";
                     foreach (KeyValuePair<string, Dictionary<string, string>> app in InstalledAppsPerms)
                     {
-                        if (String.IsNullOrEmpty(app.Value.ToString())) //If empty, nothing found, is good
+                        if (string.IsNullOrEmpty(app.Value.ToString())) //If empty, nothing found, is good
                             Beaprint.GoodPrint(app.Key);
 
                         else //Then, we need to look deeper
                         {
                             //Checkeamos si la carpeta (que va a existir como subvalor dentro de si misma) debe ser good
-                            if (String.IsNullOrEmpty(app.Value[app.Key]))
+                            if (string.IsNullOrEmpty(app.Value[app.Key]))
                                 Beaprint.GoodPrint("    " + app.Key);
 
                             else
                             {
-                                Beaprint.BadPrint(String.Format("    {0}({1})", app.Key, app.Value[app.Key]));
+                                Beaprint.BadPrint(string.Format("    {0}({1})", app.Key, app.Value[app.Key]));
                                 app.Value[app.Key] = ""; //So no reprinted later
                             }
 
                             //Check the rest of the values to see if we have something to print in red (permissions)
                             foreach (KeyValuePair<string, string> subfolder in app.Value)
                             {
-                                if (!String.IsNullOrEmpty(subfolder.Value))
-                                    Beaprint.BadPrint(String.Format(format, subfolder.Key, subfolder.Value));
+                                if (!string.IsNullOrEmpty(subfolder.Value))
+                                    Beaprint.BadPrint(string.Format(format, subfolder.Key, subfolder.Value));
                             }
                         }
                     }
@@ -1139,7 +1150,7 @@ namespace winPEAS
                 }
                 catch
                 {
-                    //Beaprint.GrayPrint(String.Format("{0}",ex));
+                    //Beaprint.GrayPrint(string.Format("{0}",ex));
                 }
             }
 
@@ -1160,42 +1171,42 @@ namespace winPEAS
                             { "(Unquoted and Space detected)", Beaprint.ansi_color_bad },
                             { "(PATH Injection)", Beaprint.ansi_color_bad },
                             { "RegPerms: .*", Beaprint.ansi_color_bad },
-                            { (app["Folder"].Length > 0) ? app["Folder"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+") : "ouigyevb2uivydi2u3id2ddf3", !String.IsNullOrEmpty(app["interestingFolderRights"]) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
-                            { (app["File"].Length > 0) ? app["File"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+") : "adu8v298hfubibuidiy2422r", !String.IsNullOrEmpty(app["interestingFileRights"]) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
+                            { (app["Folder"].Length > 0) ? app["Folder"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+") : "ouigyevb2uivydi2u3id2ddf3", !string.IsNullOrEmpty(app["interestingFolderRights"]) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
+                            { (app["File"].Length > 0) ? app["File"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+") : "adu8v298hfubibuidiy2422r", !string.IsNullOrEmpty(app["interestingFileRights"]) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                             { (app["Reg"].Length > 0) ? app["Reg"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+") : "o8a7eduia37ibduaunbf7a4g7ukdhk4ua", (app["RegPermissions"].Length > 0) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                         };
                         string line = "";
 
-                        if (!String.IsNullOrEmpty(app["Reg"]))
+                        if (!string.IsNullOrEmpty(app["Reg"]))
                             line += "\n    RegPath: " + app["Reg"];
 
                         if (app["RegPermissions"].Length > 0)
                             line += "\n    RegPerms: " + app["RegPermissions"];
 
-                        if (!String.IsNullOrEmpty(app["RegKey"]))
+                        if (!string.IsNullOrEmpty(app["RegKey"]))
                             line += "\n    Key: " + app["RegKey"];
 
-                        if (!String.IsNullOrEmpty(app["Folder"]))
+                        if (!string.IsNullOrEmpty(app["Folder"]))
                             line += "\n    Folder: " + app["Folder"];
                         else
                         {
-                            if (!String.IsNullOrEmpty(app["Reg"]))
+                            if (!string.IsNullOrEmpty(app["Reg"]))
                                 line += "\n    Folder: None (PATH Injection)";
                         }
 
-                        if (!String.IsNullOrEmpty(app["interestingFolderRights"]))
+                        if (!string.IsNullOrEmpty(app["interestingFolderRights"]))
                         {
                             line += "\n    FolderPerms: " + app["interestingFolderRights"];
                         }
 
                         string filepath_mod = app["File"].Replace("\"", "").Replace("'", "");
-                        if (!String.IsNullOrEmpty(app["File"]))
+                        if (!string.IsNullOrEmpty(app["File"]))
                             line += "\n    File: " + filepath_mod;
 
                         if (app["isUnquotedSpaced"].ToLower() == "true")
                             line += " (Unquoted and Space detected)";                    
 
-                        if (!String.IsNullOrEmpty(app["interestingFileRights"]))
+                        if (!string.IsNullOrEmpty(app["interestingFileRights"]))
                             line += "\n    FilePerms: " + app["interestingFileRights"];
 
                         Beaprint.AnsiPrint(line, colorsA);
@@ -1204,7 +1215,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1225,9 +1236,9 @@ namespace winPEAS
                             formString += "\n    Permissions file: {3}";
                         if (dir_rights.Count > 0)
                             formString += "\n    Permissions folder(DLL Hijacking): {4}";
-                        if (!String.IsNullOrEmpty(sapp["Trigger"]))
+                        if (!string.IsNullOrEmpty(sapp["Trigger"]))
                             formString += "\n    Trigger: {5}";
-                        if (String.IsNullOrEmpty(sapp["Description"]))
+                        if (string.IsNullOrEmpty(sapp["Description"]))
                             formString += "\n    {6}";
 
                         Dictionary<string, string> colorsS = new Dictionary<string, string>()
@@ -1235,13 +1246,13 @@ namespace winPEAS
                             { "Permissions.*", Beaprint.ansi_color_bad },
                             { sapp["Action"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+"), (file_rights.Count > 0 || dir_rights.Count > 0) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                         };
-                        Beaprint.AnsiPrint(String.Format(formString, sapp["Author"], sapp["Name"], sapp["Action"], String.Join(", ", file_rights), String.Join(", ", dir_rights), sapp["Trigger"], sapp["Description"]), colorsS);
+                        Beaprint.AnsiPrint(string.Format(formString, sapp["Author"], sapp["Name"], sapp["Action"], string.Join(", ", file_rights), string.Join(", ", dir_rights), sapp["Trigger"], sapp["Description"]), colorsS);
                         Beaprint.PrintLineSeparator();
                     }
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1272,7 +1283,7 @@ namespace winPEAS
                         if (dir_rights.Count > 0)
                             formString += "\n    Permissions folder(DLL Hijacking): {5}";
 
-                        Beaprint.AnsiPrint(String.Format(formString, driver.Value.ProductName, driver.Value.ProductVersion, driver.Value.CompanyName, path_driver, String.Join(", ", file_rights), String.Join(", ", dir_rights)), colorsD);
+                        Beaprint.AnsiPrint(string.Format(formString, driver.Value.ProductName, driver.Value.ProductVersion, driver.Value.CompanyName, path_driver, string.Join(", ", file_rights), string.Join(", ", dir_rights)), colorsD);
 
                         //If vuln, end with separator
                         if ((file_rights.Count > 0) || (dir_rights.Count > 0))
@@ -1282,7 +1293,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1315,7 +1326,7 @@ namespace winPEAS
                     List<Dictionary<string, string>> shares = NetworkInfo.GetNetworkShares("127.0.0.1");
                     foreach(Dictionary<string, string> share in shares)
                     {
-                        string line = String.Format("    {0} (" + Beaprint.ansi_color_gray + "Path: {1}" + Beaprint.NOCOLOR + ")", share["Name"], share["Path"]);
+                        string line = string.Format("    {0} (" + Beaprint.ansi_color_gray + "Path: {1}" + Beaprint.NOCOLOR + ")", share["Name"], share["Path"]);
                         if (share["Permissions"].Length > 0)
                             line += " -- Permissions: " + share["Permissions"];
                         Beaprint.AnsiPrint(line, colorsN);
@@ -1323,7 +1334,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1341,7 +1352,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1361,12 +1372,12 @@ namespace winPEAS
                         if (card["arp"].Length > 1)
                             formString += "\n        " + Beaprint.ansi_color_gray + "Known hosts:" + Beaprint.NOCOLOR + "\n{6}";
 
-                        System.Console.WriteLine(String.Format(formString, card["Name"], card["PysicalAddr"], card["IPs"], card["Netmasks"].Replace(", 0.0.0.0", ""), card["Gateways"], card["DNSs"], card["arp"]));
+                        System.Console.WriteLine(string.Format(formString, card["Name"], card["PysicalAddr"], card["IPs"], card["Netmasks"].Replace(", 0.0.0.0", ""), card["Gateways"], card["DNSs"], card["arp"]));
                     }
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1391,12 +1402,12 @@ namespace winPEAS
                         if (conn[0].Contains("UDP") && conn[1].Contains("[::]:") && (conn[1].Split(']')[1].Length > 4))
                             continue; //Delete useless UDP listening ports
 
-                        Beaprint.AnsiPrint(String.Format("    {0,-10}{1,-23}{2,-23}{3}", conn[0], conn[1], conn[2], conn[3]), colorsN);
+                        Beaprint.AnsiPrint(string.Format("    {0,-10}{1,-23}{2,-23}{3}", conn[0], conn[1], conn[2], conn[3]), colorsN);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1414,13 +1425,13 @@ namespace winPEAS
                     
                     Beaprint.AnsiPrint("    Current Profiles: " + NetworkInfo.GetFirewallProfiles(), colorsN);
                     foreach (KeyValuePair<string, string> entry in NetworkInfo.GetFirewallBooleans())
-                        Beaprint.AnsiPrint(String.Format("    {0,-23}:    {1}", entry.Key, entry.Value), colorsN);
+                        Beaprint.AnsiPrint(string.Format("    {0,-23}:    {1}", entry.Key, entry.Value), colorsN);
 
                     Beaprint.GrayPrint("    DENY rules:");
                     foreach (Dictionary<string, string> rule in NetworkInfo.GetFirewallRules())
                     {
-                        string file_perms = String.Join(", ", MyUtils.GetPermissionsFile(rule["AppName"], currentUserSIDs));
-                        string folder_perms = String.Join(", ", MyUtils.GetPermissionsFolder(rule["AppName"], currentUserSIDs));
+                        string file_perms = string.Join(", ", MyUtils.GetPermissionsFile(rule["AppName"], currentUserSIDs));
+                        string folder_perms = string.Join(", ", MyUtils.GetPermissionsFolder(rule["AppName"], currentUserSIDs));
                         string formString = "    ({0}){1}[{2}]: {3} {4} {5} from {6} --> {7}";
                         if (file_perms.Length > 0)
                             formString += "\n    File Permissions: {8}";
@@ -1435,12 +1446,12 @@ namespace winPEAS
                                 { "File Permissions.*|Folder Permissions.*", Beaprint.ansi_color_bad },
                                 { rule["AppName"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+"), (file_perms.Length > 0 || folder_perms.Length > 0) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                             };
-                        Beaprint.AnsiPrint(String.Format(formString, rule["Profiles"], rule["Name"], rule["AppName"], rule["Action"], rule["Protocol"], rule["Direction"], rule["Direction"] == "IN" ? rule["Local"] : rule["Remote"], rule["Direction"] == "IN" ? rule["Remote"] : rule["Local"], file_perms, folder_perms, rule["Description"]), colorsN);
+                        Beaprint.AnsiPrint(string.Format(formString, rule["Profiles"], rule["Name"], rule["AppName"], rule["Action"], rule["Protocol"], rule["Direction"], rule["Direction"] == "IN" ? rule["Local"] : rule["Remote"], rule["Direction"] == "IN" ? rule["Remote"] : rule["Local"], file_perms, folder_perms, rule["Description"]), colorsN);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1449,14 +1460,14 @@ namespace winPEAS
                 try
                 {
                     Beaprint.MainPrint("DNS cached --limit 70--");
-                    Beaprint.GrayPrint(String.Format("    {0,-38}{1,-38}{2}", "Entry", "Name", "Data"));
+                    Beaprint.GrayPrint(string.Format("    {0,-38}{1,-38}{2}", "Entry", "Name", "Data"));
                     List<Dictionary<string, string>> DNScache = NetworkInfo.GetDNSCache();
                     foreach (Dictionary<string, string> entry in DNScache.GetRange(0, DNScache.Count <= 70 ? DNScache.Count : 70))
-                        System.Console.WriteLine(String.Format("    {0,-38}{1,-38}{2}", entry["Entry"], entry["Name"], entry["Data"]));
+                        System.Console.WriteLine(string.Format("    {0,-38}{1,-38}{2}", entry["Entry"], entry["Name"], entry["Data"]));
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1483,7 +1494,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Checking Windows Vault");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-manager-windows-vault");
-                    List<Dictionary<string, string>> vault_creds = KnownFileCredsInfo.DumpVault();
+                    List<Dictionary<string, string>> vault_creds = VaultCli.DumpVault();
 
                     Dictionary<string, string> colorsC = new Dictionary<string, string>()
                     {
@@ -1493,7 +1504,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1520,7 +1531,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
 
             }
@@ -1531,18 +1542,18 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Saved RDP connections");
 
-                    List<Dictionary<string, string>> rdps_info = KnownFileCredsInfo.GetSavedRDPConnections();
+                    List<Dictionary<string, string>> rdps_info = RemoteDesktop.GetSavedRDPConnections();
                     if (rdps_info.Count > 0)
-                        System.Console.WriteLine(String.Format("    {0,-20}{1,-55}{2}", "Host", "Username Hint", "User SID"));
+                        System.Console.WriteLine(string.Format("    {0,-20}{1,-55}{2}", "Host", "Username Hint", "User SID"));
                     else
                         Beaprint.NotFoundPrint();
 
                     foreach (Dictionary<string, string> rdp_info in rdps_info)
-                        System.Console.WriteLine(String.Format("    {0,-20}{1,-55}{2}", rdp_info["Host"], rdp_info["Username Hint"], rdp_info["SID"]));
+                        System.Console.WriteLine(string.Format("    {0,-20}{1,-55}{2}", rdp_info["Host"], rdp_info["Username Hint"], rdp_info["SID"]));
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1556,7 +1567,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1579,7 +1590,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1596,7 +1607,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1606,14 +1617,14 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Checking for RDCMan Settings Files");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#remote-desktop-credential-manager", "Dump credentials from Remote Desktop Connection Manager");
-                    List<Dictionary<string, string>> rdc_files = KnownFileCredsInfo.GetRDCManFiles();
+                    List<Dictionary<string, string>> rdc_files = RemoteDesktop.GetRDCManFiles();
                     Beaprint.DictPrint(rdc_files, false);
                     if (rdc_files.Count != 0)
                         Beaprint.InfoPrint("Follow the provided link for further instructions in how to decrypt the .rdg file");
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1623,12 +1634,12 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Looking for kerberos tickets");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88");
-                    List<Dictionary<string, string>> kerberos_tckts = KnownFileCredsInfo.ListKerberosTickets();
+                    List<Dictionary<string, string>> kerberos_tckts = Kerberos.ListKerberosTickets();
                     Beaprint.DictPrint(kerberos_tckts, false);
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1637,12 +1648,12 @@ namespace winPEAS
                 try
                 {
                     Beaprint.MainPrint("Looking for kerberos TGT tickets");
-                    List<Dictionary<string, string>> kerberos_tgts = KnownFileCredsInfo.GetKerberosTGTData();
+                    List<Dictionary<string, string>> kerberos_tgts = Kerberos.GetKerberosTGTData();
                     Beaprint.DictPrint(kerberos_tgts, false);
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1665,14 +1676,32 @@ namespace winPEAS
                     }
                     else
                     {
-                        Beaprint.GrayPrint("    This function is not yet implemented.");
-                        Beaprint.InfoPrint("If you want to list saved Wifis connections you can list the using 'netsh wlan show profile'");
-                        Beaprint.InfoPrint("If you want to get the clear-text password use 'netsh wlan show profile <SSID> key=clear'");
+                        foreach (var iface in new WlanClient().Interfaces)
+                        {
+                            foreach (var profile in iface.GetProfiles())
+                            {
+                                var xml = iface.GetProfileXml(profile.profileName);
+
+                                XmlDocument xDoc = new XmlDocument();
+                                xDoc.LoadXml(xml);
+
+                                var keyMaterial = xDoc.GetElementsByTagName("keyMaterial");
+                                if (keyMaterial.Count > 0)
+                                {
+                                    string password = keyMaterial[0].InnerText;
+
+                                    Beaprint.BadPrint($"  found Wifi password for SSID: '{profile.profileName}', password: '{password}'  ");
+                                }
+                            }
+                        }
+                        //Beaprint.GrayPrint("    This function is not yet implemented.");
+                        //Beaprint.InfoPrint("If you want to list saved Wifis connections you can list the using 'netsh wlan show profile'");
+                        //Beaprint.InfoPrint("If you want to get the clear-text password use 'netsh wlan show profile <SSID> key=clear'");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1689,7 +1718,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1706,7 +1735,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1738,7 +1767,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Looking for Firefox DBs");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#browsers-history");
-                    List<string> firefoxDBs = KnownFileCredsInfo.GetFirefoxDbs();
+                    List<string> firefoxDBs = Firefox.GetFirefoxDbs();
                     if (firefoxDBs.Count > 0)
                     {
                         foreach (string firefoxDB in firefoxDBs) //No Beaprints because line needs red
@@ -1753,7 +1782,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1763,7 +1792,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Looking for GET credentials in Firefox history");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#browsers-history");
-                    List<string> firefoxHist = KnownFileCredsInfo.GetFirefoxHistory();
+                    List<string> firefoxHist = Firefox.GetFirefoxHistory();
                     if (firefoxHist.Count > 0)
                     {
                         Dictionary<string, string> colorsB = new Dictionary<string, string>()
@@ -1783,7 +1812,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1793,7 +1822,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Looking for Chrome DBs");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#browsers-history");
-                    Dictionary<string, string> chromeDBs = KnownFileCredsInfo.GetChromeDbs();
+                    Dictionary<string, string> chromeDBs = Chrome.GetChromeDbs();
                     if (chromeDBs.ContainsKey("userChromeCookiesPath"))
                     {
                         Beaprint.BadPrint("    Chrome cookies database exists at " + chromeDBs["userChromeCookiesPath"]);
@@ -1811,7 +1840,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1821,7 +1850,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Looking for GET credentials in Chrome history");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#browsers-history");
-                    Dictionary<string, List<string>> chromeHistBook = KnownFileCredsInfo.GetChromeHistBook();
+                    Dictionary<string, List<string>> chromeHistBook = Chrome.GetChromeHistBook();
                     List<string> history = chromeHistBook["history"];
                     List<string> bookmarks = chromeHistBook["bookmarks"];
 
@@ -1848,7 +1877,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1858,7 +1887,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Current IE tabs");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#browsers-history");
-                    List<string> urls = KnownFileCredsInfo.GetCurrentIETabs();
+                    List<string> urls = InternetExplorer.GetCurrentIETabs();
 
                     Dictionary<string, string> colorsB = new Dictionary<string, string>()
                         {
@@ -1868,7 +1897,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1878,7 +1907,7 @@ namespace winPEAS
                 {
                     Beaprint.MainPrint("Looking for GET credentials in IE history");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#browsers-history");
-                    Dictionary<string, List<string>> chromeHistBook = KnownFileCredsInfo.GetIEHistFav();
+                    Dictionary<string, List<string>> chromeHistBook = InternetExplorer.GetIEHistFav();
                     List<string> history = chromeHistBook["history"];
                     List<string> favorites = chromeHistBook["favorites"];
 
@@ -1901,7 +1930,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1926,7 +1955,7 @@ namespace winPEAS
                 try
                 {
                     Beaprint.MainPrint("Putty Sessions");
-                    List<Dictionary<string, string>> putty_sess = KnownFileCredsInfo.GetPuttySessions();
+                    List<Dictionary<string, string>> putty_sess = Putty.GetPuttySessions();
 
                     Dictionary<string, string> colorF = new Dictionary<string, string>()
                         {
@@ -1936,7 +1965,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1945,7 +1974,7 @@ namespace winPEAS
                 try
                 {
                     Beaprint.MainPrint("Putty SSH Host keys");
-                    List<Dictionary<string, string>> putty_sess = KnownFileCredsInfo.ListPuttySSHHostKeys();
+                    List<Dictionary<string, string>> putty_sess = Putty.ListPuttySSHHostKeys();
                     Dictionary<string, string> colorF = new Dictionary<string, string>()
                         {
                             { ".*", Beaprint.ansi_color_bad },
@@ -1954,7 +1983,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1965,7 +1994,7 @@ namespace winPEAS
                     Beaprint.MainPrint("SSH keys in registry");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#ssh-keys-in-registry", "If you find anything here, follow the link to learn how to decrypt the SSH keys");
 
-                    string[] ssh_reg = MyUtils.GetRegSubkeys("HKCU", @"OpenSSH\Agent\Keys");
+                    string[] ssh_reg = RegistryHelper.GetRegSubkeys("HKCU", @"OpenSSH\Agent\Keys");
                     if (ssh_reg.Length == 0)
                         Beaprint.NotFoundPrint();
                     else
@@ -1976,7 +2005,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -1992,7 +2021,7 @@ namespace winPEAS
                         foreach (Dictionary<string, string> cc in could_creds)
                         {
                             string formString = "    {0} ({1})\n    Accessed:{2} -- Size:{3}";
-                            Beaprint.BadPrint(String.Format(formString, cc["file"], cc["Description"], cc["Accessed"], cc["Size"] ));
+                            Beaprint.BadPrint(string.Format(formString, cc["file"], cc["Description"], cc["Accessed"], cc["Size"] ));
                             System.Console.WriteLine("");
                         }
                     }
@@ -2001,7 +2030,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -2016,12 +2045,12 @@ namespace winPEAS
                     {
                         List<string> pwds = InterestingFiles.ExtractUnattenededPwd(path);
                         Beaprint.BadPrint("    "+path);
-                        System.Console.WriteLine(String.Join("\n", pwds));
+                        System.Console.WriteLine(string.Join("\n", pwds));
                     }
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -2037,7 +2066,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -2053,7 +2082,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -2078,7 +2107,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -2092,18 +2121,18 @@ namespace winPEAS
                     Beaprint.MainPrint("Looking for possible regs with creds");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#inside-the-registry");
 
-                    string winVNC4 = MyUtils.GetRegValue("HKLM", @"SOFTWARE\RealVNC\WinVNC4", "passwword");
-                    if (!String.IsNullOrEmpty(winVNC4.Trim()))
+                    string winVNC4 = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\RealVNC\WinVNC4", "passwword");
+                    if (!string.IsNullOrEmpty(winVNC4.Trim()))
                         Beaprint.BadPrint(winVNC4);
 
                     foreach (string reg_hkcu in pass_reg_hkcu)
-                        Beaprint.DictPrint(MyUtils.GetRegValues("HKLM", reg_hkcu), false);
+                        Beaprint.DictPrint(RegistryHelper.GetRegValues("HKLM", reg_hkcu), false);
                     foreach (string reg_hklm in pass_reg_hklm)
-                        Beaprint.DictPrint(MyUtils.GetRegValues("HKLM", reg_hklm), false);
+                        Beaprint.DictPrint(RegistryHelper.GetRegValues("HKLM", reg_hklm), false);
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -2121,7 +2150,7 @@ namespace winPEAS
 
                     Beaprint.MainPrint("Looking for possible password files in users homes");
                     Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files");
-                    string searchPath = String.Format("{0}\\", Environment.GetEnvironmentVariable("SystemDrive") + "\\Users");
+                    string searchPath = string.Format("{0}\\", Environment.GetEnvironmentVariable("SystemDrive") + "\\Users");
                     List<string> files_paths = MyUtils.FindFiles(searchPath, patterns);
                     foreach (string file_path in files_paths)
                     {
@@ -2143,7 +2172,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -2176,7 +2205,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -2196,7 +2225,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -2210,7 +2239,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 
@@ -2237,7 +2266,7 @@ namespace winPEAS
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("{0}", ex));
+                    Beaprint.GrayPrint(string.Format("{0}", ex));
                 }
             }
 

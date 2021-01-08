@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Management;
 using System.Text.RegularExpressions;
+
 namespace winPEAS
 {
     class Wifi
@@ -50,6 +53,5 @@ namespace winPEAS
 
             return password;
         }
-
     }
 }

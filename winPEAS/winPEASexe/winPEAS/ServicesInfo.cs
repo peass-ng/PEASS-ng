@@ -11,6 +11,7 @@ using System.ServiceProcess;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Runtime.InteropServices;
+using winPEAS.Utils;
 
 namespace winPEAS
 {
@@ -41,7 +42,7 @@ namespace winPEAS
                             companyName = myFileVersionInfo.CompanyName;
                             isDotNet = MyUtils.CheckIfDotNet(binaryPath) ? "isDotNet" : "";
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             // Not enough privileges
                         }
@@ -76,9 +77,9 @@ namespace winPEAS
 
             try
             {
-                foreach (string key in MyUtils.GetRegSubkeys("HKLM", @"SYSTEM\CurrentControlSet\Services"))
+                foreach (string key in RegistryHelper.GetRegSubkeys("HKLM", @"SYSTEM\CurrentControlSet\Services"))
                 {
-                    Dictionary<string, object> key_values = MyUtils.GetRegValues("HKLM", @"SYSTEM\CurrentControlSet\Services\" + key);
+                    Dictionary<string, object> key_values = RegistryHelper.GetRegValues("HKLM", @"SYSTEM\CurrentControlSet\Services\" + key);
 
                     if (key_values.ContainsKey("DisplayName") && key_values.ContainsKey("ImagePath"))
                     {
@@ -94,7 +95,7 @@ namespace winPEAS
                                 companyName = myFileVersionInfo.CompanyName;
                                 isDotNet = MyUtils.CheckIfDotNet(binaryPath) ? "isDotNet" : "";
                             }
-                            catch (Exception ex)
+                            catch (Exception)
                             {
                                 // Not enough privileges
                             }
@@ -231,7 +232,7 @@ namespace winPEAS
                     }
 
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
                 }
@@ -280,7 +281,7 @@ namespace winPEAS
             try
             {
                 // grabbed from the registry instead of System.Environment.GetEnvironmentVariable to prevent false positives
-                string path = MyUtils.GetRegValue("HKLM", "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", "Path");
+                string path = RegistryHelper.GetRegValue("HKLM", "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", "Path");
                 if (String.IsNullOrEmpty(path))
                     path = Environment.GetEnvironmentVariable("PATH");
 

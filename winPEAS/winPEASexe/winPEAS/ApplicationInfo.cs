@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using Microsoft.Win32.TaskScheduler;
+using winPEAS.Utils;
 
 namespace winPEAS
 {
@@ -83,12 +84,12 @@ namespace winPEAS
             results.Concat(results2).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             //Get from Uninstall
-            string[] subkeys = MyUtils.GetRegSubkeys("HKLM", @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
+            string[] subkeys = RegistryHelper.GetRegSubkeys("HKLM", @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
             if (subkeys != null)
             {
                 foreach (string app in subkeys)
                 {
-                    string installLocation = MyUtils.GetRegValue("HKLM", String.Format(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{0}", app), "InstallLocation");
+                    string installLocation = RegistryHelper.GetRegValue("HKLM", String.Format(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{0}", app), "InstallLocation");
                     if (String.IsNullOrEmpty(installLocation))
                         continue;
 
@@ -114,12 +115,12 @@ namespace winPEAS
                 }
             }
 
-            subkeys = MyUtils.GetRegSubkeys("HKLM", @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
+            subkeys = RegistryHelper.GetRegSubkeys("HKLM", @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
             if (subkeys != null)
             {
                 foreach (string app in subkeys)
                 {
-                    string installLocation = MyUtils.GetRegValue("HKLM", String.Format(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{0}", app), "InstallLocation");
+                    string installLocation = RegistryHelper.GetRegValue("HKLM", String.Format(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{0}", app), "InstallLocation");
                     if (String.IsNullOrEmpty(installLocation))
                         continue;
 
@@ -241,7 +242,7 @@ namespace winPEAS
                 //Add the keyvalues inside autorunLocationsKeys to autorunLocations
                 foreach (List<String> autorunLocationKey in autorunLocationsKeys)
                 {
-                    List<String> subkeys = MyUtils.GetRegSubkeys(autorunLocationKey[0], autorunLocationKey[1]).ToList();
+                    List<String> subkeys = RegistryHelper.GetRegSubkeys(autorunLocationKey[0], autorunLocationKey[1]).ToList();
                     foreach (String keyname in subkeys)
                     {
                         string clsid_name = keyname;
@@ -259,7 +260,7 @@ namespace winPEAS
                 //Read registry and get values
                 foreach (List<String> autorunLocation in autorunLocations)
                 {
-                    Dictionary<string, object> settings = MyUtils.GetRegValues(autorunLocation[0], autorunLocation[1]);
+                    Dictionary<string, object> settings = RegistryHelper.GetRegValues(autorunLocation[0], autorunLocation[1]);
                     if ((settings != null) && (settings.Count != 0))
                     {
                         foreach (KeyValuePair<string, object> kvp in settings)
@@ -320,7 +321,7 @@ namespace winPEAS
                 //Check the autoruns that depends on CLSIDs
                 foreach (List<String> autorunLocation in autorunLocationsKeysCLSIDs)
                 {
-                    List<String> CLSIDs = MyUtils.GetRegSubkeys(autorunLocation[0], autorunLocation[1]).ToList();
+                    List<String> CLSIDs = RegistryHelper.GetRegSubkeys(autorunLocation[0], autorunLocation[1]).ToList();
                     foreach (String clsid in CLSIDs)
                     {
                         string reg = autorunLocation[1] + "\\" + clsid;

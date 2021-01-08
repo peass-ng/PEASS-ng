@@ -109,10 +109,27 @@
     <Compile Include="Beaprint.cs" />
     <Compile Include="FastSearch\FileSearcher\FileSearcher.cs" />
     <Compile Include="InterestingFiles.cs" />
-    <Compile Include="KnownFileCredsInfo.cs" />
+    <Compile Include="KnownFileCreds\Chrome.cs" />
+    <Compile Include="KnownFileCreds\Firefox.cs" />
+    <Compile Include="KnownFileCreds\InternetExplorer.cs" />
+    <Compile Include="KnownFileCreds\Kerberos\enums\enums.cs" />
+    <Compile Include="KnownFileCreds\Kerberos\Helpers.cs" />
+    <Compile Include="KnownFileCreds\Kerberos\Kerberos.cs" />
+    <Compile Include="KnownFileCreds\Kerberos\structs\structs.cs" />
+    <Compile Include="KnownFileCreds\KnownFileCredsInfo.cs" />
+    <Compile Include="KnownFileCreds\Putty.cs" />
+    <Compile Include="KnownFileCreds\RemoteDesktop.cs" />
+    <Compile Include="KnownFileCreds\Vault\enums\VAULT_ELEMENT_TYPE.cs" />
+    <Compile Include="KnownFileCreds\Vault\enums\VAULT_SCHEMA_ELEMENT_ID.cs" />
+    <Compile Include="KnownFileCreds\Vault\structs\VAULT_ITEM_ELEMENT.cs" />
+    <Compile Include="KnownFileCreds\Vault\structs\VAULT_ITEM_WIN7.cs" />
+    <Compile Include="KnownFileCreds\Vault\structs\VAULT_ITEM_WIN8.cs" />
+    <Compile Include="KnownFileCreds\Vault\VaultCli.cs" />
     <Compile Include="MyUtils.cs" />
     <Compile Include="NetworkInfo.cs" />
-    <Compile Include="ProcessesInfo.cs" />
+    <Compile Include="ProcessInfo\DefensiveProcesses.cs" />
+    <Compile Include="ProcessInfo\InterestingProcesses.cs" />
+    <Compile Include="ProcessInfo\ProcessesInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -158,6 +175,7 @@
     <Compile Include="TaskScheduler\Wildcard.cs" />
     <Compile Include="TaskScheduler\XmlSerializationHelper.cs" />
     <Compile Include="UserInfo.cs" />
+    <Compile Include="Utils\RegistryHelper.cs" />
     <Compile Include="Watson\Msrc\CVE-2019-0836.cs" />
     <Compile Include="Watson\Msrc\CVE-2019-0841.cs" />
     <Compile Include="Watson\Msrc\CVE-2019-1064.cs" />
@@ -175,6 +193,8 @@
     <Compile Include="Watson\Watson.cs" />
     <Compile Include="Watson\Wmi.cs" />
     <Compile Include="Wifi.cs" />
+    <Compile Include="NativeWifiApi\Interop.cs" />
+    <Compile Include="NativeWifiApi\WlanClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

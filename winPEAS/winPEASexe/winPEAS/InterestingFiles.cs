@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -9,41 +10,36 @@ using System.Xml;
 
 namespace winPEAS
 {
-    class InterestingFiles
-    {
-        private InterestingFiles() {}
+    static class InterestingFiles
+    {       
         public static List<string> GetUnattendedInstallFiles()
-        { //From SharpUP
-            List<string> results = new List<string>();
+        { 
+            //From SharpUP
+            var results = new List<string>();
 
             try
             {
-                string windir = System.Environment.GetEnvironmentVariable("windir");
-                string[] SearchLocations =
+                var winDir = System.Environment.GetEnvironmentVariable("windir");
+                string[] searchLocations =
                 {
-                    String.Format("{0}\\sysprep\\sysprep.xml", windir),
-                    String.Format("{0}\\sysprep\\sysprep.inf", windir),
-                    String.Format("{0}\\sysprep.inf", windir),
-                    String.Format("{0}\\Panther\\Unattended.xml", windir),
-                    String.Format("{0}\\Panther\\Unattend.xml", windir),
-                    String.Format("{0}\\Panther\\Unattend\\Unattend.xml", windir),
-                    String.Format("{0}\\Panther\\Unattend\\Unattended.xml", windir),
-                    String.Format("{0}\\System32\\Sysprep\\unattend.xml", windir),
-                    String.Format("{0}\\System32\\Sysprep\\Panther\\unattend.xml", windir),
-                    String.Format("{0}\\..\\unattend.xml", windir),
-                    String.Format("{0}\\..\\unattend.inf", windir),
+                   $"{winDir}\\sysprep\\sysprep.xml",
+                   $"{winDir}\\sysprep\\sysprep.inf",
+                   $"{winDir}\\sysprep.inf",
+                   $"{winDir}\\Panther\\Unattended.xml",
+                   $"{winDir}\\Panther\\Unattend.xml",
+                   $"{winDir}\\Panther\\Unattend\\Unattend.xml",
+                   $"{winDir}\\Panther\\Unattend\\Unattended.xml",
+                   $"{winDir}\\System32\\Sysprep\\unattend.xml",
+                   $"{winDir}\\System32\\Sysprep\\Panther\\unattend.xml",
+                   $"{winDir}\\..\\unattend.xml",
+                   $"{winDir}\\..\\unattend.inf",
                 };
 
-                foreach (string SearchLocation in SearchLocations)
-                {
-                    if (System.IO.File.Exists(SearchLocation))
-                        results.Add(SearchLocation);
-                    
-                }
+                results.AddRange(searchLocations.Where(System.IO.File.Exists));
             }
             catch (Exception ex)
-            {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+            {                
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }
@@ -51,81 +47,78 @@ namespace winPEAS
         public static List<string> ExtractUnattenededPwd(string path)
         {
             List<string> results = new List<string>();
-            try { 
+
+            try
+            { 
                 string text = File.ReadAllText(path);
                 text = text.Replace("\n", "");
                 text = text.Replace("\r", "");
                 Regex regex = new Regex(@"<Password>.*</Password>");
-                foreach (Match match in regex.Matches(text))
-                    results.Add(match.Value);
                 
+                foreach (Match match in regex.Matches(text))
+                {
+                    results.Add(match.Value);
+                }                
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
+
             return results;
         }
 
         public static List<string> GetSAMBackups()
-        { //From SharpUP
-            List<string> results = new List<string>();
+        { 
+            //From SharpUP
+            var results = new List<string>();
 
             try
             {
-                string systemRoot = System.Environment.GetEnvironmentVariable("SystemRoot");
-                string[] SearchLocations =
+                string systemRoot = Environment.GetEnvironmentVariable("SystemRoot");
+                string[] searchLocations =
                 {
-                    String.Format(@"{0}\repair\SAM", systemRoot),
-                    String.Format(@"{0}\System32\config\RegBack\SAM", systemRoot),
-                    //String.Format(@"{0}\System32\config\SAM", systemRoot),
-                    String.Format(@"{0}\repair\SYSTEM", systemRoot),
-                    //String.Format(@"{0}\System32\config\SYSTEM", systemRoot),
-                    String.Format(@"{0}\System32\config\RegBack\SYSTEM", systemRoot),
+                    $@"{systemRoot}\repair\SAM",
+                    $@"{systemRoot}\System32\config\RegBack\SAM",
+                    //$@"{0}\System32\config\SAM"
+                    $@"{systemRoot}\repair\SYSTEM",
+                    //$@"{0}\System32\config\SYSTEM", systemRoot),
+                    $@"{systemRoot}\System32\config\RegBack\SYSTEM",
                 };
 
-                foreach (string SearchLocation in SearchLocations)
-                {
-                    if (System.IO.File.Exists(SearchLocation))
-                        results.Add(SearchLocation);
-
-                }
+                results.AddRange(searchLocations.Where(searchLocation => System.IO.File.Exists(searchLocation)));
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }
 
         public static List<string> GetMcAfeeSitelistFiles()
-        { //From SharpUP
+        { 
+            //From SharpUP
             List<string> results = new List<string>();
 
             try
             {
                 string drive = System.Environment.GetEnvironmentVariable("SystemDrive");
 
-                string[] SearchLocations =
+                string[] searchLocations =
                 {
-                    String.Format("{0}\\Program Files\\", drive),
-                    String.Format("{0}\\Program Files (x86)\\", drive),
-                    String.Format("{0}\\Documents and Settings\\", drive),
-                    String.Format("{0}\\Users\\", drive)
+                    $"{drive}\\Program Files\\",
+                    $"{drive}\\Program Files (x86)\\",
+                    $"{drive}\\Documents and Settings\\",
+                    $"{drive}\\Users\\",
                 };
 
-                foreach (string SearchLocation in SearchLocations)
-                {
-                    List<string> files = MyUtils.FindFiles(SearchLocation, "SiteList.xml");
-
-                    foreach (string file in files)
-                        results.Add(file);
-                    
-                }
+                results.AddRange(
+                    searchLocations.SelectMany(
+                        searchLocation => MyUtils.FindFiles(searchLocation, "SiteList.xml")));
             }
             catch (Exception ex)
             {
-                Console.WriteLine(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }
@@ -146,7 +139,7 @@ namespace winPEAS
                 }
                 allUsers += "\\Microsoft\\Group Policy\\History"; // look only in the GPO cache folder
 
-                List<String> files = MyUtils.FindFiles(allUsers, "*.xml");
+                List<string> files = MyUtils.FindFiles(allUsers, "*.xml");
 
                 // files will contain all XML files
                 foreach (string file in files)
@@ -354,36 +347,36 @@ namespace winPEAS
             }
             catch (Exception ex)
             {
-                Console.WriteLine(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }
 
 
-        public static string DecryptGPP(string cpassword)
-        {  //From SharpUP
-            int mod = cpassword.Length % 4;
+        public static string DecryptGPP(string cPassword)
+        {  
+            //From SharpUP
+            int mod = cPassword.Length % 4;
 
             switch (mod)
             {
                 case 1:
-                    cpassword = cpassword.Substring(0, cpassword.Length - 1);
+                    cPassword = cPassword.Substring(0, cPassword.Length - 1);
                     break;
                 case 2:
-                    cpassword += "".PadLeft(4 - mod, '=');
+                    cPassword += "".PadLeft(4 - mod, '=');
                     break;
                 case 3:
-                    cpassword += "".PadLeft(4 - mod, '=');
-                    break;
-                default:
+                    cPassword += "".PadLeft(4 - mod, '=');
                     break;
             }
 
-            byte[] base64decoded = Convert.FromBase64String(cpassword);
+            byte[] base64decoded = Convert.FromBase64String(cPassword);
 
             AesCryptoServiceProvider aesObject = new AesCryptoServiceProvider();
 
-            byte[] aesKey = { 0x4e, 0x99, 0x06, 0xe8, 0xfc, 0xb6, 0x6c, 0xc9, 0xfa, 0xf4, 0x93, 0x10, 0x62, 0x0f, 0xfe, 0xe8, 0xf4, 0x96, 0xe8, 0x06, 0xcc, 0x05, 0x79, 0x90, 0x20, 0x9b, 0x09, 0xa4, 0x33, 0xb6, 0x6c, 0x1b };
+            byte[] aesKey = { 0x4e, 0x99, 0x06, 0xe8, 0xfc, 0xb6, 0x6c, 0xc9, 0xfa, 0xf4, 0x93, 0x10, 0x62, 0x0f,
+                0xfe, 0xe8, 0xf4, 0x96, 0xe8, 0x06, 0xcc, 0x05, 0x79, 0x90, 0x20, 0x9b, 0x09, 0xa4, 0x33, 0xb6, 0x6c, 0x1b };
             byte[] aesIV = new byte[aesObject.IV.Length];
 
             aesObject.IV = aesIV;
@@ -405,7 +398,7 @@ namespace winPEAS
 
                 if (MyUtils.IsHighIntegrity())
                 {
-                    string searchPath = String.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
+                    string searchPath = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\Users\\";
 
                     List<string> files = MyUtils.FindFiles(searchPath, patterns);
 
@@ -438,6 +431,33 @@ namespace winPEAS
             return results;
         }
 
+        private static object InvokeMemberMethod(object target, string name, object[] args = null)
+        {
+            if (target == null) throw new ArgumentNullException(nameof(target));
+
+            object result = InvokeMember(target, name, BindingFlags.InvokeMethod, args);
+
+            return result;
+        }
+
+        private static object InvokeMemberProperty(object target, string name, object[] args = null)
+        {
+            if (target == null) throw new ArgumentNullException(nameof(target));
+
+            object result = InvokeMember(target, name, BindingFlags.GetProperty, args);
+
+            return result;
+        }
+
+        private static object InvokeMember(object target, string name, BindingFlags invokeAttr, object[] args = null)
+        {
+            if (target == null) throw new ArgumentNullException(nameof(target));
+
+            object result = target.GetType().InvokeMember(name, invokeAttr, null, target, args);
+
+            return result;
+        }
+
         public static List<Dictionary<string, string>> GetRecycleBin()
         {
             List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
@@ -452,37 +472,37 @@ namespace winPEAS
 
                 // Shell COM object GUID
                 Type shell = Type.GetTypeFromCLSID(new Guid("13709620-C279-11CE-A49E-444553540000"));
-                Object shellObj = Activator.CreateInstance(shell);
+                object shellObj = Activator.CreateInstance(shell);
 
                 // namespace for recycle bin == 10 - https://msdn.microsoft.com/en-us/library/windows/desktop/bb762494(v=vs.85).aspx
-                Object recycle = shellObj.GetType().InvokeMember("Namespace", BindingFlags.InvokeMethod, null, shellObj, new object[] { 10 });
+                object recycle = InvokeMemberMethod(shellObj, "Namespace", new object[] { 10 });
                 // grab all the deletes items
-                Object items = recycle.GetType().InvokeMember("Items", BindingFlags.InvokeMethod, null, recycle, null);
+                object items = InvokeMemberMethod(recycle, "Items");
                 // grab the number of deleted items
-                Object count = items.GetType().InvokeMember("Count", BindingFlags.GetProperty, null, items, null);
+                object count = InvokeMemberProperty(items, "Count");
                 int deletedCount = Int32.Parse(count.ToString());
 
                 // iterate through each item
                 for (int i = 0; i < deletedCount; i++)
                 {
                     // grab the specific deleted item
-                    Object item = items.GetType().InvokeMember("Item", BindingFlags.InvokeMethod, null, items, new object[] { i });
-                    Object DateDeleted = item.GetType().InvokeMember("ExtendedProperty", BindingFlags.InvokeMethod, null, item, new object[] { "System.Recycle.DateDeleted" });
-                    DateTime modifiedDate = DateTime.Parse(DateDeleted.ToString());
+                    object item = InvokeMemberMethod(items, "Item", new object[] { i });
+                    object dateDeleted = InvokeMemberMethod(item, "ExtendedProperty", new object[] { "System.Recycle.DateDeleted" });
+                    DateTime modifiedDate = DateTime.Parse(dateDeleted.ToString());
                     if (modifiedDate > startTime)
                     {
                         // additional extended properties from https://blogs.msdn.microsoft.com/oldnewthing/20140421-00/?p=1183
-                        Object Name = item.GetType().InvokeMember("Name", BindingFlags.GetProperty, null, item, null);
-                        Object Path = item.GetType().InvokeMember("Path", BindingFlags.GetProperty, null, item, null);
-                        Object Size = item.GetType().InvokeMember("Size", BindingFlags.GetProperty, null, item, null);
-                        Object DeletedFrom = item.GetType().InvokeMember("ExtendedProperty", BindingFlags.InvokeMethod, null, item, new object[] { "System.Recycle.DeletedFrom" });
+                        object name = InvokeMemberProperty(item, "Name");
+                        object path = InvokeMemberProperty(item, "Path");
+                        object size = InvokeMemberProperty(item, "Size");
+                        object deletedFrom = InvokeMemberMethod(item, "ExtendedProperty", new object[] { "System.Recycle.DeletedFrom" });
                         results.Add(new Dictionary<string, string>()
                     {
-                        { "Name", String.Format("{0}", Name) },
-                        { "Path",  String.Format("{0}", Path) },
-                        { "Size",  String.Format("{0}", Size) },
-                        { "Deleted from",  String.Format("{0}", DeletedFrom) },
-                        { "Date Deleted",  String.Format("{0}", DateDeleted) }
+                        { "Name", name.ToString() },
+                        { "Path", path.ToString() },
+                        { "Size", size.ToString() },
+                        { "Deleted from", deletedFrom.ToString() },
+                        { "Date Deleted", dateDeleted.ToString() }
                     });
                     }
                     Marshal.ReleaseComObject(item);

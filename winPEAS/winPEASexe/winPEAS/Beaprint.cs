@@ -171,6 +171,12 @@ namespace winPEAS
             GrayPrint("   =================================================================================================");
             System.Console.WriteLine();
         }
+
+        public static void PrintException(string message)
+        {
+            GrayPrint($"  [X] Exception: {message}");
+        }        
+
         public static void AnsiPrint(string to_print, Dictionary<string, string> ansi_colors_regexp)
         {
             if (to_print.Trim().Length > 0)

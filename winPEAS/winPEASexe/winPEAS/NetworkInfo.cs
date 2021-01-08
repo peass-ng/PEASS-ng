@@ -369,7 +369,7 @@ namespace winPEAS
                         current_perm = Convert.ToInt32(result.Properties["ReturnValue"].Value);
                         perm_str = MyUtils.PermInt2Str(current_perm);
                     }
-                    catch (ManagementException me)
+                    catch (ManagementException)
                     {
                         perm_str = ""; //no permissions are set on the share
                     }

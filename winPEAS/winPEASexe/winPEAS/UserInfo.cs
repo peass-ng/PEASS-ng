@@ -6,6 +6,7 @@ using System.Security.Principal;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
+using winPEAS.Utils;
 
 //Configuring Fody: https://tech.trailmax.info/2014/01/bundling-all-your-assemblies-into-one-or-alternative-to-ilmerge/
 //I have also created the folder Costura32 and Costura64 with the respective Dlls of Colorful.Console
@@ -962,12 +963,12 @@ namespace winPEAS
         {
             Dictionary<string, string> results = new Dictionary<string, string>();
 
-            results["DefaultDomainName"] = MyUtils.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultDomainName");
-            results["DefaultUserName"] = MyUtils.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultUserName");
-            results["DefaultPassword"] = MyUtils.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultPassword");
-            results["AltDefaultDomainName"] = MyUtils.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultDomainName");
-            results["AltDefaultUserName"] = MyUtils.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultUserName");
-            results["AltDefaultPassword"] = MyUtils.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultPassword");
+            results["DefaultDomainName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultDomainName");
+            results["DefaultUserName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultUserName");
+            results["DefaultPassword"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultPassword");
+            results["AltDefaultDomainName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultDomainName");
+            results["AltDefaultUserName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultUserName");
+            results["AltDefaultPassword"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultPassword");
             return results;
         }
 

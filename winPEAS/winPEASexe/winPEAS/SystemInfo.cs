@@ -6,6 +6,7 @@ using System.Management;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Windows.Forms;
+using winPEAS.Utils;
 
 namespace winPEAS
 {
@@ -48,12 +49,12 @@ namespace winPEAS
             Dictionary<string, string> results = new Dictionary<string, string>();
             try
             {
-                string ProductName = MyUtils.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "ProductName");
-                string EditionID = MyUtils.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "EditionID");
-                string ReleaseId = MyUtils.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "ReleaseId");
-                string BuildBranch = MyUtils.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "BuildBranch");
-                string CurrentMajorVersionNumber = MyUtils.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentMajorVersionNumber");
-                string CurrentVersion = MyUtils.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentVersion");
+                string ProductName = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "ProductName");
+                string EditionID = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "EditionID");
+                string ReleaseId = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "ReleaseId");
+                string BuildBranch = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "BuildBranch");
+                string CurrentMajorVersionNumber = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentMajorVersionNumber");
+                string CurrentVersion = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentVersion");
 
                 bool isHighIntegrity = MyUtils.IsHighIntegrity();
 
@@ -148,7 +149,7 @@ namespace winPEAS
             string whitelistpaths = "";
             try
             {
-                whitelistpaths = String.Join("\n    ", MyUtils.GetRegValues("HKLM", @"SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths").Keys);
+                whitelistpaths = String.Join("\n    ", RegistryHelper.GetRegValues("HKLM", @"SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths").Keys);
                 ManagementObjectSearcher wmiData = new ManagementObjectSearcher(@"root\SecurityCenter2", "SELECT * FROM AntiVirusProduct");
                 ManagementObjectCollection data = wmiData.Get();
 
@@ -176,7 +177,7 @@ namespace winPEAS
 
             try
             {
-                string ConsentPromptBehaviorAdmin = MyUtils.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "ConsentPromptBehaviorAdmin");
+                string ConsentPromptBehaviorAdmin = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "ConsentPromptBehaviorAdmin");
                 switch (ConsentPromptBehaviorAdmin)
                 {
                     case "0":
@@ -202,13 +203,13 @@ namespace winPEAS
                         break;
                 }
 
-                string EnableLUA = MyUtils.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "EnableLUA");
+                string EnableLUA = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "EnableLUA");
                 results["EnableLUA"] = EnableLUA;
 
-                string LocalAccountTokenFilterPolicy = MyUtils.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "LocalAccountTokenFilterPolicy");
+                string LocalAccountTokenFilterPolicy = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "LocalAccountTokenFilterPolicy");
                 results["LocalAccountTokenFilterPolicy"] = LocalAccountTokenFilterPolicy;
 
-                string FilterAdministratorToken = MyUtils.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "FilterAdministratorToken");
+                string FilterAdministratorToken = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "FilterAdministratorToken");
                 results["FilterAdministratorToken"] = FilterAdministratorToken;
             }
             catch (Exception ex)
@@ -225,18 +226,18 @@ namespace winPEAS
 
             try
             {
-                results["PowerShell v2 Version"] = MyUtils.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\PowerShell\\1\\PowerShellEngine", "PowerShellVersion");
-                results["PowerShell v5 Version"] = MyUtils.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\PowerShell\\3\\PowerShellEngine", "PowerShellVersion");
+                results["PowerShell v2 Version"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\PowerShell\\1\\PowerShellEngine", "PowerShellVersion");
+                results["PowerShell v5 Version"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\PowerShell\\3\\PowerShellEngine", "PowerShellVersion");
                 results["Transcription Settings"] = "";
                 results["Module Logging Settings"] = "";
                 results["Scriptblock Logging Settings"] = "";
                 results["PS history file"] = "";
                 results["PS history size"] = "";
 
-                Dictionary<string, object> transcriptionSettingsCU = MyUtils.GetRegValues("HKCU",
+                Dictionary<string, object> transcriptionSettingsCU = RegistryHelper.GetRegValues("HKCU",
                     "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\Transcription");
                 if ((transcriptionSettingsCU == null) || (transcriptionSettingsCU.Count == 0))
-                    transcriptionSettingsCU = MyUtils.GetRegValues("HKCU", @"HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\Transcription");
+                    transcriptionSettingsCU = RegistryHelper.GetRegValues("HKCU", @"HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\Transcription");
 
                 if ((transcriptionSettingsCU != null) && (transcriptionSettingsCU.Count != 0))
                 {
@@ -246,10 +247,10 @@ namespace winPEAS
                     }
                 }
 
-                Dictionary<string, object> transcriptionSettingsLM = MyUtils.GetRegValues("HKLM",
+                Dictionary<string, object> transcriptionSettingsLM = RegistryHelper.GetRegValues("HKLM",
                     "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\Transcription");
                 if ((transcriptionSettingsLM == null) || (transcriptionSettingsLM.Count == 0))
-                    transcriptionSettingsLM = MyUtils.GetRegValues("HKLM", @"HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\Transcription");
+                    transcriptionSettingsLM = RegistryHelper.GetRegValues("HKLM", @"HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\Transcription");
 
                 if ((transcriptionSettingsLM != null) && (transcriptionSettingsLM.Count != 0))
                 {
@@ -259,9 +260,9 @@ namespace winPEAS
                     }
                 }
 
-                Dictionary<string, object> moduleLoggingSettingsLM = MyUtils.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging");
+                Dictionary<string, object> moduleLoggingSettingsLM = RegistryHelper.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging");
                 if ((moduleLoggingSettingsLM == null) || (moduleLoggingSettingsLM.Count == 0))
-                    moduleLoggingSettingsLM = MyUtils.GetRegValues("HKLM", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging");
+                    moduleLoggingSettingsLM = RegistryHelper.GetRegValues("HKLM", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging");
 
                 if ((moduleLoggingSettingsLM != null) && (moduleLoggingSettingsLM.Count != 0))
                 {
@@ -271,9 +272,9 @@ namespace winPEAS
                     }
                 }
 
-                Dictionary<string, object> moduleLoggingSettingsCU = MyUtils.GetRegValues("HKCU", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging");
+                Dictionary<string, object> moduleLoggingSettingsCU = RegistryHelper.GetRegValues("HKCU", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging");
                 if ((moduleLoggingSettingsCU == null) || (moduleLoggingSettingsCU.Count == 0))
-                    moduleLoggingSettingsCU = MyUtils.GetRegValues("HKCU", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging");
+                    moduleLoggingSettingsCU = RegistryHelper.GetRegValues("HKCU", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging");
 
                 if ((moduleLoggingSettingsCU != null) && (moduleLoggingSettingsCU.Count != 0))
                 {
@@ -283,9 +284,9 @@ namespace winPEAS
                     }
                 }
 
-                Dictionary<string, object> scriptBlockSettingsLM = MyUtils.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging");
+                Dictionary<string, object> scriptBlockSettingsLM = RegistryHelper.GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging");
                 if ((scriptBlockSettingsLM == null) || (scriptBlockSettingsLM.Count == 0))
-                    scriptBlockSettingsLM = MyUtils.GetRegValues("HKLM", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging");
+                    scriptBlockSettingsLM = RegistryHelper.GetRegValues("HKLM", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging");
 
                 if ((scriptBlockSettingsLM != null) && (scriptBlockSettingsLM.Count != 0))
                 {
@@ -295,9 +296,9 @@ namespace winPEAS
                     }
                 }
 
-                Dictionary<string, object> scriptBlockSettingsCU = MyUtils.GetRegValues("HKCU", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging");
+                Dictionary<string, object> scriptBlockSettingsCU = RegistryHelper.GetRegValues("HKCU", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging");
                 if ((scriptBlockSettingsCU == null) || (scriptBlockSettingsCU.Count == 0))
-                    scriptBlockSettingsCU = MyUtils.GetRegValues("HKCU", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging");
+                    scriptBlockSettingsCU = RegistryHelper.GetRegValues("HKCU", @"SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging");
 
                 if ((scriptBlockSettingsCU != null) && (scriptBlockSettingsCU.Count != 0))
                 {
@@ -331,7 +332,7 @@ namespace winPEAS
             Dictionary<string, string> results = new Dictionary<string, string>();
             try
             {
-                Dictionary<string, object> settings = MyUtils.GetRegValues("HKLM", "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Audit");
+                Dictionary<string, object> settings = RegistryHelper.GetRegValues("HKLM", "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Audit");
                 if ((settings != null) && (settings.Count != 0))
                 {
                     foreach (KeyValuePair<string, object> kvp in settings)
@@ -361,7 +362,7 @@ namespace winPEAS
             Dictionary<string, string> results = new Dictionary<string, string>();
             try
             {
-                Dictionary<string, object> settings = MyUtils.GetRegValues("HKLM", "Software\\Policies\\Microsoft\\Windows\\EventLog\\EventForwarding\\SubscriptionManager");
+                Dictionary<string, object> settings = RegistryHelper.GetRegValues("HKLM", "Software\\Policies\\Microsoft\\Windows\\EventLog\\EventForwarding\\SubscriptionManager");
                 if ((settings != null) && (settings.Count != 0))
                 {
                     foreach (KeyValuePair<string, object> kvp in settings)
@@ -391,15 +392,15 @@ namespace winPEAS
             Dictionary<string, string> results = new Dictionary<string, string>();
             try
             {
-                string AdmPwdEnabled = MyUtils.GetRegValue("HKLM", "Software\\Policies\\Microsoft Services\\AdmPwd", "AdmPwdEnabled");
+                string AdmPwdEnabled = RegistryHelper.GetRegValue("HKLM", "Software\\Policies\\Microsoft Services\\AdmPwd", "AdmPwdEnabled");
 
                 if (AdmPwdEnabled != "")
                 {
                     results["LAPS Enabled"] = AdmPwdEnabled;
-                    results["LAPS Admin Account Name"] = MyUtils.GetRegValue("HKLM", "Software\\Policies\\Microsoft Services\\AdmPwd", "AdminAccountName");
-                    results["LAPS Password Complexity"] = MyUtils.GetRegValue("HKLM", "Software\\Policies\\Microsoft Services\\AdmPwd", "PasswordComplexity");
-                    results["LAPS Password Length"] = MyUtils.GetRegValue("HKLM", "Software\\Policies\\Microsoft Services\\AdmPwd", "PasswordLength");
-                    results["LAPS Expiration Protection Enabled"] = MyUtils.GetRegValue("HKLM", "Software\\Policies\\Microsoft Services\\AdmPwd", "PwdExpirationProtectionEnabled");
+                    results["LAPS Admin Account Name"] = RegistryHelper.GetRegValue("HKLM", "Software\\Policies\\Microsoft Services\\AdmPwd", "AdminAccountName");
+                    results["LAPS Password Complexity"] = RegistryHelper.GetRegValue("HKLM", "Software\\Policies\\Microsoft Services\\AdmPwd", "PasswordComplexity");
+                    results["LAPS Password Length"] = RegistryHelper.GetRegValue("HKLM", "Software\\Policies\\Microsoft Services\\AdmPwd", "PasswordLength");
+                    results["LAPS Expiration Protection Enabled"] = RegistryHelper.GetRegValue("HKLM", "Software\\Policies\\Microsoft Services\\AdmPwd", "PwdExpirationProtectionEnabled");
                 }
                 else
                 {
@@ -435,7 +436,7 @@ namespace winPEAS
             Dictionary<string, string> result = new Dictionary<string, string>();
             try
             {
-                Dictionary<string, object> settings = MyUtils.GetRegValues("HKLM", "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment");
+                Dictionary<string, object> settings = RegistryHelper.GetRegValues("HKLM", "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment");
                 if ((settings != null) && (settings.Count != 0))
                 {
                     foreach (KeyValuePair<string, object> kvp in settings)
@@ -456,7 +457,7 @@ namespace winPEAS
             Dictionary<string, string> results = new Dictionary<string, string>();
             try
             {
-                Dictionary<string, object> proxySettings = MyUtils.GetRegValues(root_reg, "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings");
+                Dictionary<string, object> proxySettings = RegistryHelper.GetRegValues(root_reg, "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings");
                 if ((proxySettings != null) && (proxySettings.Count != 0))
                 {
                     foreach (KeyValuePair<string, object> kvp in proxySettings)
