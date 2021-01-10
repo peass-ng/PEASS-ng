@@ -12,30 +12,34 @@ namespace winPEAS.Checks
         static string goodUAC = "PromptPermitDenyOnSecureDesktop";
         static string badLAPS = "LAPS not installed";
 
-        public void PrintInfo()
+        public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("System Information");
-            PrintBasicSystemInfo();
-            PrintUserEV();
-            PrintSystemEV();
-            PrintAuditInfo();
-            PrintWEFInfo();
-            PrintLAPSInfo();
-            PrintWdigest();
-            PrintLSAProtection();
-            PrintCredentialGuard();
-            PrintCachedCreds();
-            PrintAVInfo();
-            PrintUACInfo();
-            PrintPSInfo();
-            PrintTranscriptPS();
-            PrintInetInfo();
-            PrintDrivesInfo();
-            PrintWSUS();
-            PrintAlwaysInstallElevated();
+            
+            new List<Action>
+            {
+                PrintBasicSystemInfo,
+                PrintUserEV,
+                PrintSystemEV,
+                PrintAuditInfo,
+                PrintWEFInfo,
+                PrintLAPSInfo,
+                PrintWdigest,
+                PrintLSAProtection,
+                PrintCredentialGuard,
+                PrintCachedCreds,
+                PrintAVInfo,
+                PrintUACInfo,
+                PrintPSInfo,
+                PrintTranscriptPS,
+                PrintInetInfo,
+                PrintDrivesInfo,
+                PrintWSUS,
+                PrintAlwaysInstallElevated,
+            }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
-        void PrintBasicSystemInfo()
+        static void PrintBasicSystemInfo()
         {
             try
             {
@@ -60,7 +64,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintPSInfo()
+        static void PrintPSInfo()
         {
             try
             {
@@ -79,7 +83,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintTranscriptPS()
+        static void PrintTranscriptPS()
         {
             try
             {
@@ -107,7 +111,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintAuditInfo()
+        static void PrintAuditInfo()
         {
             try
             {
@@ -122,7 +126,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintWEFInfo()
+        static void PrintWEFInfo()
         {
             try
             {
@@ -156,7 +160,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintWdigest()
+        static void PrintWdigest()
         {
             Beaprint.MainPrint("Wdigest");
             Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#wdigest", "If enabled, plain-text crds could be stored in LSASS");
@@ -167,7 +171,7 @@ namespace winPEAS.Checks
                 Beaprint.GoodPrint("    Wdigest is not enabled");
         }
 
-        void PrintLSAProtection()
+        static void PrintLSAProtection()
         {
             Beaprint.MainPrint("LSA Protection");
             Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#lsa-protection", "If enabled, a driver is needed to read LSASS memory (If Secure Boot or UEFI, RunAsPPL cannot be disabled by deleting the registry key)");
@@ -178,7 +182,7 @@ namespace winPEAS.Checks
                 Beaprint.BadPrint("    LSA Protection is not enabled");
         }
 
-        void PrintCredentialGuard()
+        static void PrintCredentialGuard()
         {
             Beaprint.MainPrint("Credentials Guard");
             Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#credential-guard", "If enabled, a driver is needed to read LSASS memory");
@@ -197,7 +201,7 @@ namespace winPEAS.Checks
                 Beaprint.BadPrint("    CredentialGuard is not enabled");
         }
 
-        void PrintCachedCreds()
+        static void PrintCachedCreds()
         {
             Beaprint.MainPrint("Cached Creds");
             Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#cached-credentials", "If > 0, credentials will be cached in the registry and accessible by SYSTEM user");
@@ -216,7 +220,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintUserEV()
+        static void PrintUserEV()
         {
             try
             {
@@ -235,7 +239,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintSystemEV()
+        static void PrintSystemEV()
         {
             try
             {
@@ -254,7 +258,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintInetInfo()
+        static void PrintInetInfo()
         {
             try
             {
@@ -277,7 +281,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintDrivesInfo()
+        static void PrintDrivesInfo()
         {
             try
             {
@@ -313,7 +317,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintAVInfo()
+        static void PrintAVInfo()
         {
             try
             {
@@ -332,7 +336,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintUACInfo()
+        static void PrintUACInfo()
         {
             try
             {
@@ -341,10 +345,10 @@ namespace winPEAS.Checks
                 Dictionary<string, string> uacDict = Info.SystemInfo.SystemInfo.GetUACSystemPolicies();
 
                 Dictionary<string, string> colorsSI = new Dictionary<string, string>()
-                        {
-                            { badUAC, Beaprint.ansi_color_bad },
-                            { goodUAC, Beaprint.ansi_color_good }
-                        };
+                {
+                    { badUAC, Beaprint.ansi_color_bad },
+                    { goodUAC, Beaprint.ansi_color_good }
+                };
                 Beaprint.DictPrint(uacDict, colorsSI, false);
 
                 if ((uacDict["EnableLUA"] == "") || (uacDict["EnableLUA"] == "0"))
@@ -365,7 +369,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintWSUS()
+        static void PrintWSUS()
         {
             try
             {
@@ -400,7 +404,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintAlwaysInstallElevated()
+        static void PrintAlwaysInstallElevated()
         {
             try
             {
@@ -421,6 +425,5 @@ namespace winPEAS.Checks
                 Beaprint.PrintException(ex.Message);
             }
         }
-
     }
 }

@@ -3,8 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using winPEAS.Helpers;
+using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace winPEAS.FastSearch.FileSearcher
 {
@@ -17,6 +17,7 @@ namespace winPEAS.FastSearch.FileSearcher
         public static List<FileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null)
         {
             ConcurrentBag<FileInfo> files = new ConcurrentBag<FileInfo>();
+           // ConcurrentBag<string> files = new ConcurrentBag<string>();
 
             //Beaprint.InfoPrint($"[*] folder 1: '{folder}'");
 
@@ -43,6 +44,7 @@ namespace winPEAS.FastSearch.FileSearcher
                 GetStartDirectories(d.FullName, files, pattern).AsParallel().ForAll((dir) =>
                 {
                     GetFiles(dir.FullName, pattern).ForEach((f) => files.Add(f));
+                   // FindFiles(dir.FullName, pattern, SearchOption.TopDirectoryOnly).ForEach((f) => files.Add(f));
                 });
             });
 
@@ -146,6 +148,73 @@ namespace winPEAS.FastSearch.FileSearcher
             }
 
             return result;
+        }
+
+        public static List<string> FindFiles(string directory, string filters, SearchOption searchOption)
+        {
+            if (!Directory.Exists(directory)) return new List<string>();
+
+            var include = (from filter in filters.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries) where !string.IsNullOrEmpty(filter.Trim()) select filter.Trim());
+            var exclude = (from filter in include where filter.Contains(@"!") select filter);
+
+            include = include.Except(exclude);
+
+            if (include.Count() == 0) include = new string[] { "*" };
+
+            var rxfilters = from filter in exclude select string.Format("^{0}$", filter.Replace("!", "").Replace(".", @"\.").Replace("*", ".*").Replace("?", "."));
+            Regex regex = new Regex(string.Join("|", rxfilters.ToArray()));
+
+            List<Thread> workers = new List<Thread>();
+            List<string> files = new List<string>();
+
+            foreach (string filter in include)
+            {
+                Thread worker = new Thread(
+                    new ThreadStart(
+                        delegate
+                        {
+                            try
+                            {
+                                //string[] allfiles = Directory.GetFiles(directory, filter, searchOption);
+                                string[] allfiles = Directory.GetFiles(directory, filter, SearchOption.TopDirectoryOnly);
+                                if (exclude.Count() > 0)
+                                {
+                                    lock (files)
+                                    {
+                                        files.AddRange(allfiles.Where(p => !regex.Match(p).Success));
+                                    }
+                                }
+                                else
+                                {
+                                    lock (files)
+                                    {
+                                        files.AddRange(allfiles);
+                                    }
+                                }
+                            }
+                            catch (UnauthorizedAccessException)
+                            {
+                            }
+                            catch (PathTooLongException)
+                            {
+                            }
+                            catch (DirectoryNotFoundException)
+                            {
+                            }
+
+                        }
+                    ));
+
+                workers.Add(worker);
+                worker.Start();
+            }
+
+            foreach (Thread worker in workers)
+            {
+                worker.Join();
+            }
+
+            return files;
         }
     }
 }

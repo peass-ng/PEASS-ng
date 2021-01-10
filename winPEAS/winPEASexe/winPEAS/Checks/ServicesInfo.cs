@@ -10,7 +10,7 @@ namespace winPEAS.Checks
     {
         Dictionary<string, string> modifiableServices = new Dictionary<string, string>();
 
-        public void PrintInfo()
+        public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("Services Information");
 
@@ -18,17 +18,23 @@ namespace winPEAS.Checks
            
             try
             {
-                modifiableServices = ServicesInfoHelper.GetModifiableServices(winPEAS.Checks.Checks.CurrentUserSiDs);
+                CheckRunner.Run(() =>
+                {
+                    modifiableServices = ServicesInfoHelper.GetModifiableServices(winPEAS.Checks.Checks.CurrentUserSiDs);
+                }, isDebug);                
             }
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
             }
 
-            PrintInterestingServices();
-            PrintModifiableServices();
-            PrintWritableRegServices();
-            PrintPathDllHijacking();
+            new List<Action>
+            {
+                PrintInterestingServices,
+                PrintModifiableServices,
+                PrintWritableRegServices,
+                PrintPathDllHijacking,
+            }.ForEach(action => CheckRunner.Run(action, isDebug));            
         }
 
         void PrintInterestingServices()

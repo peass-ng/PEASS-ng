@@ -6,7 +6,7 @@ namespace winPEAS.Checks
 {
     internal class BrowserInfo : ISystemCheck
     {
-        public void PrintInfo()
+        public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("Browsers Information");
 
@@ -15,7 +15,7 @@ namespace winPEAS.Checks
                 new Firefox(),
                 new Chrome(),
                 new InternetExplorer(),
-            }.ForEach(browser => browser.PrintInfo());
+            }.ForEach(browser => CheckRunner.Run(browser.PrintInfo, isDebug));
         }
     }
 }

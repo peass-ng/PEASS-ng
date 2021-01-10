@@ -2,6 +2,6 @@
 {
     internal interface ISystemCheck
     {
-        void PrintInfo();
+        void PrintInfo(bool isDebug);
     }
 }

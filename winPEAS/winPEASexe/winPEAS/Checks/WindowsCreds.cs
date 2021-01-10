@@ -12,24 +12,28 @@ namespace winPEAS.Checks
 {
     internal class WindowsCreds : ISystemCheck
     {
-        public void PrintInfo()
+        public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("Windows Credentials");
-            PrintvaultCreds();
-            PrintCredManag();
-            PrintSavedRDPInfo();
-            PrintRecentRunCommands();
-            PrintDPAPIMasterKeys();
-            PrintDpapiCredFiles();
-            PrintRCManFiles();
-            PrintKerberosTickets();
-            //PrintKerberosTGTTickets(); #Not working
-            PrintWifi();
-            PrintAppCmd();
-            PrintSCClient();
+            
+            new List<Action>
+            {
+                PrintvaultCreds,
+                PrintCredManag,
+                PrintSavedRDPInfo,
+                PrintRecentRunCommands,
+                PrintDPAPIMasterKeys,
+                PrintDpapiCredFiles,
+                PrintRCManFiles,
+                PrintKerberosTickets,
+                //PrintKerberosTGTTickets, #Not working
+                PrintWifi,
+                PrintAppCmd,
+                PrintSCClient,
+            }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
-        void PrintvaultCreds()
+        static void PrintvaultCreds()
         {
             try
             {
@@ -49,7 +53,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintCredManag()
+        static void PrintCredManag()
         {
             try
             {
@@ -77,7 +81,7 @@ namespace winPEAS.Checks
 
         }
 
-        void PrintSavedRDPInfo()
+        static void PrintSavedRDPInfo()
         {
             try
             {
@@ -102,7 +106,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintRecentRunCommands()
+        static void PrintRecentRunCommands()
         {
             try
             {
@@ -116,7 +120,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintDPAPIMasterKeys()
+        static void PrintDPAPIMasterKeys()
         {
             try
             {
@@ -143,7 +147,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintDpapiCredFiles()
+        static void PrintDpapiCredFiles()
         {
             try
             {
@@ -162,7 +166,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintRCManFiles()
+        static void PrintRCManFiles()
         {
             try
             {
@@ -181,7 +185,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintKerberosTickets()
+        static void PrintKerberosTickets()
         {
             try
             {
@@ -196,7 +200,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintKerberosTGTTickets()
+        static void PrintKerberosTGTTickets()
         {
             try
             {
@@ -210,7 +214,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintWifi()
+        static void PrintWifi()
         {
             try
             {
@@ -258,7 +262,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintAppCmd()
+        static void PrintAppCmd()
         {
             try
             {
@@ -279,7 +283,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintSCClient()
+        static void PrintSCClient()
         {
             try
             {

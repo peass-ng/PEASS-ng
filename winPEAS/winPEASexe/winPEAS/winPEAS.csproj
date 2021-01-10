@@ -116,6 +116,7 @@
     <Compile Include="Checks\SystemInfo.cs" />
     <Compile Include="Checks\UserInfo.cs" />
     <Compile Include="Checks\WindowsCreds.cs" />
+    <Compile Include="Helpers\MemoryHelper.cs" />
     <Compile Include="Helpers\PermissionsHelper.cs" />
     <Compile Include="Info\ApplicationInfo\ApplicationInfoHelper.cs" />
     <Compile Include="Info\ApplicationInfo\AutoRuns.cs" />
@@ -207,7 +208,7 @@
     <Compile Include="TaskScheduler\XmlSerializationHelper.cs" />
     <Compile Include="Info\UserInfo\UserInfoHelper.cs" />
     <Compile Include="Helpers\DomainHelper.cs" />
-    <Compile Include="Helpers\MeasureHelper.cs" />
+    <Compile Include="Helpers\CheckRunner.cs" />
     <Compile Include="Helpers\ReflectionHelper.cs" />
     <Compile Include="Helpers\RegistryHelper.cs" />
     <Compile Include="Helpers\SearchHelper.cs" />

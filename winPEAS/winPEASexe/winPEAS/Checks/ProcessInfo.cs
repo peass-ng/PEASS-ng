@@ -8,10 +8,14 @@ namespace winPEAS.Checks
 {
     internal class ProcessInfo : ISystemCheck
     {
-        public void PrintInfo()
+        public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Processes Information");
-            PrintInterestingProcesses();
+            Beaprint.GreatPrint("Processes Information");           
+
+            new List<Action>
+            {
+                PrintInterestingProcesses,
+            }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
         void PrintInterestingProcesses()

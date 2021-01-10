@@ -27,19 +27,22 @@ namespace winPEAS.Checks
         static readonly string _badPasswd = "NotChange|NotExpi";
         static readonly string _badPrivileges = "SeImpersonatePrivilege|SeAssignPrimaryPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege";
 
-        public void PrintInfo()
+        public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("Users Information");
-
-            PrintCU();
-            PrintTokenP();
-            PrintClipboardText();
-            PrintLoggedUsers();
-            PrintRdpSessions();
-            PrintEverLoggedUsers();
-            PrintHomeFolders();
-            PrintAutoLogin();
-            PrintPasswordPolicies();
+            
+            new List<Action>
+            {
+                PrintCU,
+                PrintTokenP,
+                PrintClipboardText,
+                PrintLoggedUsers,
+                PrintRdpSessions,
+                PrintEverLoggedUsers,
+                PrintHomeFolders,
+                PrintAutoLogin,
+                PrintPasswordPolicies,
+            }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
         Dictionary<string, string> ColorsU()

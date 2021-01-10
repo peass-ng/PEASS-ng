@@ -11,26 +11,118 @@ namespace winPEAS.Checks
     internal class FilesInfo : ISystemCheck
     {
         static readonly string _patternsFileCredsColor = @"RDCMan.settings|.rdg|_history|httpd.conf|.htpasswd|.gitconfig|.git-credentials|Dockerfile|docker-compose.ymlaccess_tokens.db|accessTokens.json|azureProfile.json|appcmd.exe|scclient.exe|unattend.txt|access.log|error.log|credential|password|.gpg|.pgp|config.php|elasticsearch|kibana.|.p12|\.der|.csr|.crt|.cer|.pem|known_hosts|id_rsa|id_dsa|.ovpn|tomcat-users.xml|web.config|.kdbx|.key|KeePass.config|ntds.dir|Ntds.dit|sam|system|SAM|SYSTEM|security|software|SECURITY|SOFTWARE|FreeSSHDservice.ini|sysprep.inf|sysprep.xml|unattend.xml|unattended.xml|vnc|groups.xml|services.xml|scheduledtasks.xml|printers.xml|drives.xml|datasources.xml|php.ini|https.conf|https-xampp.conf|my.ini|my.cnf|access.log|error.log|server.xml|setupinfo|pagefile.sys|NetSetup.log|iis6.log|AppEvent.Evt|SecEvent.Evt|default.sav|security.sav|software.sav|system.sav|ntuser.dat|index.dat|bash.exe|wsl.exe";
-        static readonly string _patternsFileCreds = @"RDCMan.settings;*.rdg;*_history*;httpd.conf;.htpasswd;.gitconfig;.git-credentials;Dockerfile;docker-compose.yml;access_tokens.db;accessTokens.json;azureProfile.json;appcmd.exe;scclient.exe;*.gpg$;*.pgp$;*config*.php;elasticsearch.y*ml;kibana.y*ml;*.p12$;*.cer$;known_hosts;*id_rsa*;*id_dsa*;*.ovpn;tomcat-users.xml;web.config;*.kdbx;KeePass.config;Ntds.dit;SAM;SYSTEM;security;software;FreeSSHDservice.ini;sysprep.inf;sysprep.xml;*vnc*.ini;*vnc*.c*nf*;*vnc*.txt;*vnc*.xml;php.ini;https.conf;https-xampp.conf;my.ini;my.cnf;access.log;error.log;server.xml;ConsoleHost_history.txt;pagefile.sys;NetSetup.log;iis6.log;AppEvent.Evt;SecEvent.Evt;default.sav;security.sav;software.sav;system.sav;ntuser.dat;index.dat;bash.exe;wsl.exe;unattend.txt;*.der$;*.csr$;unattend.xml;unattended.xml;groups.xml;services.xml;scheduledtasks.xml;printers.xml;drives.xml;datasources.xml;setupinfo;setupinfo.bak";
+    //    static readonly string _patternsFileCreds = @"RDCMan.settings;*.rdg;*_history*;httpd.conf;.htpasswd;.gitconfig;.git-credentials;Dockerfile;docker-compose.yml;access_tokens.db;accessTokens.json;azureProfile.json;appcmd.exe;scclient.exe;*.gpg$;*.pgp$;*config*.php;elasticsearch.y*ml;kibana.y*ml;*.p12$;*.cer$;known_hosts;*id_rsa*;*id_dsa*;*.ovpn;tomcat-users.xml;web.config;*.kdbx;KeePass.config;Ntds.dit;SAM;SYSTEM;security;software;FreeSSHDservice.ini;sysprep.inf;sysprep.xml;*vnc*.ini;*vnc*.c*nf*;*vnc*.txt;*vnc*.xml;php.ini;https.conf;https-xampp.conf;my.ini;my.cnf;access.log;error.log;server.xml;ConsoleHost_history.txt;pagefile.sys;NetSetup.log;iis6.log;AppEvent.Evt;SecEvent.Evt;default.sav;security.sav;software.sav;system.sav;ntuser.dat;index.dat;bash.exe;wsl.exe;unattend.txt;*.der$;*.csr$;unattend.xml;unattended.xml;groups.xml;services.xml;scheduledtasks.xml;printers.xml;drives.xml;datasources.xml;setupinfo;setupinfo.bak";
+
+        private static readonly IList<string> patternsFileCreds = new List<string>()
+        {
+            "*.cer$",
+            "*.csr$",
+            "*.der$",
+            "*.ftpconfig",
+            "*.gpg$",
+            "*.kdbx",
+            "*.ovpn",
+            "*.p12$",
+            "*.pgp$",
+            "*.rdg",
+            "*_history*",
+            "*config*.php",
+            "*id_dsa*",
+            "*id_rsa*",
+            "*vnc*.c*nf*",
+            "*vnc*.ini",
+            "*vnc*.txt",
+            "*vnc*.xml",
+            ".git-credentials",
+            ".gitconfig",
+            ".htpasswd",
+            "AppEvent.Evt",
+            "ConsoleHost_history.txt",
+            "Dockerfile",
+            "FreeSSHDservice.ini",
+            "KeePass.config",
+            "NetSetup.log",
+            "Ntds.dit",
+            "RDCMan.settings",
+            "SAM",
+            "SYSTEM",
+            "SecEvent.Evt",
+            "access.log",
+            "accessTokens.json",
+            "access_tokens.db",
+            "appcmd.exe",
+            "azureProfile.json",
+            "bash.exe",
+            "datasources.xml",
+            "default.sav",
+            "docker-compose.yml",
+            "drives.xml",
+            "elasticsearch.y*ml",
+            "error.log",
+            "ffftp.ini",
+            "filezilla.xml",
+            "groups.xml",
+            "httpd.conf",
+            "https-xampp.conf",
+            "https.conf",
+            "iis6.log",
+            "index.dat",
+            "kibana.y*ml",
+            "known_hosts",
+            "my.cnf",
+            "my.ini",
+            "ntuser.dat",
+            "pagefile.sys",
+            "php.ini",
+            "printers.xml",
+            "recentservers.xml",
+            "scclient.exe",
+            "scheduledtasks.xml",
+            "security",
+            "security.sav",
+            "server.xml",
+            "services.xml",
+            "setupinfo",
+            "setupinfo.bak",
+            "sitemanager.xml",
+            "sites.ini",
+            "software",
+            "software.sav",
+            "sysprep.inf",
+            "sysprep.xml",
+            "system.sav",
+            "tomcat-users.xml",
+            "unattend.txt",
+            "unattend.xml",
+            "unattended.xml",
+            "wcx_ftp.ini",
+            "web.*.config",
+            "winscp.ini",
+            "ws_ftp.ini",
+            "wsl.exe",
+    };
 
 
-        public void PrintInfo()
+        public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("Interesting files and registry");
 
-            Putty.PrintInfo();
-            PrintCloudCreds();
-            PrintUnattendFiles();
-            PrintSAMBackups();
-            PrintMcAffeSitelistFiles();
-            PrintLinuxShells();
-            PrintCachedGPPPassword();
-            PrintPossCredsRegs();
-            PrintUserCredsFiles();            
-            PrintUsersInterestingFiles();
-            PrintUsersDocsKeys();
-            PrintRecentFiles();
-            PrintRecycleBin();
+            new List<Action>
+            {
+                Putty.PrintInfo,
+                PrintCloudCreds,
+                PrintUnattendFiles,
+                PrintSAMBackups,
+                PrintMcAffeSitelistFiles,
+                PrintLinuxShells,
+                PrintCachedGPPPassword,
+                PrintPossCredsRegs,
+                PrintUserCredsFiles,
+                PrintUsersInterestingFiles,
+                PrintUsersDocsKeys,
+                PrintRecentFiles,
+                PrintRecycleBin
+            }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
         void PrintCloudCreds()
@@ -224,15 +316,19 @@ namespace winPEAS.Checks
         {
             try
             {
-                string pattern_bin = _patternsFileCreds + ";*password*;*credential*";
+                //string pattern_bin = _patternsFileCreds + ";*password*;*credential*";
+                string pattern_bin = string.Join(";", patternsFileCreds) + ";*password*;*credential*";
+                
+
                 Dictionary<string, string> colorF = new Dictionary<string, string>()
-                    {
-                        { _patternsFileCredsColor + "|.*password.*|.*credential.*", Beaprint.ansi_color_bad },
-                    };
+                {
+                    { _patternsFileCredsColor + "|.*password.*|.*credential.*", Beaprint.ansi_color_bad },
+                };
 
                 Beaprint.MainPrint("Looking inside the Recycle Bin for creds files");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files");
                 List<Dictionary<string, string>> recy_files = InterestingFiles.InterestingFiles.GetRecycleBin();
+                
                 foreach (Dictionary<string, string> rec_file in recy_files)
                 {
                     foreach (string pattern in pattern_bin.Split(';'))
@@ -244,8 +340,11 @@ namespace winPEAS.Checks
                         }
                     }
                 }
+
                 if (recy_files.Count <= 0)
+                {
                     Beaprint.NotFoundPrint();
+                }
             }
             catch (Exception ex)
             {
@@ -265,7 +364,11 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("Searching known files that can contain creds in home");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files");
                 string searchPath = Environment.GetEnvironmentVariable("USERPROFILE");
-                SearchHelper.FindFiles(searchPath, _patternsFileCreds, colorF);
+
+                //SearchHelper.FindFiles(searchPath, _patternsFileCreds, colorF);
+                string patterns = string.Join(";", patternsFileCreds);
+                SearchHelper.FindFiles(searchPath, patterns, colorF);
+                
             }
             catch (Exception ex)
             {

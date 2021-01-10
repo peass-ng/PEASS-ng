@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using System.Security.Principal;
@@ -15,6 +16,7 @@ namespace winPEAS.Checks
         public static bool Banner = true;
         public static bool IsSearchFast = true;
         public static int SearchTime = 50;
+        public static bool IsDebug = false;
 
         // Create Dynamic blacklists
         public static readonly string CurrentUserName = Environment.UserName;
@@ -101,7 +103,12 @@ namespace winPEAS.Checks
                 if (string.Equals(arg, "wait", StringComparison.CurrentCultureIgnoreCase))
                 {
                     wait = true;
-                }                
+                }
+
+                if (string.Equals(arg, "debug", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    IsDebug = true;
+                }
 
                 string argToLower = arg.ToLower();
                 if (systemCheckAllKeys.Contains(argToLower))
@@ -123,7 +130,7 @@ namespace winPEAS.Checks
 
             CreateDynamicLists();
 
-            Beaprint.PrintInit();                      
+            Beaprint.PrintInit(IsDebug);           
 
             for (int i = 0; i < systemChecks.Count; i++)
             {
@@ -131,7 +138,7 @@ namespace winPEAS.Checks
 
                 if (systemCheckSelectedKeysHashSet.Contains(systemCheck.Key) || isAllChecks)
                 {
-                    systemCheck.Check.PrintInfo();
+                    systemCheck.Check.PrintInfo(IsDebug);
 
                     if ((i < systemCheckSelectedKeysHashSet.Count - 1) && wait)
                     {
@@ -139,7 +146,7 @@ namespace winPEAS.Checks
                     }
                 }               
             }           
-        }
+        }      
 
         private static void CreateDynamicLists()
         {

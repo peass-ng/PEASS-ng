@@ -7,14 +7,18 @@ namespace winPEAS.Checks
 {
     internal class ApplicationsInfo : ISystemCheck
     {
-        public void PrintInfo()
+        public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("Applications Information");
-            PrintActiveWindow();
-            PrintInstalledApps();
-            PrintAutoRuns();
-            PrintScheduled();
-            PrintDeviceDrivers();
+
+            new List<Action>
+            {
+                PrintActiveWindow,
+                PrintInstalledApps,
+                PrintAutoRuns,
+                PrintScheduled,
+                PrintDeviceDrivers,
+            }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
         void PrintActiveWindow()

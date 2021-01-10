@@ -78,7 +78,7 @@ namespace winPEAS.Helpers
                 Thread.Sleep(700);
         }
 
-        public static void PrintInit()
+        public static void PrintInit(bool isDebug)
         {
             if (Checks.Checks.Banner)
             {
@@ -87,6 +87,12 @@ namespace winPEAS.Helpers
 
             Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Version + NOCOLOR + YELLOW + " by carlospolop" + NOCOLOR);
             Console.WriteLine();
+
+            if (isDebug)
+            {
+                MemoryHelper.DisplayMemoryStats();
+            }
+
             PrintLegend();
             Console.WriteLine();
             LinkPrint("https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation", "You can find a Windows local PE Checklist here:");
@@ -170,6 +176,12 @@ namespace winPEAS.Helpers
         public static void GrayPrint(string to_print)
         {
             Console.WriteLine(DGRAY + to_print + NOCOLOR);
+        }
+
+        internal static void PrintDebugLine(string log)
+        {
+            Console.WriteLine(YELLOW + "  [Debug]  " + log  + NOCOLOR);
+            Console.WriteLine();
         }
 
         public static void PrintLineSeparator()

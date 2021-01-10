@@ -11,15 +11,19 @@ namespace winPEAS.Checks
         static string commonShares = "[a-zA-Z]+[$]";
         static string badIps = "127.0.0.1";
 
-        public void PrintInfo()
+        public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("Network Information");
-            PrintNetShares();
-            PrintHostsFile();
-            PrintNetworkIfaces();
-            PrintListeningPorts();
-            PrintFirewallRules();
-            PrintDNSCache();
+           
+            new List<Action>
+            {
+                PrintNetShares,
+                PrintHostsFile,
+                PrintNetworkIfaces,
+                PrintListeningPorts,
+                PrintFirewallRules,
+                PrintDNSCache,
+            }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
         void PrintNetShares()
