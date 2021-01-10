@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading;
-using winPEAS.KnownFileCreds;
 
 namespace winPEAS.Helpers
 {
@@ -126,6 +125,7 @@ namespace winPEAS.Helpers
             Console.WriteLine(LBLUE + "        browserinfo" + GRAY + "       Search browser information" + NOCOLOR);
             Console.WriteLine(LBLUE + "        filesinfo" + GRAY + "         Search files that can contains credentials" + NOCOLOR);
             Console.WriteLine(LBLUE + "        wait" + GRAY + "              Wait for user input between checks" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        debug" + GRAY + "             Display debugging information - memory usage, method execution time" + NOCOLOR);
             Console.WriteLine(YELLOW + "        [+] " + LYELLOW + "By default all checks (except CMD checks) are executed" + NOCOLOR);
         }
 
