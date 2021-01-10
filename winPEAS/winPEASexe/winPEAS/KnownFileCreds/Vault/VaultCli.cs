@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using winPEAS.Helpers;
 using winPEAS.KnownFileCreds.Vault.structs;
 
 namespace winPEAS.KnownFileCreds.Vault

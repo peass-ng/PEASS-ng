@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using winPEAS.Helpers;
 
-namespace FastSearchLibrary
+namespace winPEAS.FastSearch.FileSearcher
 {
 
     /// <summary>
@@ -13,53 +14,59 @@ namespace FastSearchLibrary
     /// </summary>
     public class FileSearcher
     {
-        static public List<FileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null)
+        public static List<FileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null)
         {
             ConcurrentBag<FileInfo> files = new ConcurrentBag<FileInfo>();
 
-            List<DirectoryInfo> startDirs = GetStartDirectories(folder, files, pattern, excludedDirs);
+            //Beaprint.InfoPrint($"[*] folder 1: '{folder}'");
 
-            //startDirs.AsParallel().ForAll((d) =>
+            IEnumerable<DirectoryInfo> startDirs = GetStartDirectories(folder, files, pattern);
+
+            IList<DirectoryInfo> startDirsExcluded = startDirs.ToList();
+
+            if (excludedDirs != null)
+            {
+                startDirsExcluded =
+                    (from startDir in startDirs
+                        from excludedDir in excludedDirs
+                        where !startDir.FullName.Contains(excludedDir)
+                        select startDir).ToList();
+            }     
+
+            //Beaprint.InfoPrint($"[*] folder 2: '{folder}'  pattern: '{pattern}'");
+            //Beaprint.InfoPrint($"[*] folder 2: '{folder}'  GetStartDirectories: '{string.Join("\n", startDirs.Select(d => d.FullName))}'");
+            //Beaprint.InfoPrint($"[*] folder 2: '{folder}'  startDirsExcluded: '{string.Join("\n", startDirsExcluded.Select(d => d.FullName))}'");
+
+            //Beaprint.InfoPrint($"[*]  folder 3: '{folder}' excludedDirs: '{string.Join("\n", excludedDirs ?? Enumerable.Empty<string>()) }'");
+            startDirsExcluded.AsParallel().ForAll((d) =>
+            {
+                GetStartDirectories(d.FullName, files, pattern).AsParallel().ForAll((dir) =>
+                {
+                    GetFiles(dir.FullName, pattern).ForEach((f) => files.Add(f));
+                });
+            });
+
+            // !!!! TODO
+            // probably we need to exclude the excluded dirs here - not in parallel processing
+
+            //Parallel.ForEach(startDirsExcluded, (d) =>
             //{
-            //    GetStartDirectories(d.FullName, files, pattern).AsParallel().ForAll((dir) =>
+            //    Parallel.ForEach(GetStartDirectories(d.FullName, files, pattern), (dir) =>
             //    {
             //        GetFiles(dir.FullName, pattern).ForEach((f) => files.Add(f));
             //    });
             //});
 
-            Parallel.ForEach(startDirs, (d) =>
-            {
-                Parallel.ForEach(GetStartDirectories(d.FullName, files, pattern, excludedDirs), (dir) =>
-                {
-                    GetFiles(dir.FullName, pattern).ForEach((f) => files.Add(f));
-                });
-            });
-            
             return files.ToList();
         }
 
-        static private List<DirectoryInfo> GetStartDirectories(
-            string folder,
-            ConcurrentBag<FileInfo> files,
-            string pattern,
-            HashSet<string> excludedDirs = null)
+        private static List<DirectoryInfo> GetStartDirectories(string folder, ConcurrentBag<FileInfo> files, string pattern)
         {
-            DirectoryInfo[] directories;
-
-            if (excludedDirs != null)
-            {
-                foreach (var excludedDir in excludedDirs)
-                {
-                    if (folder.Contains(excludedDir))
-                    {
-                        return new List<DirectoryInfo>();
-                    }
-                }
-            }
-
+            DirectoryInfo dirInfo = null;
+            DirectoryInfo[] directories = null;
             try
             {
-                DirectoryInfo dirInfo = new DirectoryInfo(folder);
+                dirInfo = new DirectoryInfo(folder);
                 directories = dirInfo.GetDirectories();
 
                 foreach (var f in dirInfo.GetFiles(pattern))
@@ -74,15 +81,15 @@ namespace FastSearchLibrary
                     return new List<DirectoryInfo>();
 
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException ex)
             {
                 return new List<DirectoryInfo>();
             }
-            catch (PathTooLongException)
+            catch (PathTooLongException ex)
             {
                 return new List<DirectoryInfo>();
             }
-            catch (DirectoryNotFoundException)
+            catch (DirectoryNotFoundException ex)
             {
                 return new List<DirectoryInfo>();
             }
@@ -100,7 +107,9 @@ namespace FastSearchLibrary
                 directories = dirInfo.GetDirectories();
 
                 if (directories.Length == 0)
+                {
                     return new List<FileInfo>(dirInfo.GetFiles(pattern));
+                }
             }
             catch (UnauthorizedAccessException)
             {

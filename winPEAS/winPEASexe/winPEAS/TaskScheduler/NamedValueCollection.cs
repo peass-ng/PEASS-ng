@@ -4,10 +4,10 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
-using Microsoft.Win32.TaskScheduler.V2Interop;
-using JetBrains.Annotations;
+using winPEAS.TaskScheduler.Native;
+using winPEAS.TaskScheduler.V2;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Pair of name and value.

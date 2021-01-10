@@ -1,8 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 // ReSharper disable once CheckNamespace
-namespace System.Runtime.InteropServices
+namespace winPEAS.TaskScheduler.Native
 {
 	internal class ComEnumerator<T, TIn> : IEnumerator<T> where T : class where TIn : class
 	{

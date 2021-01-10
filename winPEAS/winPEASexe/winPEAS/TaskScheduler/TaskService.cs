@@ -1,15 +1,16 @@
-﻿using JetBrains.Annotations;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
+using winPEAS.TaskScheduler.Native;
+using winPEAS.TaskScheduler.V1;
+using winPEAS.TaskScheduler.V2;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Quick simple trigger types for the
-	/// <see cref="TaskService.AddTask(string,Microsoft.Win32.TaskScheduler.Trigger,Microsoft.Win32.TaskScheduler.Action,string,string,Microsoft.Win32.TaskScheduler.TaskLogonType,string)"/> method.
+	/// <see cref="TaskService.AddTask"/> method.
 	/// </summary>
 	public enum QuickTriggerType
 	{
@@ -76,14 +77,14 @@ namespace Microsoft.Win32.TaskScheduler
 	{
 		internal static readonly bool LibraryIsV2 = Environment.OSVersion.Version.Major >= 6;
 		internal static readonly Guid PowerShellActionGuid = new Guid("dab4c1e3-cd12-46f1-96fc-3981143c9bab");
-		private static Guid CLSID_Ctask = typeof(V1Interop.CTask).GUID;
-		private static Guid IID_ITask = typeof(V1Interop.ITask).GUID;
+		private static Guid CLSID_Ctask = typeof(CTask).GUID;
+		private static Guid IID_ITask = typeof(ITask).GUID;
 		[ThreadStatic]
 		private static TaskService instance;
 		private static Version osLibVer;
 
-		internal V1Interop.ITaskScheduler v1TaskScheduler;
-		internal V2Interop.ITaskService v2TaskService;
+		internal ITaskScheduler v1TaskScheduler;
+		internal ITaskService v2TaskService;
 		private bool connecting;
 		private bool forceV1;
 		private bool initializing;
@@ -457,9 +458,9 @@ namespace Microsoft.Win32.TaskScheduler
 			info.AddValue("forceV1", forceV1, typeof(bool));
 		}
 
-		internal static V2Interop.IRegisteredTask GetTask([NotNull] V2Interop.ITaskService iSvc, [NotNull] string name)
+		internal static IRegisteredTask GetTask([NotNull] ITaskService iSvc, [NotNull] string name)
 		{
-			V2Interop.ITaskFolder fld = null;
+			ITaskFolder fld = null;
 			try
 			{
 				fld = iSvc.GetFolder("\\");
@@ -475,7 +476,7 @@ namespace Microsoft.Win32.TaskScheduler
 			}
 		}
 
-		internal static V1Interop.ITask GetTask([NotNull] V1Interop.ITaskScheduler iSvc, [NotNull] string name)
+		internal static ITask GetTask([NotNull] ITaskScheduler iSvc, [NotNull] string name)
 		{
 			if (string.IsNullOrEmpty(name))
 				throw new ArgumentNullException(nameof(name));
@@ -583,7 +584,7 @@ namespace Microsoft.Win32.TaskScheduler
 
 					if (LibraryIsV2 && !forceV1)
 					{
-						v2TaskService = new V2Interop.ITaskService();
+						v2TaskService = new ITaskService();
 						if (!string.IsNullOrEmpty(targetServer))
 						{
 							// Check to ensure character only server name. (Suggested by bigsan)
@@ -604,7 +605,7 @@ namespace Microsoft.Win32.TaskScheduler
 					else
 					{
 						v1Impersonation = new WindowsImpersonatedIdentity(userName, userDomain, userPassword);
-						v1TaskScheduler = new V1Interop.ITaskScheduler();
+						v1TaskScheduler = new ITaskScheduler();
 						if (!string.IsNullOrEmpty(targetServer))
 						{
 							// Check to ensure UNC format for server name. (Suggested by bigsan)

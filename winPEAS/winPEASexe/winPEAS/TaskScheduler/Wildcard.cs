@@ -1,7 +1,6 @@
 ﻿using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Represents a wildcard running on the

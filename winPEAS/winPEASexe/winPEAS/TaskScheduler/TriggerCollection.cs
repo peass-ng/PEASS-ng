@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
-using JetBrains.Annotations;
+using winPEAS.TaskScheduler.Native;
+using winPEAS.TaskScheduler.V1;
+using winPEAS.TaskScheduler.V2;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Provides the methods that are used to add to, remove from, and get the triggers of a task.
@@ -13,16 +15,16 @@ namespace Microsoft.Win32.TaskScheduler
 	[XmlRoot("Triggers", Namespace = TaskDefinition.tns, IsNullable = false)]
 	public sealed class TriggerCollection : IList<Trigger>, IDisposable, IXmlSerializable, IList
 	{
-		private V1Interop.ITask v1Task;
-		private readonly V2Interop.ITriggerCollection v2Coll;
-		private V2Interop.ITaskDefinition v2Def;
+		private ITask v1Task;
+		private readonly ITriggerCollection v2Coll;
+		private ITaskDefinition v2Def;
 
-		internal TriggerCollection([NotNull] V1Interop.ITask iTask)
+		internal TriggerCollection([NotNull] ITask iTask)
 		{
 			v1Task = iTask;
 		}
 
-		internal TriggerCollection([NotNull] V2Interop.ITaskDefinition iTaskDef)
+		internal TriggerCollection([NotNull] ITaskDefinition iTaskDef)
 		{
 			v2Def = iTaskDef;
 			v2Coll = v2Def.Triggers;
@@ -221,7 +223,7 @@ namespace Microsoft.Win32.TaskScheduler
 		{
 			if (v1Task != null)
 				return new V1TriggerEnumerator(v1Task);
-			return new ComEnumerator<Trigger, V2Interop.ITrigger>(() => v2Coll.Count, i => v2Coll[i], o => Trigger.CreateTrigger(o, v2Def));
+			return new ComEnumerator<Trigger, ITrigger>(() => v2Coll.Count, i => v2Coll[i], o => Trigger.CreateTrigger(o, v2Def));
 		}
 
 		void ICollection.CopyTo(Array array, int index)
@@ -386,9 +388,9 @@ namespace Microsoft.Win32.TaskScheduler
 		private sealed class V1TriggerEnumerator : IEnumerator<Trigger>
 		{
 			private short curItem = -1;
-			private V1Interop.ITask iTask;
+			private ITask iTask;
 
-			internal V1TriggerEnumerator(V1Interop.ITask task) { iTask = task; }
+			internal V1TriggerEnumerator(ITask task) { iTask = task; }
 
 			public Trigger Current => Trigger.CreateTrigger(iTask.GetTrigger((ushort)curItem));
 

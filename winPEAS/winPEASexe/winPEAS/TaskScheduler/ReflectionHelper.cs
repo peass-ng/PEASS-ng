@@ -1,4 +1,7 @@
-﻿namespace System.Reflection
+﻿using System;
+using System.Reflection;
+
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>Extensions related to <c>System.Reflection</c></summary>
 	internal static class ReflectionHelper

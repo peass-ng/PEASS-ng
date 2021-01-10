@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Reflection;
+﻿using System;
 
-namespace System
+namespace winPEAS.TaskScheduler.Native
 {
 	internal static class EnumUtil
 	{

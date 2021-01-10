@@ -1,9 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using System.Text;
-using JetBrains.Annotations;
-
-namespace Microsoft.Win32.TaskScheduler
+﻿namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Some string values of <see cref="TaskDefinition"/> properties can be set to retrieve their value from existing DLLs as a resource. This class facilitates creating those reference strings.
@@ -37,7 +32,7 @@ namespace Microsoft.Win32.TaskScheduler
 		public int ResourceIdentifier { get; set; }
 
 		/// <summary>
-		/// Performs an implicit conversion from <see cref="Microsoft.Win32.TaskScheduler.ResourceReferenceValue" /> to <see cref="System.String" />.
+		/// Performs an implicit conversion from <see cref="ResourceReferenceValue" /> to <see cref="System.String" />.
 		/// </summary>
 		/// <param name="value">The value.</param>
 		/// <returns>The result of the conversion.</returns>

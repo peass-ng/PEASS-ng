@@ -1,14 +1,15 @@
-﻿using JetBrains.Annotations;
-using Microsoft.Win32.TaskScheduler.V2Interop;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Serialization;
+using winPEAS.TaskScheduler.Native;
+using winPEAS.TaskScheduler.V1;
+using winPEAS.TaskScheduler.V2;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>Values for days of the week (Monday, Tuesday, etc.)</summary>
 	[Flags]
@@ -146,7 +147,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <summary>Creates an unbound instance of a <see cref="BootTrigger"/>.</summary>
 		public BootTrigger() : base(TaskTriggerType.Boot) { }
 
-		internal BootTrigger([NotNull] V1Interop.ITaskTrigger iTrigger) : base(iTrigger, V1Interop.TaskTriggerType.OnSystemStart) { }
+		internal BootTrigger([NotNull] ITaskTrigger iTrigger) : base(iTrigger, V1.TaskTriggerType.OnSystemStart) { }
 
 		internal BootTrigger([NotNull] ITrigger iTrigger) : base(iTrigger) { }
 
@@ -271,7 +272,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <param name="daysInterval">Interval between the days in the schedule.</param>
 		public DailyTrigger(short daysInterval = 1) : base(TaskTriggerType.Daily) { DaysInterval = daysInterval; }
 
-		internal DailyTrigger([NotNull] V1Interop.ITaskTrigger iTrigger) : base(iTrigger, V1Interop.TaskTriggerType.RunDaily)
+		internal DailyTrigger([NotNull] ITaskTrigger iTrigger) : base(iTrigger, V1.TaskTriggerType.RunDaily)
 		{
 			if (v1TriggerData.Data.daily.DaysInterval == 0)
 				v1TriggerData.Data.daily.DaysInterval = 1;
@@ -551,7 +552,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <summary>Creates an unbound instance of a <see cref="IdleTrigger"/>.</summary>
 		public IdleTrigger() : base(TaskTriggerType.Idle) { }
 
-		internal IdleTrigger([NotNull] V1Interop.ITaskTrigger iTrigger) : base(iTrigger, V1Interop.TaskTriggerType.OnIdle) { }
+		internal IdleTrigger([NotNull] ITaskTrigger iTrigger) : base(iTrigger, V1.TaskTriggerType.OnIdle) { }
 
 		internal IdleTrigger([NotNull] ITrigger iTrigger) : base(iTrigger) { }
 
@@ -582,7 +583,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <summary>Creates an unbound instance of a <see cref="LogonTrigger"/>.</summary>
 		public LogonTrigger() : base(TaskTriggerType.Logon) { }
 
-		internal LogonTrigger([NotNull] V1Interop.ITaskTrigger iTrigger) : base(iTrigger, V1Interop.TaskTriggerType.OnLogon) { }
+		internal LogonTrigger([NotNull] ITaskTrigger iTrigger) : base(iTrigger, V1.TaskTriggerType.OnLogon) { }
 
 		internal LogonTrigger([NotNull] ITrigger iTrigger) : base(iTrigger) { }
 
@@ -658,7 +659,7 @@ namespace Microsoft.Win32.TaskScheduler
 			WeeksOfMonth = weeksOfMonth;
 		}
 
-		internal MonthlyDOWTrigger([NotNull] V1Interop.ITaskTrigger iTrigger) : base(iTrigger, V1Interop.TaskTriggerType.RunMonthlyDOW)
+		internal MonthlyDOWTrigger([NotNull] ITaskTrigger iTrigger) : base(iTrigger, V1.TaskTriggerType.RunMonthlyDOW)
 		{
 			if (v1TriggerData.Data.monthlyDOW.Months == 0)
 				v1TriggerData.Data.monthlyDOW.Months = MonthsOfTheYear.AllMonths;
@@ -991,7 +992,7 @@ namespace Microsoft.Win32.TaskScheduler
 			MonthsOfYear = monthsOfYear;
 		}
 
-		internal MonthlyTrigger([NotNull] V1Interop.ITaskTrigger iTrigger) : base(iTrigger, V1Interop.TaskTriggerType.RunMonthly)
+		internal MonthlyTrigger([NotNull] ITaskTrigger iTrigger) : base(iTrigger, V1.TaskTriggerType.RunMonthly)
 		{
 			if (v1TriggerData.Data.monthlyDate.Months == 0)
 				v1TriggerData.Data.monthlyDate.Months = MonthsOfTheYear.AllMonths;
@@ -1403,7 +1404,7 @@ namespace Microsoft.Win32.TaskScheduler
 				if (v2Pattern != null)
 					return v2Pattern.StopAtDurationEnd;
 				if (pTrigger != null)
-					return (pTrigger.v1TriggerData.Flags & V1Interop.TaskTriggerFlags.KillAtDurationEnd) == V1Interop.TaskTriggerFlags.KillAtDurationEnd;
+					return (pTrigger.v1TriggerData.Flags & TaskTriggerFlags.KillAtDurationEnd) == TaskTriggerFlags.KillAtDurationEnd;
 				return unboundStopAtDurationEnd;
 			}
 			set
@@ -1413,9 +1414,9 @@ namespace Microsoft.Win32.TaskScheduler
 				else if (pTrigger != null)
 				{
 					if (value)
-						pTrigger.v1TriggerData.Flags |= V1Interop.TaskTriggerFlags.KillAtDurationEnd;
+						pTrigger.v1TriggerData.Flags |= TaskTriggerFlags.KillAtDurationEnd;
 					else
-						pTrigger.v1TriggerData.Flags &= ~V1Interop.TaskTriggerFlags.KillAtDurationEnd;
+						pTrigger.v1TriggerData.Flags &= ~TaskTriggerFlags.KillAtDurationEnd;
 					Bind();
 				}
 				else
@@ -1470,7 +1471,7 @@ namespace Microsoft.Win32.TaskScheduler
 					v2Pattern.Interval = $"PT{pTrigger.v1TriggerData.MinutesInterval}M";
 				if (pTrigger.v1TriggerData.MinutesDuration != 0)
 					v2Pattern.Duration = $"PT{pTrigger.v1TriggerData.MinutesDuration}M";
-				v2Pattern.StopAtDurationEnd = (pTrigger.v1TriggerData.Flags & V1Interop.TaskTriggerFlags.KillAtDurationEnd) == V1Interop.TaskTriggerFlags.KillAtDurationEnd;
+				v2Pattern.StopAtDurationEnd = (pTrigger.v1TriggerData.Flags & TaskTriggerFlags.KillAtDurationEnd) == TaskTriggerFlags.KillAtDurationEnd;
 			}
 		}
 
@@ -1608,7 +1609,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <summary>Creates an unbound instance of a <see cref="TimeTrigger"/>.</summary>
 		public TimeTrigger() : base(TaskTriggerType.Time) { }
 
-		internal TimeTrigger([NotNull] V1Interop.ITaskTrigger iTrigger) : base(iTrigger, V1Interop.TaskTriggerType.RunOnce) { }
+		internal TimeTrigger([NotNull] ITaskTrigger iTrigger) : base(iTrigger, V1.TaskTriggerType.RunOnce) { }
 
 		internal TimeTrigger([NotNull] ITrigger iTrigger) : base(iTrigger) { }
 
@@ -1652,8 +1653,8 @@ namespace Microsoft.Win32.TaskScheduler
 		internal const string V2BoundaryDateFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'FFFK";
 		internal static readonly CultureInfo DefaultDateCulture = CultureInfo.CreateSpecificCulture("en-US");
 
-		internal V1Interop.ITaskTrigger v1Trigger;
-		internal V1Interop.TaskTrigger v1TriggerData;
+		internal ITaskTrigger v1Trigger;
+		internal TaskTrigger v1TriggerData;
 		internal ITrigger v2Trigger;
 		/// <summary>In testing and may change. Do not use until officially introduced into library.</summary>
 		protected Dictionary<string, object> unboundValues = new Dictionary<string, object>();
@@ -1662,7 +1663,7 @@ namespace Microsoft.Win32.TaskScheduler
 		private readonly TaskTriggerType ttype;
 		private RepetitionPattern repititionPattern;
 
-		internal Trigger([NotNull] V1Interop.ITaskTrigger trigger, V1Interop.TaskTriggerType type)
+		internal Trigger([NotNull] ITaskTrigger trigger, V1.TaskTriggerType type)
 		{
 			v1Trigger = trigger;
 			v1TriggerData = trigger.GetTrigger();
@@ -1682,7 +1683,7 @@ namespace Microsoft.Win32.TaskScheduler
 		{
 			ttype = triggerType;
 
-			v1TriggerData.TriggerSize = (ushort)Marshal.SizeOf(typeof(V1Interop.TaskTrigger));
+			v1TriggerData.TriggerSize = (ushort)Marshal.SizeOf(typeof(TaskTrigger));
 			if (ttype != TaskTriggerType.Registration && ttype != TaskTriggerType.Event && ttype != TaskTriggerType.SessionStateChange)
 				v1TriggerData.Type = ConvertToV1TriggerType(ttype);
 
@@ -1693,14 +1694,14 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <summary>Gets or sets a Boolean value that indicates whether the trigger is enabled.</summary>
 		public bool Enabled
 		{
-			get => v2Trigger?.Enabled ?? GetUnboundValueOrDefault(nameof(Enabled), !v1TriggerData.Flags.IsFlagSet(V1Interop.TaskTriggerFlags.Disabled));
+			get => v2Trigger?.Enabled ?? GetUnboundValueOrDefault(nameof(Enabled), !v1TriggerData.Flags.IsFlagSet(TaskTriggerFlags.Disabled));
 			set
 			{
 				if (v2Trigger != null)
 					v2Trigger.Enabled = value;
 				else
 				{
-					v1TriggerData.Flags = v1TriggerData.Flags.SetFlags(V1Interop.TaskTriggerFlags.Disabled, !value);
+					v1TriggerData.Flags = v1TriggerData.Flags.SetFlags(TaskTriggerFlags.Disabled, !value);
 					if (v1Trigger != null)
 						SetV1TriggerData();
 					else
@@ -2010,51 +2011,51 @@ namespace Microsoft.Win32.TaskScheduler
 
 		internal static DateTime AdjustToLocal(DateTime dt) => dt.Kind == DateTimeKind.Utc ? dt.ToLocalTime() : dt;
 
-		internal static V1Interop.TaskTriggerType ConvertToV1TriggerType(TaskTriggerType type)
+		internal static V1.TaskTriggerType ConvertToV1TriggerType(TaskTriggerType type)
 		{
 			if (type == TaskTriggerType.Registration || type == TaskTriggerType.Event || type == TaskTriggerType.SessionStateChange)
 				throw new NotV1SupportedException();
 			var tv1 = (int)type - 1;
 			if (tv1 >= 7) tv1--;
-			return (V1Interop.TaskTriggerType)tv1;
+			return (V1.TaskTriggerType)tv1;
 		}
 
-		internal static Trigger CreateTrigger([NotNull] V1Interop.ITaskTrigger trigger) => CreateTrigger(trigger, trigger.GetTrigger().Type);
+		internal static Trigger CreateTrigger([NotNull] ITaskTrigger trigger) => CreateTrigger(trigger, trigger.GetTrigger().Type);
 
-		internal static Trigger CreateTrigger([NotNull] V1Interop.ITaskTrigger trigger, V1Interop.TaskTriggerType triggerType)
+		internal static Trigger CreateTrigger([NotNull] ITaskTrigger trigger, V1.TaskTriggerType triggerType)
 		{
 			Trigger t;
 			switch (triggerType)
 			{
-				case V1Interop.TaskTriggerType.RunOnce:
+				case V1.TaskTriggerType.RunOnce:
 					t = new TimeTrigger(trigger);
 					break;
 
-				case V1Interop.TaskTriggerType.RunDaily:
+				case V1.TaskTriggerType.RunDaily:
 					t = new DailyTrigger(trigger);
 					break;
 
-				case V1Interop.TaskTriggerType.RunWeekly:
+				case V1.TaskTriggerType.RunWeekly:
 					t = new WeeklyTrigger(trigger);
 					break;
 
-				case V1Interop.TaskTriggerType.RunMonthly:
+				case V1.TaskTriggerType.RunMonthly:
 					t = new MonthlyTrigger(trigger);
 					break;
 
-				case V1Interop.TaskTriggerType.RunMonthlyDOW:
+				case V1.TaskTriggerType.RunMonthlyDOW:
 					t = new MonthlyDOWTrigger(trigger);
 					break;
 
-				case V1Interop.TaskTriggerType.OnIdle:
+				case V1.TaskTriggerType.OnIdle:
 					t = new IdleTrigger(trigger);
 					break;
 
-				case V1Interop.TaskTriggerType.OnSystemStart:
+				case V1.TaskTriggerType.OnSystemStart:
 					t = new BootTrigger(trigger);
 					break;
 
-				case V1Interop.TaskTriggerType.OnLogon:
+				case V1.TaskTriggerType.OnLogon:
 					t = new LogonTrigger(trigger);
 					break;
 
@@ -2123,7 +2124,7 @@ namespace Microsoft.Win32.TaskScheduler
 				try
 				{
 					foundTimeSpan2 = false;
-					timeSpan2Type = System.Reflection.ReflectionHelper.LoadType("System.TimeSpan2", "TimeSpan2.dll");
+					timeSpan2Type = ReflectionHelper.LoadType("System.TimeSpan2", "TimeSpan2.dll");
 					if (timeSpan2Type != null)
 						foundTimeSpan2 = true;
 				}
@@ -2135,7 +2136,7 @@ namespace Microsoft.Win32.TaskScheduler
 			{
 				try
 				{
-					return System.Reflection.ReflectionHelper.InvokeMethod<string>(timeSpan2Type, new object[] { span }, "ToString", "f");
+					return ReflectionHelper.InvokeMethod<string>(timeSpan2Type, new object[] { span }, "ToString", "f");
 				}
 				catch { /* ignored */ }
 			}
@@ -2143,7 +2144,7 @@ namespace Microsoft.Win32.TaskScheduler
 			return span.ToString();
 		}
 
-		internal virtual void Bind([NotNull] V1Interop.ITask iTask)
+		internal virtual void Bind([NotNull] ITask iTask)
 		{
 			if (v1Trigger == null)
 			{
@@ -2217,7 +2218,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String describing the trigger.</returns>
 		protected virtual string V2GetTriggerString() => string.Empty;
 
-		private static TaskTriggerType ConvertFromV1TriggerType(V1Interop.TaskTriggerType v1Type)
+		private static TaskTriggerType ConvertFromV1TriggerType(V1.TaskTriggerType v1Type)
 		{
 			var tv2 = (int)v1Type + 1;
 			if (tv2 > 6) tv2++;
@@ -2268,7 +2269,7 @@ namespace Microsoft.Win32.TaskScheduler
 			WeeksInterval = weeksInterval;
 		}
 
-		internal WeeklyTrigger([NotNull] V1Interop.ITaskTrigger iTrigger) : base(iTrigger, V1Interop.TaskTriggerType.RunWeekly)
+		internal WeeklyTrigger([NotNull] ITaskTrigger iTrigger) : base(iTrigger, V1.TaskTriggerType.RunWeekly)
 		{
 			if (v1TriggerData.Data.weekly.DaysOfTheWeek == 0)
 				v1TriggerData.Data.weekly.DaysOfTheWeek = DaysOfTheWeek.Sunday;

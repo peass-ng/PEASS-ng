@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Runtime;
 using System.Security;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using JetBrains.Annotations;
+using winPEAS.TaskScheduler.Native;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Specifies the access control rights that can be applied to Task Scheduler tasks.

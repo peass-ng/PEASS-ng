@@ -1,7 +1,4 @@
-﻿using JetBrains.Annotations;
-using Microsoft.Win32.TaskScheduler.V1Interop;
-using Microsoft.Win32.TaskScheduler.V2Interop;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,12 +15,15 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using IPrincipal = Microsoft.Win32.TaskScheduler.V2Interop.IPrincipal;
+using winPEAS.TaskScheduler.Native;
+using winPEAS.TaskScheduler.V1;
+using winPEAS.TaskScheduler.V2;
+using IPrincipal = winPEAS.TaskScheduler.V2.IPrincipal;
 // ReSharper disable UnusedMember.Global
 
 // ReSharper disable InconsistentNaming ReSharper disable SuspiciousTypeConversion.Global
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>Defines what versions of Task Scheduler or the AT command that the task is compatible with.</summary>
 	public enum TaskCompatibility
@@ -737,7 +737,7 @@ namespace Microsoft.Win32.TaskScheduler
 		public string Path => v2Task != null ? v2Task.Path : "\\" + Name;
 
 		/// <summary>
-		/// Gets a value indicating whether this task is read only. Only available if <see cref="Microsoft.Win32.TaskScheduler.TaskService.AllowReadOnlyTasks"/>
+		/// Gets a value indicating whether this task is read only. Only available if <see cref="TaskScheduler.TaskService.AllowReadOnlyTasks"/>
 		/// is <c>true</c>.
 		/// </summary>
 		/// <value><c>true</c> if read only; otherwise, <c>false</c>.</value>

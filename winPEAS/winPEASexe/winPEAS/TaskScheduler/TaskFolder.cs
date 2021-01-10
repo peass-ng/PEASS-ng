@@ -5,11 +5,10 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.AccessControl;
 using System.Text.RegularExpressions;
-using JetBrains.Annotations;
-using Microsoft.Win32.TaskScheduler.V1Interop;
-using Microsoft.Win32.TaskScheduler.V2Interop;
+using winPEAS.TaskScheduler.V1;
+using winPEAS.TaskScheduler.V2;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Provides the methods that are used to register (create) tasks in the folder, remove tasks from the folder, and create or remove subfolders from the folder.
@@ -97,7 +96,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>A <see cref="TaskFolder" /> instance that represents the new subfolder.</returns>
 		/// <exception cref="System.Security.SecurityException">Security descriptor mismatch between specified credentials and credentials on existing folder by same name.</exception>
 		/// <exception cref="System.ArgumentException">Invalid SDDL form.</exception>
-		/// <exception cref="Microsoft.Win32.TaskScheduler.NotV1SupportedException">Not supported under Task Scheduler 1.0.</exception>
+		/// <exception cref="NotV1SupportedException">Not supported under Task Scheduler 1.0.</exception>
 		public TaskFolder CreateFolder([NotNull] string subFolderName, string sddlForm = null, bool exceptionOnExists = true)
 		{
 			if (v2Folder == null) throw new NotV1SupportedException();
@@ -139,7 +138,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// </summary>
 		/// <param name="subFolderName">The name of the subfolder to be removed. The root task folder is specified with a backslash (\). This parameter can be a relative path to the folder you want to delete. An example of a task folder path, under the root task folder, is \MyTaskFolder. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
 		/// <param name="exceptionOnNotExists">Set this value to false to avoid having an exception called if the folder does not exist.</param>
-		/// <exception cref="Microsoft.Win32.TaskScheduler.NotV1SupportedException">Not supported under Task Scheduler 1.0.</exception>
+		/// <exception cref="NotV1SupportedException">Not supported under Task Scheduler 1.0.</exception>
 		public void DeleteFolder([NotNull] string subFolderName, bool exceptionOnNotExists = true)
 		{
 			if (v2Folder != null)

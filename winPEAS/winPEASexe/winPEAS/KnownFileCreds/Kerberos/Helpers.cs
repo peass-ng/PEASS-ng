@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using winPEAS.KnownFileCreds.Kerberos.structs;
+using winPEAS.Helpers;
 
 namespace winPEAS.KnownFileCreds.Kerberos
 {

@@ -1,10 +1,10 @@
 using System;
 using System.Runtime.InteropServices;
-using JetBrains.Annotations;
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 
-namespace Microsoft.Win32.TaskScheduler.V1Interop
+namespace winPEAS.TaskScheduler.V1
 {
 	#region class HRESULT -- Values peculiar to the task scheduler.
 	internal class HResult

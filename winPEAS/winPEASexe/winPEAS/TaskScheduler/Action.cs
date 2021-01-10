@@ -1,14 +1,14 @@
-﻿using JetBrains.Annotations;
-using Microsoft.Win32.TaskScheduler.V2Interop;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
+using Microsoft.Win32;
+using winPEAS.TaskScheduler.V1;
+using winPEAS.TaskScheduler.V2;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>Defines the type of actions a task can perform.</summary>
 	/// <remarks>The action type is defined when the action is created and cannot be changed later. See <see cref="ActionCollection.AddNew"/>.</remarks>
@@ -45,7 +45,7 @@ namespace Microsoft.Win32.TaskScheduler
 	public abstract class Action : IDisposable, ICloneable, IEquatable<Action>, INotifyPropertyChanged, IComparable, IComparable<Action>
 	{
 		internal IAction iAction;
-		internal V1Interop.ITask v1Task;
+		internal ITask v1Task;
 
 		/// <summary>List of unbound values when working with Actions not associated with a registered task.</summary>
 		protected readonly Dictionary<string, object> unboundValues = new Dictionary<string, object>();
@@ -57,7 +57,7 @@ namespace Microsoft.Win32.TaskScheduler
 			iAction = action;
 		}
 
-		internal Action([NotNull] V1Interop.ITask iTask)
+		internal Action([NotNull] ITask iTask)
 		{
 			v1Task = iTask;
 		}
@@ -186,7 +186,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// </summary>
 		/// <param name="iTask">Version 1.0 interface.</param>
 		/// <returns>Specialized action class</returns>
-		internal static Action CreateAction(V1Interop.ITask iTask)
+		internal static Action CreateAction(ITask iTask)
 		{
 			ExecAction tempAction = new ExecAction(iTask);
 			Action a = ConvertFromPowerShellAction(tempAction);
@@ -231,7 +231,7 @@ namespace Microsoft.Win32.TaskScheduler
 			return ret;
 		}
 
-		internal virtual void Bind(V1Interop.ITask iTask)
+		internal virtual void Bind(ITask iTask)
 		{
 			if (Id != null)
 				iTask.SetDataItem("ActionId", Id);
@@ -336,7 +336,7 @@ namespace Microsoft.Win32.TaskScheduler
 			Data = data;
 		}
 
-		internal ComHandlerAction([NotNull] V1Interop.ITask task) : base(task) { }
+		internal ComHandlerAction([NotNull] ITask task) : base(task) { }
 
 		internal ComHandlerAction([NotNull] IAction action) : base(action) { }
 
@@ -474,7 +474,7 @@ namespace Microsoft.Win32.TaskScheduler
 			Server = mailServer;
 		}
 
-		internal EmailAction([NotNull] V1Interop.ITask task) : base(task) { }
+		internal EmailAction([NotNull] ITask task) : base(task) { }
 
 		internal EmailAction([NotNull] IAction action) : base(action) { }
 
@@ -777,7 +777,7 @@ namespace Microsoft.Win32.TaskScheduler
 			WorkingDirectory = workingDirectory;
 		}
 
-		internal ExecAction([NotNull] V1Interop.ITask task) : base(task) { }
+		internal ExecAction([NotNull] ITask task) : base(task) { }
 
 		internal ExecAction([NotNull] IAction action) : base(action) { }
 
@@ -938,7 +938,7 @@ namespace Microsoft.Win32.TaskScheduler
 			Title = title;
 		}
 
-		internal ShowMessageAction([NotNull] V1Interop.ITask task) : base(task) { }
+		internal ShowMessageAction([NotNull] ITask task) : base(task) { }
 
 		internal ShowMessageAction([NotNull] IAction action) : base(action) { }
 

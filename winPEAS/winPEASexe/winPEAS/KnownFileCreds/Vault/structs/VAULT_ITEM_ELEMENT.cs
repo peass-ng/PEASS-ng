@@ -1,5 +1,5 @@
 ﻿using System.Runtime.InteropServices;
-using winPEAS.KnownFileCreds.Vault.enums;
+using winPEAS.KnownFileCreds.Vault.Enums;
 
 namespace winPEAS.KnownFileCreds.Vault.structs
 {

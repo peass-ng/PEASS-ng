@@ -1,6 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Security.AccessControl;
 
-namespace System.Security.AccessControl
+namespace winPEAS.TaskScheduler.Native
 {
 	/// <summary>Extensions for classes in the System.Security.AccessControl namespace.</summary>
 	public static class AccessControlExtension
@@ -12,10 +14,10 @@ namespace System.Security.AccessControl
 			if (acl == null) throw new ArgumentNullException(nameof(acl));
 
 			// Extract aces to list
-			var aces = new Collections.Generic.List<GenericAce>(acl.Cast<GenericAce>());
+			var aces = new System.Collections.Generic.List<GenericAce>(acl.Cast<GenericAce>());
 
 			// Sort aces based on canonical order
-			aces.Sort((a, b) => Collections.Generic.Comparer<byte>.Default.Compare(GetComparisonValue(a), GetComparisonValue(b)));
+			aces.Sort((a, b) => System.Collections.Generic.Comparer<byte>.Default.Compare(GetComparisonValue(a), GetComparisonValue(b)));
 
 			// Add sorted aces back to ACL
 			while (acl.Count > 0) acl.RemoveAce(0);

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Security.Principal;
+using winPEAS.TaskScheduler.Native;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>Represents a system account.</summary>
 	internal class User : IEquatable<User>, IDisposable

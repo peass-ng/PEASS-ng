@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 
-namespace Microsoft.Win32
+namespace winPEAS.TaskScheduler.Native
 {
 	/// <summary>
 	/// Impersonation of a user. Allows to execute code under another

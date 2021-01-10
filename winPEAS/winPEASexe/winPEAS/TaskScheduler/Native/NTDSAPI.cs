@@ -3,7 +3,7 @@ using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace Microsoft.Win32
+namespace winPEAS.TaskScheduler.Native
 {
 	internal static partial class NativeMethods
 	{

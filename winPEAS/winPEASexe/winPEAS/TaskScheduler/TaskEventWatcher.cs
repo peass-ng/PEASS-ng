@@ -3,9 +3,8 @@ using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
-using JetBrains.Annotations;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Information about the task event.
@@ -434,7 +433,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// Fires the <see cref="EventRecorded"/> event.
 		/// </summary>
 		/// <param name="sender">The sender.</param>
-		/// <param name="e">The <see cref="Microsoft.Win32.TaskScheduler.TaskEventArgs" /> instance containing the event data.</param>
+		/// <param name="e">The <see cref="TaskEventArgs" /> instance containing the event data.</param>
 		protected virtual void OnEventRecorded(object sender, TaskEventArgs e)
 		{
 			var h = EventRecorded;

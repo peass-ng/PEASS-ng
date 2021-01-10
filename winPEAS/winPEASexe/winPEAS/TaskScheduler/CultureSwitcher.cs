@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	internal class CultureSwitcher : IDisposable
 	{

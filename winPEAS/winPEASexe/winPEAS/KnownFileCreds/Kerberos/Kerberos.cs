@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using winPEAS.KnownFileCreds.Kerberos.enums;
-using winPEAS.KnownFileCreds.Kerberos.structs;
+using winPEAS.Helpers;
 
 namespace winPEAS.KnownFileCreds.Kerberos
 {

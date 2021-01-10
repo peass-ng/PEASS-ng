@@ -3,9 +3,9 @@ using System.Collections;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using JetBrains.Annotations;
+using winPEAS.TaskScheduler.Native;
 
-namespace Microsoft.Win32.TaskScheduler.V2Interop
+namespace winPEAS.TaskScheduler.V2
 {
 	[ComImport, Guid("BAE54997-48B1-4CBE-9965-D6BE263EBEA4"), InterfaceType(ComInterfaceType.InterfaceIsDual), System.Security.SuppressUnmanagedCodeSecurity]
 	internal interface IAction
@@ -230,7 +230,7 @@ namespace Microsoft.Win32.TaskScheduler.V2Interop
 		void SetSecurityDescriptor([In, MarshalAs(UnmanagedType.BStr)] string sddl, [In] int flags);
 		void Stop(int flags);
 		[MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(0x60020011)]
-		void GetRunTimes([In] ref Microsoft.Win32.NativeMethods.SYSTEMTIME pstStart, [In] ref Microsoft.Win32.NativeMethods.SYSTEMTIME pstEnd, [In, Out] ref uint pCount, [In, Out] ref IntPtr pRunTimes);
+		void GetRunTimes([In] ref NativeMethods.SYSTEMTIME pstStart, [In] ref NativeMethods.SYSTEMTIME pstEnd, [In, Out] ref uint pCount, [In, Out] ref IntPtr pRunTimes);
 	}
 
 	[ComImport, Guid("86627EB4-42A7-41E4-A4D9-AC33A72F2D52"), InterfaceType(ComInterfaceType.InterfaceIsDual), System.Security.SuppressUnmanagedCodeSecurity]

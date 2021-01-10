@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.Win32;
-using winPEAS.Utils;
+using winPEAS.Helpers;
 
 namespace winPEAS.KnownFileCreds
 {

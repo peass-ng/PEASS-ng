@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
-using JetBrains.Annotations;
+using winPEAS.TaskScheduler.Native;
+using winPEAS.TaskScheduler.V1;
+using winPEAS.TaskScheduler.V2;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Options for when to convert actions to PowerShell equivalents.
@@ -43,20 +45,20 @@ namespace Microsoft.Win32.TaskScheduler
 		internal const int MaxActions = 32;
 
 		private List<Action> v1Actions;
-		private V1Interop.ITask v1Task;
-		private V2Interop.IActionCollection v2Coll;
-		private V2Interop.ITaskDefinition v2Def;
+		private ITask v1Task;
+		private IActionCollection v2Coll;
+		private ITaskDefinition v2Def;
 		private PowerShellActionPlatformOption psConvert = PowerShellActionPlatformOption.Version2;
 		private static readonly string psV2IdRegex = $"(?:; )?{nameof(PowerShellConversion)}=(?<v>0|1)";
 
-		internal ActionCollection([NotNull] V1Interop.ITask task)
+		internal ActionCollection([NotNull] ITask task)
 		{
 			v1Task = task;
 			v1Actions = GetV1Actions();
 			PowerShellConversion = Action.TryParse(v1Task.GetDataItem(nameof(PowerShellConversion)), psConvert | PowerShellActionPlatformOption.Version2);
 		}
 
-		internal ActionCollection([NotNull] V2Interop.ITaskDefinition iTaskDef)
+		internal ActionCollection([NotNull] ITaskDefinition iTaskDef)
 		{
 			v2Def = iTaskDef;
 			v2Coll = iTaskDef.Actions;
@@ -350,7 +352,7 @@ namespace Microsoft.Win32.TaskScheduler
 		public IEnumerator<Action> GetEnumerator()
 		{
 			if (v2Coll != null)
-				return new ComEnumerator<Action, V2Interop.IAction>(() => v2Coll.Count, i => v2Coll[i], Action.CreateAction);
+				return new ComEnumerator<Action, IAction>(() => v2Coll.Count, i => v2Coll[i], Action.CreateAction);
 			return v1Actions.GetEnumerator();
 		}
 

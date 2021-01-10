@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace winPEAS.KnownFileCreds.Vault.enums
+namespace winPEAS.KnownFileCreds.Vault.Enums
 {
     public enum VAULT_ELEMENT_TYPE : Int32
     {

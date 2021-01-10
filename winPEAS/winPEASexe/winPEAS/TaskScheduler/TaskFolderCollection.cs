@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using JetBrains.Annotations;
+using winPEAS.TaskScheduler.Native;
+using winPEAS.TaskScheduler.V2;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Provides information and control for a collection of folders that contain tasks.
@@ -11,14 +12,14 @@ namespace Microsoft.Win32.TaskScheduler
 	{
 		private readonly TaskFolder parent;
 		private readonly TaskFolder[] v1FolderList;
-		private readonly V2Interop.ITaskFolderCollection v2FolderList;
+		private readonly ITaskFolderCollection v2FolderList;
 
 		internal TaskFolderCollection()
 		{
 			v1FolderList = new TaskFolder[0];
 		}
 
-		internal TaskFolderCollection([NotNull] TaskFolder folder, [NotNull] V2Interop.ITaskFolderCollection iCollection)
+		internal TaskFolderCollection([NotNull] TaskFolder folder, [NotNull] ITaskFolderCollection iCollection)
 		{
 			parent = folder;
 			v2FolderList = iCollection;
@@ -118,7 +119,7 @@ namespace Microsoft.Win32.TaskScheduler
 		public IEnumerator<TaskFolder> GetEnumerator()
 		{
 			if (v2FolderList != null)
-				return new System.Runtime.InteropServices.ComEnumerator<TaskFolder, V2Interop.ITaskFolder>(() => v2FolderList.Count, (object o) => v2FolderList[o], o => new TaskFolder(parent.TaskService, o));
+				return new ComEnumerator<TaskFolder, ITaskFolder>(() => v2FolderList.Count, (object o) => v2FolderList[o], o => new TaskFolder(parent.TaskService, o));
 			return Array.AsReadOnly(v1FolderList).GetEnumerator();
 		}
 
