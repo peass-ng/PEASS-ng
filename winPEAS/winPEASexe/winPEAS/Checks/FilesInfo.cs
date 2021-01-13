@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Search;
 using winPEAS.InterestingFiles;
 using winPEAS.KnownFileCreds;
 
@@ -278,31 +279,56 @@ namespace winPEAS.Checks
             {
                 string patterns = "*credential*;*password*";
                 string pattern_color = "[cC][rR][eE][dD][eE][nN][tT][iI][aA][lL]|[pP][aA][sS][sS][wW][oO][rR][dD]";
-                List<string> valid_extensions = new List<string>() { ".txt", ".conf", ".cnf", ".yml", ".yaml", ".doc", ".docx", ".xlsx", ".json", ".xml" };
-                Dictionary<string, string> colorF = new Dictionary<string, string>()
-                    {
-                        { pattern_color, Beaprint.ansi_color_bad },
-                    };
+                
+                var valid_extensions = new List<string>() { ".txt", ".conf", ".cnf", ".yml", ".yaml", ".doc", ".docx", ".xlsx", ".json", ".xml" };
+
+                var validExtensions = new HashSet<string>
+                {
+                    ".cnf",
+                    ".conf",
+                    ".doc",
+                    ".docx",
+                    ".json",
+                    ".xlsx",
+                    ".xml",
+                    ".yaml",
+                    ".yml",
+                    ".txt",
+                };
+
+                var colorF = new Dictionary<string, string>()
+                {
+                    { pattern_color, Beaprint.ansi_color_bad },
+                };
 
                 Beaprint.MainPrint("Looking for possible password files in users homes");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files");
-                string searchPath = string.Format("{0}\\", Environment.GetEnvironmentVariable("SystemDrive") + "\\Users");
-                List<string> files_paths = SearchHelper.FindFiles(searchPath, patterns);
-                foreach (string file_path in files_paths)
+                string searchPath = $"{Environment.GetEnvironmentVariable("SystemDrive") + "\\Users"}\\";
+                List<CustomFileInfo> fileInfos = SearchHelper.SearchUserCredsFiles();
+
+                foreach (var fileInfo in fileInfos)
                 {
-                    if (!Path.GetFileName(file_path).Contains("."))
+                    // if (!Path.GetFileName(file_path).Contains("."))
+                    if (!fileInfo.Filename.Contains("."))
                     {
-                        Beaprint.AnsiPrint("    " + file_path, colorF);
+                        Beaprint.AnsiPrint("    " + fileInfo.FullPath, colorF);
                     }
                     else
                     {
-                        foreach (string ext in valid_extensions)
+                        string extLower = fileInfo.Extension.ToLower();
+
+                        if (validExtensions.Contains(extLower))
                         {
-                            if (file_path.Contains(ext))
-                            {
-                                Beaprint.AnsiPrint("    " + file_path, colorF);
-                            }
+                            Beaprint.AnsiPrint("    " + fileInfo.FullPath, colorF);
                         }
+
+                        //foreach (string ext in valid_extensions)
+                        //{
+                        //    if (file_path.Contains(ext))
+                        //    {
+                        //        Beaprint.AnsiPrint("    " + file_path, colorF);
+                        //    }
+                        //}
                     }
                 }
             }
@@ -356,19 +382,17 @@ namespace winPEAS.Checks
         {
             try
             {
-                Dictionary<string, string> colorF = new Dictionary<string, string>()
-                    {
-                        { _patternsFileCredsColor, Beaprint.ansi_color_bad },
-                    };
+                var colorF = new Dictionary<string, string>
+                {
+                    { _patternsFileCredsColor, Beaprint.ansi_color_bad },
+                };
 
                 Beaprint.MainPrint("Searching known files that can contain creds in home");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files");
-                string searchPath = Environment.GetEnvironmentVariable("USERPROFILE");
+               
+                var files = SearchHelper.SearchUsersInterestingFiles();
 
-                //SearchHelper.FindFiles(searchPath, _patternsFileCreds, colorF);
-                string patterns = string.Join(";", patternsFileCreds);
-                SearchHelper.FindFiles(searchPath, patterns, colorF);
-                
+                Beaprint.AnsiPrint("    " + string.Join("\n    ", files), colorF);
             }
             catch (Exception ex)
             {

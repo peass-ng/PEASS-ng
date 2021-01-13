@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Xml;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Search;
 
 namespace winPEAS.InterestingFiles
 {
@@ -24,7 +25,8 @@ namespace winPEAS.InterestingFiles
                 }
                 allUsers += "\\Microsoft\\Group Policy\\History"; // look only in the GPO cache folder
 
-                List<string> files = SearchHelper.FindFiles(allUsers, "*.xml");
+                //List<string> files = SearchHelper.FindFiles(allUsers, "*.xml");
+                List<string> files = SearchHelper.FindCachedGPPPassword();
 
                 // files will contain all XML files
                 foreach (string file in files)

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Management;
 using System.Security.Principal;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Search;
 using winPEAS.Info.UserInfo;
 
 namespace winPEAS.Checks
@@ -128,7 +129,7 @@ namespace winPEAS.Checks
                 CheckRegANSI();
             }
 
-            CreateDynamicLists();
+            CheckRunner.Run(CreateDynamicLists, IsDebug);
 
             Beaprint.PrintInit(IsDebug);           
 
@@ -234,6 +235,17 @@ namespace winPEAS.Checks
             {
                 Beaprint.GrayPrint("Error while creating admin users groups list: " + ex);
             }
+
+            // create the file lists
+            try
+            {
+                Beaprint.GrayPrint("   - Files/directories list for search...");
+                SearchHelper.CreateSearchDirectoriesList();
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("Error while creating directory list: " + ex);
+            }            
         }
 
         private static void CheckRegANSI()

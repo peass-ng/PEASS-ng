@@ -22,7 +22,9 @@ namespace winPEAS.KnownFileCreds
                 foreach (string SID in SIDs)
                 {
                     if (SID.StartsWith("S-1-5") && !SID.EndsWith("_Classes"))
+                    {
                         results = RegistryHelper.GetRegValues("HKU", String.Format("{0}\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU", SID));
+                    }
                 }
             }
             else

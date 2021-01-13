@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Search;
 
 namespace winPEAS.InterestingFiles
 {
@@ -43,19 +44,13 @@ namespace winPEAS.InterestingFiles
 
             try
             {
-                string drive = System.Environment.GetEnvironmentVariable("SystemDrive");
+               
 
-                string[] searchLocations =
-                {
-                    $"{drive}\\Program Files\\",
-                    $"{drive}\\Program Files (x86)\\",
-                    $"{drive}\\Documents and Settings\\",
-                    $"{drive}\\Users\\",
-                };
+                results = SearchHelper.SearchMcAfeeSitelistFiles();
 
-                results.AddRange(
-                    searchLocations.SelectMany(
-                        searchLocation => SearchHelper.FindFiles(searchLocation, "SiteList.xml")));
+                //results.AddRange(
+                //    searchLocations.SelectMany(
+                //        searchLocation => SearchHelper.FindFiles(searchLocation, "SiteList.xml")));
             }
             catch (Exception ex)
             {
@@ -110,28 +105,31 @@ namespace winPEAS.InterestingFiles
                 {
                     string searchPath = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\Users\\";
 
-                    List<string> files = SearchHelper.FindFiles(searchPath, patterns);
+                    //List<string> files = SearchHelper.FindFiles(searchPath, patterns);
 
-                    foreach (string file in files)
-                    {
-                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                        DateTime lastModified = System.IO.File.GetLastWriteTime(file);
-                        results.Add(file);
-                    }
+                    //foreach (string file in files)
+                    //{
+                    //    //DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
+                    //    //DateTime lastModified = System.IO.File.GetLastWriteTime(file);
+                    //    results.Add(file);
+                    //}
+
+                    results = SearchHelper.SearchUsersDocs();                   
                 }
 
                 else
                 {
                     string searchPath = Environment.GetEnvironmentVariable("USERPROFILE");
 
-                    List<string> files = SearchHelper.FindFiles(searchPath, patterns);
+                    //List<string> files = SearchHelper.FindFiles(searchPath, patterns);
 
-                    foreach (string file in files)
-                    {
-                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                        DateTime lastModified = System.IO.File.GetLastWriteTime(file);
-                        results.Add(file);
-                    }
+                    //foreach (string file in files)
+                    //{
+                    //    //DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
+                    //    //DateTime lastModified = System.IO.File.GetLastWriteTime(file);
+                    //    results.Add(file);
+                    //}
+                    results = SearchHelper.SearchCurrentUserDocs();
                 }
             }
             catch (Exception ex)

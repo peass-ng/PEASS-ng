@@ -116,14 +116,15 @@
     <Compile Include="Checks\SystemInfo.cs" />
     <Compile Include="Checks\UserInfo.cs" />
     <Compile Include="Checks\WindowsCreds.cs" />
+    <Compile Include="Helpers\CustomFileInfo.cs" />
     <Compile Include="Helpers\MemoryHelper.cs" />
     <Compile Include="Helpers\PermissionsHelper.cs" />
+    <Compile Include="Helpers\Search\Patterns.cs" />
     <Compile Include="Info\ApplicationInfo\ApplicationInfoHelper.cs" />
     <Compile Include="Info\ApplicationInfo\AutoRuns.cs" />
     <Compile Include="Info\ApplicationInfo\DeviceDrivers.cs" />
     <Compile Include="Info\ApplicationInfo\InstalledApps.cs" />
     <Compile Include="Helpers\Beaprint.cs" />
-    <Compile Include="FastSearch\FileSearcher\FileSearcher.cs" />
     <Compile Include="InterestingFiles\GPP.cs" />
     <Compile Include="InterestingFiles\InterestingFiles.cs" />
     <Compile Include="InterestingFiles\Unattended.cs" />
@@ -211,7 +212,7 @@
     <Compile Include="Helpers\CheckRunner.cs" />
     <Compile Include="Helpers\ReflectionHelper.cs" />
     <Compile Include="Helpers\RegistryHelper.cs" />
-    <Compile Include="Helpers\SearchHelper.cs" />
+    <Compile Include="Helpers\Search\SearchHelper.cs" />
     <Compile Include="3rdParty\Watson\Msrc\CVE-2019-0836.cs" />
     <Compile Include="3rdParty\Watson\Msrc\CVE-2019-0841.cs" />
     <Compile Include="3rdParty\Watson\Msrc\CVE-2019-1064.cs" />
