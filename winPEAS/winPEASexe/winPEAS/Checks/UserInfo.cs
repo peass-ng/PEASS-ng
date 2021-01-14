@@ -114,7 +114,7 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Clipboard text");
                 string clipboard = Info.UserInfo.UserInfoHelper.GetClipboardText();
-                if (string.IsNullOrEmpty(clipboard))
+                if (!string.IsNullOrEmpty(clipboard))
                 {
                     Beaprint.BadPrint(clipboard);
                 }

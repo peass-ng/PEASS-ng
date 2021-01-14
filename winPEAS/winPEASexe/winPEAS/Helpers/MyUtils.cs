@@ -55,7 +55,15 @@ namespace winPEAS.Helpers
             string binaryPath = "";
             Match match_path = Regex.Match(path, @"^\W*([a-z]:\\.+?(\.exe|\.dll|\.sys))\W*", RegexOptions.RightToLeft | RegexOptions.IgnoreCase);
             if (match_path.Groups.Count > 1)
+            { 
                 binaryPath = match_path.Groups[1].ToString();
+            }
+
+            if (binaryPath.Contains('"'))
+            {
+                binaryPath = binaryPath.Split('"')[0];
+                binaryPath = binaryPath.Trim();
+            }
 
             //Check if rundll32
             string[] binaryPathdll32 = binaryPath.Split(new string[] {"Rundll32.exe"}, StringSplitOptions.None);

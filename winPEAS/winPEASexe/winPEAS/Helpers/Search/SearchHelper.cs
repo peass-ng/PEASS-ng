@@ -248,31 +248,15 @@ namespace winPEAS.Helpers.Search
         }
 
         internal static List<string> SearchUsersInterestingFiles()
-        {           
-            //SearchHelper.FindFiles(searchPath, _patternsFileCreds, colorF);
-            //string patterns = string.Join(";", patternsFileCreds);
-
+        {
             var result = new List<string>();
 
             foreach (var file in SearchHelper.RootDirCurrentUser)
             {
-                // !!! too slow - regexp
-                //foreach (var pattern in Patterns.PatternsFileCreds2)
-                //{
-                //    if (Regex.IsMatch(file, pattern, RegexOptions.IgnoreCase))
-                //    {
-                //        //files2.Add(file + $"  [pattern: '{pattern}']");
-                //        files2.Add(file);
-                //        break;
-                //    }
-                //}
-
                 string extLower = file.Extension.ToLower();
                 string nameLower = file.Filename.ToLower();
-                //  string nameExtLower = nameLower + "." + extLower;
 
                 if (Patterns.WhitelistExtensions.Contains(extLower) ||
-                    //   Patterns.WhiteListFilenames.Contains(nameLower) ||
                     Patterns.WhiteListExactfilenamesWithExtensions.Contains(nameLower))
                 {
                     result.Add(file.FullPath);
@@ -296,9 +280,6 @@ namespace winPEAS.Helpers.Search
 
         internal static List<string> FindCachedGPPPassword()
         {
-            //SearchHelper.FindFiles(searchPath, _patternsFileCreds, colorF);
-            //string patterns = string.Join(";", patternsFileCreds);
-
             var result = new List<string>();
 
             var allowedExtensions = new HashSet<string>
@@ -307,13 +288,13 @@ namespace winPEAS.Helpers.Search
             };
 
             foreach (var file in SearchHelper.GroupPolicyHistory)
-            {                
-                string extLower = file.Extension.ToLower();                              
+            {
+                string extLower = file.Extension.ToLower();
 
                 if (allowedExtensions.Contains(extLower))
                 {
                     result.Add(file.FullPath);
-                }              
+                }
             }
 
             return result;
@@ -327,14 +308,6 @@ namespace winPEAS.Helpers.Search
             {
                 "sitelist.xml"
             };
-
-            //string[] searchLocations =
-            //{
-            //    $"{drive}\\Program Files\\",
-            //    $"{drive}\\Program Files (x86)\\",
-            //    $"{drive}\\Documents and Settings\\",
-            //    $"{drive}\\Users\\",
-            //};
 
             var searchFiles = new List<CustomFileInfo>();            
             searchFiles.AddRange(SearchHelper.ProgramFiles);
@@ -359,8 +332,6 @@ namespace winPEAS.Helpers.Search
         {
             var result = new List<string>();
 
-            string patterns = "*diagram*;*.pdf;*.vsd;*.doc;*docx;*.xls;*.xlsx";
-
             var allowedRegexp = new List<string>
             {
                 ".*diagram.*",
@@ -380,7 +351,6 @@ namespace winPEAS.Helpers.Search
             {
                 string extLower = file.Extension.ToLower();
                 string nameLower = file.Filename.ToLower();
-                //  string nameExtLower = nameLower + "." + extLower;
 
                 if (allowedExtensions.Contains(extLower))
                 {
@@ -407,8 +377,6 @@ namespace winPEAS.Helpers.Search
         {
             var result = new List<string>();
 
-            string patterns = "*diagram*;*.pdf;*.vsd;*.doc;*docx;*.xls;*.xlsx";
-
             var allowedRegexp = new List<string>
             {
                 ".*diagram.*",
@@ -428,7 +396,6 @@ namespace winPEAS.Helpers.Search
             {
                 string extLower = file.Extension.ToLower();
                 string nameLower = file.Filename.ToLower();
-                //  string nameExtLower = nameLower + "." + extLower;
 
                 if (allowedExtensions.Contains(extLower))
                 {

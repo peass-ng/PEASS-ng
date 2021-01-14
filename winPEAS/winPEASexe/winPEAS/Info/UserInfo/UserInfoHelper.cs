@@ -48,7 +48,7 @@ namespace winPEAS.Info.UserInfo
                 }
                 catch
                 {
-                    Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                    Beaprint.PrintException(ex.Message);
                 }
             }
 
@@ -61,7 +61,7 @@ namespace winPEAS.Info.UserInfo
                 }
                 catch (Exception ex)
                 {
-                    Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                    Beaprint.PrintException(ex.Message);
                 }
             }
             return groupName;
@@ -78,7 +78,7 @@ namespace winPEAS.Info.UserInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return groupName;
         }       

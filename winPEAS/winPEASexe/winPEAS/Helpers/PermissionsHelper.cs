@@ -87,7 +87,9 @@ namespace winPEAS.Helpers
                 int current_perm = (int)rule.FileSystemRights;
                 string current_perm_str = PermInt2Str(current_perm, false);
                 if (current_perm_str == "")
+                {
                     continue;
+                }
 
                 foreach (KeyValuePair<string, string> mySID in SIDs)
                 {
@@ -99,7 +101,9 @@ namespace winPEAS.Helpers
                         if (container.ContainsKey(SID_name))
                         {
                             if (!container[SID_name].Contains(current_perm_str))
+                            {
                                 container[SID_name] += " " + current_perm_str;
+                            }
                         }
                         else
                             container[SID_name] = current_perm_str;
@@ -161,7 +165,7 @@ namespace winPEAS.Helpers
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }
@@ -215,7 +219,9 @@ namespace winPEAS.Helpers
                 foreach (KeyValuePair<string, int> entry in interesting_perms)
                 {
                     if ((entry.Value & current_perm) == entry.Value)
-                        return entry.Key;
+                    { 
+                        return entry.Key; 
+                    }
                 }
             }
             catch (Exception ex)
@@ -249,7 +255,9 @@ namespace winPEAS.Helpers
             Dictionary<string, string> results = new Dictionary<string, string>();
             int max_dir_recurse = 130;
             if (cont > max_dir_recurse)
+            {
                 return results; //"Limit" for apps with hundreds of thousands of folders
+            }
 
             results[path] = ""; //If you cant open, then there are no privileges for you (and the try will explode)
             try

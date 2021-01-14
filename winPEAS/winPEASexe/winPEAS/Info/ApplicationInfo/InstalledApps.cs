@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using winPEAS.Helpers;
-using winPEAS.KnownFileCreds;
 
 namespace winPEAS.Info.ApplicationInfo
 {
@@ -12,76 +11,53 @@ namespace winPEAS.Info.ApplicationInfo
         public static SortedDictionary<string, Dictionary<string, string>> GetInstalledAppsPerms()
         {
             //Get from Program Files
-            SortedDictionary<string, Dictionary<string, string>> results = GetInstalledAppsPermsPath(@Path.GetPathRoot(Environment.SystemDirectory) + "Program Files");
-            SortedDictionary<string, Dictionary<string, string>> results2 = GetInstalledAppsPermsPath(@Path.GetPathRoot(Environment.SystemDirectory) + "Program Files (x86)");
+            SortedDictionary<string, Dictionary<string, string>> results = GetInstalledAppsPermsPath(Path.GetPathRoot(Environment.SystemDirectory) + "Program Files");
+            SortedDictionary<string, Dictionary<string, string>> results2 = GetInstalledAppsPermsPath(Path.GetPathRoot(Environment.SystemDirectory) + "Program Files (x86)");
             results.Concat(results2).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-            //Get from Uninstall
-            string[] subkeys = RegistryHelper.GetRegSubkeys("HKLM", @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
-            if (subkeys != null)
+            string[] registryPaths = new string[]
             {
-                foreach (string app in subkeys)
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+                @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+            };
+
+            foreach (var registryPath in registryPaths)
+            {
+                string[] subkeys = RegistryHelper.GetRegSubkeys("HKLM", registryPath);
+                if (subkeys != null)
                 {
-                    string installLocation = RegistryHelper.GetRegValue("HKLM", String.Format(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{0}", app), "InstallLocation");
-                    if (string.IsNullOrEmpty(installLocation))
+                    foreach (string app in subkeys)
                     {
-                        continue;
-                    }
-
-                    installLocation = installLocation.Replace("\"", "");
-
-                    if (installLocation.EndsWith(@"\"))
-                        installLocation = installLocation.Substring(0, installLocation.Length - 1);
-
-                    if (!results.ContainsKey(installLocation) && Directory.Exists(installLocation))
-                    {
-                        bool already = false;
-                        foreach (string path in results.Keys)
+                        string installLocation = RegistryHelper.GetRegValue("HKLM", string.Format(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{0}", app), "InstallLocation");
+                        if (string.IsNullOrEmpty(installLocation))
                         {
-                            if (installLocation.IndexOf(path) != -1) //Check for subfoldres of already found folders
+                            continue;
+                        }
+
+                        installLocation = installLocation.Replace("\"", "");
+
+                        if (installLocation.EndsWith(@"\"))
+                        {
+                            installLocation = installLocation.Substring(0, installLocation.Length - 1);
+                        }
+
+                        if (!results.ContainsKey(installLocation) && Directory.Exists(installLocation))
+                        {
+                            bool already = false;
+                            foreach (string path in results.Keys)
                             {
-                                already = true;
-                                break;
+                                if (installLocation.IndexOf(path) != -1) //Check for subfoldres of already found folders
+                                {
+                                    already = true;
+                                    break;
+                                }
+                            }
+
+                            if (!already)
+                            {
+                                results[installLocation] = PermissionsHelper.GetRecursivePrivs(installLocation);
                             }
                         }
-
-                        if (!already)
-                        {
-                            results[installLocation] = PermissionsHelper.GetRecursivePrivs(installLocation);
-                        }
-                    }
-                }
-            }
-
-            subkeys = RegistryHelper.GetRegSubkeys("HKLM", @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-            if (subkeys != null)
-            {
-                foreach (string app in subkeys)
-                {
-                    string installLocation = RegistryHelper.GetRegValue("HKLM", String.Format(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{0}", app), "InstallLocation");
-                    if (string.IsNullOrEmpty(installLocation))
-                    {
-                        continue;
-                    }
-
-                    installLocation = installLocation.Replace("\"", "");
-
-                    if (installLocation.EndsWith(@"\"))
-                        installLocation = installLocation.Substring(0, installLocation.Length - 1);
-
-                    if (!results.ContainsKey(installLocation) && Directory.Exists(installLocation))
-                    {
-                        bool already = false;
-                        foreach (string path in results.Keys)
-                        {
-                            if (installLocation.IndexOf(path) != -1) //Check for subfoldres of already found folders
-                            {
-                                already = true;
-                                break;
-                            }
-                        }
-                        if (!already)
-                            results[installLocation] = PermissionsHelper.GetRecursivePrivs(installLocation);
                     }
                 }
             }

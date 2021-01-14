@@ -242,7 +242,7 @@ namespace winPEAS.Info.ApplicationInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }

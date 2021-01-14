@@ -425,7 +425,7 @@ namespace winPEAS.KnownFileCreds
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }
@@ -585,7 +585,7 @@ namespace winPEAS.KnownFileCreds
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }              

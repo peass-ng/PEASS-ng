@@ -95,7 +95,7 @@ namespace winPEAS.Info.ProcessInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return f_results;
         }

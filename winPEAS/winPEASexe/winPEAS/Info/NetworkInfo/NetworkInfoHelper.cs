@@ -170,7 +170,7 @@ namespace winPEAS.Info.NetworkInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             results = adapters.Values.ToList();
             return results;
@@ -213,7 +213,7 @@ namespace winPEAS.Info.NetworkInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
 
             return results;
@@ -258,7 +258,7 @@ namespace winPEAS.Info.NetworkInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }
@@ -291,7 +291,7 @@ namespace winPEAS.Info.NetworkInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }

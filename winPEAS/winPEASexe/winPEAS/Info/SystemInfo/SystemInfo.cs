@@ -39,7 +39,7 @@ namespace winPEAS.Info.SystemInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return false;
         }
@@ -103,7 +103,7 @@ namespace winPEAS.Info.SystemInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }
@@ -138,7 +138,7 @@ namespace winPEAS.Info.SystemInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }
@@ -163,7 +163,7 @@ namespace winPEAS.Info.SystemInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             if (!String.IsNullOrEmpty(whitelistpaths))
                 results["whitelistpaths"] = "    " + whitelistpaths; //Add this info the last
@@ -454,7 +454,7 @@ namespace winPEAS.Info.SystemInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             return result;
         }

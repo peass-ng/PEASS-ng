@@ -78,7 +78,7 @@ namespace winPEAS.Helpers
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex.Message));
+                Beaprint.PrintException(ex.Message);
             }
             //By default local
             return "";

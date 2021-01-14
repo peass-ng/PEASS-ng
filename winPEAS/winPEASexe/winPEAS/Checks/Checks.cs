@@ -239,7 +239,7 @@ namespace winPEAS.Checks
             // create the file lists
             try
             {
-                Beaprint.GrayPrint("   - Files/directories list for search...");
+                Beaprint.GrayPrint("   - Creating files/directories list for search...");
                 SearchHelper.CreateSearchDirectoriesList();
             }
             catch (Exception ex)
