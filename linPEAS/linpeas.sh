@@ -263,7 +263,7 @@ SEDOVERFLOW=true
 for grp in `groups $USER | cut -d ":" -f2`; do 
   wgroups="$wgroups -group $grp -or "
 done
-wgroups="`echo $wgroups | rev | cut -c5- | rev`"
+wgroups="`echo $wgroups | sed -e 's/ -or$//'`"
 while $SEDOVERFLOW; do
   #WF=`find /dev /srv /proc /home /media /sys /lost+found /run /etc /root /var /tmp /mnt /boot /opt -type d -maxdepth $MAXPATH_FIND_W -writable -or -user $USER 2>/dev/null | sort`
   #if [ "$MACPEAS" ]; then
@@ -278,6 +278,9 @@ while $SEDOVERFLOW; do
       SEDOVERFLOW=false
   else
       MAXPATH_FIND_W=$(($MAXPATH_FIND_W-1)) #If overflow of directories, check again with MAXPATH_FIND_W - 1
+  fi
+  if [ $MAXPATH_FIND_W -lt 1 ] ; then # prevent infinite loop
+     SEDOVERFLOW=false
   fi
 done
 
