@@ -225,7 +225,7 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Looking for AutoLogon credentials");
                 bool ban = false;
-                Dictionary<string, string> autologon = Info.UserInfo.UserInfoHelper.GetAutoLogon();
+                Dictionary<string, string> autologon = UserInfoHelper.GetAutoLogon();
                 if (autologon.Count > 0)
                 {
                     foreach (KeyValuePair<string, string> entry in autologon)
@@ -234,7 +234,7 @@ namespace winPEAS.Checks
                         {
                             if (!ban)
                             {
-                                Beaprint.BadPrint("    Some AutoLogon credentials were found!!");
+                                Beaprint.BadPrint("    Some AutoLogon credentials were found");
                                 ban = true;
                             }
                             Beaprint.AnsiPrint(string.Format("    {0,-30}:  {1}", entry.Key, entry.Value), ColorsU());

@@ -54,7 +54,7 @@ namespace winPEAS.Helpers
 
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}\n Trying to check if domain is joined using WMI", ex.Message));
+                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}\n Trying to check if domain is joined using WMI", ex.Message));
                 return IsDomainJoinedWmi();
             }
             return "";

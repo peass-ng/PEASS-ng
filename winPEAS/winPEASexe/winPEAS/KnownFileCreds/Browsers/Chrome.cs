@@ -195,27 +195,27 @@ namespace winPEAS.KnownFileCreds.Browsers
                 {
                     Console.WriteLine("\r\n\r\n=== Chrome (All Users) ===");
 
-                    string userFolder = String.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
+                    string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
                     string[] dirs = Directory.GetDirectories(userFolder);
                     foreach (string dir in dirs)
                     {
                         string[] parts = dir.Split('\\');
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
-                            string userChromeHistoryPath = String.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History", dir);
+                            string userChromeHistoryPath = string.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History", dir);
                             results["history"] = ParseChromeHistory(userChromeHistoryPath);
 
-                            string userChromeBookmarkPath = String.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Bookmarks", dir);
+                            string userChromeBookmarkPath = string.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Bookmarks", dir);
                             results["bookmarks"] = ParseChromeBookmarks(userChromeBookmarkPath);
                         }
                     }
                 }
                 else
                 {
-                    string userChromeHistoryPath = String.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string userChromeHistoryPath = string.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History", System.Environment.GetEnvironmentVariable("USERPROFILE"));
                     results["history"] = ParseChromeHistory(userChromeHistoryPath);
 
-                    string userChromeBookmarkPath = String.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Bookmarks", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string userChromeBookmarkPath = string.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Bookmarks", System.Environment.GetEnvironmentVariable("USERPROFILE"));
 
                     results["bookmarks"] = ParseChromeBookmarks(userChromeBookmarkPath);
                 }

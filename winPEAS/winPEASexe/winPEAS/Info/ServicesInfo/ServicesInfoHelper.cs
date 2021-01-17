@@ -46,18 +46,20 @@ namespace winPEAS.Info.ServicesInfo
                             // Not enough privileges
                         }
 
-                        if (String.IsNullOrEmpty(companyName) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
+                        if (string.IsNullOrEmpty(companyName) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
                         {
-                            Dictionary<string, string> toadd = new Dictionary<string, string>();
-                            toadd["Name"] = String.Format("{0}", result["Name"]);
-                            toadd["DisplayName"] = String.Format("{0}", result["DisplayName"]);
-                            toadd["CompanyName"] = companyName;
-                            toadd["State"] = String.Format("{0}", result["State"]);
-                            toadd["StartMode"] = String.Format("{0}", result["StartMode"]);
-                            toadd["PathName"] = String.Format("{0}", result["PathName"]);
-                            toadd["FilteredPath"] = binaryPath;
-                            toadd["isDotNet"] = isDotNet;
-                            toadd["Description"] = String.Format("{0}", result["Description"]);
+                            Dictionary<string, string> toadd = new Dictionary<string, string>
+                            {
+                                ["Name"] = string.Format("{0}", result["Name"]),
+                                ["DisplayName"] = string.Format("{0}", result["DisplayName"]),
+                                ["CompanyName"] = companyName,
+                                ["State"] = string.Format("{0}", result["State"]),
+                                ["StartMode"] = string.Format("{0}", result["StartMode"]),
+                                ["PathName"] = string.Format("{0}", result["PathName"]),
+                                ["FilteredPath"] = binaryPath,
+                                ["isDotNet"] = isDotNet,
+                                ["Description"] = result["Description"].ToString()
+                            };
                             results.Add(toadd);
                         }
                     }
@@ -84,7 +86,7 @@ namespace winPEAS.Info.ServicesInfo
                     {
                         string companyName = "";
                         string isDotNet = "";
-                        string pathName = Environment.ExpandEnvironmentVariables(String.Format("{0}", key_values["ImagePath"]).Replace("\\SystemRoot\\", "%SystemRoot%\\"));
+                        string pathName = Environment.ExpandEnvironmentVariables(string.Format("{0}", key_values["ImagePath"]).Replace("\\SystemRoot\\", "%SystemRoot%\\"));
                         string binaryPath = MyUtils.ReconstructExecPath(pathName);
                         if (binaryPath != "")
                         {
@@ -100,9 +102,9 @@ namespace winPEAS.Info.ServicesInfo
                             }
                         }
 
-                        string displayName = String.Format("{0}", key_values["DisplayName"]);
-                        string imagePath = String.Format("{0}", key_values["ImagePath"]);
-                        string description = key_values.ContainsKey("Description") ? String.Format("{0}", key_values["Description"]) : "";
+                        string displayName = string.Format("{0}", key_values["DisplayName"]);
+                        string imagePath = string.Format("{0}", key_values["ImagePath"]);
+                        string description = key_values.ContainsKey("Description") ? string.Format("{0}", key_values["Description"]) : "";
                         string startMode = "";
                         if (key_values.ContainsKey("Start"))
                         {
@@ -128,18 +130,20 @@ namespace winPEAS.Info.ServicesInfo
                                     break;
                             }
                         }
-                        if (String.IsNullOrEmpty(companyName) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
+                        if (string.IsNullOrEmpty(companyName) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
                         {
-                            Dictionary<string, string> toadd = new Dictionary<string, string>();
-                            toadd["Name"] = String.Format("{0}", displayName);
-                            toadd["DisplayName"] = String.Format("{0}", displayName);
-                            toadd["CompanyName"] = companyName;
-                            toadd["State"] = "";
-                            toadd["StartMode"] = startMode;
-                            toadd["PathName"] = pathName;
-                            toadd["FilteredPath"] = binaryPath;
-                            toadd["isDotNet"] = isDotNet;
-                            toadd["Description"] = description;
+                            Dictionary<string, string> toadd = new Dictionary<string, string>
+                            {
+                                ["Name"] = displayName,
+                                ["DisplayName"] = displayName,
+                                ["CompanyName"] = companyName,
+                                ["State"] = "",
+                                ["StartMode"] = startMode,
+                                ["PathName"] = pathName,
+                                ["FilteredPath"] = binaryPath,
+                                ["isDotNet"] = isDotNet,
+                                ["Description"] = description
+                            };
                             results.Add(toadd);
                         }
                     }
@@ -181,8 +185,7 @@ namespace winPEAS.Info.ServicesInfo
                     IntPtr handle = (IntPtr)GetServiceHandle.Invoke(sc, readRights);
                     ServiceControllerStatus status = sc.Status;
                     byte[] psd = new byte[0];
-                    uint bufSizeNeeded;
-                    bool ok = QueryServiceObjectSecurity(handle, SecurityInfos.DiscretionaryAcl, psd, 0, out bufSizeNeeded);
+                    bool ok = QueryServiceObjectSecurity(handle, SecurityInfos.DiscretionaryAcl, psd, 0, out uint bufSizeNeeded);
                     if (!ok)
                     {
                         int err = Marshal.GetLastWin32Error();
@@ -218,7 +221,7 @@ namespace winPEAS.Info.ServicesInfo
                             int serviceRights = ace.AccessMask;
 
                             string current_perm_str = PermissionsHelper.PermInt2Str(serviceRights, true, true);
-                            if (!String.IsNullOrEmpty(current_perm_str) && !permissions.Contains(current_perm_str))
+                            if (!string.IsNullOrEmpty(current_perm_str) && !permissions.Contains(current_perm_str))
                                 permissions.Add(current_perm_str);
                         }
                     }
@@ -281,7 +284,7 @@ namespace winPEAS.Info.ServicesInfo
             {
                 // grabbed from the registry instead of System.Environment.GetEnvironmentVariable to prevent false positives
                 string path = RegistryHelper.GetRegValue("HKLM", "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", "Path");
-                if (String.IsNullOrEmpty(path))
+                if (string.IsNullOrEmpty(path))
                     path = Environment.GetEnvironmentVariable("PATH");
 
                 List<string> folders = path.Split(';').ToList();

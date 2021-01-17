@@ -133,7 +133,7 @@ namespace winPEAS.Info.UserInfo.SAM
                     }
                     catch (Exception ex)
                     {
-                        Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
+                        Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
                     }
                     Buffer = IntPtr.Zero;
                 }

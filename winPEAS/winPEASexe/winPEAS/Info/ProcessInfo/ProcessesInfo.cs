@@ -77,7 +77,7 @@ namespace winPEAS.Info.ProcessInfo
                             {
                                 // Not enough privileges
                             }
-                            if ((String.IsNullOrEmpty(companyName)) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
+                            if ((string.IsNullOrEmpty(companyName)) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
                             {
                                 Dictionary<string, string> to_add = new Dictionary<string, string>();
                                 to_add["Name"] = itm.Proc.ProcessName;

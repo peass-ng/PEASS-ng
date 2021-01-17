@@ -190,7 +190,7 @@ namespace winPEAS.KnownFileCreds.Browsers
                 string[] directories = Directory.GetDirectories(path);
                 foreach (string directory in directories)
                 {
-                    string firefoxHistoryFile = String.Format("{0}\\{1}", directory, "places.sqlite");
+                    string firefoxHistoryFile = string.Format("{0}\\{1}", directory, "places.sqlite");
                     Regex historyRegex = new Regex(@"(http|ftp|https|file)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?");
 
                     try

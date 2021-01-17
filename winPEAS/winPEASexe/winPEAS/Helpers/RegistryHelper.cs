@@ -21,7 +21,7 @@ namespace winPEAS.Helpers
                 var regKey = Registry.CurrentUser.OpenSubKey(path);
                 if (regKey != null)
                 {
-                    regKeyValue = String.Format("{0}", regKey.GetValue(value));
+                    regKeyValue = string.Format("{0}", regKey.GetValue(value));
                 }
                 return regKeyValue;
             }
@@ -30,7 +30,7 @@ namespace winPEAS.Helpers
                 var regKey = Registry.Users.OpenSubKey(path);
                 if (regKey != null)
                 {
-                    regKeyValue = String.Format("{0}", regKey.GetValue(value));
+                    regKeyValue = string.Format("{0}", regKey.GetValue(value));
                 }
                 return regKeyValue;
             }
@@ -39,7 +39,7 @@ namespace winPEAS.Helpers
                 var regKey = Registry.LocalMachine.OpenSubKey(path);
                 if (regKey != null)
                 {
-                    regKeyValue = String.Format("{0}", regKey.GetValue(value));
+                    regKeyValue = string.Format("{0}", regKey.GetValue(value));
                 }
                 return regKeyValue;
             }

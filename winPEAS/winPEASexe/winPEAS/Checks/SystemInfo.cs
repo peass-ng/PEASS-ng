@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using winPEAS.Helpers;
+using winPEAS.Helpers.AppLocker;
 using winPEAS._3rdParty.Watson;
 
 namespace winPEAS.Checks
@@ -36,6 +39,8 @@ namespace winPEAS.Checks
                 PrintDrivesInfo,
                 PrintWSUS,
                 PrintAlwaysInstallElevated,
+                PrintLsaCompatiblityLevel,
+                PrintApplockerPolicy
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
@@ -69,10 +74,10 @@ namespace winPEAS.Checks
             try
             {
                 Dictionary<string, string> colorsPSI = new Dictionary<string, string>()
-                        {
-                            { "PS history file: .+", Beaprint.ansi_color_bad },
-                            { "PS history size: .+", Beaprint.ansi_color_bad }
-                        };
+                {
+                    { "PS history file: .+", Beaprint.ansi_color_bad },
+                    { "PS history size: .+", Beaprint.ansi_color_bad }
+                };
                 Beaprint.MainPrint("PowerShell Settings");
                 Dictionary<string, string> PSs = Info.SystemInfo.SystemInfo.GetPowerShellSettings();
                 Beaprint.DictPrint(PSs, colorsPSI, false);
@@ -90,19 +95,60 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("PS default transcripts history");
                 Beaprint.InfoPrint("Read the PS history inside these files (if any)");
                 string drive = Path.GetPathRoot(Environment.SystemDirectory);
-                string path = drive + @"transcripts\";
-                if (Directory.Exists(path))
+				string transcriptsPath = drive + @"transcripts\";
+                string usersPath = $"{drive}users";
+
+                string[] users = Directory.GetDirectories(usersPath, "*", SearchOption.TopDirectoryOnly);
+                string powershellTranscriptFilter = "powershell_transcript*";
+
+                var colors = new Dictionary<string, string>()
                 {
-                    string[] fileEntries = Directory.GetFiles(path);
-                    List<string> fileEntriesl = new List<string>(fileEntries);
-                    if (fileEntries.Length > 0)
+                    { "^.*", Beaprint.ansi_color_bad },
+                };
+                
+                var results = new List<string>();
+
+                var dict = new Dictionary<string, string>()
+                {
+                    // check \\transcripts\ folder
+                    {transcriptsPath, "*"},
+                };
+                    
+                foreach (var user in users)
+                {
+                    // check the users directories
+                    dict.Add($"{user}\\Documents", powershellTranscriptFilter);
+                }
+
+                foreach (var kvp in dict)
+                {
+                    var path = kvp.Key;
+                    var filter = kvp.Value;
+
+                    if (Directory.Exists(path))
                     {
-                        Dictionary<string, string> colors = new Dictionary<string, string>()
+                        try
+                        {
+                            var files = Directory.GetFiles(path, filter, SearchOption.TopDirectoryOnly).ToList();
+
+                            foreach (var file in files)
                             {
-                                { "^.*", Beaprint.ansi_color_bad },
-                            };
-                        Beaprint.ListPrint(fileEntriesl, colors);
+                                var fileInfo = new FileInfo(file);
+                                var humanReadableSize = MyUtils.ConvertBytesToHumanReadable(fileInfo.Length);
+                                var item = $"[{humanReadableSize}] - {file}";
+
+                                results.Add(item);
+                            }
+                        }
+                        catch (UnauthorizedAccessException) { }
+                        catch (PathTooLongException) { }
+                        catch (DirectoryNotFoundException) { }
                     }
+                }
+
+                if (results.Count > 0)
+                {
+                    Beaprint.ListPrint(results, colors);
                 }
             }
             catch (Exception ex)
@@ -419,6 +465,89 @@ namespace winPEAS.Checks
                     Beaprint.BadPrint("    AlwaysInstallElevated set to 1 in HKCU!");
                 if (HKLM_AIE != "1" && HKCU_AIE != "1")
                     Beaprint.GoodPrint("    AlwaysInstallElevated isn't available");
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private void PrintLsaCompatiblityLevel()
+        {
+            try
+            {
+                string hive = "HKLM";
+                string path = "SYSTEM\\CurrentControlSet\\Control\\Lsa\\";
+                string key = "LmCompatibilityLevel";
+
+                Beaprint.MainPrint($"Checking {hive}\\{path}{key}");
+
+                string lmCompatibilityLevelValue = RegistryHelper.GetRegValue(hive, path, key);
+                Dictionary<int, string> dict = new Dictionary<int, string>()
+                {
+                    { 0, "Send LM & NTLM responses" },
+                    { 1, "Send LM & NTLM responses, use NTLMv2 session security if negotiated" },
+                    { 2, "Send NTLM response only" },
+                    { 3, "Send NTLMv2 response only" },
+                    { 4, "Send NTLMv2 response only, refuse LM" },
+                    { 5, "Send NTLMv2 response only, refuse LM & NTLM" },
+                };
+
+                if (!string.IsNullOrEmpty(lmCompatibilityLevelValue))
+                {
+                    if (int.TryParse(lmCompatibilityLevelValue, out int lmCompatibilityLevel))
+                    {
+                        string color = lmCompatibilityLevel == 5 ? Beaprint.ansi_color_good : Beaprint.ansi_color_bad;
+
+                        if (dict.TryGetValue(lmCompatibilityLevel, out string description))
+                        {
+                            Beaprint.ColorPrint($"     value: {lmCompatibilityLevel}, description: {description}", color);
+                        }
+                        else
+                        {
+                            throw new Exception($"Unable to get value description for value '{lmCompatibilityLevel}'");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception($"Unable to parse {key} value '{lmCompatibilityLevelValue}'");
+                    }
+                }
+                else
+                {
+                    Beaprint.ColorPrint("     The registry key does not exist", Beaprint.ansi_color_yellow);
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintApplockerPolicy()
+        {
+            Beaprint.MainPrint("Checking AppLocker effective policy");
+
+            try
+            {
+                string[] ruleTypes = new string[] { "All" };
+                string ldapPath = "";
+                bool allowOnly = false;
+                bool denyOnly = false;
+
+                string applockerSettings = SharpAppLocker.GetAppLockerPolicy(SharpAppLocker.PolicyType.Effective, ruleTypes, ldapPath, allowOnly, denyOnly);
+                var colors = new Dictionary<string, string>()
+                {
+                    { "/>", Beaprint.DGRAY },
+                    { "<", Beaprint.DGRAY },
+                    { "NotConfigured", Beaprint.ansi_color_bad },
+                };
+
+                Beaprint.AnsiPrint(applockerSettings, colors);
+            }
+            catch (COMException ex)
+            {
+                Beaprint.ColorPrint("   AppLocker unsupported on this Windows version.", Beaprint.ansi_color_yellow);
             }
             catch (Exception ex)
             {

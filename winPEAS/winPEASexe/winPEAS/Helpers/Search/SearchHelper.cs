@@ -22,12 +22,7 @@ namespace winPEAS.Helpers.Search
         public static List<CustomFileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null)
         {
             ConcurrentBag<CustomFileInfo> files = new ConcurrentBag<CustomFileInfo>();
-            // ConcurrentBag<string> files = new ConcurrentBag<string>();
-
-            //Beaprint.InfoPrint($"[*] folder 1: '{folder}'");
-
             IEnumerable<DirectoryInfo> startDirs = GetStartDirectories(folder, files, pattern);
-
             IList<DirectoryInfo> startDirsExcluded = new List<DirectoryInfo>();
 
             if (excludedDirs != null)
@@ -41,16 +36,9 @@ namespace winPEAS.Helpers.Search
                     {
                         if (Regex.IsMatch(startDirLower, excludedDirPattern, RegexOptions.IgnoreCase))
                         {
-                            //files2.Add(file + $"  [pattern: '{pattern}']");
                             shouldAdd = false;
                             break;
                         }
-
-                        //if (startDirLower.StartsWith(excludedDir))
-                        //{
-                        //    shouldAdd = false;
-                        //    break;
-                        //}
                     }
 
                     if (shouldAdd)
@@ -58,22 +46,11 @@ namespace winPEAS.Helpers.Search
                         startDirsExcluded.Add(startDir);
                     }
                 }
-
-
-                //startDirsExcluded =
-                //    (from startDir in startDirs
-                //     from excludedDir in excludedDirs
-                //     where !startDir.FullName.Contains(excludedDir)
-                //     select startDir).ToList();
             }
             else
             {
                 startDirsExcluded = startDirs.ToList();
             }
-
-
-            // !!!! TODO
-            // probably we need to exclude the excluded dirs here - not in parallel processing
 
             Parallel.ForEach(startDirsExcluded, (d) =>
             {
@@ -81,7 +58,6 @@ namespace winPEAS.Helpers.Search
                 {
                     GetFiles(dir.FullName, pattern).ForEach(
                         (f) =>
-                            //files.Add(f.FullName)
                             files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName))
                         );
                 });
@@ -154,7 +130,6 @@ namespace winPEAS.Helpers.Search
 
                 foreach (var f in dirInfo.GetFiles(pattern))
                 {
-                    //files.Add(f.FullName);
                     files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName));
                 }
 
@@ -165,15 +140,15 @@ namespace winPEAS.Helpers.Search
                     return new List<DirectoryInfo>();
 
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
                 return new List<DirectoryInfo>();
             }
-            catch (PathTooLongException ex)
+            catch (PathTooLongException)
             {
                 return new List<DirectoryInfo>();
             }
-            catch (DirectoryNotFoundException ex)
+            catch (DirectoryNotFoundException)
             {
                 return new List<DirectoryInfo>();
             }

@@ -151,22 +151,24 @@ namespace winPEAS.Info.SystemInfo
             try
             {
                 whitelistpaths = String.Join("\n    ", RegistryHelper.GetRegValues("HKLM", @"SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths").Keys);
-                ManagementObjectSearcher wmiData = new ManagementObjectSearcher(@"root\SecurityCenter2", "SELECT * FROM AntiVirusProduct");
-                ManagementObjectCollection data = wmiData.Get();
-
-                foreach (ManagementObject virusChecker in data)
+                using (ManagementObjectSearcher wmiData = new ManagementObjectSearcher(@"root\SecurityCenter2", "SELECT * FROM AntiVirusProduct"))
                 {
-                    results["Name"] = (string)virusChecker["displayName"];
-                    results["ProductEXE"] = (string)virusChecker["pathToSignedProductExe"];
-                    results["pathToSignedReportingExe"] = (string)virusChecker["pathToSignedReportingExe"];
+                    foreach (ManagementObject virusChecker in wmiData.Get())
+                    {
+                        results["Name"] = (string)virusChecker["displayName"];
+                        results["ProductEXE"] = (string)virusChecker["pathToSignedProductExe"];
+                        results["pathToSignedReportingExe"] = (string)virusChecker["pathToSignedReportingExe"];
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
             }
-            if (!String.IsNullOrEmpty(whitelistpaths))
+            if (!string.IsNullOrEmpty(whitelistpaths))
+            {
                 results["whitelistpaths"] = "    " + whitelistpaths; //Add this info the last
+            }
             
             return results;
         }
@@ -179,35 +181,16 @@ namespace winPEAS.Info.SystemInfo
             try
             {
                 string ConsentPromptBehaviorAdmin = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "ConsentPromptBehaviorAdmin");
-                switch (ConsentPromptBehaviorAdmin)
+                results["ConsentPromptBehaviorAdmin"] = ConsentPromptBehaviorAdmin switch
                 {
-                    case "0":
-                        results["ConsentPromptBehaviorAdmin"] = $"{ConsentPromptBehaviorAdmin} - No prompting";
-                        break;
-                    case "1":
-                        results["ConsentPromptBehaviorAdmin"] = $"{ConsentPromptBehaviorAdmin} - PromptOnSecureDesktop";
-                        break;
-                    case "2":
-                        results["ConsentPromptBehaviorAdmin"] = $"{ConsentPromptBehaviorAdmin} - PromptPermitDenyOnSecureDesktop";
-                        break;
-                    case "3":
-                        results["ConsentPromptBehaviorAdmin"] =
-                            $"{ConsentPromptBehaviorAdmin} - PromptForCredsNotOnSecureDesktop";
-                        break;
-                    case "4":
-                        results["ConsentPromptBehaviorAdmin"] =
-                            $"{ConsentPromptBehaviorAdmin} - PromptForPermitDenyNotOnSecureDesktop";
-                        break;
-                    case "5":
-                        results["ConsentPromptBehaviorAdmin"] =
-                            $"{ConsentPromptBehaviorAdmin} - PromptForNonWindowsBinaries";
-                        break;
-                    default:
-                        results["ConsentPromptBehaviorAdmin"] =
-                            $"{ConsentPromptBehaviorAdmin} - PromptForNonWindowsBinaries";
-                        break;
-                }
-
+                    "0" => $"{ConsentPromptBehaviorAdmin} - No prompting",
+                    "1" => $"{ConsentPromptBehaviorAdmin} - PromptOnSecureDesktop",
+                    "2" => $"{ConsentPromptBehaviorAdmin} - PromptPermitDenyOnSecureDesktop",
+                    "3" => $"{ConsentPromptBehaviorAdmin} - PromptForCredsNotOnSecureDesktop",
+                    "4" => $"{ConsentPromptBehaviorAdmin} - PromptForPermitDenyNotOnSecureDesktop",
+                    "5" => $"{ConsentPromptBehaviorAdmin} - PromptForNonWindowsBinaries",
+                    _ => $"{ConsentPromptBehaviorAdmin} - PromptForNonWindowsBinaries",
+                };
                 string EnableLUA = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "EnableLUA");
                 results["EnableLUA"] = EnableLUA;
 
@@ -248,7 +231,7 @@ namespace winPEAS.Info.SystemInfo
                 {
                     foreach (KeyValuePair<string, object> kvp in transcriptionSettingsCU)
                     {
-                        results["Transcription Settings CU"] += String.Format("  {0,30} : {1}\r\n", kvp.Key, kvp.Value);
+                        results["Transcription Settings CU"] += string.Format("  {0,30} : {1}\r\n", kvp.Key, kvp.Value);
                     }
                 }
 

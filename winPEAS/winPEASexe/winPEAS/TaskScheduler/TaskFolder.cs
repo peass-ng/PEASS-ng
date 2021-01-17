@@ -331,7 +331,7 @@ namespace winPEAS.TaskScheduler
 					break;
 				case TaskLogonType.ServiceAccount:
 					flags &= ~(TaskFlags.Interactive | TaskFlags.RunOnlyIfLoggedOn);
-					definition.v1Task.SetAccountInformation((String.IsNullOrEmpty(userId) || user.IsSystem) ? String.Empty : user.Name, IntPtr.Zero);
+					definition.v1Task.SetAccountInformation((string.IsNullOrEmpty(userId) || user.IsSystem) ? String.Empty : user.Name, IntPtr.Zero);
 					break;
 				case TaskLogonType.InteractiveTokenOrPassword:
 					flags |= TaskFlags.Interactive;

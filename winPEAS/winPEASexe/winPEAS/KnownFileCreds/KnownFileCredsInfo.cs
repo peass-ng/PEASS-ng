@@ -23,7 +23,7 @@ namespace winPEAS.KnownFileCreds
                 {
                     if (SID.StartsWith("S-1-5") && !SID.EndsWith("_Classes"))
                     {
-                        results = RegistryHelper.GetRegValues("HKU", String.Format("{0}\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU", SID));
+                        results = RegistryHelper.GetRegValues("HKU", string.Format("{0}\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU", SID));
                     }
                 }
             }
@@ -43,7 +43,7 @@ namespace winPEAS.KnownFileCreds
             {
                 if (MyUtils.IsHighIntegrity())
                 {
-                    string userFolder = String.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
+                    string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
                     string[] dirs = Directory.GetDirectories(userFolder);
                     foreach (string dir in dirs)
                     {
@@ -51,7 +51,7 @@ namespace winPEAS.KnownFileCreds
                         string userName = parts[parts.Length - 1];
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
-                            string awsKeyFile = String.Format("{0}\\.aws\\credentials", dir);
+                            string awsKeyFile = string.Format("{0}\\.aws\\credentials", dir);
                             if (System.IO.File.Exists(awsKeyFile))
                             {
                                 DateTime lastAccessed = System.IO.File.GetLastAccessTime(awsKeyFile);
@@ -60,12 +60,12 @@ namespace winPEAS.KnownFileCreds
                                 results.Add(new Dictionary<string, string>() {
                                     { "file", awsKeyFile },
                                     { "Description", "AWS credentials file" },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
-                                    { "Size", String.Format("{0}", size) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) }
                                 });
                             }
-                            string computeCredsDb = String.Format("{0}\\AppData\\Roaming\\gcloud\\credentials.db", dir);
+                            string computeCredsDb = string.Format("{0}\\AppData\\Roaming\\gcloud\\credentials.db", dir);
                             if (System.IO.File.Exists(computeCredsDb))
                             {
                                 DateTime lastAccessed = System.IO.File.GetLastAccessTime(computeCredsDb);
@@ -74,12 +74,12 @@ namespace winPEAS.KnownFileCreds
                                 results.Add(new Dictionary<string, string>() {
                                     { "file", computeCredsDb },
                                     { "Description", "GC Compute creds" },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
-                                    { "Size", String.Format("{0}", size) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) }
                                 });
                             }
-                            string computeLegacyCreds = String.Format("{0}\\AppData\\Roaming\\gcloud\\legacy_credentials", dir);
+                            string computeLegacyCreds = string.Format("{0}\\AppData\\Roaming\\gcloud\\legacy_credentials", dir);
                             if (System.IO.File.Exists(computeLegacyCreds))
                             {
                                 DateTime lastAccessed = System.IO.File.GetLastAccessTime(computeLegacyCreds);
@@ -88,12 +88,12 @@ namespace winPEAS.KnownFileCreds
                                 results.Add(new Dictionary<string, string>() {
                                     { "file", computeLegacyCreds },
                                     { "Description", "GC Compute creds legacy" },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
-                                    { "Size", String.Format("{0}", size) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) }
                                 });
                             }
-                            string computeAccessTokensDb = String.Format("{0}\\AppData\\Roaming\\gcloud\\access_tokens.db", dir);
+                            string computeAccessTokensDb = string.Format("{0}\\AppData\\Roaming\\gcloud\\access_tokens.db", dir);
                             if (System.IO.File.Exists(computeAccessTokensDb))
                             {
                                 DateTime lastAccessed = System.IO.File.GetLastAccessTime(computeAccessTokensDb);
@@ -102,12 +102,12 @@ namespace winPEAS.KnownFileCreds
                                 results.Add(new Dictionary<string, string>() {
                                     { "file", computeAccessTokensDb },
                                     { "Description", "GC Compute tokens" },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
-                                    { "Size", String.Format("{0}", size) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) }
                                 });
                             }
-                            string azureTokens = String.Format("{0}\\.azure\\accessTokens.json", dir);
+                            string azureTokens = string.Format("{0}\\.azure\\accessTokens.json", dir);
                             if (System.IO.File.Exists(azureTokens))
                             {
                                 DateTime lastAccessed = System.IO.File.GetLastAccessTime(azureTokens);
@@ -116,12 +116,12 @@ namespace winPEAS.KnownFileCreds
                                 results.Add(new Dictionary<string, string>() {
                                     { "file", azureTokens },
                                     { "Description", "Azure tokens" },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
-                                    { "Size", String.Format("{0}", size) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) }
                                 });
                             }
-                            string azureProfile = String.Format("{0}\\.azure\\azureProfile.json", dir);
+                            string azureProfile = string.Format("{0}\\.azure\\azureProfile.json", dir);
                             if (System.IO.File.Exists(azureProfile))
                             {
                                 DateTime lastAccessed = System.IO.File.GetLastAccessTime(azureProfile);
@@ -130,9 +130,9 @@ namespace winPEAS.KnownFileCreds
                                 results.Add(new Dictionary<string, string>() {
                                     { "file", azureProfile },
                                     { "Description", "Azure profile" },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
-                                    { "Size", String.Format("{0}", size) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) }
                                 });
                             }
                         }
@@ -140,7 +140,7 @@ namespace winPEAS.KnownFileCreds
                 }
                 else
                 {
-                    string awsKeyFile = String.Format("{0}\\.aws\\credentials", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string awsKeyFile = string.Format("{0}\\.aws\\credentials", System.Environment.GetEnvironmentVariable("USERPROFILE"));
                     if (System.IO.File.Exists(awsKeyFile))
                     {
                         DateTime lastAccessed = System.IO.File.GetLastAccessTime(awsKeyFile);
@@ -149,12 +149,12 @@ namespace winPEAS.KnownFileCreds
                         results.Add(new Dictionary<string, string>() {
                                     { "file", awsKeyFile },
                                     { "Description", "AWS keys file" },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
-                                    { "Size", String.Format("{0}", size) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) }
                                 });
                     }
-                    string computeCredsDb = String.Format("{0}\\AppData\\Roaming\\gcloud\\credentials.db", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string computeCredsDb = string.Format("{0}\\AppData\\Roaming\\gcloud\\credentials.db", System.Environment.GetEnvironmentVariable("USERPROFILE"));
                     if (System.IO.File.Exists(computeCredsDb))
                     {
                         DateTime lastAccessed = System.IO.File.GetLastAccessTime(computeCredsDb);
@@ -163,12 +163,12 @@ namespace winPEAS.KnownFileCreds
                         results.Add(new Dictionary<string, string>() {
                                     { "file", computeCredsDb },
                                     { "Description", "GC Compute creds" },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
-                                    { "Size", String.Format("{0}", size) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) }
                                 });
                     }
-                    string computeLegacyCreds = String.Format("{0}\\AppData\\Roaming\\gcloud\\legacy_credentials", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string computeLegacyCreds = string.Format("{0}\\AppData\\Roaming\\gcloud\\legacy_credentials", System.Environment.GetEnvironmentVariable("USERPROFILE"));
                     if (System.IO.File.Exists(computeLegacyCreds))
                     {
                         DateTime lastAccessed = System.IO.File.GetLastAccessTime(computeLegacyCreds);
@@ -177,12 +177,12 @@ namespace winPEAS.KnownFileCreds
                         results.Add(new Dictionary<string, string>() {
                                     { "file", computeLegacyCreds },
                                     { "Description", "GC Compute creds legacy" },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
-                                    { "Size", String.Format("{0}", size) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) }
                                 });
                     }
-                    string computeAccessTokensDb = String.Format("{0}\\AppData\\Roaming\\gcloud\\access_tokens.db", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string computeAccessTokensDb = string.Format("{0}\\AppData\\Roaming\\gcloud\\access_tokens.db", System.Environment.GetEnvironmentVariable("USERPROFILE"));
                     if (System.IO.File.Exists(computeAccessTokensDb))
                     {
                         DateTime lastAccessed = System.IO.File.GetLastAccessTime(computeAccessTokensDb);
@@ -191,12 +191,12 @@ namespace winPEAS.KnownFileCreds
                         results.Add(new Dictionary<string, string>() {
                                     { "file", computeAccessTokensDb },
                                     { "Description", "GC Compute tokens" },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
-                                    { "Size", String.Format("{0}", size) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) }
                                 });
                     }
-                    string azureTokens = String.Format("{0}\\.azure\\accessTokens.json", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string azureTokens = string.Format("{0}\\.azure\\accessTokens.json", System.Environment.GetEnvironmentVariable("USERPROFILE"));
                     if (System.IO.File.Exists(azureTokens))
                     {
                         DateTime lastAccessed = System.IO.File.GetLastAccessTime(azureTokens);
@@ -205,12 +205,12 @@ namespace winPEAS.KnownFileCreds
                         results.Add(new Dictionary<string, string>() {
                                     { "file", azureTokens },
                                     { "Description", "Azure tokens" },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
-                                    { "Size", String.Format("{0}", size) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) }
                                 });
                     }
-                    string azureProfile = String.Format("{0}\\.azure\\azureProfile.json", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string azureProfile = string.Format("{0}\\.azure\\azureProfile.json", System.Environment.GetEnvironmentVariable("USERPROFILE"));
                     if (System.IO.File.Exists(azureProfile))
                     {
                         DateTime lastAccessed = System.IO.File.GetLastAccessTime(azureProfile);
@@ -219,16 +219,16 @@ namespace winPEAS.KnownFileCreds
                         results.Add(new Dictionary<string, string>() {
                                     { "file", azureProfile },
                                     { "Description", "Azure profile" },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
-                                    { "Size", String.Format("{0}", size) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) }
                                 });
                     }
                 }
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
+                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
             }
             return results;
         }
@@ -249,7 +249,7 @@ namespace winPEAS.KnownFileCreds
 
                 if (MyUtils.IsHighIntegrity())
                 {
-                    string userFolder = String.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
+                    string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
                     string[] dirs = Directory.GetDirectories(userFolder);
                     foreach (string dir in dirs)
                     {
@@ -258,7 +258,7 @@ namespace winPEAS.KnownFileCreds
 
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
-                            string recentPath = String.Format("{0}\\AppData\\Roaming\\Microsoft\\Windows\\Recent\\", dir);
+                            string recentPath = string.Format("{0}\\AppData\\Roaming\\Microsoft\\Windows\\Recent\\", dir);
                             try
                             {
                                 string[] recentFiles = Directory.GetFiles(recentPath, "*.lnk", SearchOption.AllDirectories);
@@ -281,7 +281,7 @@ namespace winPEAS.KnownFileCreds
                                                 results.Add(new Dictionary<string, string>()
                                                 {
                                                     { "Target", TargetPath.ToString() },
-                                                    { "Accessed", String.Format("{0}", lastAccessed) }
+                                                    { "Accessed", string.Format("{0}", lastAccessed) }
                                                 });
                                             }
                                             Marshal.ReleaseComObject(shortcut);
@@ -296,7 +296,7 @@ namespace winPEAS.KnownFileCreds
                 }
                 else
                 {
-                    string recentPath = String.Format("{0}\\Microsoft\\Windows\\Recent\\", System.Environment.GetEnvironmentVariable("APPDATA"));
+                    string recentPath = string.Format("{0}\\Microsoft\\Windows\\Recent\\", System.Environment.GetEnvironmentVariable("APPDATA"));
 
                     string[] recentFiles = Directory.GetFiles(recentPath, "*.lnk", SearchOption.AllDirectories);
 
@@ -318,7 +318,7 @@ namespace winPEAS.KnownFileCreds
                                 results.Add(new Dictionary<string, string>()
                                 {
                                     { "Target", TargetPath.ToString() },
-                                    { "Accessed", String.Format("{0}", lastAccessed) }
+                                    { "Accessed", string.Format("{0}", lastAccessed) }
                                 });
                             }
                             Marshal.ReleaseComObject(shortcut);
@@ -332,7 +332,7 @@ namespace winPEAS.KnownFileCreds
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
+                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
             }
             return results;
         }
@@ -345,7 +345,7 @@ namespace winPEAS.KnownFileCreds
             {
                 if (MyUtils.IsHighIntegrity())
                 {
-                    string userFolder = String.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
+                    string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
                     string[] dirs = Directory.GetDirectories(userFolder);
                     foreach (string dir in dirs)
                     {
@@ -354,8 +354,8 @@ namespace winPEAS.KnownFileCreds
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
                             List<string> userDPAPIBasePaths = new List<string>();
-                            userDPAPIBasePaths.Add(String.Format("{0}\\AppData\\Roaming\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
-                            userDPAPIBasePaths.Add(String.Format("{0}\\AppData\\Local\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
+                            userDPAPIBasePaths.Add(string.Format("{0}\\AppData\\Roaming\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
+                            userDPAPIBasePaths.Add(string.Format("{0}\\AppData\\Local\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
 
                             foreach (string userDPAPIBasePath in userDPAPIBasePaths)
                             {
@@ -376,8 +376,8 @@ namespace winPEAS.KnownFileCreds
                                                 results.Add(new Dictionary<string, string>()
                                             {
                                                 { "MasterKey", file },
-                                                { "Accessed", String.Format("{0}", lastAccessed) },
-                                                { "Modified", String.Format("{0}", lastModified) },
+                                                { "Accessed", string.Format("{0}", lastAccessed) },
+                                                { "Modified", string.Format("{0}", lastModified) },
                                             });
                                             }
                                         }
@@ -391,8 +391,8 @@ namespace winPEAS.KnownFileCreds
                 {
                     string userName = Environment.GetEnvironmentVariable("USERNAME");
                     List<string> userDPAPIBasePaths = new List<string>();
-                    userDPAPIBasePaths.Add(String.Format("{0}\\AppData\\Roaming\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
-                    userDPAPIBasePaths.Add(String.Format("{0}\\AppData\\Local\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
+                    userDPAPIBasePaths.Add(string.Format("{0}\\AppData\\Roaming\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
+                    userDPAPIBasePaths.Add(string.Format("{0}\\AppData\\Local\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
 
                     foreach (string userDPAPIBasePath in userDPAPIBasePaths) 
                     {
@@ -413,8 +413,8 @@ namespace winPEAS.KnownFileCreds
                                         results.Add(new Dictionary<string, string>()
                                     {
                                         { "MasterKey", file },
-                                        { "Accessed", String.Format("{0}", lastAccessed) },
-                                        { "Modified", String.Format("{0}", lastModified) },
+                                        { "Accessed", string.Format("{0}", lastAccessed) },
+                                        { "Modified", string.Format("{0}", lastModified) },
                                     });
                                     }
                                 }
@@ -438,7 +438,7 @@ namespace winPEAS.KnownFileCreds
             {
                 if (MyUtils.IsHighIntegrity())
                 {
-                    string userFolder = String.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
+                    string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
                     string[] dirs = Directory.GetDirectories(userFolder);
 
                     foreach (string dir in dirs)
@@ -448,8 +448,8 @@ namespace winPEAS.KnownFileCreds
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
                             List<string> userCredFilePaths = new List<string>();
-                            userCredFilePaths.Add(String.Format("{0}\\AppData\\Local\\Microsoft\\Credentials\\", dir));
-                            userCredFilePaths.Add(String.Format("{0}\\AppData\\Roaming\\Microsoft\\Credentials\\", dir));
+                            userCredFilePaths.Add(string.Format("{0}\\AppData\\Local\\Microsoft\\Credentials\\", dir));
+                            userCredFilePaths.Add(string.Format("{0}\\AppData\\Roaming\\Microsoft\\Credentials\\", dir));
 
                             foreach (string userCredFilePath in userCredFilePaths)
                             {
@@ -484,10 +484,10 @@ namespace winPEAS.KnownFileCreds
                                         {
                                             { "CredFile", file },
                                             { "Description", desc },
-                                            { "MasterKey", String.Format("{0}", guidMasterKey) },
-                                            { "Accessed", String.Format("{0}", lastAccessed) },
-                                            { "Modified", String.Format("{0}", lastModified) },
-                                            { "Size", String.Format("{0}", size) },
+                                            { "MasterKey", string.Format("{0}", guidMasterKey) },
+                                            { "Accessed", string.Format("{0}", lastAccessed) },
+                                            { "Modified", string.Format("{0}", lastModified) },
+                                            { "Size", string.Format("{0}", size) },
                                         });
                                         }
                                     }
@@ -496,7 +496,7 @@ namespace winPEAS.KnownFileCreds
                         }
                     }
 
-                    string systemFolder = String.Format("{0}\\System32\\config\\systemprofile\\AppData\\Local\\Microsoft\\Credentials", Environment.GetEnvironmentVariable("SystemRoot"));
+                    string systemFolder = string.Format("{0}\\System32\\config\\systemprofile\\AppData\\Local\\Microsoft\\Credentials", Environment.GetEnvironmentVariable("SystemRoot"));
                     string[] files = Directory.GetFiles(systemFolder);
                     if ((files != null) && (files.Length != 0))
                     {
@@ -526,10 +526,10 @@ namespace winPEAS.KnownFileCreds
                             {
                                 { "CredFile", file },
                                 { "Description", desc },
-                                { "MasterKey", String.Format("{0}", guidMasterKey) },
-                                { "Accessed", String.Format("{0}", lastAccessed) },
-                                { "Modified", String.Format("{0}", lastModified) },
-                                { "Size", String.Format("{0}", size) },
+                                { "MasterKey", string.Format("{0}", guidMasterKey) },
+                                { "Accessed", string.Format("{0}", lastAccessed) },
+                                { "Modified", string.Format("{0}", lastModified) },
+                                { "Size", string.Format("{0}", size) },
                             });
                         }
                     }
@@ -538,8 +538,8 @@ namespace winPEAS.KnownFileCreds
                 {
                     string userName = Environment.GetEnvironmentVariable("USERNAME");
                     List<string> userCredFilePaths = new List<string>();
-                    userCredFilePaths.Add(String.Format("{0}\\AppData\\Local\\Microsoft\\Credentials\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
-                    userCredFilePaths.Add(String.Format("{0}\\AppData\\Roaming\\Microsoft\\Credentials\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
+                    userCredFilePaths.Add(string.Format("{0}\\AppData\\Local\\Microsoft\\Credentials\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
+                    userCredFilePaths.Add(string.Format("{0}\\AppData\\Roaming\\Microsoft\\Credentials\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
 
                     foreach (string userCredFilePath in userCredFilePaths)
                     {
@@ -573,10 +573,10 @@ namespace winPEAS.KnownFileCreds
                                 {
                                 { "CredFile", file },
                                 { "Description", desc },
-                                { "MasterKey", String.Format("{0}", guidMasterKey) },
-                                { "Accessed", String.Format("{0}", lastAccessed) },
-                                { "Modified", String.Format("{0}", lastModified) },
-                                { "Size", String.Format("{0}", size) },
+                                { "MasterKey", string.Format("{0}", guidMasterKey) },
+                                { "Accessed", string.Format("{0}", lastAccessed) },
+                                { "Modified", string.Format("{0}", lastModified) },
+                                { "Size", string.Format("{0}", size) },
                             });
                             }
                         }

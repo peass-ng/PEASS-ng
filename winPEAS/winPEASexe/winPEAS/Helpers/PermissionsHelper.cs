@@ -53,14 +53,14 @@ namespace winPEAS.Helpers
             try
             {
                 path = path.Trim();
-                if (String.IsNullOrEmpty(path))
+                if (string.IsNullOrEmpty(path))
                 {
                     return results;
                 }
 
                 path = GetFolderFromString(path);
 
-                if (String.IsNullOrEmpty(path))
+                if (string.IsNullOrEmpty(path))
                 {
                     return results;
                 }
@@ -96,7 +96,7 @@ namespace winPEAS.Helpers
                     // If the rule is interesting, check if any of my SIDs is in the rule
                     if (rule.IdentityReference.Value.ToLower() == mySID.Key.ToLower())
                     {
-                        string SID_name = String.IsNullOrEmpty(mySID.Value) ? mySID.Key : mySID.Value;
+                        string SID_name = string.IsNullOrEmpty(mySID.Value) ? mySID.Key : mySID.Value;
 
                         if (container.ContainsKey(SID_name))
                         {
@@ -108,13 +108,13 @@ namespace winPEAS.Helpers
                         else
                             container[SID_name] = current_perm_str;
 
-                        string to_add = String.Format("{0} [{1}]", SID_name, current_perm_str);
+                        string to_add = string.Format("{0} [{1}]", SID_name, current_perm_str);
                     }
                 }
             }
             foreach (KeyValuePair<string, string> SID_input in container)
             {
-                string to_add = String.Format("{0} [{1}]", SID_input.Key, SID_input.Value);
+                string to_add = string.Format("{0} [{1}]", SID_input.Key, SID_input.Value);
                 results.Add(to_add);
             }
             return results;
@@ -143,7 +143,7 @@ namespace winPEAS.Helpers
                         // If the rule is interesting, check if any of my SIDs is in the rule
                         if (rule.IdentityReference.Value.ToLower() == mySID.Key.ToLower())
                         {
-                            string SID_name = String.IsNullOrEmpty(mySID.Value) ? mySID.Key : mySID.Value;
+                            string SID_name = string.IsNullOrEmpty(mySID.Value) ? mySID.Key : mySID.Value;
 
                             if (container.ContainsKey(SID_name))
                             {
@@ -153,13 +153,13 @@ namespace winPEAS.Helpers
                             else
                                 container[SID_name] = current_perm_str;
 
-                            string to_add = String.Format("{0} [{1}]", SID_name, current_perm_str);
+                            string to_add = string.Format("{0} [{1}]", SID_name, current_perm_str);
                         }
                     }
                 }
                 foreach (KeyValuePair<string, string> SID_input in container)
                 {
-                    string to_add = String.Format("{0} [{1}]", SID_input.Key, SID_input.Value);
+                    string to_add = string.Format("{0} [{1}]", SID_input.Key, SID_input.Value);
                     results.Add(to_add);
                 }
             }
@@ -263,7 +263,7 @@ namespace winPEAS.Helpers
             try
             {
                 results[path] = String.Join(", ", GetPermissionsFolder(path, Checks.Checks.CurrentUserSiDs));
-                if (String.IsNullOrEmpty(results[path]))
+                if (string.IsNullOrEmpty(results[path]))
                 {
                     foreach (string d in Directory.GetDirectories(path))
                     {

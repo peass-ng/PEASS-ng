@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using winPEAS.Helpers;
+using winPEAS.Helpers.CredentialManager;
 using winPEAS.KnownFileCreds;
 using winPEAS.KnownFileCreds.Kerberos;
 using winPEAS.KnownFileCreds.Vault;
@@ -70,15 +71,40 @@ namespace winPEAS.Checks
                 }
                 else
                 {
-                    Beaprint.GrayPrint("    This function is not yet implemented.");
-                    Beaprint.InfoPrint("If you want to list credentials inside Credential Manager use 'cmdkey /list'");
+                    var colorsC = new Dictionary<string, string>()
+                    {
+                        { "Warning:", Beaprint.YELLOW },
+                    };
+                    Beaprint.AnsiPrint("    [!] Warning: if password contains non-printable characters, it will be printed as unicode base64 encoded string\n\n", colorsC);
+
+                    var keywords = new HashSet<string>
+                    {
+                        nameof(Credential.Password),
+                        nameof(Credential.Username),
+                        nameof(Credential.Target),
+                        nameof(Credential.PersistenceType),
+                        nameof(Credential.LastWriteTime),
+                    };
+
+                    colorsC = new Dictionary<string, string>()
+                    {
+                        { CredentialManager.UnicodeInfoText, Beaprint.LBLUE }
+                    };
+
+                    foreach (var keyword in keywords)
+                    {
+                        colorsC.Add($"{keyword}:", Beaprint.ansi_color_bad);
+                    }
+
+                    var credentials = CredentialManager.GetCredentials();
+
+                    Beaprint.ListPrint(credentials, colorsC);
                 }
             }
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
             }
-
         }
 
         static void PrintSavedRDPInfo()

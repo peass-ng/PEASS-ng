@@ -114,7 +114,7 @@ namespace winPEAS.KnownFileCreds.Vault
                         for (int j = 1; j <= vaultItemCount; j++)
                         {
                             Dictionary<string, string> vault_cred = new Dictionary<string, string>() {
-                            { "GUID", String.Format("{0}", vaultGuid) },
+                            { "GUID", string.Format("{0}", vaultGuid) },
                             { "Type", vaultType },
                             { "Resource", "" },
                             { "Identity", "" },
@@ -172,19 +172,19 @@ namespace winPEAS.KnownFileCreds.Vault
                                 object resource = GetVaultElementValue(pResourceElement);
                                 if (resource != null)
                                 {
-                                    vault_cred["Resource"] = String.Format("{0}", resource);
+                                    vault_cred["Resource"] = string.Format("{0}", resource);
                                 }
                                 object identity = GetVaultElementValue(pIdentityElement);
                                 if (identity != null)
                                 {
-                                    vault_cred["Identity"] = String.Format("{0}", identity);
+                                    vault_cred["Identity"] = string.Format("{0}", identity);
                                 }
                                 if (packageSid != null)
                                 {
-                                    vault_cred["PacakgeSid"] = String.Format("{0}", packageSid);
+                                    vault_cred["PacakgeSid"] = string.Format("{0}", packageSid);
                                 }
-                                vault_cred["Credential"] = String.Format("{0}", cred);
-                                vault_cred["Last Modified"] = String.Format("{0}", System.DateTime.FromFileTimeUtc((long)lastModified));
+                                vault_cred["Credential"] = string.Format("{0}", cred);
+                                vault_cred["Last Modified"] = string.Format("{0}", System.DateTime.FromFileTimeUtc((long)lastModified));
                                 results.Add(vault_cred);
                             }
                         }

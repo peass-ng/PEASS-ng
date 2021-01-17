@@ -23,13 +23,13 @@ namespace winPEAS.KnownFileCreds
                 {
                     if (SID.StartsWith("S-1-5") && !SID.EndsWith("_Classes"))
                     {
-                        string[] subkeys = RegistryHelper.GetRegSubkeys("HKU", String.Format("{0}\\Software\\Microsoft\\Terminal Server Client\\Servers", SID));
+                        string[] subkeys = RegistryHelper.GetRegSubkeys("HKU", string.Format("{0}\\Software\\Microsoft\\Terminal Server Client\\Servers", SID));
                         if (subkeys != null)
                         {
                             //Console.WriteLine("\r\n\r\n=== Saved RDP Connection Information ({0}) ===", SID);
                             foreach (string host in subkeys)
                             {
-                                string usernameHint = RegistryHelper.GetRegValue("HKCU", String.Format("Software\\Microsoft\\Terminal Server Client\\Servers\\{0}", host), "UsernameHint");
+                                string usernameHint = RegistryHelper.GetRegValue("HKCU", string.Format("Software\\Microsoft\\Terminal Server Client\\Servers\\{0}", host), "UsernameHint");
                                 Dictionary<string, string> rdp_info = new Dictionary<string, string>() {
                                     { "SID", SID },
                                     { "Host", host },
@@ -48,7 +48,7 @@ namespace winPEAS.KnownFileCreds
                 {
                     foreach (string host in subkeys)
                     {
-                        string usernameHint = RegistryHelper.GetRegValue("HKCU", String.Format("Software\\Microsoft\\Terminal Server Client\\Servers\\{0}", host), "UsernameHint");
+                        string usernameHint = RegistryHelper.GetRegValue("HKCU", string.Format("Software\\Microsoft\\Terminal Server Client\\Servers\\{0}", host), "UsernameHint");
                         Dictionary<string, string> rdp_info = new Dictionary<string, string>() {
                             { "SID", "" },
                             { "Host", host },
@@ -69,7 +69,7 @@ namespace winPEAS.KnownFileCreds
             {
                 if (MyUtils.IsHighIntegrity())
                 {
-                    string userFolder = String.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
+                    string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
                     string[] dirs = Directory.GetDirectories(userFolder);
 
                     foreach (string dir in dirs)
@@ -78,7 +78,7 @@ namespace winPEAS.KnownFileCreds
                         string userName = parts[parts.Length - 1];
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
-                            string userRDManFile = String.Format("{0}\\AppData\\Local\\Microsoft\\Remote Desktop Connection Manager\\RDCMan.settings", dir);
+                            string userRDManFile = string.Format("{0}\\AppData\\Local\\Microsoft\\Remote Desktop Connection Manager\\RDCMan.settings", dir);
                             if (System.IO.File.Exists(userRDManFile))
                             {
                                 XmlDocument xmlDoc = new XmlDocument();
@@ -93,8 +93,8 @@ namespace winPEAS.KnownFileCreds
                                 DateTime lastModified = System.IO.File.GetLastWriteTime(userRDManFile);
                                 Dictionary<string, string> rdg = new Dictionary<string, string>(){
                                     { "RDCManFile", userRDManFile },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
                                     { ".RDG Files", "" },
                                 };
 
@@ -109,7 +109,7 @@ namespace winPEAS.KnownFileCreds
                 else
                 {
                     string userName = Environment.GetEnvironmentVariable("USERNAME");
-                    string userRDManFile = String.Format("{0}\\AppData\\Local\\Microsoft\\Remote Desktop Connection Manager\\RDCMan.settings", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string userRDManFile = string.Format("{0}\\AppData\\Local\\Microsoft\\Remote Desktop Connection Manager\\RDCMan.settings", System.Environment.GetEnvironmentVariable("USERPROFILE"));
 
                     if (System.IO.File.Exists(userRDManFile))
                     {
@@ -125,8 +125,8 @@ namespace winPEAS.KnownFileCreds
                         DateTime lastModified = System.IO.File.GetLastWriteTime(userRDManFile);
                         Dictionary<string, string> rdg = new Dictionary<string, string>(){
                                     { "RDCManFile", userRDManFile },
-                                    { "Accessed", String.Format("{0}", lastAccessed) },
-                                    { "Modified", String.Format("{0}", lastModified) },
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
                                     { ".RDG Files", "" },
                                 };
 

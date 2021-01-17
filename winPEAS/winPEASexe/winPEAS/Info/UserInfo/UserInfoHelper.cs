@@ -40,7 +40,7 @@ namespace winPEAS.Info.UserInfo
             catch (Exception ex)
             {
                 //If error, check inside the other one
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}\n    Checking using the other Principal Context", ex.Message));
+                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}\n    Checking using the other Principal Context", ex.Message));
                 try
                 {
                     groupName = GetSIDGroupName(SID, ct == ContextType.Machine ? ContextType.Domain : ContextType.Machine);
@@ -53,7 +53,7 @@ namespace winPEAS.Info.UserInfo
             }
 
             //If nothing, check inside the other one
-            if (String.IsNullOrEmpty(groupName))
+            if (string.IsNullOrEmpty(groupName))
             {
                 try
                 {
@@ -233,11 +233,11 @@ namespace winPEAS.Info.UserInfo
                         if (si.pUserName == null || si.pUserName == "")
                             continue;
 
-                        rdp_session["SessionID"] = String.Format("{0}", si.SessionID);
-                        rdp_session["pSessionName"] = String.Format("{0}", si.pSessionName);
-                        rdp_session["pUserName"] = String.Format("{0}", si.pUserName);
-                        rdp_session["pDomainName"] = String.Format("{0}", si.pDomainName);
-                        rdp_session["State"] = String.Format("{0}", si.State);
+                        rdp_session["SessionID"] = string.Format("{0}", si.SessionID);
+                        rdp_session["pSessionName"] = string.Format("{0}", si.pSessionName);
+                        rdp_session["pUserName"] = string.Format("{0}", si.pUserName);
+                        rdp_session["pDomainName"] = string.Format("{0}", si.pDomainName);
+                        rdp_session["State"] = string.Format("{0}", si.State);
                         rdp_session["SourceIP"] = "";
 
                         // Now use WTSQuerySessionInformation to get the remote IP (if any) for the connection
@@ -249,8 +249,8 @@ namespace winPEAS.Info.UserInfo
 
                         if (address.Address[2] != 0)
                         {
-                            string sourceIP = String.Format("{0}.{1}.{2}.{3}", address.Address[2], address.Address[3], address.Address[4], address.Address[5]);
-                            rdp_session["SourceIP"] = String.Format("{0}", sourceIP);
+                            string sourceIP = string.Format("{0}.{1}.{2}.{3}", address.Address[2], address.Address[3], address.Address[4], address.Address[5]);
+                            rdp_session["SourceIP"] = string.Format("{0}", sourceIP);
                         }
                         results.Add(rdp_session);
                     }
@@ -259,7 +259,7 @@ namespace winPEAS.Info.UserInfo
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
+                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
             }
             finally
             {
@@ -284,19 +284,19 @@ namespace winPEAS.Info.UserInfo
                         results.Add(new Dictionary<string, string>()
                         {
                             { "Domain", domain },
-                            { "SID", String.Format("{0}", sid) },
-                            { "MaxPasswordAge", String.Format("{0}", pi.MaxPasswordAge) },
-                            { "MinPasswordAge", String.Format("{0}", pi.MinPasswordAge) },
-                            { "MinPasswordLength", String.Format("{0}", pi.MinPasswordLength) },
-                            { "PasswordHistoryLength", String.Format("{0}", pi.PasswordHistoryLength) },
-                            { "PasswordProperties", String.Format("{0}", pi.PasswordProperties) },
+                            { "SID", string.Format("{0}", sid) },
+                            { "MaxPasswordAge", string.Format("{0}", pi.MaxPasswordAge) },
+                            { "MinPasswordAge", string.Format("{0}", pi.MinPasswordAge) },
+                            { "MinPasswordLength", string.Format("{0}", pi.MinPasswordLength) },
+                            { "PasswordHistoryLength", string.Format("{0}", pi.PasswordHistoryLength) },
+                            { "PasswordProperties", string.Format("{0}", pi.PasswordProperties) },
                         });
                     }
                 }
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
+                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
             }
             return results;
         }                      
@@ -333,11 +333,11 @@ namespace winPEAS.Info.UserInfo
                     c = $"{Clipboard.GetFileDropList()}";
 
                 //else if (Clipboard.ContainsImage()) //No system.Drwing import
-                    //c = String.Format("{0}", Clipboard.GetImage());
+                    //c = string.Format("{0}", Clipboard.GetImage());
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
+                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
             }
             return c;
         }

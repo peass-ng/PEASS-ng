@@ -43,7 +43,7 @@ namespace winPEAS.Helpers
         /////////////////////////////////
         public static void PrintBanner()
         {
-                Console.WriteLine(BLUE + String.Format(@"     
+                Console.WriteLine(BLUE + string.Format(@"     
              {0}*((,.,/((((((((((((((((((((/,  */               
       {0},/*,..*((((((((((((((((((((((((((((((((((,           
     {0},*/((((((((((((((((((/,  .*//((//**, .*(((((((*       
@@ -173,6 +173,11 @@ namespace winPEAS.Helpers
             Console.WriteLine(RED + to_print + NOCOLOR);
         }
 
+        public static void ColorPrint(string to_print, string color)
+        {
+            Console.WriteLine(color + to_print + NOCOLOR);
+        }
+
         public static void GrayPrint(string to_print)
         {
             Console.WriteLine(DGRAY + to_print + NOCOLOR);
@@ -203,7 +208,9 @@ namespace winPEAS.Helpers
                 {
                     string new_line = line;
                     foreach (KeyValuePair<string, string> color in ansi_colors_regexp)
+                    {
                         new_line = Regexansi(new_line, color.Value, color.Key);
+                    }
 
                     Console.WriteLine(new_line);
                 }
@@ -227,7 +234,7 @@ namespace winPEAS.Helpers
         {
             foreach (KeyValuePair<string, string> entry in dicprint)
             {
-                if (delete_nulls && String.IsNullOrEmpty(entry.Value.Trim()))
+                if (delete_nulls && string.IsNullOrEmpty(entry.Value.Trim()))
                 {
                     continue;
                 }
@@ -259,7 +266,7 @@ namespace winPEAS.Helpers
             {
                 foreach (KeyValuePair<string, string> entry in dicprint)
                 {
-                    if (delete_nulls && String.IsNullOrEmpty(entry.Value))
+                    if (delete_nulls && string.IsNullOrEmpty(entry.Value))
                     {
                         continue;
                     }
@@ -296,7 +303,7 @@ namespace winPEAS.Helpers
                 Dictionary<string, string> results = new Dictionary<string, string>();
                 foreach (KeyValuePair<string, object> entry in dicprint)
                 {
-                    results[entry.Key] = String.Format("{0}", entry.Value);
+                    results[entry.Key] = string.Format("{0}", entry.Value);
                 }
 
                 DictPrint(results, delete_nulls);

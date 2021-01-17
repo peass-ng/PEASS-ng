@@ -5,16 +5,18 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Principal;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace winPEAS.Helpers
 {
     public class MyUtils
-    {                     
+    {
         public static string GetCLSIDBinPath(string CLSID)
         {
-            return RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Classes\CLSID\" + CLSID + @"\InprocServer32", ""); //To get the default object you need to use an empty string
-        }                            
+            return RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Classes\CLSID\" + CLSID + @"\InprocServer32",
+                ""); //To get the default object you need to use an empty string
+        }
 
         ////////////////////////////////////
         /////// MISC - Files & Paths ///////
@@ -24,7 +26,8 @@ namespace winPEAS.Helpers
             bool isDotNet = false;
             FileVersionInfo myFileVersionInfo = FileVersionInfo.GetVersionInfo(path);
             string companyName = myFileVersionInfo.CompanyName;
-            if ((String.IsNullOrEmpty(companyName)) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
+            if ((string.IsNullOrEmpty(companyName)) ||
+                (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
             {
                 try
                 {
@@ -37,7 +40,9 @@ namespace winPEAS.Helpers
                 }
                 catch (System.BadImageFormatException exception)
                 {
-                    if (Regex.IsMatch(exception.Message, ".*This assembly is built by a runtime newer than the currently loaded runtime and cannot be loaded.*", RegexOptions.IgnoreCase))
+                    if (Regex.IsMatch(exception.Message,
+                        ".*This assembly is built by a runtime newer than the currently loaded runtime and cannot be loaded.*",
+                        RegexOptions.IgnoreCase))
                     {
                         isDotNet = true;
                     }
@@ -47,15 +52,17 @@ namespace winPEAS.Helpers
                     // System.Console.WriteLine("The assembly has already been loaded.");
                 }
             }
+
             return isDotNet;
         }
 
         public static string GetExecutableFromPath(string path)
         {
             string binaryPath = "";
-            Match match_path = Regex.Match(path, @"^\W*([a-z]:\\.+?(\.exe|\.dll|\.sys))\W*", RegexOptions.RightToLeft | RegexOptions.IgnoreCase);
+            Match match_path = Regex.Match(path, @"^\W*([a-z]:\\.+?(\.exe|\.dll|\.sys))\W*",
+                RegexOptions.RightToLeft | RegexOptions.IgnoreCase);
             if (match_path.Groups.Count > 1)
-            { 
+            {
                 binaryPath = match_path.Groups[1].ToString();
             }
 
@@ -72,6 +79,7 @@ namespace winPEAS.Helpers
             {
                 binaryPath = binaryPathdll32[1].Trim();
             }
+
             return binaryPath;
         }
 
@@ -101,8 +109,9 @@ namespace winPEAS.Helpers
                     }
                 }
             }
+
             return binaryPath;
-        }      
+        }
 
         public static bool CheckQuoteAndSpace(string path)
         {
@@ -111,9 +120,10 @@ namespace winPEAS.Helpers
                 if (path.Contains(" "))
                     return true;
             }
+
             return false;
         }
-          
+
 
         //////////////////////
         //////// MISC ////////
@@ -125,7 +135,7 @@ namespace winPEAS.Helpers
             return dirs.ToList();
         }
 
-        
+
         //From Seatbelt
         public static bool IsHighIntegrity()
         {
@@ -143,12 +153,13 @@ namespace winPEAS.Helpers
                 if (Regex.Match(haystack, regex, RegexOptions.IgnoreCase).Success)
                     return true;
             }
+
             return false;
         }
 
-        
+
         // From https://stackoverflow.com/questions/206323/how-to-execute-command-line-in-c-get-std-out-results
-        public static string ExecCMD(string args, string alternative_binary="")
+        public static string ExecCMD(string args, string alternative_binary = "")
         {
             //Create process
             Process pProcess = new Process();
@@ -157,10 +168,10 @@ namespace winPEAS.Helpers
             pProcess.StartInfo.CreateNoWindow = true;
 
             //strCommand is path and file name of command to run
-            pProcess.StartInfo.FileName = (String.IsNullOrEmpty(alternative_binary)) ? "cmd.exe" : alternative_binary;
+            pProcess.StartInfo.FileName = (string.IsNullOrEmpty(alternative_binary)) ? "cmd.exe" : alternative_binary;
 
             //strCommandParameters are parameters to pass to program
-            pProcess.StartInfo.Arguments = (String.IsNullOrEmpty(alternative_binary)) ? "/C " + args : args;
+            pProcess.StartInfo.Arguments = (string.IsNullOrEmpty(alternative_binary)) ? "/C " + args : args;
 
             pProcess.StartInfo.UseShellExecute = false;
 
@@ -177,6 +188,32 @@ namespace winPEAS.Helpers
             pProcess.WaitForExit();
 
             return strOutput;
+        }
+
+        private static string[] suffixes = new[] {" B", " KB", " MB", " GB", " TB", " PB"};
+
+        public static string ConvertBytesToHumanReadable(double number, int precision = 2)
+        {
+            // unit's number of bytes
+            const double unit = 1024;
+            // suffix counter
+            int i = 0;
+            // as long as we're bigger than a unit, keep going
+            while (number > unit)
+            {
+                number /= unit;
+                i++;
+            }
+
+            // apply precision and current suffix
+            return Math.Round(number, precision) + suffixes[i];
+        }
+
+        public static bool IsUnicode(string input)
+        {
+            var asciiBytesCount = Encoding.ASCII.GetByteCount(input);
+            var unicodBytesCount = Encoding.UTF8.GetByteCount(input);
+            return asciiBytesCount != unicodBytesCount;
         }
     }
 }

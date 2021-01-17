@@ -101,7 +101,7 @@ namespace winPEAS.Checks
             "winscp.ini",
             "ws_ftp.ini",
             "wsl.exe",
-    };
+        };
 
 
         public void PrintInfo(bool isDebug)
@@ -252,20 +252,27 @@ namespace winPEAS.Checks
         {
             try
             {
-                string[] pass_reg_hkcu = new string[] { @"Software\ORL\WinVNC3\Password", @"Software\TightVNC\Server", @"Software\SimonTatham\PuTTY\Sessions" };
-                string[] pass_reg_hklm = new string[] { @"SYSTEM\CurrentControlSet\Services\SNMP" };
+                string[] passRegHkcu = new string[] { @"Software\ORL\WinVNC3\Password", @"Software\TightVNC\Server", @"Software\SimonTatham\PuTTY\Sessions" };
+                string[] passRegHklm = new string[] { @"SYSTEM\CurrentControlSet\Services\SNMP" };
 
                 Beaprint.MainPrint("Looking for possible regs with creds");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#inside-the-registry");
 
-                string winVNC4 = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\RealVNC\WinVNC4", "passwword");
-                if (!string.IsNullOrEmpty(winVNC4.Trim()))
-                    Beaprint.BadPrint(winVNC4);
+                string winVnc4 = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\RealVNC\WinVNC4", "passwword");
+                if (!string.IsNullOrEmpty(winVnc4.Trim()))
+                {
+                    Beaprint.BadPrint(winVnc4);
+                }
 
-                foreach (string reg_hkcu in pass_reg_hkcu)
-                    Beaprint.DictPrint(RegistryHelper.GetRegValues("HKLM", reg_hkcu), false);
-                foreach (string reg_hklm in pass_reg_hklm)
-                    Beaprint.DictPrint(RegistryHelper.GetRegValues("HKLM", reg_hklm), false);
+                foreach (string regHkcu in passRegHkcu)
+                {
+                    Beaprint.DictPrint(RegistryHelper.GetRegValues("HKLM", regHkcu), false);
+                }
+
+                foreach (string regHklm in passRegHklm)
+                {
+                    Beaprint.DictPrint(RegistryHelper.GetRegValues("HKLM", regHklm), false);
+                }
             }
             catch (Exception ex)
             {
@@ -277,11 +284,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                string patterns = "*credential*;*password*";
-                string pattern_color = "[cC][rR][eE][dD][eE][nN][tT][iI][aA][lL]|[pP][aA][sS][sS][wW][oO][rR][dD]";
-                
-                var valid_extensions = new List<string>() { ".txt", ".conf", ".cnf", ".yml", ".yaml", ".doc", ".docx", ".xlsx", ".json", ".xml" };
-
+                string pattern_color = "[cC][rR][eE][dD][eE][nN][tT][iI][aA][lL]|[pP][aA][sS][sS][wW][oO][rR][dD]";                                
                 var validExtensions = new HashSet<string>
                 {
                     ".cnf",
@@ -302,13 +305,11 @@ namespace winPEAS.Checks
                 };
 
                 Beaprint.MainPrint("Looking for possible password files in users homes");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files");
-                string searchPath = $"{Environment.GetEnvironmentVariable("SystemDrive") + "\\Users"}\\";
-                List<CustomFileInfo> fileInfos = SearchHelper.SearchUserCredsFiles();
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files");               
+                var fileInfos = SearchHelper.SearchUserCredsFiles();
 
                 foreach (var fileInfo in fileInfos)
                 {
-                    // if (!Path.GetFileName(file_path).Contains("."))
                     if (!fileInfo.Filename.Contains("."))
                     {
                         Beaprint.AnsiPrint("    " + fileInfo.FullPath, colorF);
@@ -321,14 +322,6 @@ namespace winPEAS.Checks
                         {
                             Beaprint.AnsiPrint("    " + fileInfo.FullPath, colorF);
                         }
-
-                        //foreach (string ext in valid_extensions)
-                        //{
-                        //    if (file_path.Contains(ext))
-                        //    {
-                        //        Beaprint.AnsiPrint("    " + file_path, colorF);
-                        //    }
-                        //}
                     }
                 }
             }
@@ -345,7 +338,6 @@ namespace winPEAS.Checks
                 //string pattern_bin = _patternsFileCreds + ";*password*;*credential*";
                 string pattern_bin = string.Join(";", patternsFileCreds) + ";*password*;*credential*";
                 
-
                 Dictionary<string, string> colorF = new Dictionary<string, string>()
                 {
                     { _patternsFileCredsColor + "|.*password.*|.*credential.*", Beaprint.ansi_color_bad },
@@ -405,8 +397,8 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Looking for documents --limit 100--");
-                List<string> doc_files = InterestingFiles.InterestingFiles.ListUsersDocs();
-                Beaprint.ListPrint(doc_files.GetRange(0, doc_files.Count <= 100 ? doc_files.Count : 100));
+                List<string> docFiles = InterestingFiles.InterestingFiles.ListUsersDocs();
+                Beaprint.ListPrint(docFiles.GetRange(0, docFiles.Count <= 100 ? docFiles.Count : 100));
             }
             catch (Exception ex)
             {
@@ -432,7 +424,6 @@ namespace winPEAS.Checks
                     {
                         Beaprint.AnsiPrint("    " + recF["Target"] + "(" + recF["Accessed"] + ")", colorF);
                     }
-
                 }
                 else
                 {

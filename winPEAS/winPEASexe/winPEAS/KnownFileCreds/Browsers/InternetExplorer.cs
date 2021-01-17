@@ -96,12 +96,12 @@ namespace winPEAS.KnownFileCreds.Browsers
                     {
                         if (SID.StartsWith("S-1-5") && !SID.EndsWith("_Classes"))
                         {
-                            Dictionary<string, object> settings = RegistryHelper.GetRegValues("HKU", String.Format("{0}\\SOFTWARE\\Microsoft\\Internet Explorer\\TypedURLs", SID));
+                            Dictionary<string, object> settings = RegistryHelper.GetRegValues("HKU", string.Format("{0}\\SOFTWARE\\Microsoft\\Internet Explorer\\TypedURLs", SID));
                             if ((settings != null) && (settings.Count > 1))
                             {
                                 foreach (KeyValuePair<string, object> kvp in settings)
                                 {
-                                    byte[] timeBytes = RegistryHelper.GetRegValueBytes("HKU", String.Format("{0}\\SOFTWARE\\Microsoft\\Internet Explorer\\TypedURLsTime", SID), kvp.Key.ToString().Trim());
+                                    byte[] timeBytes = RegistryHelper.GetRegValueBytes("HKU", string.Format("{0}\\SOFTWARE\\Microsoft\\Internet Explorer\\TypedURLsTime", SID), kvp.Key.ToString().Trim());
                                     if (timeBytes != null)
                                     {
                                         long timeLong = (long)(BitConverter.ToInt64(timeBytes, 0));
@@ -116,7 +116,7 @@ namespace winPEAS.KnownFileCreds.Browsers
                         }
                     }
 
-                    string userFolder = String.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
+                    string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
                     string[] dirs = Directory.GetDirectories(userFolder);
                     foreach (string dir in dirs)
                     {
@@ -124,7 +124,7 @@ namespace winPEAS.KnownFileCreds.Browsers
                         string userName = parts[parts.Length - 1];
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
-                            string userIEBookmarkPath = String.Format("{0}\\Favorites\\", dir);
+                            string userIEBookmarkPath = string.Format("{0}\\Favorites\\", dir);
 
                             if (Directory.Exists(userIEBookmarkPath))
                             {
@@ -174,7 +174,7 @@ namespace winPEAS.KnownFileCreds.Browsers
                         }
                     }
 
-                    string userIEBookmarkPath = String.Format("{0}\\Favorites\\", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string userIEBookmarkPath = string.Format("{0}\\Favorites\\", System.Environment.GetEnvironmentVariable("USERPROFILE"));
 
                     string[] bookmarkPaths = Directory.GetFiles(userIEBookmarkPath, "*.url", SearchOption.AllDirectories);
 
@@ -200,7 +200,7 @@ namespace winPEAS.KnownFileCreds.Browsers
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
+                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
             }
             return results;
         }
@@ -240,7 +240,7 @@ namespace winPEAS.KnownFileCreds.Browsers
                         // ensure we have a site address
                         if (Regex.IsMatch(locationURL.ToString(), @"(^https?://.+)|(^ftp://)"))
                         {
-                            results.Add(String.Format("{0}", locationURL));
+                            results.Add(string.Format("{0}", locationURL));
                         }
                         Marshal.ReleaseComObject(item);
                         item = null;
@@ -257,7 +257,7 @@ namespace winPEAS.KnownFileCreds.Browsers
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(String.Format("  [X] Exception: {0}", ex));
+                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
             }
             return results;
         }      

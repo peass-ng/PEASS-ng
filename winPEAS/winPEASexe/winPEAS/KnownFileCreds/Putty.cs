@@ -86,7 +86,7 @@ namespace winPEAS.KnownFileCreds
                 {
                     if (SID.StartsWith("S-1-5") && !SID.EndsWith("_Classes"))
                     {
-                        string[] subKeys = RegistryHelper.GetRegSubkeys("HKU", String.Format("{0}\\Software\\SimonTatham\\PuTTY\\Sessions\\", SID));
+                        string[] subKeys = RegistryHelper.GetRegSubkeys("HKU", string.Format("{0}\\Software\\SimonTatham\\PuTTY\\Sessions\\", SID));
 
                         foreach (string sessionName in subKeys)
                         {
@@ -117,7 +117,7 @@ namespace winPEAS.KnownFileCreds
                             };
 
                             foreach (string key in keys)
-                                putty_sess[key] = RegistryHelper.GetRegValue("HKU", String.Format("{0}\\Software\\SimonTatham\\PuTTY\\Sessions\\{1}", SID, sessionName), key);
+                                putty_sess[key] = RegistryHelper.GetRegValue("HKU", string.Format("{0}\\Software\\SimonTatham\\PuTTY\\Sessions\\{1}", SID, sessionName), key);
 
                             results.Add(putty_sess);
                         }
@@ -155,7 +155,7 @@ namespace winPEAS.KnownFileCreds
                     };
 
                     foreach (string key in keys)
-                        putty_sess[key] = RegistryHelper.GetRegValue("HKCU", String.Format("Software\\SimonTatham\\PuTTY\\Sessions\\{0}", sessionName), key);
+                        putty_sess[key] = RegistryHelper.GetRegValue("HKCU", string.Format("Software\\SimonTatham\\PuTTY\\Sessions\\{0}", sessionName), key);
 
                     results.Add(putty_sess);
                 }
@@ -176,7 +176,7 @@ namespace winPEAS.KnownFileCreds
                 {
                     if (SID.StartsWith("S-1-5") && !SID.EndsWith("_Classes"))
                     {
-                        Dictionary<string, object> hostKeys = RegistryHelper.GetRegValues("HKU", String.Format("{0}\\Software\\SimonTatham\\PuTTY\\SshHostKeys\\", SID));
+                        Dictionary<string, object> hostKeys = RegistryHelper.GetRegValues("HKU", string.Format("{0}\\Software\\SimonTatham\\PuTTY\\SshHostKeys\\", SID));
                         if ((hostKeys != null) && (hostKeys.Count != 0))
                         {
                             Dictionary<string, string> putty_ssh = new Dictionary<string, string>();

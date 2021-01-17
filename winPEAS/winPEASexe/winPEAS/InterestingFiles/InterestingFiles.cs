@@ -98,37 +98,12 @@ namespace winPEAS.InterestingFiles
             List<string> results = new List<string>();
             try
             {
-                // returns files (w/ modification dates) that match the given pattern below
-                string patterns = "*diagram*;*.pdf;*.vsd;*.doc;*docx;*.xls;*.xlsx";
-
                 if (MyUtils.IsHighIntegrity())
                 {
-                    string searchPath = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\Users\\";
-
-                    //List<string> files = SearchHelper.FindFiles(searchPath, patterns);
-
-                    //foreach (string file in files)
-                    //{
-                    //    //DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                    //    //DateTime lastModified = System.IO.File.GetLastWriteTime(file);
-                    //    results.Add(file);
-                    //}
-
-                    results = SearchHelper.SearchUsersDocs();                   
+                    results = SearchHelper.SearchUsersDocs();
                 }
-
                 else
                 {
-                    string searchPath = Environment.GetEnvironmentVariable("USERPROFILE");
-
-                    //List<string> files = SearchHelper.FindFiles(searchPath, patterns);
-
-                    //foreach (string file in files)
-                    //{
-                    //    //DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                    //    //DateTime lastModified = System.IO.File.GetLastWriteTime(file);
-                    //    results.Add(file);
-                    //}
                     results = SearchHelper.SearchCurrentUserDocs();
                 }
             }

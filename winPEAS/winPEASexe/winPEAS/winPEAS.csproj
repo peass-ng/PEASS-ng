@@ -26,6 +26,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <LangVersion>8.0</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -116,6 +117,15 @@
     <Compile Include="Checks\SystemInfo.cs" />
     <Compile Include="Checks\UserInfo.cs" />
     <Compile Include="Checks\WindowsCreds.cs" />
+    <Compile Include="Helpers\AppLocker\AppLockerRules.cs" />
+    <Compile Include="Helpers\AppLocker\IAppIdPolicyHandler.cs" />
+    <Compile Include="Helpers\AppLocker\SharpAppLocker.cs" />
+    <Compile Include="Helpers\CredentialManager\Credential.cs" />
+    <Compile Include="Helpers\CredentialManager\CredentialManager.cs" />
+    <Compile Include="Helpers\CredentialManager\CredentialType.cs" />
+    <Compile Include="Helpers\CredentialManager\NativeMethods.cs" />
+    <Compile Include="Helpers\CredentialManager\PersistenceType.cs" />
+    <Compile Include="Helpers\CredentialManager\SecureStringHelper.cs" />
     <Compile Include="Helpers\CustomFileInfo.cs" />
     <Compile Include="Helpers\MemoryHelper.cs" />
     <Compile Include="Helpers\PermissionsHelper.cs" />

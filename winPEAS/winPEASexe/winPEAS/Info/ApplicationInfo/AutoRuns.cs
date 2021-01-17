@@ -6,7 +6,6 @@ using System.Management;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using winPEAS.Helpers;
-using winPEAS.KnownFileCreds;
 
 namespace winPEAS.Info.ApplicationInfo
 {
@@ -16,11 +15,13 @@ namespace winPEAS.Info.ApplicationInfo
         {
             var result = new List<Dictionary<string, string>>();
             var regAutoRuns = GetRegistryAutoRuns(NtAccountNames);
-            var fileAutoRuns = GetAutoRunsFolder();
+            var folderAutoRuns = GetAutoRunsFolder();
+            //var fileAutoRuns = GetAutoRunsFiles();
             var wmicAutoRuns = GetAutoRunsWMIC();
 
             result.AddRange(regAutoRuns);
-            result.AddRange(fileAutoRuns);
+            result.AddRange(folderAutoRuns);
+            //result.AddRange(fileAutoRuns);
             result.AddRange(wmicAutoRuns);
 
             return result;
@@ -66,6 +67,10 @@ namespace winPEAS.Info.ApplicationInfo
                     new List<string> {"HKCU","Software\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx"},
                     new List<string> {"HKCU","Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx"},
 
+                    //RunServicesOnce 
+                    new List<string> {"HKCU","Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce"},
+                    new List<string> {"HKLM","SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce"},
+
                     //Startup Path
                     new List<string> {"HKCU", @"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders", "Common Startup"},
                     new List<string> {"HKCU", @"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders", "Common Startup"},
@@ -75,6 +80,8 @@ namespace winPEAS.Info.ApplicationInfo
                     //Winlogon
                     new List<string> {"HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "Userinit"},
                     new List<string> {"HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "Shell"},
+
+                    new List<string> { "HKCU", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows", "load"},
 
                     //Policy Settings
                     new List<string> {"HKLM", @"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", "Run"},
@@ -251,8 +258,30 @@ namespace winPEAS.Info.ApplicationInfo
         {
             List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
             List<string> autorunLocations = new List<string>();
-            autorunLocations.Add(Environment.ExpandEnvironmentVariables(@"%appdata%\Microsoft\Windows\Start Menu\Programs\Startup"));
+            // displays startup for current user
+            //autorunLocations.Add(Environment.ExpandEnvironmentVariables(@"%appdata%\Microsoft\Windows\Start Menu\Programs\Startup"));
             autorunLocations.Add(Environment.ExpandEnvironmentVariables(@"%programdata%\Microsoft\Windows\Start Menu\Programs\Startup"));
+
+            //string usersPath = Environment.GetEnvironmentVariable("USERPROFILE") + "\\..\\";
+            string usersPath = Path.Combine(Environment.GetEnvironmentVariable(@"USERPROFILE"));
+            usersPath = Directory.GetParent(usersPath).FullName;
+            try
+            {
+                var userDirs = Directory.GetDirectories(usersPath);
+
+                foreach (var userDir in userDirs)
+                {
+                    string startupPath = $@"{userDir}\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup";
+
+                    if (Directory.Exists(startupPath))
+                    {
+                        autorunLocations.Add(startupPath);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+            }
 
             foreach (string path in autorunLocations)
             {
@@ -316,6 +345,11 @@ namespace winPEAS.Info.ApplicationInfo
                 Beaprint.GrayPrint("Error getting autoruns from WMIC: " + e);
             }
             return results;
-        }        
+        }
+
+        private static IEnumerable<Dictionary<string, string>> GetAutoRunsFiles()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
