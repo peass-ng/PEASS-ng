@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using System.Security.Principal;
@@ -36,6 +35,9 @@ namespace winPEAS.Checks
         //static string paint_lockoutUsers = "";
         public static string PaintAdminUsers = "";
 
+        private static List<SystemCheck> _systemChecks;
+        private static HashSet<string> _systemCheckSelectedKeysHashSet = new HashSet<string>();
+
         class SystemCheck
         {           
             public string Key { get; }
@@ -51,10 +53,10 @@ namespace winPEAS.Checks
         internal static void Run(string[] args)
         {
             //Check parameters
-            bool isAllChecks = true;           
+            bool isAllChecks = true;
             bool wait = false;
 
-            var systemChecks = new List<SystemCheck>
+            _systemChecks = new List<SystemCheck>
             {
                 new SystemCheck("systeminfo", new SystemInfo()),
                 new SystemCheck("userinfo", new UserInfo()),
@@ -67,8 +69,7 @@ namespace winPEAS.Checks
                 new SystemCheck("filesinfo", new FilesInfo()),
             };
 
-            var systemCheckAllKeys = new HashSet<string>(systemChecks.Select(i => i.Key));
-            var systemCheckSelectedKeysHashSet = new HashSet<string>();           
+            var systemCheckAllKeys = new HashSet<string>(_systemChecks.Select(i => i.Key));
 
             foreach (string arg in args)
             {
@@ -114,40 +115,48 @@ namespace winPEAS.Checks
                 string argToLower = arg.ToLower();
                 if (systemCheckAllKeys.Contains(argToLower))
                 {
-                    systemCheckSelectedKeysHashSet.Add(argToLower);
+                    _systemCheckSelectedKeysHashSet.Add(argToLower);
                     isAllChecks = false;
-                }                                            
+                }
             }
 
-            //Start execution
-            if (IsNoColor)
+            CheckRunner.Run(() =>
             {
-                Beaprint.DeleteColors();
-            }
-            else
+                //Start execution
+                if (IsNoColor)
+                {
+                    Beaprint.DeleteColors();
+                }
+                else
+                {
+                    CheckRegANSI();
+                }
+
+                CheckRunner.Run(CreateDynamicLists, IsDebug);
+
+                Beaprint.PrintInit(IsDebug);
+
+                RunChecks(isAllChecks, wait);
+            }, IsDebug, "Total time");
+        }
+
+        private static void RunChecks(bool isAllChecks, bool wait)
+        {
+            for (int i = 0; i < _systemChecks.Count; i++)
             {
-                CheckRegANSI();
-            }
+                var systemCheck = _systemChecks[i];
 
-            CheckRunner.Run(CreateDynamicLists, IsDebug);
-
-            Beaprint.PrintInit(IsDebug);           
-
-            for (int i = 0; i < systemChecks.Count; i++)
-            {
-                var systemCheck = systemChecks[i];
-
-                if (systemCheckSelectedKeysHashSet.Contains(systemCheck.Key) || isAllChecks)
+                if (_systemCheckSelectedKeysHashSet.Contains(systemCheck.Key) || isAllChecks)
                 {
                     systemCheck.Check.PrintInfo(IsDebug);
 
-                    if ((i < systemCheckSelectedKeysHashSet.Count - 1) && wait)
+                    if ((i < _systemCheckSelectedKeysHashSet.Count - 1) && wait)
                     {
                         WaitInput();
                     }
-                }               
-            }           
-        }      
+                }
+            }
+        }
 
         private static void CreateDynamicLists()
         {
@@ -236,7 +245,7 @@ namespace winPEAS.Checks
                 Beaprint.GrayPrint("Error while creating admin users groups list: " + ex);
             }
 
-            // create the file lists
+            //create the file lists
             try
             {
                 Beaprint.GrayPrint("   - Creating files/directories list for search...");
@@ -245,7 +254,7 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.GrayPrint("Error while creating directory list: " + ex);
-            }            
+            }
         }
 
         private static void CheckRegANSI()

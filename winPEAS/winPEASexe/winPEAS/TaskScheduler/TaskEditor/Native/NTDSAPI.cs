@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace winPEAS.TaskScheduler.Native
+namespace winPEAS.TaskScheduler.TaskEditor.Native
 {
 	internal static partial class NativeMethods
 	{

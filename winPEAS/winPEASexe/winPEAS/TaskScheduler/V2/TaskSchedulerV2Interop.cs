@@ -1,15 +1,28 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using winPEAS.TaskScheduler.Native;
+using System.Text;
+using System.Threading.Tasks;
+using winPEAS.TaskScheduler.TaskEditor.Native;
+using winPEAS.TaskScheduler.V1Interop;
 
-namespace winPEAS.TaskScheduler.V2
+namespace winPEAS.TaskScheduler.V2Interop
 {
+
+	internal enum TaskEnumFlags
+	{
+		Hidden = 1
+	}
+
+#pragma warning disable CS0618 // Type or member is obsolete
 	[ComImport, Guid("BAE54997-48B1-4CBE-9965-D6BE263EBEA4"), InterfaceType(ComInterfaceType.InterfaceIsDual), System.Security.SuppressUnmanagedCodeSecurity]
 	internal interface IAction
 	{
+		string Id { [return: MarshalAs(UnmanagedType.BStr)] get; [param: In, MarshalAs(UnmanagedType.BStr)] set; }
 		TaskActionType Type { get; }
 	}
 
@@ -18,6 +31,9 @@ namespace winPEAS.TaskScheduler.V2
 	{
 		int Count { get; }
 		IAction this[int index] { [return: MarshalAs(UnmanagedType.Interface)] get; }
+		[return: MarshalAs(UnmanagedType.Interface)]
+		IEnumerator GetEnumerator();
+		string XmlText { [return: MarshalAs(UnmanagedType.BStr)] get; [param: In, MarshalAs(UnmanagedType.BStr)] set; }
 		[return: MarshalAs(UnmanagedType.Interface)]
 		IAction Create([In] TaskActionType Type);
 		void Remove([In, MarshalAs(UnmanagedType.Struct)][NotNull] object index);
@@ -496,6 +512,19 @@ namespace winPEAS.TaskScheduler.V2
 		bool Exclusive { [param: In] set; get; }
 	}
 
+	[ComImport, Guid("3E4C9351-D966-4B8B-BB87-CEBA68BB0107"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), System.Security.SuppressUnmanagedCodeSecurity]
+	internal interface ITaskVariables
+	{
+		[return: MarshalAs(UnmanagedType.BStr)]
+		[MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+		string GetInput();
+		[MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+		void SetOutput([In, MarshalAs(UnmanagedType.BStr)] string input);
+		[return: MarshalAs(UnmanagedType.BStr)]
+		[MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+		string GetContext();
+	}
+
 	[ComImport, Guid("B45747E0-EBA7-4276-9F29-85C5BB300006"), InterfaceType(ComInterfaceType.InterfaceIsDual), System.Security.SuppressUnmanagedCodeSecurity]
 	internal interface ITimeTrigger : ITrigger
 	{
@@ -551,4 +580,3 @@ namespace winPEAS.TaskScheduler.V2
 		string RandomDelay { [return: MarshalAs(UnmanagedType.BStr)] get; [param: In, MarshalAs(UnmanagedType.BStr)] set; }
 	}
 }
-

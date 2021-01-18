@@ -33,28 +33,28 @@ namespace winPEAS.Info.ApplicationInfo
         public static List<Dictionary<string, string>> GetScheduledAppsNoMicrosoft()
         {
             var results = new List<Dictionary<string, string>>();
-            
-            try
+
+            void ProcessTaskFolder(TaskFolder taskFolder)
             {
-                void EnumFolderTasks(TaskFolder fld)
+                foreach (var runTask in taskFolder.GetTasks()) // browse all tasks in folder
                 {
-                    foreach (Task task in fld.Tasks)
-                    {
-                        ActOnTask(task);
-                    }
-                    //task.Name
-                    //task.Enabled
-                    //task.Definition.Actions
-                    //task.Definition
-                    foreach (TaskFolder sfld in fld.SubFolders)
-                    {
-                        EnumFolderTasks(sfld);
-                    }
+                    ActOnTask(runTask);
                 }
 
-                void ActOnTask(Task t)
+                foreach (var taskFolderSub in taskFolder.SubFolders) // recursively browse subfolders
                 {
-                    if (t.Enabled && (!string.IsNullOrEmpty(t.Definition.RegistrationInfo.Author) && !t.Definition.RegistrationInfo.Author.Contains("Microsoft")))
+                    ProcessTaskFolder(taskFolderSub);
+                }
+            }
+
+            void ActOnTask(Task t)
+            {
+                try
+                {
+                    if (t.Enabled && 
+                        !string.IsNullOrEmpty(t.Path) && !t.Path.Contains("Microsoft") &&
+                        !string.IsNullOrEmpty(t.Definition.RegistrationInfo.Author) &&
+                        !t.Definition.RegistrationInfo.Author.Contains("Microsoft"))
                     {
                         List<string> f_trigger = new List<string>();
                         foreach (Trigger trigger in t.Definition.Triggers)
@@ -72,13 +72,17 @@ namespace winPEAS.Info.ApplicationInfo
                         });
                     }
                 }
-                EnumFolderTasks(TaskService.Instance.RootFolder);
+                catch (Exception ex)
+                {
+                    Beaprint.PrintException($"failed to process scheduled task: '{t.Name}': {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                Beaprint.GrayPrint("Error: " + ex);
-            }
+
+            TaskFolder folder = TaskService.Instance.GetFolder("\\");
+
+            ProcessTaskFolder(folder);
+
             return results;
-        }       
+        }
     }
 }

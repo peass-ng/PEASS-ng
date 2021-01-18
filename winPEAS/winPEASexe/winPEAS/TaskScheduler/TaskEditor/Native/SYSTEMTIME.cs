@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace winPEAS.TaskScheduler.Native
+namespace winPEAS.TaskScheduler.TaskEditor.Native
 {
 	internal static partial class NativeMethods
 	{
@@ -30,6 +34,18 @@ namespace winPEAS.TaskScheduler.Native
 				Milliseconds = Convert.ToUInt16(dt.Millisecond);
 			}
 
+			public SYSTEMTIME(ushort year, ushort month, ushort day, ushort hour = 0, ushort minute = 0, ushort second = 0, ushort millisecond = 0)
+			{
+				Year = year;
+				Month = month;
+				Day = day;
+				Hour = hour;
+				Minute = minute;
+				Second = second;
+				Milliseconds = millisecond;
+				DayOfWeek = 0;
+			}
+
 			public static implicit operator DateTime(SYSTEMTIME st)
 			{
 				if (st.Year == 0 || st == MinValue)
@@ -47,6 +63,11 @@ namespace winPEAS.TaskScheduler.Native
 
 			public static readonly SYSTEMTIME MinValue, MaxValue;
 
+			static SYSTEMTIME()
+			{
+				MinValue = new SYSTEMTIME(1601, 1, 1);
+				MaxValue = new SYSTEMTIME(30827, 12, 31, 23, 59, 59, 999);
+			}
 
 			public override bool Equals(object obj)
 			{

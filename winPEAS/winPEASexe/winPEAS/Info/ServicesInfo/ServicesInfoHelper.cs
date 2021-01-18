@@ -48,18 +48,18 @@ namespace winPEAS.Info.ServicesInfo
 
                         if (string.IsNullOrEmpty(companyName) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
                         {
-                            Dictionary<string, string> toadd = new Dictionary<string, string>
-                            {
-                                ["Name"] = string.Format("{0}", result["Name"]),
-                                ["DisplayName"] = string.Format("{0}", result["DisplayName"]),
-                                ["CompanyName"] = companyName,
-                                ["State"] = string.Format("{0}", result["State"]),
-                                ["StartMode"] = string.Format("{0}", result["StartMode"]),
-                                ["PathName"] = string.Format("{0}", result["PathName"]),
-                                ["FilteredPath"] = binaryPath,
-                                ["isDotNet"] = isDotNet,
-                                ["Description"] = result["Description"].ToString()
-                            };
+                            Dictionary<string, string> toadd = new Dictionary<string, string>();
+                            
+                            toadd["Name"] = GetStringOrEmpty(result["Name"]);
+                            toadd["DisplayName"] = GetStringOrEmpty(result["DisplayName"]);
+                            toadd["CompanyName"] = companyName;
+                            toadd["State"] = GetStringOrEmpty(result["State"]);
+                            toadd["StartMode"] = GetStringOrEmpty(result["StartMode"]);
+                            toadd["PathName"] = GetStringOrEmpty(result["PathName"]);
+                            toadd["FilteredPath"] = binaryPath;
+                            toadd["isDotNet"] = isDotNet;
+                            toadd["Description"] = GetStringOrEmpty(result["Description"]);
+                            
                             results.Add(toadd);
                         }
                     }
@@ -70,6 +70,11 @@ namespace winPEAS.Info.ServicesInfo
                 Beaprint.PrintException(ex.Message);
             }
             return results;
+        }
+
+        private static string GetStringOrEmpty(object obj)
+        {
+            return obj == null ? string.Empty : obj.ToString();
         }
 
         public static List<Dictionary<string, string>> GetNonstandardServicesFromReg()
@@ -234,7 +239,7 @@ namespace winPEAS.Info.ServicesInfo
                     }
 
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     //Beaprint.PrintException(ex.Message)
                 }

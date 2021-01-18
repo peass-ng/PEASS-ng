@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using winPEAS.TaskScheduler.Native;
-using winPEAS.TaskScheduler.V1;
-using winPEAS.TaskScheduler.V2;
+
+using winPEAS.TaskScheduler.TaskEditor.Native;
 
 namespace winPEAS.TaskScheduler
 {
@@ -15,11 +14,11 @@ namespace winPEAS.TaskScheduler
 	public sealed class RunningTaskCollection : IReadOnlyList<RunningTask>, IDisposable
 	{
 		private readonly TaskService svc;
-		private readonly IRunningTaskCollection v2Coll;
+		private readonly V2Interop.IRunningTaskCollection v2Coll;
 
 		internal RunningTaskCollection([NotNull] TaskService svc) => this.svc = svc;
 
-		internal RunningTaskCollection([NotNull] TaskService svc, [NotNull] IRunningTaskCollection iTaskColl)
+		internal RunningTaskCollection([NotNull] TaskService svc, [NotNull] V2Interop.IRunningTaskCollection iTaskColl)
 		{
 			this.svc = svc;
 			v2Coll = iTaskColl;
@@ -74,9 +73,9 @@ namespace winPEAS.TaskScheduler
 		public IEnumerator<RunningTask> GetEnumerator()
 		{
 			if (v2Coll != null)
-				return new ComEnumerator<RunningTask, IRunningTask>(() => v2Coll.Count, (object o) => v2Coll[o], o =>
+				return new ComEnumerator<RunningTask, V2Interop.IRunningTask>(() => v2Coll.Count, (object o) => v2Coll[o], o =>
 				{
-					IRegisteredTask task = null;
+					V2Interop.IRegisteredTask task = null;
 					try { task = TaskService.GetTask(svc.v2TaskService, o.Path); } catch { }
 					return task == null ? null : new RunningTask(svc, task, o);
 				});
@@ -152,9 +151,9 @@ namespace winPEAS.TaskScheduler
 	{
 		private readonly TaskFolder fld;
 		private readonly TaskService svc;
-		private readonly IRegisteredTaskCollection v2Coll;
+		private readonly V2Interop.IRegisteredTaskCollection v2Coll;
 		private Regex filter;
-		private ITaskScheduler v1TS;
+		private V1Interop.ITaskScheduler v1TS;
 
 		internal TaskCollection([NotNull] TaskService svc, Regex filter = null)
 		{
@@ -163,7 +162,7 @@ namespace winPEAS.TaskScheduler
 			v1TS = svc.v1TaskScheduler;
 		}
 
-		internal TaskCollection([NotNull] TaskFolder folder, [NotNull] IRegisteredTaskCollection iTaskColl, Regex filter = null)
+		internal TaskCollection([NotNull] TaskFolder folder, [NotNull] V2Interop.IRegisteredTaskCollection iTaskColl, Regex filter = null)
 		{
 			svc = folder.TaskService;
 			Filter = filter;
@@ -228,12 +227,46 @@ namespace winPEAS.TaskScheduler
 			}
 		}
 
+		/// <summary>Gets the named registered task from the collection.</summary>
+		/// <param name="name">The name of the registered task to be retrieved.</param>
+		/// <returns>A <see cref="Task"/> instance that contains the requested context.</returns>
+		public Task this[string name]
+		{
+			get
+			{
+				if (v2Coll != null)
+					return Task.CreateTask(svc, v2Coll[name]);
+
+				var v1Task = svc.GetTask(name);
+				if (v1Task != null)
+					return v1Task;
+
+				throw new ArgumentOutOfRangeException(nameof(name));
+			}
+		}
+
 		/// <summary>Releases all resources used by this class.</summary>
 		public void Dispose()
 		{
 			v1TS = null;
 			if (v2Coll != null)
 				Marshal.ReleaseComObject(v2Coll);
+		}
+
+		/// <summary>Determines whether the specified task exists.</summary>
+		/// <param name="taskName">The name of the task.</param>
+		/// <returns>true if task exists; otherwise, false.</returns>
+		public bool Exists([NotNull] string taskName)
+		{
+			try
+			{
+				if (v2Coll != null)
+					return v2Coll[taskName] != null;
+
+				return svc.GetTask(taskName) != null;
+			}
+			catch { }
+			return false;
 		}
 
 		/// <summary>Gets the collection enumerator for the register task collection.</summary>
@@ -255,9 +288,9 @@ namespace winPEAS.TaskScheduler
 		{
 			private readonly Regex filter;
 			private readonly TaskService svc;
-			private readonly IEnumWorkItems wienum;
+			private readonly V1Interop.IEnumWorkItems wienum;
 			private string curItem;
-			private ITaskScheduler ts;
+			private V1Interop.ITaskScheduler ts;
 
 			/// <summary>Internal constructor</summary>
 			/// <param name="svc">TaskService instance</param>
@@ -289,7 +322,7 @@ namespace winPEAS.TaskScheduler
 				}
 			}
 
-			internal ITask ICurrent => TaskService.GetTask(ts, curItem);
+			internal V1Interop.ITask ICurrent => TaskService.GetTask(ts, curItem);
 
 			/// <summary>Releases all resources used by this class.</summary>
 			public void Dispose()
@@ -313,7 +346,7 @@ namespace winPEAS.TaskScheduler
 						wienum?.Next(1, out names, out uFetched);
 						if (uFetched != 1)
 							break;
-						using (var name = new CoTaskMemString(Marshal.ReadIntPtr(names)))
+						using (var name = new V1Interop.CoTaskMemString(Marshal.ReadIntPtr(names)))
 							curItem = name.ToString();
 						if (curItem != null && curItem.EndsWith(".job", StringComparison.InvariantCultureIgnoreCase))
 							curItem = curItem.Remove(curItem.Length - 4);
@@ -328,7 +361,7 @@ namespace winPEAS.TaskScheduler
 							continue;
 					}
 
-					ITask itask = null;
+					V1Interop.ITask itask = null;
 					try { itask = ICurrent; valid = true; }
 					catch { valid = false; }
 					finally { Marshal.ReleaseComObject(itask); }
@@ -345,11 +378,11 @@ namespace winPEAS.TaskScheduler
 			}
 		}
 
-		private class V2TaskEnumerator : ComEnumerator<Task, IRegisteredTask>
+		private class V2TaskEnumerator : ComEnumerator<Task, V2Interop.IRegisteredTask>
 		{
 			private readonly Regex filter;
 
-			internal V2TaskEnumerator(TaskFolder folder, IRegisteredTaskCollection iTaskColl, Regex filter = null) :
+			internal V2TaskEnumerator(TaskFolder folder, V2Interop.IRegisteredTaskCollection iTaskColl, Regex filter = null) :
 				base(() => iTaskColl.Count, (object o) => iTaskColl[o], o => Task.CreateTask(folder.TaskService, o)) => this.filter = filter;
 
 			public override bool MoveNext()

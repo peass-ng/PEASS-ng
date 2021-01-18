@@ -159,10 +159,17 @@ namespace winPEAS.Info.UserInfo
                 ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
                 foreach (ManagementObject user in searcher.Get())
                 {
-                    string username = new SecurityIdentifier(user["SID"].ToString()).Translate(typeof(NTAccount)).ToString();
-                    if (!username.Contains("NT AUTHORITY"))
+                    try
                     {
-                        retList.Add(username);
+                        string username = new SecurityIdentifier(user["SID"].ToString()).Translate(typeof(NTAccount)).ToString();
+                        if (!username.Contains("NT AUTHORITY"))
+                        {
+                            retList.Add(username);
+                        }
+                    }
+                    // user SID could not be translated, ignore
+                    catch (Exception)
+                    {
                     }
                 }
             }

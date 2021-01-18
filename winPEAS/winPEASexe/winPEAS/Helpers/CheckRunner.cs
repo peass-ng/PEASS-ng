@@ -5,7 +5,7 @@ namespace winPEAS.Helpers
 {
     internal static class CheckRunner
     {
-        public static void Run(Action action, bool isDebug)
+        public static void Run(Action action, bool isDebug, string description = null)
         {
             var timer = new Stopwatch();
 
@@ -20,11 +20,12 @@ namespace winPEAS.Helpers
             {
                 timer.Stop();
 
-                TimeSpan timeTaken = timer.Elapsed;                
-                string log = $"Execution took : {timeTaken.Minutes:00}m:{timeTaken.Seconds:00}s:{timeTaken.Milliseconds:000}";
+                TimeSpan timeTaken = timer.Elapsed;
+                string descriptionText = string.IsNullOrEmpty(description) ? string.Empty : $"[{description}] ";
+                string log = $"{descriptionText}Execution took : {timeTaken.Minutes:00}m:{timeTaken.Seconds:00}s:{timeTaken.Milliseconds:000}";
                             
                 Beaprint.PrintDebugLine(log);
-            }            
+            }
         }
     }
 }
