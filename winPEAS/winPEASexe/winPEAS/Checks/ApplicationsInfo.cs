@@ -103,7 +103,7 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Autorun Applications");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation/privilege-escalation-with-autorun-binaries", "Check if you can modify other users AutoRuns binaries (Note that is normal that you can modify HKCU registry and binaries indicated there)");
-                List<Dictionary<string, string>> apps = AutoRuns.GetAutoRuns(winPEAS.Checks.Checks.CurrentUserSiDs);
+                List<Dictionary<string, string>> apps = AutoRuns.GetAutoRuns(Checks.CurrentUserSiDs);
 
                 foreach (Dictionary<string, string> app in apps)
                 {

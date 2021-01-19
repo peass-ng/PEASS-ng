@@ -20,9 +20,10 @@ using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using winPEAS.TaskScheduler.TaskEditor.Native;
-using winPEAS.TaskScheduler.V1Interop;
-using winPEAS.TaskScheduler.V2Interop;
-using TaskStatus = winPEAS.TaskScheduler.V1Interop.TaskStatus;
+using winPEAS.TaskScheduler.V1;
+using winPEAS.TaskScheduler.V2;
+using IPrincipal = winPEAS.TaskScheduler.V2.IPrincipal;
+using TaskStatus = winPEAS.TaskScheduler.V1.TaskStatus;
 
 namespace winPEAS.TaskScheduler
 {
@@ -1125,7 +1126,7 @@ namespace winPEAS.TaskScheduler
 		}
 
 		/// <summary>Gets the results that were returned the last time the registered task was run.</summary>
-		/// <remarks>The value returned is the last exit code of the last program run via an <see cref="ExecAction"/>.</remarks>
+		/// <remarks>The value returned is the last exit code of the last program run via an <see cref="Action.ExecAction"/>.</remarks>
 		/// <example>
 		/// <code lang="cs">
 		///<![CDATA[
@@ -1168,7 +1169,7 @@ namespace winPEAS.TaskScheduler
 
 		/// <summary>
 		/// Gets a value indicating whether this task is read only. Only available if <see
-		/// cref="Microsoft.Win32.TaskScheduler.TaskService.AllowReadOnlyTasks"/> is <c>true</c>.
+		/// cref="TaskScheduler.TaskService.AllowReadOnlyTasks"/> is <c>true</c>.
 		/// </summary>
 		/// <value><c>true</c> if read only; otherwise, <c>false</c>.</value>
 		public bool ReadOnly { get; internal set; }
@@ -1862,10 +1863,10 @@ namespace winPEAS.TaskScheduler
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		/// <summary>Gets a collection of actions that are performed by the task.</summary>
-		[XmlArrayItem(ElementName = "Exec", IsNullable = true, Type = typeof(ExecAction))]
-		[XmlArrayItem(ElementName = "ShowMessage", IsNullable = true, Type = typeof(ShowMessageAction))]
-		[XmlArrayItem(ElementName = "ComHandler", IsNullable = true, Type = typeof(ComHandlerAction))]
-		[XmlArrayItem(ElementName = "SendEmail", IsNullable = true, Type = typeof(EmailAction))]
+		[XmlArrayItem(ElementName = "Exec", IsNullable = true, Type = typeof(Action.ExecAction))]
+		[XmlArrayItem(ElementName = "ShowMessage", IsNullable = true, Type = typeof(Action.ShowMessageAction))]
+		[XmlArrayItem(ElementName = "ComHandler", IsNullable = true, Type = typeof(Action.ComHandlerAction))]
+		[XmlArrayItem(ElementName = "SendEmail", IsNullable = true, Type = typeof(Action.EmailAction))]
 		[XmlArray]
 		[NotNull, ItemNotNull]
 		public ActionCollection Actions => actions ??= v2Def != null ? new ActionCollection(v2Def) : new ActionCollection(v1Task);
@@ -2006,13 +2007,13 @@ namespace winPEAS.TaskScheduler
 					var a = Actions[i];
 					switch (a)
 					{
-						case EmailAction _:
+						case Action.EmailAction _:
 							bad = true;
 							if (!throwExceptionWithDetails) return false;
 							TryAdd(ex.Data, $"Actions[{i}]", "== typeof(EmailAction)");
 							break;
 
-						case ShowMessageAction _:
+						case Action.ShowMessageAction _:
 							bad = true;
 							if (!throwExceptionWithDetails) return false;
 							TryAdd(ex.Data, $"Actions[{i}]", "== typeof(ShowMessageAction)");
@@ -2271,9 +2272,9 @@ namespace winPEAS.TaskScheduler
 			if (Settings.StartWhenAvailable)
 			{ list.Add(new TaskCompatibilityEntry(TaskCompatibility.V2, "Settings.StartWhenAvailable", "must be false.")); }
 
-			if ((Actions.PowerShellConversion & PowerShellActionPlatformOption.Version1) != PowerShellActionPlatformOption.Version1 && (Actions.ContainsType(typeof(EmailAction)) || Actions.ContainsType(typeof(ShowMessageAction)) || Actions.ContainsType(typeof(ComHandlerAction))))
+			if ((Actions.PowerShellConversion & PowerShellActionPlatformOption.Version1) != PowerShellActionPlatformOption.Version1 && (Actions.ContainsType(typeof(Action.EmailAction)) || Actions.ContainsType(typeof(Action.ShowMessageAction)) || Actions.ContainsType(typeof(Action.ComHandlerAction))))
 			{ list.Add(new TaskCompatibilityEntry(TaskCompatibility.V2, "Actions", "may only contain ExecAction types unless Actions.PowerShellConversion includes Version1.")); }
-			if ((Actions.PowerShellConversion & PowerShellActionPlatformOption.Version2) != PowerShellActionPlatformOption.Version2 && (Actions.ContainsType(typeof(EmailAction)) || Actions.ContainsType(typeof(ShowMessageAction))))
+			if ((Actions.PowerShellConversion & PowerShellActionPlatformOption.Version2) != PowerShellActionPlatformOption.Version2 && (Actions.ContainsType(typeof(Action.EmailAction)) || Actions.ContainsType(typeof(Action.ShowMessageAction))))
 			{ list.Add(new TaskCompatibilityEntry(TaskCompatibility.V2_1, "Actions", "may only contain ExecAction and ComHanlderAction types unless Actions.PowerShellConversion includes Version2.")); }
 
 			try
@@ -2332,14 +2333,14 @@ namespace winPEAS.TaskScheduler
 	public sealed class TaskPrincipal : IDisposable, IXmlSerializable, INotifyPropertyChanged
 	{
 		private const string localSystemAcct = "SYSTEM";
-		private readonly V2Interop.IPrincipal v2Principal;
+		private readonly IPrincipal v2Principal;
 		private readonly IPrincipal2 v2Principal2;
 		private readonly Func<string> xmlFunc;
 		private TaskPrincipalPrivileges reqPriv;
 		private string v1CachedAcctInfo;
 		private ITask v1Task;
 
-		internal TaskPrincipal([NotNull] V2Interop.IPrincipal iPrincipal, Func<string> defXml)
+		internal TaskPrincipal([NotNull] IPrincipal iPrincipal, Func<string> defXml)
 		{
 			xmlFunc = defXml;
 			v2Principal = iPrincipal;

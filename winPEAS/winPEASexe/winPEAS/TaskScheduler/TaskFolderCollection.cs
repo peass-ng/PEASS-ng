@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using winPEAS.TaskScheduler.TaskEditor.Native;
+using winPEAS.TaskScheduler.V2;
 
 namespace winPEAS.TaskScheduler
 {
@@ -16,11 +17,11 @@ namespace winPEAS.TaskScheduler
 		private const string IndexerName = "Item[]";
 		private readonly TaskFolder parent;
 		private readonly TaskFolder[] v1FolderList;
-		private readonly V2Interop.ITaskFolderCollection v2FolderList;
+		private readonly ITaskFolderCollection v2FolderList;
 
 		internal TaskFolderCollection() => v1FolderList = new TaskFolder[0];
 
-		internal TaskFolderCollection([NotNull] TaskFolder folder, [NotNull] V2Interop.ITaskFolderCollection iCollection)
+		internal TaskFolderCollection([NotNull] TaskFolder folder, [NotNull] ITaskFolderCollection iCollection)
 		{
 			parent = folder;
 			v2FolderList = iCollection;
@@ -163,7 +164,7 @@ namespace winPEAS.TaskScheduler
 		public IEnumerator<TaskFolder> GetEnumerator()
 		{
 			if (v2FolderList != null)
-				return new ComEnumerator<TaskFolder, V2Interop.ITaskFolder>(() => v2FolderList.Count, (object o) => v2FolderList[o], o => new TaskFolder(parent.TaskService, o));
+				return new ComEnumerator<TaskFolder, ITaskFolder>(() => v2FolderList.Count, (object o) => v2FolderList[o], o => new TaskFolder(parent.TaskService, o));
 			return Array.AsReadOnly(v1FolderList).GetEnumerator();
 		}
 

@@ -8,8 +8,8 @@ using System.Security.AccessControl;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using winPEAS.TaskScheduler.V1Interop;
-using winPEAS.TaskScheduler.V2Interop;
+using winPEAS.TaskScheduler.V1;
+using winPEAS.TaskScheduler.V2;
 
 namespace winPEAS.TaskScheduler
 {

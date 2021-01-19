@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace winPEAS.KnownFileCreds.Vault.structs
+namespace winPEAS.KnownFileCreds.Vault.Structs
 {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public struct VAULT_ITEM_WIN7

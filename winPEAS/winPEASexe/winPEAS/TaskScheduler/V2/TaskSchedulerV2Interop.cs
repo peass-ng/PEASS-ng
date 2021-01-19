@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using winPEAS.TaskScheduler.TaskEditor.Native;
-using winPEAS.TaskScheduler.V1Interop;
 
-namespace winPEAS.TaskScheduler.V2Interop
+namespace winPEAS.TaskScheduler.V2
 {
 
 	internal enum TaskEnumFlags

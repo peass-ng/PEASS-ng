@@ -10,7 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using winPEAS.TaskScheduler.TaskEditor.Native;
-using winPEAS.TaskScheduler.V1Interop;
+using winPEAS.TaskScheduler.V1;
+using winPEAS.TaskScheduler.V2;
 
 namespace winPEAS.TaskScheduler
 {
@@ -18,14 +19,14 @@ namespace winPEAS.TaskScheduler
 	public sealed class TriggerCollection : IList<Trigger>, IDisposable, IXmlSerializable, IList, INotifyCollectionChanged, INotifyPropertyChanged
 	{
 		private const string IndexerName = "Item[]";
-		private readonly V2Interop.ITriggerCollection v2Coll;
+		private readonly ITriggerCollection v2Coll;
 		private bool inV2set;
-		private V1Interop.ITask v1Task;
-		private V2Interop.ITaskDefinition v2Def;
+		private ITask v1Task;
+		private ITaskDefinition v2Def;
 
-		internal TriggerCollection([NotNull] V1Interop.ITask iTask) => v1Task = iTask;
+		internal TriggerCollection([NotNull] ITask iTask) => v1Task = iTask;
 
-		internal TriggerCollection([NotNull] V2Interop.ITaskDefinition iTaskDef)
+		internal TriggerCollection([NotNull] ITaskDefinition iTaskDef)
 		{
 			v2Def = iTaskDef;
 			v2Coll = v2Def.Triggers;
@@ -337,7 +338,7 @@ namespace winPEAS.TaskScheduler
 		{
 			if (v1Task != null)
 				return new V1TriggerEnumerator(v1Task);
-			return new ComEnumerator<Trigger, V2Interop.ITrigger>(() => v2Coll.Count, i => v2Coll[i], o => Trigger.CreateTrigger(o, v2Def));
+			return new ComEnumerator<Trigger, ITrigger>(() => v2Coll.Count, i => v2Coll[i], o => Trigger.CreateTrigger(o, v2Def));
 		}
 
 		/// <summary>Determines the index of a specific item in the <see cref="IList{T}"/>.</summary>
@@ -518,9 +519,9 @@ namespace winPEAS.TaskScheduler
 		private sealed class V1TriggerEnumerator : IEnumerator<Trigger>
 		{
 			private short curItem = -1;
-			private V1Interop.ITask iTask;
+			private ITask iTask;
 
-			internal V1TriggerEnumerator(V1Interop.ITask task) => iTask = task;
+			internal V1TriggerEnumerator(ITask task) => iTask = task;
 
 			public Trigger Current => Trigger.CreateTrigger(iTask.GetTrigger((ushort)curItem));
 

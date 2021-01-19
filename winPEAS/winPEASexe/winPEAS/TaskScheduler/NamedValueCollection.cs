@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using winPEAS.TaskScheduler.TaskEditor.Native;
-using winPEAS.TaskScheduler.V2Interop;
+using winPEAS.TaskScheduler.V2;
 
 namespace winPEAS.TaskScheduler
 {

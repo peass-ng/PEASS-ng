@@ -6,12 +6,14 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using winPEAS.TaskScheduler.V1;
+using winPEAS.TaskScheduler.V2;
 
 namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Quick simple trigger types for the
-	/// <see cref="TaskService.AddTask(string,Microsoft.Win32.TaskScheduler.Trigger,Microsoft.Win32.TaskScheduler.Action,string,string,Microsoft.Win32.TaskScheduler.TaskLogonType,string)"/> method.
+	/// <see cref="TaskService.AddTask(string,Trigger,TaskScheduler.Action,string,string,TaskLogonType,string)"/> method.
 	/// </summary>
 	public enum QuickTriggerType
 	{
@@ -78,14 +80,14 @@ namespace winPEAS.TaskScheduler
 	{
 		internal static readonly bool LibraryIsV2 = Environment.OSVersion.Version.Major >= 6;
 		internal static readonly Guid PowerShellActionGuid = new Guid("dab4c1e3-cd12-46f1-96fc-3981143c9bab");
-		private static Guid CLSID_Ctask = typeof(V1Interop.CTask).GUID;
-		private static Guid IID_ITask = typeof(V1Interop.ITask).GUID;
+		private static Guid CLSID_Ctask = typeof(CTask).GUID;
+		private static Guid IID_ITask = typeof(ITask).GUID;
 		[ThreadStatic]
 		private static TaskService instance;
 		private static Version osLibVer;
 
-		internal V1Interop.ITaskScheduler v1TaskScheduler;
-		internal V2Interop.ITaskService v2TaskService;
+		internal ITaskScheduler v1TaskScheduler;
+		internal ITaskService v2TaskService;
 		private bool connecting;
 		private bool forceV1;
 		private bool initializing;
@@ -586,7 +588,7 @@ namespace winPEAS.TaskScheduler
 					throw new ArgumentOutOfRangeException(nameof(trigger), trigger, null);
 			}
 
-			return AddTask(path, newTrigger, new ExecAction(exePath, arguments), userId, password, logonType, description);
+			return AddTask(path, newTrigger, new Action.ExecAction(exePath, arguments), userId, password, logonType, description);
 		}
 
 		/// <summary>Signals the object that initialization is starting.</summary>
@@ -765,9 +767,9 @@ namespace winPEAS.TaskScheduler
 			info.AddValue("forceV1", forceV1, typeof(bool));
 		}
 
-		internal static V2Interop.IRegisteredTask GetTask([NotNull] V2Interop.ITaskService iSvc, [NotNull] string name)
+		internal static IRegisteredTask GetTask([NotNull] ITaskService iSvc, [NotNull] string name)
 		{
-			V2Interop.ITaskFolder fld = null;
+			ITaskFolder fld = null;
 			try
 			{
 				fld = iSvc.GetFolder("\\");
@@ -783,7 +785,7 @@ namespace winPEAS.TaskScheduler
 			}
 		}
 
-		internal static V1Interop.ITask GetTask([NotNull] V1Interop.ITaskScheduler iSvc, [NotNull] string name)
+		internal static ITask GetTask([NotNull] ITaskScheduler iSvc, [NotNull] string name)
 		{
 			if (string.IsNullOrEmpty(name))
 				throw new ArgumentNullException(nameof(name));
@@ -891,7 +893,7 @@ namespace winPEAS.TaskScheduler
 
 					if (LibraryIsV2 && !forceV1)
 					{
-						v2TaskService = new V2Interop.ITaskService();
+						v2TaskService = new ITaskService();
 						if (!string.IsNullOrEmpty(targetServer))
 						{
 							// Check to ensure character only server name. (Suggested by bigsan)
@@ -912,7 +914,7 @@ namespace winPEAS.TaskScheduler
 					else
 					{
 						v1Impersonation = new WindowsImpersonatedIdentity(userName, userDomain, userPassword);
-						v1TaskScheduler = new V1Interop.ITaskScheduler();
+						v1TaskScheduler = new ITaskScheduler();
 						if (!string.IsNullOrEmpty(targetServer))
 						{
 							// Check to ensure UNC format for server name. (Suggested by bigsan)

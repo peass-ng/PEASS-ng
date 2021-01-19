@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using winPEAS.KnownFileCreds.Vault.Enums;
 
-namespace winPEAS.KnownFileCreds.Vault.structs
+namespace winPEAS.KnownFileCreds.Vault.Structs
 {
     [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Ansi)]
     public struct VAULT_ITEM_ELEMENT

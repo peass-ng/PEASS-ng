@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using winPEAS.TaskScheduler.TaskEditor.Native;
+using winPEAS.TaskScheduler.V1;
+using winPEAS.TaskScheduler.V2;
 
 namespace winPEAS.TaskScheduler
 {
@@ -25,13 +27,13 @@ namespace winPEAS.TaskScheduler
 
 		/// <summary>
 		/// Convert actions under Version 1 of the library (Windows XP or Windows Server 2003 and earlier). This option supports multiple
-		/// actions of all types. If not specified, only a single <see cref="ExecAction"/> is supported. Developer must ensure that
+		/// actions of all types. If not specified, only a single <see cref="Action.ExecAction"/> is supported. Developer must ensure that
 		/// PowerShell v2 or higher is installed on the target computer.
 		/// </summary>
 		Version1 = 1,
 
 		/// <summary>
-		/// Convert all <see cref="ShowMessageAction"/> and <see cref="EmailAction"/> references to their PowerShell equivalents on systems
+		/// Convert all <see cref="Action.ShowMessageAction"/> and <see cref="Action.EmailAction"/> references to their PowerShell equivalents on systems
 		/// on or after Windows 8 / Server 2012.
 		/// </summary>
 		Version2 = 2,
@@ -51,18 +53,18 @@ namespace winPEAS.TaskScheduler
 		private bool inV2set;
 		private PowerShellActionPlatformOption psConvert = PowerShellActionPlatformOption.Version2;
 		private readonly List<Action> v1Actions;
-		private V1Interop.ITask v1Task;
-		private readonly V2Interop.IActionCollection v2Coll;
-		private V2Interop.ITaskDefinition v2Def;
+		private ITask v1Task;
+		private readonly IActionCollection v2Coll;
+		private ITaskDefinition v2Def;
 
-		internal ActionCollection([NotNull] V1Interop.ITask task)
+		internal ActionCollection([NotNull] ITask task)
 		{
 			v1Task = task;
 			v1Actions = GetV1Actions();
 			PowerShellConversion = Action.TryParse(v1Task.GetDataItem(nameof(PowerShellConversion)), psConvert | PowerShellActionPlatformOption.Version2);
 		}
 
-		internal ActionCollection([NotNull] V2Interop.ITaskDefinition iTaskDef)
+		internal ActionCollection([NotNull] ITaskDefinition iTaskDef)
 		{
 			v2Def = iTaskDef;
 			v2Coll = iTaskDef.Actions;
@@ -108,7 +110,7 @@ namespace winPEAS.TaskScheduler
 		}
 
 		/// <summary>
-		/// Gets or sets the systems under which unsupported actions will be converted to PowerShell <see cref="ExecAction"/> instances.
+		/// Gets or sets the systems under which unsupported actions will be converted to PowerShell <see cref="Action.ExecAction"/> instances.
 		/// </summary>
 		/// <value>The PowerShell platform options.</value>
 		/// <remarks>
@@ -120,12 +122,12 @@ namespace winPEAS.TaskScheduler
 		/// <para>
 		/// If set to <see cref="PowerShellActionPlatformOption.Version1"/>, then actions will be converted only under Version 1 of the
 		/// library (Windows XP or Windows Server 2003 and earlier). This option supports multiple actions of all types. If not specified,
-		/// only a single <see cref="ExecAction"/> is supported. Developer must ensure that PowerShell v2 or higher is installed on the
+		/// only a single <see cref="Action.ExecAction"/> is supported. Developer must ensure that PowerShell v2 or higher is installed on the
 		/// target computer.
 		/// </para>
 		/// <para>
 		/// If set to <see cref="PowerShellActionPlatformOption.Version2"/> (which is the default value), then <see
-		/// cref="ShowMessageAction"/> and <see cref="EmailAction"/> references will be converted to their PowerShell equivalents on systems
+		/// cref="Action.ShowMessageAction"/> and <see cref="Action.EmailAction"/> references will be converted to their PowerShell equivalents on systems
 		/// on or after Windows 8 / Server 2012.
 		/// </para>
 		/// <para>
@@ -291,8 +293,8 @@ namespace winPEAS.TaskScheduler
 				action.Bind(v2Def);
 			else
 			{
-				if (!SupportV1Conversion && (v1Actions.Count >= 1 || !(action is ExecAction)))
-					throw new NotV1SupportedException($"Only a single {nameof(ExecAction)} is supported unless the {nameof(PowerShellConversion)} property includes the {nameof(PowerShellActionPlatformOption.Version1)} value.");
+				if (!SupportV1Conversion && (v1Actions.Count >= 1 || !(action is Action.ExecAction)))
+					throw new NotV1SupportedException($"Only a single {nameof(Action.ExecAction)} is supported unless the {nameof(PowerShellConversion)} property includes the {nameof(PowerShellActionPlatformOption.Version1)} value.");
 				v1Actions.Add(action);
 				SaveV1Actions();
 			}
@@ -302,16 +304,16 @@ namespace winPEAS.TaskScheduler
 			return action;
 		}
 
-		/// <summary>Adds an <see cref="ExecAction"/> to the task.</summary>
+		/// <summary>Adds an <see cref="Action.ExecAction"/> to the task.</summary>
 		/// <param name="path">Path to an executable file.</param>
 		/// <param name="arguments">Arguments associated with the command-line operation. This value can be null.</param>
 		/// <param name="workingDirectory">
 		/// Directory that contains either the executable file or the files that are used by the executable file. This value can be null.
 		/// </param>
-		/// <returns>The bound <see cref="ExecAction"/> that was added to the collection.</returns>
+		/// <returns>The bound <see cref="Action.ExecAction"/> that was added to the collection.</returns>
 		[NotNull]
-		public ExecAction Add([NotNull] string path, [CanBeNull] string arguments = null, [CanBeNull] string workingDirectory = null) =>
-			Add(new ExecAction(path, arguments, workingDirectory));
+		public Action.ExecAction Add([NotNull] string path, [CanBeNull] string arguments = null, [CanBeNull] string workingDirectory = null) =>
+			Add(new Action.ExecAction(path, arguments, workingDirectory));
 
 		/// <summary>Adds a new <see cref="Action"/> instance to the task.</summary>
 		/// <param name="actionType">Type of task to be created</param>
@@ -324,7 +326,7 @@ namespace winPEAS.TaskScheduler
 			if (v1Task != null)
 			{
 				if (!SupportV1Conversion && (v1Actions.Count >= 1 || actionType != TaskActionType.Execute))
-					throw new NotV1SupportedException($"Only a single {nameof(ExecAction)} is supported unless the {nameof(PowerShellConversion)} property includes the {nameof(PowerShellActionPlatformOption.Version1)} value.");
+					throw new NotV1SupportedException($"Only a single {nameof(Action.ExecAction)} is supported unless the {nameof(PowerShellConversion)} property includes the {nameof(PowerShellActionPlatformOption.Version1)} value.");
 				return Action.CreateAction(v1Task);
 			}
 			return Action.CreateAction(v2Coll.Create(actionType));
@@ -345,7 +347,7 @@ namespace winPEAS.TaskScheduler
 				var list = new List<Action>(actions);
 				var at = list.Count == 1 && list[0].ActionType == TaskActionType.Execute;
 				if (!SupportV1Conversion && ((v1Actions.Count + list.Count) > 1 || !at))
-					throw new NotV1SupportedException($"Only a single {nameof(ExecAction)} is supported unless the {nameof(PowerShellConversion)} property includes the {nameof(PowerShellActionPlatformOption.Version1)} value.");
+					throw new NotV1SupportedException($"Only a single {nameof(Action.ExecAction)} is supported unless the {nameof(PowerShellConversion)} property includes the {nameof(PowerShellActionPlatformOption.Version1)} value.");
 				v1Actions.AddRange(actions);
 				SaveV1Actions();
 			}
@@ -492,7 +494,7 @@ namespace winPEAS.TaskScheduler
 		public IEnumerator<Action> GetEnumerator()
 		{
 			if (v2Coll != null)
-				return new ComEnumerator<Action, V2Interop.IAction>(() => v2Coll.Count, i => v2Coll[i], Action.CreateAction);
+				return new ComEnumerator<Action, IAction>(() => v2Coll.Count, i => v2Coll[i], Action.CreateAction);
 			return v1Actions.GetEnumerator();
 		}
 
@@ -537,8 +539,8 @@ namespace winPEAS.TaskScheduler
 			}
 			else
 			{
-				if (!SupportV1Conversion && (index > 0 || !(action is ExecAction)))
-					throw new NotV1SupportedException($"Only a single {nameof(ExecAction)} is supported unless the {nameof(PowerShellConversion)} property includes the {nameof(PowerShellActionPlatformOption.Version1)} value.");
+				if (!SupportV1Conversion && (index > 0 || !(action is Action.ExecAction)))
+					throw new NotV1SupportedException($"Only a single {nameof(Action.ExecAction)} is supported unless the {nameof(PowerShellConversion)} property includes the {nameof(PowerShellActionPlatformOption.Version1)} value.");
 				v1Actions.Insert(index, action);
 				SaveV1Actions();
 			}
@@ -673,8 +675,8 @@ namespace winPEAS.TaskScheduler
 				{
 					var action = this[i];
 					var bindable = action as IBindAsExecAction;
-					if (bindable != null && !(action is ComHandlerAction))
-						this[i] = ExecAction.ConvertToPowerShellAction(action);
+					if (bindable != null && !(action is Action.ComHandlerAction))
+						this[i] = Action.ExecAction.ConvertToPowerShellAction(action);
 				}
 			}
 		}
@@ -684,7 +686,7 @@ namespace winPEAS.TaskScheduler
 			var ret = new List<Action>();
 			if (v1Task != null && v1Task.GetDataItem("ActionType") != "EMPTY")
 			{
-				var exec = new ExecAction(v1Task);
+				var exec = new Action.ExecAction(v1Task);
 				var items = exec.ParsePowerShellItems();
 				if (items != null)
 				{
@@ -704,7 +706,7 @@ namespace winPEAS.TaskScheduler
 						}
 					}
 					else
-						ret.Add(ExecAction.ConvertFromPowerShellAction(exec));
+						ret.Add(Action.ExecAction.ConvertFromPowerShellAction(exec));
 				}
 				else if (!string.IsNullOrEmpty(exec.Path))
 				{
@@ -733,21 +735,21 @@ namespace winPEAS.TaskScheduler
 			else if (v1Actions.Count == 1)
 			{
 				if (!SupportV1Conversion && v1Actions[0].ActionType != TaskActionType.Execute)
-					throw new NotV1SupportedException($"Only a single {nameof(ExecAction)} is supported unless the {nameof(PowerShellConversion)} property includes the {nameof(PowerShellActionPlatformOption.Version1)} value.");
+					throw new NotV1SupportedException($"Only a single {nameof(Action.ExecAction)} is supported unless the {nameof(PowerShellConversion)} property includes the {nameof(PowerShellActionPlatformOption.Version1)} value.");
 				v1Task.SetDataItem("ActionType", null);
 				v1Actions[0].Bind(v1Task);
 			}
 			else
 			{
 				if (!SupportV1Conversion)
-					throw new NotV1SupportedException($"Only a single {nameof(ExecAction)} is supported unless the {nameof(PowerShellConversion)} property includes the {nameof(PowerShellActionPlatformOption.Version1)} value.");
+					throw new NotV1SupportedException($"Only a single {nameof(Action.ExecAction)} is supported unless the {nameof(PowerShellConversion)} property includes the {nameof(PowerShellActionPlatformOption.Version1)} value.");
 				// Build list of internal PowerShell scripts
 				var sb = new System.Text.StringBuilder();
 				foreach (var item in v1Actions)
 					sb.Append($"<# {item.Id ?? "NO_ID"}:{item.ActionType} #> {item.GetPowerShellCommand()} ");
 
 				// Build and save PS ExecAction
-				var ea = ExecAction.CreatePowerShellAction("MULTIPLE", sb.ToString());
+				var ea = Action.ExecAction.CreatePowerShellAction("MULTIPLE", sb.ToString());
 				ea.Bind(v1Task);
 				v1Task.SetDataItem("ActionId", null);
 				v1Task.SetDataItem("ActionType", "MULTIPLE");
@@ -760,7 +762,7 @@ namespace winPEAS.TaskScheduler
 			{
 				for (var i = 0; i < Count; i++)
 				{
-					var action = this[i] as ExecAction;
+					var action = this[i] as Action.ExecAction;
 					if (action != null)
 					{
 						var newAction = Action.ConvertFromPowerShellAction(action);
