@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Management;
@@ -2278,6 +2278,21 @@ namespace winPEAS
             bool check_bi = false;
             bool check_if = false;
             bool wait = false;
+            FileStream ostrm;
+            StreamWriter writer;
+            TextWriter oldOut = Console.Out;
+            try
+            {
+                ostrm = new FileStream("./out.txt", FileMode.OpenOrCreate, FileAccess.Write);
+                writer = new StreamWriter(ostrm);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Cannot open out.txt for writing");
+                Console.WriteLine(e.Message);
+                return;
+            }
+
             foreach (string arg in args)
             {
                 if (string.Equals(arg, "cmd", StringComparison.CurrentCultureIgnoreCase))
@@ -2288,6 +2303,12 @@ namespace winPEAS
 
                 if (string.Equals(arg, "quiet", StringComparison.CurrentCultureIgnoreCase))
                     banner = false;
+
+                if (string.Equals(arg, "log", StringComparison.CurrentCultureIgnoreCase))                           
+                    Console.SetOut(writer);
+                                      
+
+                
 
                 if (string.Equals(arg, "searchslow", StringComparison.CurrentCultureIgnoreCase))
                     search_fast = false;
@@ -2435,8 +2456,10 @@ namespace winPEAS
 
             if (check_if || check_all)
                 PrintInterestingFiles();
-                
 
+            Console.SetOut(oldOut);
+            writer.Close();
+            ostrm.Close();
             /*
              * Keylogger?
              * Input prompt ==> Better in PS
@@ -2447,5 +2470,3 @@ namespace winPEAS
         }
     }
 }
-
-
