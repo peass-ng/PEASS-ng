@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Search;
@@ -207,19 +208,67 @@ namespace winPEAS.Checks
 
         void PrintLinuxShells()
         {
-            try
-            {
-                Beaprint.MainPrint("Looking for Linux shells - wsl.exe, bash.exe");
-                List<string> linuxShells = InterestingFiles.InterestingFiles.GetLinuxShells();
+            Beaprint.MainPrint("Looking for Linux shells/distributions - wsl.exe, bash.exe");
+            List<string> linuxShells = InterestingFiles.InterestingFiles.GetLinuxShells();
+            string hive = "HKCU";
+            string basePath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss";
 
+            if (linuxShells.Any())
+            {
                 foreach (string path in linuxShells)
                 {
                     Beaprint.BadPrint("    " + path);
                 }
-            }
-            catch (Exception ex)
-            {
-                Beaprint.PrintException(ex.Message);
+
+                Beaprint.BadPrint("");
+
+                try
+                {
+                    var wslKeys = RegistryHelper.GetRegSubkeys(hive, basePath);
+
+                    if (wslKeys.Any())
+                    {
+                        const string linpeas = "linpeas.sh";
+                        const string distribution = "Distribution";
+                        const string rootDirectory = "Root directory";
+                        const string runWith = "Run command";
+
+
+                        Dictionary<string, string> colors = new Dictionary<string, string>();                        
+                        new List<string>
+                        {
+                            linpeas,
+                            distribution,
+                            rootDirectory,
+                            runWith
+                        }.ForEach(str => colors.Add(str, Beaprint.ansi_color_bad));
+
+                        Beaprint.BadPrint("    Found installed WSL distribution(s) - listed below");
+                        Beaprint.AnsiPrint($"    Run {linpeas} in your WSL distribution(s) home folder(s).\n", colors);
+
+                        foreach (var wslKey in wslKeys)
+                        {
+                            try
+                            {
+                                string distributionSubKey = $"{basePath}\\{wslKey}";
+                                string distributionRootDirectory = $"{RegistryHelper.GetRegValue(hive, distributionSubKey, "BasePath")}\\rootfs";
+                                string distributionName = RegistryHelper.GetRegValue(hive, distributionSubKey, "DistributionName");
+
+                                Beaprint.AnsiPrint($"    {distribution}:      \"{distributionName}\"\n" +
+                                                   $"    {rootDirectory}:    \"{distributionRootDirectory}\"\n" +
+                                                   $"    {runWith}:       wsl.exe --distribution \"{distributionName}\"",
+                                                    colors);
+                                Beaprint.PrintLineSeparator();
+                            }
+                            catch (Exception e) { }
+                        }
+                    }
+                    else
+                    {
+                        Beaprint.GoodPrint("    WSL - no installed Linux distributions found.");
+                    }
+                }
+                catch (Exception e) { }
             }
         }
 
