@@ -119,6 +119,7 @@
     <Compile Include="Checks\SystemInfo.cs" />
     <Compile Include="Checks\UserInfo.cs" />
     <Compile Include="Checks\WindowsCreds.cs" />
+    <Compile Include="Helpers\AppLocker\AppLockerHelper.cs" />
     <Compile Include="Helpers\AppLocker\AppLockerRules.cs" />
     <Compile Include="Helpers\AppLocker\IAppIdPolicyHandler.cs" />
     <Compile Include="Helpers\AppLocker\SharpAppLocker.cs" />

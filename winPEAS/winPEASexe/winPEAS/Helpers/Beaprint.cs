@@ -126,6 +126,7 @@ namespace winPEAS.Helpers
             Console.WriteLine(LBLUE + "        filesinfo" + GRAY + "         Search files that can contains credentials" + NOCOLOR);
             Console.WriteLine(LBLUE + "        wait" + GRAY + "              Wait for user input between checks" + NOCOLOR);
             Console.WriteLine(LBLUE + "        debug" + GRAY + "             Display debugging information - memory usage, method execution time" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        log" + GRAY +$"               Log all output to file \"{Checks.Checks.LogFile}\"" + NOCOLOR);
             Console.WriteLine(YELLOW + "        [+] " + LYELLOW + "By default all checks (except CMD checks) are executed" + NOCOLOR);
         }
 
@@ -215,6 +216,11 @@ namespace winPEAS.Helpers
                     Console.WriteLine(new_line);
                 }
             }
+        }
+
+        internal static void NoColorPrint(string message)
+        {
+            AnsiPrint(message, new Dictionary<string, string>());
         }
 
         static string Regexansi(string to_match, string color, string rgxp)

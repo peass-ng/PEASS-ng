@@ -27,12 +27,11 @@ namespace winPEAS.Helpers.CredentialManager
                     unicodeInfo = UnicodeInfoText;
                 }
 
-                string item = $"\nUsername: {credential.Username}\n" +
-                              $"Password:{unicodeInfo} {clearTextPassword}\n" +
-                              $"Target: {credential.Target}\n" +
-                              $"PersistenceType: {credential.PersistenceType}\n" +
-                              $"LastWriteTime: {credential.LastWriteTime}\n" +
-                              "-------------------------------------------------------";
+                string item = $"     Username: {credential.Username}\n" +
+                              $"     Password:{unicodeInfo} {clearTextPassword}\n" +
+                              $"     Target: {credential.Target}\n" +
+                              $"     PersistenceType: {credential.PersistenceType}\n" +
+                              $"     LastWriteTime: {credential.LastWriteTime}\n";
 
                 result.Add(item);
             }

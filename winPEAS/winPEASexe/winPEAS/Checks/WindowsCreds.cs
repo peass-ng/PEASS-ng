@@ -98,7 +98,11 @@ namespace winPEAS.Checks
 
                     var credentials = CredentialManager.GetCredentials();
 
-                    Beaprint.ListPrint(credentials, colorsC);
+                    foreach (var credential in credentials)
+                    {
+                        Beaprint.AnsiPrint(credential, colorsC);
+                        Beaprint.PrintLineSeparator();
+                    }
                 }
             }
             catch (Exception ex)

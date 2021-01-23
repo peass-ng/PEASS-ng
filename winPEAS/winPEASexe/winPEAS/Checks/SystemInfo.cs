@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using winPEAS.Helpers;
 using winPEAS.Helpers.AppLocker;
+using winPEAS.Helpers.Search;
 using winPEAS._3rdParty.Watson;
 
 namespace winPEAS.Checks
@@ -40,7 +41,7 @@ namespace winPEAS.Checks
                 PrintWSUS,
                 PrintAlwaysInstallElevated,
                 PrintLsaCompatiblityLevel,
-                PrintApplockerPolicy
+                AppLockerHelper.PrintAppLockerPolicy
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
@@ -517,37 +518,6 @@ namespace winPEAS.Checks
                 {
                     Beaprint.ColorPrint("     The registry key does not exist", Beaprint.ansi_color_yellow);
                 }
-            }
-            catch (Exception ex)
-            {
-                Beaprint.PrintException(ex.Message);
-            }
-        }
-
-        private static void PrintApplockerPolicy()
-        {
-            Beaprint.MainPrint("Checking AppLocker effective policy");
-
-            try
-            {
-                string[] ruleTypes = new string[] { "All" };
-                string ldapPath = "";
-                bool allowOnly = false;
-                bool denyOnly = false;
-
-                string applockerSettings = SharpAppLocker.GetAppLockerPolicy(SharpAppLocker.PolicyType.Effective, ruleTypes, ldapPath, allowOnly, denyOnly);
-                var colors = new Dictionary<string, string>()
-                {
-                    { "/>", Beaprint.DGRAY },
-                    { "<", Beaprint.DGRAY },
-                    { "NotConfigured", Beaprint.ansi_color_bad },
-                };
-
-                Beaprint.AnsiPrint(applockerSettings, colors);
-            }
-            catch (COMException ex)
-            {
-                Beaprint.ColorPrint("   AppLocker unsupported on this Windows version.", Beaprint.ansi_color_yellow);
             }
             catch (Exception ex)
             {

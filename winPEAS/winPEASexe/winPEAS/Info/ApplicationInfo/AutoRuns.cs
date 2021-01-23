@@ -9,6 +9,8 @@ using winPEAS.Helpers;
 
 namespace winPEAS.Info.ApplicationInfo
 {
+    // https://www.ghacks.net/2016/06/04/windows-automatic-startup-locations/
+
     internal static class AutoRuns
     {
         public static List<Dictionary<string, string>> GetAutoRuns(Dictionary<string, string> NtAccountNames)

@@ -28,9 +28,8 @@ namespace winPEAS.Helpers.AppLocker
         }
 
 
-        public static string GetAppLockerPolicy(PolicyType policyType, string[] appLockerRuleTypes, string ldapPath = "", bool allowOnly = false, bool denyOnly = false)
+        public static AppLockerPolicy GetAppLockerPolicy(PolicyType policyType, string[] appLockerRuleTypes, string ldapPath = "", bool allowOnly = false, bool denyOnly = false)
         {
-
             // Create IAppIdPolicyHandler COM interface
             IAppIdPolicyHandler IAppHandler = new AppIdPolicyHandlerClass();
             string policies;
@@ -50,14 +49,12 @@ namespace winPEAS.Helpers.AppLocker
                     throw new InvalidOperationException();
             };
 
-            /*
             var objectHolder = DeserializeToObject<AppLockerPolicy>(policies);
             AppLockerPolicy appLockerPolicyFiltered = DeserializeToObject<AppLockerPolicy>(policies);
+
             if (objectHolder?.RuleCollection?.Count() > 0)
             {
-
-
-                //Null them all out to emtpy lists
+                //Null them all out to empty lists
                 for (int i = 0; i < appLockerPolicyFiltered.RuleCollection.Length; i++)
                 {
                     appLockerPolicyFiltered.RuleCollection[i].FileHashRule = new List<AppLockerPolicyRuleCollectionFileHashRule>() { };
@@ -69,7 +66,8 @@ namespace winPEAS.Helpers.AppLocker
                 {
                     if (objectHolder?.RuleCollection[i].FilePathRule != null)
                     {
-                        if (appLockerRuleTypes.Contains("All", StringComparer.InvariantCultureIgnoreCase) || appLockerRuleTypes.Contains("FilePathRule", StringComparer.InvariantCultureIgnoreCase))
+                        if (appLockerRuleTypes.Contains("All", StringComparer.InvariantCultureIgnoreCase) ||
+                            appLockerRuleTypes.Contains("FilePathRule", StringComparer.InvariantCultureIgnoreCase))
                         {
                             foreach (var pathRule in objectHolder?.RuleCollection[i].FilePathRule)
                             {
@@ -78,13 +76,11 @@ namespace winPEAS.Helpers.AppLocker
                                     if (pathRule.Action.Equals(allowOnly ? "Allow" : "Deny"))
                                     {
                                         appLockerPolicyFiltered.RuleCollection[i].FilePathRule.Add(pathRule);
-                                        //outputBuilder.Append(JsonConvert.SerializeObject(pathRule, Newtonsoft.Json.Formatting.Indented));
                                     }
                                 }
                                 else
                                 {
                                     appLockerPolicyFiltered.RuleCollection[i].FilePathRule.Add(pathRule);
-                                    //outputBuilder.Append(JsonConvert.SerializeObject(pathRule, Newtonsoft.Json.Formatting.Indented));
                                 }
                             }
                         }
@@ -100,13 +96,11 @@ namespace winPEAS.Helpers.AppLocker
                                     if (hashRule.Action.Equals(allowOnly ? "Allow" : "Deny"))
                                     {
                                         appLockerPolicyFiltered.RuleCollection[i].FileHashRule.Add(hashRule);
-                                        //outputBuilder.Append(JsonConvert.SerializeObject(pathRule, Newtonsoft.Json.Formatting.Indented));
                                     }
                                 }
                                 else
                                 {
                                     appLockerPolicyFiltered.RuleCollection[i].FileHashRule.Add(hashRule);
-                                    //outputBuilder.Append(JsonConvert.SerializeObject(pathRule, Newtonsoft.Json.Formatting.Indented));
                                 }
                             }
                         }
@@ -122,13 +116,11 @@ namespace winPEAS.Helpers.AppLocker
                                     if (pubRile.Action.Equals(allowOnly ? "Allow" : "Deny"))
                                     {
                                         appLockerPolicyFiltered.RuleCollection[i].FilePublisherRule.Add(pubRile);
-                                        //outputBuilder.Append(JsonConvert.SerializeObject(pathRule, Newtonsoft.Json.Formatting.Indented));
                                     }
                                 }
                                 else
                                 {
                                     appLockerPolicyFiltered.RuleCollection[i].FilePublisherRule.Add(pubRile);
-                                    //outputBuilder.Append(JsonConvert.SerializeObject(pathRule, Newtonsoft.Json.Formatting.Indented));
                                 }
                             }
                         }
@@ -138,23 +130,14 @@ namespace winPEAS.Helpers.AppLocker
                 //Remove all the empty stuff
                 appLockerPolicyFiltered.RuleCollection = appLockerPolicyFiltered.RuleCollection.Where(x =>
 
-                x.FilePublisherRule.Count() > 0 ||
-                x.FilePathRule.Count() > 0 ||
-                x.FileHashRule.Count() > 0
+                    x.FilePublisherRule.Any() ||
+                    x.FilePathRule.Any() ||
+                    x.FileHashRule.Any()
 
                 ).ToArray();
-
-                return JsonConvert.SerializeObject(appLockerPolicyFiltered, Newtonsoft.Json.Formatting.Indented);
-
-
             }
-            return JsonConvert.SerializeObject(objectHolder, Newtonsoft.Json.Formatting.Indented);
-            */
 
-            policies = policies.Replace("><", ">\n<");
-
-            return policies;
+            return appLockerPolicyFiltered;
         }
     }
-    
 }

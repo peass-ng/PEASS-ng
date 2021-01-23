@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Management;
 using System.Security.Principal;
 using winPEAS.Helpers;
+using winPEAS.Helpers.AppLocker;
 using winPEAS.Helpers.Search;
 using winPEAS.Info.UserInfo;
 
@@ -24,8 +26,6 @@ namespace winPEAS.Checks
         public static string CurrentAdDomainName = "";
         public static bool IsPartOfDomain = false;
         public static bool IsCurrentUserLocal = true;
-        static SelectQuery _query = null;
-        static ManagementObjectSearcher _searcher = null;
         public static ManagementObjectCollection Win32Users = null;
         public static Dictionary<string, string> CurrentUserSiDs = new Dictionary<string, string>();
         static string _paintActiveUsers = "";
@@ -37,6 +37,9 @@ namespace winPEAS.Checks
 
         private static List<SystemCheck> _systemChecks;
         private static HashSet<string> _systemCheckSelectedKeysHashSet = new HashSet<string>();
+
+        public const string LogFile = "out.txt";
+
 
         class SystemCheck
         {           
@@ -55,6 +58,9 @@ namespace winPEAS.Checks
             //Check parameters
             bool isAllChecks = true;
             bool wait = false;
+            FileStream fileStream = null;
+            StreamWriter fileWriter = null;
+            TextWriter oldOut = Console.Out;
 
             _systemChecks = new List<SystemCheck>
             {
@@ -80,6 +86,23 @@ namespace winPEAS.Checks
                 {
                     Beaprint.PrintUsage();
                     return;
+                }
+
+                if (string.Equals(arg, "log", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    try
+                    {
+                        fileStream = new FileStream(LogFile, FileMode.OpenOrCreate, FileAccess.Write);
+                        fileWriter = new StreamWriter(fileStream);
+                    }
+                    catch (Exception ex)
+                    {
+                        Beaprint.PrintException($"Cannot open \"{LogFile}\" for writing:\n {ex.Message}");
+                        return;
+                    }
+
+                    Beaprint.ColorPrint($"\"log\" argument present, redirecting output to file \"{LogFile}\"", Beaprint.ansi_color_good);
+                    Console.SetOut(fileWriter);
                 }
 
                 if (string.Equals(arg, "cmd", StringComparison.CurrentCultureIgnoreCase))
@@ -120,24 +143,34 @@ namespace winPEAS.Checks
                 }
             }
 
-            CheckRunner.Run(() =>
+            try
             {
-                //Start execution
-                if (IsNoColor)
+                CheckRunner.Run(() =>
                 {
-                    Beaprint.DeleteColors();
-                }
-                else
-                {
-                    CheckRegANSI();
-                }
+                    //Start execution
+                    if (IsNoColor)
+                    {
+                        Beaprint.DeleteColors();
+                    }
+                    else
+                    {
+                        CheckRegANSI();
+                    }
 
-                CheckRunner.Run(CreateDynamicLists, IsDebug);
+                    CheckRunner.Run(CreateDynamicLists, IsDebug);
 
-                Beaprint.PrintInit(IsDebug);
+                    Beaprint.PrintInit(IsDebug);
 
-                RunChecks(isAllChecks, wait);
-            }, IsDebug, "Total time");
+                    RunChecks(isAllChecks, wait);
+                }, IsDebug, "Total time");
+            }
+            finally
+            {
+                Console.SetOut(oldOut);
+
+                fileWriter?.Close();
+                fileStream?.Close();
+            }
         }
 
         private static void RunChecks(bool isAllChecks, bool wait)
@@ -176,9 +209,12 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.GrayPrint("   - Getting Win32_UserAccount info...");
-                _query = new SelectQuery("Win32_UserAccount");
-                _searcher = new ManagementObjectSearcher(_query);
-                Win32Users = _searcher.Get();
+                var query = new SelectQuery("Win32_UserAccount");
+
+                using (var searcher = new ManagementObjectSearcher(query))
+                {
+                    Win32Users = searcher.Get();
+                }
             }
             catch (Exception ex)
             {
@@ -245,6 +281,17 @@ namespace winPEAS.Checks
                 Beaprint.GrayPrint("Error while creating admin users groups list: " + ex);
             }
 
+            //create AppLocker lists
+            try
+            {
+                Beaprint.GrayPrint("   - Creating AppLocker bypass list...");
+                AppLockerHelper.CreateLists();
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("Error while creating AppLocker bypass list: " + ex);
+            }
+
             //create the file lists
             try
             {
@@ -254,7 +301,7 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.GrayPrint("Error while creating directory list: " + ex);
-            }
+            }           
         }
 
         private static void CheckRegANSI()

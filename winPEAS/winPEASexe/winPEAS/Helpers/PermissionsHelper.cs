@@ -16,7 +16,7 @@ namespace winPEAS.Helpers
     /// Get interesting permissions from Files, Folders and Registry
     internal static class PermissionsHelper
     {
-        public static List<string> GetPermissionsFile(string path, Dictionary<string, string> SIDs)
+        public static List<string> GetPermissionsFile(string path, Dictionary<string, string> SIDs, bool isOnlyWriteOrEquivalentCheck = false)
         {
             /*Permisos especiales para carpetas 
              *https://docs.microsoft.com/en-us/windows/win32/secauthz/access-mask-format?redirectedfrom=MSDN
@@ -37,7 +37,7 @@ namespace winPEAS.Helpers
             try
             {
                 FileSecurity fSecurity = File.GetAccessControl(path);
-                results = GetMyPermissionsF(fSecurity, SIDs);
+                results = GetMyPermissionsF(fSecurity, SIDs, isOnlyWriteOrEquivalentCheck);
             }
             catch
             {
@@ -46,7 +46,7 @@ namespace winPEAS.Helpers
             return results;
         }
 
-        public static List<string> GetPermissionsFolder(string path, Dictionary<string, string> SIDs)
+        public static List<string> GetPermissionsFolder(string path, Dictionary<string, string> SIDs, bool isOnlyWriteOrEquivalentCheck = false)
         {
             List<string> results = new List<string>();
 
@@ -66,7 +66,7 @@ namespace winPEAS.Helpers
                 }
 
                 FileSecurity fSecurity = File.GetAccessControl(path);
-                results = GetMyPermissionsF(fSecurity, SIDs);
+                results = GetMyPermissionsF(fSecurity, SIDs, isOnlyWriteOrEquivalentCheck);
             }
             catch
             {
@@ -75,7 +75,7 @@ namespace winPEAS.Helpers
             return results;
         }
 
-        public static List<string> GetMyPermissionsF(FileSecurity fSecurity, Dictionary<string, string> SIDs)
+        public static List<string> GetMyPermissionsF(FileSecurity fSecurity, Dictionary<string, string> SIDs, bool isOnlyWriteOrEquivalentCheck = false)
         {
             // Get interesting permissions in fSecurity (Only files and folders)
             List<string> results = new List<string>();
@@ -85,7 +85,7 @@ namespace winPEAS.Helpers
             {
                 //First, check if the rule to check is interesting
                 int current_perm = (int)rule.FileSystemRights;
-                string current_perm_str = PermInt2Str(current_perm, false);
+                string current_perm_str = PermInt2Str(current_perm, isOnlyWriteOrEquivalentCheck);
                 if (current_perm_str == "")
                 {
                     continue;
