@@ -32,7 +32,7 @@ namespace winPEAS.Checks
                 if (permsFile.Count > 0)
                 {
                     Beaprint.BadPrint("    " + title);
-                    Beaprint.BadPrint("    FilePermissions: " + string.Join(",", permsFile));
+                    Beaprint.BadPrint("    File Permissions: " + string.Join(",", permsFile));
                 }
                 else
                 {
@@ -42,7 +42,7 @@ namespace winPEAS.Checks
                 if (permsFolder.Count > 0)
                 {
                     Beaprint.BadPrint("    Possible DLL Hijacking, folder is writable: " + PermissionsHelper.GetFolderFromString(title));
-                    Beaprint.BadPrint("    FolderPermissions: " + string.Join(",", permsFile));
+                    Beaprint.BadPrint("    Folder Permissions: " + string.Join(",", permsFile));
                 }
             }
             catch (Exception ex)

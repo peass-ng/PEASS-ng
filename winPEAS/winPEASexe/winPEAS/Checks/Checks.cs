@@ -301,7 +301,7 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.GrayPrint("Error while creating directory list: " + ex);
-            }           
+            }
         }
 
         private static void CheckRegANSI()

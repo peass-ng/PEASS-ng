@@ -19,7 +19,7 @@ namespace winPEAS.Helpers.Search
        // private static List<CustomFileInfo> GroupPolicyHistoryLegacy;
        
 
-        public static List<CustomFileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null)
+        public static List<CustomFileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null, bool isFoldersIncluded = false)
         {
             ConcurrentBag<CustomFileInfo> files = new ConcurrentBag<CustomFileInfo>();
             IEnumerable<DirectoryInfo> startDirs = GetStartDirectories(folder, files, pattern);
@@ -54,7 +54,7 @@ namespace winPEAS.Helpers.Search
 
             Parallel.ForEach(startDirsExcluded, (d) =>
             {
-                Parallel.ForEach(GetStartDirectories(d.FullName, files, pattern), (dir) =>
+                Parallel.ForEach(GetStartDirectories(d.FullName, files, pattern, isFoldersIncluded), (dir) =>
                 {
                     GetFiles(dir.FullName, pattern).ForEach(
                         (f) =>
@@ -119,7 +119,7 @@ namespace winPEAS.Helpers.Search
 
         
 
-        private static List<DirectoryInfo> GetStartDirectories(string folder, ConcurrentBag<CustomFileInfo> files, string pattern)
+        private static List<DirectoryInfo> GetStartDirectories(string folder, ConcurrentBag<CustomFileInfo> files, string pattern, bool isFoldersIncluded = false)
         {
             DirectoryInfo dirInfo = null;
             DirectoryInfo[] directories = null;
@@ -127,6 +127,14 @@ namespace winPEAS.Helpers.Search
             {
                 dirInfo = new DirectoryInfo(folder);
                 directories = dirInfo.GetDirectories();
+
+                if (isFoldersIncluded)
+                {
+                    foreach (var directory in directories)
+                    {
+                        files.Add(new CustomFileInfo(null, null, directory.FullName));
+                    }
+                }
 
                 foreach (var f in dirInfo.GetFiles(pattern))
                 {

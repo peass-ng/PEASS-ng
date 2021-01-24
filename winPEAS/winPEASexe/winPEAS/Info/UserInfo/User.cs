@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
+using System.IO;
 using System.Management;
 using System.Security.Principal;
 using winPEAS.Helpers;
@@ -183,6 +184,35 @@ namespace winPEAS.Info.UserInfo
         public static List<string> GetUsersFolders()
         {
             return MyUtils.ListFolder("Users");
+        }
+
+        public static HashSet<string> GetOtherUsersFolders()
+        {
+            HashSet<string> result = new HashSet<string>();
+            string currentUsername = Environment.UserName?.ToLower();
+            var usersBaseDirectory = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), "Users");
+
+            SelectQuery query = new SelectQuery("Win32_UserAccount");
+            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
+            {
+                foreach (ManagementObject envVar in searcher.Get())
+                {
+                    string username = (string)envVar["Name"];
+                    username = username?.ToLower();
+
+                    if (currentUsername != username)
+                    {
+                        string userDirectory = Path.Combine(usersBaseDirectory, username);
+
+                        if (Directory.Exists(userDirectory))
+                        {
+                            result.Add(userDirectory.ToLower());
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }

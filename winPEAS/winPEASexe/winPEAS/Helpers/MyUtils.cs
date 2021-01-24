@@ -140,9 +140,11 @@ namespace winPEAS.Helpers
         public static bool IsHighIntegrity()
         {
             // returns true if the current process is running with adminstrative privs in a high integrity context
-            WindowsIdentity identity = WindowsIdentity.GetCurrent();
-            WindowsPrincipal principal = new WindowsPrincipal(identity);
-            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
         }
 
         //From https://stackoverflow.com/questions/3519539/how-to-check-if-a-string-contains-any-of-some-strings

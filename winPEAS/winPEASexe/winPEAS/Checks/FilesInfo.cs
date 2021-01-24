@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Search;
+using winPEAS.Info.UserInfo;
 using winPEAS.InterestingFiles;
 using winPEAS.KnownFileCreds;
 
@@ -123,7 +124,8 @@ namespace winPEAS.Checks
                 PrintUsersInterestingFiles,
                 PrintUsersDocsKeys,
                 PrintRecentFiles,
-                PrintRecycleBin
+                PrintRecycleBin,
+                PrintOtherUsersInterestingFiles
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
@@ -477,6 +479,61 @@ namespace winPEAS.Checks
                 else
                 {
                     Beaprint.NotFoundPrint();
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        void PrintOtherUsersInterestingFiles()
+        {
+            try
+            {
+                Beaprint.MainPrint("Searching interesting files in other users home directories (can be slow)\n");
+                
+                // check if admin already, if yes, print a message, if not, try to enumerate all files
+                if (MyUtils.IsHighIntegrity())
+                {
+                    Beaprint.BadPrint("     You are already Administrator, check users home folders manually.");
+                }
+                else
+                // get all files and check them
+                {
+                    var users = User.GetOtherUsersFolders();
+
+                    foreach (var user in users)
+                    {
+                        Beaprint.GoodPrint($"     Checking folder: {user}\n");
+
+                        var files = SearchHelper.GetFilesFast(user, isFoldersIncluded: true);
+
+                        foreach (var file in files)
+                        {
+                            FileAttributes attr = File.GetAttributes(file.FullPath);
+                            if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+                            {
+                                List<string> dirRights = PermissionsHelper.GetPermissionsFolder(file.FullPath, Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+
+                                if (dirRights.Count > 0)
+                                {
+                                    Beaprint.BadPrint($"     Folder Permissions \"{file.FullPath}\": " + string.Join(",", dirRights));
+                                }
+                            }
+                            else
+                            {
+                                List<string> fileRights = PermissionsHelper.GetPermissionsFile(file.FullPath, Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+
+                                if (fileRights.Count > 0)
+                                {
+                                    Beaprint.BadPrint($"     File Permissions \"{file.FullPath}\": " + string.Join(",", fileRights));
+                                }
+                            }
+                        }
+
+                        Beaprint.PrintLineSeparator();
+                    }
                 }
             }
             catch (Exception ex)
