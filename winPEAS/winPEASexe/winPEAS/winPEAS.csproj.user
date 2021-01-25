@@ -8,7 +8,7 @@
     <StartArguments>applicationsinfo</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <StartArguments>cmd fast</StartArguments>
+    <StartArguments>debug</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <StartArguments>fast</StartArguments>

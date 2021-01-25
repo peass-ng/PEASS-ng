@@ -10,14 +10,12 @@ namespace winPEAS.Helpers.Search
 {
     static class SearchHelper
     {
-        private static List<CustomFileInfo> RootDirUsers;
+        public static List<CustomFileInfo> RootDirUsers;
         private static List<CustomFileInfo> RootDirCurrentUser;
         private static List<CustomFileInfo> ProgramFiles;
         private static List<CustomFileInfo> ProgramFilesX86;
         private static List<CustomFileInfo> DocumentsAndSettings;
         private static List<CustomFileInfo> GroupPolicyHistory;
-       // private static List<CustomFileInfo> GroupPolicyHistoryLegacy;
-       
 
         public static List<CustomFileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null, bool isFoldersIncluded = false)
         {
@@ -32,14 +30,7 @@ namespace winPEAS.Helpers.Search
                     bool shouldAdd = true;
                     string startDirLower = startDir.FullName.ToLower();
 
-                    foreach (var excludedDirPattern in excludedDirs)
-                    {
-                        if (Regex.IsMatch(startDirLower, excludedDirPattern, RegexOptions.IgnoreCase))
-                        {
-                            shouldAdd = false;
-                            break;
-                        }
-                    }
+                    shouldAdd = !excludedDirs.Contains(startDirLower);
 
                     if (shouldAdd)
                     {
@@ -171,7 +162,7 @@ namespace winPEAS.Helpers.Search
 
             // c:\users
             string rootUsersSearchPath = $"{systemDrive}\\Users\\";
-            SearchHelper.RootDirUsers = SearchHelper.GetFilesFast(rootUsersSearchPath, globalPattern);
+            SearchHelper.RootDirUsers = SearchHelper.GetFilesFast(rootUsersSearchPath, globalPattern, isFoldersIncluded: true);
 
             // c:\users\current_user
             string rootCurrentUserSearchPath = Environment.GetEnvironmentVariable("USERPROFILE");

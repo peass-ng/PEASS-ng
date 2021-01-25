@@ -125,6 +125,7 @@ namespace winPEAS.Checks
                 PrintUsersDocsKeys,
                 PrintRecentFiles,
                 PrintRecycleBin,
+                PrintHiddenFilesAndFolders,
                 PrintOtherUsersInterestingFiles
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
@@ -539,6 +540,107 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        void PrintHiddenFilesAndFolders()
+        {
+            HashSet<string> excludedFilenames = new HashSet<string>()
+                {
+                    "cache.bin",
+                    "container.dat",
+                    "desktop.ini",
+                    "iconcache.db",
+                    "ntuser.ini",
+                    "ntuser.dat",
+                    "ntuser.dat.log1",
+                    "ntuser.dat.log2",
+                    "pof.dat.log1",
+                    "pof.dat.log2",
+                    "privateregistry.bin.log1",
+                    "privateregistry.bin.log2",
+                    "settings.dat.log1",
+                    "settings.dat.log2",
+                    "thumbs.db",
+                    "user.dat.log1",
+                    "user.dat.log2",
+                    "userclasses.dat",
+                    "userclasses.dat.log1",
+                    "userclasses.dat.log2",
+                    "usrclass.dat",
+                    "usrclass.dat.log1",
+                    "usrclass.dat.log2",
+                };
+
+            HashSet<string> excludedExtensions = new HashSet<string>()
+                {
+                    ".blf",
+                    ".igpi",
+                    ".regtrans-ms",
+                    ".search-ms",
+                    ".suo",
+                };
+
+            HashSet<string> excludedKnownFolders = new HashSet<string>()
+                {
+                    "accountpictures",
+                    "appdata",
+                    "application data",
+                    "cookies",
+                    "desktop",
+                    "documents",
+                    "intelgraphicsprofiles",
+                    "libraries",
+                    "local settings",
+                    "my documents",
+                    "nethood",
+                    "printhood",
+                    "recent",
+                    "recent",
+                    "sendto",
+                    "start menu",
+                    "templates",
+                };
+
+            var systemDrive = Environment.GetEnvironmentVariable("SystemDrive");
+
+            Beaprint.MainPrint($"Searching hidden files or folders in {systemDrive}\\Users home (can be slow)\n");
+
+            foreach (var file in SearchHelper.RootDirUsers)
+            {
+                try
+                {
+                    if (File.GetAttributes(file.FullPath).HasFlag(FileAttributes.Hidden))
+                    {
+                        if (file.Extension != null && excludedExtensions.Contains(file.Extension.ToLower()))
+                        {
+                            continue;
+                        }
+
+                        if (file.Filename != null && excludedFilenames.Contains(file.Filename.ToLower()))
+                        {
+                            continue;
+                        }
+
+                        // skip well known folders
+                        if (excludedKnownFolders.Contains(Path.GetFileName(file.FullPath).ToLower()))
+                        {
+                            continue;
+                        }
+
+                        if (file.FullPath.ToLower().Contains("microsoft"))
+                        {
+                            continue;
+                        }
+
+                        Beaprint.BadPrint($"     {file.FullPath}");
+                    }
+                }
+                catch (PathTooLongException ex) { }
+                catch (Exception ex)
+                {
+                    // & other exceptions
+                }
             }
         }
     }
