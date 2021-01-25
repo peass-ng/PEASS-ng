@@ -126,7 +126,7 @@ namespace winPEAS.Checks
                 PrintRecentFiles,
                 PrintRecycleBin,
                 PrintHiddenFilesAndFolders,
-                PrintOtherUsersInterestingFiles
+                PrintOtherUsersInterestingFiles,
                 PrintExecutablesInNonDefaultFoldersWithWritePermissions,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
