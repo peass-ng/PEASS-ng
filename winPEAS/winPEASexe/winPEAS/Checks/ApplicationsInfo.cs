@@ -244,6 +244,7 @@ namespace winPEAS.Checks
                     Dictionary<string, string> colorsD = new Dictionary<string, string>()
                         {
                             { "Permissions.*", Beaprint.ansi_color_bad },
+                            { "Capcom.sys", Beaprint.ansi_color_bad },
                             { pathDriver.Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+"), (fileRights.Count > 0 || dirRights.Count > 0) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                         };
 

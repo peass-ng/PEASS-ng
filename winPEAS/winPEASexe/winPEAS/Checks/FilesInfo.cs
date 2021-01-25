@@ -127,6 +127,7 @@ namespace winPEAS.Checks
                 PrintRecycleBin,
                 PrintHiddenFilesAndFolders,
                 PrintOtherUsersInterestingFiles
+                PrintExecutablesInNonDefaultFoldersWithWritePermissions,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
@@ -640,6 +641,47 @@ namespace winPEAS.Checks
                 catch (Exception ex)
                 {
                     // & other exceptions
+                }
+            }
+        }
+
+        private void PrintExecutablesInNonDefaultFoldersWithWritePermissions()
+        {
+            Beaprint.MainPrint($"Searching executable files in non-default folders with write (equivalent) permissions (can be slow)");
+
+            var systemDrive = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\";
+
+            var excludedDirs = new HashSet<string>()
+            {
+                @"c:\esupport",
+                @"c:\perflogs",
+                @"c:\programdata",
+                @"c:\program files(x86)",
+                @"c:\program files",
+                @"c:\windows",
+                @"c:\windows.old",
+            };
+
+            var allowedExtensions = new HashSet<string>()
+            {
+                ".bat",
+                ".exe",
+                ".ps1"
+            };
+
+            var files = SearchHelper.GetFilesFast(systemDrive, "*", excludedDirs);
+
+            foreach (var file in files)
+            {
+                if (file.Extension != null && allowedExtensions.Contains(file.Extension.ToLower()))
+                {
+                    // check the file permissions
+                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(file.FullPath, Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+
+                    if (fileRights.Count > 0)
+                    {
+                        Beaprint.BadPrint($"     File Permissions \"{file.FullPath}\": " + string.Join(",", fileRights));
+                    }
                 }
             }
         }
