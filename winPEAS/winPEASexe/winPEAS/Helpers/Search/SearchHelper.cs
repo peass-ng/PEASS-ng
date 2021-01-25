@@ -83,6 +83,10 @@ namespace winPEAS.Helpers.Search
             {
                 return new List<FileInfo>();
             }
+            catch (Exception)
+            {
+                return new List<FileInfo>();
+            }
 
             List<FileInfo> result = new List<FileInfo>();
 
@@ -102,6 +106,9 @@ namespace winPEAS.Helpers.Search
             {
             }
             catch (DirectoryNotFoundException)
+            {
+            }
+            catch (Exception)
             {
             }
 
@@ -148,6 +155,10 @@ namespace winPEAS.Helpers.Search
                 return new List<DirectoryInfo>();
             }
             catch (DirectoryNotFoundException)
+            {
+                return new List<DirectoryInfo>();
+            }
+            catch (Exception)
             {
                 return new List<DirectoryInfo>();
             }

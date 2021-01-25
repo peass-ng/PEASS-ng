@@ -76,30 +76,40 @@ namespace winPEAS.Info.SystemInfo
                 string dnsDomain = properties.DomainName;
 
                 const string query = "SELECT HotFixID FROM Win32_QuickFixEngineering";
-                var search = new ManagementObjectSearcher(query);
-                var collection = search.Get();
-                string hotfixes = "";
-                foreach (ManagementObject quickFix in collection)
-                    hotfixes += quickFix["HotFixID"].ToString() + ", ";
 
-                results.Add("Hostname", strHostName);
-                if (dnsDomain.Length > 1) results.Add("Domain Name", dnsDomain);
-                results.Add("ProductName", ProductName);
-                results.Add("EditionID", EditionID);
-                results.Add("ReleaseId", ReleaseId);
-                results.Add("BuildBranch", BuildBranch);
-                results.Add("CurrentMajorVersionNumber", CurrentMajorVersionNumber);
-                results.Add("CurrentVersion", CurrentVersion);
-                results.Add("Architecture", arch);
-                results.Add("ProcessorCount", ProcessorCount);
-                results.Add("SystemLang", systemLang);
-                results.Add("KeyboardLang", myCurrentLanguage.Culture.EnglishName);
-                results.Add("TimeZone", timeZone.DisplayName);
-                results.Add("IsVirtualMachine", isVM.ToString());
-                results.Add("Current Time", now.ToString());
-                results.Add("HighIntegrity", isHighIntegrity.ToString());
-                results.Add("PartOfDomain", Checks.Checks.IsPartOfDomain.ToString());
-                results.Add("Hotfixes", hotfixes);
+                using (var search = new ManagementObjectSearcher(query))
+                {
+                    using (var collection = search.Get())
+                    {
+                        string hotfixes = "";
+                        foreach (ManagementObject quickFix in collection)
+                        {
+                            hotfixes += quickFix["HotFixID"].ToString() + ", ";
+                        }
+
+                        results.Add("Hostname", strHostName);
+                        if (dnsDomain.Length > 1)
+                        {
+                            results.Add("Domain Name", dnsDomain);
+                        }
+                        results.Add("ProductName", ProductName);
+                        results.Add("EditionID", EditionID);
+                        results.Add("ReleaseId", ReleaseId);
+                        results.Add("BuildBranch", BuildBranch);
+                        results.Add("CurrentMajorVersionNumber", CurrentMajorVersionNumber);
+                        results.Add("CurrentVersion", CurrentVersion);
+                        results.Add("Architecture", arch);
+                        results.Add("ProcessorCount", ProcessorCount);
+                        results.Add("SystemLang", systemLang);
+                        results.Add("KeyboardLang", myCurrentLanguage.Culture.EnglishName);
+                        results.Add("TimeZone", timeZone.DisplayName);
+                        results.Add("IsVirtualMachine", isVM.ToString());
+                        results.Add("Current Time", now.ToString());
+                        results.Add("HighIntegrity", isHighIntegrity.ToString());
+                        results.Add("PartOfDomain", Checks.Checks.IsPartOfDomain.ToString());
+                        results.Add("Hotfixes", hotfixes);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -153,11 +163,14 @@ namespace winPEAS.Info.SystemInfo
                 whitelistpaths = String.Join("\n    ", RegistryHelper.GetRegValues("HKLM", @"SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths").Keys);
                 using (ManagementObjectSearcher wmiData = new ManagementObjectSearcher(@"root\SecurityCenter2", "SELECT * FROM AntiVirusProduct"))
                 {
-                    foreach (ManagementObject virusChecker in wmiData.Get())
+                    using (var data = wmiData.Get())
                     {
-                        results["Name"] = (string)virusChecker["displayName"];
-                        results["ProductEXE"] = (string)virusChecker["pathToSignedProductExe"];
-                        results["pathToSignedReportingExe"] = (string)virusChecker["pathToSignedReportingExe"];
+                        foreach (ManagementObject virusChecker in data)
+                        {
+                            results["Name"] = (string)virusChecker["displayName"];
+                            results["ProductEXE"] = (string)virusChecker["pathToSignedProductExe"];
+                            results["pathToSignedReportingExe"] = (string)virusChecker["pathToSignedReportingExe"];
+                        }
                     }
                 }
             }

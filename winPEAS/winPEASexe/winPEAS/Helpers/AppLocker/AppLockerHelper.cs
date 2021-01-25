@@ -354,9 +354,8 @@ namespace winPEAS.Helpers.AppLocker
                     return true;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                // unauthorized access ?
             }
 
             return false;

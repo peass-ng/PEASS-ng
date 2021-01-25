@@ -25,42 +25,45 @@ namespace winPEAS.Info.ServicesInfo
 
             try
             {
-                ManagementObjectSearcher wmiData = new ManagementObjectSearcher(@"root\cimv2", "SELECT * FROM win32_service");
-                ManagementObjectCollection data = wmiData.Get();
-
-                foreach (ManagementObject result in data)
+                using (ManagementObjectSearcher wmiData = new ManagementObjectSearcher(@"root\cimv2", "SELECT * FROM win32_service"))
                 {
-                    if (result["PathName"] != null)
+                    using (ManagementObjectCollection data = wmiData.Get())
                     {
-                        string binaryPath = MyUtils.GetExecutableFromPath(result["PathName"].ToString());
-                        string companyName = "";
-                        string isDotNet = "";
-                        try
+                        foreach (ManagementObject result in data)
                         {
-                            FileVersionInfo myFileVersionInfo = FileVersionInfo.GetVersionInfo(binaryPath);
-                            companyName = myFileVersionInfo.CompanyName;
-                            isDotNet = MyUtils.CheckIfDotNet(binaryPath) ? "isDotNet" : "";
-                        }
-                        catch (Exception)
-                        {
-                            // Not enough privileges
-                        }
+                            if (result["PathName"] != null)
+                            {
+                                string binaryPath = MyUtils.GetExecutableFromPath(result["PathName"].ToString());
+                                string companyName = "";
+                                string isDotNet = "";
+                                try
+                                {
+                                    FileVersionInfo myFileVersionInfo = FileVersionInfo.GetVersionInfo(binaryPath);
+                                    companyName = myFileVersionInfo.CompanyName;
+                                    isDotNet = MyUtils.CheckIfDotNet(binaryPath) ? "isDotNet" : "";
+                                }
+                                catch (Exception)
+                                {
+                                    // Not enough privileges
+                                }
 
-                        if (string.IsNullOrEmpty(companyName) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
-                        {
-                            Dictionary<string, string> toadd = new Dictionary<string, string>();
-                            
-                            toadd["Name"] = GetStringOrEmpty(result["Name"]);
-                            toadd["DisplayName"] = GetStringOrEmpty(result["DisplayName"]);
-                            toadd["CompanyName"] = companyName;
-                            toadd["State"] = GetStringOrEmpty(result["State"]);
-                            toadd["StartMode"] = GetStringOrEmpty(result["StartMode"]);
-                            toadd["PathName"] = GetStringOrEmpty(result["PathName"]);
-                            toadd["FilteredPath"] = binaryPath;
-                            toadd["isDotNet"] = isDotNet;
-                            toadd["Description"] = GetStringOrEmpty(result["Description"]);
-                            
-                            results.Add(toadd);
+                                if (string.IsNullOrEmpty(companyName) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
+                                {
+                                    Dictionary<string, string> toadd = new Dictionary<string, string>();
+
+                                    toadd["Name"] = GetStringOrEmpty(result["Name"]);
+                                    toadd["DisplayName"] = GetStringOrEmpty(result["DisplayName"]);
+                                    toadd["CompanyName"] = companyName;
+                                    toadd["State"] = GetStringOrEmpty(result["State"]);
+                                    toadd["StartMode"] = GetStringOrEmpty(result["StartMode"]);
+                                    toadd["PathName"] = GetStringOrEmpty(result["PathName"]);
+                                    toadd["FilteredPath"] = binaryPath;
+                                    toadd["isDotNet"] = isDotNet;
+                                    toadd["Description"] = GetStringOrEmpty(result["Description"]);
+
+                                    results.Add(toadd);
+                                }
+                            }
                         }
                     }
                 }
@@ -69,6 +72,7 @@ namespace winPEAS.Info.ServicesInfo
             {
                 Beaprint.PrintException(ex.Message);
             }
+
             return results;
         }
 
@@ -239,7 +243,7 @@ namespace winPEAS.Info.ServicesInfo
                     }
 
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //Beaprint.PrintException(ex.Message)
                 }

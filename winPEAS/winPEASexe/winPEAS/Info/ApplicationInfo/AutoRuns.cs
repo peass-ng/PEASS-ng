@@ -355,7 +355,7 @@ namespace winPEAS.Info.ApplicationInfo
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
 
@@ -381,7 +381,7 @@ namespace winPEAS.Info.ApplicationInfo
                         });
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                 }
             }
@@ -408,7 +408,7 @@ namespace winPEAS.Info.ApplicationInfo
                         { "isUnquotedSpaced", "" }
                     });
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                 }
             }
@@ -422,24 +422,25 @@ namespace winPEAS.Info.ApplicationInfo
             try
             {
                 SelectQuery query = new SelectQuery("Win32_StartupCommand");
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
 
-                using (ManagementObjectCollection win32_startup = searcher.Get())
+                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
                 {
-                    foreach (ManagementObject startup in win32_startup)
+                    using (ManagementObjectCollection win32_startup = searcher.Get())
                     {
-                        string command = startup["command"].ToString();
-                        command = Environment.ExpandEnvironmentVariables(string.Format("{0}", command));
-                        string filepath = MyUtils.GetExecutableFromPath(command);
-
-                        if (!string.IsNullOrEmpty(filepath))
+                        foreach (ManagementObject startup in win32_startup)
                         {
-                            string filepathCleaned = filepath.Replace("'", "").Replace("\"", "");
+                            string command = startup["command"].ToString();
+                            command = Environment.ExpandEnvironmentVariables(string.Format("{0}", command));
+                            string filepath = MyUtils.GetExecutableFromPath(command);
 
-                            try
+                            if (!string.IsNullOrEmpty(filepath))
                             {
-                                string folder = Path.GetDirectoryName(filepathCleaned);
-                                results.Add(new Dictionary<string, string>()
+                                string filepathCleaned = filepath.Replace("'", "").Replace("\"", "");
+
+                                try
+                                {
+                                    string folder = Path.GetDirectoryName(filepathCleaned);
+                                    results.Add(new Dictionary<string, string>()
                                 {
                                     {"Reg", ""},
                                     {"RegKey", "From WMIC"},
@@ -457,9 +458,10 @@ namespace winPEAS.Info.ApplicationInfo
                                     },
                                     {"isUnquotedSpaced", MyUtils.CheckQuoteAndSpace(command).ToString()}
                                 });
-                            }
-                            catch (Exception)
-                            {
+                                }
+                                catch (Exception)
+                                {
+                                }
                             }
                         }
                     }
@@ -511,7 +513,7 @@ namespace winPEAS.Info.ApplicationInfo
                         });
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                 }
             }

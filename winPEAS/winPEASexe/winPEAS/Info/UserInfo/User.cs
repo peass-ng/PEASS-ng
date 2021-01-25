@@ -137,11 +137,16 @@ namespace winPEAS.Info.UserInfo
             List<string> retList = new List<string>();
             try
             {
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT * FROM Win32_UserProfile WHERE Loaded = True");
-                foreach (ManagementObject user in searcher.Get())
+                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT * FROM Win32_UserProfile WHERE Loaded = True"))
                 {
-                    string username = new SecurityIdentifier(user["SID"].ToString()).Translate(typeof(NTAccount)).ToString();
-                    if (!username.Contains("NT AUTHORITY")) retList.Add(username);
+                    using (var data = searcher.Get())
+                    {
+                        foreach (ManagementObject user in data)
+                        {
+                            string username = new SecurityIdentifier(user["SID"].ToString()).Translate(typeof(NTAccount)).ToString();
+                            if (!username.Contains("NT AUTHORITY")) retList.Add(username);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -157,20 +162,26 @@ namespace winPEAS.Info.UserInfo
             try
             {
                 SelectQuery query = new SelectQuery("Win32_UserProfile");
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-                foreach (ManagementObject user in searcher.Get())
+
+                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
                 {
-                    try
+                    using (var data = searcher.Get())
                     {
-                        string username = new SecurityIdentifier(user["SID"].ToString()).Translate(typeof(NTAccount)).ToString();
-                        if (!username.Contains("NT AUTHORITY"))
+                        foreach (ManagementObject user in data)
                         {
-                            retList.Add(username);
+                            try
+                            {
+                                string username = new SecurityIdentifier(user["SID"].ToString()).Translate(typeof(NTAccount)).ToString();
+                                if (!username.Contains("NT AUTHORITY"))
+                                {
+                                    retList.Add(username);
+                                }
+                            }
+                            // user SID could not be translated, ignore
+                            catch (Exception)
+                            {
+                            }
                         }
-                    }
-                    // user SID could not be translated, ignore
-                    catch (Exception)
-                    {
                     }
                 }
             }
@@ -195,18 +206,21 @@ namespace winPEAS.Info.UserInfo
             SelectQuery query = new SelectQuery("Win32_UserAccount");
             using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
             {
-                foreach (ManagementObject envVar in searcher.Get())
+                using (var data = searcher.Get())
                 {
-                    string username = (string)envVar["Name"];
-                    username = username?.ToLower();
-
-                    if (currentUsername != username)
+                    foreach (ManagementObject envVar in data)
                     {
-                        string userDirectory = Path.Combine(usersBaseDirectory, username);
+                        string username = (string)envVar["Name"];
+                        username = username?.ToLower();
 
-                        if (Directory.Exists(userDirectory))
+                        if (currentUsername != username)
                         {
-                            result.Add(userDirectory.ToLower());
+                            string userDirectory = Path.Combine(usersBaseDirectory, username);
+
+                            if (Directory.Exists(userDirectory))
+                            {
+                                result.Add(userDirectory.ToLower());
+                            }
                         }
                     }
                 }

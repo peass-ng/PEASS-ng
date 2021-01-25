@@ -269,20 +269,22 @@ namespace winPEAS.Info.NetworkInfo
             List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
             try
             {
-
-                ManagementObjectSearcher wmiData = new ManagementObjectSearcher(@"root\standardcimv2", "SELECT * FROM MSFT_DNSClientCache");
-                ManagementObjectCollection data = wmiData.Get();
-
-                foreach (ManagementObject result in data)
+                using (ManagementObjectSearcher wmiData = new ManagementObjectSearcher(@"root\standardcimv2", "SELECT * FROM MSFT_DNSClientCache"))
                 {
-                    Dictionary<string, string> dnsEntry = new Dictionary<string, string>();
-                    string entry = $"{result["Entry"]}";
-                    string name = $"{result["Name"]}";
-                    string dataDns = $"{result["Data"]}";
-                    dnsEntry["Entry"] = (entry.Length > 33) ? "..." + result["Entry"].ToString().Substring(entry.Length - 32) : entry;
-                    dnsEntry["Name"] = (name.Length > 33) ? "..." + name.Substring(name.Length - 32) : name;
-                    dnsEntry["Data"] = (dataDns.Length > 33) ? "..." + dataDns.Substring(dataDns.Length - 32) : dataDns;
-                    results.Add(dnsEntry);
+                    using (ManagementObjectCollection data = wmiData.Get())
+                    {
+                        foreach (ManagementObject result in data)
+                        {
+                            Dictionary<string, string> dnsEntry = new Dictionary<string, string>();
+                            string entry = $"{result["Entry"]}";
+                            string name = $"{result["Name"]}";
+                            string dataDns = $"{result["Data"]}";
+                            dnsEntry["Entry"] = (entry.Length > 33) ? "..." + result["Entry"].ToString().Substring(entry.Length - 32) : entry;
+                            dnsEntry["Name"] = (name.Length > 33) ? "..." + name.Substring(name.Length - 32) : name;
+                            dnsEntry["Data"] = (dataDns.Length > 33) ? "..." + dataDns.Substring(dataDns.Length - 32) : dataDns;
+                            results.Add(dnsEntry);
+                        }
+                    }
                 }
             }
             catch (ManagementException ex) when (ex.ErrorCode == ManagementStatus.InvalidNamespace)

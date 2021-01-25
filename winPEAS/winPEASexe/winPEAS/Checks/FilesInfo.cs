@@ -264,7 +264,7 @@ namespace winPEAS.Checks
                                                     colors);
                                 Beaprint.PrintLineSeparator();
                             }
-                            catch (Exception e) { }
+                            catch (Exception) { }
                         }
                     }
                     else
@@ -272,7 +272,7 @@ namespace winPEAS.Checks
                         Beaprint.GoodPrint("    WSL - no installed Linux distributions found.");
                     }
                 }
-                catch (Exception e) { }
+                catch (Exception) { }
             }
         }
 
@@ -513,24 +513,30 @@ namespace winPEAS.Checks
 
                         foreach (var file in files)
                         {
-                            FileAttributes attr = File.GetAttributes(file.FullPath);
-                            if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+                            try
                             {
-                                List<string> dirRights = PermissionsHelper.GetPermissionsFolder(file.FullPath, Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
-
-                                if (dirRights.Count > 0)
+                                FileAttributes attr = File.GetAttributes(file.FullPath);
+                                if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
                                 {
-                                    Beaprint.BadPrint($"     Folder Permissions \"{file.FullPath}\": " + string.Join(",", dirRights));
+                                    List<string> dirRights = PermissionsHelper.GetPermissionsFolder(file.FullPath, Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+
+                                    if (dirRights.Count > 0)
+                                    {
+                                        Beaprint.BadPrint($"     Folder Permissions \"{file.FullPath}\": " + string.Join(",", dirRights));
+                                    }
+                                }
+                                else
+                                {
+                                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(file.FullPath, Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+
+                                    if (fileRights.Count > 0)
+                                    {
+                                        Beaprint.BadPrint($"     File Permissions \"{file.FullPath}\": " + string.Join(",", fileRights));
+                                    }
                                 }
                             }
-                            else
+                            catch (Exception)
                             {
-                                List<string> fileRights = PermissionsHelper.GetPermissionsFile(file.FullPath, Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
-
-                                if (fileRights.Count > 0)
-                                {
-                                    Beaprint.BadPrint($"     File Permissions \"{file.FullPath}\": " + string.Join(",", fileRights));
-                                }
                             }
                         }
 
@@ -637,8 +643,8 @@ namespace winPEAS.Checks
                         Beaprint.BadPrint($"     {file.FullPath}");
                     }
                 }
-                catch (PathTooLongException ex) { }
-                catch (Exception ex)
+                catch (PathTooLongException) { }
+                catch (Exception)
                 {
                     // & other exceptions
                 }
@@ -656,11 +662,13 @@ namespace winPEAS.Checks
                 @"c:\esupport",
                 @"c:\perflogs",
                 @"c:\programdata",
-                @"c:\program files(x86)",
+                @"c:\program files (x86)",
                 @"c:\program files",
                 @"c:\windows",
                 @"c:\windows.old",
             };
+
+            var currentUserDir = @$"{systemDrive}users\{Environment.GetEnvironmentVariable("USERNAME")}".ToLower();
 
             var allowedExtensions = new HashSet<string>()
             {
@@ -669,20 +677,35 @@ namespace winPEAS.Checks
                 ".ps1"
             };
 
-            var files = SearchHelper.GetFilesFast(systemDrive, "*", excludedDirs);
+            var files = SearchHelper.GetFilesFast(systemDrive, "*", excludedDirs);            
 
             foreach (var file in files)
             {
-                if (file.Extension != null && allowedExtensions.Contains(file.Extension.ToLower()))
+                try
                 {
-                    // check the file permissions
-                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(file.FullPath, Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
-
-                    if (fileRights.Count > 0)
+                    if (file.Extension != null && allowedExtensions.Contains(file.Extension.ToLower()))
                     {
-                        Beaprint.BadPrint($"     File Permissions \"{file.FullPath}\": " + string.Join(",", fileRights));
+                        // check the file permissions
+                        List<string> fileRights = PermissionsHelper.GetPermissionsFile(file.FullPath, Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+
+                        if (fileRights.Count > 0)
+                        {
+                            string log = $"     File Permissions \"{file.FullPath}\": " + string.Join(",", fileRights);
+
+                            if (file.FullPath.ToLower().StartsWith(currentUserDir))
+                            {
+                                Beaprint.NoColorPrint(log);
+                            }
+                            else
+                            {
+                                Beaprint.BadPrint(log);
+                            }                            
+                        }
                     }
                 }
+                catch (Exception)
+                {                    
+                }                
             }
         }
     }

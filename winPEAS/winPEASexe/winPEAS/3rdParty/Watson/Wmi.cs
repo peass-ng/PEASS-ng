@@ -14,15 +14,16 @@ namespace winPEAS._3rdParty.Watson
             {
                 using (var searcher = new ManagementObjectSearcher(@"root\cimv2", "SELECT HotFixID FROM Win32_QuickFixEngineering"))
                 {
-                    var hotFixes = searcher.Get();
-
-                    foreach (var hotFix in hotFixes)
+                    using (var hotFixes = searcher.Get())
                     {
-                        var line = hotFix["HotFixID"].ToString().Remove(0, 2);
-
-                        if (int.TryParse(line, out int kb))
+                        foreach (var hotFix in hotFixes)
                         {
-                            KbList.Add(kb);
+                            var line = hotFix["HotFixID"].ToString().Remove(0, 2);
+
+                            if (int.TryParse(line, out int kb))
+                            {
+                                KbList.Add(kb);
+                            }
                         }
                     }
                 }
@@ -41,13 +42,14 @@ namespace winPEAS._3rdParty.Watson
             {
                 using (var searcher = new ManagementObjectSearcher(@"root\cimv2", "SELECT BuildNumber FROM Win32_OperatingSystem"))
                 {
-                    var collection = searcher.Get();
-
-                    foreach (var num in collection)
+                    using (var collection = searcher.Get())
                     {
-                        if (int.TryParse(num["BuildNumber"] as string, out int buildNumber))
+                        foreach (var num in collection)
                         {
-                            return buildNumber;
+                            if (int.TryParse(num["BuildNumber"] as string, out int buildNumber))
+                            {
+                                return buildNumber;
+                            }
                         }
                     }
                 }
