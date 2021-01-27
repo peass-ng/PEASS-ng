@@ -2749,7 +2749,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) network-scripts
   printf $Y"[+] "$GREEN"Can I write in network-scripts? ...... "$NC
   if [ -w "/etc/sysconfig/network-scripts/" ]; then echo "You have write privileges on /etc/sysconfig/network-scripts/" | sed -${E} "s,.*,${C}[1;31;103m&${C}[0m,"
-  elif [ "`find /etc/sysconfig/network-scripts/ '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges on `find /etc/sysconfig/network-scripts/ '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" | sed -${E} "s,.*,${C}[1;31;103m&${C}[0m,"
+  elif [ "`find /etc/sysconfig/network-scripts/ '(' -not -type l -and '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges on `find /etc/sysconfig/network-scripts/ '(' -not -type l -and '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' ')' 2>/dev/null`" | sed -${E} "s,.*,${C}[1;31;103m&${C}[0m,"
   else echo_no
   fi
 
