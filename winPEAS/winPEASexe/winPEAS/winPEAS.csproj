@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>winPEAS</RootNamespace>
     <AssemblyName>winPEAS</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
@@ -47,7 +47,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRUE WIN32 _MSC_VER NDEBUG NO_TCL SQLITE_ASCII SQLITE_DISABLE_LFS SQLITE_ENABLE_OVERSIZE_CELL_CHECK SQLITE_MUTEX_OMIT SQLITE_OMIT_AUTHORIZATION SQLITE_OMIT_DEPRECATED SQLITE_OMIT_GET_TABLE SQLITE_OMIT_INCRBLOB SQLITE_OMIT_LOOKASIDE SQLITE_OMIT_SHARED_CACHE SQLITE_OMIT_UTF16 SQLITE_OMIT_VIRTUALTABLE SQLITE_OS_WIN SQLITE_SYSTEM_MALLOC VDBE_PROFILE_OFF </DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>8.0</LangVersion>
@@ -55,10 +55,11 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>0168 ; 0169; 0414; 0618; 0649</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRUE WIN32 _MSC_VER NDEBUG NO_TCL SQLITE_ASCII SQLITE_DISABLE_LFS SQLITE_ENABLE_OVERSIZE_CELL_CHECK SQLITE_MUTEX_OMIT SQLITE_OMIT_AUTHORIZATION SQLITE_OMIT_DEPRECATED SQLITE_OMIT_GET_TABLE SQLITE_OMIT_INCRBLOB SQLITE_OMIT_LOOKASIDE SQLITE_OMIT_SHARED_CACHE SQLITE_OMIT_UTF16 SQLITE_OMIT_VIRTUALTABLE SQLITE_OS_WIN SQLITE_SYSTEM_MALLOC VDBE_PROFILE_OFF </DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -66,6 +67,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -98,6 +100,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Security" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
@@ -108,6 +111,266 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1Encodable.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1EncodableVector.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1Exception.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1InputStream.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1Null.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1Object.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1OctetString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1OctetStringParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1OutputStream.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1ParsingException.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1Sequence.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1SequenceParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1Set.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1SetParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1StreamParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1TaggedObject.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1TaggedObjectParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\Asn1Tags.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\BerApplicationSpecific.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\BerApplicationSpecificParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\BerBitString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\BerOctetString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\BerOctetStringParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\BerOutputStream.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\BerSequence.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\BerSequenceParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\BerSet.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\BerSetParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\BerTaggedObject.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\BerTaggedObjectParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\ConstructedOctetStream.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\cryptopro\CryptoProObjectIdentifiers.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DefiniteLengthInputStream.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerApplicationSpecific.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerBitString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerBmpString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerBoolean.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerEnumerated.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerExternal.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerExternalParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerGeneralizedTime.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerGeneralString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerGraphicString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerIA5String.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerInteger.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerNull.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerNumericString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerObjectIdentifier.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerOctetString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerOctetStringParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerOutputStream.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerPrintableString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerSequence.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerSequenceParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerSet.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerSetParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerStringBase.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerT61String.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerTaggedObject.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerUniversalString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerUtcTime.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerUtf8String.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerVideotexString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\DerVisibleString.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\gm\GMObjectIdentifiers.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\IAsn1ApplicationSpecificParser.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\IAsn1Choice.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\IAsn1Convertible.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\IAsn1String.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\IndefiniteLengthInputStream.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\LimitedInputStream.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\misc\MiscObjectIdentifiers.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\nist\NistObjectIdentifiers.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\OidTokenizer.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\pkcs\PkcsObjectIdentifiers.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\rosstandart\RosstandartObjectIdentifiers.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\teletrust\TeleTrusTObjectIdentifiers.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\ua\UAObjectIdentifiers.cs" />
+    <Compile Include="3rdParty\BouncyCastle\asn1\util\FilterStream.cs" />
+    <Compile Include="3rdParty\BouncyCastle\CryptoException.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\Check.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\Blake2bDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\Blake2sDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\CSHAKEDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\DSTU7564Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\GeneralDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\GOST3411Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\GOST3411_2012Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\GOST3411_2012_256Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\GOST3411_2012_512Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\KeccakDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\LongDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\MD2Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\MD4Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\MD5Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\NonMemoableDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\NullDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\RipeMD128Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\RipeMD160Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\RipeMD256Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\RipeMD320Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\Sha1Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\Sha224Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\Sha256Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\Sha384Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\SHA3Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\Sha512Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\Sha512tDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\ShakeDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\ShortenedDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\SkeinDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\SkeinEngine.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\SM3Digest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\TigerDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\WhirlpoolDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\digests\XofUtils.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\engines\AesEngine.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\engines\Gost28147Engine.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\engines\ThreefishEngine.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\IBlockCipher.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\InvalidCipherTextException.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\IXof.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\modes\GcmBlockCipher.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\modes\GcmUtilities.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\modes\gcm\BasicGcmExponentiator.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\modes\gcm\IGcmExponentiator.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\modes\gcm\IGcmMultiplier.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\modes\gcm\Tables4kGcmMultiplier.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\modes\IAeadBlockCipher.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\modes\IAeadCipher.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\OutputLengthException.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\parameters\AeadParameters.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\parameters\KeyParameter.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\parameters\ParametersWithIV.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\parameters\ParametersWithSBox.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\parameters\SkeinParameters.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\parameters\TweakableBlockCipherParameters.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\prng\CryptoApiRandomGenerator.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\prng\DigestRandomGenerator.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\prng\IRandomGenerator.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\util\Arrays.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\util\Longs.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\util\Pack.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\util\Platform.cs" />
+    <Compile Include="3rdParty\BouncyCastle\crypto\util\Times.cs" />
+    <Compile Include="3rdParty\BouncyCastle\DataLengthException.cs" />
+    <Compile Include="3rdParty\BouncyCastle\ICipherParameters.cs" />
+    <Compile Include="3rdParty\BouncyCastle\IDigest.cs" />
+    <Compile Include="3rdParty\BouncyCastle\math\BigInteger.cs" />
+    <Compile Include="3rdParty\BouncyCastle\math\raw\Bits.cs" />
+    <Compile Include="3rdParty\BouncyCastle\math\raw\Interleave.cs" />
+    <Compile Include="3rdParty\BouncyCastle\oiw\OiwObjectIdentifiers.cs" />
+    <Compile Include="3rdParty\BouncyCastle\security\DigestUtilities.cs" />
+    <Compile Include="3rdParty\BouncyCastle\security\SecureRandom.cs" />
+    <Compile Include="3rdParty\BouncyCastle\security\SecurityUtilityException.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\collections\CollectionUtilities.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\collections\ISet.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\collections\UnmodifiableDictionary.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\collections\UnmodifiableDictionaryProxy.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\collections\UnmodifiableList.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\collections\UnmodifiableListProxy.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\collections\UnmodifiableSet.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\collections\UnmodifiableSetProxy.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\date\DateTimeUtilities.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\encoders\Hex.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\encoders\HexEncoder.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\encoders\IEncoder.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\Enums.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\IMemoable.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\io\BaseInputStream.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\io\StreamOverflowException.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\io\Streams.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\MemoableResetException.cs" />
+    <Compile Include="3rdParty\BouncyCastle\util\Strings.cs" />
+    <Compile Include="3rdParty\MicroJson\JsonParser.cs" />
+    <Compile Include="3rdParty\MicroJson\JsonSerializer.cs" />
+    <Compile Include="3rdParty\SQLite\SQLiteDatabase.cs" />
+    <Compile Include="3rdParty\SQLite\SQLiteVdbe.cs" />
+    <Compile Include="3rdParty\SQLite\src\alter_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\analyze_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\attach_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\auth_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\backup_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\bitvec_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\btmutex_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\BtreeInt_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\btree_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\Btree_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\build_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\callback_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\complete_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\date_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\Delagates.cs" />
+    <Compile Include="3rdParty\SQLite\src\delete_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\expr_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\fault_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\func_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\global_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\hash_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\Hash_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\hwtime_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\insert_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\journal_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\keywordhash_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\legacy_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\loadext_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\main_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\malloc_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\mem0_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\mem1_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\memjournal_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\mutex_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\mutex_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\mutex_noop_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\mutex_w32.cs" />
+    <Compile Include="3rdParty\SQLite\src\notify_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\opcodes_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\opcodes_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\os_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\os_common_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\os_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\os_win_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\pager_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\pager_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\parse_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\parse_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\pcache1_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\pcache_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\pcache_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\pragma_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\prepare_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\printf_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\random_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\resolve_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\rowset_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\select_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\sqlite3ext_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\sqlite3_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\sqliteicu_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\sqliteInt_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\sqliteLimit_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\status_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\table_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\tokenize_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\trigger_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\update_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\utf_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\util_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\vacuum_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\vdbeapi_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\vdbeaux_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\vdbeblob_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\VdbeInt_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\vdbemem_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\vdbe_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\Vdbe_h.cs" />
+    <Compile Include="3rdParty\SQLite\src\vtab_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\walker_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\where_c.cs" />
+    <Compile Include="3rdParty\SQLite\src\_Custom.cs" />
     <Compile Include="Checks\ApplicationsInfo.cs" />
     <Compile Include="Checks\BrowserInfo.cs" />
     <Compile Include="Checks\FilesInfo.cs" />
@@ -142,11 +405,20 @@
     <Compile Include="InterestingFiles\InterestingFiles.cs" />
     <Compile Include="InterestingFiles\Unattended.cs" />
     <Compile Include="KnownFileCreds\Browsers\Browser.cs" />
-    <Compile Include="KnownFileCreds\Browsers\Chrome.cs" />
-    <Compile Include="KnownFileCreds\Browsers\Firefox.cs" />
+    <Compile Include="KnownFileCreds\Browsers\BrowserBase.cs" />
+    <Compile Include="KnownFileCreds\Browsers\Chrome\Chrome.cs" />
+    <Compile Include="KnownFileCreds\Browsers\Models\Login.cs" />
+    <Compile Include="KnownFileCreds\Browsers\Decryptor\GCDecryptor.cs" />
+    <Compile Include="KnownFileCreds\Browsers\Decryptor\LocalState.cs" />
+    <Compile Include="KnownFileCreds\Browsers\Firefox\FFDecryptor.cs" />
+    <Compile Include="KnownFileCreds\Browsers\Firefox\FFLogins.cs" />
+    <Compile Include="KnownFileCreds\Browsers\Firefox\Firefox.cs" />
+    <Compile Include="KnownFileCreds\Browsers\Firefox\LoginData.cs" />
     <Compile Include="KnownFileCreds\Browsers\IBrowser.cs" />
     <Compile Include="KnownFileCreds\Browsers\InternetExplorer.cs" />
     <Compile Include="Checks\Checks.cs" />
+    <Compile Include="KnownFileCreds\Browsers\Models\CredentialModel.cs" />
+    <Compile Include="KnownFileCreds\Browsers\Opera\Opera.cs" />
     <Compile Include="KnownFileCreds\Kerberos\Enums.cs" />
     <Compile Include="KnownFileCreds\Kerberos\Helpers.cs" />
     <Compile Include="KnownFileCreds\Kerberos\Kerberos.cs" />

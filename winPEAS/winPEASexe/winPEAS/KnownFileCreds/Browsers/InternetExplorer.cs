@@ -7,13 +7,17 @@ using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using winPEAS.Checks;
 using winPEAS.Helpers;
+using winPEAS.KnownFileCreds.Browsers.Models;
 
 namespace winPEAS.KnownFileCreds.Browsers
 {
-    internal class InternetExplorer : IBrowser
+    internal class InternetExplorer : BrowserBase, IBrowser
     {
-        public void PrintInfo()
+        public override string Name => "Internet Explorer (unsupported)";
+
+        public override void PrintInfo()
         {
+            PrintSavedCredentials();
             PrintCurrentIETabs();
             PrintHistFavIE();
         }
@@ -260,6 +264,13 @@ namespace winPEAS.KnownFileCreds.Browsers
                 Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
             }
             return results;
-        }      
+        }
+
+        public override IEnumerable<CredentialModel> GetSavedCredentials()
+        {
+            // unsupported
+            var result = new List<CredentialModel>();           
+            return result;
+        }
     }
 }

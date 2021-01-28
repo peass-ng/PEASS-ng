@@ -64,15 +64,15 @@ namespace winPEAS.Checks
 
             _systemChecks = new List<SystemCheck>
             {
-                new SystemCheck("systeminfo", new SystemInfo()),
-                new SystemCheck("userinfo", new UserInfo()),
-                new SystemCheck("procesinfo", new ProcessInfo()),
-                new SystemCheck("servicesinfo", new ServicesInfo()),
-                new SystemCheck("applicationsinfo", new ApplicationsInfo()),
-                new SystemCheck("networkinfo", new NetworkInfo()),
-                new SystemCheck("windowscreds", new WindowsCreds()),
+                //new SystemCheck("systeminfo", new SystemInfo()),
+                //new SystemCheck("userinfo", new UserInfo()),
+                //new SystemCheck("procesinfo", new ProcessInfo()),
+                //new SystemCheck("servicesinfo", new ServicesInfo()),
+                //new SystemCheck("applicationsinfo", new ApplicationsInfo()),
+                //new SystemCheck("networkinfo", new NetworkInfo()),
+                //new SystemCheck("windowscreds", new WindowsCreds()),
                 new SystemCheck("browserinfo", new BrowserInfo()),
-                new SystemCheck("filesinfo", new FilesInfo()),
+               // new SystemCheck("filesinfo", new FilesInfo()),
             };
 
             var systemCheckAllKeys = new HashSet<string>(_systemChecks.Select(i => i.Key));
@@ -157,7 +157,7 @@ namespace winPEAS.Checks
                         CheckRegANSI();
                     }
 
-                    CheckRunner.Run(CreateDynamicLists, IsDebug);
+                    //CheckRunner.Run(CreateDynamicLists, IsDebug);
 
                     Beaprint.PrintInit(IsDebug);
 

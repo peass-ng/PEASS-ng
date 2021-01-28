@@ -84,7 +84,7 @@ namespace winPEAS.Helpers
                 PrintBanner();
             }
 
-            Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Version + NOCOLOR + YELLOW + " by carlospolop" + NOCOLOR);
+            Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Version + NOCOLOR + YELLOW + " by carlospolop, makikvues(sergi.chamila@gmail.com)" + NOCOLOR);
             Console.WriteLine();
 
             if (isDebug)

@@ -6,7 +6,6 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
-using winPEAS.KnownFileCreds;
 
 namespace winPEAS.Helpers
 {
