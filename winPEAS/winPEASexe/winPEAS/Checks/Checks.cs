@@ -157,12 +157,17 @@ namespace winPEAS.Checks
                         CheckRegANSI();
                     }
 
-                    CheckRunner.Run(CreateDynamicLists, IsDebug);
+                    Beaprint.PrintInit();
 
-                    Beaprint.PrintInit(IsDebug);
+                    CheckRunner.Run(CreateDynamicLists, IsDebug);
 
                     RunChecks(isAllChecks, wait);
                 }, IsDebug, "Total time");
+
+                if (IsDebug)
+                {
+                    MemoryHelper.DisplayMemoryStats();
+                }
             }
             finally
             {

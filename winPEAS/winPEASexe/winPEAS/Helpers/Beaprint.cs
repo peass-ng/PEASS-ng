@@ -77,7 +77,7 @@ namespace winPEAS.Helpers
                 Thread.Sleep(700);
         }
 
-        public static void PrintInit(bool isDebug)
+        public static void PrintInit()
         {
             if (Checks.Checks.Banner)
             {
@@ -86,11 +86,6 @@ namespace winPEAS.Helpers
 
             Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Version + NOCOLOR + YELLOW + " by carlospolop, makikvues(sergi.chamila@gmail.com)" + NOCOLOR);
             Console.WriteLine();
-
-            if (isDebug)
-            {
-                MemoryHelper.DisplayMemoryStats();
-            }
 
             PrintLegend();
             Console.WriteLine();

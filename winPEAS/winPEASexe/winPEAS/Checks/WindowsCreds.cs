@@ -282,9 +282,6 @@ namespace winPEAS.Checks
                             }
                         }
                     }
-                    //Beaprint.GrayPrint("    This function is not yet implemented.");
-                    //Beaprint.InfoPrint("If you want to list saved Wifis connections you can list the using 'netsh wlan show profile'");
-                    //Beaprint.InfoPrint("If you want to get the clear-text password use 'netsh wlan show profile <SSID> key=clear'");
                 }
             }
             catch (Exception ex)

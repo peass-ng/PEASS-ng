@@ -203,9 +203,8 @@ namespace winPEAS.Helpers.Search
             SearchHelper.GroupPolicyHistory.AddRange(groupPolicyHistoryLegacyFiles);
         }
 
-        internal static List<CustomFileInfo> SearchUserCredsFiles()
+        internal static IEnumerable<CustomFileInfo> SearchUserCredsFiles()
         {
-            var result = new List<CustomFileInfo>();
             var patterns = new List<string>
             {
                 ".*credential.*",
@@ -215,21 +214,24 @@ namespace winPEAS.Helpers.Search
             foreach (var file in SearchHelper.RootDirUsers)
             {                
                 //string extLower = file.Extension.ToLower();
-                string nameLower = file.Filename.ToLower();
-                //  string nameExtLower = nameLower + "." + extLower;
 
-                foreach (var pattern in patterns)
+                if (!file.IsDirectory)
                 {
-                    if (Regex.IsMatch(nameLower, pattern, RegexOptions.IgnoreCase))
-                    {
-                        result.Add(new CustomFileInfo(file.Filename, file.Extension, file.FullPath));
+                    string nameLower = file.Filename.ToLower();
+                    //  string nameExtLower = nameLower + "." + extLower;
 
-                        break;
+                    foreach (var pattern in patterns)
+                    {
+                        if (Regex.IsMatch(nameLower, pattern, RegexOptions.IgnoreCase))
+                        {
+                            yield return file;
+
+                            break;
+                        }
                     }
+
                 }
             }
-
-            return result;
         }
 
         internal static List<string> SearchUsersInterestingFiles()
@@ -294,7 +296,7 @@ namespace winPEAS.Helpers.Search
                 "sitelist.xml"
             };
 
-            var searchFiles = new List<CustomFileInfo>();            
+            var searchFiles = new List<CustomFileInfo>();
             searchFiles.AddRange(SearchHelper.ProgramFiles);
             searchFiles.AddRange(SearchHelper.ProgramFilesX86);
             searchFiles.AddRange(SearchHelper.DocumentsAndSettings);
