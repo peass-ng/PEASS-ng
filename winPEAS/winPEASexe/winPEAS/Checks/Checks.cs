@@ -157,7 +157,7 @@ namespace winPEAS.Checks
                         CheckRegANSI();
                     }
 
-                    //CheckRunner.Run(CreateDynamicLists, IsDebug);
+                    CheckRunner.Run(CreateDynamicLists, IsDebug);
 
                     Beaprint.PrintInit(IsDebug);
 
