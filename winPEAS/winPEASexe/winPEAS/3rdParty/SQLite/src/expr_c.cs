@@ -3,16 +3,12 @@
 using System;
 using System.Diagnostics;
 using System.Text;
-
-using Bitmask = System.UInt64;
 using i64 = System.Int64;
 using u8 = System.Byte;
 using u32 = System.UInt32;
 using u16 = System.UInt16;
 
-using Pgno = System.UInt32;
-
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
   public partial class CSSQLite
   {

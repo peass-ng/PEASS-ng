@@ -1,18 +1,14 @@
 #define YYFALLBACK
 #define YYWILDCARD
 
-using System;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
-
 using u8 = System.Byte;
 
 
 using YYCODETYPE = System.Int32;
 using YYACTIONTYPE = System.Int32;
 
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
   using sqlite3ParserTOKENTYPE = CSSQLite.Token;
 

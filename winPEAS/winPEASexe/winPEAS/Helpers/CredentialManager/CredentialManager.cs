@@ -10,12 +10,11 @@ namespace winPEAS.Helpers.CredentialManager
 
         public static string UnicodeInfoText = "(Unicode Base64 encoded)";
 
-        internal static List<string> GetCredentials()
+        internal static IEnumerable<string> GetCredentials()
         {
             var result = new List<string>();
-            var credentials = Credential.LoadAll();
 
-            foreach (var credential in credentials)
+            foreach (var credential in Credential.LoadAll())
             {
                 var isUnicode = MyUtils.IsUnicode(credential.Password);
 
@@ -27,11 +26,11 @@ namespace winPEAS.Helpers.CredentialManager
                     unicodeInfo = UnicodeInfoText;
                 }
 
-                string item = $"     Username: {credential.Username}\n" +
-                              $"     Password:{unicodeInfo} {clearTextPassword}\n" +
-                              $"     Target: {credential.Target}\n" +
-                              $"     PersistenceType: {credential.PersistenceType}\n" +
-                              $"     LastWriteTime: {credential.LastWriteTime}\n";
+                string item = $"     Username:              {credential.Username}\n" +
+                              $"     Password:              {unicodeInfo} {clearTextPassword}\n" +
+                              $"     Target:                {credential.Target}\n" +
+                              $"     PersistenceType:       {credential.PersistenceType}\n" +
+                              $"     LastWriteTime:         {credential.LastWriteTime}\n";
 
                 result.Add(item);
             }

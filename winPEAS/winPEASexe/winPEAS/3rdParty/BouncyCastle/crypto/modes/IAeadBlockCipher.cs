@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BrowserPass.BouncyCastle.crypto.modes
+﻿namespace winPEAS._3rdParty.BouncyCastle.crypto.modes
 {
     /// <summary>An IAeadCipher based on an IBlockCipher.</summary>
     public interface IAeadBlockCipher

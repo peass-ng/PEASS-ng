@@ -1,14 +1,7 @@
-using System;
 using System.IO;
+using winPEAS._3rdParty.BouncyCastle.util.io;
 
-using BrowserPass.BouncyCastle;
-using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.util;
-using System;
-using System.Diagnostics;
-using BrowserPass.BouncyCastle.util.io;
-
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
 	public class NullDigest : IDigest
 	{

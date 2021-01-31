@@ -24,7 +24,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using BrowserPass.MicroJson.MicroJson;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -34,8 +33,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using winPEAS._3rdParty.MicroJson.MicroJson;
 
-namespace MicroJson
+namespace winPEAS._3rdParty.MicroJson
 {
     /// <summary>
     /// Serializes and deserializes JSON.

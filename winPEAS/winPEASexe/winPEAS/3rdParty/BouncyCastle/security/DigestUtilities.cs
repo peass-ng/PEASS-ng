@@ -1,25 +1,20 @@
-﻿using BrowserPass.BouncyCastle.asn1;
-using BrowserPass.BouncyCastle.asn1.cryptopro;
-using BrowserPass.BouncyCastle.asn1.gm;
-using BrowserPass.BouncyCastle.asn1.misc;
-using BrowserPass.BouncyCastle.asn1.nist;
-using BrowserPass.BouncyCastle.asn1.pkcs;
-using BrowserPass.BouncyCastle.asn1.rosstandart;
-using BrowserPass.BouncyCastle.asn1.teletrust;
-using BrowserPass.BouncyCastle.asn1.ua;
-using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.Crypto.Digests;
-using BrowserPass.BouncyCastle.oiw;
-using BrowserPass.BouncyCastle.util;
-using Org.BouncyCastle.Crypto.Digests;
-using System;
+﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using winPEAS._3rdParty.BouncyCastle.asn1;
+using winPEAS._3rdParty.BouncyCastle.asn1.cryptopro;
+using winPEAS._3rdParty.BouncyCastle.asn1.gm;
+using winPEAS._3rdParty.BouncyCastle.asn1.misc;
+using winPEAS._3rdParty.BouncyCastle.asn1.nist;
+using winPEAS._3rdParty.BouncyCastle.asn1.pkcs;
+using winPEAS._3rdParty.BouncyCastle.asn1.rosstandart;
+using winPEAS._3rdParty.BouncyCastle.asn1.teletrust;
+using winPEAS._3rdParty.BouncyCastle.asn1.ua;
+using winPEAS._3rdParty.BouncyCastle.crypto.digests;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.oiw;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-namespace BrowserPass.BouncyCastle.security
+namespace winPEAS._3rdParty.BouncyCastle.security
 {
     /// <remarks>
     ///  Utility class for creating IDigest objects from their names/Oids

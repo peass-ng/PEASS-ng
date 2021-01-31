@@ -1,4 +1,4 @@
-﻿namespace BrowserPass.BouncyCastle.crypto.parameters
+﻿namespace winPEAS._3rdParty.BouncyCastle.crypto.parameters
 {
     public class AeadParameters
 	 : ICipherParameters

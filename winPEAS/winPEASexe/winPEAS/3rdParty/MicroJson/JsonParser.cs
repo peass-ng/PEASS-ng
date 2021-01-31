@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Globalization;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace BrowserPass.MicroJson
+namespace winPEAS._3rdParty.MicroJson
 {
     //
     // JsonParser.cs
@@ -31,13 +31,6 @@ namespace BrowserPass.MicroJson
     // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     // THE SOFTWARE.
-
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.IO;
-    using System.Text;
-
     namespace MicroJson
     {
 #pragma warning disable 1591

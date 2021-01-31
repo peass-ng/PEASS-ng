@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Principal;
 using winPEAS.Helpers;
 using winPEAS.Info.UserInfo;
+using winPEAS.Info.UserInfo.LogonSessions;
 using winPEAS.Info.UserInfo.Token;
 
 namespace winPEAS.Checks
@@ -42,6 +43,7 @@ namespace winPEAS.Checks
                 PrintHomeFolders,
                 PrintAutoLogin,
                 PrintPasswordPolicies,
+                PrintLogonSessions
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
@@ -269,6 +271,39 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private void PrintLogonSessions()
+        {
+            try
+            {
+                Beaprint.MainPrint("Print Logon Sessions");
+
+                var logonSessions = LogonSessions.GetLogonSessions();
+
+                foreach (var logonSession in logonSessions)
+                {
+                    Beaprint.NoColorPrint  ($"    Method:                       {logonSession.Method}\n" + 
+                                            $"    Logon Server:                 {logonSession.LogonServer}\n" +
+                                            $"    Logon Server Dns Domain:      {logonSession.LogonServerDnsDomain}\n" +
+                                            $"    Logon Id:                     {logonSession.LogonId}\n" +
+                                            $"    Logon Time:                   {logonSession.LogonTime}\n" +
+                                            $"    Logon Type:                   {logonSession.LogonType}\n" +
+                                            $"    Start Time:                   {logonSession.StartTime}\n" +
+                                            $"    Domain:                       {logonSession.Domain}\n" +
+                                            $"    Authentication Package:       {logonSession.AuthenticationPackage}\n" +
+                                            $"    Start Time:                   {logonSession.StartTime}\n" +
+                                            $"    User Name:                    {logonSession.UserName}\n" +
+                                            $"    User Principal Name:          {logonSession.UserPrincipalName}\n" +
+                                            $"    User SID:                     {logonSession.UserSID}\n"
+                                      );
+
+                    Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception)
+            {
             }
         }
     }

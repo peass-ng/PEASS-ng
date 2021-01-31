@@ -1,12 +1,7 @@
-using System;
 using System.Diagnostics;
-using System.Text;
-
-using Pgno = System.UInt32;
-
 using u32 = System.UInt32;
 
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
   using sqlite3_stmt = CSSQLite.Vdbe;
 

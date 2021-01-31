@@ -1,11 +1,9 @@
-﻿using BrowserPass.BouncyCastle;
-using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.util;
-using System;
+﻿using System;
 using System.Diagnostics;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     /// <summary>
     /// Implementation of Keccak based on following KeccakNISTInterface.c from http://keccak.noekeon.org/

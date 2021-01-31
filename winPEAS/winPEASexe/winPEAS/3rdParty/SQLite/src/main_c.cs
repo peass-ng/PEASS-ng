@@ -1,23 +1,15 @@
 using System;
 using System.Diagnostics;
-using System.Text;
-
 using sqlite_int64 = System.Int64;
 using unsigned = System.Int32;
 
 using i16 = System.Int16;
 using u8 = System.Byte;
-using u16 = System.UInt16;
 using u32 = System.UInt32;
-using u64 = System.UInt64;
 
-using Pgno = System.UInt32;
-
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
-  using sqlite3_value = CSSQLite.Mem;
-
-  public partial class CSSQLite
+    public partial class CSSQLite
   {
     /*
     ** 2001 September 15

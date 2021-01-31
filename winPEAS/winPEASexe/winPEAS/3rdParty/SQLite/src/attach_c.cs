@@ -1,10 +1,8 @@
 using System;
 using System.Diagnostics;
-using System.Text;
-
 using u8 = System.Byte;
 
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
   using sqlite3_value = CSSQLite.Mem;
 

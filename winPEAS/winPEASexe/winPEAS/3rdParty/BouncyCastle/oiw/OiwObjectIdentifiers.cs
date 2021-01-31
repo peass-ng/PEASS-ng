@@ -1,11 +1,6 @@
-﻿using BrowserPass.BouncyCastle.asn1;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using winPEAS._3rdParty.BouncyCastle.asn1;
 
-namespace BrowserPass.BouncyCastle.oiw
+namespace winPEAS._3rdParty.BouncyCastle.oiw
 {
 	public abstract class OiwObjectIdentifiers
 	{

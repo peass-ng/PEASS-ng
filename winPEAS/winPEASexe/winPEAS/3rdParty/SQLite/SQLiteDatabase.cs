@@ -1,17 +1,11 @@
 //  $Header$
-using System;
-using System.Data;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-using System.Security.Cryptography;
-using System.Text;
-using System.Diagnostics;
-using System.Security.Principal;
-using System.IO;
-using System.Reflection;
 
-namespace CS_SQLite3
+using System;
+using System.Collections;
+using System.Data;
+using winPEAS._3rdParty.SQLite.src;
+
+namespace winPEAS._3rdParty.SQLite
 {
 
     using sqlite = CSSQLite.sqlite3;

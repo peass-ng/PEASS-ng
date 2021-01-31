@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BrowserPass.BouncyCastle
+﻿namespace winPEAS._3rdParty.BouncyCastle
 {
     /**
     * interface that a message digest conforms to.

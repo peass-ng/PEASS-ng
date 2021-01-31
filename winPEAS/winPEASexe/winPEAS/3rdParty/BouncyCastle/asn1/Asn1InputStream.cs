@@ -1,14 +1,10 @@
-﻿using BrowserPass.BouncyCastle.asn1.util;
-using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.util.io;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using winPEAS._3rdParty.BouncyCastle.asn1.util;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.util.io;
 
-namespace BrowserPass.BouncyCastle.asn1
+namespace winPEAS._3rdParty.BouncyCastle.asn1
 {
     /**
       * a general purpose ASN.1 decoder - note: this class differs from the

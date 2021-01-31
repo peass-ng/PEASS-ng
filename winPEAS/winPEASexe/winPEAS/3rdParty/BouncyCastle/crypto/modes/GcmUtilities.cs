@@ -1,8 +1,7 @@
-﻿using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.math.raw;
-using System.Linq;
+﻿using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.math.raw;
 
-namespace BrowserPass.BouncyCastle.crypto.modes
+namespace winPEAS._3rdParty.BouncyCastle.crypto.modes
 {
     internal abstract class GcmUtilities
     {

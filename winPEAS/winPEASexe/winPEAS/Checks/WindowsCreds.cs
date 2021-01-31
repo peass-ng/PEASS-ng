@@ -31,6 +31,7 @@ namespace winPEAS.Checks
                 PrintWifi,
                 PrintAppCmd,
                 PrintSCClient,
+                PrintSCCM
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
@@ -331,6 +332,30 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private void PrintSCCM()
+        {
+            try
+            {
+                Beaprint.MainPrint("Enumerating SSCM - System Center Configuration Manager settings");
+
+                var server = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\CCMSetup", "LastValidMP");
+                var siteCode = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\SMS\Mobile Client", "AssignedSiteCode");
+                var productVersion = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\SMS\Mobile Client", "ProductVersion");
+                var lastSuccessfulInstallParams = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\SMS\Mobile Client", "LastSuccessfulInstallParams");
+
+                if (!string.IsNullOrEmpty(server) || !string.IsNullOrEmpty(siteCode) || !string.IsNullOrEmpty(productVersion) || !string.IsNullOrEmpty(lastSuccessfulInstallParams))
+                {
+                    Beaprint.NoColorPrint($"     Server:                            {server}\n" +
+                                          $"     Site code:                         {siteCode}" +
+                                          $"     Product version:                   {productVersion}" +
+                                          $"     Last Successful Install Params:    {lastSuccessfulInstallParams}");
+                }
+            }
+            catch (Exception)
+            {
             }
         }
     }

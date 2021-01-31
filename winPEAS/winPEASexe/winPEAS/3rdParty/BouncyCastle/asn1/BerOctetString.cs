@@ -1,13 +1,9 @@
-﻿using BrowserPass.BouncyCastle.crypto.util;
-using System;
+﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
 
-namespace BrowserPass.BouncyCastle.asn1
+namespace winPEAS._3rdParty.BouncyCastle.asn1
 {
     public class BerOctetString
         : DerOctetString, IEnumerable

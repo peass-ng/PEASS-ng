@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using HANDLE = System.IntPtr;
 
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
   public partial class CSSQLite
   {

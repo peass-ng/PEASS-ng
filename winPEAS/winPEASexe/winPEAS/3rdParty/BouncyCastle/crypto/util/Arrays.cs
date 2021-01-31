@@ -1,11 +1,8 @@
-﻿using BrowserPass.BouncyCastle.math;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Text;
-using System.Threading.Tasks;
+using winPEAS._3rdParty.BouncyCastle.math;
 
-namespace BrowserPass.BouncyCastle.crypto.util
+namespace winPEAS._3rdParty.BouncyCastle.crypto.util
 {
     /// <summary> General array utilities.</summary>
     public abstract class Arrays
@@ -152,7 +149,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
             return HaveSameContents(a, b);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static bool AreEqual(uint[] a, uint[] b)
         {
             if (a == b)
@@ -175,7 +172,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
             return HaveSameContents(a, b);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static bool AreEqual(ulong[] a, ulong[] b)
         {
             if (a == b)
@@ -381,7 +378,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
             return hc;
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static int GetHashCode(uint[] data)
         {
             if (data == null)
@@ -399,7 +396,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
             return hc;
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static int GetHashCode(uint[] data, int off, int len)
         {
             if (data == null)
@@ -417,7 +414,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
             return hc;
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static int GetHashCode(ulong[] data)
         {
             if (data == null)
@@ -438,7 +435,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
             return hc;
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static int GetHashCode(ulong[] data, int off, int len)
         {
             if (data == null)
@@ -474,7 +471,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
             return data == null ? null : (int[])data.Clone();
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static uint[] Clone(uint[] data)
         {
             return data == null ? null : (uint[])data.Clone();
@@ -485,7 +482,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
             return data == null ? null : (long[])data.Clone();
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static ulong[] Clone(ulong[] data)
         {
             return data == null ? null : (ulong[])data.Clone();
@@ -501,7 +498,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
             return existing;
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static ulong[] Clone(ulong[] data, ulong[] existing)
         {
             if (data == null)

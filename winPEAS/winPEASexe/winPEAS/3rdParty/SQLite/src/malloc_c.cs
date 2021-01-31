@@ -1,12 +1,9 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
-  using sqlite3_int64 = System.Int64;
-  using sqlite3_u3264 = System.UInt64;
-
-  public partial class CSSQLite
+    public partial class CSSQLite
   {
     /*
     ** 2001 September 15

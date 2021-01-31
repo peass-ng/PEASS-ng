@@ -1,4 +1,4 @@
-﻿namespace BrowserPass.BouncyCastle.asn1
+﻿namespace winPEAS._3rdParty.BouncyCastle.asn1
 {
     public interface IAsn1Convertible
 	{

@@ -1,12 +1,8 @@
-﻿using BrowserPass.BouncyCastle.crypto.util;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
 
-namespace BrowserPass.BouncyCastle.asn1.util
+namespace winPEAS._3rdParty.BouncyCastle.asn1.util
 {
     [Obsolete("Use Org.BouncyCastle.Utilities.IO.FilterStream")]
     public class FilterStream : Stream

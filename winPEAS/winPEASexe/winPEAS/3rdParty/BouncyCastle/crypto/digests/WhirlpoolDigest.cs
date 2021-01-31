@@ -1,12 +1,7 @@
 using System;
-using BrowserPass.BouncyCastle;
-using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.util;
-using System;
-using System.Diagnostics;
-using BrowserPass.BouncyCastle.util.io;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-namespace BrowserPass.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
 	/**
 	* Implementation of WhirlpoolDigest, based on Java source published by Barreto

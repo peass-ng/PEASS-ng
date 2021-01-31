@@ -1,7 +1,6 @@
-﻿using BrowserPass.BouncyCastle;
-using System;
+﻿using System;
 
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     /**
      * Wrapper removes exposure to the IMemoable interface on an IDigest implementation.

@@ -1,13 +1,9 @@
-﻿using BrowserPass.BouncyCastle.crypto.prng;
-using BrowserPass.BouncyCastle.crypto.util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
+using winPEAS._3rdParty.BouncyCastle.crypto.prng;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
 
-namespace BrowserPass.BouncyCastle.security
+namespace winPEAS._3rdParty.BouncyCastle.security
 {
     public class SecureRandom
       : Random

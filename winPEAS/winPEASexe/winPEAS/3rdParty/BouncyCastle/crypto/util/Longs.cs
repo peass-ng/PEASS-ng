@@ -1,11 +1,7 @@
-﻿using BrowserPass.BouncyCastle.math.raw;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using winPEAS._3rdParty.BouncyCastle.math.raw;
 
-namespace BrowserPass.BouncyCastle.crypto.util
+namespace winPEAS._3rdParty.BouncyCastle.crypto.util
 {
     public abstract class Longs
     {
@@ -17,7 +13,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
             return ReverseBytes(i);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static ulong Reverse(ulong i)
         {
             i = Bits.BitPermuteStepSimple(i, 0x5555555555555555UL, 1);
@@ -34,7 +30,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
                    RotateLeft((long)((ulong)i & 0x000000FF000000FFUL), 56);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static ulong ReverseBytes(ulong i)
         {
             return RotateLeft(i & 0xFF000000FF000000UL, 8) |
@@ -48,7 +44,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
             return (i << distance) ^ (long)((ulong)i >> -distance);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static ulong RotateLeft(ulong i, int distance)
         {
             return (i << distance) ^ (i >> -distance);
@@ -59,7 +55,7 @@ namespace BrowserPass.BouncyCastle.crypto.util
             return (long)((ulong)i >> distance) ^ (i << -distance);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static ulong RotateRight(ulong i, int distance)
         {
             return (i >> distance) ^ (i << -distance);

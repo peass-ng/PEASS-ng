@@ -1,12 +1,8 @@
-using System;
 using System.Diagnostics;
-using System.Text;
 
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
-  using sqlite3_value = CSSQLite.Mem;
-
-  public partial class CSSQLite
+    public partial class CSSQLite
   {
     /*
     ** 2008 June 18

@@ -1,13 +1,7 @@
 using System;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-using BrowserPass.BouncyCastle;
-using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.util;
-using System;
-using System.Diagnostics;
-
-
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     /**
     * base implementation of MD4 family style digest as outlined in

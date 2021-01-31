@@ -7,17 +7,15 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-
 using HANDLE = System.IntPtr;
 using DWORD = System.UInt64;
-using WORD = System.Int32;
 using i64 = System.Int64;
 using u8 = System.Byte;
 using u32 = System.UInt32;
 
 using sqlite3_int64 = System.Int64;
 
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
   internal static class HelperMethods
   {

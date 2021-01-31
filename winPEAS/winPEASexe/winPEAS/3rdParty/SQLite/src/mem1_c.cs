@@ -1,11 +1,6 @@
 using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 
-using sqlite3_int64 = System.Int64;
-using System.Text;
-
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
   public partial class CSSQLite
   {

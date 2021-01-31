@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BrowserPass.BouncyCastle.crypto.prng
+namespace winPEAS._3rdParty.BouncyCastle.crypto.prng
 {
     /// <summary>
     /// Uses RandomNumberGenerator.Create() to get randomness generator

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BrowserPass.BouncyCastle.crypto
+﻿namespace winPEAS._3rdParty.BouncyCastle.crypto
 {
 	/// <remarks>Base interface for a symmetric key block cipher.</remarks>
 	public interface IBlockCipher

@@ -1,4 +1,4 @@
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
   using sqlite_u3264 = System.UInt64;
 

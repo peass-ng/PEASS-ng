@@ -27,12 +27,12 @@ namespace winPEAS.KnownFileCreds.Browsers
             {
                 if (!string.IsNullOrEmpty(credential.Username))
                 {
-                    Beaprint.BadPrint($"     Url: {credential.Url}\n" +
-                                        $"     Username: {credential.Username}\n" +
-                                        $"     Password: {credential.Password}\n ");
+                    Beaprint.BadPrint($"     Url:           {credential.Url}\n" +
+                                      $"     Username:      {credential.Username}\n" +
+                                      $"     Password:      {credential.Password}\n ");
 
                     Beaprint.PrintLineSeparator();
-                }                
+                }
             }
         }
     }

@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-using System;
-using BrowserPass.BouncyCastle.util;
-using System;
-using BrowserPass.BouncyCastle.crypto.util;
-
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     /// <summary>
     /// Implementation of SHA-3 based on following KeccakNISTInterface.c from http://keccak.noekeon.org/

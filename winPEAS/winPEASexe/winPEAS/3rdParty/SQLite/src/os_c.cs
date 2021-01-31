@@ -1,12 +1,11 @@
 using System.Diagnostics;
 using System.Text;
-
 using HANDLE = System.IntPtr;
 using i64 = System.Int64;
 using u32 = System.UInt32;
 
 
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
   public partial class CSSQLite
   {

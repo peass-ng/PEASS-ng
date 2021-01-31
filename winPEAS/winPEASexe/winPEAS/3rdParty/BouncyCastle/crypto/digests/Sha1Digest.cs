@@ -1,9 +1,8 @@
 using System;
-using BrowserPass.BouncyCastle.util;
-using System;
-using BrowserPass.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
 
     /**

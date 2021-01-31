@@ -1,12 +1,12 @@
-﻿using BrowserPass.BouncyCastle.crypto.engines;
-using BrowserPass.BouncyCastle.crypto.modes;
-using BrowserPass.BouncyCastle.crypto.parameters;
-using MicroJson;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using winPEAS._3rdParty.BouncyCastle.crypto.engines;
+using winPEAS._3rdParty.BouncyCastle.crypto.modes;
+using winPEAS._3rdParty.BouncyCastle.crypto.parameters;
+using winPEAS._3rdParty.MicroJson;
 
 namespace winPEAS.KnownFileCreds.Browsers.Decryptor
 {

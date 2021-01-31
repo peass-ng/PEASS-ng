@@ -8,6 +8,7 @@ using winPEAS.Helpers.Search;
 using winPEAS.Info.UserInfo;
 using winPEAS.InterestingFiles;
 using winPEAS.KnownFileCreds;
+using winPEAS.KnownFileCreds.SuperPutty;
 
 namespace winPEAS.Checks
 {
@@ -113,6 +114,7 @@ namespace winPEAS.Checks
             new List<Action>
             {
                 Putty.PrintInfo,
+                SuperPutty.PrintInfo,
                 PrintCloudCreds,
                 PrintUnattendFiles,
                 PrintSAMBackups,
@@ -121,6 +123,7 @@ namespace winPEAS.Checks
                 PrintCachedGPPPassword,
                 PrintPossCredsRegs,
                 PrintUserCredsFiles,
+                PrintOracleSQLDeveloperConfigFiles,
                 PrintUsersInterestingFiles,
                 PrintUsersDocsKeys,
                 PrintRecentFiles,
@@ -699,13 +702,45 @@ namespace winPEAS.Checks
                             else
                             {
                                 Beaprint.BadPrint(log);
-                            }                            
+                            }
                         }
                     }
                 }
                 catch (Exception)
-                {                    
-                }                
+                {
+                }
+            }
+        }
+
+        private void PrintOracleSQLDeveloperConfigFiles()
+        {
+            Beaprint.MainPrint($"Searching for Oracle SQL Developer config files\n");
+
+            var userFolders = User.GetUsersFolders();
+
+            foreach (var userFolder in userFolders)
+            {
+                try
+                {
+                    var path = $"{userFolder}\\AppData\\Roaming\\SQL Developer\\";
+                    var pattern = "connections*.xml";
+
+                    if (Directory.Exists(path))
+                    {
+                        var files = Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly);
+
+                        foreach (var file in files)
+                        {
+                            if (File.Exists(file))
+                            {
+                                Beaprint.BadPrint($"     {file}");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
             }
         }
     }

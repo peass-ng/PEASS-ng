@@ -1,6 +1,4 @@
-﻿using CS_SQLite3;
-using MicroJson;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -8,6 +6,8 @@ using System.Text.RegularExpressions;
 using winPEAS.Checks;
 using winPEAS.Helpers;
 using winPEAS.KnownFileCreds.Browsers.Models;
+using winPEAS._3rdParty.MicroJson;
+using winPEAS._3rdParty.SQLite;
 
 namespace winPEAS.KnownFileCreds.Browsers.Firefox
 {
@@ -19,8 +19,8 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
         {
             PrintSavedCredentials();
             PrintDBsFirefox();
-            PrintHistFirefox();            
-        }        
+            PrintHistFirefox();
+        }
 
         private static void PrintDBsFirefox()
         {
@@ -266,7 +266,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
             }
 
             if (signonsFound)
-            {             
+            {
                 SQLiteDatabase database = new SQLiteDatabase("Data Source=" + signonsFile + ";");
                 string query = "SELECT encryptedUsername, encryptedPassword, hostname FROM moz_logins";
                 DataTable resultantQuery = database.ExecuteQuery(query);
@@ -318,5 +318,5 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
             }
             return logins;
         }
-    }    
+    }
 }

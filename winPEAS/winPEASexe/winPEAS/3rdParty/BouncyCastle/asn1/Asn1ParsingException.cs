@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BrowserPass.BouncyCastle.asn1
+namespace winPEAS._3rdParty.BouncyCastle.asn1
 {
 #if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
 	[Serializable]

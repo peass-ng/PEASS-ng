@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BrowserPass.BouncyCastle.crypto
+﻿namespace winPEAS._3rdParty.BouncyCastle.crypto
 {
     /// <remarks>
     /// With FIPS PUB 202 a new kind of message digest was announced which supported extendable output, or variable digest sizes.

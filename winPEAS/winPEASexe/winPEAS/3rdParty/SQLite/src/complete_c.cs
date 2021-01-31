@@ -1,6 +1,4 @@
-using System.Diagnostics;
-
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
 
   using u8 = System.Byte;

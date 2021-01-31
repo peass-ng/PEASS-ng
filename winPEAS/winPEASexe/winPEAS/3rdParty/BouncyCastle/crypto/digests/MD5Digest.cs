@@ -1,9 +1,8 @@
-using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.util;
 using System;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     /**
     * implementation of MD5 as outlined in "Handbook of Applied Cryptography", pages 346 - 347.

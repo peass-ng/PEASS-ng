@@ -7,6 +7,12 @@ using winPEAS.Helpers;
 using winPEAS.Helpers.AppLocker;
 using winPEAS.Helpers.Search;
 using winPEAS._3rdParty.Watson;
+using System.Management;
+using winPEAS.Info.SystemInfo.Printers;
+using winPEAS.Info.SystemInfo.NamedPipes;
+using winPEAS.Info.SystemInfo;
+using winPEAS.Info.SystemInfo.SysMon;
+using winPEAS.Helpers.Extensions;
 
 namespace winPEAS.Checks
 {
@@ -41,7 +47,11 @@ namespace winPEAS.Checks
                 PrintWSUS,
                 PrintAlwaysInstallElevated,
                 PrintLsaCompatiblityLevel,
-                AppLockerHelper.PrintAppLockerPolicy
+                AppLockerHelper.PrintAppLockerPolicy,
+                PrintPrintersWMIInfo,
+                PrintNamedPipes,
+                PrintAMSIProviders,
+                PrintSysmon
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
@@ -234,6 +244,7 @@ namespace winPEAS.Checks
             Beaprint.MainPrint("Credentials Guard");
             Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#credential-guard", "If enabled, a driver is needed to read LSASS memory");
             string lsaCfgFlags = RegistryHelper.GetRegValue("HKLM", @"System\CurrentControlSet\Control\LSA", "LsaCfgFlags");
+            
             if (lsaCfgFlags == "1")
             {
                 System.Console.WriteLine("    Please, note that this only checks the LsaCfgFlags key value. This is not enough to enable Credentials Guard (but it's a strong indicator).");
@@ -245,7 +256,11 @@ namespace winPEAS.Checks
                 Beaprint.GoodPrint("    CredentialGuard is active without UEFI lock");
             }
             else
+            {
                 Beaprint.BadPrint("    CredentialGuard is not enabled");
+            }
+
+            CredentialGuard.PrintInfo();
         }
 
         static void PrintCachedCreds()
@@ -460,12 +475,21 @@ namespace winPEAS.Checks
                 string path = "Software\\Policies\\Microsoft\\Windows\\Installer";
                 string HKLM_AIE = RegistryHelper.GetRegValue("HKLM", path, "AlwaysInstallElevated");
                 string HKCU_AIE = RegistryHelper.GetRegValue("HKCU", path, "AlwaysInstallElevated");
+                
                 if (HKLM_AIE == "1")
+                { 
                     Beaprint.BadPrint("    AlwaysInstallElevated set to 1 in HKLM!");
+                }
+
                 if (HKCU_AIE == "1")
+                {
                     Beaprint.BadPrint("    AlwaysInstallElevated set to 1 in HKCU!");
+                }
+
                 if (HKLM_AIE != "1" && HKCU_AIE != "1")
+                {
                     Beaprint.GoodPrint("    AlwaysInstallElevated isn't available");
+                }
             }
             catch (Exception ex)
             {
@@ -475,14 +499,14 @@ namespace winPEAS.Checks
 
         private void PrintLsaCompatiblityLevel()
         {
+            string hive = "HKLM";
+            string path = "SYSTEM\\CurrentControlSet\\Control\\Lsa\\";
+            string key = "LmCompatibilityLevel";
+
+            Beaprint.MainPrint($"Checking {hive}\\{path}{key}");
+
             try
             {
-                string hive = "HKLM";
-                string path = "SYSTEM\\CurrentControlSet\\Control\\Lsa\\";
-                string key = "LmCompatibilityLevel";
-
-                Beaprint.MainPrint($"Checking {hive}\\{path}{key}");
-
                 string lmCompatibilityLevelValue = RegistryHelper.GetRegValue(hive, path, key);
                 Dictionary<int, string> dict = new Dictionary<int, string>()
                 {
@@ -522,6 +546,135 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private void PrintPrintersWMIInfo()
+        {
+            Beaprint.MainPrint("Enumerating Printers (WMI)");
+
+            try
+            {
+                foreach (var printer in Printers.GetPrinterWMIInfos())
+                {
+                    Beaprint.BadPrint($"      Name:                    {printer.Name}\n" +
+                                      $"      Status:                  {printer.Status}\n" +
+                                      $"      Sddl:                    {printer.Sddl}\n" +
+                                      $"      Is default:              {printer.IsDefault}\n" +
+                                      $"      Is network printer:      {printer.IsNetworkPrinter}\n");
+                    Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
+                //Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private void PrintNamedPipes()
+        {
+            Beaprint.MainPrint("Enumerating Named Pipes");
+
+            try
+            {
+                foreach (var namedPipe in NamedPipes.GetNamedPipeInfos())
+                {
+                    Beaprint.BadPrint($"      Name:     {namedPipe.Name}\n" +
+                                      $"      Sddl:     {namedPipe.Sddl}\n");
+                    Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
+                //Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private void PrintAMSIProviders()
+        {
+            Beaprint.MainPrint("Enumerating AMSI registered providers");
+
+            try
+            {
+                var providers = RegistryHelper.GetRegSubkeys("HKLM", @"SOFTWARE\Microsoft\AMSI\Providers") ?? new string[] { };
+
+                foreach (var provider in providers)
+                {
+                    var providerPath = RegistryHelper.GetRegValue("HKLM", $"SOFTWARE\\Classes\\CLSID\\{provider}\\InprocServer32", "");
+
+                    Beaprint.BadPrint($"    Provider:       {provider}\n" +
+                                      $"    Path:           {providerPath}\n");
+
+                    Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void PrintSysmon()
+        {
+            PrintSysmonConfiguration();
+            PrintSysmonEventLogs();
+        }        
+        
+        private void PrintSysmonConfiguration()
+        {
+            Beaprint.MainPrint("Enumerating Sysmon configuration");
+
+            Dictionary<string, string> colors = new Dictionary<string, string>
+            {
+                { SysMon.NotDefined, Beaprint.ansi_color_bad },
+                { "False", Beaprint.ansi_color_bad },
+            };
+
+            try
+            {
+                if (!MyUtils.IsHighIntegrity())
+                {
+                    Beaprint.NoColorPrint("      You must be an administrator to run this check");
+                    return;
+                }
+
+                foreach (var item in SysMon.GetSysMonInfos())
+                {
+                    Beaprint.AnsiPrint($"      Installed:                {item.Installed}\n" +
+                                       $"      Hashing Algorithm:        {item.HashingAlgorithm.GetDescription()}\n" +
+                                       $"      Options:                  {item.Options.GetDescription()}\n" +
+                                       $"      Rules:                    {item.Rules}\n",
+                                          colors);
+                    Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void PrintSysmonEventLogs()
+        {
+            Beaprint.MainPrint("Enumerating Sysmon process creation logs (1)");
+
+            try
+            {
+                if (!MyUtils.IsHighIntegrity())
+                {
+                    Beaprint.NoColorPrint("      You must be an administrator to run this check");
+                    return;
+                }
+
+                foreach (var item in SysMon.GetSysMonEventInfos())
+                {
+                    Beaprint.BadPrint($"      EventID:                  {item.EventID}\n" +
+                                      $"      User Name:                {item.UserName}\n" +
+                                      $"      Time Created:             {item.TimeCreated}\n");
+                    Beaprint.PrintLineSeparator();
+                }
+
+            }
+            catch (Exception)
+            {
             }
         }
     }

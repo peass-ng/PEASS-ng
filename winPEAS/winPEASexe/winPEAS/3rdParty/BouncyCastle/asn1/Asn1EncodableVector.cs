@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BrowserPass.BouncyCastle.asn1
+namespace winPEAS._3rdParty.BouncyCastle.asn1
 {
     /**
       * Mutable class for building ASN.1 constructed objects such as SETs or SEQUENCEs.

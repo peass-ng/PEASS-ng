@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -216,6 +217,29 @@ namespace winPEAS.Helpers
             var asciiBytesCount = Encoding.ASCII.GetByteCount(input);
             var unicodBytesCount = Encoding.UTF8.GetByteCount(input);
             return asciiBytesCount != unicodBytesCount;
+        }
+
+        public static EventLogReader GetEventLogReader(string path, string query, string computerName = null)
+        {
+            // TODO: investigate https://docs.microsoft.com/en-us/previous-versions/windows/desktop/eventlogprov/win32-ntlogevent
+
+            var eventsQuery = new EventLogQuery(path, PathType.LogName, query) { ReverseDirection = true };
+
+            if (!string.IsNullOrEmpty(computerName))
+            {
+                //EventLogSession session = new EventLogSession(
+                //    ComputerName,
+                //    "Domain",                                  // Domain
+                //    "Username",                                // Username
+                //    pw,
+                //    SessionAuthentication.Default); // TODO password specification! https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.eventing.reader.eventlogsession.-ctor?view=dotnet-plat-ext-3.1#System_Diagnostics_Eventing_Reader_EventLogSession__ctor_System_String_System_String_System_String_System_Security_SecureString_System_Diagnostics_Eventing_Reader_SessionAuthentication_
+
+                var session = new EventLogSession(computerName);
+                eventsQuery.Session = session;
+            }
+
+            var logReader = new EventLogReader(eventsQuery);
+            return logReader;
         }
     }
 }

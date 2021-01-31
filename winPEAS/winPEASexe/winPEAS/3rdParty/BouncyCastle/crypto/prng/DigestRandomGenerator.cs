@@ -1,11 +1,6 @@
-﻿using BrowserPass.BouncyCastle.crypto.util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using winPEAS._3rdParty.BouncyCastle.crypto.util;
 
-namespace BrowserPass.BouncyCastle.crypto.prng
+namespace winPEAS._3rdParty.BouncyCastle.crypto.prng
 {
 	/**
 	 * Random generation based on the digest with counter. Calling AddSeedMaterial will

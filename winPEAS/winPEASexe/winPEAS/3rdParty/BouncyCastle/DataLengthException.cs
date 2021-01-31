@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BrowserPass.BouncyCastle
+namespace winPEAS._3rdParty.BouncyCastle
 {
     /**
         * this exception is thrown if a buffer that is meant to have output

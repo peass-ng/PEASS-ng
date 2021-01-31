@@ -1,13 +1,9 @@
-﻿using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.util.encoders;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.util.encoders;
 
-namespace BrowserPass.BouncyCastle.asn1
+namespace winPEAS._3rdParty.BouncyCastle.asn1
 {
     public abstract class Asn1OctetString
        : Asn1Object, Asn1OctetStringParser

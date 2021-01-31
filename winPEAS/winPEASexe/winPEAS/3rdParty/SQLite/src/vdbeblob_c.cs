@@ -1,10 +1,6 @@
-using System.Diagnostics;
-
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
-  using sqlite3_stmt = CSSQLite.Vdbe;
-
-  public partial class CSSQLite
+    public partial class CSSQLite
   {
     /*
     ** 2007 May 1

@@ -1,8 +1,7 @@
-﻿using BrowserPass.BouncyCastle;
-using BrowserPass.BouncyCastle.crypto.util;
-using System;
+﻿using System;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
 
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     /*
       The BLAKE2 cryptographic hash function was designed by Jean-

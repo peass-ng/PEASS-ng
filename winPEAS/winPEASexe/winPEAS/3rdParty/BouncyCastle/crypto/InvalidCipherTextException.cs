@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BrowserPass.BouncyCastle.crypto
+namespace winPEAS._3rdParty.BouncyCastle.crypto
 {
     /**
       * this exception is thrown whenever we find something we don't expect in a

@@ -1,12 +1,8 @@
-﻿using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-namespace BrowserPass.BouncyCastle.asn1
+namespace winPEAS._3rdParty.BouncyCastle.asn1
 {
     /**
    * Der T61String (also the teletex string) - 8-bit characters

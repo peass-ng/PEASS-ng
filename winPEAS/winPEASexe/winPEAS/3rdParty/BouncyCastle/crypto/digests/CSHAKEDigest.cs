@@ -1,7 +1,6 @@
-﻿using System;
-using BrowserPass.BouncyCastle.crypto.util;
+﻿using winPEAS._3rdParty.BouncyCastle.crypto.util;
 
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     /// <summary>
     /// Customizable SHAKE function.

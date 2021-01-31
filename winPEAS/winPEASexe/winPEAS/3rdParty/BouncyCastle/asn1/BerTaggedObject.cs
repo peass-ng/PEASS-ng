@@ -1,12 +1,7 @@
-﻿using BrowserPass.BouncyCastle.crypto.util;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
 
-namespace BrowserPass.BouncyCastle.asn1
+namespace winPEAS._3rdParty.BouncyCastle.asn1
 {
 	/**
 	  * BER TaggedObject - in ASN.1 notation this is any object preceded by

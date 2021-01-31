@@ -1,4 +1,4 @@
-﻿namespace winPEAS.KnownFileCreds.Browsers.Chrome
+﻿namespace winPEAS.KnownFileCreds.Browsers.Models
 {
     class Login
     {

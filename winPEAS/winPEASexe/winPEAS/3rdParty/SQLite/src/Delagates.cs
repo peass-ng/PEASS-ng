@@ -10,19 +10,14 @@
     *************************************************************************
     */
 
-using System.Text;
-
-using HANDLE = System.IntPtr;
-
-using i32 = System.Int32;
-using u32 = System.UInt32;
+    using System.Text;
+    using HANDLE = System.IntPtr;
+    using u32 = System.UInt32;
 using u64 = System.UInt64;
 
 using sqlite3_int64 = System.Int64;
 
-using Pgno = System.UInt32;
-
-namespace CS_SQLite3
+    namespace winPEAS._3rdParty.SQLite.src
 {
   using DbPage = CSSQLite.PgHdr;
   using sqlite3_stmt = CSSQLite.Vdbe;

@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BrowserPass.BouncyCastle.util.io
+namespace winPEAS._3rdParty.BouncyCastle.util.io
 {
     public abstract class BaseInputStream : Stream
     {

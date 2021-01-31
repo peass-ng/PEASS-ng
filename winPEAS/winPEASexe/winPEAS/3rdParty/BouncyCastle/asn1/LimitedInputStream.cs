@@ -1,12 +1,7 @@
-﻿using BrowserPass.BouncyCastle.util.io;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
+using winPEAS._3rdParty.BouncyCastle.util.io;
 
-namespace BrowserPass.BouncyCastle.asn1
+namespace winPEAS._3rdParty.BouncyCastle.asn1
 {
     internal abstract class LimitedInputStream
        : BaseInputStream

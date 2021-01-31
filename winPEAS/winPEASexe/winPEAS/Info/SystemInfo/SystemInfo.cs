@@ -445,7 +445,9 @@ namespace winPEAS.Info.SystemInfo
                 if ((settings != null) && (settings.Count != 0))
                 {
                     foreach (KeyValuePair<string, object> kvp in settings)
+                    { 
                         result[kvp.Key] = (string)kvp.Value;
+                    }
                 }
             }
             catch (Exception ex)

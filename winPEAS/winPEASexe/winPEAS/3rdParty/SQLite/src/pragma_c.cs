@@ -1,11 +1,9 @@
 using System;
 using System.Diagnostics;
-using System.Text;
-
 using i64 = System.Int64;
 using u8 = System.Byte;
 
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
   public partial class CSSQLite
   {

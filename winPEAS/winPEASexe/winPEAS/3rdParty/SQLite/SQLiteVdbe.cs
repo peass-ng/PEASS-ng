@@ -1,16 +1,11 @@
 //  $Header$
+
 using System;
-using System.Collections.Generic;
-using System.Text;
-using CS_SQLite3;
-using System.Data;
-using System.Collections;
+using winPEAS._3rdParty.SQLite.src;
 
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite
 {
-
-  using sqlite = CSSQLite.sqlite3;
-  using Vdbe = CSSQLite.Vdbe;
+    using Vdbe = CSSQLite.Vdbe;
 
   /// <summary>
   /// C#-SQLite wrapper with functions for opening, closing and executing queries.

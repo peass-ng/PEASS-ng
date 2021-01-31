@@ -1,9 +1,7 @@
-﻿using BrowserPass.BouncyCastle.Crypto.Digests;
-using BrowserPass.BouncyCastle.util;
-using System;
+﻿using System;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     public class Gost3411_2012_256Digest : Gost3411_2012Digest
     {

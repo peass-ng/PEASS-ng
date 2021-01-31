@@ -1,8 +1,7 @@
-using BrowserPass.BouncyCastle.util;
 using System;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     /**
     * implementation of MD4 as RFC 1320 by R. Rivest, MIT Laboratory for

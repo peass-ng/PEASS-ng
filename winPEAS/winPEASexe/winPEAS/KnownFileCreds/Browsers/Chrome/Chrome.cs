@@ -1,5 +1,4 @@
-﻿using CS_SQLite3;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -9,6 +8,7 @@ using winPEAS.Checks;
 using winPEAS.Helpers;
 using winPEAS.KnownFileCreds.Browsers.Decryptor;
 using winPEAS.KnownFileCreds.Browsers.Models;
+using winPEAS._3rdParty.SQLite;
 
 namespace winPEAS.KnownFileCreds.Browsers.Chrome
 {

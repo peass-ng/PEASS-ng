@@ -1,13 +1,12 @@
-﻿using BrowserPass.BouncyCastle.util.date;
-using System;
-using System.Text;
+﻿using System;
+using winPEAS._3rdParty.BouncyCastle.util.date;
 
 #if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
 using System.Collections;
 using System.Reflection;
 #endif
 
-namespace BrowserPass.BouncyCastle.util
+namespace winPEAS._3rdParty.BouncyCastle.util
 {
     internal abstract class Enums
     {

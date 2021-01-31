@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BrowserPass.BouncyCastle.asn1.misc
+﻿namespace winPEAS._3rdParty.BouncyCastle.asn1.misc
 {
     public abstract class MiscObjectIdentifiers
     {

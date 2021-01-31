@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Org.BouncyCastle.Crypto.Digests
+﻿namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     internal class XofUtilities
     {

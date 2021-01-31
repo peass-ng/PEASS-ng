@@ -1,14 +1,10 @@
 using System;
+using winPEAS._3rdParty.BouncyCastle.crypto.engines;
+using winPEAS._3rdParty.BouncyCastle.crypto.parameters;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-using BrowserPass.BouncyCastle;
-using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.util;
-using System;
-using BrowserPass.BouncyCastle.crypto;
-using BrowserPass.BouncyCastle.crypto.parameters;
-using BrowserPass.BouncyCastle.crypto.engines;
-
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
 	/**
 	* implementation of GOST R 34.11-94

@@ -1,8 +1,4 @@
-using System;
-using System.Diagnostics;
-using System.Text;
-
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
   public partial class CSSQLite
   {

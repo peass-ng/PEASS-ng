@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
-using System;
-using BrowserPass.BouncyCastle.util;
-using System;
-using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.crypto;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     /// <summary>
     /// Implementation of SHAKE based on following KeccakNISTInterface.c from http://keccak.noekeon.org/

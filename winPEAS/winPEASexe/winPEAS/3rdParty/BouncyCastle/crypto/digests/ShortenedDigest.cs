@@ -1,10 +1,6 @@
 using System;
-using BrowserPass.BouncyCastle.util;
-using System;
-using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle;
 
-namespace Org.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
 	/**
 	* Wrapper class that reduces the output length of a particular digest to

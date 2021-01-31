@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
-namespace BrowserPass.BouncyCastle.util.encoders
+namespace winPEAS._3rdParty.BouncyCastle.util.encoders
 {
 	/**
 	  * Encode and decode byte arrays (typically from binary to 7-bit ASCII

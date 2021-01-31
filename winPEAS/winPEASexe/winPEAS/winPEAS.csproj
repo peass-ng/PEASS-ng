@@ -393,6 +393,7 @@
     <Compile Include="Helpers\CredentialManager\PersistenceType.cs" />
     <Compile Include="Helpers\CredentialManager\SecureStringHelper.cs" />
     <Compile Include="Helpers\CustomFileInfo.cs" />
+    <Compile Include="Helpers\Extensions\EnumExtensions.cs" />
     <Compile Include="Helpers\MemoryHelper.cs" />
     <Compile Include="Helpers\PermissionsHelper.cs" />
     <Compile Include="Helpers\Search\Patterns.cs" />
@@ -401,6 +402,18 @@
     <Compile Include="Info\ApplicationInfo\DeviceDrivers.cs" />
     <Compile Include="Info\ApplicationInfo\InstalledApps.cs" />
     <Compile Include="Helpers\Beaprint.cs" />
+    <Compile Include="Info\SystemInfo\CredentialGuard.cs" />
+    <Compile Include="Info\SystemInfo\NamedPipes\NamedPipeInfo.cs" />
+    <Compile Include="Info\SystemInfo\NamedPipes\NamedPipes.cs" />
+    <Compile Include="Info\SystemInfo\Printers\PrinterInfo.cs" />
+    <Compile Include="Info\SystemInfo\Printers\Printers.cs" />
+    <Compile Include="Info\SystemInfo\SysMon\SysMon.cs" />
+    <Compile Include="Info\SystemInfo\SysMon\SysmonEventInfo.cs" />
+    <Compile Include="Info\SystemInfo\SysMon\SysmonHashAlgorithm.cs" />
+    <Compile Include="Info\SystemInfo\SysMon\SysmonInfo.cs" />
+    <Compile Include="Info\SystemInfo\SysMon\SysmonOptions.cs" />
+    <Compile Include="Info\UserInfo\LogonSessions\LogonSessions.cs" />
+    <Compile Include="Info\UserInfo\LogonSessions\LogonSessionsInfo.cs" />
     <Compile Include="InterestingFiles\GPP.cs" />
     <Compile Include="InterestingFiles\InterestingFiles.cs" />
     <Compile Include="InterestingFiles\Unattended.cs" />
@@ -426,6 +439,7 @@
     <Compile Include="KnownFileCreds\KnownFileCredsInfo.cs" />
     <Compile Include="KnownFileCreds\Putty.cs" />
     <Compile Include="KnownFileCreds\RemoteDesktop.cs" />
+    <Compile Include="KnownFileCreds\SuperPutty\SuperPutty.cs" />
     <Compile Include="KnownFileCreds\Vault\Enums\VAULT_ELEMENT_TYPE.cs" />
     <Compile Include="KnownFileCreds\Vault\Enums\VAULT_SCHEMA_ELEMENT_ID.cs" />
     <Compile Include="KnownFileCreds\Vault\Structs\VAULT_ITEM_ELEMENT.cs" />

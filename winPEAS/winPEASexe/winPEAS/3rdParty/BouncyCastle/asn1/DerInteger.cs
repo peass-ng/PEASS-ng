@@ -1,12 +1,8 @@
-﻿using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.math;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.math;
 
-namespace BrowserPass.BouncyCastle.asn1
+namespace winPEAS._3rdParty.BouncyCastle.asn1
 {
     public class DerInteger
        : Asn1Object

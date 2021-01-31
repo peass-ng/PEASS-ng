@@ -1,15 +1,12 @@
-﻿using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.security;
-using System;
+﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.security;
 
-namespace BrowserPass.BouncyCastle.math
+namespace winPEAS._3rdParty.BouncyCastle.math
 {
 #if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
     [Serializable]

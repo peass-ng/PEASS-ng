@@ -105,24 +105,25 @@ namespace winPEAS.Helpers.AppLocker
             {
                 Beaprint.GoodPrint($"   File Publisher Rule\n");
 
-                Beaprint.NoColorPrint($"   Rule Type: {rule.Type}\n" +
-                                             $"   Enforcement Mode: {rule.EnforcementMode}\n" +
-                                             $"   Name: {filePublisherRule.Name}\n" +
-                                             $"   Description: {filePublisherRule.Description}\n" +
-                                             $"   Action: {filePublisherRule.Action}");
+                Beaprint.NoColorPrint($"   Rule Type:               {rule.Type}\n" +
+                                      $"   Enforcement Mode:        {rule.EnforcementMode}\n" +
+                                      $"   Name:                    {filePublisherRule.Name}\n" +
+                                      $"   Description:             {filePublisherRule.Description}\n" +
+                                      $"   Action:                  {filePublisherRule.Action}");
 
                 var color = GetColorBySid(filePublisherRule.UserOrGroupSid);
 
-                Beaprint.ColorPrint($"   User Or Group Sid: {filePublisherRule.UserOrGroupSid}\n", color);
+                Beaprint.ColorPrint(  $"   User Or Group Sid:       {filePublisherRule.UserOrGroupSid}\n", color);
 
                 Beaprint.GoodPrint($"   Conditions");
 
                 foreach (var condition in filePublisherRule.Conditions)
                 {
-                    Beaprint.NoColorPrint($"   Binary Name: {condition.BinaryName}\n" +
-                                                 $"   Binary Version Range: ({condition.BinaryVersionRange.LowSection} - {condition.BinaryVersionRange.HighSection})\n" +
-                                                 $"   Product Name: {condition.ProductName}\n" +
-                                                 $"   Publisher Name: {condition.PublisherName}\n");
+                    Beaprint.NoColorPrint(
+                                      $"   Binary Name:             {condition.BinaryName}\n" +
+                                      $"   Binary Version Range:    ({condition.BinaryVersionRange.LowSection} - {condition.BinaryVersionRange.HighSection})\n" +
+                                      $"   Product Name:            {condition.ProductName}\n" +
+                                      $"   Publisher Name:          {condition.PublisherName}\n");
                 }
 
                 Beaprint.PrintLineSeparator();
@@ -140,16 +141,16 @@ namespace winPEAS.Helpers.AppLocker
                 var normalizedName = NormalizePath(filePathRule.Name);
 
 
-                Beaprint.NoColorPrint($"   Rule Type: {rule.Type}\n" +
-                                             $"   Enforcement Mode: {rule.EnforcementMode}\n" +
-                                             $"   Name: {filePathRule.Name}\n" +
-                                             $"   Translated Name: {normalizedName}\n" +
-                                             $"   Description: {filePathRule.Description}\n" +
-                                             $"   Action: {filePathRule.Action}");
+                Beaprint.NoColorPrint($"   Rule Type:               {rule.Type}\n" +
+                                      $"   Enforcement Mode:        {rule.EnforcementMode}\n" +
+                                      $"   Name:                    {filePathRule.Name}\n" +
+                                      $"   Translated Name:         {normalizedName}\n" +
+                                      $"   Description:             {filePathRule.Description}\n" +
+                                      $"   Action:                  {filePathRule.Action}");
                 
                 var color = GetColorBySid(filePathRule.UserOrGroupSid);
 
-                Beaprint.ColorPrint($"   User Or Group Sid: {filePathRule.UserOrGroupSid}\n", color);
+                Beaprint.ColorPrint(  $"   User Or Group Sid:       {filePathRule.UserOrGroupSid}\n", color);
 
                 Beaprint.GoodPrint($"   Conditions");
 
@@ -158,12 +159,14 @@ namespace winPEAS.Helpers.AppLocker
                     // print wildcards as red and continue
                     if (condition.Path == "*" || condition.Path == "*.*")
                     {
-                        Beaprint.ColorPrint($"   Path: {condition.Path}", Beaprint.ansi_color_bad);
+                        Beaprint.ColorPrint(
+                                      $"   Path:                    {condition.Path}", Beaprint.ansi_color_bad);
 
                         continue;
                     }
 
-                    Beaprint.NoColorPrint($"   Path: {condition.Path}");
+                    Beaprint.NoColorPrint(
+                                      $"   Path:                    {condition.Path}");
 
 
                     // TODO
@@ -264,24 +267,27 @@ namespace winPEAS.Helpers.AppLocker
             {
                 Beaprint.GoodPrint($"   File Hash Rule\n");
 
-                Beaprint.NoColorPrint($"   Rule Type: {rule.Type}\n" +
-                                   $"   Enforcement Mode: {rule.EnforcementMode}\n" +
-                                   $"   Name: {fileHashRule.Name}\n" +
-                                   $"   Description: {fileHashRule.Description}\n" +
-                                   $"   Action: {fileHashRule.Action}");
+                Beaprint.NoColorPrint(
+                                   $"   Rule Type:               {rule.Type}\n" +
+                                   $"   Enforcement Mode:        {rule.EnforcementMode}\n" +
+                                   $"   Name:                    {fileHashRule.Name}\n" +
+                                   $"   Description:             {fileHashRule.Description}\n" +
+                                   $"   Action:                  {fileHashRule.Action}");
 
                 var color = GetColorBySid(fileHashRule.UserOrGroupSid);
 
-                Beaprint.ColorPrint($"   User Or Group Sid: {fileHashRule.UserOrGroupSid}\n", color);
+                Beaprint.ColorPrint(
+                                   $"   User Or Group Sid:       {fileHashRule.UserOrGroupSid}\n", color);
 
                 Beaprint.GoodPrint($"   Conditions");
 
                 foreach (var condition in fileHashRule.Conditions)
                 {
-                    Beaprint.NoColorPrint($"   Source File Name: {condition.FileHash.SourceFileName}\n" +
-                                       $"   Data: {condition.FileHash.Data}\n" +
-                                       $"   Source File Length: {condition.FileHash.SourceFileLength}\n" +
-                                       $"   Type: {condition.FileHash.Type}\n");
+                    Beaprint.NoColorPrint(
+                                   $"   Source File Name:        {condition.FileHash.SourceFileName}\n" +
+                                   $"   Data:                    {condition.FileHash.Data}\n" +
+                                   $"   Source File Length:      {condition.FileHash.SourceFileLength}\n" +
+                                   $"   Type:                    {condition.FileHash.Type}\n");
                 }
 
                 Beaprint.PrintLineSeparator();

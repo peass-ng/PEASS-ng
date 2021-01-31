@@ -1,16 +1,8 @@
 using System;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-using System;
-using System.IO;
-
-using BrowserPass.BouncyCastle;
-using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.util;
-using System;
-using System.Diagnostics;
-using BrowserPass.BouncyCastle.util.io;
-
-namespace BrowserPass.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     /**
     * Base class for SHA-384 and SHA-512.

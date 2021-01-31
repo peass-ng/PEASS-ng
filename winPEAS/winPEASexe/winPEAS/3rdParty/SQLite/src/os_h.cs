@@ -1,7 +1,7 @@
 #define SQLITE_OS_WIN
 using u32 = System.UInt32;
 
-namespace CS_SQLite3
+namespace winPEAS._3rdParty.SQLite.src
 {
   public partial class CSSQLite
   {

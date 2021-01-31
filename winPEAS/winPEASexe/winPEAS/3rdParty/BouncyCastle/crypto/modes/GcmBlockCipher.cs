@@ -1,13 +1,9 @@
-﻿using BrowserPass.BouncyCastle.crypto.modes.gcm;
-using BrowserPass.BouncyCastle.crypto.parameters;
-using BrowserPass.BouncyCastle.crypto.util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using winPEAS._3rdParty.BouncyCastle.crypto.modes.gcm;
+using winPEAS._3rdParty.BouncyCastle.crypto.parameters;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
 
-namespace BrowserPass.BouncyCastle.crypto.modes
+namespace winPEAS._3rdParty.BouncyCastle.crypto.modes
 {
     /// <summary>
     /// Implements the Galois/Counter mode (GCM) detailed in

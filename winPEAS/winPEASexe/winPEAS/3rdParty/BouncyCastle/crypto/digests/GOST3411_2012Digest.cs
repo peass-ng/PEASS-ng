@@ -1,16 +1,8 @@
 ﻿using System;
-using System.IO;
-using System;
-using System.IO;
+using winPEAS._3rdParty.BouncyCastle.crypto.util;
+using winPEAS._3rdParty.BouncyCastle.util;
 
-using BrowserPass.BouncyCastle;
-using BrowserPass.BouncyCastle.crypto.util;
-using BrowserPass.BouncyCastle.util;
-using System;
-using System.Diagnostics;
-using BrowserPass.BouncyCastle.util.io;
-
-namespace BrowserPass.BouncyCastle.Crypto.Digests
+namespace winPEAS._3rdParty.BouncyCastle.crypto.digests
 {
     public abstract class Gost3411_2012Digest:IDigest,IMemoable
     {
