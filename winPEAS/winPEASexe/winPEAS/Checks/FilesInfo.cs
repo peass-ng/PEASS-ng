@@ -8,6 +8,7 @@ using winPEAS.Helpers.Search;
 using winPEAS.Info.UserInfo;
 using winPEAS.InterestingFiles;
 using winPEAS.KnownFileCreds;
+using winPEAS.KnownFileCreds.Slack;
 using winPEAS.KnownFileCreds.SuperPutty;
 
 namespace winPEAS.Checks
@@ -124,6 +125,7 @@ namespace winPEAS.Checks
                 PrintPossCredsRegs,
                 PrintUserCredsFiles,
                 PrintOracleSQLDeveloperConfigFiles,
+                Slack.PrintInfo,
                 PrintUsersInterestingFiles,
                 PrintUsersDocsKeys,
                 PrintRecentFiles,
@@ -132,6 +134,8 @@ namespace winPEAS.Checks
                 PrintOtherUsersInterestingFiles,
                 PrintExecutablesInNonDefaultFoldersWithWritePermissions,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
+
+            SearchHelper.CleanLists();
         }
 
         void PrintCloudCreds()

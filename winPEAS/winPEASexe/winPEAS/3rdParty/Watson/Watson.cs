@@ -58,24 +58,24 @@ namespace winPEAS._3rdParty.Watson
 #endif
 
             // List of Vulnerabilities
-            var vulnerabiltiies = new VulnerabilityCollection();
+            var vulnerabilities = new VulnerabilityCollection();
 
             // Check each one
-            CVE_2019_0836.Check(vulnerabiltiies, buildNumber, installedKBs);
-            CVE_2019_0841.Check(vulnerabiltiies, buildNumber, installedKBs);
-            CVE_2019_1064.Check(vulnerabiltiies, buildNumber, installedKBs);
-            CVE_2019_1130.Check(vulnerabiltiies, buildNumber, installedKBs);
-            CVE_2019_1253.Check(vulnerabiltiies, buildNumber, installedKBs);
-            CVE_2019_1315.Check(vulnerabiltiies, buildNumber, installedKBs);
-            CVE_2019_1385.Check(vulnerabiltiies, buildNumber, installedKBs);
-            CVE_2019_1388.Check(vulnerabiltiies, buildNumber, installedKBs);
-            CVE_2019_1405.Check(vulnerabiltiies, buildNumber, installedKBs);
-            CVE_2020_0668.Check(vulnerabiltiies, buildNumber, installedKBs);
-            CVE_2020_0683.Check(vulnerabiltiies, buildNumber, installedKBs);
-            CVE_2020_1013.Check(vulnerabiltiies, buildNumber, installedKBs);
+            CVE_2019_0836.Check(vulnerabilities, buildNumber, installedKBs);
+            CVE_2019_0841.Check(vulnerabilities, buildNumber, installedKBs);
+            CVE_2019_1064.Check(vulnerabilities, buildNumber, installedKBs);
+            CVE_2019_1130.Check(vulnerabilities, buildNumber, installedKBs);
+            CVE_2019_1253.Check(vulnerabilities, buildNumber, installedKBs);
+            CVE_2019_1315.Check(vulnerabilities, buildNumber, installedKBs);
+            CVE_2019_1385.Check(vulnerabilities, buildNumber, installedKBs);
+            CVE_2019_1388.Check(vulnerabilities, buildNumber, installedKBs);
+            CVE_2019_1405.Check(vulnerabilities, buildNumber, installedKBs);
+            CVE_2020_0668.Check(vulnerabilities, buildNumber, installedKBs);
+            CVE_2020_0683.Check(vulnerabilities, buildNumber, installedKBs);
+            CVE_2020_1013.Check(vulnerabilities, buildNumber, installedKBs);
 
             // Print the results
-            vulnerabiltiies.ShowResults();
+            vulnerabilities.ShowResults();
         }
     }
 }

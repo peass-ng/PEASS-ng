@@ -203,6 +203,18 @@ namespace winPEAS.Helpers.Search
             SearchHelper.GroupPolicyHistory.AddRange(groupPolicyHistoryLegacyFiles);
         }
 
+        internal static void CleanLists()
+        {
+            SearchHelper.RootDirUsers = null;
+            SearchHelper.RootDirCurrentUser = null;
+            SearchHelper.ProgramFiles = null;
+            SearchHelper.ProgramFilesX86 = null;
+            SearchHelper.DocumentsAndSettings = null;
+            SearchHelper.GroupPolicyHistory = null;
+
+            GC.Collect();
+        }
+
         internal static IEnumerable<CustomFileInfo> SearchUserCredsFiles()
         {
             var patterns = new List<string>

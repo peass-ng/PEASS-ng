@@ -16,8 +16,6 @@ namespace winPEAS.Checks
         public static bool IsNoColor = false;
         public static bool ExecCmd = false;
         public static bool Banner = true;
-        public static bool IsSearchFast = true;
-        public static int SearchTime = 50;
         public static bool IsDebug = false;
 
         // Create Dynamic blacklists
@@ -118,11 +116,6 @@ namespace winPEAS.Checks
                 if (string.Equals(arg, "quiet", StringComparison.CurrentCultureIgnoreCase))
                 {
                     Banner = false;
-                }
-
-                if (string.Equals(arg, "searchslow", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    IsSearchFast = false;
                 }
 
                 if (string.Equals(arg, "wait", StringComparison.CurrentCultureIgnoreCase))

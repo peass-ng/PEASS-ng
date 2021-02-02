@@ -577,14 +577,16 @@ namespace winPEAS.Checks
 
             try
             {
+                string formatString = "  {0,-100} {1}\n";
+
+                Beaprint.NoColorPrint(string.Format($"{formatString}", "Name", "Sddl"));
+
                 foreach (var namedPipe in NamedPipes.GetNamedPipeInfos())
                 {
-                    Beaprint.BadPrint($"      Name:     {namedPipe.Name}\n" +
-                                      $"      Sddl:     {namedPipe.Sddl}\n");
-                    Beaprint.PrintLineSeparator();
+                    Beaprint.BadPrint(string.Format(formatString, namedPipe.Name, namedPipe.Sddl));
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) 
             {
                 //Beaprint.PrintException(ex.Message);
             }
@@ -602,8 +604,8 @@ namespace winPEAS.Checks
                 {
                     var providerPath = RegistryHelper.GetRegValue("HKLM", $"SOFTWARE\\Classes\\CLSID\\{provider}\\InprocServer32", "");
 
-                    Beaprint.BadPrint($"    Provider:       {provider}\n" +
-                                      $"    Path:           {providerPath}\n");
+                    Beaprint.NoColorPrint($"    Provider:       {provider}\n" +
+                                          $"    Path:           {providerPath}\n");
 
                     Beaprint.PrintLineSeparator();
                 }

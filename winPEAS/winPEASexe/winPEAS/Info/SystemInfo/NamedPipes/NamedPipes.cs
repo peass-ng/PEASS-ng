@@ -38,9 +38,8 @@ namespace winPEAS.Info.SystemInfo.NamedPipes
         public static IEnumerable<NamedPipeInfo> GetNamedPipeInfos()
         {
             var namedPipes = new List<string>();
-            WIN32_FIND_DATA lpFindFileData;
 
-            var ptr = FindFirstFile(@"\\.\pipe\*", out lpFindFileData);
+            var ptr = FindFirstFile(@"\\.\pipe\*", out var lpFindFileData);
             namedPipes.Add(lpFindFileData.cFileName);
             while (FindNextFile(ptr, out lpFindFileData))
             {
@@ -52,23 +51,21 @@ namespace winPEAS.Info.SystemInfo.NamedPipes
 
             foreach (var namedPipe in namedPipes)
             {
-                FileSecurity security;
                 string sddl;
+                bool isError = false;
+
                 try
                 {
-                    security = File.GetAccessControl(System.String.Format("\\\\.\\pipe\\{0}", namedPipe));
+                    var security = File.GetAccessControl($"\\\\.\\pipe\\{namedPipe}");
                     sddl = security.GetSecurityDescriptorSddlForm(AccessControlSections.All);
                 }
                 catch
                 {
+                    isError = true;
                     sddl = "ERROR";
                 }
 
-                if (!string.IsNullOrEmpty(sddl) && !sddl.Equals("ERROR"))
-                {
-                    yield return new NamedPipeInfo(namedPipe, sddl);
-                }
-                else
+                if (!isError && !string.IsNullOrEmpty(sddl))
                 {
                     yield return new NamedPipeInfo(namedPipe, sddl);
                 }

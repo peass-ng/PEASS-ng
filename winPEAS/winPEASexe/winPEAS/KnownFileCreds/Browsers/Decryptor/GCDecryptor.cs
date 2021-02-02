@@ -3,10 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web.Script.Serialization;
 using winPEAS._3rdParty.BouncyCastle.crypto.engines;
 using winPEAS._3rdParty.BouncyCastle.crypto.modes;
 using winPEAS._3rdParty.BouncyCastle.crypto.parameters;
-using winPEAS._3rdParty.MicroJson;
 
 namespace winPEAS.KnownFileCreds.Browsers.Decryptor
 {
@@ -28,7 +28,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Decryptor
             var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);// APPDATA
             var path = Path.GetFullPath(appdata + localStatePath);
             var v = File.ReadAllText(path);
-            var json = new JsonSerializer().Deserialize<LocalState>(v);
+            var json = new JavaScriptSerializer().Deserialize<LocalState>(v);
 
             string key = json.os_crypt.encrypted_key;
 

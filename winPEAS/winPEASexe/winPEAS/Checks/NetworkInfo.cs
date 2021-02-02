@@ -144,7 +144,7 @@ namespace winPEAS.Checks
                 foreach (var tcpConnectionInfo in NetworkInfoHelper.GetTcpConnections(IPVersion.IPv4, processesByPid))
                 {
                     Beaprint.AnsiPrint(
-                        string.Format($"{formatString}",
+                        string.Format(formatString,
                                        "  TCP",
                                        tcpConnectionInfo.LocalAddress,
                                        tcpConnectionInfo.LocalPort,
@@ -177,7 +177,7 @@ namespace winPEAS.Checks
                 foreach (var tcpConnectionInfo in NetworkInfoHelper.GetTcpConnections(IPVersion.IPv6, processesByPid))
                 {
                     Beaprint.AnsiPrint(
-                        string.Format($"{formatString}",
+                        string.Format(formatString,
                                        "  TCP",
                                        $"[{tcpConnectionInfo.LocalAddress}]",
                                        tcpConnectionInfo.LocalPort,
@@ -220,7 +220,7 @@ namespace winPEAS.Checks
                 foreach (var udpConnectionInfo in NetworkInfoHelper.GetUdpConnections(IPVersion.IPv4, processesByPid))
                 {
                     Beaprint.AnsiPrint(
-                        string.Format($"{formatString}",
+                        string.Format(formatString,
                                        "  UDP",
                                        udpConnectionInfo.LocalAddress,
                                        udpConnectionInfo.LocalPort,
@@ -251,7 +251,7 @@ namespace winPEAS.Checks
                 foreach (var udpConnectionInfo in NetworkInfoHelper.GetUdpConnections(IPVersion.IPv6, processesByPid))
                 {
                     Beaprint.AnsiPrint(
-                        string.Format($"{formatString}",
+                        string.Format(formatString,
                                        "  UDP",
                                        $"[{udpConnectionInfo.LocalAddress}]",
                                        udpConnectionInfo.LocalPort,

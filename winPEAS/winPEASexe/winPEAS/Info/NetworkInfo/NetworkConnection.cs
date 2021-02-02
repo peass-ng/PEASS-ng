@@ -7,13 +7,13 @@ namespace winPEAS.Info.NetworkInfo
     [StructLayout(LayoutKind.Sequential)]
     public abstract class NetworkConnection
     {
-        public virtual Protocol Protocol { get; set; }
-        public virtual IPAddress LocalAddress { get; set; }
-        public virtual ushort LocalPort { get; set; }
-        public virtual int ProcessId { get; set; }
-        public virtual string ProcessName { get; set; }
+        public Protocol Protocol { get; set; }
+        public IPAddress LocalAddress { get; set; }
+        public ushort LocalPort { get; set; }
+        public int ProcessId { get; set; }
+        public string ProcessName { get; set; }
 
-        public NetworkConnection(
+        protected NetworkConnection(
             Protocol protocol,
             IPAddress localAddress,
             ushort localPort,
