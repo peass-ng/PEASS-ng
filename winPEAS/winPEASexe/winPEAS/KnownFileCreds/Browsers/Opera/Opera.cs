@@ -57,10 +57,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Opera
                     database.CloseDatabase();
                 }
             }
-            else
-            {
-                throw new FileNotFoundException("Cannot find Opera logins file");
-            }
+
             return result;
         }
     }

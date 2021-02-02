@@ -313,10 +313,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
                     database.CloseDatabase();
                 }
             }
-            else
-            {
-                throw new FileNotFoundException("Cannot find chrome logins file");
-            }
+
             return result;
         }
     }
