@@ -63,8 +63,9 @@ namespace winPEAS.Checks
             _systemChecks = new List<SystemCheck>
             {
                 new SystemCheck("systeminfo", new SystemInfo()),
+                new SystemCheck("eventsinfo", new EventsInfo()),
                 new SystemCheck("userinfo", new UserInfo()),
-                new SystemCheck("procesinfo", new ProcessInfo()),
+                new SystemCheck("processinfo", new ProcessInfo()),
                 new SystemCheck("servicesinfo", new ServicesInfo()),
                 new SystemCheck("applicationsinfo", new ApplicationsInfo()),
                 new SystemCheck("networkinfo", new NetworkInfo()),

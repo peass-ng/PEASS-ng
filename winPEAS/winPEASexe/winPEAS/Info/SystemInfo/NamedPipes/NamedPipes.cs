@@ -1,23 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using winPEAS.Native;
 
 namespace winPEAS.Info.SystemInfo.NamedPipes
 {
     internal class NamedPipes
     {
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern IntPtr FindFirstFile(string lpFileName, out WIN32_FIND_DATA lpFindFileData);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern bool FindNextFile(IntPtr hFindFile, out WIN32_FIND_DATA
-           lpFindFileData);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool FindClose(IntPtr hFindFile);
-
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct WIN32_FIND_DATA
         {
@@ -39,13 +29,13 @@ namespace winPEAS.Info.SystemInfo.NamedPipes
         {
             var namedPipes = new List<string>();
 
-            var ptr = FindFirstFile(@"\\.\pipe\*", out var lpFindFileData);
+            var ptr = Kernel32.FindFirstFile(@"\\.\pipe\*", out var lpFindFileData);
             namedPipes.Add(lpFindFileData.cFileName);
-            while (FindNextFile(ptr, out lpFindFileData))
+            while (Kernel32.FindNextFile(ptr, out lpFindFileData))
             {
                 namedPipes.Add(lpFindFileData.cFileName);
             }
-            FindClose(ptr);
+            Kernel32.FindClose(ptr);
 
             namedPipes.Sort();
 

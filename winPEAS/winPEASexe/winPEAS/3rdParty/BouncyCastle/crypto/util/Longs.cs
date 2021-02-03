@@ -13,7 +13,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
             return ReverseBytes(i);
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static ulong Reverse(ulong i)
         {
             i = Bits.BitPermuteStepSimple(i, 0x5555555555555555UL, 1);
@@ -30,7 +30,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
                    RotateLeft((long)((ulong)i & 0x000000FF000000FFUL), 56);
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static ulong ReverseBytes(ulong i)
         {
             return RotateLeft(i & 0xFF000000FF000000UL, 8) |
@@ -44,7 +44,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
             return (i << distance) ^ (long)((ulong)i >> -distance);
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static ulong RotateLeft(ulong i, int distance)
         {
             return (i << distance) ^ (i >> -distance);
@@ -55,7 +55,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
             return (long)((ulong)i >> distance) ^ (i << -distance);
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static ulong RotateRight(ulong i, int distance)
         {
             return (i >> distance) ^ (i << -distance);

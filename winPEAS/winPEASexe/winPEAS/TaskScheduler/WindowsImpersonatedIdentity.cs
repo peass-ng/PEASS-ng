@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using winPEAS.Native;
+using winPEAS.Native.Classes;
 using winPEAS.TaskScheduler.TaskEditor.Native;
 
 namespace winPEAS.TaskScheduler
@@ -27,7 +29,7 @@ namespace winPEAS.TaskScheduler
 #else
 		private WindowsImpersonationContext impersonationContext = null;
 #endif
-		NativeMethods.SafeTokenHandle token;
+		SafeTokenHandle token;
 		private WindowsIdentity identity = null;
 
 		/// <summary>
@@ -46,7 +48,7 @@ namespace winPEAS.TaskScheduler
 			}
 			else
 			{
-				if (NativeMethods.LogonUser(userName, domainName, password, domainName == null ? LOGON_TYPE_NEW_CREDENTIALS : LOGON32_LOGON_INTERACTIVE, domainName == null ? LOGON32_PROVIDER_WINNT50 : LOGON32_PROVIDER_DEFAULT, out token) != 0)
+				if (Advapi32.LogonUser(userName, domainName, password, domainName == null ? LOGON_TYPE_NEW_CREDENTIALS : LOGON32_LOGON_INTERACTIVE, domainName == null ? LOGON32_PROVIDER_WINNT50 : LOGON32_PROVIDER_DEFAULT, out token) != 0)
 				{
 #if NETSTANDARD || NETCOREAPP
 					if (!NativeMethods.ImpersonateLoggedOnUser(token.DangerousGetHandle()))
@@ -65,21 +67,19 @@ namespace winPEAS.TaskScheduler
 
 		public string AuthenticationType => identity?.AuthenticationType;
 
-		public bool IsAuthenticated => identity == null ? false : identity.IsAuthenticated;
+		public bool IsAuthenticated => identity != null && identity.IsAuthenticated;
 
-		public string Name => identity == null ? null : identity.Name;
+		public string Name => identity?.Name;
 
 		public void Dispose()
 		{
 #if NETSTANDARD || NETCOREAPP
 			NativeMethods.RevertToSelf();
 #else
-			if (impersonationContext != null)
-				impersonationContext.Undo();
+            impersonationContext?.Undo();
 #endif
 			token?.Dispose();
-			if (identity != null)
-				identity.Dispose();
-		}
+            identity?.Dispose();
+        }
 	}
 }

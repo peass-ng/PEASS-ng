@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using winPEAS.Native;
 
 namespace winPEAS.KnownFileCreds.Browsers.Firefox
 {
@@ -8,28 +9,24 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
     /// Firefox helper class
     /// </summary>
     static class FFDecryptor
-    {
-        [DllImport("kernel32.dll")]
-        public static extern IntPtr LoadLibrary(string dllFilePath);
+    {        
         static IntPtr NSS3;
-        [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-        public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+        
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate long DLLFunctionDelegate(string configdir);
 
         private const string ffFolderName = @"\Mozilla Firefox\";
         public static long NSS_Init(string configdir)
         {
-
             var mozillaPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + ffFolderName;
             if (!System.IO.Directory.Exists(mozillaPath))
                 mozillaPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) + ffFolderName;
             if (!System.IO.Directory.Exists(mozillaPath))
                 throw new Exception("Firefox folder not found");
 
-            LoadLibrary(mozillaPath + "mozglue.dll");
-            NSS3 = LoadLibrary(mozillaPath + "nss3.dll");
-            IntPtr pProc = GetProcAddress(NSS3, "NSS_Init");
+            Kernel32.LoadLibrary(mozillaPath + "mozglue.dll");
+            NSS3 = Kernel32.LoadLibrary(mozillaPath + "nss3.dll");
+            IntPtr pProc = Kernel32.GetProcAddress(NSS3, "NSS_Init");
             DLLFunctionDelegate dll = (DLLFunctionDelegate)Marshal.GetDelegateForFunctionPointer(pProc, typeof(DLLFunctionDelegate));
             return dll(configdir);
         }
@@ -71,7 +68,6 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
                 if (ffDataUnmanagedPointer != IntPtr.Zero)
                 {
                     Marshal.FreeHGlobal(ffDataUnmanagedPointer);
-
                 }
             }
 
@@ -84,7 +80,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
         public delegate int DLLFunctionDelegate5(ref TSECItem data, ref TSECItem result, int cx);
         public static int PK11SDR_Decrypt(ref TSECItem data, ref TSECItem result, int cx)
         {
-            IntPtr pProc = GetProcAddress(NSS3, "PK11SDR_Decrypt");
+            IntPtr pProc = Kernel32.GetProcAddress(NSS3, "PK11SDR_Decrypt");
             DLLFunctionDelegate5 dll = (DLLFunctionDelegate5)Marshal.GetDelegateForFunctionPointer(pProc, typeof(DLLFunctionDelegate5));
             return dll(ref data, ref result, cx);
         }

@@ -2,39 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
+using winPEAS.Native;
 
 namespace winPEAS.Info.ApplicationInfo
 {
     internal static class DeviceDrivers
     {
-        private class EnumAPI
-        {
-            [DllImport("psapi")]
-            public static extern bool EnumDeviceDrivers(
-                UIntPtr[] driversList,
-                UInt32 arraySizeBytes,
-                out UInt32 bytesNeeded
-            );
-
-            [DllImport("psapi")]
-            public static extern int GetDeviceDriverFileName(
-                UIntPtr baseAddr,
-                StringBuilder name,
-                UInt32 nameSize
-            );
-
-            [DllImport("psapi")]
-            public static extern int GetDeviceDriverBaseName(
-                UIntPtr baseAddr,
-                StringBuilder name,
-                UInt32 nameSize
-            );
-        }
-
         public static Dictionary<string, FileVersionInfo> GetDeviceDriversNoMicrosoft()
         {
             Dictionary<string, FileVersionInfo> results = new Dictionary<string, FileVersionInfo>();
@@ -48,20 +24,20 @@ namespace winPEAS.Info.ApplicationInfo
             string system32 = Environment.SystemDirectory;
 
             // Get a list of loaded kernel modules
-            EnumAPI.EnumDeviceDrivers(null, 0, out var neededBytes);
+            Psapi.EnumDeviceDrivers(null, 0, out var neededBytes);
             UIntPtr[] drivers = new UIntPtr[neededBytes / UIntPtr.Size];
-            EnumAPI.EnumDeviceDrivers(drivers, (UInt32)(drivers.Length * UIntPtr.Size), out neededBytes);
+            Psapi.EnumDeviceDrivers(drivers, (UInt32)(drivers.Length * UIntPtr.Size), out neededBytes);
 
             // iterate over modules
             foreach (UIntPtr baseAddr in drivers)
             {
                 StringBuilder buffer = new StringBuilder(1024);
-                EnumAPI.GetDeviceDriverBaseName(baseAddr, buffer, (UInt32)buffer.Capacity);
+                Psapi.GetDeviceDriverBaseName(baseAddr, buffer, (UInt32)buffer.Capacity);
                 if (ignoreGhosts.IsMatch(buffer.ToString()))
                 {
                     continue;
                 }
-                EnumAPI.GetDeviceDriverFileName(baseAddr, buffer, (UInt32)buffer.Capacity);
+                Psapi.GetDeviceDriverFileName(baseAddr, buffer, (UInt32)buffer.Capacity);
                 string pathname = buffer.ToString();
 
                 // GetDeviceDriverFileName can return a path in a various number of formats, below code tries to handle them.

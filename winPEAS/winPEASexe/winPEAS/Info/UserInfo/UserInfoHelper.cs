@@ -6,6 +6,8 @@ using System.Windows.Forms;
 using winPEAS.Helpers;
 using winPEAS.Info.UserInfo.SAM;
 using winPEAS.KnownFileCreds;
+using winPEAS.Native;
+using winPEAS.Native.Enums;
 
 //Configuring Fody: https://tech.trailmax.info/2014/01/bundling-all-your-assemblies-into-one-or-alternative-to-ilmerge/
 //I have also created the folder Costura32 and Costura64 with the respective Dlls of Colorful.Console
@@ -103,45 +105,10 @@ namespace winPEAS.Info.UserInfo
             Down,
             Init
         }
-        public enum WTS_INFO_CLASS
-        {
-            WTSInitialProgram = 0,
-            WTSApplicationName = 1,
-            WTSWorkingDirectory = 2,
-            WTSOEMId = 3,
-            WTSSessionId = 4,
-            WTSUserName = 5,
-            WTSWinStationName = 6,
-            WTSDomainName = 7,
-            WTSConnectState = 8,
-            WTSClientBuildNumber = 9,
-            WTSClientName = 10,
-            WTSClientDirectory = 11,
-            WTSClientProductId = 12,
-            WTSClientHardwareId = 13,
-            WTSClientAddress = 14,
-            WTSClientDisplay = 15,
-            WTSClientProtocolType = 16,
-            WTSIdleTime = 17,
-            WTSLogonTime = 18,
-            WTSIncomingBytes = 19,
-            WTSOutgoingBytes = 20,
-            WTSIncomingFrames = 21,
-            WTSOutgoingFrames = 22,
-            WTSClientInfo = 23,
-            WTSSessionInfo = 24,
-            WTSSessionInfoEx = 25,
-            WTSConfigInfo = 26,
-            WTSValidationInfo = 27,
-            WTSSessionAddressV4 = 28,
-            WTSIsRemoteSession = 29
-        }
-
-        [DllImport("wtsapi32.dll")]
-        static extern void WTSCloseServer(IntPtr hServer);
+       
         public static void CloseServer(IntPtr ServerHandle)
         {
-            WTSCloseServer(ServerHandle);
+            Wtsapi32.WTSCloseServer(ServerHandle);
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -152,14 +119,6 @@ namespace winPEAS.Info.UserInfo
             public byte[] Address;
         }
 
-        [DllImport("Wtsapi32.dll", SetLastError = true)]
-        static extern bool WTSQuerySessionInformation(
-            IntPtr hServer,
-            uint sessionId,
-            WTS_INFO_CLASS wtsInfoClass,
-            out IntPtr ppBuffer,
-            out uint pBytesReturned
-        );
 
         [StructLayout(LayoutKind.Sequential)]
         private struct WTS_SESSION_INFO_1
@@ -185,25 +144,12 @@ namespace winPEAS.Info.UserInfo
             [MarshalAs(UnmanagedType.LPStr)]
             public String pFarmName;
         }
-
-        [DllImport("wtsapi32.dll", SetLastError = true)]
-        static extern IntPtr WTSOpenServer([MarshalAs(UnmanagedType.LPStr)] String pServerName);
+       
         public static IntPtr OpenServer(String Name)
         {
-            IntPtr server = WTSOpenServer(Name);
+            IntPtr server = Wtsapi32.WTSOpenServer(Name);
             return server;
         }
-
-        [DllImport("wtsapi32.dll", SetLastError = true)]
-        static extern Int32 WTSEnumerateSessionsEx(
-            IntPtr hServer,
-            [MarshalAs(UnmanagedType.U4)] ref Int32 pLevel,
-            [MarshalAs(UnmanagedType.U4)] Int32 Filter,
-            ref IntPtr ppSessionInfo,
-            [MarshalAs(UnmanagedType.U4)] ref Int32 pCount);
-
-        [DllImport("wtsapi32.dll")]
-        static extern void WTSFreeMemory(IntPtr pMemory);
 
         public static List<Dictionary<string, string>> GetRDPSessions()
         {
@@ -219,7 +165,7 @@ namespace winPEAS.Info.UserInfo
 
                 Int32 count = 0;
                 Int32 level = 1;
-                Int32 retval = WTSEnumerateSessionsEx(server, ref level, 0, ref ppSessionInfo, ref count);
+                Int32 retval = Wtsapi32.WTSEnumerateSessionsEx(server, ref level, 0, ref ppSessionInfo, ref count);
                 Int32 dataSize = Marshal.SizeOf(typeof(WTS_SESSION_INFO_1));
                 Int64 current = (Int64)ppSessionInfo;
 
@@ -244,7 +190,7 @@ namespace winPEAS.Info.UserInfo
                         IntPtr addressPtr = IntPtr.Zero;
                         uint bytes = 0;
 
-                        WTSQuerySessionInformation(server, (uint)si.SessionID, WTS_INFO_CLASS.WTSClientAddress, out addressPtr, out bytes);
+                        Wtsapi32.WTSQuerySessionInformation(server, (uint)si.SessionID, WTS_INFO_CLASS.WTSClientAddress, out addressPtr, out bytes);
                         WTS_CLIENT_ADDRESS address = (WTS_CLIENT_ADDRESS)Marshal.PtrToStructure((System.IntPtr)addressPtr, typeof(WTS_CLIENT_ADDRESS));
 
                         if (address.Address[2] != 0)
@@ -254,7 +200,8 @@ namespace winPEAS.Info.UserInfo
                         }
                         results.Add(rdp_session);
                     }
-                    WTSFreeMemory(ppSessionInfo);
+
+                    Wtsapi32.WTSFreeMemory(ppSessionInfo);
                 }
             }
             catch (Exception ex)

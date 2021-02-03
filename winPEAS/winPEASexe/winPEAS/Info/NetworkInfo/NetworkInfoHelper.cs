@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using winPEAS.Helpers;
 using winPEAS.Info.NetworkInfo.Enums;
 using winPEAS.Info.NetworkInfo.Structs;
+using winPEAS.Native;
 
 namespace winPEAS.Info.NetworkInfo
 {
@@ -16,22 +17,7 @@ namespace winPEAS.Info.NetworkInfo
     {
         // https://docs.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-socket
         private const int AF_INET = 2;
-        private const int AF_INET6 = 23;
-
-        [DllImport("iphlpapi.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern uint GetExtendedTcpTable(IntPtr pTcpTable, ref int pdwSize,
-            bool bOrder, int ulAf, TcpTableClass tableClass, uint reserved = 0);
-
-        [DllImport("iphlpapi.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern uint GetExtendedUdpTable(IntPtr pUdpTable, ref int pdwSize,
-            bool bOrder, int ulAf, UdpTableClass tableClass, uint reserved = 0);
-
-        [DllImport("IpHlpApi.dll")]
-        [return: MarshalAs(UnmanagedType.U4)]
-        internal static extern int GetIpNetTable(IntPtr pIpNetTable, [MarshalAs(UnmanagedType.U4)]ref int pdwSize, bool bOrder);
-
-        [DllImport("IpHlpApi.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        internal static extern int FreeMibTable(IntPtr plpNetTable);
+        private const int AF_INET6 = 23;       
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct MIB_IPNETROW
@@ -125,7 +111,7 @@ namespace winPEAS.Info.NetworkInfo
 
                 int bytesNeeded = 0;
 
-                int result = GetIpNetTable(IntPtr.Zero, ref bytesNeeded, false);
+                int result = Iphlpapi.GetIpNetTable(IntPtr.Zero, ref bytesNeeded, false);
 
                 // call the function, expecting an insufficient buffer.
                 if (result != ERROR_INSUFFICIENT_BUFFER)
@@ -138,7 +124,7 @@ namespace winPEAS.Info.NetworkInfo
                 // allocate sufficient memory for the result structure
                 buffer = Marshal.AllocCoTaskMem(bytesNeeded);
 
-                result = GetIpNetTable(buffer, ref bytesNeeded, false);
+                result = Iphlpapi.GetIpNetTable(buffer, ref bytesNeeded, false);
 
                 if (result != 0)
                 {
@@ -181,7 +167,7 @@ namespace winPEAS.Info.NetworkInfo
                     adapters[arpEntry.dwIndex]["arp"] += $"          {ipAddr,-22}{physAddr,-22}{entryType}\n";
                 }
 
-                FreeMibTable(buffer);
+                Iphlpapi.FreeMibTable(buffer);
             }
             catch (Exception ex)
             {
@@ -326,7 +312,7 @@ namespace winPEAS.Info.NetworkInfo
             }
 
             // Getting the initial size of TCP table.
-            uint result = GetExtendedTcpTable(IntPtr.Zero, ref bufferSize, true, ulAf, TcpTableClass.TCP_TABLE_OWNER_PID_ALL);
+            uint result = Iphlpapi.GetExtendedTcpTable(IntPtr.Zero, ref bufferSize, true, ulAf, TcpTableClass.TCP_TABLE_OWNER_PID_ALL);
 
             // Allocating memory as an IntPtr with the bufferSize.
             IntPtr tcpTableRecordsPtr = Marshal.AllocHGlobal(bufferSize);
@@ -335,7 +321,7 @@ namespace winPEAS.Info.NetworkInfo
             {
                 // The IntPtr from last call, tcpTableRecoresPtr must be used in the subsequent
                 // call and passed as the first parameter.
-                result = GetExtendedTcpTable(tcpTableRecordsPtr, ref bufferSize, true, ulAf, TcpTableClass.TCP_TABLE_OWNER_PID_ALL);
+                result = Iphlpapi.GetExtendedTcpTable(tcpTableRecordsPtr, ref bufferSize, true, ulAf, TcpTableClass.TCP_TABLE_OWNER_PID_ALL);
 
                 // If not zero, the call failed.
                 if (result != 0)
@@ -438,7 +424,7 @@ namespace winPEAS.Info.NetworkInfo
             }
 
             // Getting the initial size of UDP table.
-            uint result = GetExtendedUdpTable(IntPtr.Zero, ref bufferSize, true, ulAf, UdpTableClass.UDP_TABLE_OWNER_PID);
+            uint result = Iphlpapi.GetExtendedUdpTable(IntPtr.Zero, ref bufferSize, true, ulAf, UdpTableClass.UDP_TABLE_OWNER_PID);
 
             // Allocating memory as an IntPtr with the bufferSize.
             IntPtr udpTableRecordsPtr = Marshal.AllocHGlobal(bufferSize);
@@ -447,7 +433,7 @@ namespace winPEAS.Info.NetworkInfo
             {
                 // The IntPtr from last call, udpTableRecoresPtr must be used in the subsequent
                 // call and passed as the first parameter.
-                result = GetExtendedUdpTable(udpTableRecordsPtr, ref bufferSize, true, ulAf, UdpTableClass.UDP_TABLE_OWNER_PID);
+                result = Iphlpapi.GetExtendedUdpTable(udpTableRecordsPtr, ref bufferSize, true, ulAf, UdpTableClass.UDP_TABLE_OWNER_PID);
 
                 // If not zero, call failed.
                 if (result != 0)

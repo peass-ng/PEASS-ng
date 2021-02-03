@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using winPEAS.Helpers;
 using winPEAS.Helpers.CredentialManager;
 using winPEAS.KnownFileCreds;
 using winPEAS.KnownFileCreds.Kerberos;
+using winPEAS.KnownFileCreds.SecurityPackages;
 using winPEAS.KnownFileCreds.Vault;
 using winPEAS.Wifi.NativeWifiApi;
 
@@ -19,8 +21,8 @@ namespace winPEAS.Checks
             
             new List<Action>
             {
-                PrintvaultCreds,
-                PrintCredManag,
+                PrintVaultCreds,
+                PrintCredentialManager,
                 PrintSavedRDPInfo,
                 PrintRecentRunCommands,
                 PrintDPAPIMasterKeys,
@@ -31,23 +33,24 @@ namespace winPEAS.Checks
                 PrintWifi,
                 PrintAppCmd,
                 PrintSCClient,
-                PrintSCCM
+                PrintSCCM,
+                PrintSecurityPackagesCredentials,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
-        static void PrintvaultCreds()
+        private static void PrintVaultCreds()
         {
             try
             {
                 Beaprint.MainPrint("Checking Windows Vault");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-manager-windows-vault");
-                List<Dictionary<string, string>> vault_creds = VaultCli.DumpVault();
+                var vaultCreds = VaultCli.DumpVault();
 
-                Dictionary<string, string> colorsC = new Dictionary<string, string>()
+                var colorsC = new Dictionary<string, string>()
                 {
                     { "Identity.*|Credential.*|Resource.*", Beaprint.ansi_color_bad },
                 };
-                Beaprint.DictPrint(vault_creds, colorsC, true, true);
+                Beaprint.DictPrint(vaultCreds, colorsC, true, true);
             }
             catch (Exception ex)
             {
@@ -55,13 +58,13 @@ namespace winPEAS.Checks
             }
         }
 
-        static void PrintCredManag()
+        private static void PrintCredentialManager()
         {
             try
             {
                 Beaprint.MainPrint("Checking Credential manager");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-manager-windows-vault");
-                if (winPEAS.Checks.Checks.ExecCmd)
+                if (Checks.ExecCmd)
                 {
                     Dictionary<string, string> colorsC = new Dictionary<string, string>()
                     {
@@ -137,7 +140,7 @@ namespace winPEAS.Checks
             }
         }
 
-        static void PrintRecentRunCommands()
+        private static void PrintRecentRunCommands()
         {
             try
             {
@@ -151,16 +154,17 @@ namespace winPEAS.Checks
             }
         }
 
-        static void PrintDPAPIMasterKeys()
+        private static void PrintDPAPIMasterKeys()
         {
             try
             {
                 Beaprint.MainPrint("Checking for DPAPI Master Keys");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#dpapi");
-                List<Dictionary<string, string>> master_keys = KnownFileCredsInfo.ListMasterKeys();
-                if (master_keys.Count != 0)
+                var masterKeys = KnownFileCredsInfo.ListMasterKeys();
+
+                if (masterKeys.Count != 0)
                 {
-                    Beaprint.DictPrint(master_keys, true);
+                    Beaprint.DictPrint(masterKeys, true);
 
                     if (MyUtils.IsHighIntegrity())
                     {
@@ -178,15 +182,16 @@ namespace winPEAS.Checks
             }
         }
 
-        static void PrintDpapiCredFiles()
+        private static void PrintDpapiCredFiles()
         {
             try
             {
                 Beaprint.MainPrint("Checking for DPAPI Credential Files");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#dpapi");
-                List<Dictionary<string, string>> cred_files = KnownFileCredsInfo.GetCredFiles();
-                Beaprint.DictPrint(cred_files, false);
-                if (cred_files.Count != 0)
+                var credFiles = KnownFileCredsInfo.GetCredFiles();
+                Beaprint.DictPrint(credFiles, false);
+                
+                if (credFiles.Count != 0)
                 {
                     Beaprint.InfoPrint("Follow the provided link for further instructions in how to decrypt the creds file");
                 }
@@ -197,15 +202,17 @@ namespace winPEAS.Checks
             }
         }
 
-        static void PrintRCManFiles()
+        private static void PrintRCManFiles()
         {
             try
             {
                 Beaprint.MainPrint("Checking for RDCMan Settings Files");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#remote-desktop-credential-manager", "Dump credentials from Remote Desktop Connection Manager");
-                List<Dictionary<string, string>> rdc_files = RemoteDesktop.GetRDCManFiles();
-                Beaprint.DictPrint(rdc_files, false);
-                if (rdc_files.Count != 0)
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#remote-desktop-credential-manager", 
+                    "Dump credentials from Remote Desktop Connection Manager");
+                var rdcFiles = RemoteDesktop.GetRDCManFiles();
+                Beaprint.DictPrint(rdcFiles, false);
+                
+                if (rdcFiles.Count != 0)
                 {
                     Beaprint.InfoPrint("Follow the provided link for further instructions in how to decrypt the .rdg file");
                 }
@@ -216,14 +223,15 @@ namespace winPEAS.Checks
             }
         }
 
-        static void PrintKerberosTickets()
+        private static void PrintKerberosTickets()
         {
             try
             {
-                Beaprint.MainPrint("Looking for kerberos tickets");
+                Beaprint.MainPrint("Looking for Kerberos tickets");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88");
-                List<Dictionary<string, string>> kerberos_tckts = Kerberos.ListKerberosTickets();
-                Beaprint.DictPrint(kerberos_tckts, false);
+                var kerberosTickets = Kerberos.ListKerberosTickets();
+
+                Beaprint.DictPrint(kerberosTickets, false);
             }
             catch (Exception ex)
             {
@@ -231,13 +239,13 @@ namespace winPEAS.Checks
             }
         }
 
-        static void PrintKerberosTGTTickets()
+        private static void PrintKerberosTGTTickets()
         {
             try
             {
-                Beaprint.MainPrint("Looking for kerberos TGT tickets");
-                List<Dictionary<string, string>> kerberos_tgts = Kerberos.GetKerberosTGTData();
-                Beaprint.DictPrint(kerberos_tgts, false);
+                Beaprint.MainPrint("Looking for Kerberos TGT tickets");
+                var kerberosTgts = Kerberos.GetKerberosTGTData();
+                Beaprint.DictPrint(kerberosTgts, false);
             }
             catch (Exception ex)
             {
@@ -245,12 +253,12 @@ namespace winPEAS.Checks
             }
         }
 
-        static void PrintWifi()
+        private static void PrintWifi()
         {
             try
             {
                 Beaprint.MainPrint("Looking for saved Wifi credentials");
-                if (winPEAS.Checks.Checks.ExecCmd)
+                if (Checks.ExecCmd)
                 {
                     Dictionary<string, string> networkConnections = Wifi.Wifi.Retrieve();
                     Dictionary<string, string> ansi_colors_regexp = new Dictionary<string, string>();
@@ -264,16 +272,17 @@ namespace winPEAS.Checks
                 }
                 else
                 {
-                    foreach (var iface in new WlanClient().Interfaces)
+                    foreach (var @interface in new WlanClient().Interfaces)
                     {
-                        foreach (var profile in iface.GetProfiles())
+                        foreach (var profile in @interface.GetProfiles())
                         {
-                            var xml = iface.GetProfileXml(profile.profileName);
+                            var xml = @interface.GetProfileXml(profile.profileName);
 
                             XmlDocument xDoc = new XmlDocument();
                             xDoc.LoadXml(xml);
 
                             var keyMaterial = xDoc.GetElementsByTagName("keyMaterial");
+
                             if (keyMaterial.Count > 0)
                             {
                                 string password = keyMaterial[0].InnerText;
@@ -290,15 +299,17 @@ namespace winPEAS.Checks
             }
         }
 
-        static void PrintAppCmd()
+        private static void PrintAppCmd()
         {
             try
             {
                 Beaprint.MainPrint("Looking AppCmd.exe");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#appcmd-exe");
+                
                 if (File.Exists(Environment.ExpandEnvironmentVariables(@"%systemroot%\system32\inetsrv\appcmd.exe")))
                 {
-                    Beaprint.BadPrint("    AppCmd.exe was found in " + Environment.ExpandEnvironmentVariables(@"%systemroot%\system32\inetsrv\appcmd.exe You should try to search for credentials"));
+                    Beaprint.BadPrint("    AppCmd.exe was found in " + 
+                                      Environment.ExpandEnvironmentVariables(@"%systemroot%\system32\inetsrv\appcmd.exe You should try to search for credentials"));
                 }
                 else
                 {
@@ -311,12 +322,13 @@ namespace winPEAS.Checks
             }
         }
 
-        static void PrintSCClient()
+        private static void PrintSCClient()
         {
             try
             {
                 Beaprint.MainPrint("Looking SSClient.exe");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#scclient-sccm");
+                
                 if (File.Exists(Environment.ExpandEnvironmentVariables(@"%systemroot%\Windows\CCM\SCClient.exe")))
                 {
                     Beaprint.BadPrint("    SCClient.exe was found in " + Environment.ExpandEnvironmentVariables(@"%systemroot%\Windows\CCM\SCClient.exe DLL Side loading?"));
@@ -346,13 +358,45 @@ namespace winPEAS.Checks
                 if (!string.IsNullOrEmpty(server) || !string.IsNullOrEmpty(siteCode) || !string.IsNullOrEmpty(productVersion) || !string.IsNullOrEmpty(lastSuccessfulInstallParams))
                 {
                     Beaprint.NoColorPrint($"     Server:                            {server}\n" +
-                                          $"     Site code:                         {siteCode}" +
-                                          $"     Product version:                   {productVersion}" +
-                                          $"     Last Successful Install Params:    {lastSuccessfulInstallParams}");
+                                                 $"     Site code:                         {siteCode}\n" +
+                                                 $"     Product version:                   {productVersion}\n" +
+                                                 $"     Last Successful Install Params:    {lastSuccessfulInstallParams}\n");
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintSecurityPackagesCredentials()
+        {
+            Beaprint.MainPrint("Enumerating Security Packages Credentials");
+
+            try
+            {
+                var credentials = (SecurityPackages.GetNtlmCredentials() ?? Enumerable.Empty<NtlmHashInfo>()).ToList();
+
+                if (credentials.Any())
+                {
+                    foreach (var credential in credentials)
+                    {
+                        if (credential != null)
+                        {
+                            Beaprint.BadPrint($"  Version: {credential.Version}\n" +
+                                              $"  Hash:    {credential.Hash}\n");
+                            Beaprint.PrintLineSeparator();
+                        }
+                    }
+                }
+                else
+                {
+                    Beaprint.GoodPrint("  The NTLM security package does not contain any credentials.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
             }
         }
     }

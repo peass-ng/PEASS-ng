@@ -51,12 +51,14 @@ namespace winPEAS._3rdParty.SQLite.src
       {
         Debug.Assert( length == SHARED_SIZE );
         Debug.Assert( offset == SHARED_FIRST );
-        System.Threading.NativeOverlapped ovlp = new System.Threading.NativeOverlapped();
-        ovlp.OffsetLow = (int)offset;
-        ovlp.OffsetHigh = 0;
-        ovlp.EventHandle = IntPtr.Zero;
+                NativeOverlapped ovlp = new System.Threading.NativeOverlapped
+                {
+                    OffsetLow = (int)offset,
+                    OffsetHigh = 0,
+                    EventHandle = IntPtr.Zero
+                };
 
-        return LockFileEx( pFile.fs.Handle, LOCKFILE_FAIL_IMMEDIATELY, 0, (uint)length, 0, ref ovlp ) ? 1 : 0;
+                return LockFileEx( pFile.fs.Handle, LOCKFILE_FAIL_IMMEDIATELY, 0, (uint)length, 0, ref ovlp ) ? 1 : 0;
       }
 
       public virtual void UnlockFile( sqlite3_file pFile, long offset, long length )
@@ -2054,8 +2056,8 @@ return SQLITE_OK;
       int bytesPerSector = SQLITE_DEFAULT_SECTOR_SIZE;
       StringBuilder zFullpath = new StringBuilder( MAX_PATH + 1 );
       int rc;
-      bool dwRet = false;
-      int dwDummy = 0;
+//      bool dwRet = false;
+//      int dwDummy = 0;
 
       /*
       ** We need to get the full path name of the file
@@ -2273,7 +2275,7 @@ n += sizeof( long );
 */
     static int winCurrentTime( sqlite3_vfs pVfs, ref double prNow )
     {
-      FILETIME ft = new FILETIME();
+      //FILETIME ft = new FILETIME();
       /* FILETIME structure is a 64-bit value representing the number of
       100-nanosecond intervals since January 1, 1601 (= JD 2305813.5).
       */

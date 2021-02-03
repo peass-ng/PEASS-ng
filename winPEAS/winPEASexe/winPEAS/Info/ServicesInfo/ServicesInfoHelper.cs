@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using winPEAS.Helpers;
 using winPEAS.KnownFileCreds;
+using winPEAS.Native;
 
 namespace winPEAS.Info.ServicesInfo
 {
@@ -164,19 +165,7 @@ namespace winPEAS.Info.ServicesInfo
             }
             return results;
         }
-
-
-        //////////////////////////////////////////
-        ///////  Find Modifiable Services ////////
-        //////////////////////////////////////////
-        /// Find services that you can modify using PS os sc for example
-        [DllImport("advapi32.dll", SetLastError = true)]
-        static extern bool QueryServiceObjectSecurity(
-            IntPtr serviceHandle,
-            System.Security.AccessControl.SecurityInfos secInfo,
-            byte[] lpSecDesrBuf,
-            uint bufSize,
-            out uint bufSizeNeeded);
+       
         public static Dictionary<string, string> GetModifiableServices(Dictionary<string, string> SIDs)
         {
             Dictionary<string, string> results = new Dictionary<string, string>();
@@ -194,7 +183,7 @@ namespace winPEAS.Info.ServicesInfo
                     IntPtr handle = (IntPtr)GetServiceHandle.Invoke(sc, readRights);
                     ServiceControllerStatus status = sc.Status;
                     byte[] psd = new byte[0];
-                    bool ok = QueryServiceObjectSecurity(handle, SecurityInfos.DiscretionaryAcl, psd, 0, out uint bufSizeNeeded);
+                    bool ok = Advapi32.QueryServiceObjectSecurity(handle, SecurityInfos.DiscretionaryAcl, psd, 0, out uint bufSizeNeeded);
                     if (!ok)
                     {
                         int err = Marshal.GetLastWin32Error();
@@ -202,7 +191,7 @@ namespace winPEAS.Info.ServicesInfo
                         { // ERROR_INSUFFICIENT_BUFFER
                           // expected; now we know bufsize
                             psd = new byte[bufSizeNeeded];
-                            ok = QueryServiceObjectSecurity(handle, SecurityInfos.DiscretionaryAcl, psd, bufSizeNeeded, out bufSizeNeeded);
+                            ok = Advapi32.QueryServiceObjectSecurity(handle, SecurityInfos.DiscretionaryAcl, psd, bufSizeNeeded, out bufSizeNeeded);
                         }
                         else
                         {

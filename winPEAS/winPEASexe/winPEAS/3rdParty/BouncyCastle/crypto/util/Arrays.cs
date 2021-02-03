@@ -149,7 +149,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
             return HaveSameContents(a, b);
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static bool AreEqual(uint[] a, uint[] b)
         {
             if (a == b)
@@ -172,7 +172,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
             return HaveSameContents(a, b);
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static bool AreEqual(ulong[] a, ulong[] b)
         {
             if (a == b)
@@ -378,7 +378,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
             return hc;
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static int GetHashCode(uint[] data)
         {
             if (data == null)
@@ -396,7 +396,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
             return hc;
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static int GetHashCode(uint[] data, int off, int len)
         {
             if (data == null)
@@ -414,7 +414,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
             return hc;
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static int GetHashCode(ulong[] data)
         {
             if (data == null)
@@ -435,7 +435,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
             return hc;
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static int GetHashCode(ulong[] data, int off, int len)
         {
             if (data == null)
@@ -471,7 +471,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
             return data == null ? null : (int[])data.Clone();
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static uint[] Clone(uint[] data)
         {
             return data == null ? null : (uint[])data.Clone();
@@ -482,7 +482,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
             return data == null ? null : (long[])data.Clone();
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static ulong[] Clone(ulong[] data)
         {
             return data == null ? null : (ulong[])data.Clone();
@@ -498,7 +498,7 @@ namespace winPEAS._3rdParty.BouncyCastle.crypto.util
             return existing;
         }
 
-        [CLSCompliant(false)]
+        //[CLSCompliant(false)]
         public static ulong[] Clone(ulong[] data, ulong[] existing)
         {
             if (data == null)

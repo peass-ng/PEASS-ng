@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.KnownFileCreds.Kerberos;
+using winPEAS.Native;
+using winPEAS.Native.Enums;
 
 namespace winPEAS.Info.UserInfo.LogonSessions
 {
@@ -26,12 +28,12 @@ namespace winPEAS.Info.UserInfo.LogonSessions
         {
             var systime = new DateTime(1601, 1, 1, 0, 0, 0, 0); //win32 systemdate
 
-            var ret = KnownFileCreds.Kerberos.Helpers.LsaEnumerateLogonSessions(out var count, out var luidPtr);  // get an array of pointers to LUIDs
+            var ret = Secur32.LsaEnumerateLogonSessions(out var count, out var luidPtr);  // get an array of pointers to LUIDs
 
             for (ulong i = 0; i < count; i++)
             {
                 // TODO: Check return value
-                ret = KnownFileCreds.Kerberos.Helpers.LsaGetLogonSessionData(luidPtr, out var sessionData);
+                ret = Secur32.LsaGetLogonSessionData(luidPtr, out var sessionData);
                 var data = (SECURITY_LOGON_SESSION_DATA)Marshal.PtrToStructure(sessionData, typeof(SECURITY_LOGON_SESSION_DATA));
 
                 // if we have a valid logon
@@ -90,9 +92,9 @@ namespace winPEAS.Info.UserInfo.LogonSessions
 
                 // move the pointer forward
                 luidPtr = (IntPtr)((long)luidPtr.ToInt64() + Marshal.SizeOf(typeof(LUID)));
-                KnownFileCreds.Kerberos.Helpers.LsaFreeReturnBuffer(sessionData);
+                Secur32.LsaFreeReturnBuffer(sessionData);
             }
-            KnownFileCreds.Kerberos.Helpers.LsaFreeReturnBuffer(luidPtr);
+            Secur32.LsaFreeReturnBuffer(luidPtr);
         }
 
         private static IEnumerable<LogonSessionsInfo> GetLogonSessionsInfoWMI()

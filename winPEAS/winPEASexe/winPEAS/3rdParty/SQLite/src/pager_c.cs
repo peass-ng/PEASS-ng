@@ -2252,7 +2252,7 @@ CODEC1(pPager, pData, pPg.pgno, 3, rc=SQLITE_NOMEM);
                 }
             }
             /*NOTREACHED*/
-            Debugger.Break();
+            //Debugger.Break();
 
         end_playback:
             /* Following a rollback, the database file should be back in its original

@@ -4,54 +4,20 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using winPEAS.Native;
+using winPEAS.Native.Enums;
 
 namespace winPEAS.Info.SystemInfo.Printers
 {
     internal class Printers
-    {
-        [DllImport("advapi32.dll", EntryPoint = "GetNamedSecurityInfoW", CharSet = CharSet.Unicode)]
-        public static extern int GetNamedSecurityInfo(
-            string objectName,
-            SE_OBJECT_TYPE objectType,
-            SecurityInfos securityInfo,
-            out IntPtr sidOwner,
-            out IntPtr sidGroup,
-            out IntPtr dacl,
-            out IntPtr sacl,
-            out IntPtr securityDescriptor);
-
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ConvertSecurityDescriptorToStringSecurityDescriptor(
-           IntPtr SecurityDescriptor,
-           uint StringSDRevision,
-           SecurityInfos SecurityInformation,
-           out IntPtr StringSecurityDescriptor,
-           out int StringSecurityDescriptorSize);
-
+    {       
         [StructLayout(LayoutKind.Sequential)]
         public struct SECURITY_INFOS
         {
             public string Owner;
             public RawSecurityDescriptor SecurityDescriptor;
             public string SDDL;
-        }
-
-        public enum SE_OBJECT_TYPE
-        {
-            SE_UNKNOWN_OBJECT_TYPE = 0,
-            SE_FILE_OBJECT,
-            SE_SERVICE,
-            SE_PRINTER,
-            SE_REGISTRY_KEY,
-            SE_LMSHARE,
-            SE_KERNEL_OBJECT,
-            SE_WINDOW_OBJECT,
-            SE_DS_OBJECT,
-            SE_DS_OBJECT_ALL,
-            SE_PROVIDER_DEFINED_OBJECT,
-            SE_WMIGUID_OBJECT,
-            SE_REGISTRY_WOW64_32KEY
-        }
+        }       
 
         public static IEnumerable<PrinterInfo> GetPrinterWMIInfos()
         {
@@ -65,21 +31,21 @@ namespace winPEAS.Info.SystemInfo.Printers
                     {
                         var isDefault = (bool)printer.GetPropertyValue("Default");
                         var isNetworkPrinter = (bool)printer.GetPropertyValue("Network");
-                        string printerSDDL = null;
+                        string printerSddl = null;
                         var printerName = $"{printer.GetPropertyValue("Name")}";
                         var status = $"{printer.GetPropertyValue("Status")}";
 
                         try
                         {
                             var info = GetSecurityInfos(printerName, SE_OBJECT_TYPE.SE_PRINTER);
-                            printerSDDL = info.SDDL;
+                            printerSddl = info.SDDL;
                         }
                         catch { }
 
-                       result.Add(new PrinterInfo(
+                        result.Add(new PrinterInfo(
                             printerName,
                             status,
-                            printerSDDL,
+                            printerSddl,
                             isDefault,
                             isNetworkPrinter
                         ));
@@ -105,13 +71,13 @@ namespace winPEAS.Info.SystemInfo.Printers
             var infos = new SECURITY_INFOS();
 
             // get the security infos
-            var errorReturn = GetNamedSecurityInfo(ObjectName, ObjectType, info, out pSidOwner, out pSidGroup, out pDacl, out pSacl, out pSecurityDescriptor);
+            var errorReturn = Advapi32.GetNamedSecurityInfo(ObjectName, ObjectType, info, out pSidOwner, out pSidGroup, out pDacl, out pSacl, out pSecurityDescriptor);
             if (errorReturn != 0)
             {
                 return infos;
             }
 
-            if (ConvertSecurityDescriptorToStringSecurityDescriptor(pSecurityDescriptor, 1, SecurityInfos.DiscretionaryAcl | SecurityInfos.Owner, out var pSddlString, out _))
+            if (Advapi32.ConvertSecurityDescriptorToStringSecurityDescriptor(pSecurityDescriptor, 1, SecurityInfos.DiscretionaryAcl | SecurityInfos.Owner, out var pSddlString, out _))
             {
                 infos.SDDL = Marshal.PtrToStringUni(pSddlString) ?? string.Empty;
             }

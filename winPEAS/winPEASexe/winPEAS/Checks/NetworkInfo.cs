@@ -36,7 +36,7 @@ namespace winPEAS.Checks
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
-        void PrintNetShares()
+        private void PrintNetShares()
         {
             try
             {
@@ -65,7 +65,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintHostsFile()
+        private void PrintHostsFile()
         {
             try
             {
@@ -86,7 +86,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintNetworkIfaces()
+        private void PrintNetworkIfaces()
         {
             try
             {
@@ -111,7 +111,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintListeningPorts()
+        private void PrintListeningPorts()
         {
             Process[] processes = Process.GetProcesses();
             Dictionary<int, Process> processesByPid = processes.ToDictionary(k => k.Id, v => v);
@@ -120,7 +120,7 @@ namespace winPEAS.Checks
             PrintListeningPortsUdp(processesByPid);
         }
 
-        void PrintListeningPortsTcp(Dictionary<int, Process> processesByPid)
+        private void PrintListeningPortsTcp(Dictionary<int, Process> processesByPid)
         {
             Beaprint.MainPrint("Current TCP Listening Ports");
             Beaprint.LinkPrint("", "Check for services restricted from the outside");
@@ -196,7 +196,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintListeningPortsUdp(Dictionary<int, Process> processesByPid)
+        private void PrintListeningPortsUdp(Dictionary<int, Process> processesByPid)
         {
             Beaprint.MainPrint("Current UDP Listening Ports");
             Beaprint.LinkPrint("", "Check for services restricted from the outside");
@@ -268,7 +268,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintFirewallRules()
+        private void PrintFirewallRules()
         {
             try
             {
@@ -315,7 +315,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintDNSCache()
+        private void PrintDNSCache()
         {
             try
             {

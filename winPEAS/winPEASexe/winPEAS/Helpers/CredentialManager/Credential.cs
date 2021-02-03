@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Permissions;
 using System.Text;
+using winPEAS.Native;
+using winPEAS.Native.Enums;
 
 namespace winPEAS.Helpers.CredentialManager
 {
@@ -350,7 +352,7 @@ namespace winPEAS.Helpers.CredentialManager
 
             IntPtr credPointer;
 
-            var result = NativeMethods.CredRead(Target, Type, 0, out credPointer);
+            var result = Advapi32.CredRead(Target, Type, 0, out credPointer);
             if (!result)
                 return false;
 

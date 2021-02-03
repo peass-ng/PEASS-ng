@@ -3,26 +3,21 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using winPEAS.Helpers;
+using winPEAS.Native;
 using winPEAS.TaskScheduler;
 
 namespace winPEAS.Info.ApplicationInfo
 {
     internal class ApplicationInfoHelper
     {
-        // https://stackoverflow.com/questions/115868/how-do-i-get-the-title-of-the-current-active-window-using-c
-        [DllImport("user32.dll")]
-        static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll")]
-        static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
-
+        
         public static string GetActiveWindowTitle()
         {
             const int nChars = 256;
             StringBuilder buff = new StringBuilder(nChars);
-            IntPtr handle = GetForegroundWindow();
+            IntPtr handle = User32.GetForegroundWindow();
 
-            if (GetWindowText(handle, buff, nChars) > 0)
+            if (User32.GetWindowText(handle, buff, nChars) > 0)
             {
                 return buff.ToString();
             }

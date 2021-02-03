@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using winPEAS.Helpers;
+using winPEAS.Native;
+using winPEAS.Native.Enums;
 
 namespace winPEAS.KnownFileCreds.Kerberos
 {
@@ -38,7 +40,7 @@ namespace winPEAS.KnownFileCreds.Kerberos
                 // should now have the proper privileges to get a Handle to LSA
                 hLsa = Helpers.LsaRegisterLogonProcessHelper();
                 // we don't need our NT AUTHORITY\SYSTEM Token anymore so we can revert to our original token
-                Helpers.RevertToSelf();
+                Advapi32.RevertToSelf();
             }
 
             try
@@ -50,12 +52,12 @@ namespace winPEAS.KnownFileCreds.Kerberos
                 IntPtr luidPtr = IntPtr.Zero;
                 IntPtr iter = luidPtr;
 
-                uint ret = Helpers.LsaEnumerateLogonSessions(out count, out luidPtr);  // get an array of pointers to LUIDs
+                uint ret = Secur32.LsaEnumerateLogonSessions(out count, out luidPtr);  // get an array of pointers to LUIDs
 
                 for (ulong i = 0; i < count; i++)
                 {
                     IntPtr sessionData;
-                    ret = Helpers.LsaGetLogonSessionData(luidPtr, out sessionData);
+                    ret = Secur32.LsaGetLogonSessionData(luidPtr, out sessionData);
                     SECURITY_LOGON_SESSION_DATA data = (SECURITY_LOGON_SESSION_DATA)Marshal.PtrToStructure(sessionData, typeof(SECURITY_LOGON_SESSION_DATA));
 
                     // if we have a valid logon
@@ -92,7 +94,7 @@ namespace winPEAS.KnownFileCreds.Kerberos
                         KERB_TICKET_CACHE_INFO ticket;
 
                         // obtains the unique identifier for the kerberos authentication package.
-                        retCode = Helpers.LsaLookupAuthenticationPackage(hLsa, ref LSAString, out authPack);
+                        retCode = Secur32.LsaLookupAuthenticationPackage(hLsa, ref LSAString, out authPack);
 
                         // input object for querying the ticket cache for a specific logon ID
                         LUID userLogonID = new LUID();
@@ -102,7 +104,7 @@ namespace winPEAS.KnownFileCreds.Kerberos
                         tQuery.MessageType = KERB_PROTOCOL_MESSAGE_TYPE.KerbQueryTicketCacheMessage;
 
                         // query LSA, specifying we want the ticket cache
-                        retCode = Helpers.LsaCallAuthenticationPackage(hLsa, authPack, ref tQuery, Marshal.SizeOf(tQuery), out ticketPointer, out returnBufferLength, out protocalStatus);
+                        retCode = Secur32.LsaCallAuthenticationPackage(hLsa, authPack, ref tQuery, Marshal.SizeOf(tQuery), out ticketPointer, out returnBufferLength, out protocalStatus);
 
                         /*Console.WriteLine("\r\n  UserName                 : {0}", username);
                         Console.WriteLine("  Domain                   : {0}", domain);
@@ -162,12 +164,12 @@ namespace winPEAS.KnownFileCreds.Kerberos
                     }
                     // move the pointer forward
                     luidPtr = (IntPtr)((long)luidPtr.ToInt64() + Marshal.SizeOf(typeof(LUID)));
-                    Helpers.LsaFreeReturnBuffer(sessionData);
+                    Secur32.LsaFreeReturnBuffer(sessionData);
                 }
-                Helpers.LsaFreeReturnBuffer(luidPtr);
+                Secur32.LsaFreeReturnBuffer(luidPtr);
 
                 // disconnect from LSA
-                Helpers.LsaDeregisterLogonProcess(hLsa);
+                Secur32.LsaDeregisterLogonProcess(hLsa);
             }
             catch (Exception ex)
             {
@@ -203,21 +205,21 @@ namespace winPEAS.KnownFileCreds.Kerberos
 
                 // If we want to look at tickets from a session other than our own
                 // then we need to use LsaRegisterLogonProcess instead of LsaConnectUntrusted
-                retCode = Helpers.LsaConnectUntrusted(out lsaHandle);
+                retCode = Secur32.LsaConnectUntrusted(out lsaHandle);
 
                 KERB_QUERY_TKT_CACHE_REQUEST tQuery = new KERB_QUERY_TKT_CACHE_REQUEST();
                 KERB_QUERY_TKT_CACHE_RESPONSE tickets = new KERB_QUERY_TKT_CACHE_RESPONSE();
                 KERB_TICKET_CACHE_INFO ticket;
 
                 // obtains the unique identifier for the kerberos authentication package.
-                retCode = Helpers.LsaLookupAuthenticationPackage(lsaHandle, ref LSAString, out authPack);
+                retCode = Secur32.LsaLookupAuthenticationPackage(lsaHandle, ref LSAString, out authPack);
 
                 // input object for querying the ticket cache (https://docs.microsoft.com/en-us/windows/desktop/api/ntsecapi/ns-ntsecapi-_kerb_query_tkt_cache_request)
                 tQuery.LogonId = new LUID();
                 tQuery.MessageType = KERB_PROTOCOL_MESSAGE_TYPE.KerbQueryTicketCacheMessage;
 
                 // query LSA, specifying we want the ticket cache
-                retCode = Helpers.LsaCallAuthenticationPackage(lsaHandle, authPack, ref tQuery, Marshal.SizeOf(tQuery), out ticketPointer, out returnBufferLength, out protocalStatus);
+                retCode = Secur32.LsaCallAuthenticationPackage(lsaHandle, authPack, ref tQuery, Marshal.SizeOf(tQuery), out ticketPointer, out returnBufferLength, out protocalStatus);
 
                 // parse the returned pointer into our initial KERB_QUERY_TKT_CACHE_RESPONSE structure
                 tickets = (KERB_QUERY_TKT_CACHE_RESPONSE)Marshal.PtrToStructure((System.IntPtr)ticketPointer, typeof(KERB_QUERY_TKT_CACHE_RESPONSE));
@@ -256,7 +258,7 @@ namespace winPEAS.KnownFileCreds.Kerberos
                 }
 
                 // disconnect from LSA
-                Helpers.LsaDeregisterLogonProcess(lsaHandle);
+                Secur32.LsaDeregisterLogonProcess(lsaHandle);
             }
             catch (Exception ex)
             {
@@ -296,7 +298,7 @@ namespace winPEAS.KnownFileCreds.Kerberos
                 // should now have the proper privileges to get a Handle to LSA
                 hLsa = Helpers.LsaRegisterLogonProcessHelper();
                 // we don't need our NT AUTHORITY\SYSTEM Token anymore so we can revert to our original token
-                Helpers.RevertToSelf();
+                Advapi32.RevertToSelf();
             }
 
             try
@@ -308,12 +310,12 @@ namespace winPEAS.KnownFileCreds.Kerberos
                 IntPtr luidPtr = IntPtr.Zero;
                 IntPtr iter = luidPtr;
 
-                uint ret = Helpers.LsaEnumerateLogonSessions(out count, out luidPtr);  // get an array of pointers to LUIDs
+                uint ret = Secur32.LsaEnumerateLogonSessions(out count, out luidPtr);  // get an array of pointers to LUIDs
 
                 for (ulong i = 0; i < count; i++)
                 {
                     IntPtr sessionData;
-                    ret = Helpers.LsaGetLogonSessionData(luidPtr, out sessionData);
+                    ret = Secur32.LsaGetLogonSessionData(luidPtr, out sessionData);
                     SECURITY_LOGON_SESSION_DATA data = (SECURITY_LOGON_SESSION_DATA)Marshal.PtrToStructure(sessionData, typeof(SECURITY_LOGON_SESSION_DATA));
 
                     // if we have a valid logon
@@ -347,7 +349,7 @@ namespace winPEAS.KnownFileCreds.Kerberos
                         KERB_RETRIEVE_TKT_RESPONSE response = new KERB_RETRIEVE_TKT_RESPONSE();
 
                         // obtains the unique identifier for the kerberos authentication package.
-                        retCode = Helpers.LsaLookupAuthenticationPackage(hLsa, ref LSAString, out authPack);
+                        retCode = Secur32.LsaLookupAuthenticationPackage(hLsa, ref LSAString, out authPack);
 
                         // input object for querying the TGT for a specific logon ID (https://docs.microsoft.com/en-us/windows/desktop/api/ntsecapi/ns-ntsecapi-_kerb_retrieve_tkt_request)
                         LUID userLogonID = new LUID();
@@ -359,7 +361,7 @@ namespace winPEAS.KnownFileCreds.Kerberos
                         tQuery.CacheOptions = KERB_CACHE_OPTIONS.KERB_RETRIEVE_TICKET_AS_KERB_CRED;
 
                         // query LSA, specifying we want the the TGT data
-                        retCode = Helpers.LsaCallAuthenticationPackage_KERB_RETRIEVE_TKT(hLsa, authPack, ref tQuery, Marshal.SizeOf(tQuery), out responsePointer, out returnBufferLength, out protocalStatus);
+                        retCode = Secur32.LsaCallAuthenticationPackage_KERB_RETRIEVE_TKT(hLsa, authPack, ref tQuery, Marshal.SizeOf(tQuery), out responsePointer, out returnBufferLength, out protocalStatus);
 
                         if ((retCode) == 0 && (responsePointer != IntPtr.Zero))
                         {
@@ -439,13 +441,13 @@ namespace winPEAS.KnownFileCreds.Kerberos
                     }
                     luidPtr = (IntPtr)((long)luidPtr.ToInt64() + Marshal.SizeOf(typeof(LUID)));
                     //move the pointer forward
-                    Helpers.LsaFreeReturnBuffer(sessionData);
+                    Secur32.LsaFreeReturnBuffer(sessionData);
                     //free the SECURITY_LOGON_SESSION_DATA memory in the struct
                 }
-                Helpers.LsaFreeReturnBuffer(luidPtr);       //free the array of LUIDs
+                Secur32.LsaFreeReturnBuffer(luidPtr);       //free the array of LUIDs
 
                 // disconnect from LSA
-                Helpers.LsaDeregisterLogonProcess(hLsa);
+                Secur32.LsaDeregisterLogonProcess(hLsa);
             }
             catch (Exception ex)
             {
@@ -478,13 +480,13 @@ namespace winPEAS.KnownFileCreds.Kerberos
 
                 // If we want to look at tickets from a session other than our own
                 // then we need to use LsaRegisterLogonProcess instead of LsaConnectUntrusted
-                retCode = Helpers.LsaConnectUntrusted(out lsaHandle);
+                retCode = Secur32.LsaConnectUntrusted(out lsaHandle);
 
                 KERB_RETRIEVE_TKT_REQUEST tQuery = new KERB_RETRIEVE_TKT_REQUEST();
                 KERB_RETRIEVE_TKT_RESPONSE response = new KERB_RETRIEVE_TKT_RESPONSE();
 
                 // obtains the unique identifier for the kerberos authentication package.
-                retCode = Helpers.LsaLookupAuthenticationPackage(lsaHandle, ref LSAString, out authPack);
+                retCode = Secur32.LsaLookupAuthenticationPackage(lsaHandle, ref LSAString, out authPack);
 
                 // input object for querying the TGT (https://docs.microsoft.com/en-us/windows/desktop/api/ntsecapi/ns-ntsecapi-_kerb_retrieve_tkt_request)
                 tQuery.LogonId = new LUID();
@@ -493,7 +495,7 @@ namespace winPEAS.KnownFileCreds.Kerberos
                 //tQuery.CacheOptions = KERB_CACHE_OPTIONS.KERB_RETRIEVE_TICKET_AS_KERB_CRED;
 
                 // query LSA, specifying we want the the TGT data
-                retCode = Helpers.LsaCallAuthenticationPackage_KERB_RETRIEVE_TKT(lsaHandle, authPack, ref tQuery, Marshal.SizeOf(tQuery), out responsePointer, out returnBufferLength, out protocalStatus);
+                retCode = Secur32.LsaCallAuthenticationPackage_KERB_RETRIEVE_TKT(lsaHandle, authPack, ref tQuery, Marshal.SizeOf(tQuery), out responsePointer, out returnBufferLength, out protocalStatus);
 
                 // parse the returned pointer into our initial KERB_RETRIEVE_TKT_RESPONSE structure
                 response = (KERB_RETRIEVE_TKT_RESPONSE)Marshal.PtrToStructure((System.IntPtr)responsePointer, typeof(KERB_RETRIEVE_TKT_RESPONSE));
@@ -556,7 +558,7 @@ namespace winPEAS.KnownFileCreds.Kerberos
                 });
 
                 // disconnect from LSA
-                Helpers.LsaDeregisterLogonProcess(lsaHandle);
+                Secur32.LsaDeregisterLogonProcess(lsaHandle);
             }
             catch (Exception ex)
             {

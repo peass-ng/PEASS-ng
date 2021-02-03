@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using winPEAS.Native;
 
 namespace winPEAS.Wifi.NativeWifiApi
 {
@@ -30,7 +31,7 @@ namespace winPEAS.Wifi.NativeWifiApi
             {
                 var flags = unencryptedPassword ? WlanProfileFlags.GetPlaintextKey : WlanProfileFlags.None;
                 Wlan.ThrowIfError(
-                    Wlan.WlanGetProfile(
+                    WlanApi.WlanGetProfile(
                         client.clientHandle, info.interfaceGuid, profileName, IntPtr.Zero, out var profileXmlPtr, out flags, out _));
                 
                 try
@@ -39,7 +40,7 @@ namespace winPEAS.Wifi.NativeWifiApi
                 }
                 finally
                 {
-                    Wlan.WlanFreeMemory(profileXmlPtr);
+                    WlanApi.WlanFreeMemory(profileXmlPtr);
                 }
             }
 
@@ -50,7 +51,7 @@ namespace winPEAS.Wifi.NativeWifiApi
             public WlanProfileInfo[] GetProfiles()
             {
                 Wlan.ThrowIfError(
-                    Wlan.WlanGetProfileList(client.clientHandle, info.interfaceGuid, IntPtr.Zero, out var profileListPtr));
+                    WlanApi.WlanGetProfileList(client.clientHandle, info.interfaceGuid, IntPtr.Zero, out var profileListPtr));
                 try
                 {
                     var header = 
@@ -70,7 +71,7 @@ namespace winPEAS.Wifi.NativeWifiApi
                 }
                 finally
                 {
-                    Wlan.WlanFreeMemory(profileListPtr);
+                    WlanApi.WlanFreeMemory(profileListPtr);
                 }
             }                
         }
@@ -83,13 +84,13 @@ namespace winPEAS.Wifi.NativeWifiApi
         public WlanClient()
         {
             Wlan.ThrowIfError(
-                Wlan.WlanOpenHandle(
+                WlanApi.WlanOpenHandle(
                     Wlan.WLAN_CLIENT_VERSION_XP_SP2, IntPtr.Zero, out negotiatedVersion, out clientHandle));          
         }
 
         ~WlanClient()
         {
-            Wlan.WlanCloseHandle(clientHandle, IntPtr.Zero);
+            WlanApi.WlanCloseHandle(clientHandle, IntPtr.Zero);
         }
             
         /// <summary>
@@ -101,7 +102,7 @@ namespace winPEAS.Wifi.NativeWifiApi
             get
             {
                 Wlan.ThrowIfError(
-                    Wlan.WlanEnumInterfaces(
+                    WlanApi.WlanEnumInterfaces(
                         clientHandle, IntPtr.Zero, out var ifaceList));
 
                 try
@@ -151,7 +152,7 @@ namespace winPEAS.Wifi.NativeWifiApi
                 }
                 finally
                 {
-                    Wlan.WlanFreeMemory(ifaceList);
+                    WlanApi.WlanFreeMemory(ifaceList);
                 }
             }
         }

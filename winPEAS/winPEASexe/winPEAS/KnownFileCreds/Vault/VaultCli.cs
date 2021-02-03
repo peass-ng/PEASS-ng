@@ -1,31 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using winPEAS.Helpers;
 using winPEAS.KnownFileCreds.Vault.Structs;
+using VaultCliNative = winPEAS.Native.Vaultcli;
 
 namespace winPEAS.KnownFileCreds.Vault
 {
     public static class VaultCli
     {
-        // pulled directly from @djhohnstein's SharpWeb project: https://github.com/djhohnstein/SharpWeb/blob/master/Edge/SharpEdge.cs                                   
-
-        [DllImport("vaultcli.dll")]
-        public extern static Int32 VaultOpenVault(ref Guid vaultGuid, UInt32 offset, ref IntPtr vaultHandle);
-
-        [DllImport("vaultcli.dll")]
-        public extern static Int32 VaultEnumerateVaults(Int32 offset, ref Int32 vaultCount, ref IntPtr vaultGuid);
-
-        [DllImport("vaultcli.dll")]
-        public extern static Int32 VaultEnumerateItems(IntPtr vaultHandle, Int32 chunkSize, ref Int32 vaultItemCount, ref IntPtr vaultItem);
-
-        [DllImport("vaultcli.dll", EntryPoint = "VaultGetItem")]
-        public extern static Int32 VaultGetItem_WIN8(IntPtr vaultHandle, ref Guid schemaId, IntPtr pResourceElement, IntPtr pIdentityElement, IntPtr pPackageSid, IntPtr zero, Int32 arg6, ref IntPtr passwordVaultPtr);
-
-        [DllImport("vaultcli.dll", EntryPoint = "VaultGetItem")]
-        public extern static Int32 VaultGetItem_WIN7(IntPtr vaultHandle, ref Guid schemaId, IntPtr pResourceElement, IntPtr pIdentityElement, IntPtr zero, Int32 arg5, ref IntPtr passwordVaultPtr);        
-
         public static List<Dictionary<string, string>> DumpVault()
         {
             List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
@@ -50,7 +33,7 @@ namespace winPEAS.KnownFileCreds.Vault
 
                 Int32 vaultCount = 0;
                 IntPtr vaultGuidPtr = IntPtr.Zero;
-                var result = VaultCli.VaultEnumerateVaults(0, ref vaultCount, ref vaultGuidPtr);
+                var result = VaultCliNative.VaultEnumerateVaults(0, ref vaultCount, ref vaultGuidPtr);
 
                 //var result = CallVaultEnumerateVaults(VaultEnum, 0, ref vaultCount, ref vaultGuidPtr);
 
@@ -90,7 +73,7 @@ namespace winPEAS.KnownFileCreds.Vault
                     {
                         vaultType = vaultGuid.ToString();
                     }
-                    result = VaultCli.VaultOpenVault(ref vaultGuid, (UInt32)0, ref vaultHandle);
+                    result = VaultCliNative.VaultOpenVault(ref vaultGuid, (UInt32)0, ref vaultHandle);
                     if (result != 0)
                     {
                         Console.WriteLine("Unable to open the following vault: " + vaultType + ". Error: 0x" + result.ToString());
@@ -101,7 +84,7 @@ namespace winPEAS.KnownFileCreds.Vault
                     // Fetch all items within Vault
                     int vaultItemCount = 0;
                     IntPtr vaultItemPtr = IntPtr.Zero;
-                    result = VaultCli.VaultEnumerateItems(vaultHandle, 512, ref vaultItemCount, ref vaultItemPtr);
+                    result = VaultCliNative.VaultEnumerateItems(vaultHandle, 512, ref vaultItemCount, ref vaultItemPtr);
                     if (result != 0)
                     {
                         Console.WriteLine("Unable to enumerate vault items from the following vault: " + vaultType + ". Error 0x" + result.ToString());
@@ -145,11 +128,11 @@ namespace winPEAS.KnownFileCreds.Vault
                                 // Newer versions have package sid
                                 FieldInfo pPackageSidInfo = currentItem.GetType().GetField("pPackageSid");
                                 pPackageSid = (IntPtr)pPackageSidInfo.GetValue(currentItem);
-                                result = VaultCli.VaultGetItem_WIN8(vaultHandle, ref schemaId, pResourceElement, pIdentityElement, pPackageSid, IntPtr.Zero, 0, ref passwordVaultItem);
+                                result = VaultCliNative.VaultGetItem_WIN8(vaultHandle, ref schemaId, pResourceElement, pIdentityElement, pPackageSid, IntPtr.Zero, 0, ref passwordVaultItem);
                             }
                             else
                             {
-                                result = VaultCli.VaultGetItem_WIN7(vaultHandle, ref schemaId, pResourceElement, pIdentityElement, IntPtr.Zero, 0, ref passwordVaultItem);
+                                result = VaultCliNative.VaultGetItem_WIN7(vaultHandle, ref schemaId, pResourceElement, pIdentityElement, IntPtr.Zero, 0, ref passwordVaultItem);
                             }
 
                             if (result != 0)

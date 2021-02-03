@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Text;
-using System.Threading.Tasks;
+using winPEAS.Native;
+using winPEAS.Native.Enums;
 
 namespace winPEAS.TaskScheduler.TaskEditor.Native
 {
-	internal static partial class NativeMethods
-	{
-		private const string NTDSAPI = "ntdsapi.dll";
-
+    internal static partial class NativeMethods
+	{		
 		/// <summary>
 		/// Defines the errors returned by the status member of the DS_NAME_RESULT_ITEM structure. These are potential errors that may be encountered while a name is converted by the DsCrackNames function.
 		/// </summary>
@@ -41,65 +37,7 @@ namespace winPEAS.TaskScheduler.TaskEditor.Native
 
 			///<summary>The name is from an external trusted forest.</summary>
 			DS_NAME_ERROR_TRUST_REFERRAL = 7
-		}
-
-		/// <summary>
-		/// Used to define how the name syntax will be cracked. These flags are used by the DsCrackNames function.
-		/// </summary>
-		[Flags]
-		public enum DS_NAME_FLAGS
-		{
-			/// <summary>Indicate that there are no associated flags.</summary>
-			DS_NAME_NO_FLAGS = 0x0,
-
-			///<summary>Perform a syntactical mapping at the client without transferring over the network. The only syntactic mapping supported is from DS_FQDN_1779_NAME to DS_CANONICAL_NAME or DS_CANONICAL_NAME_EX.</summary>
-			DS_NAME_FLAG_SYNTACTICAL_ONLY = 0x1,
-
-			///<summary>Force a trip to the DC for evaluation, even if this could be locally cracked syntactically.</summary>
-			DS_NAME_FLAG_EVAL_AT_DC = 0x2,
-
-			///<summary>The call fails if the domain controller is not a global catalog server.</summary>
-			DS_NAME_FLAG_GCVERIFY = 0x4,
-
-			///<summary>Enable cross forest trust referral.</summary>
-			DS_NAME_FLAG_TRUST_REFERRAL = 0x8
-		}
-
-		/// <summary>
-		/// Provides formats to use for input and output names for the DsCrackNames function.
-		/// </summary>
-		public enum DS_NAME_FORMAT
-		{
-			///<summary>Indicates the name is using an unknown name type. This format can impact performance because it forces the server to attempt to match all possible formats. Only use this value if the input format is unknown.</summary>
-			DS_UNKNOWN_NAME = 0,
-
-			///<summary>Indicates that the fully qualified distinguished name is used. For example: "CN = someone, OU = Users, DC = Engineering, DC = Fabrikam, DC = Com"</summary>
-			DS_FQDN_1779_NAME = 1,
-
-			///<summary>Indicates a Windows NT 4.0 account name. For example: "Engineering\someone" The domain-only version includes two trailing backslashes (\\).</summary>
-			DS_NT4_ACCOUNT_NAME = 2,
-
-			///<summary>Indicates a user-friendly display name, for example, Jeff Smith. The display name is not necessarily the same as relative distinguished name (RDN).</summary>
-			DS_DISPLAY_NAME = 3,
-
-			///<summary>Indicates a GUID string that the IIDFromString function returns. For example: "{4fa050f0-f561-11cf-bdd9-00aa003a77b6}"</summary>
-			DS_UNIQUE_ID_NAME = 6,
-
-			///<summary>Indicates a complete canonical name. For example: "engineering.fabrikam.com/software/someone" The domain-only version includes a trailing forward slash (/).</summary>
-			DS_CANONICAL_NAME = 7,
-
-			///<summary>Indicates that it is using the user principal name (UPN). For example: "someone@engineering.fabrikam.com"</summary>
-			DS_USER_PRINCIPAL_NAME = 8,
-
-			///<summary>This element is the same as DS_CANONICAL_NAME except that the rightmost forward slash (/) is replaced with a newline character (\n), even in a domain-only case. For example: "engineering.fabrikam.com/software\nsomeone"</summary>
-			DS_CANONICAL_NAME_EX = 9,
-
-			///<summary>Indicates it is using a generalized service principal name. For example: "www/www.fabrikam.com@fabrikam.com"</summary>
-			DS_SERVICE_PRINCIPAL_NAME = 10,
-
-			///<summary>Indicates a Security Identifier (SID) for the object. This can be either the current SID or a SID from the object SID history. The SID string can use either the standard string representation of a SID, or one of the string constants defined in Sddl.h. For more information about converting a binary SID into a SID string, see SID Strings. The following is an example of a SID string: "S-1-5-21-397955417-626881126-188441444-501"</summary>
-			DS_SID_OR_SID_HISTORY_NAME = 11,
-		}
+		}				
 
 		/// <summary>
 		/// Class that provides methods against a AD domain service.
@@ -118,7 +56,7 @@ namespace winPEAS.TaskScheduler.TaskEditor.Native
 			/// <exception cref="System.ComponentModel.Win32Exception"></exception>
 			public DomainService(string domainControllerName = null, string dnsDomainName = null)
 			{
-				DsBind(domainControllerName, dnsDomainName, out handle);
+				Ntdsapi.DsBind(domainControllerName, dnsDomainName, out handle);
 			}
 
 			/// <summary>
@@ -146,7 +84,7 @@ namespace winPEAS.TaskScheduler.TaskEditor.Native
 			public DS_NAME_RESULT_ITEM[] CrackNames(string[] names = null, DS_NAME_FLAGS flags = DS_NAME_FLAGS.DS_NAME_NO_FLAGS, DS_NAME_FORMAT formatOffered = DS_NAME_FORMAT.DS_UNKNOWN_NAME, DS_NAME_FORMAT formatDesired = DS_NAME_FORMAT.DS_USER_PRINCIPAL_NAME)
 			{
 				IntPtr pResult;
-				uint err = DsCrackNames(handle, flags, formatOffered, formatDesired, (uint)(names?.Length ?? 0), names, out pResult);
+				uint err = Ntdsapi.DsCrackNames(handle, flags, formatOffered, formatDesired, (uint)(names?.Length ?? 0), names, out pResult);
 				if (err != (uint)DS_NAME_ERROR.DS_NAME_NO_ERROR)
 					throw new System.ComponentModel.Win32Exception((int)err);
 				try
@@ -157,38 +95,18 @@ namespace winPEAS.TaskScheduler.TaskEditor.Native
 				}
 				finally
 				{
-					DsFreeNameResult(pResult);
+                    Ntdsapi.DsFreeNameResult(pResult);
 				}
 			}
 
 			public void Dispose()
 			{
-				uint ret = DsUnBind(ref handle);
+				uint ret = Ntdsapi.DsUnBind(ref handle);
 				System.Diagnostics.Debug.WriteLineIf(ret != 0, "Error unbinding :\t" + ret.ToString());
 			}
 		}
 
-		[DllImport(NTDSAPI, CharSet = CharSet.Auto, PreserveSig = false)]
-		public static extern void DsBind(
-			string DomainControllerName, // in, optional
-			string DnsDomainName, // in, optional
-			out IntPtr phDS);
-
-		[DllImport(NTDSAPI, CharSet = CharSet.Auto)]
-		public static extern uint DsCrackNames(
-			IntPtr hDS,
-			DS_NAME_FLAGS flags,
-			DS_NAME_FORMAT formatOffered,
-			DS_NAME_FORMAT formatDesired,
-			uint cNames,
-			[MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPTStr, SizeParamIndex = 4)] string[] rpNames,
-			out IntPtr ppResult);
-
-		[DllImport(NTDSAPI, CharSet = CharSet.Auto)]
-		public static extern void DsFreeNameResult(IntPtr pResult /* DS_NAME_RESULT* */);
-
-		[DllImport(NTDSAPI, CharSet = CharSet.Auto)]
-		public static extern uint DsUnBind(ref IntPtr phDS);
+	
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
 		public struct DS_NAME_RESULT

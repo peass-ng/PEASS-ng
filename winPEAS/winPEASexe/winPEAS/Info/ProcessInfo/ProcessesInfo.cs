@@ -3,26 +3,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Management;
-using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
+using winPEAS.Native;
 
 namespace winPEAS.Info.ProcessInfo
 {
-    class ProcessesInfo
-    {   
-        [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern bool OpenProcessToken(IntPtr ProcessHandle, uint DesiredAccess, out IntPtr TokenHandle);
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool CloseHandle(IntPtr hObject);
+    internal class ProcessesInfo
+    {
         private static string GetProcU(Process p)
         {
             IntPtr pHandle = IntPtr.Zero;
             try
             {
-                OpenProcessToken(p.Handle, 8, out pHandle);
+                Advapi32.OpenProcessToken(p.Handle, 8, out pHandle);
                 WindowsIdentity WI = new WindowsIdentity(pHandle);
                 String uSEr = WI.Name;
                 return uSEr.Contains(@"\") ? uSEr.Substring(uSEr.IndexOf(@"\") + 1) : uSEr;
@@ -35,7 +30,7 @@ namespace winPEAS.Info.ProcessInfo
             {
                 if (pHandle != IntPtr.Zero)
                 {
-                    CloseHandle(pHandle);
+                    Kernel32.CloseHandle(pHandle);
                 }
             }
         }

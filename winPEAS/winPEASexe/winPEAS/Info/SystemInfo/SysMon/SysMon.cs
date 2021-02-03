@@ -20,7 +20,7 @@ namespace winPEAS.Info.SystemInfo.SysMon
             var installed = false;
             var hashingAlgorithm = (SysmonHashAlgorithm)0;
             var sysmonOptions = (SysmonOptions)0;
-            string? b64SysmonRules = null;
+            string b64SysmonRules = null;
 
             if ((regHashAlg != null) || (regOptions != null) || (regSysmonRules != null))
             {

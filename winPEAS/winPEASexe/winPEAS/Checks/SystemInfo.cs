@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using winPEAS.Helpers;
 using winPEAS.Helpers.AppLocker;
-using winPEAS.Helpers.Search;
 using winPEAS._3rdParty.Watson;
-using System.Management;
 using winPEAS.Info.SystemInfo.Printers;
 using winPEAS.Info.SystemInfo.NamedPipes;
 using winPEAS.Info.SystemInfo;
 using winPEAS.Info.SystemInfo.SysMon;
 using winPEAS.Helpers.Extensions;
+using winPEAS.Info.SystemInfo.WindowsDefender;
 
 namespace winPEAS.Checks
 {
@@ -21,6 +19,26 @@ namespace winPEAS.Checks
         static string badUAC = "No prompting|PromptForNonWindowsBinaries";
         static string goodUAC = "PromptPermitDenyOnSecureDesktop";
         static string badLAPS = "LAPS not installed";
+
+
+        private static readonly Dictionary<string, string> _asrGuids = new Dictionary<string, string>
+        {
+            { "01443614-cd74-433a-b99e-2ecdc07bfc25" , "Block executable files from running unless they meet a prevalence, age, or trusted list criteria"},
+            { "c1db55ab-c21a-4637-bb3f-a12568109d35" , "Use advanced protection against ransomware"},
+            { "9e6c4e1f-7d60-472f-ba1a-a39ef669e4b2" , "Block credential stealing from the Windows local security authority subsystem (lsass.exe)"},
+            { "d1e49aac-8f56-4280-b9ba-993a6d77406c" , "Block process creations originating from PSExec and WMI commands"},
+            { "b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4" , "Block untrusted and unsigned processes that run from USB"},
+            { "26190899-1602-49e8-8b27-eb1d0a1ce869" , "Block Office communication applications from creating child processes"},
+            { "7674ba52-37eb-4a4f-a9a1-f0f9a1619a2c" , "Block Adobe Reader from creating child processes"},
+            { "e6db77e5-3df2-4cf1-b95a-636979351e5b" , "Block persistence through WMI event subscription"},
+            { "d4f940ab-401b-4efc-aadc-ad5f3c50688a" , "Block all Office applications from creating child processes"},
+            { "5beb7efe-fd9a-4556-801d-275e5ffc04cc" , "Block execution of potentially obfuscated scripts"},
+            { "92e97fa1-2edf-4476-bdd6-9dd0b4dddc7b" , "Block Win32 API calls from Office macro	"},
+            { "3b576869-a4ec-4529-8536-b80a7769e899" , "Block Office applications from creating executable content	"},
+            { "75668c1f-73b5-4cf0-bb93-3ecf5cb7cc84" , "Block Office applications from injecting code into other processes"},
+            { "d3e037e1-3eb8-44c8-a917-57927947596d" , "Block JavaScript or VBScript from launching downloaded executable content"},
+            { "be9ba2d9-53ea-4cdc-84e5-9b1eeee46550" , "Block executable content from email client and webmail"},           
+        };
 
         public void PrintInfo(bool isDebug)
         {
@@ -39,6 +57,7 @@ namespace winPEAS.Checks
                 PrintCredentialGuard,
                 PrintCachedCreds,
                 PrintAVInfo,
+                PrintWindowsDefenderInfo,
                 PrintUACInfo,
                 PrintPSInfo,
                 PrintTranscriptPS,
@@ -557,11 +576,11 @@ namespace winPEAS.Checks
             {
                 foreach (var printer in Printers.GetPrinterWMIInfos())
                 {
-                    Beaprint.BadPrint($"      Name:                    {printer.Name}\n" +
-                                      $"      Status:                  {printer.Status}\n" +
-                                      $"      Sddl:                    {printer.Sddl}\n" +
-                                      $"      Is default:              {printer.IsDefault}\n" +
-                                      $"      Is network printer:      {printer.IsNetworkPrinter}\n");
+                    Beaprint.NoColorPrint($"      Name:                    {printer.Name}\n" +
+                                                 $"      Status:                  {printer.Status}\n" +
+                                                 $"      Sddl:                    {printer.Sddl}\n" +
+                                                 $"      Is default:              {printer.IsDefault}\n" +
+                                                 $"      Is network printer:      {printer.IsNetworkPrinter}\n");
                     Beaprint.PrintLineSeparator();
                 }
             }
@@ -676,6 +695,105 @@ namespace winPEAS.Checks
 
             }
             catch (Exception)
+            {
+            }
+        }
+
+        private static void PrintWindowsDefenderInfo()
+        {
+            Beaprint.MainPrint("Windows Defender configuration");
+
+
+
+            void DisplayDefenderSettings(WindowsDefenderSettings settings)
+            {
+                var pathExclusions = settings.PathExclusions;
+                var processExclusions = settings.ProcessExclusions;
+                var extensionExclusions = settings.ExtensionExclusions;
+                var asrSettings = settings.AsrSettings;
+
+                if (pathExclusions.Count != 0)
+                {
+                    Beaprint.NoColorPrint("\n  Path Exclusions:");
+                    foreach (var path in pathExclusions)
+                    {
+                        Beaprint.NoColorPrint($"    {path}");
+                    }
+                }
+
+                if (pathExclusions.Count != 0)
+                {
+                    Beaprint.NoColorPrint("\n  PolicyManagerPathExclusions:");
+                    foreach (var path in pathExclusions)
+                    {
+                        Beaprint.NoColorPrint($"    {path}");
+                    }
+                }
+
+                if (processExclusions.Count != 0)
+                {
+                    Beaprint.NoColorPrint("\n  Process Exclusions");
+                    foreach (var process in processExclusions)
+                    {
+                        Beaprint.NoColorPrint($"    {process}");
+                    }
+                }
+
+                if (extensionExclusions.Count != 0)
+                {
+                    Beaprint.NoColorPrint("\n  Extension Exclusions");
+                    foreach (var ext in extensionExclusions)
+                    {
+                        Beaprint.NoColorPrint($"    {ext}");
+                    }
+                }
+
+                if (asrSettings.Enabled)
+                {
+                    Beaprint.NoColorPrint("\n  Attack Surface Reduction Rules:\n");
+
+                    Beaprint.NoColorPrint($"    {"State",-10} Rule\n");
+                    foreach (var rule in asrSettings.Rules)
+                    {
+                        string state;
+                        if (rule.State == 0)
+                            state = "Disabled";
+                        else if (rule.State == 1)
+                            state = "Blocked";
+                        else if (rule.State == 2)
+                            state = "Audited";
+                        else
+                            state = $"{rule.State} - Unknown";
+
+                        var asrRule = _asrGuids.ContainsKey(rule.Rule.ToString())
+                            ? _asrGuids[rule.Rule.ToString()]
+                            : $"{rule.Rule} - Please report this";
+
+                        Beaprint.NoColorPrint($"    {state,-10} {asrRule}");
+                    }
+
+                    if (asrSettings.Exclusions.Count > 0)
+                    {
+                        Beaprint.NoColorPrint("\n  ASR Exclusions:");
+                        foreach (var exclusion in asrSettings.Exclusions)
+                        {
+                            Beaprint.NoColorPrint($"    {exclusion}");
+                        }
+                    }
+                }
+            }
+
+            try
+            {
+                var info = WindowsDefender.GetDefenderSettingsInfo();
+
+                Beaprint.ColorPrint("  Local Settings", Beaprint.LBLUE);
+                DisplayDefenderSettings(info.LocalSettings);
+
+                Beaprint.ColorPrint("  Group Policy Settings", Beaprint.LBLUE);
+                DisplayDefenderSettings(info.GroupPolicySettings);
+            }
+            catch (Exception e)
             {
             }
         }

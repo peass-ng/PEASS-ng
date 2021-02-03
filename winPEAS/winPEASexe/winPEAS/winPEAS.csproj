@@ -374,6 +374,7 @@
     <Compile Include="Checks\FilesInfo.cs" />
     <Compile Include="Checks\Globals.cs" />
     <Compile Include="Checks\ISystemCheck.cs" />
+    <Compile Include="Checks\EventsInfo.cs" />
     <Compile Include="Checks\NetworkInfo.cs" />
     <Compile Include="Checks\ProcessInfo.cs" />
     <Compile Include="Checks\ServicesInfo.cs" />
@@ -400,6 +401,15 @@
     <Compile Include="Info\ApplicationInfo\DeviceDrivers.cs" />
     <Compile Include="Info\ApplicationInfo\InstalledApps.cs" />
     <Compile Include="Helpers\Beaprint.cs" />
+    <Compile Include="Info\EventsInfo\Logon\ExplicitLogonEventInfo.cs" />
+    <Compile Include="Info\EventsInfo\Logon\Logon.cs" />
+    <Compile Include="Info\EventsInfo\Logon\LogonEventInfo.cs" />
+    <Compile Include="Info\EventsInfo\Logon\LogonInfo.cs" />
+    <Compile Include="Info\EventsInfo\PowerShell\PowerShell.cs" />
+    <Compile Include="Info\EventsInfo\PowerShell\PowerShellEventInfo.cs" />
+    <Compile Include="Info\EventsInfo\Common.cs" />
+    <Compile Include="Info\EventsInfo\ProcessCreation\ProcessCreation.cs" />
+    <Compile Include="Info\EventsInfo\ProcessCreation\ProcessCreationEventInfo.cs" />
     <Compile Include="Info\NetworkInfo\Enums\IPVersion.cs" />
     <Compile Include="Info\NetworkInfo\Enums\MibTcpState.cs" />
     <Compile Include="Info\NetworkInfo\Enums\Protocol.cs" />
@@ -427,6 +437,11 @@
     <Compile Include="Info\SystemInfo\SysMon\SysmonHashAlgorithm.cs" />
     <Compile Include="Info\SystemInfo\SysMon\SysmonInfo.cs" />
     <Compile Include="Info\SystemInfo\SysMon\SysmonOptions.cs" />
+    <Compile Include="Info\SystemInfo\WindowsDefender\AsrRule.cs" />
+    <Compile Include="Info\SystemInfo\WindowsDefender\AsrSettings.cs" />
+    <Compile Include="Info\SystemInfo\WindowsDefender\WindowsDefender.cs" />
+    <Compile Include="Info\SystemInfo\WindowsDefender\WindowsDefenderSettings.cs" />
+    <Compile Include="Info\SystemInfo\WindowsDefender\WindowsDefenderSettingsInfo.cs" />
     <Compile Include="Info\UserInfo\LogonSessions\LogonSessions.cs" />
     <Compile Include="Info\UserInfo\LogonSessions\LogonSessionsInfo.cs" />
     <Compile Include="InterestingFiles\GPP.cs" />
@@ -454,6 +469,10 @@
     <Compile Include="KnownFileCreds\KnownFileCredsInfo.cs" />
     <Compile Include="KnownFileCreds\Putty.cs" />
     <Compile Include="KnownFileCreds\RemoteDesktop.cs" />
+    <Compile Include="KnownFileCreds\SecurityPackages\NtlmHashInfo.cs" />
+    <Compile Include="KnownFileCreds\SecurityPackages\SecBuffer.cs" />
+    <Compile Include="KnownFileCreds\SecurityPackages\SecBufferDesc.cs" />
+    <Compile Include="KnownFileCreds\SecurityPackages\SecurityPackages.cs" />
     <Compile Include="KnownFileCreds\Slack\Slack.cs" />
     <Compile Include="KnownFileCreds\SuperPutty\SuperPutty.cs" />
     <Compile Include="KnownFileCreds\Vault\Enums\VAULT_ELEMENT_TYPE.cs" />
@@ -471,6 +490,41 @@
     <Compile Include="Info\UserInfo\Token\Structs.cs" />
     <Compile Include="Info\UserInfo\Token\Token.cs" />
     <Compile Include="Info\UserInfo\User.cs" />
+    <Compile Include="Native\Advapi32.cs" />
+    <Compile Include="Native\Classes\SafeTokenHandle.cs" />
+    <Compile Include="Native\Classes\UNICODE_STRING.cs" />
+    <Compile Include="Native\Enums\AccessTypes.cs" />
+    <Compile Include="Native\Enums\CredentialType.cs" />
+    <Compile Include="Native\Enums\DS_NAME_FLAGS.cs" />
+    <Compile Include="Native\Enums\DS_NAME_FORMAT.cs" />
+    <Compile Include="Native\Enums\NetJoinStatus.cs" />
+    <Compile Include="Native\Enums\PrivilegeAttributes.cs" />
+    <Compile Include="Native\Enums\SECURITY_IMPERSONATION_LEVEL.cs" />
+    <Compile Include="Native\Enums\SECURITY_LOGON_TYPE.cs" />
+    <Compile Include="Native\Enums\ServerTypes.cs" />
+    <Compile Include="Native\Enums\SE_OBJECT_TYPE.cs" />
+    <Compile Include="Native\Enums\TokenType.cs" />
+    <Compile Include="Native\Enums\TOKEN_ELEVATION_TYPE.cs" />
+    <Compile Include="Native\Enums\TOKEN_INFORMATION_CLASS.cs" />
+    <Compile Include="Native\Enums\WTS_INFO_CLASS.cs" />
+    <Compile Include="Native\Iphlpapi.cs" />
+    <Compile Include="Native\Kernel32.cs" />
+    <Compile Include="Native\Netapi32.cs" />
+    <Compile Include="Native\Ntdsapi.cs" />
+    <Compile Include="Native\Psapi.cs" />
+    <Compile Include="Native\Samlib.cs" />
+    <Compile Include="Native\Secur32.cs" />
+    <Compile Include="Native\Structs\LUID.cs" />
+    <Compile Include="Native\Structs\LUID_AND_ATTRIBUTES.cs" />
+    <Compile Include="Native\Structs\PRIVILEGE_SET.cs" />
+    <Compile Include="Native\Structs\SID_AND_ATTRIBUTES.cs" />
+    <Compile Include="Native\Structs\TOKEN_ELEVATION.cs" />
+    <Compile Include="Native\Structs\TOKEN_MANDATORY_LABEL.cs" />
+    <Compile Include="Native\Structs\TOKEN_PRIVILEGES.cs" />
+    <Compile Include="Native\User32.cs" />
+    <Compile Include="Native\Vaultcli.cs" />
+    <Compile Include="Native\WlanApi.cs" />
+    <Compile Include="Native\Wtsapi32.cs" />
     <Compile Include="TaskScheduler\AccessControlExtension.cs" />
     <Compile Include="TaskScheduler\Action.cs" />
     <Compile Include="TaskScheduler\ActionCollection.cs" />
@@ -483,9 +537,7 @@
     <Compile Include="TaskScheduler\ReflectionHelper.cs" />
     <Compile Include="TaskScheduler\Task.cs" />
     <Compile Include="TaskScheduler\TaskCollection.cs" />
-    <Compile Include="TaskScheduler\TaskEditor\Native\ADVAPI32.cs" />
     <Compile Include="TaskScheduler\TaskEditor\Native\InteropUtil.cs" />
-    <Compile Include="TaskScheduler\TaskEditor\Native\KERNEL32.cs" />
     <Compile Include="TaskScheduler\TaskEditor\Native\NetServerEnum.cs" />
     <Compile Include="TaskScheduler\TaskEditor\Native\NTDSAPI.cs" />
     <Compile Include="TaskScheduler\TaskEditor\Native\SYSTEMTIME.cs" />
@@ -523,7 +575,7 @@
     <Compile Include="Helpers\DomainHelper.cs" />
     <Compile Include="Helpers\CheckRunner.cs" />
     <Compile Include="Helpers\ReflectionHelper.cs" />
-    <Compile Include="Helpers\RegistryHelper.cs" />
+    <Compile Include="Helpers\Registry\RegistryHelper.cs" />
     <Compile Include="Helpers\Search\SearchHelper.cs" />
     <Compile Include="3rdParty\Watson\Msrc\CVE-2019-0836.cs" />
     <Compile Include="3rdParty\Watson\Msrc\CVE-2019-0841.cs" />
@@ -567,6 +619,8 @@
     <EmbeddedResource Include="Properties\Resources.ru.resx" />
     <EmbeddedResource Include="Properties\Resources.zh-CN.resx" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Info\NetworkInfo\InternetSettings\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
