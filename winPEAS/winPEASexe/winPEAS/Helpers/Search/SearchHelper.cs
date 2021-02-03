@@ -205,14 +205,15 @@ namespace winPEAS.Helpers.Search
 
         internal static void CleanLists()
         {
-            SearchHelper.RootDirUsers = null;
-            SearchHelper.RootDirCurrentUser = null;
-            SearchHelper.ProgramFiles = null;
-            SearchHelper.ProgramFilesX86 = null;
-            SearchHelper.DocumentsAndSettings = null;
-            SearchHelper.GroupPolicyHistory = null;
+            // TODO
+            //SearchHelper.RootDirUsers = null;
+            //SearchHelper.RootDirCurrentUser = null;
+            //SearchHelper.ProgramFiles = null;
+            //SearchHelper.ProgramFilesX86 = null;
+            //SearchHelper.DocumentsAndSettings = null;
+            //SearchHelper.GroupPolicyHistory = null;
 
-            GC.Collect();
+            //GC.Collect();
         }
 
         internal static IEnumerable<CustomFileInfo> SearchUserCredsFiles()
