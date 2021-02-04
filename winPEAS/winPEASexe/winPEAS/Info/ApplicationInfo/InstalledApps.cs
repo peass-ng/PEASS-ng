@@ -70,14 +70,14 @@ namespace winPEAS.Info.ApplicationInfo
             var results = new SortedDictionary<string, Dictionary<string, string>>();
             try
             {
-                foreach (string f in Directory.GetFiles(fpath))
+                foreach (string f in Directory.EnumerateFiles(fpath))
                 {
                     results[f] = new Dictionary<string, string>
                     {
                         { f, string.Join(", ", PermissionsHelper.GetPermissionsFile(f, Checks.Checks.CurrentUserSiDs)) }
                     };
                 }
-                foreach (string d in Directory.GetDirectories(fpath))
+                foreach (string d in Directory.EnumerateDirectories(fpath))
                 {
                     results[d] = PermissionsHelper.GetRecursivePrivs(d);
                 }

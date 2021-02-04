@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -121,8 +122,8 @@ namespace winPEAS.KnownFileCreds.Browsers
                     }
 
                     string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
-                    string[] dirs = Directory.GetDirectories(userFolder);
-                    foreach (string dir in dirs)
+                    var dirs = Directory.EnumerateDirectories(userFolder);
+                    foreach (var dir in dirs)
                     {
                         string[] parts = dir.Split('\\');
                         string userName = parts[parts.Length - 1];
@@ -132,7 +133,7 @@ namespace winPEAS.KnownFileCreds.Browsers
 
                             if (Directory.Exists(userIEBookmarkPath))
                             {
-                                string[] bookmarkPaths = Directory.GetFiles(userIEBookmarkPath, "*.url", SearchOption.AllDirectories);
+                                string[] bookmarkPaths = Directory.EnumerateFiles(userIEBookmarkPath, "*.url", SearchOption.AllDirectories).ToArray();
                                 if (bookmarkPaths.Length != 0)
                                 {
                                     foreach (string bookmarkPath in bookmarkPaths)
@@ -180,7 +181,7 @@ namespace winPEAS.KnownFileCreds.Browsers
 
                     string userIEBookmarkPath = string.Format("{0}\\Favorites\\", System.Environment.GetEnvironmentVariable("USERPROFILE"));
 
-                    string[] bookmarkPaths = Directory.GetFiles(userIEBookmarkPath, "*.url", SearchOption.AllDirectories);
+                    string[] bookmarkPaths = Directory.EnumerateFiles(userIEBookmarkPath, "*.url", SearchOption.AllDirectories).ToArray();
 
                     foreach (string bookmarkPath in bookmarkPaths)
                     {

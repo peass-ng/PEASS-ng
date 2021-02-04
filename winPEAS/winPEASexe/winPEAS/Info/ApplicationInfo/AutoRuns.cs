@@ -343,7 +343,7 @@ namespace winPEAS.Info.ApplicationInfo
 
             try
             {
-                var userDirs = Directory.GetDirectories(usersPath);
+                var userDirs = Directory.EnumerateDirectories(usersPath);
 
                 foreach (var userDir in userDirs)
                 {
@@ -363,7 +363,7 @@ namespace winPEAS.Info.ApplicationInfo
             {
                 try
                 {
-                    var files = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly);
+                    var files = Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly);
 
                     foreach (string filepath in files)
                     {

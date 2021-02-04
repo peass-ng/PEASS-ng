@@ -264,9 +264,9 @@ namespace winPEAS.Helpers
                 results[path] = String.Join(", ", GetPermissionsFolder(path, Checks.Checks.CurrentUserSiDs));
                 if (string.IsNullOrEmpty(results[path]))
                 {
-                    foreach (string d in Directory.GetDirectories(path))
+                    foreach (string d in Directory.EnumerateDirectories(path))
                     {
-                        foreach (string f in Directory.GetFiles(d))
+                        foreach (string f in Directory.EnumerateFiles(d))
                         {
                             results[f] = String.Join(", ", GetPermissionsFile(f, Checks.Checks.CurrentUserSiDs));
                         }

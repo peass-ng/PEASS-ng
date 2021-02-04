@@ -24,7 +24,7 @@ namespace winPEAS.KnownFileCreds.SuperPutty
                 try
                 {
                     var path = $"{dir}\\Documents\\SuperPuTTY\\";
-                    var files = Directory.GetFiles(path, filter, SearchOption.TopDirectoryOnly);
+                    var files = Directory.EnumerateFiles(path, filter, SearchOption.TopDirectoryOnly);
 
                     foreach (var file in files)
                     {

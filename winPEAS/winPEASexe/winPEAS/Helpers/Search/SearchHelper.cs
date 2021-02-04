@@ -115,55 +115,53 @@ namespace winPEAS.Helpers.Search
             return result;
         }
 
-        
-
-        private static List<DirectoryInfo> GetStartDirectories(string folder, ConcurrentBag<CustomFileInfo> files, string pattern, bool isFoldersIncluded = false)
+        private static IEnumerable<DirectoryInfo> GetStartDirectories(string folder, ConcurrentBag<CustomFileInfo> files, string pattern, bool isFoldersIncluded = false)
         {
-            DirectoryInfo dirInfo = null;
-            DirectoryInfo[] directories = null;
-            try
+            while (true)
             {
-                dirInfo = new DirectoryInfo(folder);
-                directories = dirInfo.GetDirectories();
-
-                if (isFoldersIncluded)
+                DirectoryInfo[] directories = null;
+                try
                 {
-                    foreach (var directory in directories)
+                    var dirInfo = new DirectoryInfo(folder);
+                    directories = dirInfo.GetDirectories();
+
+                    if (isFoldersIncluded)
                     {
-                        files.Add(new CustomFileInfo(null, null, directory.FullName));
+                        foreach (var directory in directories)
+                        {
+                            files.Add(new CustomFileInfo(null, null, directory.FullName));
+                        }
                     }
-                }
 
-                foreach (var f in dirInfo.GetFiles(pattern))
+                    foreach (var f in dirInfo.GetFiles(pattern))
+                    {
+                        files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName));
+                    }
+
+                    if (directories.Length > 1) return new List<DirectoryInfo>(directories);
+
+                    if (directories.Length == 0) return new List<DirectoryInfo>();
+                }
+                catch (UnauthorizedAccessException)
                 {
-                    files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName));
+                    return new List<DirectoryInfo>();
+                }
+                catch (PathTooLongException)
+                {
+                    return new List<DirectoryInfo>();
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    return new List<DirectoryInfo>();
+                }
+                catch (Exception)
+                {
+                    return new List<DirectoryInfo>();
                 }
 
-                if (directories.Length > 1)
-                    return new List<DirectoryInfo>(directories);
-
-                if (directories.Length == 0)
-                    return new List<DirectoryInfo>();
-
+                folder = directories[0].FullName;
+                isFoldersIncluded = false;
             }
-            catch (UnauthorizedAccessException)
-            {
-                return new List<DirectoryInfo>();
-            }
-            catch (PathTooLongException)
-            {
-                return new List<DirectoryInfo>();
-            }
-            catch (DirectoryNotFoundException)
-            {
-                return new List<DirectoryInfo>();
-            }
-            catch (Exception)
-            {
-                return new List<DirectoryInfo>();
-            }
-
-            return GetStartDirectories(directories[0].FullName, files, pattern);
         }
 
         internal static void CreateSearchDirectoriesList()
@@ -205,15 +203,14 @@ namespace winPEAS.Helpers.Search
 
         internal static void CleanLists()
         {
-            // TODO
-            //SearchHelper.RootDirUsers = null;
-            //SearchHelper.RootDirCurrentUser = null;
-            //SearchHelper.ProgramFiles = null;
-            //SearchHelper.ProgramFilesX86 = null;
-            //SearchHelper.DocumentsAndSettings = null;
-            //SearchHelper.GroupPolicyHistory = null;
+            SearchHelper.RootDirUsers = null;
+            SearchHelper.RootDirCurrentUser = null;
+            SearchHelper.ProgramFiles = null;
+            SearchHelper.ProgramFilesX86 = null;
+            SearchHelper.DocumentsAndSettings = null;
+            SearchHelper.GroupPolicyHistory = null;
 
-            //GC.Collect();
+            GC.Collect();
         }
 
         internal static IEnumerable<CustomFileInfo> SearchUserCredsFiles()
@@ -253,26 +250,30 @@ namespace winPEAS.Helpers.Search
 
             foreach (var file in SearchHelper.RootDirCurrentUser)
             {
-                string extLower = file.Extension.ToLower();
-                string nameLower = file.Filename.ToLower();
+                if (!file.IsDirectory)
+                {
+                    string extLower = file.Extension.ToLower();
+                    string nameLower = file.Filename.ToLower();
 
-                if (Patterns.WhitelistExtensions.Contains(extLower) ||
-                    Patterns.WhiteListExactfilenamesWithExtensions.Contains(nameLower))
-                {
-                    result.Add(file.FullPath);
-                }
-                else
-                {
-                    foreach (var pattern in Patterns.WhiteListRegexp)
+                    if (Patterns.WhitelistExtensions.Contains(extLower) ||
+                        Patterns.WhiteListExactfilenamesWithExtensions.Contains(nameLower))
                     {
-                        if (Regex.IsMatch(nameLower, pattern, RegexOptions.IgnoreCase))
+                        result.Add(file.FullPath);
+                    }
+                    else
+                    {
+                        foreach (var pattern in Patterns.WhiteListRegexp)
                         {
-                            result.Add(file.FullPath);
+                            if (Regex.IsMatch(nameLower, pattern, RegexOptions.IgnoreCase))
+                            {
+                                result.Add(file.FullPath);
 
-                            break;
+                                break;
+                            }
                         }
                     }
-                }
+
+                }               
             }
 
             return result;
@@ -289,11 +290,14 @@ namespace winPEAS.Helpers.Search
 
             foreach (var file in SearchHelper.GroupPolicyHistory)
             {
-                string extLower = file.Extension.ToLower();
-
-                if (allowedExtensions.Contains(extLower))
+                if (!file.IsDirectory)
                 {
-                    result.Add(file.FullPath);
+                    string extLower = file.Extension.ToLower();
+
+                    if (allowedExtensions.Contains(extLower))
+                    {
+                        result.Add(file.FullPath);
+                    }
                 }
             }
 
@@ -317,11 +321,14 @@ namespace winPEAS.Helpers.Search
 
             foreach (var file in searchFiles)
             {
-                string filenameToLower = file.Filename.ToLower();
-
-                if (allowedFilenames.Contains(filenameToLower))
+                if (!file.IsDirectory)
                 {
-                    result.Add(file.FullPath);
+                    string filenameToLower = file.Filename.ToLower();
+
+                    if (allowedFilenames.Contains(filenameToLower))
+                    {
+                        result.Add(file.FullPath);
+                    }
                 }
             }
 
@@ -349,25 +356,28 @@ namespace winPEAS.Helpers.Search
 
             foreach (var file in SearchHelper.RootDirCurrentUser)
             {
-                string extLower = file.Extension.ToLower();
-                string nameLower = file.Filename.ToLower();
+                if (!file.IsDirectory)
+                {
+                    string extLower = file.Extension.ToLower();
+                    string nameLower = file.Filename.ToLower();
 
-                if (allowedExtensions.Contains(extLower))
-                {
-                    result.Add(file.FullPath);
-                }
-                else
-                {
-                    foreach (var pattern in allowedRegexp)
+                    if (allowedExtensions.Contains(extLower))
                     {
-                        if (Regex.IsMatch(nameLower, pattern, RegexOptions.IgnoreCase))
+                        result.Add(file.FullPath);
+                    }
+                    else
+                    {
+                        foreach (var pattern in allowedRegexp)
                         {
-                            result.Add(file.FullPath);
+                            if (Regex.IsMatch(nameLower, pattern, RegexOptions.IgnoreCase))
+                            {
+                                result.Add(file.FullPath);
 
-                            break;
+                                break;
+                            }
                         }
                     }
-                }
+                }               
             }
 
             return result;
@@ -394,25 +404,28 @@ namespace winPEAS.Helpers.Search
 
             foreach (var file in SearchHelper.RootDirUsers)
             {
-                string extLower = file.Extension.ToLower();
-                string nameLower = file.Filename.ToLower();
+                if (!file.IsDirectory)
+                {
+                    string extLower = file.Extension.ToLower();
+                    string nameLower = file.Filename.ToLower();
 
-                if (allowedExtensions.Contains(extLower))
-                {
-                    result.Add(file.FullPath);
-                }
-                else
-                {
-                    foreach (var pattern in allowedRegexp)
+                    if (allowedExtensions.Contains(extLower))
                     {
-                        if (Regex.IsMatch(nameLower, pattern, RegexOptions.IgnoreCase))
+                        result.Add(file.FullPath);
+                    }
+                    else
+                    {
+                        foreach (var pattern in allowedRegexp)
                         {
-                            result.Add(file.FullPath);
+                            if (Regex.IsMatch(nameLower, pattern, RegexOptions.IgnoreCase))
+                            {
+                                result.Add(file.FullPath);
 
-                            break;
+                                break;
+                            }
                         }
                     }
-                }
+                }               
             }
 
             return result;

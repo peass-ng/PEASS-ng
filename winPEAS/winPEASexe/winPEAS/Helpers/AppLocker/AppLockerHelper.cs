@@ -325,8 +325,8 @@ namespace winPEAS.Helpers.AppLocker
 
             try
             {
-                var subfolders = Directory.GetDirectories(path);
-                var files = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly);
+                var subfolders = Directory.EnumerateDirectories(path);
+                var files = Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly);
 
                 ruleType = ruleType.ToLower();
 

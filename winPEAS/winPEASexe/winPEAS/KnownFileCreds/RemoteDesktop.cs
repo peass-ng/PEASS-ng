@@ -67,7 +67,7 @@ namespace winPEAS.KnownFileCreds
                 if (MyUtils.IsHighIntegrity())
                 {
                     string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
-                    string[] dirs = Directory.GetDirectories(userFolder);
+                    var dirs = Directory.EnumerateDirectories(userFolder);
 
                     foreach (string dir in dirs)
                     {

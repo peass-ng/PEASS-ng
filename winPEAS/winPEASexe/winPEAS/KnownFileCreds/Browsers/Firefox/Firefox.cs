@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using winPEAS.Checks;
 using winPEAS.Helpers;
@@ -91,7 +92,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
                 if (MyUtils.IsHighIntegrity())
                 {
                     string userFolder = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\Users\\";
-                    string[] dirs = Directory.GetDirectories(userFolder);
+                    var dirs = Directory.EnumerateDirectories(userFolder);
                     foreach (string dir in dirs)
                     {
                         string[] parts = dir.Split('\\');
@@ -102,7 +103,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
                             string userFirefoxBasePath = $"{dir}\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\";
                             if (System.IO.Directory.Exists(userFirefoxBasePath))
                             {
-                                string[] directories = Directory.GetDirectories(userFirefoxBasePath);
+                                var directories = Directory.EnumerateDirectories(userFirefoxBasePath);
                                 foreach (string directory in directories)
                                 {
                                     string firefoxCredentialFile3 = $"{directory}\\{"key3.db"}";
@@ -129,7 +130,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
 
                     if (Directory.Exists(userFirefoxBasePath))
                     {
-                        string[] directories = Directory.GetDirectories(userFirefoxBasePath);
+                        var directories = Directory.EnumerateDirectories(userFirefoxBasePath);
                         foreach (string directory in directories)
                         {
                             string firefoxCredentialFile3 = $"{directory}\\{"key3.db"}";
@@ -163,7 +164,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
                 if (MyUtils.IsHighIntegrity())
                 {
                     string userFolder = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\Users\\";
-                    string[] dirs = Directory.GetDirectories(userFolder);
+                    var dirs = Directory.EnumerateDirectories(userFolder);
                     foreach (string dir in dirs)
                     {
                         string[] parts = dir.Split('\\');
@@ -194,7 +195,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
             // parses a Firefox history file via regex
             if (Directory.Exists(path))
             {
-                string[] directories = Directory.GetDirectories(path);
+                var directories = Directory.EnumerateDirectories(path);
                 foreach (string directory in directories)
                 {
                     string firefoxHistoryFile = string.Format("{0}\\{1}", directory, "places.sqlite");
@@ -239,16 +240,16 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
 
             try
             {
-                string[] dirs = Directory.GetDirectories(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Mozilla\\Firefox\\Profiles"));
+                var dirs = Directory.EnumerateDirectories(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Mozilla\\Firefox\\Profiles")).ToList();
 
-                if (dirs.Length == 0)
+                if (!dirs.Any())
                 {
                     return logins;
                 }
 
                 foreach (string dir in dirs)
                 {
-                    string[] files = Directory.GetFiles(dir, "signons.sqlite");
+                    string[] files = Directory.EnumerateFiles(dir, "signons.sqlite").ToArray();
                     if (files.Length > 0)
                     {
                         signonsFile = files[0];
@@ -256,7 +257,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
                     }
 
                     // find &quot;logins.json"file
-                    files = Directory.GetFiles(dir, "logins.json");
+                    files = Directory.EnumerateFiles(dir, "logins.json").ToArray();
                     if (files.Length > 0)
                     {
                         loginsFile = files[0];

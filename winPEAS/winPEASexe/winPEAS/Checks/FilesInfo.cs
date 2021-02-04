@@ -318,7 +318,7 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("Looking for possible regs with creds");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#inside-the-registry");
 
-                string winVnc4 = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\RealVNC\WinVNC4", "passwword");
+                string winVnc4 = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\RealVNC\WinVNC4", "password");
                 if (!string.IsNullOrEmpty(winVnc4.Trim()))
                 {
                     Beaprint.BadPrint(winVnc4);
@@ -731,7 +731,7 @@ namespace winPEAS.Checks
 
                     if (Directory.Exists(path))
                     {
-                        var files = Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly);
+                        var files = Directory.EnumerateFiles(path, pattern, SearchOption.TopDirectoryOnly);
 
                         foreach (var file in files)
                         {

@@ -128,7 +128,7 @@ namespace winPEAS.Checks
 				string transcriptsPath = drive + @"transcripts\";
                 string usersPath = $"{drive}users";
 
-                string[] users = Directory.GetDirectories(usersPath, "*", SearchOption.TopDirectoryOnly);
+                var users = Directory.EnumerateDirectories(usersPath, "*", SearchOption.TopDirectoryOnly);
                 string powershellTranscriptFilter = "powershell_transcript*";
 
                 var colors = new Dictionary<string, string>()
@@ -159,7 +159,7 @@ namespace winPEAS.Checks
                     {
                         try
                         {
-                            var files = Directory.GetFiles(path, filter, SearchOption.TopDirectoryOnly).ToList();
+                            var files = Directory.EnumerateFiles(path, filter, SearchOption.TopDirectoryOnly).ToList();
 
                             foreach (var file in files)
                             {

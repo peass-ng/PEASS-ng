@@ -107,7 +107,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
                 if (MyUtils.IsHighIntegrity())
                 {
                     string userFolder = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\Users\\";
-                    string[] dirs = Directory.GetDirectories(userFolder);
+                    var dirs = Directory.EnumerateDirectories(userFolder);
                     foreach (string dir in dirs)
                     {
                         string[] parts = dir.Split('\\');
@@ -205,7 +205,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
                     Console.WriteLine("\r\n\r\n=== Chrome (All Users) ===");
 
                     string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
-                    string[] dirs = Directory.GetDirectories(userFolder);
+                    var dirs = Directory.EnumerateDirectories(userFolder);
                     foreach (string dir in dirs)
                     {
                         string[] parts = dir.Split('\\');

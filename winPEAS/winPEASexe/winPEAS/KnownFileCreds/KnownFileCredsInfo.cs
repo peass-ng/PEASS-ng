@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -44,7 +45,7 @@ namespace winPEAS.KnownFileCreds
                 if (MyUtils.IsHighIntegrity())
                 {
                     string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
-                    string[] dirs = Directory.GetDirectories(userFolder);
+                    var dirs = Directory.EnumerateDirectories(userFolder);
                     foreach (string dir in dirs)
                     {
                         string[] parts = dir.Split('\\');
@@ -250,7 +251,7 @@ namespace winPEAS.KnownFileCreds
                 if (MyUtils.IsHighIntegrity())
                 {
                     string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
-                    string[] dirs = Directory.GetDirectories(userFolder);
+                    var dirs = Directory.EnumerateDirectories(userFolder);
                     foreach (string dir in dirs)
                     {
                         string[] parts = dir.Split('\\');
@@ -261,7 +262,7 @@ namespace winPEAS.KnownFileCreds
                             string recentPath = string.Format("{0}\\AppData\\Roaming\\Microsoft\\Windows\\Recent\\", dir);
                             try
                             {
-                                string[] recentFiles = Directory.GetFiles(recentPath, "*.lnk", SearchOption.AllDirectories);
+                                string[] recentFiles = Directory.EnumerateFiles(recentPath, "*.lnk", SearchOption.AllDirectories).ToArray();
 
                                 if (recentFiles.Length != 0)
                                 {
@@ -298,7 +299,7 @@ namespace winPEAS.KnownFileCreds
                 {
                     string recentPath = string.Format("{0}\\Microsoft\\Windows\\Recent\\", System.Environment.GetEnvironmentVariable("APPDATA"));
 
-                    string[] recentFiles = Directory.GetFiles(recentPath, "*.lnk", SearchOption.AllDirectories);
+                    var recentFiles = Directory.EnumerateFiles(recentPath, "*.lnk", SearchOption.AllDirectories);
 
                     foreach (string recentFile in recentFiles)
                     {
@@ -346,7 +347,7 @@ namespace winPEAS.KnownFileCreds
                 if (MyUtils.IsHighIntegrity())
                 {
                     string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
-                    string[] dirs = Directory.GetDirectories(userFolder);
+                    var dirs = Directory.EnumerateDirectories(userFolder);
                     foreach (string dir in dirs)
                     {
                         string[] parts = dir.Split('\\');
@@ -361,10 +362,10 @@ namespace winPEAS.KnownFileCreds
                             {
                                 if (System.IO.Directory.Exists(userDPAPIBasePath))
                                 {
-                                    string[] directories = Directory.GetDirectories(userDPAPIBasePath);
+                                    var directories = Directory.EnumerateDirectories(userDPAPIBasePath);
                                     foreach (string directory in directories)
                                     {
-                                        string[] files = Directory.GetFiles(directory);
+                                        var files = Directory.EnumerateFiles(directory);
 
                                         foreach (string file in files)
                                         {
@@ -374,11 +375,11 @@ namespace winPEAS.KnownFileCreds
                                                 DateTime lastModified = System.IO.File.GetLastWriteTime(file);
                                                 string fileName = System.IO.Path.GetFileName(file);
                                                 results.Add(new Dictionary<string, string>()
-                                            {
-                                                { "MasterKey", file },
-                                                { "Accessed", string.Format("{0}", lastAccessed) },
-                                                { "Modified", string.Format("{0}", lastModified) },
-                                            });
+                                                {
+                                                    { "MasterKey", file },
+                                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                                    { "Modified", string.Format("{0}", lastModified) },
+                                                });
                                             }
                                         }
                                     }
@@ -398,10 +399,10 @@ namespace winPEAS.KnownFileCreds
                     {
                         if (System.IO.Directory.Exists(userDPAPIBasePath))
                         {
-                            string[] directories = Directory.GetDirectories(userDPAPIBasePath);
+                            var directories = Directory.EnumerateDirectories(userDPAPIBasePath);
                             foreach (string directory in directories)
                             {
-                                string[] files = Directory.GetFiles(directory);
+                                var files = Directory.EnumerateFiles(directory);
 
                                 foreach (string file in files)
                                 {
@@ -439,7 +440,7 @@ namespace winPEAS.KnownFileCreds
                 if (MyUtils.IsHighIntegrity())
                 {
                     string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
-                    string[] dirs = Directory.GetDirectories(userFolder);
+                    var dirs = Directory.EnumerateDirectories(userFolder);
 
                     foreach (string dir in dirs)
                     {
@@ -455,8 +456,8 @@ namespace winPEAS.KnownFileCreds
                             {
                                 if (System.IO.Directory.Exists(userCredFilePath))
                                 {
-                                    string[] systemFiles = Directory.GetFiles(userCredFilePath);
-                                    if ((systemFiles != null) && (systemFiles.Length != 0))
+                                    var systemFiles = Directory.EnumerateFiles(userCredFilePath);
+                                    if ((systemFiles != null))
                                     {
                                         foreach (string file in systemFiles)
                                         {
@@ -481,14 +482,14 @@ namespace winPEAS.KnownFileCreds
 
                                             string desc = Encoding.Unicode.GetString(descBytes);
                                             results.Add(new Dictionary<string, string>()
-                                        {
-                                            { "CredFile", file },
-                                            { "Description", desc },
-                                            { "MasterKey", string.Format("{0}", guidMasterKey) },
-                                            { "Accessed", string.Format("{0}", lastAccessed) },
-                                            { "Modified", string.Format("{0}", lastModified) },
-                                            { "Size", string.Format("{0}", size) },
-                                        });
+                                            {
+                                                { "CredFile", file },
+                                                { "Description", desc },
+                                                { "MasterKey", string.Format("{0}", guidMasterKey) },
+                                                { "Accessed", string.Format("{0}", lastAccessed) },
+                                                { "Modified", string.Format("{0}", lastModified) },
+                                                { "Size", string.Format("{0}", size) },
+                                            });
                                         }
                                     }
                                 }
@@ -497,8 +498,8 @@ namespace winPEAS.KnownFileCreds
                     }
 
                     string systemFolder = string.Format("{0}\\System32\\config\\systemprofile\\AppData\\Local\\Microsoft\\Credentials", Environment.GetEnvironmentVariable("SystemRoot"));
-                    string[] files = Directory.GetFiles(systemFolder);
-                    if ((files != null) && (files.Length != 0))
+                    var files = Directory.EnumerateFiles(systemFolder);
+                    if ((files != null))
                     {
                         foreach (string file in files)
                         {
@@ -543,9 +544,9 @@ namespace winPEAS.KnownFileCreds
 
                     foreach (string userCredFilePath in userCredFilePaths)
                     {
-                        if (System.IO.Directory.Exists(userCredFilePath))
+                        if (Directory.Exists(userCredFilePath))
                         {
-                            string[] files = Directory.GetFiles(userCredFilePath);
+                            var files = Directory.EnumerateFiles(userCredFilePath);
 
                             foreach (string file in files)
                             {
