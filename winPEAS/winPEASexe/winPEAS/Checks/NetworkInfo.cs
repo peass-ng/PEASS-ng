@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Management;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Extensions;
 using winPEAS.Info.NetworkInfo;
@@ -28,6 +29,7 @@ namespace winPEAS.Checks
             new List<Action>
             {
                 PrintNetShares,
+                PrintMappedDrivesWMI,
                 PrintHostsFile,
                 PrintNetworkIfaces,
                 PrintListeningPorts,
@@ -331,6 +333,37 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintMappedDrivesWMI()
+        {
+            try
+            {
+                Beaprint.MainPrint("Enumerate Network Mapped Drives (WMI)");
+
+                using (var wmiData = new ManagementObjectSearcher(@"root\cimv2", "SELECT * FROM win32_networkconnection"))
+                {
+                    using (var data = wmiData.Get())
+                    {
+                        foreach (ManagementObject result in data)
+                        {
+                            Beaprint.NoColorPrint($"   Local Name         :       {result["LocalName"]}\n" +
+                                                        $"   Remote Name        :       {result["RemoteName"]}\n" +
+                                                        $"   Remote Path        :       {result["RemotePath"]}\n" +
+                                                        $"   Status             :       {result["Status"]}\n" +
+                                                        $"   Connection State   :       {result["ConnectionState"]}\n" +
+                                                        $"   Persistent         :       {result["Persistent"]}\n" +
+                                                        $"   UserName           :       {result["UserName"]}\n" +
+                                                        $"   Description        :       {result["Description"]}\n");
+
+                            Beaprint.PrintLineSeparator();
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
             }
         }
     }

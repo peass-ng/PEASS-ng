@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml;
 using winPEAS.Helpers;
 using winPEAS.Helpers.CredentialManager;
+using winPEAS.Helpers.Registry;
 using winPEAS.KnownFileCreds;
 using winPEAS.KnownFileCreds.Kerberos;
 using winPEAS.KnownFileCreds.SecurityPackages;

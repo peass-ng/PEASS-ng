@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace winPEAS.Info.EventsInfo.PowerShell
+namespace winPEAS.Info.EventsInfo
 {
     internal static class Common
     {

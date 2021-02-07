@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.AppLocker;
 using winPEAS._3rdParty.Watson;
@@ -10,6 +13,8 @@ using winPEAS.Info.SystemInfo.NamedPipes;
 using winPEAS.Info.SystemInfo;
 using winPEAS.Info.SystemInfo.SysMon;
 using winPEAS.Helpers.Extensions;
+using winPEAS.Helpers.Registry;
+using winPEAS.Info.SystemInfo.DotNet;
 using winPEAS.Info.SystemInfo.WindowsDefender;
 
 namespace winPEAS.Checks
@@ -47,6 +52,8 @@ namespace winPEAS.Checks
             new List<Action>
             {
                 PrintBasicSystemInfo,
+                PrintMicrosoftUpdatesCOM,
+                PrintSystemLastShutdownTime,
                 PrintUserEV,
                 PrintSystemEV,
                 PrintAuditInfo,
@@ -70,11 +77,12 @@ namespace winPEAS.Checks
                 PrintPrintersWMIInfo,
                 PrintNamedPipes,
                 PrintAMSIProviders,
-                PrintSysmon
+                PrintSysmon,
+                PrintDotNetVersions
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
-        static void PrintBasicSystemInfo()
+        private static void PrintBasicSystemInfo()
         {
             try
             {
@@ -92,6 +100,61 @@ namespace winPEAS.Checks
 
                 //To update Watson, update the CVEs and add the new ones and update the main function so it uses new CVEs (becausfull with the Beaprints inside the FindVulns function)
                 //Usually you won't need to do anything with the classes Wmi, Vulnerability and VulnerabilityCollection
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintMicrosoftUpdatesCOM()
+        {
+            try
+            {
+                Beaprint.MainPrint("Showing All Microsoft Updates");
+
+                var searcher = Type.GetTypeFromProgID("Microsoft.Update.Searcher");
+                var searcherObj = Activator.CreateInstance(searcher);
+
+                // get the total number of updates
+                var count = (int)searcherObj.GetType().InvokeMember("GetTotalHistoryCount", BindingFlags.InvokeMethod, null, searcherObj, new object[] { });
+
+                // get the pointer to the update collection
+                var results = searcherObj.GetType().InvokeMember("QueryHistory", BindingFlags.InvokeMethod, null, searcherObj, new object[] { 0, count });
+
+                for (int i = 0; i < count; ++i)
+                {
+                    // get the actual update item
+                    var item = searcherObj.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, results, new object[] { i });
+
+                    // get our properties
+                    //  ref - https://docs.microsoft.com/en-us/windows/win32/api/wuapi/nn-wuapi-iupdatehistoryentry
+                    var title = searcherObj.GetType().InvokeMember("Title", BindingFlags.GetProperty, null, item, new object[] { }).ToString();
+                    var date = searcherObj.GetType().InvokeMember("Date", BindingFlags.GetProperty, null, item, new object[] { });
+                    var description = searcherObj.GetType().InvokeMember("Description", BindingFlags.GetProperty, null, item, new object[] { });
+                    var clientApplicationID = searcherObj.GetType().InvokeMember("ClientApplicationID", BindingFlags.GetProperty, null, item, new object[] { });
+
+                    string hotfixId = "";
+                    Regex reg = new Regex(@"KB\d+");
+                    var matches = reg.Matches(title);
+                    if (matches.Count > 0)
+                    {
+                        hotfixId = matches[0].ToString();
+                    }
+
+                    Beaprint.NoColorPrint($"   HotFix ID                :   {hotfixId}\n" +
+                                                $"   Installed At (UTC)       :   {Convert.ToDateTime(date.ToString()).ToUniversalTime()}\n" +
+                                                $"   Title                    :   {title}\n" +
+                                                $"   Client Application ID    :   {clientApplicationID}\n" +
+                                                $"   Description              :   {description}\n");
+
+                    Beaprint.PrintLineSeparator();
+
+                    Marshal.ReleaseComObject(item);
+                }
+
+                Marshal.ReleaseComObject(results);
+                Marshal.ReleaseComObject(searcherObj);
             }
             catch (Exception ex)
             {
@@ -703,8 +766,6 @@ namespace winPEAS.Checks
         {
             Beaprint.MainPrint("Windows Defender configuration");
 
-
-
             void DisplayDefenderSettings(WindowsDefenderSettings settings)
             {
                 var pathExclusions = settings.PathExclusions;
@@ -794,6 +855,82 @@ namespace winPEAS.Checks
                 DisplayDefenderSettings(info.GroupPolicySettings);
             }
             catch (Exception e)
+            {
+            }
+        }
+
+        private static void PrintDotNetVersions()
+        {
+            try
+            {
+                Beaprint.MainPrint("Installed .NET versions\n");
+
+                var info = DotNet.GetDotNetInfo();
+
+                Beaprint.ColorPrint("  CLR Versions", Beaprint.LBLUE);
+                foreach (var version in info.ClrVersions)
+                {
+                    Beaprint.NoColorPrint($"   {version}");
+                }
+
+                Beaprint.ColorPrint("\n  .NET Versions", Beaprint.LBLUE);
+                foreach (var version in info.DotNetVersions)
+                {
+                    Beaprint.NoColorPrint($"   {version}");
+                }
+
+                var colors = new Dictionary<string, string>
+                {
+                    { "True", Beaprint.ansi_color_good },
+                    { "False", Beaprint.ansi_color_bad },
+                };
+
+                Beaprint.ColorPrint("\n  .NET & AMSI (Anti-Malware Scan Interface) support", Beaprint.LBLUE);
+                Beaprint.AnsiPrint($"      .NET version supports AMSI     : {info.IsAmsiSupportedByDotNet}\n" +
+                                   $"      OS supports AMSI               : {info.IsAmsiSupportedByOs}",
+                                    colors);
+
+                var highestVersion = info.HighestVersion;
+                var lowestVersion = info.LowestVersion;
+
+                if ((highestVersion.Major == DotNetInfo.AmsiSupportedByDotNetMinMajorVersion) && (highestVersion.Minor >= DotNetInfo.AmsiSupportedByDotNetMinMinorVersion))
+                {
+                    Beaprint.NoColorPrint($"        [!] The highest .NET version is enrolled in AMSI!");
+                }
+
+                if (
+                    info.IsAmsiSupportedByOs &&
+                    info.IsAmsiSupportedByDotNet &&
+                    ((
+                         (lowestVersion.Major == DotNetInfo.AmsiSupportedByDotNetMinMajorVersion - 1)
+                     ) ||
+                     ((lowestVersion.Major == DotNetInfo.AmsiSupportedByDotNetMinMajorVersion) && (lowestVersion.Minor < DotNetInfo.AmsiSupportedByDotNetMinMinorVersion)))
+                )
+                {
+                    Beaprint.NoColorPrint($"        [-] You can invoke .NET version {lowestVersion.Major}.{lowestVersion.Minor} to bypass AMSI.");
+                }
+            }
+            catch (Exception e)
+            {
+            }
+        }
+
+        private static void PrintSystemLastShutdownTime()
+        {
+            try
+            {
+                Beaprint.MainPrint("System Last Shutdown Date/time (from Registry)\n");
+
+                var shutdownBytes = RegistryHelper.GetRegValueBytes("HKLM", "SYSTEM\\ControlSet001\\Control\\Windows", "ShutdownTime");
+                if (shutdownBytes != null)
+                {
+                    var shutdownInt = BitConverter.ToInt64(shutdownBytes, 0);
+                    var shutdownTime = DateTime.FromFileTime(shutdownInt);
+
+                    Beaprint.NoColorPrint($"    Last Shutdown Date/time        :    {shutdownTime}");
+                }
+            }
+            catch (Exception ex)
             {
             }
         }

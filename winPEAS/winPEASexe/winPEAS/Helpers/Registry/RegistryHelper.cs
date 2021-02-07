@@ -1,10 +1,9 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Win32;
 
-namespace winPEAS.Helpers
+namespace winPEAS.Helpers.Registry
 {
     static class RegistryHelper
     {
@@ -19,7 +18,7 @@ namespace winPEAS.Helpers
             string regKeyValue = "";
             if (hive == "HKCU")
             {
-                var regKey = Registry.CurrentUser.OpenSubKey(path);
+                var regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(path);
                 if (regKey != null)
                 {
                     regKeyValue = string.Format("{0}", regKey.GetValue(value));
@@ -28,7 +27,7 @@ namespace winPEAS.Helpers
             }
             else if (hive == "HKU")
             {
-                var regKey = Registry.Users.OpenSubKey(path);
+                var regKey = Microsoft.Win32.Registry.Users.OpenSubKey(path);
                 if (regKey != null)
                 {
                     regKeyValue = string.Format("{0}", regKey.GetValue(value));
@@ -37,7 +36,7 @@ namespace winPEAS.Helpers
             }
             else
             {
-                var regKey = Registry.LocalMachine.OpenSubKey(path);
+                var regKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(path);
                 if (regKey != null)
                 {
                     regKeyValue = string.Format("{0}", regKey.GetValue(value));
@@ -54,7 +53,7 @@ namespace winPEAS.Helpers
             {
                 if (hive == "HKCU")
                 {
-                    using (var regKeyValues = Registry.CurrentUser.OpenSubKey(path))
+                    using (var regKeyValues = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(path))
                     {
                         if (regKeyValues != null)
                         {
@@ -65,7 +64,7 @@ namespace winPEAS.Helpers
                 }
                 else if (hive == "HKU")
                 {
-                    using (var regKeyValues = Registry.Users.OpenSubKey(path))
+                    using (var regKeyValues = Microsoft.Win32.Registry.Users.OpenSubKey(path))
                     {
                         if (regKeyValues != null)
                         {
@@ -76,7 +75,7 @@ namespace winPEAS.Helpers
                 }
                 else
                 {
-                    using (var regKeyValues = Registry.LocalMachine.OpenSubKey(path))
+                    using (var regKeyValues = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(path))
                     {
                         if (regKeyValues != null)
                         {
@@ -99,7 +98,7 @@ namespace winPEAS.Helpers
             byte[] regKeyValue = null;
             if (hive == "HKCU")
             {
-                var regKey = Registry.CurrentUser.OpenSubKey(path);
+                var regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(path);
                 if (regKey != null)
                 {
                     regKeyValue = (byte[])regKey.GetValue(value);
@@ -108,7 +107,7 @@ namespace winPEAS.Helpers
             }
             else if (hive == "HKU")
             {
-                var regKey = Registry.Users.OpenSubKey(path);
+                var regKey = Microsoft.Win32.Registry.Users.OpenSubKey(path);
                 if (regKey != null)
                 {
                     regKeyValue = (byte[])regKey.GetValue(value);
@@ -117,7 +116,7 @@ namespace winPEAS.Helpers
             }
             else
             {
-                var regKey = Registry.LocalMachine.OpenSubKey(path);
+                var regKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(path);
                 if (regKey != null)
                 {
                     regKeyValue = (byte[])regKey.GetValue(value);
@@ -134,15 +133,15 @@ namespace winPEAS.Helpers
                 RegistryKey myKey = null;
                 if (hive == "HKLM")
                 {
-                    myKey = Registry.LocalMachine.OpenSubKey(path);
+                    myKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(path);
                 }
                 else if (hive == "HKU")
                 {
-                    myKey = Registry.Users.OpenSubKey(path);
+                    myKey = Microsoft.Win32.Registry.Users.OpenSubKey(path);
                 }
                 else
                 {
-                    myKey = Registry.CurrentUser.OpenSubKey(path);
+                    myKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(path);
                 }
                 String[] subkeyNames = myKey.GetSubKeyNames();
                 return myKey.GetSubKeyNames();

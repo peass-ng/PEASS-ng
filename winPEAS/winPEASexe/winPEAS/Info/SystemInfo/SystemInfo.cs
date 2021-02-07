@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Management;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Windows.Forms;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
 using winPEAS.KnownFileCreds;
 
 namespace winPEAS.Info.SystemInfo
@@ -229,6 +231,7 @@ namespace winPEAS.Info.SystemInfo
             {
                 results["PowerShell v2 Version"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\PowerShell\\1\\PowerShellEngine", "PowerShellVersion");
                 results["PowerShell v5 Version"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\PowerShell\\3\\PowerShellEngine", "PowerShellVersion");
+                results["PowerShell Core Version"] = string.Join(", ", GetPowerShellCoreVersions());
                 results["Transcription Settings"] = "";
                 results["Module Logging Settings"] = "";
                 results["Scriptblock Logging Settings"] = "";
@@ -329,6 +332,15 @@ namespace winPEAS.Info.SystemInfo
                 Beaprint.PrintException(ex.Message);
             }
             return results;
+        }
+
+        private static IEnumerable<string> GetPowerShellCoreVersions()
+        {
+            var keys = RegistryHelper.GetRegSubkeys("HKLM", @"SOFTWARE\Microsoft\PowerShellCore\InstalledVersions\") ?? new string[] { };
+
+            return keys.Select(key => 
+                RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\PowerShellCore\InstalledVersions\" + key, "SemanticVersion"))
+                              .Where(version => version != null).ToList();
         }
 
         // From seatbelt

@@ -37,28 +37,6 @@ namespace winPEAS.InterestingFiles
             return results;
         }
 
-        public static List<string> GetMcAfeeSitelistFiles()
-        { 
-            //From SharpUP
-            List<string> results = new List<string>();
-
-            try
-            {
-               
-
-                results = SearchHelper.SearchMcAfeeSitelistFiles();
-
-                //results.AddRange(
-                //    searchLocations.SelectMany(
-                //        searchLocation => SearchHelper.FindFiles(searchLocation, "SiteList.xml")));
-            }
-            catch (Exception ex)
-            {
-                Beaprint.PrintException(ex.Message);
-            }
-            return results;
-        }
-
         public static List<string> GetLinuxShells()
         {
             var results = new List<string>();

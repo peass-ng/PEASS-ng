@@ -4,6 +4,7 @@ using System.DirectoryServices.AccountManagement;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
 using winPEAS.Info.UserInfo.SAM;
 using winPEAS.KnownFileCreds;
 using winPEAS.Native;

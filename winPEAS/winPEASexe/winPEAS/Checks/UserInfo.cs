@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 using winPEAS.Helpers;
 using winPEAS.Info.UserInfo;
 using winPEAS.Info.UserInfo.LogonSessions;
 using winPEAS.Info.UserInfo.Token;
+using winPEAS.Native;
+using winPEAS.Native.Structs;
 
 namespace winPEAS.Checks
 {
@@ -35,6 +39,7 @@ namespace winPEAS.Checks
             new List<Action>
             {
                 PrintCU,
+                PrintCurrentUserIdleTime,
                 PrintTokenP,
                 PrintClipboardText,
                 PrintLoggedUsers,
@@ -303,6 +308,31 @@ namespace winPEAS.Checks
                 }
             }
             catch (Exception)
+            {
+            }
+        }
+
+        private static void PrintCurrentUserIdleTime()
+        {
+            try
+            {
+                Beaprint.MainPrint("Current User Idle Time");
+
+                var lastInputInfo = new LastInputInfo();
+                lastInputInfo.Size = (uint)Marshal.SizeOf(lastInputInfo);
+
+                if (User32.GetLastInputInfo(ref lastInputInfo))
+                {
+                    var currentUser = WindowsIdentity.GetCurrent().Name;
+                    var idleTimeMiliSeconds = (uint) Environment.TickCount - lastInputInfo.Time;
+                    var timeSpan = TimeSpan.FromMilliseconds(idleTimeMiliSeconds);
+                    var idleTimeString = $"{timeSpan.Hours:D2}h:{timeSpan.Minutes:D2}m:{timeSpan.Seconds:D2}s:{timeSpan.Milliseconds:D3}ms";
+
+                    Beaprint.NoColorPrint($"   Current User   :     {currentUser}\n" +
+                                                $"   Idle Time      :     {idleTimeString}");
+                }
+            }
+            catch (Exception ex)
             {
             }
         }

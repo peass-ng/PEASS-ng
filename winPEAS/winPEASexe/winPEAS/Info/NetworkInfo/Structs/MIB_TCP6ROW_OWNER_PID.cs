@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using winPEAS.Info.NetworkInfo.Enums;
 
 namespace winPEAS.Info.NetworkInfo.Structs
 {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Win32;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
 
 namespace winPEAS.Info.SystemInfo.WindowsDefender
 {

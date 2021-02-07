@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
 
 namespace winPEAS.Info.ApplicationInfo
 {

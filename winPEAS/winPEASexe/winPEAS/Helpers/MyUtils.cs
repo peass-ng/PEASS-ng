@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
+using winPEAS.Helpers.Registry;
 
 namespace winPEAS.Helpers
 {
@@ -84,6 +85,12 @@ namespace winPEAS.Helpers
             return binaryPath;
         }
 
+        internal static bool IsBase64String(string text)
+        {
+            text = text.Trim();
+            return (text.Length % 4 == 0) && Regex.IsMatch(text, @"^[a-zA-Z0-9\+/]*={0,3}$", RegexOptions.None);
+        }
+
         public static string ReconstructExecPath(string path)
         {
             if (!path.Contains(".exe") && !path.Contains(".dll") && !path.Contains(".sys"))
@@ -136,6 +143,10 @@ namespace winPEAS.Helpers
             return dirs.ToList();
         }
 
+        internal static byte[] CombineArrays(byte[] first, byte[] second)
+        {
+            return first.Concat(second).ToArray();
+        }
 
         //From Seatbelt
         public static bool IsHighIntegrity()

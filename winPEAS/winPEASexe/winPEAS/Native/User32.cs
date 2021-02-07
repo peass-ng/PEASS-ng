@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using winPEAS.Native.Structs;
 
 namespace winPEAS.Native
 {
@@ -12,5 +13,10 @@ namespace winPEAS.Native
 
         [DllImport("user32.dll")]
         internal static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+        [DllImport("User32.dll")]
+        public static extern bool GetLastInputInfo(ref LastInputInfo lastInputInfo);
+
+        [DllImport("user32.dll")]
+        public static extern bool SetProcessDPIAware();
     }
 }

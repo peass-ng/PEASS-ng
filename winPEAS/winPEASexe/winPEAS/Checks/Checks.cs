@@ -6,6 +6,7 @@ using System.Management;
 using System.Security.Principal;
 using winPEAS.Helpers;
 using winPEAS.Helpers.AppLocker;
+using winPEAS.Helpers.Registry;
 using winPEAS.Helpers.Search;
 using winPEAS.Info.UserInfo;
 

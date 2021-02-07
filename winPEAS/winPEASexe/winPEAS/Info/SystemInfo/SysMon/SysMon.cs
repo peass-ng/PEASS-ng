@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
 
 namespace winPEAS.Info.SystemInfo.SysMon
 {

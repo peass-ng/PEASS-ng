@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace winPEAS.Info.NetworkInfo
+namespace winPEAS.Info.NetworkInfo.Enums
 {
     public enum MibTcpState
     {

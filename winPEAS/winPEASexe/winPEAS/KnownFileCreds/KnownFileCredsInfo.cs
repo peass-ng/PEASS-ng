@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
 
 namespace winPEAS.KnownFileCreds
 {
@@ -42,198 +43,80 @@ namespace winPEAS.KnownFileCreds
             // adapted from https://twitter.com/cmaddalena's SharpCloud project (https://github.com/chrismaddalena/SharpCloud/)
             try
             {
+                var cloudCredsDict = new Dictionary<string, string>
+                {
+                    // AWS
+                    { ".aws\\credentials", "AWS keys file" },
+
+                    // Google Cloud
+                    { "AppData\\Roaming\\gcloud\\credentials.db", "GC Compute creds" },
+                    { "AppData\\Roaming\\gcloud\\legacy_credentials", "GC Compute creds legacy" },
+                    { "AppData\\Roaming\\gcloud\\access_tokens.db", "GC Compute tokens" },
+
+                    // Azure
+                    { ".azure\\accessTokens.json", "Azure tokens" },
+                    { ".azure\\azureProfile.json", "Azure profile" },
+                    { ".azure\\TokenCache.dat", "Azure Token Cache" },
+                    { ".azure\\AzureRMContext.json", "Azure RM Context" },
+                    { "AppData\\Roaming\\Windows Azure Powershell\\TokenCache.dat", "Azure PowerShell Token Cache" },
+                    { "AppData\\Roaming\\Windows Azure Powershell\\AzureRMContext.json", "Azure PowerShell RM Context" },
+
+                    // Bluemix
+                    { ".bluemix\\config.json", "Bluemix Config" },
+                    { ".bluemix\\.cf\\config.json", "Bluemix Alternate Config" },
+                };
+
+                IEnumerable<string> userDirs;
+
                 if (MyUtils.IsHighIntegrity())
                 {
-                    string userFolder = string.Format("{0}\\Users\\", Environment.GetEnvironmentVariable("SystemDrive"));
-                    var dirs = Directory.EnumerateDirectories(userFolder);
-                    foreach (string dir in dirs)
-                    {
-                        string[] parts = dir.Split('\\');
-                        string userName = parts[parts.Length - 1];
-                        if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
-                        {
-                            string awsKeyFile = string.Format("{0}\\.aws\\credentials", dir);
-                            if (System.IO.File.Exists(awsKeyFile))
-                            {
-                                DateTime lastAccessed = System.IO.File.GetLastAccessTime(awsKeyFile);
-                                DateTime lastModified = System.IO.File.GetLastWriteTime(awsKeyFile);
-                                long size = new System.IO.FileInfo(awsKeyFile).Length;
-                                results.Add(new Dictionary<string, string>() {
-                                    { "file", awsKeyFile },
-                                    { "Description", "AWS credentials file" },
-                                    { "Accessed", string.Format("{0}", lastAccessed) },
-                                    { "Modified", string.Format("{0}", lastModified) },
-                                    { "Size", string.Format("{0}", size) }
-                                });
-                            }
-                            string computeCredsDb = string.Format("{0}\\AppData\\Roaming\\gcloud\\credentials.db", dir);
-                            if (System.IO.File.Exists(computeCredsDb))
-                            {
-                                DateTime lastAccessed = System.IO.File.GetLastAccessTime(computeCredsDb);
-                                DateTime lastModified = System.IO.File.GetLastWriteTime(computeCredsDb);
-                                long size = new System.IO.FileInfo(computeCredsDb).Length;
-                                results.Add(new Dictionary<string, string>() {
-                                    { "file", computeCredsDb },
-                                    { "Description", "GC Compute creds" },
-                                    { "Accessed", string.Format("{0}", lastAccessed) },
-                                    { "Modified", string.Format("{0}", lastModified) },
-                                    { "Size", string.Format("{0}", size) }
-                                });
-                            }
-                            string computeLegacyCreds = string.Format("{0}\\AppData\\Roaming\\gcloud\\legacy_credentials", dir);
-                            if (System.IO.File.Exists(computeLegacyCreds))
-                            {
-                                DateTime lastAccessed = System.IO.File.GetLastAccessTime(computeLegacyCreds);
-                                DateTime lastModified = System.IO.File.GetLastWriteTime(computeLegacyCreds);
-                                long size = new System.IO.FileInfo(computeLegacyCreds).Length;
-                                results.Add(new Dictionary<string, string>() {
-                                    { "file", computeLegacyCreds },
-                                    { "Description", "GC Compute creds legacy" },
-                                    { "Accessed", string.Format("{0}", lastAccessed) },
-                                    { "Modified", string.Format("{0}", lastModified) },
-                                    { "Size", string.Format("{0}", size) }
-                                });
-                            }
-                            string computeAccessTokensDb = string.Format("{0}\\AppData\\Roaming\\gcloud\\access_tokens.db", dir);
-                            if (System.IO.File.Exists(computeAccessTokensDb))
-                            {
-                                DateTime lastAccessed = System.IO.File.GetLastAccessTime(computeAccessTokensDb);
-                                DateTime lastModified = System.IO.File.GetLastWriteTime(computeAccessTokensDb);
-                                long size = new System.IO.FileInfo(computeAccessTokensDb).Length;
-                                results.Add(new Dictionary<string, string>() {
-                                    { "file", computeAccessTokensDb },
-                                    { "Description", "GC Compute tokens" },
-                                    { "Accessed", string.Format("{0}", lastAccessed) },
-                                    { "Modified", string.Format("{0}", lastModified) },
-                                    { "Size", string.Format("{0}", size) }
-                                });
-                            }
-                            string azureTokens = string.Format("{0}\\.azure\\accessTokens.json", dir);
-                            if (System.IO.File.Exists(azureTokens))
-                            {
-                                DateTime lastAccessed = System.IO.File.GetLastAccessTime(azureTokens);
-                                DateTime lastModified = System.IO.File.GetLastWriteTime(azureTokens);
-                                long size = new System.IO.FileInfo(azureTokens).Length;
-                                results.Add(new Dictionary<string, string>() {
-                                    { "file", azureTokens },
-                                    { "Description", "Azure tokens" },
-                                    { "Accessed", string.Format("{0}", lastAccessed) },
-                                    { "Modified", string.Format("{0}", lastModified) },
-                                    { "Size", string.Format("{0}", size) }
-                                });
-                            }
-                            string azureProfile = string.Format("{0}\\.azure\\azureProfile.json", dir);
-                            if (System.IO.File.Exists(azureProfile))
-                            {
-                                DateTime lastAccessed = System.IO.File.GetLastAccessTime(azureProfile);
-                                DateTime lastModified = System.IO.File.GetLastWriteTime(azureProfile);
-                                long size = new System.IO.FileInfo(azureProfile).Length;
-                                results.Add(new Dictionary<string, string>() {
-                                    { "file", azureProfile },
-                                    { "Description", "Azure profile" },
-                                    { "Accessed", string.Format("{0}", lastAccessed) },
-                                    { "Modified", string.Format("{0}", lastModified) },
-                                    { "Size", string.Format("{0}", size) }
-                                });
-                            }
-                        }
-                    }
+                    string userFolders = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\Users\\";
+                    userDirs = Directory.EnumerateDirectories(userFolders);
                 }
                 else
                 {
-                    string awsKeyFile = string.Format("{0}\\.aws\\credentials", System.Environment.GetEnvironmentVariable("USERPROFILE"));
-                    if (System.IO.File.Exists(awsKeyFile))
+                    var currentUserDir = Environment.GetEnvironmentVariable("USERPROFILE");
+                    userDirs = new List<string>{ currentUserDir };
+                }
+
+                foreach (var userDir in userDirs)
+                {
+                    foreach (var item in cloudCredsDict)
                     {
-                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(awsKeyFile);
-                        DateTime lastModified = System.IO.File.GetLastWriteTime(awsKeyFile);
-                        long size = new System.IO.FileInfo(awsKeyFile).Length;
-                        results.Add(new Dictionary<string, string>() {
-                                    { "file", awsKeyFile },
-                                    { "Description", "AWS keys file" },
-                                    { "Accessed", string.Format("{0}", lastAccessed) },
-                                    { "Modified", string.Format("{0}", lastModified) },
-                                    { "Size", string.Format("{0}", size) }
-                                });
-                    }
-                    string computeCredsDb = string.Format("{0}\\AppData\\Roaming\\gcloud\\credentials.db", System.Environment.GetEnvironmentVariable("USERPROFILE"));
-                    if (System.IO.File.Exists(computeCredsDb))
-                    {
-                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(computeCredsDb);
-                        DateTime lastModified = System.IO.File.GetLastWriteTime(computeCredsDb);
-                        long size = new System.IO.FileInfo(computeCredsDb).Length;
-                        results.Add(new Dictionary<string, string>() {
-                                    { "file", computeCredsDb },
-                                    { "Description", "GC Compute creds" },
-                                    { "Accessed", string.Format("{0}", lastAccessed) },
-                                    { "Modified", string.Format("{0}", lastModified) },
-                                    { "Size", string.Format("{0}", size) }
-                                });
-                    }
-                    string computeLegacyCreds = string.Format("{0}\\AppData\\Roaming\\gcloud\\legacy_credentials", System.Environment.GetEnvironmentVariable("USERPROFILE"));
-                    if (System.IO.File.Exists(computeLegacyCreds))
-                    {
-                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(computeLegacyCreds);
-                        DateTime lastModified = System.IO.File.GetLastWriteTime(computeLegacyCreds);
-                        long size = new System.IO.FileInfo(computeLegacyCreds).Length;
-                        results.Add(new Dictionary<string, string>() {
-                                    { "file", computeLegacyCreds },
-                                    { "Description", "GC Compute creds legacy" },
-                                    { "Accessed", string.Format("{0}", lastAccessed) },
-                                    { "Modified", string.Format("{0}", lastModified) },
-                                    { "Size", string.Format("{0}", size) }
-                                });
-                    }
-                    string computeAccessTokensDb = string.Format("{0}\\AppData\\Roaming\\gcloud\\access_tokens.db", System.Environment.GetEnvironmentVariable("USERPROFILE"));
-                    if (System.IO.File.Exists(computeAccessTokensDb))
-                    {
-                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(computeAccessTokensDb);
-                        DateTime lastModified = System.IO.File.GetLastWriteTime(computeAccessTokensDb);
-                        long size = new System.IO.FileInfo(computeAccessTokensDb).Length;
-                        results.Add(new Dictionary<string, string>() {
-                                    { "file", computeAccessTokensDb },
-                                    { "Description", "GC Compute tokens" },
-                                    { "Accessed", string.Format("{0}", lastAccessed) },
-                                    { "Modified", string.Format("{0}", lastModified) },
-                                    { "Size", string.Format("{0}", size) }
-                                });
-                    }
-                    string azureTokens = string.Format("{0}\\.azure\\accessTokens.json", System.Environment.GetEnvironmentVariable("USERPROFILE"));
-                    if (System.IO.File.Exists(azureTokens))
-                    {
-                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(azureTokens);
-                        DateTime lastModified = System.IO.File.GetLastWriteTime(azureTokens);
-                        long size = new System.IO.FileInfo(azureTokens).Length;
-                        results.Add(new Dictionary<string, string>() {
-                                    { "file", azureTokens },
-                                    { "Description", "Azure tokens" },
-                                    { "Accessed", string.Format("{0}", lastAccessed) },
-                                    { "Modified", string.Format("{0}", lastModified) },
-                                    { "Size", string.Format("{0}", size) }
-                                });
-                    }
-                    string azureProfile = string.Format("{0}\\.azure\\azureProfile.json", System.Environment.GetEnvironmentVariable("USERPROFILE"));
-                    if (System.IO.File.Exists(azureProfile))
-                    {
-                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(azureProfile);
-                        DateTime lastModified = System.IO.File.GetLastWriteTime(azureProfile);
-                        long size = new System.IO.FileInfo(azureProfile).Length;
-                        results.Add(new Dictionary<string, string>() {
-                                    { "file", azureProfile },
-                                    { "Description", "Azure profile" },
-                                    { "Accessed", string.Format("{0}", lastAccessed) },
-                                    { "Modified", string.Format("{0}", lastModified) },
-                                    { "Size", string.Format("{0}", size) }
-                                });
+                        var file = item.Key;
+                        var description = item.Value;
+
+                        var fullFilePath = Path.Combine(userDir, file);
+
+                        AddCloudCredentialFromFile(fullFilePath, description, results);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
+                Beaprint.PrintException(ex.Message);
             }
             return results;
         }
 
+        private static void AddCloudCredentialFromFile(string filePath, string description, ICollection<Dictionary<string, string>> results)
+        {
+            if (File.Exists(filePath))
+            {
+                DateTime lastAccessed = File.GetLastAccessTime(filePath);
+                DateTime lastModified = File.GetLastWriteTime(filePath);
+                long size = new FileInfo(filePath).Length;
+
+                results?.Add(new Dictionary<string, string> 
+                {
+                    { "file", filePath },
+                    { "Description", description },
+                    { "Accessed", $"{lastAccessed}"},
+                    { "Modified", $"{lastModified}"},
+                    { "Size", $"{size}"}
+                });
+            }
+        }
 
         public static List<Dictionary<string, string>> GetRecentFiles()
         {

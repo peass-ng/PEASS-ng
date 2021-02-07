@@ -4,6 +4,7 @@ using System.IO;
 using System.Xml;
 using Microsoft.Win32;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
 
 namespace winPEAS.KnownFileCreds
 {

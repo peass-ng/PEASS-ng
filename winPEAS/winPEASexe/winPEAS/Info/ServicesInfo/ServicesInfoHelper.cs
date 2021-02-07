@@ -10,6 +10,7 @@ using System.ServiceProcess;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
 using winPEAS.KnownFileCreds;
 using winPEAS.Native;
 

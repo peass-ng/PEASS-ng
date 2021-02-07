@@ -6,6 +6,7 @@ using System.Management;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
 
 namespace winPEAS.Info.ApplicationInfo
 {

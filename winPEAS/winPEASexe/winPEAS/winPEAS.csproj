@@ -410,6 +410,11 @@
     <Compile Include="Info\EventsInfo\Common.cs" />
     <Compile Include="Info\EventsInfo\ProcessCreation\ProcessCreation.cs" />
     <Compile Include="Info\EventsInfo\ProcessCreation\ProcessCreationEventInfo.cs" />
+    <Compile Include="Info\FilesInfo\Certificates\CertificateInfo.cs" />
+    <Compile Include="Info\FilesInfo\Certificates\Certificates.cs" />
+    <Compile Include="Info\FilesInfo\McAfee\McAfee.cs" />
+    <Compile Include="Info\FilesInfo\McAfee\McAfeeSiteInfo.cs" />
+    <Compile Include="Info\FilesInfo\McAfee\McAfeeSitelistInfo.cs" />
     <Compile Include="Info\NetworkInfo\Enums\IPVersion.cs" />
     <Compile Include="Info\NetworkInfo\Enums\MibTcpState.cs" />
     <Compile Include="Info\NetworkInfo\Enums\Protocol.cs" />
@@ -428,6 +433,8 @@
     <Compile Include="Info\NetworkInfo\UdpConnectionInfo.cs" />
     <Compile Include="Info\NetworkInfo\Win32Error.cs" />
     <Compile Include="Info\SystemInfo\CredentialGuard.cs" />
+    <Compile Include="Info\SystemInfo\DotNet\DotNet.cs" />
+    <Compile Include="Info\SystemInfo\DotNet\DotNetInfo.cs" />
     <Compile Include="Info\SystemInfo\NamedPipes\NamedPipeInfo.cs" />
     <Compile Include="Info\SystemInfo\NamedPipes\NamedPipes.cs" />
     <Compile Include="Info\SystemInfo\Printers\PrinterInfo.cs" />
@@ -514,6 +521,7 @@
     <Compile Include="Native\Psapi.cs" />
     <Compile Include="Native\Samlib.cs" />
     <Compile Include="Native\Secur32.cs" />
+    <Compile Include="Native\Structs\LastInputInfo.cs" />
     <Compile Include="Native\Structs\LUID.cs" />
     <Compile Include="Native\Structs\LUID_AND_ATTRIBUTES.cs" />
     <Compile Include="Native\Structs\PRIVILEGE_SET.cs" />

@@ -4,7 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
 using winPEAS.Helpers.Search;
+using winPEAS.Info.FilesInfo.Certificates;
+using winPEAS.Info.FilesInfo.McAfee;
 using winPEAS.Info.UserInfo;
 using winPEAS.InterestingFiles;
 using winPEAS.KnownFileCreds;
@@ -126,6 +129,7 @@ namespace winPEAS.Checks
                 PrintUserCredsFiles,
                 PrintOracleSQLDeveloperConfigFiles,
                 Slack.PrintInfo,
+                PrintMachineAndUserCertificateFiles,
                 PrintUsersInterestingFiles,
                 PrintUsersDocsKeys,
                 PrintRecentFiles,
@@ -199,17 +203,37 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintMcAffeSitelistFiles()
+        private static void PrintMcAffeSitelistFiles()
         {
             try
             {
                 Beaprint.MainPrint("Looking for McAfee Sitelist.xml Files");
-                List<string> sam_files = InterestingFiles.InterestingFiles.GetMcAfeeSitelistFiles();
-                foreach (string path in sam_files)
-                {
-                    Beaprint.BadPrint("    " + path);
-                }
+                var sitelistFilesInfos = McAfee.GetMcAfeeSitelistInfos();
 
+                foreach (var sitelistFilesInfo in sitelistFilesInfos)
+                {
+                    Beaprint.NoColorPrint($"   Path:                    {sitelistFilesInfo.Path}");
+
+                    if (!string.IsNullOrEmpty(sitelistFilesInfo.ParseException))
+                    {
+                        Beaprint.NoColorPrint($"   Parse Exception:           {sitelistFilesInfo.ParseException}");
+                    }
+
+                    foreach (var site in sitelistFilesInfo.Sites)
+                    {
+                        Beaprint.BadPrint($"    ShareName       : {site.ShareName}\n" +
+                                          $"    UserName        : {site.UserName}\n" +
+                                          $"    Server          : {site.Server}\n" +
+                                          $"    EncPassword     : {site.EncPassword}\n" +
+                                          $"    DecPassword     : {site.DecPassword}\n" +
+                                          $"    DomainName      : {site.DomainName}\n" +
+                                          $"    Name            : {site.Name}\n" +
+                                          $"    Type            : {site.Type}\n" +
+                                          $"    RelativePath    : {site.RelativePath}\n");
+                    }
+
+                    Beaprint.PrintLineSeparator();
+                }
             }
             catch (Exception ex)
             {
@@ -716,7 +740,7 @@ namespace winPEAS.Checks
             }
         }
 
-        private void PrintOracleSQLDeveloperConfigFiles()
+        private static void PrintOracleSQLDeveloperConfigFiles()
         {
             Beaprint.MainPrint($"Searching for Oracle SQL Developer config files\n");
 
@@ -745,6 +769,50 @@ namespace winPEAS.Checks
                 catch (Exception ex)
                 {
                 }
+            }
+        }
+
+        private static void PrintMachineAndUserCertificateFiles()
+        {
+            Beaprint.MainPrint($"Enumerating machine and user certificate files\n");
+
+            try
+            {
+                var certificateInfos = Certificates.GetCertificateInfos();
+
+                foreach (var certificateInfo in certificateInfos)
+                {
+                    
+                    Beaprint.NoColorPrint($"  Issuer             : {certificateInfo.Issuer}\n" +
+                                                $"  Subject            : {certificateInfo.Subject}\n" +
+                                                $"  ValidDate          : {certificateInfo.ValidDate}\n"  +
+                                                $"  ExpiryDate         : {certificateInfo.ExpiryDate}\n" +
+                                                $"  HasPrivateKey      : {certificateInfo.HasPrivateKey}\n"  +
+                                                $"  StoreLocation      : {certificateInfo.StoreLocation}\n"  +
+                                                $"  KeyExportable      : {certificateInfo.KeyExportable}\n"  +
+                                                $"  Thumbprint         : {certificateInfo.Thumbprint}\n");
+
+                    if (!string.IsNullOrEmpty(certificateInfo.Template))
+                    {
+                        Beaprint.NoColorPrint($"  Template           : {certificateInfo.Template}");
+                    }
+
+                    if (certificateInfo.EnhancedKeyUsages?.Count > 0)
+                    {
+                        Beaprint.ColorPrint("  Enhanced Key Usages", Beaprint.LBLUE);
+
+                        foreach (var keyUsages in certificateInfo.EnhancedKeyUsages)
+                        {
+                            var info = keyUsages == "Client Authentication" ? "     [*] Certificate is used for client authentication!" : string.Empty;
+
+                            Beaprint.NoColorPrint($"       {keyUsages}{info}");
+                        }
+                    }
+                    Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
             }
         }
     }

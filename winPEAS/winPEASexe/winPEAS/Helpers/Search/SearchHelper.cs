@@ -17,6 +17,9 @@ namespace winPEAS.Helpers.Search
         private static List<CustomFileInfo> DocumentsAndSettings;
         private static List<CustomFileInfo> GroupPolicyHistory;
 
+        private static string SystemDrive = Environment.GetEnvironmentVariable("SystemDrive");
+        private static string GlobalPattern = "*";
+
         public static List<CustomFileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null, bool isFoldersIncluded = false)
         {
             ConcurrentBag<CustomFileInfo> files = new ConcurrentBag<CustomFileInfo>();
@@ -166,37 +169,34 @@ namespace winPEAS.Helpers.Search
 
         internal static void CreateSearchDirectoriesList()
         {
-            string globalPattern = "*";
-            string systemDrive = Environment.GetEnvironmentVariable("SystemDrive");
-
             // c:\users
-            string rootUsersSearchPath = $"{systemDrive}\\Users\\";
-            SearchHelper.RootDirUsers = SearchHelper.GetFilesFast(rootUsersSearchPath, globalPattern, isFoldersIncluded: true);
+            string rootUsersSearchPath = $"{SystemDrive}\\Users\\";
+            SearchHelper.RootDirUsers = SearchHelper.GetFilesFast(rootUsersSearchPath, GlobalPattern, isFoldersIncluded: true);
 
             // c:\users\current_user
             string rootCurrentUserSearchPath = Environment.GetEnvironmentVariable("USERPROFILE");
-            SearchHelper.RootDirCurrentUser = SearchHelper.GetFilesFast(rootCurrentUserSearchPath, globalPattern);
+            SearchHelper.RootDirCurrentUser = SearchHelper.GetFilesFast(rootCurrentUserSearchPath, GlobalPattern);
 
             // c:\Program Files\
-            string rootProgramFiles = $"{systemDrive}\\Program Files\\";
-            SearchHelper.ProgramFiles = SearchHelper.GetFilesFast(rootProgramFiles, globalPattern);
+            string rootProgramFiles = $"{SystemDrive}\\Program Files\\";
+            SearchHelper.ProgramFiles = SearchHelper.GetFilesFast(rootProgramFiles, GlobalPattern);
 
             // c:\Program Files (x86)\
-            string rootProgramFilesX86 = $"{systemDrive}\\Program Files (x86)\\";
-            SearchHelper.ProgramFilesX86 = SearchHelper.GetFilesFast(rootProgramFilesX86, globalPattern);
+            string rootProgramFilesX86 = $"{SystemDrive}\\Program Files (x86)\\";
+            SearchHelper.ProgramFilesX86 = SearchHelper.GetFilesFast(rootProgramFilesX86, GlobalPattern);
 
             // c:\Documents and Settings\
-            string documentsAndSettings = $"{systemDrive}\\Documents and Settings\\";
-            SearchHelper.DocumentsAndSettings = SearchHelper.GetFilesFast(documentsAndSettings, globalPattern);
+            string documentsAndSettings = $"{SystemDrive}\\Documents and Settings\\";
+            SearchHelper.DocumentsAndSettings = SearchHelper.GetFilesFast(documentsAndSettings, GlobalPattern);
 
             // c:\ProgramData\Microsoft\Group Policy\History
-            string groupPolicyHistory = $"{systemDrive}\\ProgramData\\Microsoft\\Group Policy\\History";
-            SearchHelper.GroupPolicyHistory = SearchHelper.GetFilesFast(groupPolicyHistory, globalPattern);
+            string groupPolicyHistory = $"{SystemDrive}\\ProgramData\\Microsoft\\Group Policy\\History";
+            SearchHelper.GroupPolicyHistory = SearchHelper.GetFilesFast(groupPolicyHistory, GlobalPattern);
 
             // c:\Documents and Settings\All Users\Application Data\\Microsoft\\Group Policy\\History
             string groupPolicyHistoryLegacy = $"{documentsAndSettings}\\All Users\\Application Data\\Microsoft\\Group Policy\\History";
             //SearchHelper.GroupPolicyHistoryLegacy = SearchHelper.GetFilesFast(groupPolicyHistoryLegacy, globalPattern);
-            var groupPolicyHistoryLegacyFiles = SearchHelper.GetFilesFast(groupPolicyHistoryLegacy, globalPattern);
+            var groupPolicyHistoryLegacyFiles = SearchHelper.GetFilesFast(groupPolicyHistoryLegacy, GlobalPattern);
 
             SearchHelper.GroupPolicyHistory.AddRange(groupPolicyHistoryLegacyFiles);
         }
@@ -304,18 +304,20 @@ namespace winPEAS.Helpers.Search
             return result;
         }
 
-        internal static List<string> SearchMcAfeeSitelistFiles()
+        internal static IEnumerable<string> SearchMcAfeeSitelistFiles()
         {
-            var result = new List<string>();
-           
-            HashSet<string> allowedFilenames = new HashSet<string>()
+            var allowedFilenames = new HashSet<string>
             {
                 "sitelist.xml"
             };
 
+            string programDataPath = $"{SystemDrive}\\ProgramData\\";
+            var programData = SearchHelper.GetFilesFast(programDataPath, GlobalPattern);
+
             var searchFiles = new List<CustomFileInfo>();
             searchFiles.AddRange(SearchHelper.ProgramFiles);
             searchFiles.AddRange(SearchHelper.ProgramFilesX86);
+            searchFiles.AddRange(programData);
             searchFiles.AddRange(SearchHelper.DocumentsAndSettings);
             searchFiles.AddRange(SearchHelper.RootDirUsers);
 
@@ -327,12 +329,10 @@ namespace winPEAS.Helpers.Search
 
                     if (allowedFilenames.Contains(filenameToLower))
                     {
-                        result.Add(file.FullPath);
+                        yield return file.FullPath;
                     }
                 }
             }
-
-            return result;
         }
 
         internal static List<string> SearchCurrentUserDocs()
