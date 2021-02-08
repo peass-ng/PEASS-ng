@@ -60,7 +60,7 @@ namespace winPEAS.Helpers.Search
             return files.ToList();
         }
        
-        public static List<FileInfo> GetFiles(string folder, string pattern = "*")
+        private static List<FileInfo> GetFiles(string folder, string pattern = "*")
         {
             DirectoryInfo dirInfo;
             DirectoryInfo[] directories;

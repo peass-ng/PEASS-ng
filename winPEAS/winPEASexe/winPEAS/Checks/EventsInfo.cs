@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using winPEAS.Helpers;
 using winPEAS.Info.EventsInfo.Logon;
+using winPEAS.Info.EventsInfo.Power;
 using winPEAS.Info.EventsInfo.PowerShell;
 using winPEAS.Info.EventsInfo.ProcessCreation;
 
@@ -12,14 +13,15 @@ namespace winPEAS.Checks
     {       
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Interesting Events information");                      
+            Beaprint.GreatPrint("Interesting Events information");
 
             new List<Action>
             {
                 PrintExplicitLogonEvents,
                 PrintLogonEvents,
                 PrintProcessCreationEvents,
-                PrintPowerShellEvents
+                PrintPowerShellEvents,
+                PowerOnEvents,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }        
 
@@ -30,23 +32,13 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("PowerShell events - script block logs (EID 4104) - searching for sensitive data.\n");
                 var powerShellEventInfos = PowerShell.GetPowerShellEventInfos();
 
-                // TODO
-                // add highlighting for interesting words
-                var colors = new Dictionary<string, string>()
-                {
-                    { "TODO", Beaprint.ansi_color_bad }
-                };
-
                 foreach (var info in powerShellEventInfos)
                 {
-                    // TODO
-                    // formatting - try horizontal?                    
-                    Beaprint.AnsiPrint($"   User Id         :        {info.UserId}\n" +
+                    Beaprint.NoColorPrint($"   User Id         :        {info.UserId}\n" +
                                        $"   Event Id        :        {info.EventId}\n" +
                                        $"   Context         :        {info.Context}\n" +
                                        $"   Created At      :        {info.CreatedAt}\n" +
-                                       $"   Command line    :        {info.Match}\n",
-                                       colors);
+                                       $"   Command line    :        {info.Match}\n");
 
                     Beaprint.PrintLineSeparator();
                 }
@@ -69,19 +61,15 @@ namespace winPEAS.Checks
                     return;
                 }
 
-                // TODO
-                // formatting / highlighting?
-
                 foreach (var eventInfo in ProcessCreation.GetProcessCreationEventInfos())
                 {
-                    Beaprint.BadPrint($"  Created (UTC)  :      {eventInfo.CreatedAtUtc}\n" +
-                                      $"  Event Id       :      {eventInfo.EventId}\n" +
-                                      $"  User           :      {eventInfo.User}\n" +
-                                      $"  Command Line   :      {eventInfo.Match}\n");
+                    Beaprint.BadPrint($"  Created (UTC)      :      {eventInfo.CreatedAtUtc}\n" +
+                                      $"  Event Id           :      {eventInfo.EventId}\n" +
+                                      $"  User               :      {eventInfo.User}\n" +
+                                      $"  Command Line       :      {eventInfo.Match}\n");
 
                     Beaprint.PrintLineSeparator();
                 }
-
             }
             catch (Exception ex)
             {
@@ -201,6 +189,28 @@ namespace winPEAS.Checks
             foreach (var user in set)
             {
                 Beaprint.BadPrint($"    {user}");
+            }
+        }
+
+        private void PowerOnEvents()
+        {
+            try
+            {
+                var lastDays = 5;
+
+                Beaprint.MainPrint($"Displaying Power off/on events for last {lastDays} days\n");
+
+                var infos = Power.GetPowerEventInfos(lastDays);
+
+                foreach (var info in infos)
+                {
+                    Beaprint.NoColorPrint($"  {info.DateUtc.ToLocalTime(),-23} :  {info.Description}");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
             }
         }
     }

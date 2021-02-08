@@ -14,6 +14,7 @@ using winPEAS.Info.SystemInfo;
 using winPEAS.Info.SystemInfo.SysMon;
 using winPEAS.Helpers.Extensions;
 using winPEAS.Helpers.Registry;
+using winPEAS.Info.SystemInfo.AuditPolicies;
 using winPEAS.Info.SystemInfo.DotNet;
 using winPEAS.Info.SystemInfo.WindowsDefender;
 
@@ -57,6 +58,7 @@ namespace winPEAS.Checks
                 PrintUserEV,
                 PrintSystemEV,
                 PrintAuditInfo,
+                PrintAuditPoliciesInfo,
                 PrintWEFInfo,
                 PrintLAPSInfo,
                 PrintWdigest,
@@ -250,7 +252,7 @@ namespace winPEAS.Checks
             }
         }
 
-        static void PrintAuditInfo()
+        private static void PrintAuditInfo()
         {
             try
             {
@@ -258,6 +260,34 @@ namespace winPEAS.Checks
                 Beaprint.LinkPrint("", "Check what is being logged");
                 Dictionary<string, string> auditDict = Info.SystemInfo.SystemInfo.GetAuditSettings();
                 Beaprint.DictPrint(auditDict, false);
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintAuditPoliciesInfo()
+        {
+            try
+            {
+                Beaprint.MainPrint("Audit Policy Settings - Classic & Advanced");
+
+                var policies = AuditPolicies.GetAuditPoliciesInfos();
+
+                foreach (var policy in policies)
+                {
+                    Beaprint.NoColorPrint($"    Domain        :     {policy.Domain}\n" +
+                                                $"    GPO           :     {policy.GPO}\n" +
+                                                $"    Type          :     {policy.Type}\n");
+                        
+                    foreach (var entry in policy.Settings)
+                    {
+                        Beaprint.NoColorPrint($"        {entry.Subcategory,50}   :   {entry.AuditType}");
+                    }
+                    
+                    Beaprint.PrintLineSeparator();
+                }
             }
             catch (Exception ex)
             {

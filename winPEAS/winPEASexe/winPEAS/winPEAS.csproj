@@ -408,6 +408,8 @@
     <Compile Include="Info\EventsInfo\PowerShell\PowerShell.cs" />
     <Compile Include="Info\EventsInfo\PowerShell\PowerShellEventInfo.cs" />
     <Compile Include="Info\EventsInfo\Common.cs" />
+    <Compile Include="Info\EventsInfo\Power\Power.cs" />
+    <Compile Include="Info\EventsInfo\Power\PoweredEventInfo.cs" />
     <Compile Include="Info\EventsInfo\ProcessCreation\ProcessCreation.cs" />
     <Compile Include="Info\EventsInfo\ProcessCreation\ProcessCreationEventInfo.cs" />
     <Compile Include="Info\FilesInfo\Certificates\CertificateInfo.cs" />
@@ -432,6 +434,10 @@
     <Compile Include="Info\NetworkInfo\TcpConnectionInfo.cs" />
     <Compile Include="Info\NetworkInfo\UdpConnectionInfo.cs" />
     <Compile Include="Info\NetworkInfo\Win32Error.cs" />
+    <Compile Include="Info\SystemInfo\AuditPolicies\AuditEntryInfo.cs" />
+    <Compile Include="Info\SystemInfo\AuditPolicies\AuditPolicies.cs" />
+    <Compile Include="Info\SystemInfo\AuditPolicies\AuditPolicyGPOInfo.cs" />
+    <Compile Include="Info\SystemInfo\AuditPolicies\AuditType.cs" />
     <Compile Include="Info\SystemInfo\CredentialGuard.cs" />
     <Compile Include="Info\SystemInfo\DotNet\DotNet.cs" />
     <Compile Include="Info\SystemInfo\DotNet\DotNetInfo.cs" />
@@ -454,9 +460,11 @@
     <Compile Include="InterestingFiles\GPP.cs" />
     <Compile Include="InterestingFiles\InterestingFiles.cs" />
     <Compile Include="InterestingFiles\Unattended.cs" />
+    <Compile Include="KnownFileCreds\Browsers\Brave\Brave.cs" />
     <Compile Include="KnownFileCreds\Browsers\Browser.cs" />
     <Compile Include="KnownFileCreds\Browsers\BrowserBase.cs" />
     <Compile Include="KnownFileCreds\Browsers\Chrome\Chrome.cs" />
+    <Compile Include="KnownFileCreds\Browsers\ChromiumBase.cs" />
     <Compile Include="KnownFileCreds\Browsers\Models\Login.cs" />
     <Compile Include="KnownFileCreds\Browsers\Decryptor\GCDecryptor.cs" />
     <Compile Include="KnownFileCreds\Browsers\Decryptor\LocalState.cs" />

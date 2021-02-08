@@ -12,21 +12,10 @@ namespace winPEAS.KnownFileCreds.Browsers.Decryptor
 {
     public static class GCDecryptor
     {
-        public static byte[] GetChromeKey()
-        {
-            return GetKey("\\..\\Local\\Google\\Chrome\\User Data\\Local State");
-        }
-
-        public static byte[] GetOperaKey()
-        {
-            return GetKey("\\..\\Roaming\\Opera Software\\Opera Stable\\Local State");
-        }
-
         public static byte[] GetKey(string localStatePath)
         {
             var sR = string.Empty;
-            var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);// APPDATA
-            var path = Path.GetFullPath(appdata + localStatePath);
+            var path = Path.GetFullPath(localStatePath);
             var v = File.ReadAllText(path);
             var json = new JavaScriptSerializer().Deserialize<LocalState>(v);
 

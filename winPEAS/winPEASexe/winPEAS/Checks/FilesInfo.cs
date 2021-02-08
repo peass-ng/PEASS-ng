@@ -129,6 +129,7 @@ namespace winPEAS.Checks
                 PrintUserCredsFiles,
                 PrintOracleSQLDeveloperConfigFiles,
                 Slack.PrintInfo,
+                PrintOutlookDownloads,
                 PrintMachineAndUserCertificateFiles,
                 PrintUsersInterestingFiles,
                 PrintUsersDocsKeys,
@@ -809,6 +810,40 @@ namespace winPEAS.Checks
                         }
                     }
                     Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private static void PrintOutlookDownloads()
+        {
+            Beaprint.MainPrint("Enumerating Outlook download files\n");
+
+            try
+            {
+                var userDirs = User.GetUsersFolders();
+
+                foreach (var userDir in userDirs)
+                {
+                    try
+                    {
+                        var userOutlookBasePath = $"{userDir}\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.Outlook\\";
+
+                        if (Directory.Exists(userOutlookBasePath))
+                        {
+                            var files = SearchHelper.GetFilesFast(userOutlookBasePath, "*");
+
+                            foreach (var file in files)
+                            {
+                                Beaprint.BadPrint($"   {file.FullPath}");
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                    }   
                 }
             }
             catch (Exception ex)
