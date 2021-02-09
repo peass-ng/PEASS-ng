@@ -417,6 +417,7 @@
     <Compile Include="Info\FilesInfo\McAfee\McAfee.cs" />
     <Compile Include="Info\FilesInfo\McAfee\McAfeeSiteInfo.cs" />
     <Compile Include="Info\FilesInfo\McAfee\McAfeeSitelistInfo.cs" />
+    <Compile Include="Info\FilesInfo\WSL\WSL.cs" />
     <Compile Include="Info\NetworkInfo\Enums\IPVersion.cs" />
     <Compile Include="Info\NetworkInfo\Enums\MibTcpState.cs" />
     <Compile Include="Info\NetworkInfo\Enums\Protocol.cs" />
@@ -441,6 +442,8 @@
     <Compile Include="Info\SystemInfo\CredentialGuard.cs" />
     <Compile Include="Info\SystemInfo\DotNet\DotNet.cs" />
     <Compile Include="Info\SystemInfo\DotNet\DotNetInfo.cs" />
+    <Compile Include="Info\SystemInfo\GroupPolicy\GroupPolicy.cs" />
+    <Compile Include="Info\SystemInfo\GroupPolicy\LocalGroupPolicyInfo.cs" />
     <Compile Include="Info\SystemInfo\NamedPipes\NamedPipeInfo.cs" />
     <Compile Include="Info\SystemInfo\NamedPipes\NamedPipes.cs" />
     <Compile Include="Info\SystemInfo\Printers\PrinterInfo.cs" />
@@ -512,6 +515,8 @@
     <Compile Include="Native\Enums\CredentialType.cs" />
     <Compile Include="Native\Enums\DS_NAME_FLAGS.cs" />
     <Compile Include="Native\Enums\DS_NAME_FORMAT.cs" />
+    <Compile Include="Native\Enums\GPOLink.cs" />
+    <Compile Include="Native\Enums\GPOOptions.cs" />
     <Compile Include="Native\Enums\NetJoinStatus.cs" />
     <Compile Include="Native\Enums\PrivilegeAttributes.cs" />
     <Compile Include="Native\Enums\SECURITY_IMPERSONATION_LEVEL.cs" />
@@ -521,6 +526,7 @@
     <Compile Include="Native\Enums\TokenType.cs" />
     <Compile Include="Native\Enums\TOKEN_ELEVATION_TYPE.cs" />
     <Compile Include="Native\Enums\TOKEN_INFORMATION_CLASS.cs" />
+    <Compile Include="Native\Enums\UserPrivType.cs" />
     <Compile Include="Native\Enums\WTS_INFO_CLASS.cs" />
     <Compile Include="Native\Iphlpapi.cs" />
     <Compile Include="Native\Kernel32.cs" />
@@ -537,6 +543,7 @@
     <Compile Include="Native\Structs\TOKEN_ELEVATION.cs" />
     <Compile Include="Native\Structs\TOKEN_MANDATORY_LABEL.cs" />
     <Compile Include="Native\Structs\TOKEN_PRIVILEGES.cs" />
+    <Compile Include="Native\Structs\USER_INFO_3.cs" />
     <Compile Include="Native\User32.cs" />
     <Compile Include="Native\Vaultcli.cs" />
     <Compile Include="Native\WlanApi.cs" />

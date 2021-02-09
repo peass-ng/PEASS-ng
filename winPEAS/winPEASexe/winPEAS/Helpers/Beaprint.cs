@@ -106,22 +106,23 @@ namespace winPEAS.Helpers
         public static void PrintUsage()
         {
             Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        quiet" + GRAY + "             Do not print banner" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        cmd" + GRAY + "               Obtain wifi, cred manager and clipboard information executing CMD commands" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        notcolor" + GRAY + "          Don't use ansi colors (all white)" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        systeminfo" + GRAY + "        Search system information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        userinfo" + GRAY + "          Search user information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        processinfo" + GRAY + "       Search processes information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        servicesinfo" + GRAY + "      Search services information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        applicationsinfo" + GRAY + "  Search installed applications information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        networkinfo" + GRAY + "       Search network information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        windowscreds" + GRAY + "      Search windows credentials" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        browserinfo" + GRAY + "       Search browser information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        filesinfo" + GRAY + "         Search files that can contains credentials" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        eventsinfo" + GRAY + "        Display interesting events information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        wait" + GRAY + "              Wait for user input between checks" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        debug" + GRAY + "             Display debugging information - memory usage, method execution time" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        log" + GRAY +$"               Log all output to file \"{Checks.Checks.LogFile}\"" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        quiet" + GRAY + "                Do not print banner" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        cmd" + GRAY + "                  Obtain wifi, cred manager and clipboard information executing CMD commands" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        notcolor" + GRAY + "             Don't use ansi colors (all white)" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        systeminfo" + GRAY + "           Search system information" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        userinfo" + GRAY + "             Search user information" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        processinfo" + GRAY + "          Search processes information" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        servicesinfo" + GRAY + "         Search services information" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        applicationsinfo" + GRAY + "     Search installed applications information" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        networkinfo" + GRAY + "          Search network information" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        windowscreds" + GRAY + "         Search windows credentials" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        browserinfo" + GRAY + "          Search browser information" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        filesinfo" + GRAY + "            Search files that can contains credentials" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        eventsinfo" + GRAY + "           Display interesting events information" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        wait" + GRAY + "                 Wait for user input between checks" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        debug" + GRAY + "                Display debugging information - memory usage, method execution time" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        log" + GRAY +$"                  Log all output to file \"{Checks.Checks.LogFile}\"" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        linpeasUrl=<url>" + GRAY + $"     Provide linpeas.sh URL for WSL checks (default: {Checks.Checks.LinpeasUrl})" + NOCOLOR);
             Console.WriteLine(YELLOW + "        [+] " + LYELLOW + "By default all checks (except CMD checks) are executed" + NOCOLOR);
         }
 

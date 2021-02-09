@@ -37,6 +37,9 @@ namespace winPEAS.Checks
         private static List<SystemCheck> _systemChecks;
         private static HashSet<string> _systemCheckSelectedKeysHashSet = new HashSet<string>();
 
+        // github url for Linpeas.sh
+        public static string LinpeasUrl = "https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh";
+
         public const string LogFile = "out.txt";
 
 
@@ -128,6 +131,18 @@ namespace winPEAS.Checks
                 if (string.Equals(arg, "debug", StringComparison.CurrentCultureIgnoreCase))
                 {
                     IsDebug = true;
+                }
+
+                if (arg.StartsWith("linpeasUrl", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var parts = arg.Split('=');
+                    if (parts.Length != 2 || string.IsNullOrEmpty(parts[1]))
+                    {
+                        Beaprint.PrintUsage();
+                        return;
+                    }
+
+                    LinpeasUrl = parts[1];
                 }
 
                 string argToLower = arg.ToLower();

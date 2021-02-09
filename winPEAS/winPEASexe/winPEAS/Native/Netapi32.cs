@@ -31,5 +31,16 @@ namespace winPEAS.Native
 
         [DllImport("Netapi32", SetLastError = true), SuppressUnmanagedCodeSecurity]
         internal static extern int NetApiBufferFree(IntPtr pBuf);
-	}
+
+        [DllImport("Netapi32.dll")]
+        internal static extern uint NetUserEnum(
+            [MarshalAs(UnmanagedType.LPWStr)] string serverName,
+            uint level,
+            uint filter,
+            out IntPtr bufPtr,
+            uint preferredMaxLength,
+            out uint entriesRead,
+            out uint totalEntries,
+            out IntPtr resumeHandle);
+    }
 }

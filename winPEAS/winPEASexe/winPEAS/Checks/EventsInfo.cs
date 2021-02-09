@@ -35,10 +35,10 @@ namespace winPEAS.Checks
                 foreach (var info in powerShellEventInfos)
                 {
                     Beaprint.NoColorPrint($"   User Id         :        {info.UserId}\n" +
-                                       $"   Event Id        :        {info.EventId}\n" +
-                                       $"   Context         :        {info.Context}\n" +
-                                       $"   Created At      :        {info.CreatedAt}\n" +
-                                       $"   Command line    :        {info.Match}\n");
+                                               $"   Event Id        :        {info.EventId}\n" +
+                                               $"   Context         :        {info.Context}\n" +
+                                               $"   Created At      :        {info.CreatedAt}\n" +
+                                               $"   Command line    :        {info.Match}\n");
 
                     Beaprint.PrintLineSeparator();
                 }

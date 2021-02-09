@@ -16,6 +16,7 @@ using winPEAS.Helpers.Extensions;
 using winPEAS.Helpers.Registry;
 using winPEAS.Info.SystemInfo.AuditPolicies;
 using winPEAS.Info.SystemInfo.DotNet;
+using winPEAS.Info.SystemInfo.GroupPolicy;
 using winPEAS.Info.SystemInfo.WindowsDefender;
 
 namespace winPEAS.Checks
@@ -74,7 +75,9 @@ namespace winPEAS.Checks
                 PrintDrivesInfo,
                 PrintWSUS,
                 PrintAlwaysInstallElevated,
+                PrintLSAInfo,
                 PrintLsaCompatiblityLevel,
+                PrintLocalGroupPolicy,
                 AppLockerHelper.PrintAppLockerPolicy,
                 PrintPrintersWMIInfo,
                 PrintNamedPipes,
@@ -958,6 +961,86 @@ namespace winPEAS.Checks
                     var shutdownTime = DateTime.FromFileTime(shutdownInt);
 
                     Beaprint.NoColorPrint($"    Last Shutdown Date/time        :    {shutdownTime}");
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private static void PrintLSAInfo()
+        {
+            try
+            {
+                Beaprint.MainPrint("Enumerate LSA settings - auth packages included\n");
+
+                var settings = RegistryHelper.GetRegValues("HKLM", "SYSTEM\\CurrentControlSet\\Control\\Lsa");
+
+                if ((settings != null) && (settings.Count != 0))
+                {
+                    foreach (var kvp in settings)
+                    {
+                        var val = string.Empty;
+
+                        if (kvp.Value.GetType().IsArray && (kvp.Value.GetType().GetElementType().ToString() == "System.String"))
+                        {
+                            val = string.Join(",", (string[])kvp.Value);
+                        }
+                        else if (kvp.Value.GetType().IsArray && (kvp.Value.GetType().GetElementType().ToString() == "System.Byte"))
+                        {
+                            val = System.BitConverter.ToString((byte[])kvp.Value);
+                        }
+                        else
+                        {
+                            val = kvp.Value.ToString();
+                        }
+
+                        var key = kvp.Key;
+
+                        Beaprint.NoColorPrint($"    {key,-30}       :       {val}");
+
+                        if (Regex.IsMatch(key, "Security Packages") && Regex.IsMatch(val, @".*wdigest.*"))
+                        {
+                            Beaprint.BadPrint("    [!]      WDigest is enabled - plaintext password extraction is possible!");
+                        }
+
+                        if (key.Equals("RunAsPPL", System.StringComparison.InvariantCultureIgnoreCase) && val == "1")
+                        {
+                            Beaprint.BadPrint("    [!]      LSASS Protected Mode is enabled! You will not be able to access lsass.exe's memory easily.");
+                        }
+
+                        if (key.Equals("DisableRestrictedAdmin", System.StringComparison.InvariantCultureIgnoreCase) && val == "0")
+                        {
+                            Beaprint.BadPrint("    [!]      RDP Restricted Admin Mode is enabled! You can use pass-the-hash to access RDP on this system.");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private static void PrintLocalGroupPolicy()
+        {
+            try
+            {
+                Beaprint.MainPrint("Display Local Group Policy settings - local users/machine" );
+
+                var infos = GroupPolicy.GetLocalGroupPolicyInfos();
+
+                foreach (var info in infos)
+                {
+                    Beaprint.NoColorPrint($"   Type             :     {info.GPOType}\n" +
+                                                $"   Display Name     :     {info.DisplayName}\n" +
+                                                $"   Name             :     {info.GPOName}\n" +
+                                                $"   Extensions       :     {info.Extensions}\n" +
+                                                $"   File Sys Path    :     {info.FileSysPath}\n" +
+                                                $"   Link             :     {info.Link}\n" +
+                                                $"   GPO Link         :     {info.GPOLink.GetDescription()}\n" +
+                                                $"   Options          :     {info.Options.GetDescription()}\n");
+
+                    Beaprint.PrintLineSeparator();
                 }
             }
             catch (Exception ex)

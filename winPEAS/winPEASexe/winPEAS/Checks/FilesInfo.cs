@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 using winPEAS.Helpers.Search;
 using winPEAS.Info.FilesInfo.Certificates;
 using winPEAS.Info.FilesInfo.McAfee;
+using winPEAS.Info.FilesInfo.WSL;
 using winPEAS.Info.UserInfo;
 using winPEAS.InterestingFiles;
 using winPEAS.KnownFileCreds;
@@ -123,7 +126,6 @@ namespace winPEAS.Checks
                 PrintUnattendFiles,
                 PrintSAMBackups,
                 PrintMcAffeSitelistFiles,
-                PrintLinuxShells,
                 PrintCachedGPPPassword,
                 PrintPossCredsRegs,
                 PrintUserCredsFiles,
@@ -138,6 +140,7 @@ namespace winPEAS.Checks
                 PrintHiddenFilesAndFolders,
                 PrintOtherUsersInterestingFiles,
                 PrintExecutablesInNonDefaultFoldersWithWritePermissions,
+                PrintWSLDistributions,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
 
             SearchHelper.CleanLists();
@@ -242,12 +245,13 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintLinuxShells()
+        void PrintWSLDistributions()
         {
             Beaprint.MainPrint("Looking for Linux shells/distributions - wsl.exe, bash.exe");
             List<string> linuxShells = InterestingFiles.InterestingFiles.GetLinuxShells();
             string hive = "HKCU";
             string basePath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss";
+            const string linpeas = "linpeas.sh";
 
             if (linuxShells.Any())
             {
@@ -264,13 +268,11 @@ namespace winPEAS.Checks
 
                     if (wslKeys.Any())
                     {
-                        const string linpeas = "linpeas.sh";
                         const string distribution = "Distribution";
                         const string rootDirectory = "Root directory";
                         const string runWith = "Run command";
 
-
-                        Dictionary<string, string> colors = new Dictionary<string, string>();                        
+                        var colors = new Dictionary<string, string>();                        
                         new List<string>
                         {
                             linpeas,
@@ -297,6 +299,19 @@ namespace winPEAS.Checks
                                 Beaprint.PrintLineSeparator();
                             }
                             catch (Exception) { }
+                        }
+
+                        // try to run linpeas.sh in the default distribution
+                        Beaprint.ColorPrint($"  Running {linpeas} in the default distribution\n" +
+                                            $"  Using linpeas.sh URL: {Checks.LinpeasUrl}", Beaprint.LBLUE);
+
+                        try
+                        {
+                            WSL.RunLinpeas(Checks.LinpeasUrl);
+                        }
+                        catch (Exception ex)
+                        {
+                            Beaprint.PrintException($"    Unable to run linpeas.sh: {ex.Message}");
                         }
                     }
                     else

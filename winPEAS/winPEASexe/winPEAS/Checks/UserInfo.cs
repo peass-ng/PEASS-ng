@@ -8,6 +8,7 @@ using winPEAS.Info.UserInfo;
 using winPEAS.Info.UserInfo.LogonSessions;
 using winPEAS.Info.UserInfo.Token;
 using winPEAS.Native;
+using winPEAS.Native.Enums;
 using winPEAS.Native.Structs;
 
 namespace winPEAS.Checks
@@ -43,6 +44,7 @@ namespace winPEAS.Checks
                 PrintTokenP,
                 PrintClipboardText,
                 PrintLoggedUsers,
+                PrintLocalUsers,
                 PrintRdpSessions,
                 PrintEverLoggedUsers,
                 PrintHomeFolders,
@@ -54,7 +56,7 @@ namespace winPEAS.Checks
 
         Dictionary<string, string> ColorsU()
         {
-            Dictionary<string, string> usersColors = new Dictionary<string, string>()
+            var usersColors = new Dictionary<string, string>()
                 {
                     { Checks.PaintActiveUsersNoAdministrator, Beaprint.ansi_users_active },
                     { Checks.CurrentUserName + "|"+ Checks.CurrentUserDomainName, Beaprint.ansi_current_user },
@@ -330,6 +332,59 @@ namespace winPEAS.Checks
 
                     Beaprint.NoColorPrint($"   Current User   :     {currentUser}\n" +
                                                 $"   Idle Time      :     {idleTimeString}");
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private static void PrintLocalUsers()
+        {
+            try
+            {
+                Beaprint.MainPrint("Display information about local users");
+
+                var computerName = Environment.GetEnvironmentVariable("COMPUTERNAME");
+
+                var localUsers = User.GetLocalUsers(computerName);
+
+                var colors = new Dictionary<string, string>
+                {
+                    { "Administrator", Beaprint.ansi_color_bad },
+                    { "Guest", Beaprint.YELLOW },
+                    { "False", Beaprint.ansi_color_good },
+                    { "True", Beaprint.ansi_color_bad },
+                };
+
+                foreach (var localUser in localUsers)
+                {
+                    var enabled = ((localUser.flags >> 1) & 1) == 0;
+                    var pwdLastSet = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                    var lastLogon = new DateTime(1970, 1, 1, 0, 0, 0);
+
+                    if (localUser.passwordAge != 0)
+                    {
+                        pwdLastSet = DateTime.Now.AddSeconds(-localUser.passwordAge);
+                    }
+
+                    if (localUser.last_logon != 0)
+                    {
+                        lastLogon = lastLogon.AddSeconds(localUser.last_logon).ToLocalTime();
+                    }
+
+                    Beaprint.AnsiPrint( $"   Computer Name           :   {computerName}\n" +
+                                        $"   User Name               :   {localUser.name}\n" +
+                                        $"   User Id                 :   {localUser.user_id}\n" +
+                                        $"   Is Enabled              :   {enabled}\n" +
+                                        $"   User Type               :   {(UserPrivType)localUser.priv}\n" +
+                                        $"   Comment                 :   {localUser.comment}\n" +
+                                        $"   Last Logon              :   {lastLogon}\n" +
+                                        $"   Logons Count            :   {localUser.num_logons}\n" +
+                                        $"   Password Last Set       :   {pwdLastSet}\n",
+                                            colors);
+
+                    Beaprint.PrintLineSeparator();
                 }
             }
             catch (Exception ex)

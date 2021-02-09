@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.DirectoryServices.AccountManagement;
 using System.IO;
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 using winPEAS.Helpers;
 using winPEAS.KnownFileCreds;
+using winPEAS.Native;
+using winPEAS.Native.Structs;
 
 namespace winPEAS.Info.UserInfo
 {
@@ -227,6 +231,43 @@ namespace winPEAS.Info.UserInfo
             }
 
             return result;
+        }
+
+        public static IEnumerable<USER_INFO_3> GetLocalUsers(string computerName)
+        {
+            uint MAX_PREFERRED_LENGTH = unchecked((uint)-1);
+
+            // Returns local users
+            //  FILTER_NORMAL_ACCOUNT == 2
+            var users = new List<USER_INFO_3>();
+            var retVal = Netapi32.NetUserEnum(computerName, 3, 2, out var bufPtr, MAX_PREFERRED_LENGTH, out var entriesRead, out var totalEntries, out var resume);
+
+            if (retVal != 0)
+            {
+                var errorMessage = new Win32Exception(Marshal.GetLastWin32Error()).Message;
+                throw new Exception("Error code " + retVal + ": " + errorMessage);
+            }
+
+            if (entriesRead == 0)
+            {
+                return users;
+            }
+
+            var names = new string[entriesRead];
+            var userInfo = new USER_INFO_3[entriesRead];
+            var iter = bufPtr;
+
+            for (var i = 0; i < entriesRead; i++)
+            {
+                userInfo[i] = (USER_INFO_3)Marshal.PtrToStructure(iter, typeof(USER_INFO_3));
+                users.Add(userInfo[i]);
+
+                //x64 safe
+                iter = new IntPtr(iter.ToInt64() + Marshal.SizeOf(typeof(USER_INFO_3)));
+            }
+            Netapi32.NetApiBufferFree(bufPtr);
+
+            return users;
         }
     }
 }
