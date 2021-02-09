@@ -197,8 +197,8 @@ if [ "$IAMROOT" ]; then
   sleep 3
 fi
 echo ""
+printf " ${DG}Starting $SCRIPTNAME. Caching Writable Folders...$NC"
 echo ""
-printf " ${DG}Starting $SCRIPTNAME. Caching Writable Folders (threads: $THREADS)...$NC"
 
 ###########################################
 #---------------) Lists (-----------------#
@@ -802,7 +802,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
       echo "$1" | sed 's/ /" -o -name "/g' | sed 's/^/\\( -name "/g' | sed 's/$/" \\)/g'
   }
 
-  printf $GREEN"Caching directories "$NC
+  printf $GREEN"Caching directories using $THREADS threads "$NC
   SYSTEMD_RELEVANT_NAMES="*.service"
   TIMERS_RELEVANT_NAMES="*.timer"
   SOCKETS_RELEVANT_NAMES="*.socket"
