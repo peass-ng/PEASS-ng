@@ -2,8 +2,10 @@
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using winPEAS.Helpers.CredentialManager;
+using winPEAS.Info.NetworkInfo;
 using winPEAS.Native.Classes;
 using winPEAS.Native.Enums;
 using winPEAS.Native.Structs;
@@ -209,5 +211,48 @@ namespace winPEAS.Native
         [DllImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool SetThreadToken(IntPtr ThreadHandle, SafeTokenHandle TokenHandle);
+
+        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern bool LookupAccountSid(
+            string? lpSystemName,
+            [MarshalAs(UnmanagedType.LPArray)] byte[] Sid,
+            StringBuilder lpName,
+            ref uint cchName,
+            StringBuilder ReferencedDomainName,
+            ref uint cchReferencedDomainName,
+            out SID_NAME_USE peUse);
+
+        public static string TranslateSid(string sid)
+        {
+            // adapted from http://www.pinvoke.net/default.aspx/advapi32.LookupAccountSid
+            var accountSid = new SecurityIdentifier(sid);
+            var accountSidByes = new byte[accountSid.BinaryLength];
+            accountSid.GetBinaryForm(accountSidByes, 0);
+
+            var name = new StringBuilder();
+            var cchName = (uint)name.Capacity;
+            var referencedDomainName = new StringBuilder();
+            var cchReferencedDomainName = (uint)referencedDomainName.Capacity;
+
+            var err = 0;
+            if (!LookupAccountSid(null, accountSidByes, name, ref cchName, referencedDomainName, ref cchReferencedDomainName, out var sidUse))
+            {
+                err = Marshal.GetLastWin32Error();
+
+                if (err == Win32Error.InsufficientBuffer)
+                {
+                    name.EnsureCapacity((int)cchName);
+                    referencedDomainName.EnsureCapacity((int)cchReferencedDomainName);
+                    err = 0;
+                    if (!LookupAccountSid(null, accountSidByes, name, ref cchName, referencedDomainName,
+                        ref cchReferencedDomainName, out sidUse))
+                    {
+                        err = Marshal.GetLastWin32Error();
+                    }
+                }
+            }
+
+            return err == 0 ? $"{referencedDomainName}\\{name}" : "";
+        }
     }
 }

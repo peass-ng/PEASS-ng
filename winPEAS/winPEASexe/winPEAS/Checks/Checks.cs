@@ -35,7 +35,7 @@ namespace winPEAS.Checks
         public static string PaintAdminUsers = "";
 
         private static List<SystemCheck> _systemChecks;
-        private static HashSet<string> _systemCheckSelectedKeysHashSet = new HashSet<string>();
+        private static readonly HashSet<string> _systemCheckSelectedKeysHashSet = new HashSet<string>();
 
         // github url for Linpeas.sh
         public static string LinpeasUrl = "https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh";

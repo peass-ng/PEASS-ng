@@ -13,14 +13,14 @@ namespace winPEAS.Info.FilesInfo.WSL
                                 $@"bash -c ""{linpeasCmd}""" :
                                 Environment.GetEnvironmentVariable("WinDir") + $"\\SysNative\\bash.exe -c \"{linpeasCmd}\"";
 
-            ExecuteCommandLine(command);
+            ExecuteCommand(command);
         }
 
-        private static void ExecuteCommandLine(string fullCommandLine,
+        private static void ExecuteCommand(string command,
             string workingFolder = null,
             string verb = "OPEN")
         {
-            string executable = fullCommandLine;
+            string executable = command;
             string args = null;
 
             if (executable.StartsWith("\""))
@@ -64,14 +64,12 @@ namespace winPEAS.Info.FilesInfo.WSL
                 {
                     while (!process.StandardOutput.EndOfStream)
                     {
-                        string line = process.StandardOutput.ReadLine();
-                        Console.WriteLine(line);
+                        Console.WriteLine(process.StandardOutput.ReadLine());
                     }
 
                     while (!process.StandardError.EndOfStream)
                     {
-                        string line = process.StandardError.ReadLine();
-                        Console.WriteLine(line);
+                        Console.WriteLine(process.StandardError.ReadLine());
                     }
                 }
             }

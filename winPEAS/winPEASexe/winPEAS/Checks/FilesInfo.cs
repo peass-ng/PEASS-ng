@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 using winPEAS.Helpers.Search;
 using winPEAS.Info.FilesInfo.Certificates;
 using winPEAS.Info.FilesInfo.McAfee;
+using winPEAS.Info.FilesInfo.Office;
 using winPEAS.Info.FilesInfo.WSL;
 using winPEAS.Info.UserInfo;
 using winPEAS.InterestingFiles;
@@ -122,6 +121,7 @@ namespace winPEAS.Checks
             {
                 Putty.PrintInfo,
                 SuperPutty.PrintInfo,
+                PrintOffice365EndpointsSyncedByOneDrive,
                 PrintCloudCreds,
                 PrintUnattendFiles,
                 PrintSAMBackups,
@@ -135,6 +135,7 @@ namespace winPEAS.Checks
                 PrintMachineAndUserCertificateFiles,
                 PrintUsersInterestingFiles,
                 PrintUsersDocsKeys,
+                PrintOfficeMostRecentFiles,
                 PrintRecentFiles,
                 PrintRecycleBin,
                 PrintHiddenFilesAndFolders,
@@ -859,6 +860,116 @@ namespace winPEAS.Checks
                     catch (Exception e)
                     {
                     }   
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private static void PrintOfficeMostRecentFiles()
+        {
+            int limit = 50;
+
+            Beaprint.MainPrint($"Office Most Recent Files -- limit {limit}\n");
+
+            try
+            {
+                var infos = Office.GetOfficeRecentFileInfos(limit);
+
+                Beaprint.ColorPrint($"  {"Last Access Date",-25}  {"User",-45}  {"Application",-20}  {"Document"}", Beaprint.LBLUE);
+
+                foreach (var info in infos)
+                {
+                    Beaprint.NoColorPrint($"  {info.LastAccessDate.ToString("yyyy-MM-dd HH:mm"),-25}  {info.User,-45}  {info.Application,-20}  {info.Target}");
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private static void PrintOffice365EndpointsSyncedByOneDrive()
+        {
+            void PrintItem(KeyValuePair<string, string> mpSub)
+            {
+                string formattedDateString = string.Empty;
+
+                if (mpSub.Key == "LastModifiedTime")
+                {
+                    DateTime.TryParse(mpSub.Value, out var parsedDate);
+                    string formattedDate = parsedDate.ToString("ddd dd MMM yyyy HH:mm:ss");
+                    formattedDateString = $"({formattedDate})";
+                }
+
+                Beaprint.NoColorPrint($"          {mpSub.Key,-40} {mpSub.Value,-50} {formattedDateString}");
+            }
+
+            Beaprint.MainPrint("Enumerating Office 365 endpoints synced by OneDrive.\n");
+
+            try
+            {
+                var infos = Office.GetCloudSyncProviderInfos();
+
+                foreach (var info in infos)
+                {
+                    Beaprint.NoColorPrint($"    SID: {info.Sid}");
+
+                    var odspInfo = info.OneDriveSyncProviderInfo;
+
+                    foreach (var item in odspInfo.OneDriveList)
+                    {
+                        if (item.Value.Count > 0)
+                        {
+
+                            string accName = item.Key;
+                            Beaprint.NoColorPrint($"      Name:  {accName}");
+
+                            foreach (var subItem in item.Value)
+                            {
+                                Beaprint.NoColorPrint($"        {subItem.Key,-40}   {subItem.Value}");
+                            }
+
+                            // mount points
+                            foreach (string mp in odspInfo.AccountToMountpointDict[accName])
+                            {
+                                Beaprint.NoColorPrint("");
+
+                                if (odspInfo.MpList.ContainsKey(mp))
+                                {
+                                    foreach (var mpSub in odspInfo.MpList[mp])
+                                    {
+                                        PrintItem(mpSub);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // iterate Orphaned accounts
+                    var allScopeIds = new List<string>(odspInfo.MpList.Keys);
+                    var orphanedScopeIds = new HashSet<string>();
+
+                    foreach (var scopeId in allScopeIds.Where(scopeId => !odspInfo.UsedScopeIDs.Contains(scopeId)))
+                    {
+                        orphanedScopeIds.Add(scopeId);
+                    }
+
+                    if (orphanedScopeIds.Count > 0)
+                    {
+                        Beaprint.ColorPrint("\n    Orphaned items", Beaprint.LBLUE);
+
+                        foreach (string scopeId in orphanedScopeIds)
+                        {
+                            foreach (var mpSub in odspInfo.MpList[scopeId])
+                            {
+                                PrintItem(mpSub);
+                            }
+                            Beaprint.NoColorPrint("");
+                        }
+                    }
+
+                    Beaprint.PrintLineSeparator();
                 }
             }
             catch (Exception ex)

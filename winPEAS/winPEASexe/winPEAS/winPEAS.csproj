@@ -417,6 +417,10 @@
     <Compile Include="Info\FilesInfo\McAfee\McAfee.cs" />
     <Compile Include="Info\FilesInfo\McAfee\McAfeeSiteInfo.cs" />
     <Compile Include="Info\FilesInfo\McAfee\McAfeeSitelistInfo.cs" />
+    <Compile Include="Info\FilesInfo\Office\Office.cs" />
+    <Compile Include="Info\FilesInfo\Office\OfficeRecentFileInfo.cs" />
+    <Compile Include="Info\FilesInfo\Office\OneDrive\CloudSyncProviderInfo.cs" />
+    <Compile Include="Info\FilesInfo\Office\OneDrive\OneDriveSyncProviderInfo.cs" />
     <Compile Include="Info\FilesInfo\WSL\WSL.cs" />
     <Compile Include="Info\NetworkInfo\Enums\IPVersion.cs" />
     <Compile Include="Info\NetworkInfo\Enums\MibTcpState.cs" />
@@ -460,6 +464,9 @@
     <Compile Include="Info\SystemInfo\WindowsDefender\WindowsDefenderSettingsInfo.cs" />
     <Compile Include="Info\UserInfo\LogonSessions\LogonSessions.cs" />
     <Compile Include="Info\UserInfo\LogonSessions\LogonSessionsInfo.cs" />
+    <Compile Include="Info\UserInfo\Tenant\JoinType.cs" />
+    <Compile Include="Info\UserInfo\Tenant\Tenant.cs" />
+    <Compile Include="Info\UserInfo\Tenant\TenantInfo.cs" />
     <Compile Include="InterestingFiles\GPP.cs" />
     <Compile Include="InterestingFiles\InterestingFiles.cs" />
     <Compile Include="InterestingFiles\Unattended.cs" />
@@ -523,6 +530,7 @@
     <Compile Include="Native\Enums\SECURITY_LOGON_TYPE.cs" />
     <Compile Include="Native\Enums\ServerTypes.cs" />
     <Compile Include="Native\Enums\SE_OBJECT_TYPE.cs" />
+    <Compile Include="Native\Enums\SID_NAME_USE.cs" />
     <Compile Include="Native\Enums\TokenType.cs" />
     <Compile Include="Native\Enums\TOKEN_ELEVATION_TYPE.cs" />
     <Compile Include="Native\Enums\TOKEN_INFORMATION_CLASS.cs" />
@@ -535,6 +543,8 @@
     <Compile Include="Native\Psapi.cs" />
     <Compile Include="Native\Samlib.cs" />
     <Compile Include="Native\Secur32.cs" />
+    <Compile Include="Native\Structs\DSREG_JOIN_INFO.cs" />
+    <Compile Include="Native\Structs\DSREG_USER_INFO.cs" />
     <Compile Include="Native\Structs\LastInputInfo.cs" />
     <Compile Include="Native\Structs\LUID.cs" />
     <Compile Include="Native\Structs\LUID_AND_ATTRIBUTES.cs" />

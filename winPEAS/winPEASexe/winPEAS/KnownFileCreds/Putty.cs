@@ -113,6 +113,7 @@ namespace winPEAS.KnownFileCreds
                                 "PublicKeyFile",
                                 "PortForwardings",
                                 "ConnectionSharing",
+                                "AgentFwd",
                                 "ProxyPassword",
                                 "ProxyUsername",
                             };
@@ -151,6 +152,7 @@ namespace winPEAS.KnownFileCreds
                         "PublicKeyFile",
                         "PortForwardings",
                         "ConnectionSharing",
+                        "AgentFwd",
                         "ProxyPassword",
                         "ProxyUsername",
                     };

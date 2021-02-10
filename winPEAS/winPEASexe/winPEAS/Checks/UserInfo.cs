@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Security.Principal;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Extensions;
 using winPEAS.Info.UserInfo;
 using winPEAS.Info.UserInfo.LogonSessions;
+using winPEAS.Info.UserInfo.Tenant;
 using winPEAS.Info.UserInfo.Token;
 using winPEAS.Native;
 using winPEAS.Native.Enums;
@@ -41,6 +44,7 @@ namespace winPEAS.Checks
             {
                 PrintCU,
                 PrintCurrentUserIdleTime,
+                PrintCurrentTenantInfo,
                 PrintTokenP,
                 PrintClipboardText,
                 PrintLoggedUsers,
@@ -385,6 +389,49 @@ namespace winPEAS.Checks
                                             colors);
 
                     Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private static void PrintCurrentTenantInfo()
+        {
+            try
+            {
+                Beaprint.MainPrint("Display Tenant information (DsRegCmd.exe /status)");
+
+                var info = Tenant.GetTenantInfo();
+
+                if (info != null)
+                {
+
+                    Beaprint.NoColorPrint($"    Tenant Display Name        :        {info.TenantDisplayName}\n" +
+                                                $"    Tenant Id                  :        {info.TenantId}\n" +
+                                                $"    Idp Domain                 :        {info.IdpDomain}\n" +
+                                                $"    Mdm Enrollment Url         :        {info.MdmEnrollmentUrl}\n" +
+                                                $"    Mdm TermsOfUse Url         :        {info.MdmTermsOfUseUrl}\n" +
+                                                $"    Mdm Compliance Url         :        {info.MdmComplianceUrl}\n" +
+                                                $"    User Setting Sync Url      :        {info.UserSettingSyncUrl}\n" +
+                                                $"    Device Id                  :        {info.DeviceId}\n" +
+                                                $"    Join Type                  :        {info.JType.GetDescription()}\n" +
+                                                $"    Join User Email            :        {info.JoinUserEmail}\n" +
+                                                $"    User Key Id                :        {info.UserKeyId}\n" +
+                                                $"    User Email                 :        {info.UserEmail}\n" +
+                                                $"    User Keyname               :        {info.UserKeyname}\n");
+
+                    foreach (var cert in info.CertInfo)
+                    {
+                        Beaprint.NoColorPrint($"    Thumbprint      :     {cert.Thumbprint}\n" +
+                                                    $"    Subject         :     {cert.Subject}\n" +
+                                                    $"    Issuer          :     {cert.Issuer}\n" +
+                                                    $"    Expiration      :     {cert.GetExpirationDateString()}");
+                    }
+                }
+                else
+                {
+                    Beaprint.NoColorPrint("   Tenant is NOT Azure AD Joined.");
                 }
             }
             catch (Exception ex)

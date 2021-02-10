@@ -150,6 +150,11 @@ namespace winPEAS.Helpers.Registry
             {
                 return new string[0];
             }
-        }     
+        }
+
+        public static string[] GetUserSIDs()
+        {
+            return Microsoft.Win32.Registry.Users.GetSubKeyNames() ?? new string[] { };
+        }
     }
 }

@@ -42,5 +42,11 @@ namespace winPEAS.Native
             out uint entriesRead,
             out uint totalEntries,
             out IntPtr resumeHandle);
+
+        [DllImport("netapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern void NetFreeAadJoinInformation(IntPtr pJoinInfo);
+
+        [DllImport("netapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern int NetGetAadJoinInformation(string pcszTenantId, out IntPtr ppJoinInfo);
     }
 }
