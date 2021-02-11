@@ -12,9 +12,9 @@ namespace winPEAS.Helpers.Search
     {
         public static List<CustomFileInfo> RootDirUsers;
         private static List<CustomFileInfo> RootDirCurrentUser;
-        private static List<CustomFileInfo> ProgramFiles;
-        private static List<CustomFileInfo> ProgramFilesX86;
-        private static List<CustomFileInfo> DocumentsAndSettings;
+        public static List<CustomFileInfo> ProgramFiles;
+        public static List<CustomFileInfo> ProgramFilesX86;
+        public static List<CustomFileInfo> DocumentsAndSettings;
         private static List<CustomFileInfo> GroupPolicyHistory;
 
         private static string SystemDrive = Environment.GetEnvironmentVariable("SystemDrive");

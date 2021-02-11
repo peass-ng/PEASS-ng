@@ -8,6 +8,7 @@ using winPEAS.Helpers;
 using winPEAS.Helpers.Extensions;
 using winPEAS.Info.NetworkInfo;
 using winPEAS.Info.NetworkInfo.Enums;
+using winPEAS.Info.NetworkInfo.InternetSettings;
 
 namespace winPEAS.Checks
 {
@@ -35,6 +36,7 @@ namespace winPEAS.Checks
                 PrintListeningPorts,
                 PrintFirewallRules,
                 PrintDNSCache,
+                PrintInternetSettings,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
@@ -363,6 +365,56 @@ namespace winPEAS.Checks
                 }
             }
             catch (Exception e)
+            {
+            }
+        }
+
+        private static void PrintInternetSettings()
+        {
+            try
+            {
+                Beaprint.MainPrint("Enumerating Internet settings, zone and proxy configuration");
+
+                var info = InternetSettings.GetInternetSettingsInfo();
+
+                Beaprint.ColorPrint("  General Settings", Beaprint.LBLUE);
+                Beaprint.NoColorPrint($"  {"Hive",-10}  {"Key",-40}  {"Value"}");
+                
+                foreach (var i in info.GeneralSettings)
+                {
+                    Beaprint.NoColorPrint($"  {i.Hive,-10}  {i.ValueName,-40}  {i.Value}");
+                }
+
+                Beaprint.ColorPrint("\n  Zone Maps", Beaprint.LBLUE);
+
+                if (info.ZoneMaps.Count == 0)
+                {
+                    Beaprint.NoColorPrint("  No URLs configured");
+                }
+                else
+                {
+                    Beaprint.NoColorPrint($"  {"Hive",-10}  {"Value Name",-40}  {"Interpretation"}");
+
+                    foreach (var i in info.ZoneMaps)
+                    {
+                        Beaprint.NoColorPrint($"  {i.Hive,-10}  {i.ValueName,-40}  {i.Interpretation}");
+                    }
+                }                
+
+                Beaprint.ColorPrint("\n  Zone Auth Settings", Beaprint.LBLUE);                
+                if (info.ZoneAuthSettings.Count == 0)
+                {
+                    Beaprint.NoColorPrint("  No Zone Auth Settings");
+                }
+                else
+                {
+                    foreach (var i in info.ZoneAuthSettings)
+                    {
+                        Beaprint.NoColorPrint($"  {i.Interpretation}");
+                    }
+                }                
+            }
+            catch (Exception ex)
             {
             }
         }

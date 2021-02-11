@@ -18,6 +18,9 @@ using winPEAS.Info.SystemInfo.AuditPolicies;
 using winPEAS.Info.SystemInfo.DotNet;
 using winPEAS.Info.SystemInfo.GroupPolicy;
 using winPEAS.Info.SystemInfo.WindowsDefender;
+using winPEAS.Info.SystemInfo.PowerShell;
+using winPEAS.Info.SystemInfo.Ntlm;
+using winPEAS.Native.Enums;
 
 namespace winPEAS.Checks
 {
@@ -70,13 +73,14 @@ namespace winPEAS.Checks
                 PrintWindowsDefenderInfo,
                 PrintUACInfo,
                 PrintPSInfo,
+                PrintPowerShellSessionSettings,
                 PrintTranscriptPS,
                 PrintInetInfo,
                 PrintDrivesInfo,
                 PrintWSUS,
                 PrintAlwaysInstallElevated,
                 PrintLSAInfo,
-                PrintLsaCompatiblityLevel,
+                PrintNtlmSettings,
                 PrintLocalGroupPolicy,
                 AppLockerHelper.PrintAppLockerPolicy,
                 PrintPrintersWMIInfo,
@@ -612,51 +616,75 @@ namespace winPEAS.Checks
             }
         }
 
-        private void PrintLsaCompatiblityLevel()
+        private static void PrintNtlmSettings()
         {
-            string hive = "HKLM";
-            string path = "SYSTEM\\CurrentControlSet\\Control\\Lsa\\";
-            string key = "LmCompatibilityLevel";
-
-            Beaprint.MainPrint($"Checking {hive}\\{path}{key}");
+            Beaprint.MainPrint($"Enumerating NTLM Settings");
 
             try
             {
-                string lmCompatibilityLevelValue = RegistryHelper.GetRegValue(hive, path, key);
-                Dictionary<int, string> dict = new Dictionary<int, string>()
+                var info = Ntlm.GetNtlmSettingsInfo();
+                
+                string lmCompatibilityLevelColor = info.LanmanCompatibilityLevel == 5 ? Beaprint.ansi_color_good : Beaprint.ansi_color_bad;
+                Beaprint.ColorPrint($"  LanmanCompatibilityLevel    : {info.LanmanCompatibilityLevel} ({info.LanmanCompatibilityLevelString})\n", lmCompatibilityLevelColor);
+
+                var ntlmSettingsColors = new Dictionary<string, string>
                 {
-                    { 0, "Send LM & NTLM responses" },
-                    { 1, "Send LM & NTLM responses, use NTLMv2 session security if negotiated" },
-                    { 2, "Send NTLM response only" },
-                    { 3, "Send NTLMv2 response only" },
-                    { 4, "Send NTLMv2 response only, refuse LM" },
-                    { 5, "Send NTLMv2 response only, refuse LM & NTLM" },
+                    { "True", Beaprint.ansi_color_good },
+                    { "False", Beaprint.ansi_color_bad },
+                    { "No signing", Beaprint.ansi_color_bad},
+                    { "null", Beaprint.ansi_color_bad},
+                    { "Require Signing", Beaprint.ansi_color_good},
+                    { "Negotiate signing", Beaprint.ansi_color_yellow},                    
+                    { "Unknown", Beaprint.ansi_color_bad},                     
                 };
 
-                if (!string.IsNullOrEmpty(lmCompatibilityLevelValue))
-                {
-                    if (int.TryParse(lmCompatibilityLevelValue, out int lmCompatibilityLevel))
-                    {
-                        string color = lmCompatibilityLevel == 5 ? Beaprint.ansi_color_good : Beaprint.ansi_color_bad;
+                Beaprint.ColorPrint("\n  NTLM Signing Settings", Beaprint.LBLUE);
+                Beaprint.AnsiPrint($"      ClientRequireSigning    : {info.ClientRequireSigning}\n" + 
+                                   $"      ClientNegotiateSigning  : {info.ClientNegotiateSigning}\n" +
+                                   $"      ServerRequireSigning    : {info.ServerRequireSigning}\n" +
+                                   $"      ServerNegotiateSigning  : {info.ServerNegotiateSigning}\n" +
+                                   $"      LdapSigning             : {(info.LdapSigning != null ? info.LdapSigningString : "null")} ({info.LdapSigningString})",
+                                   ntlmSettingsColors);
 
-                        if (dict.TryGetValue(lmCompatibilityLevel, out string description))
-                        {
-                            Beaprint.ColorPrint($"     value: {lmCompatibilityLevel}, description: {description}", color);
-                        }
-                        else
-                        {
-                            throw new Exception($"Unable to get value description for value '{lmCompatibilityLevel}'");
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception($"Unable to parse {key} value '{lmCompatibilityLevelValue}'");
-                    }
-                }
-                else
+                Beaprint.ColorPrint("\n  Session Security", Beaprint.LBLUE);
+
+                if (info.NTLMMinClientSec != null)
                 {
-                    Beaprint.ColorPrint("     The registry key does not exist", Beaprint.ansi_color_yellow);
+                    var clientSessionSecurity = (SessionSecurity)info.NTLMMinClientSec;
+                    var clientSessionSecurityDescription = clientSessionSecurity.GetDescription();
+                    var color = !clientSessionSecurity.HasFlag(SessionSecurity.NTLMv2) && !clientSessionSecurity.HasFlag(SessionSecurity.Require128BitKey) ?
+                                                              Beaprint.ansi_color_bad :
+                                                              Beaprint.ansi_color_good;
+                    Beaprint.ColorPrint($"      NTLMMinClientSec        : {info.NTLMMinClientSec} ({clientSessionSecurityDescription})", color);
+
+                    if (info.LanmanCompatibilityLevel < 3 && !clientSessionSecurity.HasFlag(SessionSecurity.NTLMv2))
+                    {
+                        Beaprint.BadPrint("        [!] NTLM clients support NTLMv1!");
+                    }
                 }
+
+                if (info.NTLMMinServerSec != null)
+                {
+                    var serverSessionSecurity = (SessionSecurity)info.NTLMMinServerSec;
+                    var serverSessionSecurityDescription = serverSessionSecurity.GetDescription();
+                    var color = !serverSessionSecurity.HasFlag(SessionSecurity.NTLMv2) && !serverSessionSecurity.HasFlag(SessionSecurity.Require128BitKey) ?
+                                                             Beaprint.ansi_color_bad :
+                                                             Beaprint.ansi_color_good;
+                    Beaprint.ColorPrint($"      NTLMMinServerSec        : {info.NTLMMinServerSec} ({serverSessionSecurityDescription})\n", color);
+
+                    if (info.LanmanCompatibilityLevel < 3 && !serverSessionSecurity.HasFlag(SessionSecurity.NTLMv2))
+                    {
+                        Beaprint.BadPrint("        [!] NTLM services on this machine support NTLMv1!");
+                    }
+                }
+
+                var ntlmOutboundRestrictionsColor = info.OutboundRestrictions == 2 ? Beaprint.ansi_color_good : Beaprint.ansi_color_bad;                
+
+                Beaprint.ColorPrint("\n  NTLM Auditing and Restrictions", Beaprint.LBLUE);
+                Beaprint.NoColorPrint($"      InboundRestrictions     : {info.InboundRestrictions} ({info.InboundRestrictionsString})");
+                Beaprint.ColorPrint($"      OutboundRestrictions    : {info.OutboundRestrictions} ({info.OutboundRestrictionsString})", ntlmOutboundRestrictionsColor);
+                Beaprint.NoColorPrint($"      InboundAuditing         : {info.InboundAuditing} ({info.InboundRestrictionsString})");
+                Beaprint.NoColorPrint($"      OutboundExceptions      : {info.OutboundExceptions}");            
             }
             catch (Exception ex)
             {
@@ -1039,6 +1067,37 @@ namespace winPEAS.Checks
                                                 $"   Link             :     {info.Link}\n" +
                                                 $"   GPO Link         :     {info.GPOLink.GetDescription()}\n" +
                                                 $"   Options          :     {info.Options.GetDescription()}\n");
+
+                    Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private static void PrintPowerShellSessionSettings()
+        {
+            try
+            {
+                Beaprint.MainPrint("Enumerating PowerShell Session Settings using the registry");
+
+                if (!MyUtils.IsHighIntegrity())
+                {
+                    Beaprint.NoColorPrint("      You must be an administrator to run this check");
+                    return;
+                }
+
+                var infos = PowerShell.GetPowerShellSessionSettingsInfos();
+
+                foreach (var info in infos)
+                {
+                    Beaprint.NoColorPrint($"    {"Name",-38} {info.Plugin}");
+
+                    foreach (var access in info.Permissions)
+                    {
+                        Beaprint.NoColorPrint($"      {access.Principal,-35}  {access.Permission,-22}");
+                    }
 
                     Beaprint.PrintLineSeparator();
                 }

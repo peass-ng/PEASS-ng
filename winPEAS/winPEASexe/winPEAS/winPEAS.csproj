@@ -395,6 +395,7 @@
     <Compile Include="Helpers\Extensions\EnumExtensions.cs" />
     <Compile Include="Helpers\MemoryHelper.cs" />
     <Compile Include="Helpers\PermissionsHelper.cs" />
+    <Compile Include="Helpers\Search\LOLBAS.cs" />
     <Compile Include="Helpers\Search\Patterns.cs" />
     <Compile Include="Info\ApplicationInfo\ApplicationInfoHelper.cs" />
     <Compile Include="Info\ApplicationInfo\AutoRuns.cs" />
@@ -427,6 +428,9 @@
     <Compile Include="Info\NetworkInfo\Enums\Protocol.cs" />
     <Compile Include="Info\NetworkInfo\Enums\TcpTableClass.cs" />
     <Compile Include="Info\NetworkInfo\Enums\UdpTableClass.cs" />
+    <Compile Include="Info\NetworkInfo\InternetSettings\InternetSettings.cs" />
+    <Compile Include="Info\NetworkInfo\InternetSettings\InternetSettingsInfo.cs" />
+    <Compile Include="Info\NetworkInfo\InternetSettings\InternetSettingsKey.cs" />
     <Compile Include="Info\NetworkInfo\NetworkConnection.cs" />
     <Compile Include="Info\NetworkInfo\Structs\MIB_TCP6ROW_OWNER_PID.cs" />
     <Compile Include="Info\NetworkInfo\Structs\MIB_TCP6TABLE_OWNER_PID.cs" />
@@ -450,6 +454,11 @@
     <Compile Include="Info\SystemInfo\GroupPolicy\LocalGroupPolicyInfo.cs" />
     <Compile Include="Info\SystemInfo\NamedPipes\NamedPipeInfo.cs" />
     <Compile Include="Info\SystemInfo\NamedPipes\NamedPipes.cs" />
+    <Compile Include="Info\SystemInfo\Ntlm\Ntlm.cs" />
+    <Compile Include="Info\SystemInfo\Ntlm\NtlmSettingsInfo.cs" />
+    <Compile Include="Info\SystemInfo\PowerShell\PluginAccessInfo.cs" />
+    <Compile Include="Info\SystemInfo\PowerShell\PowerShell.cs" />
+    <Compile Include="Info\SystemInfo\PowerShell\PowerShellSessionSettingsInfo.cs" />
     <Compile Include="Info\SystemInfo\Printers\PrinterInfo.cs" />
     <Compile Include="Info\SystemInfo\Printers\Printers.cs" />
     <Compile Include="Info\SystemInfo\SysMon\SysMon.cs" />
@@ -467,6 +476,10 @@
     <Compile Include="Info\UserInfo\Tenant\JoinType.cs" />
     <Compile Include="Info\UserInfo\Tenant\Tenant.cs" />
     <Compile Include="Info\UserInfo\Tenant\TenantInfo.cs" />
+    <Compile Include="Info\WindowsCreds\RDPClientSettings.cs" />
+    <Compile Include="Info\WindowsCreds\RDPServerSettings.cs" />
+    <Compile Include="Info\WindowsCreds\RDPSettingsInfo.cs" />
+    <Compile Include="Info\WindowsCreds\RemoteDesktop.cs" />
     <Compile Include="InterestingFiles\GPP.cs" />
     <Compile Include="InterestingFiles\InterestingFiles.cs" />
     <Compile Include="InterestingFiles\Unattended.cs" />
@@ -529,6 +542,7 @@
     <Compile Include="Native\Enums\SECURITY_IMPERSONATION_LEVEL.cs" />
     <Compile Include="Native\Enums\SECURITY_LOGON_TYPE.cs" />
     <Compile Include="Native\Enums\ServerTypes.cs" />
+    <Compile Include="Native\Enums\SessionSecurity.cs" />
     <Compile Include="Native\Enums\SE_OBJECT_TYPE.cs" />
     <Compile Include="Native\Enums\SID_NAME_USE.cs" />
     <Compile Include="Native\Enums\TokenType.cs" />
@@ -652,8 +666,6 @@
     <EmbeddedResource Include="Properties\Resources.ru.resx" />
     <EmbeddedResource Include="Properties\Resources.zh-CN.resx" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Info\NetworkInfo\InternetSettings\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

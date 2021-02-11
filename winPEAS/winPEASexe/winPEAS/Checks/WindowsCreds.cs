@@ -25,6 +25,7 @@ namespace winPEAS.Checks
                 PrintVaultCreds,
                 PrintCredentialManager,
                 PrintSavedRDPInfo,
+                PrintRDPSettings,
                 PrintRecentRunCommands,
                 PrintDPAPIMasterKeys,
                 PrintDpapiCredFiles,
@@ -124,7 +125,7 @@ namespace winPEAS.Checks
 
                 List<Dictionary<string, string>> rdps_info = RemoteDesktop.GetSavedRDPConnections();
                 if (rdps_info.Count > 0)
-                    System.Console.WriteLine(string.Format("    {0,-20}{1,-55}{2}", "Host", "Username Hint", "User SID"));
+                    Beaprint.NoColorPrint(string.Format("    {0,-20}{1,-55}{2}", "Host", "Username Hint", "User SID"));
                 else
                 {
                     Beaprint.NotFoundPrint();
@@ -132,7 +133,7 @@ namespace winPEAS.Checks
 
                 foreach (Dictionary<string, string> rdp_info in rdps_info)
                 {
-                    System.Console.WriteLine(string.Format("    {0,-20}{1,-55}{2}", rdp_info["Host"], rdp_info["Username Hint"], rdp_info["SID"]));
+                    Beaprint.NoColorPrint(string.Format("    {0,-20}{1,-55}{2}", rdp_info["Host"], rdp_info["Username Hint"], rdp_info["SID"]));
                 }
             }
             catch (Exception ex)
@@ -399,6 +400,77 @@ namespace winPEAS.Checks
             {
                 Beaprint.PrintException(ex.Message);
             }
+        }
+
+        private static void PrintRDPSettings()
+        {
+            try
+            {
+                Beaprint.MainPrint("Remote Desktop Server/Client Settings");
+
+                var info = Info.WindowsCreds.RemoteDesktop.GetRDPSettingsInfo();
+
+                var server = info.ServerSettings;
+                Beaprint.ColorPrint("  RDP Server Settings", Beaprint.LBLUE);
+                Beaprint.NoColorPrint($"    NetworkLevelAuthentication          :       {server.NetworkLevelAuthentication}");
+                Beaprint.NoColorPrint($"    BlockClipboardRedirection           :       {server.BlockClipboardRedirection}");
+                Beaprint.NoColorPrint($"    BlockComPortRedirection             :       {server.BlockComPortRedirection}");
+                Beaprint.NoColorPrint($"    BlockDriveRedirection               :       {server.BlockDriveRedirection}");
+                Beaprint.NoColorPrint($"    BlockLptPortRedirection             :       {server.BlockLptPortRedirection}");
+                Beaprint.NoColorPrint($"    BlockPnPDeviceRedirection           :       {server.BlockPnPDeviceRedirection}");
+                Beaprint.NoColorPrint($"    BlockPrinterRedirection             :       {server.BlockPrinterRedirection}");
+                Beaprint.NoColorPrint($"    AllowSmartCardRedirection           :       {server.AllowSmartCardRedirection}");
+
+                Beaprint.ColorPrint("\n  RDP Client Settings", Beaprint.LBLUE);
+                Beaprint.NoColorPrint($"    DisablePasswordSaving               :       {info.ClientSettings.DisablePasswordSaving}");
+                Beaprint.NoColorPrint($"    RestrictedRemoteAdministration      :       {info.ClientSettings.RestrictedRemoteAdministration}");
+
+                var type = info.ClientSettings.RestrictedRemoteAdministrationType;
+
+                var types = new Dictionary<uint, string>()
+                {
+                    { 1, "Require Restricted Admin Mode" },
+                    { 2, "Require Remote Credential Guard" },
+                    { 3, "Require Restricted Admin or Remote Credential Guard" },
+                };
+                
+                if (type != null)
+                {
+                    var str = GetDescriptionByType(type);
+
+                    Beaprint.NoColorPrint($"  RestrictedRemoteAdministrationType: {str}");
+                }
+
+                var level = info.ClientSettings.ServerAuthLevel;
+                if (level != null)
+                {
+                    var str = GetDescriptionByType(level);
+
+                    Beaprint.NoColorPrint($"  ServerAuthenticationLevel: {level} - {str}");
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private static string GetDescriptionByType(uint? type)
+        {
+            var types = new Dictionary<uint, string>()
+                {
+                    { 1, "Require Restricted Admin Mode" },
+                    { 2, "Require Remote Credential Guard" },
+                    { 3, "Require Restricted Admin or Remote Credential Guard" },
+                };
+            
+            string str = $"{type} - Unknown";
+
+            if (types.ContainsKey(type.Value))
+            {
+                str = types[type.Value];
+            }
+
+            return str;
         }
     }
 }

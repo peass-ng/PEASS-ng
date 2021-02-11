@@ -131,6 +131,7 @@ namespace winPEAS.Checks
                 PrintUserCredsFiles,
                 PrintOracleSQLDeveloperConfigFiles,
                 Slack.PrintInfo,
+                PrintLOLBAS,
                 PrintOutlookDownloads,
                 PrintMachineAndUserCertificateFiles,
                 PrintUsersInterestingFiles,
@@ -970,6 +971,51 @@ namespace winPEAS.Checks
                     }
 
                     Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private static void PrintLOLBAS()
+        {
+            try
+            {
+                Beaprint.MainPrint("Looking for LOL Binaries and Scripts (can be slow)");
+                Beaprint.LinkPrint("https://lolbas-project.github.io/");
+
+                var systemDrive = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\";
+
+                string rootUsersSearchPath = $"{systemDrive}\\users";
+                string documentsAndSettings = $"{systemDrive}\\documents and settings";
+
+                var excludedDirs = new HashSet<string>()
+                {
+                    @"c:\esupport",
+                    @"c:\perflogs",
+                    @"c:\programdata",
+                    @"c:\program files (x86)",
+                    @"c:\program files",
+                    //@"c:\windows",
+                    //@"c:\windows.old",
+                    rootUsersSearchPath,
+                    documentsAndSettings
+                };               
+
+                var files = SearchHelper.GetFilesFast(systemDrive, "*", excludedDirs);
+
+                files.AddRange(SearchHelper.RootDirUsers);
+                files.AddRange(SearchHelper.DocumentsAndSettings);
+                files.AddRange(SearchHelper.ProgramFiles);
+                files.AddRange(SearchHelper.ProgramFilesX86);
+
+                foreach (var file in files)
+                {
+                    if (LOLBAS.FileWithExtension.Contains(file.Filename.ToLower()))
+                    {
+                        Beaprint.BadPrint($"    {file.FullPath}");
+                    }
                 }
             }
             catch (Exception ex)

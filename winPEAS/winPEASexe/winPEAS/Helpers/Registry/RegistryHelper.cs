@@ -156,5 +156,17 @@ namespace winPEAS.Helpers.Registry
         {
             return Microsoft.Win32.Registry.Users.GetSubKeyNames() ?? new string[] { };
         }
+
+        internal static uint? GetDwordValue(string hive, string key, string val)
+        {
+            string strValue = RegistryHelper.GetRegValue(hive, key, val);
+
+            if (uint.TryParse(strValue, out uint res))
+            {
+                return res;
+            }
+
+            return null;
+        }
     }
 }
