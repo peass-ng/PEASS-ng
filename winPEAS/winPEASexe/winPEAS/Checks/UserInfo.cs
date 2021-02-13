@@ -126,23 +126,10 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Clipboard text");
-                string clipboard = Info.UserInfo.UserInfoHelper.GetClipboardText();
+                string clipboard = UserInfoHelper.GetClipboardText();
                 if (!string.IsNullOrEmpty(clipboard))
                 {
                     Beaprint.BadPrint(clipboard);
-                }
-                else
-                {
-                    if (Checks.ExecCmd)
-                    {
-                        Beaprint.BadPrint("    " + MyUtils.ExecCMD("-command Get-Clipboard", "powershell.exe"));
-                    }
-                    else
-                    {
-                        Beaprint.NotFoundPrint();
-                        Beaprint.InfoPrint("    This C# implementation to capture the clipboard is not trustable in every Windows version");
-                        Beaprint.InfoPrint("    If you want to see what is inside the clipboard execute 'powershell -command \"Get - Clipboard\"'");
-                    }
                 }
             }
             catch (Exception ex)

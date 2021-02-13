@@ -97,7 +97,7 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintAutoRuns()
+        private static void PrintAutoRuns()
         {
             try
             {
@@ -107,7 +107,7 @@ namespace winPEAS.Checks
 
                 foreach (Dictionary<string, string> app in apps)
                 {
-                    var colorsA = new Dictionary<string, string>()
+                    var colorsA = new Dictionary<string, string>
                         {
                             { "FolderPerms:.*", Beaprint.ansi_color_bad },
                             { "FilePerms:.*", Beaprint.ansi_color_bad },

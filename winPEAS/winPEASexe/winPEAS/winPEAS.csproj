@@ -476,6 +476,7 @@
     <Compile Include="Info\UserInfo\Tenant\JoinType.cs" />
     <Compile Include="Info\UserInfo\Tenant\Tenant.cs" />
     <Compile Include="Info\UserInfo\Tenant\TenantInfo.cs" />
+    <Compile Include="Info\WindowsCreds\AppCmd\AppCmd.cs" />
     <Compile Include="Info\WindowsCreds\RDPClientSettings.cs" />
     <Compile Include="Info\WindowsCreds\RDPServerSettings.cs" />
     <Compile Include="Info\WindowsCreds\RDPSettingsInfo.cs" />

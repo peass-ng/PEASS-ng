@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using winPEAS.Helpers;
 using winPEAS.Helpers.CredentialManager;
 using winPEAS.Helpers.Registry;
+using winPEAS.Info.WindowsCreds.AppCmd;
 using winPEAS.KnownFileCreds;
 using winPEAS.KnownFileCreds.Kerberos;
 using winPEAS.KnownFileCreds.SecurityPackages;
@@ -66,49 +69,38 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Checking Credential manager");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-manager-windows-vault");
-                if (Checks.ExecCmd)
+
+                var colorsC = new Dictionary<string, string>()
                 {
-                    Dictionary<string, string> colorsC = new Dictionary<string, string>()
-                    {
-                        { "User:.*", Beaprint.ansi_color_bad },
-                    };
-                    Beaprint.AnsiPrint(MyUtils.ExecCMD("/list", "cmdkey.exe"), colorsC);
-                    Beaprint.InfoPrint("If any cred was found, you can use it with 'runas /savecred'");
+                    { "Warning:", Beaprint.YELLOW },
+                };
+                Beaprint.AnsiPrint("    [!] Warning: if password contains non-printable characters, it will be printed as unicode base64 encoded string\n\n", colorsC);
+
+                var keywords = new HashSet<string>
+                {
+                    nameof(Credential.Password),
+                    nameof(Credential.Username),
+                    nameof(Credential.Target),
+                    nameof(Credential.PersistenceType),
+                    nameof(Credential.LastWriteTime),
+                };
+
+                colorsC = new Dictionary<string, string>()
+                {
+                    { CredentialManager.UnicodeInfoText, Beaprint.LBLUE }
+                };
+
+                foreach (var keyword in keywords)
+                {
+                    colorsC.Add($"{keyword}:", Beaprint.ansi_color_bad);
                 }
-                else
+
+                var credentials = CredentialManager.GetCredentials();
+
+                foreach (var credential in credentials)
                 {
-                    var colorsC = new Dictionary<string, string>()
-                    {
-                        { "Warning:", Beaprint.YELLOW },
-                    };
-                    Beaprint.AnsiPrint("    [!] Warning: if password contains non-printable characters, it will be printed as unicode base64 encoded string\n\n", colorsC);
-
-                    var keywords = new HashSet<string>
-                    {
-                        nameof(Credential.Password),
-                        nameof(Credential.Username),
-                        nameof(Credential.Target),
-                        nameof(Credential.PersistenceType),
-                        nameof(Credential.LastWriteTime),
-                    };
-
-                    colorsC = new Dictionary<string, string>()
-                    {
-                        { CredentialManager.UnicodeInfoText, Beaprint.LBLUE }
-                    };
-
-                    foreach (var keyword in keywords)
-                    {
-                        colorsC.Add($"{keyword}:", Beaprint.ansi_color_bad);
-                    }
-
-                    var credentials = CredentialManager.GetCredentials();
-
-                    foreach (var credential in credentials)
-                    {
-                        Beaprint.AnsiPrint(credential, colorsC);
-                        Beaprint.PrintLineSeparator();
-                    }
+                    Beaprint.AnsiPrint(credential, colorsC);
+                    Beaprint.PrintLineSeparator();
                 }
             }
             catch (Exception ex)
@@ -260,37 +252,23 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Looking for saved Wifi credentials");
-                if (Checks.ExecCmd)
+                foreach (var @interface in new WlanClient().Interfaces)
                 {
-                    Dictionary<string, string> networkConnections = Wifi.Wifi.Retrieve();
-                    Dictionary<string, string> ansi_colors_regexp = new Dictionary<string, string>();
+                    foreach (var profile in @interface.GetProfiles())
+                    {
+                        var xml = @interface.GetProfileXml(profile.profileName);
 
-                    //Make sure the passwords are all flagged as ansi_color_bad.
-                    foreach (var connection in networkConnections)
-                    {
-                        ansi_colors_regexp.Add(connection.Value, Beaprint.ansi_color_bad);
-                    }
-                    Beaprint.DictPrint(networkConnections, ansi_colors_regexp, false);
-                }
-                else
-                {
-                    foreach (var @interface in new WlanClient().Interfaces)
-                    {
-                        foreach (var profile in @interface.GetProfiles())
+                        XmlDocument xDoc = new XmlDocument();
+                        xDoc.LoadXml(xml);
+
+                        var keyMaterial = xDoc.GetElementsByTagName("keyMaterial");
+
+                        if (keyMaterial.Count > 0)
                         {
-                            var xml = @interface.GetProfileXml(profile.profileName);
+                            string password = keyMaterial[0].InnerText;
 
-                            XmlDocument xDoc = new XmlDocument();
-                            xDoc.LoadXml(xml);
-
-                            var keyMaterial = xDoc.GetElementsByTagName("keyMaterial");
-
-                            if (keyMaterial.Count > 0)
-                            {
-                                string password = keyMaterial[0].InnerText;
-
-                                Beaprint.BadPrint($"  found Wifi password for SSID: '{profile.profileName}', password: '{password}'  ");
-                            }
+                            Beaprint.BadPrint($"   SSID         :       '{profile.profileName}\n'" +
+                                              $"   password     :       '{password}'  \n\n");
                         }
                     }
                 }
@@ -307,15 +285,53 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Looking AppCmd.exe");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#appcmd-exe");
-                
-                if (File.Exists(Environment.ExpandEnvironmentVariables(@"%systemroot%\system32\inetsrv\appcmd.exe")))
+
+                var appCmdPath = Environment.ExpandEnvironmentVariables(@"%systemroot%\system32\inetsrv\appcmd.exe");
+
+                if (File.Exists(appCmdPath))
                 {
-                    Beaprint.BadPrint("    AppCmd.exe was found in " + 
-                                      Environment.ExpandEnvironmentVariables(@"%systemroot%\system32\inetsrv\appcmd.exe You should try to search for credentials"));
+                    Beaprint.BadPrint($"    AppCmd.exe was found in {appCmdPath}");
                 }
                 else
                 {
                     Beaprint.NotFoundPrint();
+                }
+
+                if (!MyUtils.IsHighIntegrity())
+                {
+                    Beaprint.NoColorPrint("      You must be an administrator to run this check");
+                    return;
+                }
+                
+                var script = AppCmd.GetExtractAppCmdCredsPowerShellScript();
+
+                string args = @$" {script}";
+
+                var processStartInfo = new ProcessStartInfo
+                {
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    FileName = "powershell.exe",
+                    Arguments = args,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    StandardOutputEncoding = Encoding.UTF8
+                };
+
+                using (var process = Process.Start(processStartInfo))
+                {
+                    if (process != null)
+                    {
+                        while (!process.StandardOutput.EndOfStream)
+                        {
+                            Beaprint.BadPrint($"    {process.StandardOutput.ReadLine()}");
+                        }
+
+                        while (!process.StandardError.EndOfStream)
+                        {
+                            Console.WriteLine(process.StandardError.ReadLine());
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -412,33 +428,25 @@ namespace winPEAS.Checks
 
                 var server = info.ServerSettings;
                 Beaprint.ColorPrint("  RDP Server Settings", Beaprint.LBLUE);
-                Beaprint.NoColorPrint($"    NetworkLevelAuthentication          :       {server.NetworkLevelAuthentication}");
-                Beaprint.NoColorPrint($"    BlockClipboardRedirection           :       {server.BlockClipboardRedirection}");
-                Beaprint.NoColorPrint($"    BlockComPortRedirection             :       {server.BlockComPortRedirection}");
-                Beaprint.NoColorPrint($"    BlockDriveRedirection               :       {server.BlockDriveRedirection}");
-                Beaprint.NoColorPrint($"    BlockLptPortRedirection             :       {server.BlockLptPortRedirection}");
-                Beaprint.NoColorPrint($"    BlockPnPDeviceRedirection           :       {server.BlockPnPDeviceRedirection}");
-                Beaprint.NoColorPrint($"    BlockPrinterRedirection             :       {server.BlockPrinterRedirection}");
-                Beaprint.NoColorPrint($"    AllowSmartCardRedirection           :       {server.AllowSmartCardRedirection}");
+                Beaprint.NoColorPrint($"    Network Level Authentication            :       {server.NetworkLevelAuthentication}\n" +
+                                             $"    Block Clipboard Redirection             :       {server.BlockClipboardRedirection}\n" +
+                                             $"    Block COM Port Redirection              :       {server.BlockComPortRedirection}\n" +
+                                             $"    Block Drive Redirection                 :       {server.BlockDriveRedirection}\n" +
+                                             $"    Block LPT Port Redirection              :       {server.BlockLptPortRedirection}\n" +
+                                             $"    Block PnP Device Redirection            :       {server.BlockPnPDeviceRedirection}\n" +
+                                             $"    Block Printer Redirection               :       {server.BlockPrinterRedirection}\n" +
+                                             $"    Allow Smart Card Redirection            :       {server.AllowSmartCardRedirection}");
 
                 Beaprint.ColorPrint("\n  RDP Client Settings", Beaprint.LBLUE);
-                Beaprint.NoColorPrint($"    DisablePasswordSaving               :       {info.ClientSettings.DisablePasswordSaving}");
-                Beaprint.NoColorPrint($"    RestrictedRemoteAdministration      :       {info.ClientSettings.RestrictedRemoteAdministration}");
+                Beaprint.NoColorPrint($"    Disable Password Saving                 :       {info.ClientSettings.DisablePasswordSaving}\n" +
+                                             $"    Restricted Remote Administration        :       {info.ClientSettings.RestrictedRemoteAdministration}");
 
                 var type = info.ClientSettings.RestrictedRemoteAdministrationType;
-
-                var types = new Dictionary<uint, string>()
-                {
-                    { 1, "Require Restricted Admin Mode" },
-                    { 2, "Require Remote Credential Guard" },
-                    { 3, "Require Restricted Admin or Remote Credential Guard" },
-                };
-                
                 if (type != null)
                 {
                     var str = GetDescriptionByType(type);
 
-                    Beaprint.NoColorPrint($"  RestrictedRemoteAdministrationType: {str}");
+                    Beaprint.NoColorPrint($"  Restricted Remote Administration Type: {str}");
                 }
 
                 var level = info.ClientSettings.ServerAuthLevel;
@@ -446,7 +454,7 @@ namespace winPEAS.Checks
                 {
                     var str = GetDescriptionByType(level);
 
-                    Beaprint.NoColorPrint($"  ServerAuthenticationLevel: {level} - {str}");
+                    Beaprint.NoColorPrint($"  Server Authentication Level: {level} - {str}");
                 }
             }
             catch (Exception ex)
@@ -456,14 +464,14 @@ namespace winPEAS.Checks
 
         private static string GetDescriptionByType(uint? type)
         {
-            var types = new Dictionary<uint, string>()
+            var types = new Dictionary<uint, string>
                 {
                     { 1, "Require Restricted Admin Mode" },
                     { 2, "Require Remote Credential Guard" },
                     { 3, "Require Restricted Admin or Remote Credential Guard" },
                 };
             
-            string str = $"{type} - Unknown";
+            var str = $"{type} - Unknown";
 
             if (types.ContainsKey(type.Value))
             {

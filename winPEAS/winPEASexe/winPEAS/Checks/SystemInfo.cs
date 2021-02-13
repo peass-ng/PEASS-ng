@@ -692,7 +692,7 @@ namespace winPEAS.Checks
             }
         }
 
-        private void PrintPrintersWMIInfo()
+        private static void PrintPrintersWMIInfo()
         {
             Beaprint.MainPrint("Enumerating Printers (WMI)");
 
@@ -714,7 +714,7 @@ namespace winPEAS.Checks
             }
         }
 
-        private void PrintNamedPipes()
+        private static void PrintNamedPipes()
         {
             Beaprint.MainPrint("Enumerating Named Pipes");
 

@@ -378,7 +378,7 @@ namespace winPEAS.Info.ApplicationInfo
                             { "isWritableReg", ""},
                             { "interestingFolderRights", string.Join(", ", PermissionsHelper.GetPermissionsFolder(folder, Checks.Checks.CurrentUserSiDs))},
                             { "interestingFileRights", string.Join(", ", PermissionsHelper.GetPermissionsFile(filepath, Checks.Checks.CurrentUserSiDs))},
-                            { "isUnquotedSpaced", "" }
+                            { "isUnquotedSpaced", MyUtils.CheckQuoteAndSpace(path).ToString() }
                         });
                     }
                 }
@@ -406,7 +406,7 @@ namespace winPEAS.Info.ApplicationInfo
                         { "isWritableReg", ""},
                         { "interestingFolderRights", string.Join(", ", PermissionsHelper.GetPermissionsFolder(folder, Checks.Checks.CurrentUserSiDs))},
                         { "interestingFileRights", ""},
-                        { "isUnquotedSpaced", "" }
+                        { "isUnquotedSpaced", MyUtils.CheckQuoteAndSpace(folder).ToString() }
                     });
                 }
                 catch (Exception)
@@ -510,7 +510,7 @@ namespace winPEAS.Info.ApplicationInfo
                             { "isWritableReg", ""},
                             { "interestingFolderRights", string.Join(", ", PermissionsHelper.GetPermissionsFolder(folder, Checks.Checks.CurrentUserSiDs))},
                             { "interestingFileRights", string.Join(", ", PermissionsHelper.GetPermissionsFile(path, Checks.Checks.CurrentUserSiDs))},
-                            { "isUnquotedSpaced", "" }
+                            { "isUnquotedSpaced",  MyUtils.CheckQuoteAndSpace(path).ToString() }
                         });
                     }
                 }

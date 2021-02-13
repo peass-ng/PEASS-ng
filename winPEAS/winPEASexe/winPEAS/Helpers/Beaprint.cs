@@ -84,7 +84,7 @@ namespace winPEAS.Helpers
                 PrintBanner();
             }
 
-            Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Version + NOCOLOR + YELLOW + " by carlospolop, makikvues(sergi[dot]chamila[at]gmail[dot]com)" + NOCOLOR);
+            Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Version + NOCOLOR + YELLOW + " by carlospolop, makikvues(makikvues2[at]gmail[dot]com)" + NOCOLOR);
             Console.WriteLine();
 
             PrintLegend();
@@ -107,7 +107,6 @@ namespace winPEAS.Helpers
         {
             Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally" + NOCOLOR);
             Console.WriteLine(LBLUE + "        quiet" + GRAY + "                Do not print banner" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        cmd" + GRAY + "                  Obtain wifi, cred manager and clipboard information executing CMD commands" + NOCOLOR);
             Console.WriteLine(LBLUE + "        notcolor" + GRAY + "             Don't use ansi colors (all white)" + NOCOLOR);
             Console.WriteLine(LBLUE + "        systeminfo" + GRAY + "           Search system information" + NOCOLOR);
             Console.WriteLine(LBLUE + "        userinfo" + GRAY + "             Search user information" + NOCOLOR);

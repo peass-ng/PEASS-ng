@@ -15,7 +15,6 @@ namespace winPEAS.Checks
     public static class Checks
     {
         public static bool IsNoColor = false;
-        public static bool ExecCmd = false;
         public static bool Banner = true;
         public static bool IsDebug = false;
 
@@ -106,11 +105,6 @@ namespace winPEAS.Checks
 
                     Beaprint.ColorPrint($"\"log\" argument present, redirecting output to file \"{LogFile}\"", Beaprint.ansi_color_good);
                     Console.SetOut(fileWriter);
-                }
-
-                if (string.Equals(arg, "cmd", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    ExecCmd = true;
                 }
 
                 if (string.Equals(arg, "notcolor", StringComparison.CurrentCultureIgnoreCase))
