@@ -227,15 +227,15 @@ namespace winPEAS.Checks
 
                     foreach (var site in sitelistFilesInfo.Sites)
                     {
-                        Beaprint.BadPrint($"    ShareName       : {site.ShareName}\n" +
-                                          $"    UserName        : {site.UserName}\n" +
-                                          $"    Server          : {site.Server}\n" +
-                                          $"    EncPassword     : {site.EncPassword}\n" +
-                                          $"    DecPassword     : {site.DecPassword}\n" +
-                                          $"    DomainName      : {site.DomainName}\n" +
-                                          $"    Name            : {site.Name}\n" +
-                                          $"    Type            : {site.Type}\n" +
-                                          $"    RelativePath    : {site.RelativePath}\n");
+                        Beaprint.NoColorPrint($"    Share Name            :       {site.ShareName}");
+                        PrintColored( $"    User Name             :       {site.UserName}", !string.IsNullOrWhiteSpace(site.UserName));
+                        PrintColored( $"    Server                :       {site.Server}", !string.IsNullOrWhiteSpace(site.Server));
+                        PrintColored( $"    Encrypted Password    :       {site.EncPassword}", !string.IsNullOrWhiteSpace(site.EncPassword));
+                        PrintColored( $"    Decrypted Password    :       {site.DecPassword}", !string.IsNullOrWhiteSpace(site.DecPassword));
+                        Beaprint.NoColorPrint( $"    Domain Name           :       {site.DomainName}\n" +
+                                                     $"    Name                  :       {site.Name}\n" +
+                                                     $"    Type                  :       {site.Type}\n" +
+                                                     $"    Relative Path         :       {site.RelativePath}\n");
                     }
 
                     Beaprint.PrintLineSeparator();
@@ -244,6 +244,18 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintColored(string str, bool isBad)
+        {
+            if (isBad)
+            {
+                Beaprint.BadPrint(str);
+            }
+            else
+            {
+                Beaprint.NoColorPrint(str);
             }
         }
 
@@ -307,13 +319,20 @@ namespace winPEAS.Checks
                         Beaprint.ColorPrint($"  Running {linpeas} in the default distribution\n" +
                                             $"  Using linpeas.sh URL: {Checks.LinpeasUrl}", Beaprint.LBLUE);
 
-                        try
+                        if (Checks.IsLinpeas)
                         {
-                            WSL.RunLinpeas(Checks.LinpeasUrl);
+                            try
+                            {
+                                WSL.RunLinpeas(Checks.LinpeasUrl);
+                            }
+                            catch (Exception ex)
+                            {
+                                Beaprint.PrintException($"    Unable to run linpeas.sh: {ex.Message}");
+                            }
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            Beaprint.PrintException($"    Unable to run linpeas.sh: {ex.Message}");
+                            Beaprint.ColorPrint("   [!] Check skipped, if you want to run it, please specify '-linpeas=[url]' argument", Beaprint.YELLOW);
                         }
                     }
                     else
@@ -984,6 +1003,13 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Looking for LOL Binaries and Scripts (can be slow)");
                 Beaprint.LinkPrint("https://lolbas-project.github.io/");
+
+                if (!Checks.IsLolbas)
+                {
+                    Beaprint.ColorPrint("   [!] Check skipped, if you want to run it, please specify '-lolbas' argument", Beaprint.YELLOW);
+
+                    return;
+                }
 
                 var systemDrive = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\";
 

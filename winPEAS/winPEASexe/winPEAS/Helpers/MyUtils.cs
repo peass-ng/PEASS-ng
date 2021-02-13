@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Security.Principal;
 using System.Text;
@@ -169,6 +170,25 @@ namespace winPEAS.Helpers
             }
 
             return false;
+        }
+
+        internal static bool IsUrlReachable(string url)
+        {
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Timeout = 5000;
+                request.Method = "HEAD";
+
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
+                    return response.StatusCode == HttpStatusCode.OK && response.ContentLength > 0;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
 

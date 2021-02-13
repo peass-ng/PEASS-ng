@@ -17,6 +17,8 @@ namespace winPEAS.Checks
         public static bool IsNoColor = false;
         public static bool Banner = true;
         public static bool IsDebug = false;
+        public static bool IsLinpeas = false;
+        public static bool IsLolbas = false;
 
         // Create Dynamic blacklists
         public static readonly string CurrentUserName = Environment.UserName;
@@ -127,16 +129,29 @@ namespace winPEAS.Checks
                     IsDebug = true;
                 }
 
-                if (arg.StartsWith("linpeasUrl", StringComparison.CurrentCultureIgnoreCase))
+                if (string.Equals(arg, "-lolbas", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    var parts = arg.Split('=');
-                    if (parts.Length != 2 || string.IsNullOrEmpty(parts[1]))
-                    {
-                        Beaprint.PrintUsage();
-                        return;
-                    }
+                    IsLolbas = true;
+                }
 
-                    LinpeasUrl = parts[1];
+                if (arg.StartsWith("-linpeas", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    IsLinpeas = true;
+
+                    var parts = arg.Split('=');
+                    if (parts.Length >= 2 && !string.IsNullOrEmpty(parts[1]))
+                    {
+                        LinpeasUrl = parts[1];
+
+                        var isReachable = MyUtils.IsUrlReachable(LinpeasUrl);
+
+                        if (!isReachable)
+                        {
+                            Beaprint.ColorPrint($" [!] the provided linpeas.sh url: '{LinpeasUrl}' is invalid / unreachable / returned empty response.", Beaprint.YELLOW);
+
+                            return;
+                        }
+                    }
                 }
 
                 string argToLower = arg.ToLower();

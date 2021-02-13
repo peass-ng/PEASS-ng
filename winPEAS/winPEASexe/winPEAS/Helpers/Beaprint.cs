@@ -74,7 +74,6 @@ namespace winPEAS.Helpers
                 Console.WriteLine();
                 Console.WriteLine(LYELLOW + "ADVISORY: " + BLUE + Advisory);
                 Console.WriteLine();
-                Thread.Sleep(700);
         }
 
         public static void PrintInit()
@@ -84,7 +83,7 @@ namespace winPEAS.Helpers
                 PrintBanner();
             }
 
-            Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Version + NOCOLOR + YELLOW + " by carlospolop, makikvues(makikvues2[at]gmail[dot]com)" + NOCOLOR);
+            Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Version + NOCOLOR + YELLOW + " by @carlospolopm, makikvues(makikvues2[at]gmail[dot]com)" + NOCOLOR);
             Console.WriteLine();
 
             PrintLegend();
@@ -121,8 +120,13 @@ namespace winPEAS.Helpers
             Console.WriteLine(LBLUE + "        wait" + GRAY + "                 Wait for user input between checks" + NOCOLOR);
             Console.WriteLine(LBLUE + "        debug" + GRAY + "                Display debugging information - memory usage, method execution time" + NOCOLOR);
             Console.WriteLine(LBLUE + "        log" + GRAY +$"                  Log all output to file \"{Checks.Checks.LogFile}\"" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        linpeasUrl=<url>" + GRAY + $"     Provide linpeas.sh URL for WSL checks (default: {Checks.Checks.LinpeasUrl})" + NOCOLOR);
-            Console.WriteLine(YELLOW + "        [+] " + LYELLOW + "By default all checks (except CMD checks) are executed" + NOCOLOR);
+            Console.WriteLine(YELLOW + "       [+] " + LYELLOW + "By default all checks (except CMD checks and additional checks) are executed" + NOCOLOR);
+            Console.WriteLine();
+            Console.WriteLine(LCYAN + "        Additional checks (slower):");
+            Console.WriteLine(LBLUE + "        -lolbas" + GRAY + $"              Run additional LOLBAS check" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        -linpeas=[url]" + GRAY + $"       Run additional linpeas.sh check for default WSL distribution, optionally provide custom linpeas.sh URL\n" +
+                                     $"                             (default: {Checks.Checks.LinpeasUrl})" + NOCOLOR);
+            
         }
 
 
