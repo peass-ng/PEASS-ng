@@ -16,7 +16,7 @@ namespace winPEAS.KnownFileCreds.Browsers
         {
             Beaprint.MainPrint($"Showing saved credentials for {Name}");
 
-            var credentials = GetSavedCredentials().ToList();
+            var credentials = (GetSavedCredentials() ?? new List<CredentialModel>()).ToList();
 
             if (credentials.Count == 0)
             {

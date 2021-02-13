@@ -17,39 +17,45 @@ namespace winPEAS.KnownFileCreds.Browsers
         public override IEnumerable<CredentialModel> GetSavedCredentials()
         {
             var result = new List<CredentialModel>();
-
             var p = Path.Combine(BaseAppDataPath, "Login Data");
-            var keyPath = Path.Combine(BaseAppDataPath, "..\\Local State"); 
+            var keyPath = Path.Combine(BaseAppDataPath, "..\\Local State");
 
-            if (File.Exists(p))
+            try
             {
-                SQLiteDatabase database = new SQLiteDatabase(p);
-                string query = "SELECT action_url, username_value, password_value FROM logins";
-                DataTable resultantQuery = database.ExecuteQuery(query);
-
-                if (resultantQuery.Rows.Count > 0)
+                if (File.Exists(p))
                 {
-                    var key = GCDecryptor.GetKey(keyPath);
+                    SQLiteDatabase database = new SQLiteDatabase(p);
+                    string query = "SELECT action_url, username_value, password_value FROM logins";
+                    DataTable resultantQuery = database.ExecuteQuery(query);
 
-                    foreach (DataRow row in resultantQuery.Rows)
+                    if (resultantQuery.Rows.Count > 0)
                     {
-                        byte[] encryptedData = Convert.FromBase64String((string)row["password_value"]);
-                        GCDecryptor.Prepare(encryptedData, out var nonce, out var cipherTextTag);
-                        var pass = GCDecryptor.Decrypt(cipherTextTag, key, nonce);
+                        var key = GCDecryptor.GetKey(keyPath);
 
-                        string actionUrl = row["action_url"] is System.DBNull ? string.Empty : (string)row["action_url"];
-                        string usernameValue = row["username_value"] is System.DBNull ? string.Empty : (string)row["username_value"];
-
-                        result.Add(new CredentialModel
+                        foreach (DataRow row in resultantQuery.Rows)
                         {
-                            Url = actionUrl,
-                            Username = usernameValue,
-                            Password = pass
-                        });
-                    }
+                            byte[] encryptedData = Convert.FromBase64String((string)row["password_value"]);
+                            GCDecryptor.Prepare(encryptedData, out var nonce, out var cipherTextTag);
+                            var pass = GCDecryptor.Decrypt(cipherTextTag, key, nonce);
 
-                    database.CloseDatabase();
+                            string actionUrl = row["action_url"] is System.DBNull ? string.Empty : (string)row["action_url"];
+                            string usernameValue = row["username_value"] is System.DBNull ? string.Empty : (string)row["username_value"];
+
+                            result.Add(new CredentialModel
+                            {
+                                Url = actionUrl,
+                                Username = usernameValue,
+                                Password = pass
+                            });
+                        }
+
+                        database.CloseDatabase();
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                return null;
             }
 
             return result;
