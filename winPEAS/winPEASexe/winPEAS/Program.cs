@@ -1664,9 +1664,17 @@ namespace winPEAS
                     }
                     else
                     {
-                        Beaprint.GrayPrint("    This function is not yet implemented.");
-                        Beaprint.InfoPrint("If you want to list saved Wifis connections you can list the using 'netsh wlan show profile'");
-                        Beaprint.InfoPrint("If you want to get the clear-text password use 'netsh wlan show profile <SSID> key=clear'");
+                        Dictionary<string, string> networkConnections = Wifi.EnumerateProfilesUsingAPI();
+                        Dictionary<string, string> ansi_colors_regexp = new Dictionary<string, string>();
+
+                        //Make sure the passwords are all flagged as ansi_color_bad.
+                        foreach (var connection in networkConnections)
+                        {
+                            // Make sure each key(wifi password) is added only once to the dictionary
+                            if(!ansi_colors_regexp.ContainsKey(connection.Value))
+                            ansi_colors_regexp.Add(connection.Value, Beaprint.ansi_color_bad);
+                        }
+                        Beaprint.DictPrint(networkConnections, ansi_colors_regexp, false);
                     }
                 }
                 catch (Exception ex)
@@ -2262,6 +2270,7 @@ namespace winPEAS
         [STAThread]
         static void Main(string[] args)
         {
+        
             //WindowsIdentity identity = WindowsIdentity.GetCurrent();
             //foreach(IdentityReference group in identity.Groups)
             //    System.Console.WriteLine(identity.Groups);
@@ -2404,6 +2413,8 @@ namespace winPEAS
                 CheckRegANSI();
             
             CreateDynamicLists();
+
+
 
             Beaprint.PrintInit();
             if (check_si || check_all)
