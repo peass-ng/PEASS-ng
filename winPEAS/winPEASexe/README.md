@@ -182,13 +182,12 @@ Once you have installed and activated it you need to:
   - [x] User documents (limit 100)
   - [x] Oracle SQL Developer config files check
   - [x] Slack files search
-  - [x] LOLBAS search
   - [x] Outlook downloads
   - [x] Machine and user certificate files
   - [x] Office most recent documents
   - [x] Hidden files and folders
-  - [x] Executable files in non-default folders with write permissions
-  - [x] WSL check + run linpeas.sh in WSL default distribution
+  - [x] Executable files in non-default folders with write permissions  
+  - [x] WSL check 
 
 - **Events Information**
   - [x] Logon + Explicit Logon Events
@@ -196,6 +195,10 @@ Once you have installed and activated it you need to:
   - [x] PowerShell Events
   - [x] Power On/Off Events
   
+- **Additional (slower) checks**
+  - [x] LOLBAS search
+  - [x] run **[linpeas.sh](https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh)** in default WSL distribution
+
 </details>
 
 ## Let's improve PEASS together
