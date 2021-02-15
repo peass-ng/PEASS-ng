@@ -181,6 +181,8 @@ namespace winPEAS.Checks
                     CheckRunner.Run(CreateDynamicLists, IsDebug);
 
                     RunChecks(isAllChecks, wait);
+
+                    Beaprint.PrintMarketingBanner();
                 }, IsDebug, "Total time");
 
                 if (IsDebug)

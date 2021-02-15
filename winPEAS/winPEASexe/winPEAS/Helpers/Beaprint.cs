@@ -76,6 +76,24 @@ namespace winPEAS.Helpers
                 Console.WriteLine();
         }
 
+        public static void PrintMarketingBanner()
+        {
+            // Twitter
+
+            // Patreon link
+            Console.WriteLine(GREEN + string.Format(@"
+       /---------------------------------------------------------------------------\
+       |                             {1}Do you like PEASS?{0}                            |
+       |---------------------------------------------------------------------------| 
+       |         {3}Become a Patreon{0}    :     {2}https://www.patreon.com/peass{0}           |
+       |         {3}Follow on Twitter{0}   :     {2}@carlospolopm{0}                           |
+       |---------------------------------------------------------------------------|
+       |                                 {1}Thank you!{0}                                |
+       \---------------------------------------------------------------------------/
+", GREEN, BLUE, RED, YELLOW) + NOCOLOR);
+
+        }
+
         public static void PrintInit()
         {
             if (Checks.Checks.Banner)
@@ -84,7 +102,8 @@ namespace winPEAS.Helpers
             }
 
             Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Version + NOCOLOR + YELLOW + " by @carlospolopm, makikvues(makikvues2[at]gmail[dot]com)" + NOCOLOR);
-            Console.WriteLine();
+
+            PrintMarketingBanner();
 
             PrintLegend();
             Console.WriteLine();
