@@ -6,7 +6,7 @@
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/peass.svg)](https://repology.org/project/peass/versions)
 
-Here you will find **privilege escalation tools for Windows and Linux/Unix\*** (in some near future  also for Mac).
+Here you will find **privilege escalation tools for Windows and Linux/Unix\* and MacOS**.
 
 These tools search for possible **local privilege escalation paths** that you could exploit and print them to you **with nice colors** so you can recognize the misconfigurations easily.
 
