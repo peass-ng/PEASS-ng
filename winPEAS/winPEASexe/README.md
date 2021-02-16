@@ -13,7 +13,7 @@ Check also the **Local Windows Privilege Escalation checklist** from **[book.hac
 **.Net >= 4.5 is required**
 
 Precompiled binaries:
-- Download the **[latest obfuscated version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/winPEAS/binanries/Obfuscated%20Releases)** or **compile it yourself** (read instructions for compilation).
+- Download the **[latest obfuscated version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/binaries/Obfuscated%20Releases)** or **compile it yourself** (read instructions for compilation).
 - Non-Obfuscated [winPEASany.exe](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/winPEAS/winPEASexe/binaries/Release/winPEASany.exe)
 - Non-Obfuscated [winPEASx64.exe](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/winPEAS/winPEASexe/binaries/x64/Release/winPEASx64.exe)
 - Non-Obfuscated [winPEASx86.exe](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/binaries/x86/Release/winPEASx86.exe)
