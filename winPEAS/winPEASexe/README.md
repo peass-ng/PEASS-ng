@@ -101,9 +101,6 @@ Once you have installed and activated it you need to:
 
 ![](https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/winPEAS/winPEASexe/images/dotfuscator.PNG)
 
-## Help
-
-![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/help.png)
 
 ## Colors
 
