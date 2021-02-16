@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
-using JetBrains.Annotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-// ReSharper disable MemberCanBePrivate.Global
-// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
-
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Changes to tasks and the engine that cause events.
@@ -398,6 +397,22 @@ namespace Microsoft.Win32.TaskScheduler
 		public EventRecord EventRecord { get; internal set; }
 
 		/// <summary>
+		/// Gets the <see cref="StandardTaskEventId"/> from the <see cref="EventId"/>.
+		/// </summary>
+		/// <value>
+		/// The <see cref="StandardTaskEventId"/>. If not found, returns <see cref="StandardTaskEventId.Unknown"/>.
+		/// </value>
+		public StandardTaskEventId StandardEventId
+		{
+			get
+			{
+				if (Enum.IsDefined(typeof(StandardTaskEventId), EventId))
+					return (StandardTaskEventId)EventId;
+				return StandardTaskEventId.Unknown;
+			}
+		}
+
+		/// <summary>
 		/// Gets the level. This value is <c>null</c> for V1 events.
 		/// </summary>
 		public string Level { get; internal set; }
@@ -443,6 +458,14 @@ namespace Microsoft.Win32.TaskScheduler
 		public byte? Version { get; internal set; }
 
 		/// <summary>
+		/// Gets the data value from the task specific event data item list.
+		/// </summary>
+		/// <param name="name">The name of the data element.</param>
+		/// <returns>Contents of the requested data element if found. <c>null</c> if no value found.</returns>
+		[Obsolete("Use the DataVales property instead.")]
+		public string GetDataValue(string name) => DataValues?[name];
+
+		/// <summary>
 		/// Returns a <see cref="System.String"/> that represents this instance.
 		/// </summary>
 		/// <returns>
@@ -480,7 +503,30 @@ namespace Microsoft.Win32.TaskScheduler
 			{
 				rec = eventRec;
 			}
-            }
+
+			/// <summary>
+			/// Gets the <see cref="System.String"/> value of the specified property name.
+			/// </summary>
+			/// <value>
+			/// The value.
+			/// </value>
+			/// <param name="propertyName">Name of the property.</param>
+			/// <returns>Value of the specified property name. <c>null</c> if property does not exist.</returns>
+			public string this[string propertyName]
+			{
+				get
+				{
+					var propsel = new EventLogPropertySelector(new[] { $"Event/EventData/Data[@Name='{propertyName}']" });
+					try
+					{
+						var logEventProps = rec.GetPropertyValues(propsel);
+						return logEventProps[0].ToString();
+					}
+					catch { }
+					return null;
+				}
+			}
+		}
 	}
 
 	/// <summary>
@@ -543,7 +589,27 @@ namespace Microsoft.Win32.TaskScheduler
 		{
 			log.Seek(System.IO.SeekOrigin.Begin, 0L);
 		}
-    }
+
+		/// <summary>
+		/// Seeks the specified bookmark.
+		/// </summary>
+		/// <param name="bookmark">The bookmark.</param>
+		/// <param name="offset">The offset.</param>
+		public void Seek(EventBookmark bookmark, long offset = 0L)
+		{
+			log.Seek(bookmark, offset);
+		}
+
+		/// <summary>
+		/// Seeks the specified origin.
+		/// </summary>
+		/// <param name="origin">The origin.</param>
+		/// <param name="offset">The offset.</param>
+		public void Seek(System.IO.SeekOrigin origin, long offset)
+		{
+			log.Seek(origin, offset);
+		}
+	}
 
 	/// <summary>
 	/// Historical event log for a task. Only available for Windows Vista and Windows Server 2008 and later systems.
@@ -579,6 +645,16 @@ namespace Microsoft.Win32.TaskScheduler
 		private static readonly bool IsVistaOrLater = Environment.OSVersion.Version.Major >= 6;
 
 		/// <summary>
+		/// Initializes a new instance of the <see cref="TaskEventLog"/> class.
+		/// </summary>
+		/// <param name="taskPath">The task path. This can be retrieved using the <see cref="Task.Path"/> property.</param>
+		/// <exception cref="NotSupportedException">Thrown when instantiated on an OS prior to Windows Vista.</exception>
+		public TaskEventLog([CanBeNull] string taskPath) : this(".", taskPath)
+		{
+			Initialize(".", BuildQuery(taskPath), true);
+		}
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="TaskEventLog" /> class.
 		/// </summary>
 		/// <param name="machineName">Name of the machine.</param>
@@ -590,6 +666,36 @@ namespace Microsoft.Win32.TaskScheduler
 		public TaskEventLog([NotNull] string machineName, [CanBeNull] string taskPath, string domain = null, string user = null, string password = null)
 		{
 			Initialize(machineName, BuildQuery(taskPath), true, domain, user, password);
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TaskEventLog" /> class that looks at all task events from a specified time.
+		/// </summary>
+		/// <param name="startTime">The start time.</param>
+		/// <param name="taskName">Name of the task.</param>
+		/// <param name="machineName">Name of the machine (optional).</param>
+		/// <param name="domain">The domain.</param>
+		/// <param name="user">The user.</param>
+		/// <param name="password">The password.</param>
+		public TaskEventLog(DateTime startTime, string taskName = null, string machineName = null, string domain = null, string user = null, string password = null)
+		{
+			int[] numArray = new int[] { 100, 102, 103, 107, 108, 109, 111, 117, 118, 119, 120, 121, 122, 123, 124, 125 };
+			Initialize(machineName, BuildQuery(taskName, numArray, startTime), false, domain, user, password);
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TaskEventLog"/> class.
+		/// </summary>
+		/// <param name="taskName">Name of the task.</param>
+		/// <param name="eventIDs">The event ids.</param>
+		/// <param name="startTime">The start time.</param>
+		/// <param name="machineName">Name of the machine (optional).</param>
+		/// <param name="domain">The domain.</param>
+		/// <param name="user">The user.</param>
+		/// <param name="password">The password.</param>
+		public TaskEventLog(string taskName = null, int[] eventIDs = null, DateTime? startTime = null, string machineName = null, string domain = null, string user = null, string password = null)
+		{
+			Initialize(machineName, BuildQuery(taskName, eventIDs, startTime), true, domain, user, password);
 		}
 
 		/// <summary>
@@ -669,6 +775,63 @@ namespace Microsoft.Win32.TaskScheduler
 			Query = new EventLogQuery(TSEventLogPath, PathType.LogName, query) { ReverseDirection = revDir };
 			if (machineName != null && machineName != "." && !machineName.Equals(Environment.MachineName, StringComparison.InvariantCultureIgnoreCase))
 				Query.Session = new EventLogSession(machineName, domain, user, spwd, SessionAuthentication.Default);
+		}
+
+		/// <summary>
+		/// Gets the total number of events for this task.
+		/// </summary>
+		public long Count
+		{
+			get
+			{
+				using (EventLogReader log = new EventLogReader(Query))
+				{
+					long seed = 64L, l = 0L, h = seed;
+					while (log.ReadEvent() != null)
+						log.Seek(System.IO.SeekOrigin.Begin, l += seed);
+					bool foundLast = false;
+					while (l > 0L && h >= 1L)
+					{
+						if (foundLast)
+							l += (h /= 2L);
+						else
+							l -= (h /= 2L);
+						log.Seek(System.IO.SeekOrigin.Begin, l);
+						foundLast = (log.ReadEvent() != null);
+					}
+					return foundLast ? l + 1L : l;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets a value indicating whether this <see cref="TaskEventLog" /> is enabled.
+		/// </summary>
+		/// <value>
+		/// <c>true</c> if enabled; otherwise, <c>false</c>.
+		/// </value>
+		public bool Enabled
+		{
+			get
+			{
+				if (!IsVistaOrLater)
+					return false;
+				using (var cfg = new EventLogConfiguration(TSEventLogPath, Query.Session))
+					return cfg.IsEnabled;
+			}
+			set
+			{
+				if (!IsVistaOrLater)
+					throw new NotSupportedException("Task history not available on systems prior to Windows Vista and Windows Server 2008.");
+				using (var cfg = new EventLogConfiguration(TSEventLogPath, Query.Session))
+				{
+					if (cfg.IsEnabled != value)
+					{
+						cfg.IsEnabled = value;
+						cfg.SaveChanges();
+					}
+				}
+			}
 		}
 
 		/// <summary>

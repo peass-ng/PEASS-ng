@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
-	/// <summary>
-	/// Functions to provide localized strings for enumerated types and values.
-	/// </summary>
-	public static class TaskEnumGlobalizer
+    /// <summary>
+    /// Functions to provide localized strings for enumerated types and values.
+    /// </summary>
+    public static class TaskEnumGlobalizer
 	{
 		/// <summary>
 		/// Gets a string representing the localized value of the provided enum.
@@ -37,7 +37,7 @@ namespace Microsoft.Win32.TaskScheduler
 		private static string GetCultureEquivalentString(DaysOfTheWeek val)
 		{
 			if (val == DaysOfTheWeek.AllDays)
-				return winPEAS.Properties.Resources.DOWAllDays;
+				return Properties.Resources.DOWAllDays;
 
 			var s = new List<string>(7);
 			var vals = Enum.GetValues(val.GetType());
@@ -47,23 +47,23 @@ namespace Microsoft.Win32.TaskScheduler
 					s.Add(DateTimeFormatInfo.CurrentInfo.GetDayName((DayOfWeek)i));
 			}
 
-			return string.Join(winPEAS.Properties.Resources.ListSeparator, s.ToArray());
+			return string.Join(Properties.Resources.ListSeparator, s.ToArray());
 		}
 
 		private static string GetCultureEquivalentString(MonthsOfTheYear val)
 		{
 			if (val == MonthsOfTheYear.AllMonths)
-				return winPEAS.Properties.Resources.MOYAllMonths;
+				return Properties.Resources.MOYAllMonths;
 
 			var s = new List<string>(12);
 			var vals = Enum.GetValues(val.GetType());
 			for (var i = 0; i < vals.Length - 1; i++)
 			{
 				if ((val & (MonthsOfTheYear)vals.GetValue(i)) > 0)
-					s.Add(DateTimeFormatInfo.CurrentInfo.GetMonthName(i+1));
+					s.Add(DateTimeFormatInfo.CurrentInfo.GetMonthName(i + 1));
 			}
 
-			return string.Join(winPEAS.Properties.Resources.ListSeparator, s.ToArray());
+			return string.Join(Properties.Resources.ListSeparator, s.ToArray());
 		}
 
 		private static string BuildEnumString(string preface, object enumValue)
@@ -72,8 +72,8 @@ namespace Microsoft.Win32.TaskScheduler
 			if (vals.Length == 0)
 				return string.Empty;
 			for (var i = 0; i < vals.Length; i++)
-				vals[i] = winPEAS.Properties.Resources.ResourceManager.GetString(preface + vals[i]);
-			return string.Join(winPEAS.Properties.Resources.ListSeparator, vals);
+				vals[i] = Properties.Resources.ResourceManager.GetString(preface + vals[i]);
+			return string.Join(Properties.Resources.ListSeparator, vals);
 		}
 	}
 }

@@ -3,13 +3,21 @@ using System.Collections;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using JetBrains.Annotations;
+using winPEAS.TaskScheduler.TaskEditor.Native;
 
-namespace Microsoft.Win32.TaskScheduler.V2Interop
+namespace winPEAS.TaskScheduler.V2
 {
+
+	internal enum TaskEnumFlags
+	{
+		Hidden = 1
+	}
+
+#pragma warning disable CS0618 // Type or member is obsolete
 	[ComImport, Guid("BAE54997-48B1-4CBE-9965-D6BE263EBEA4"), InterfaceType(ComInterfaceType.InterfaceIsDual), System.Security.SuppressUnmanagedCodeSecurity]
 	internal interface IAction
 	{
+		string Id { [return: MarshalAs(UnmanagedType.BStr)] get; [param: In, MarshalAs(UnmanagedType.BStr)] set; }
 		TaskActionType Type { get; }
 	}
 
@@ -18,6 +26,9 @@ namespace Microsoft.Win32.TaskScheduler.V2Interop
 	{
 		int Count { get; }
 		IAction this[int index] { [return: MarshalAs(UnmanagedType.Interface)] get; }
+		[return: MarshalAs(UnmanagedType.Interface)]
+		IEnumerator GetEnumerator();
+		string XmlText { [return: MarshalAs(UnmanagedType.BStr)] get; [param: In, MarshalAs(UnmanagedType.BStr)] set; }
 		[return: MarshalAs(UnmanagedType.Interface)]
 		IAction Create([In] TaskActionType Type);
 		void Remove([In, MarshalAs(UnmanagedType.Struct)][NotNull] object index);
@@ -230,7 +241,7 @@ namespace Microsoft.Win32.TaskScheduler.V2Interop
 		void SetSecurityDescriptor([In, MarshalAs(UnmanagedType.BStr)] string sddl, [In] int flags);
 		void Stop(int flags);
 		[MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime), DispId(0x60020011)]
-		void GetRunTimes([In] ref Microsoft.Win32.NativeMethods.SYSTEMTIME pstStart, [In] ref Microsoft.Win32.NativeMethods.SYSTEMTIME pstEnd, [In, Out] ref uint pCount, [In, Out] ref IntPtr pRunTimes);
+		void GetRunTimes([In] ref NativeMethods.SYSTEMTIME pstStart, [In] ref NativeMethods.SYSTEMTIME pstEnd, [In, Out] ref uint pCount, [In, Out] ref IntPtr pRunTimes);
 	}
 
 	[ComImport, Guid("86627EB4-42A7-41E4-A4D9-AC33A72F2D52"), InterfaceType(ComInterfaceType.InterfaceIsDual), System.Security.SuppressUnmanagedCodeSecurity]
@@ -496,6 +507,19 @@ namespace Microsoft.Win32.TaskScheduler.V2Interop
 		bool Exclusive { [param: In] set; get; }
 	}
 
+	[ComImport, Guid("3E4C9351-D966-4B8B-BB87-CEBA68BB0107"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), System.Security.SuppressUnmanagedCodeSecurity]
+	internal interface ITaskVariables
+	{
+		[return: MarshalAs(UnmanagedType.BStr)]
+		[MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+		string GetInput();
+		[MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+		void SetOutput([In, MarshalAs(UnmanagedType.BStr)] string input);
+		[return: MarshalAs(UnmanagedType.BStr)]
+		[MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+		string GetContext();
+	}
+
 	[ComImport, Guid("B45747E0-EBA7-4276-9F29-85C5BB300006"), InterfaceType(ComInterfaceType.InterfaceIsDual), System.Security.SuppressUnmanagedCodeSecurity]
 	internal interface ITimeTrigger : ITrigger
 	{
@@ -551,4 +575,3 @@ namespace Microsoft.Win32.TaskScheduler.V2Interop
 		string RandomDelay { [return: MarshalAs(UnmanagedType.BStr)] get; [param: In, MarshalAs(UnmanagedType.BStr)] set; }
 	}
 }
-

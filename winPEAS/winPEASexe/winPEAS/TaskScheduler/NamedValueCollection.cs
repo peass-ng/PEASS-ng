@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
-using Microsoft.Win32.TaskScheduler.V2Interop;
-using JetBrains.Annotations;
+using winPEAS.TaskScheduler.TaskEditor.Native;
+using winPEAS.TaskScheduler.V2;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Pair of name and value.
@@ -273,6 +276,21 @@ namespace Microsoft.Win32.TaskScheduler
 			}
 		}
 
+		/// <summary>
+		/// Gets the value of the item at the specified index.
+		/// </summary>
+		/// <param name="index">The index of the item being requested.</param>
+		/// <returns>The value of the name-value pair at the specified index.</returns>
+		[NotNull]
+		public string this[int index]
+		{
+			get
+			{
+				if (v2Coll != null)
+					return v2Coll[++index].Value;
+				return unboundDict[index].Value;
+			}
+		}
 
 		/// <summary>
 		/// Gets the value of the item with the specified name.
@@ -349,6 +367,22 @@ namespace Microsoft.Win32.TaskScheduler
 		public void Add([NotNull] string name, [NotNull] string value)
 		{
 			Add(new NameValuePair(name, value));
+		}
+
+		/// <summary>
+		/// Adds the elements of the specified collection to the end of <see cref="NamedValueCollection"/>.
+		/// </summary>
+		/// <param name="items">The collection of whose elements should be added to the end of <see cref="NamedValueCollection"/>.</param>
+		public void AddRange([ItemNotNull, NotNull] IEnumerable<NameValuePair> items)
+		{
+			if (v2Coll != null)
+			{
+				foreach (var item in items)
+					v2Coll.Create(item.Name, item.Value);
+			}
+			else
+				unboundDict.AddRange(items);
+			OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items));
 		}
 
 		/// <summary>
@@ -432,6 +466,29 @@ namespace Microsoft.Win32.TaskScheduler
 			return false;
 		}
 
+		/// <summary>
+		/// Removes a selected name-value pair from the collection.
+		/// </summary>
+		/// <param name="index">Index of the pair to remove.</param>
+		public void RemoveAt(int index)
+		{
+			if (index < 0 || index >= Count)
+				throw new ArgumentOutOfRangeException(nameof(index));
+			NameValuePair nvp;
+			if (v2Coll != null)
+			{
+				nvp = new NameValuePair(v2Coll[index]).Clone();
+				v2Coll.Remove(index);
+			}
+			else
+			{
+				nvp = unboundDict[index];
+				unboundDict.RemoveAt(index);
+			}
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Count)));
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
+			OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, nvp, index));
+		}
 
 		/// <summary>
 		/// Gets the value associated with the specified name.

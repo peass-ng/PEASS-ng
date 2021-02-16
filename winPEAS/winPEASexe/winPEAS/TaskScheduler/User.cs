@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Principal;
+using System.Text;
+using System.Threading.Tasks;
+using winPEAS.TaskScheduler.TaskEditor.Native;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>Represents a system account.</summary>
 	internal class User : IEquatable<User>, IDisposable
@@ -65,9 +70,21 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <param name="wid">The <see cref="WindowsIdentity"/>.</param>
 		internal User(WindowsIdentity wid) { Identity = wid; sid = wid.User; }
 
+		/// <summary>Gets the current user.</summary>
+		/// <value>The current user.</value>
+		public static User Current => new User(cur);
+
 		/// <summary>Gets the identity.</summary>
 		/// <value>The identity.</value>
 		public WindowsIdentity Identity { get; private set; }
+
+		/// <summary>Gets a value indicating whether this instance is in an administrator role.</summary>
+		/// <value><c>true</c> if this instance is an admin; otherwise, <c>false</c>.</value>
+		public bool IsAdmin => Identity != null ? new WindowsPrincipal(Identity).IsInRole(WindowsBuiltInRole.Administrator) : false;
+
+		/// <summary>Gets a value indicating whether this instance is the interactive user.</summary>
+		/// <value><c>true</c> if this instance is the current user; otherwise, <c>false</c>.</value>
+		public bool IsCurrent => Identity?.User.Equals(cur.User) ?? false;
 
 		/// <summary>Gets a value indicating whether this instance is a service account.</summary>
 		/// <value><c>true</c> if this instance is a service account; otherwise, <c>false</c>.</value>
@@ -87,6 +104,10 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <summary>Gets a value indicating whether this instance is the SYSTEM account.</summary>
 		/// <value><c>true</c> if this instance is the SYSTEM account; otherwise, <c>false</c>.</value>
 		public bool IsSystem => sid != null && sid.IsWellKnown(WellKnownSidType.LocalSystemSid);
+
+		/// <summary>Gets the SID string.</summary>
+		/// <value>The SID string.</value>
+		public string SidString => sid?.ToString();
 
 		/// <summary>Gets the NT name (DOMAIN\username).</summary>
 		/// <value>The name of the user.</value>
