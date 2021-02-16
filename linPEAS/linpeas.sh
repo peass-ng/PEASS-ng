@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.0.3"
+VERSION="v3.0.4"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -231,7 +231,7 @@ MyUID=`id -u $(whoami)`
 if [ `echo $MyUID` ]; then myuid=$MyUID; elif [ `id -u $(whoami) 2>/dev/null` ]; then myuid=`id -u $(whoami) 2>/dev/null`; elif [ `id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1` ]; then myuid=`id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1`; fi
 if [ $myuid -gt 2147483646 ]; then baduid="|$myuid"; fi
 idB="euid|egid$baduid"
-sudovB="1.[01234567].[0-9]+|1.8\.1[0-9]*|1.8.2[01234567]"
+sudovB="[01].[012345678].[0-9]+|1.9.[01234]|1.9.5p1"
 
 mounted=`(mount -l || cat /proc/mounts || cat /proc/self/mounts) 2>/dev/null | grep "^/" | cut -d " " -f1 | tr '\n' '|'``cat /etc/fstab 2>/dev/null | grep -v "#" | grep -E '\W/\W' | awk '{print $1}'`
 if ! [ "$mounted" ]; then mounted="ImPoSSssSiBlEee"; fi #Don't let any blacklist to be empty
@@ -1267,12 +1267,19 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   #-- PCS) Cron
   printf $Y"[+] "$GREEN"Cron jobs\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#scheduled-cron-jobs\n"$NC
+  command -v crontab 2>/dev/null || echo_not_found "crontab"
   crontab -l 2>/dev/null | tr -d "\r" | sed -${E} "s,$Wfolders,${C}[1;31;103m&${C}[0m,g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed -${E} "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m,"
+  command -v incrontab 2>/dev/null || echo_not_found "incrontab"
+  incrontab -l 2>/dev/null
   ls -al /etc/cron* 2>/dev/null | sed -${E} "s,$cronjobsG,${C}[1;32m&${C}[0m,g" | sed "s,$cronjobsB,${C}[1;31m&${C}[0m,g"
   cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs /var/spool/cron/crontabs/* /var/spool/anacron /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed -${E} "s,$Wfolders,${C}[1;31;103m&${C}[0m,g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed -${E} "s,$nosh_usrs,${C}[1;34m&${C}[0m,"  | sed "s,root,${C}[1;31m&${C}[0m,"
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
   ls -l /usr/lib/cron/tabs/ /Library/LaunchAgents/ /Library/LaunchDaemons/ ~/Library/LaunchAgents/ 2>/dev/null #MacOS paths
   echo ""
+
+  printf $Y"[+] "$GREEN"Incron\n"$NC
+
+
 
   #-- PCS) Services
   printf $Y"[+] "$GREEN"Services\n"$NC
