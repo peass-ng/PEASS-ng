@@ -210,7 +210,6 @@ namespace winPEAS.Checks
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
             }
         }
     }
