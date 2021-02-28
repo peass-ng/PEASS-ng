@@ -1667,7 +1667,8 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   echo ""
 
   #-- UI) Brute su
-  if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ] && ! [ "$IAMROOT" ]; then
+  EXISTS_SUDO="`command -v sudo 2>/dev/null`"
+  if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ] && ! [ "$IAMROOT" ] && [ "$EXISTS_SUDO" ]; then
     printf $Y"[+] "$GREEN"Testing 'su' as other users with shell using as passwords: null pwd, the username and top2000pwds\n"$NC
     POSSIBE_SU_BRUTE=`check_if_su_brute`;
     if [ "$POSSIBE_SU_BRUTE" ]; then
@@ -2469,7 +2470,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket\n"$NC
   dockerfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_MNT\n$FIND_RUN\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'docker.socket|docker.sock|Dockerfile|docker-compose.yml')
   printf "$dockerfiles\n" | while read f; do
-    ls -l "$f"
+    ls -l "$f" 2>/dev/null
     if [ -S "$f" ] && [ -w "$f" ]; then
       echo "Docker socket file ($f) is writable" | sed -${E} "s,.*,${C}[1;31;103m&${C}[0m," 
     fi
