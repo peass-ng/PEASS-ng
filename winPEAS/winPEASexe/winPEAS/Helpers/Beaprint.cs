@@ -139,7 +139,6 @@ namespace winPEAS.Helpers
             Console.WriteLine(LBLUE + "        wait" + GRAY + "                 Wait for user input between checks" + NOCOLOR);
             Console.WriteLine(LBLUE + "        debug" + GRAY + "                Display debugging information - memory usage, method execution time" + NOCOLOR);
             Console.WriteLine(LBLUE + "        log" + GRAY +$"                  Log all output to file \"{Checks.Checks.LogFile}\"" + NOCOLOR);
-            Console.WriteLine(YELLOW + "       [+] " + LYELLOW + "By default all checks (except CMD checks and additional checks) are executed" + NOCOLOR);
             Console.WriteLine();
             Console.WriteLine(LCYAN + "        Additional checks (slower):");
             Console.WriteLine(LBLUE + "        -lolbas" + GRAY + $"              Run additional LOLBAS check" + NOCOLOR);
