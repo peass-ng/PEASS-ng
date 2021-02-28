@@ -51,7 +51,7 @@ $wp.EntryPoint #Get the name of the ReflectedType, in obfuscated versions someti
 [<ReflectedType_from_before>]::Main("") #Used the ReflectedType name to execute winpeas
 ```
 
-## Parameters
+## Parameters Examples
 
 ```bash
 winpeas.exe #run all checks (except for additional slower checks - LOLBAS and linpeas.sh in WSL) (noisy - CTFs)
@@ -61,7 +61,31 @@ winpeas.exe wait #wait for user input between tests
 winpeas.exe debug #display additional debug information
 winpeas.exe log #log output to out.txt instead of standard output
 winpeas.exe -linpeas=http://127.0.0.1/linpeas.sh #Execute also additional linpeas check (runs linpeas.sh in default WSL distribution) with custom linpeas.sh URL (if not provided, the default URL is: https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh)
-winpeas.exe -lolbas  #Execute also additional LOLBAS search check 
+winpeas.exe -lolbas  #Execute also additional LOLBAS search check
+```
+
+## Help
+```
+quiet                Do not print banner
+notcolor             Don't use ansi colors (all white)
+systeminfo           Search system information
+userinfo             Search user information
+processinfo          Search processes information
+servicesinfo         Search services information
+applicationsinfo     Search installed applications information
+networkinfo          Search network information
+windowscreds         Search windows credentials
+browserinfo          Search browser information
+filesinfo            Search files that can contains credentials
+eventsinfo           Display interesting events information
+wait                 Wait for user input between checks
+debug                Display debugging information - memory usage, method execution time
+log                  Log all output to file "out.txt"
+
+Additional checks (slower):
+-lolbas              Run additional LOLBAS check
+-linpeas=[url]       Run additional linpeas.sh check for default WSL distribution, optionally provide custom linpeas.sh URL
+                     (default: https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh)
 ```
 
 ## Basic information
