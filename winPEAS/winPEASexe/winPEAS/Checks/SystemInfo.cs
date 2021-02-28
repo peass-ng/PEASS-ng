@@ -624,7 +624,7 @@ namespace winPEAS.Checks
             {
                 var info = Ntlm.GetNtlmSettingsInfo();
                 
-                string lmCompatibilityLevelColor = info.LanmanCompatibilityLevel == 5 ? Beaprint.ansi_color_good : Beaprint.ansi_color_bad;
+                string lmCompatibilityLevelColor = info.LanmanCompatibilityLevel >= 3 ? Beaprint.ansi_color_good : Beaprint.ansi_color_bad;
                 Beaprint.ColorPrint($"  LanmanCompatibilityLevel    : {info.LanmanCompatibilityLevel} ({info.LanmanCompatibilityLevelString})\n", lmCompatibilityLevelColor);
 
                 var ntlmSettingsColors = new Dictionary<string, string>
