@@ -126,6 +126,7 @@ namespace winPEAS.Helpers
             Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally" + NOCOLOR);
             Console.WriteLine(LBLUE + "        quiet" + GRAY + "                Do not print banner" + NOCOLOR);
             Console.WriteLine(LBLUE + "        notcolor" + GRAY + "             Don't use ansi colors (all white)" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        domain" + GRAY + "               Enumerate domain information" + NOCOLOR);
             Console.WriteLine(LBLUE + "        systeminfo" + GRAY + "           Search system information" + NOCOLOR);
             Console.WriteLine(LBLUE + "        userinfo" + GRAY + "             Search user information" + NOCOLOR);
             Console.WriteLine(LBLUE + "        processinfo" + GRAY + "          Search processes information" + NOCOLOR);

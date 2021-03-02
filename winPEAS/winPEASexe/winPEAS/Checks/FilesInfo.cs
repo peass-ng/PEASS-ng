@@ -200,8 +200,15 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("Looking for common SAM & SYSTEM backups");
                 List<string> sam_files = InterestingFiles.InterestingFiles.GetSAMBackups();
                 foreach (string path in sam_files)
-                    Beaprint.BadPrint("    " + path);
+                {
+                    var permissions = PermissionsHelper.GetPermissionsFile(path, Checks.CurrentUserSiDs);
 
+                    if (permissions.Any())
+                    {
+                        Beaprint.BadPrint("    " + path);
+                        Beaprint.BadPrint("    File Permissions: " + string.Join(", ", permissions) + "\n");
+                    }
+                }
             }
             catch (Exception ex)
             {

@@ -207,25 +207,18 @@ namespace winPEAS.Info.UserInfo
             string currentUsername = Environment.UserName?.ToLower();
             var usersBaseDirectory = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), "Users");
 
-            SelectQuery query = new SelectQuery("Win32_UserAccount");
-            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
+            foreach (ManagementObject envVar in Checks.Checks.Win32Users)
             {
-                using (var data = searcher.Get())
+                string username = (string)envVar["Name"];
+                username = username?.ToLower();
+
+                if (currentUsername != username)
                 {
-                    foreach (ManagementObject envVar in data)
+                    string userDirectory = Path.Combine(usersBaseDirectory, username);
+
+                    if (Directory.Exists(userDirectory))
                     {
-                        string username = (string)envVar["Name"];
-                        username = username?.ToLower();
-
-                        if (currentUsername != username)
-                        {
-                            string userDirectory = Path.Combine(usersBaseDirectory, username);
-
-                            if (Directory.Exists(userDirectory))
-                            {
-                                result.Add(userDirectory.ToLower());
-                            }
-                        }
+                        result.Add(userDirectory.ToLower());
                     }
                 }
             }

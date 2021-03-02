@@ -635,7 +635,7 @@ namespace winPEAS.Checks
                     { "null", Beaprint.ansi_color_bad},
                     { "Require Signing", Beaprint.ansi_color_good},
                     { "Negotiate signing", Beaprint.ansi_color_yellow},                    
-                    { "Unknown", Beaprint.ansi_color_bad},                     
+                    { "Unknown", Beaprint.ansi_color_bad},
                 };
 
                 Beaprint.ColorPrint("\n  NTLM Signing Settings", Beaprint.LBLUE);
