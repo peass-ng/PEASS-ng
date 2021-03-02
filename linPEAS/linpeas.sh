@@ -2501,7 +2501,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 #-- SI) Autologin files
   printf $Y"[+] "$GREEN"Autologin Files\n"$NC
   autologinfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_MNT" | grep -E 'autologin|autologin.conf')
-  printf "$dockerfiles\n" | while read f; do
+  printf "$autologinfiles\n" | while read f; do
     ls -l "$f" 2>/dev/null
     cat "$f" 2>/dev/null | sed "s,passwd,${C}[1;31m&${C}[0m,"
   done
