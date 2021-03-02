@@ -14,6 +14,7 @@ namespace winPEAS.Checks
 {
     public static class Checks
     {
+        public static bool IsDomainEnumeration = false;
         public static bool IsNoColor = false;
         public static bool Banner = true;
         public static bool IsDebug = false;
@@ -129,6 +130,11 @@ namespace winPEAS.Checks
                     IsDebug = true;
                 }
 
+                if (string.Equals(arg, "domain", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    IsDomainEnumeration = true;
+                }
+
                 if (string.Equals(arg, "-lolbas", StringComparison.CurrentCultureIgnoreCase))
                 {
                     IsLolbas = true;
@@ -235,7 +241,14 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.GrayPrint("   - Getting Win32_UserAccount info...");
-                var query = new SelectQuery("Win32_UserAccount");
+                
+                // by default only enumerate local users
+                SelectQuery query = new SelectQuery("Win32_UserAccount", "LocalAccount=true");
+                if (IsDomainEnumeration)
+                {
+                    // include also domain users
+                    query = new SelectQuery("Win32_UserAccount");
+                }
 
                 using (var searcher = new ManagementObjectSearcher(query))
                 {
@@ -275,7 +288,8 @@ namespace winPEAS.Checks
 
             try
             {
-                Beaprint.GrayPrint("   - Creating active users list...");
+                var domainString = IsDomainEnumeration ? "(local + domain)" : "(local only)";
+                Beaprint.GrayPrint($"   - Creating active users list {domainString}...");
                 _paintActiveUsers = string.Join("|", User.GetMachineUsers(true, false, false, false, false));
                 PaintActiveUsersNoAdministrator = _paintActiveUsers.Replace("|Administrator", "").Replace("Administrator|", "").Replace("Administrator", "");
             }

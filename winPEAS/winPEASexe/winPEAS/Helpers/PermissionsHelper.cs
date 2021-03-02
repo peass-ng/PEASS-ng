@@ -27,7 +27,7 @@ namespace winPEAS.Helpers
             if (path == null || path == "")
                 return results;
 
-            Match reg_path = Regex.Match(path.ToString(), @"\W*([a-z]:\\.+?(\.[a-zA-Z0-9_-]+))\W*", RegexOptions.IgnoreCase);
+            Match reg_path = Regex.Match(path.ToString(), @"\W*([a-z]:\\[^.]+(\.[a-zA-Z0-9_-]+)?)\W*", RegexOptions.IgnoreCase);
             string binaryPath = reg_path.Groups[1].ToString();
             path = binaryPath;
             if (path == null || path == "")
@@ -178,11 +178,17 @@ namespace winPEAS.Helpers
                     { "GenericAll", 0x10000000},
                     { "FullControl", (int)FileSystemRights.FullControl },
                     { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
+
                     { "GenericWrite", 0x40000000 },
                     { "WriteData/CreateFiles", (int)FileSystemRights.WriteData },
                     { "Modify", (int)FileSystemRights.Modify },
                     { "Write", (int)FileSystemRights.Write },
+
+                    { "Read", (int)FileSystemRights.Read },
+                    { "ReadData", (int)FileSystemRights.ReadData },
+
                     { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
+
                     { "Delete", (int)FileSystemRights.Delete },
                     { "DeleteSubdirectoriesAndFiles", (int)FileSystemRights.DeleteSubdirectoriesAndFiles },
                     { "AppendData/CreateDirectories", (int)FileSystemRights.AppendData },

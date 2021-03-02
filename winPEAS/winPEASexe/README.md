@@ -17,6 +17,7 @@ Download the **[latest obfuscated version from here](https://github.com/carlospo
 winpeas.exe #run all checks (except for additional slower checks - LOLBAS and linpeas.sh in WSL) (noisy - CTFs)
 winpeas.exe systeminfo userinfo #Only systeminfo and userinfo checks executed
 winpeas.exe notcolor #Do not color the output
+winpeas.exe domain #enumerate also domain information
 winpeas.exe wait #wait for user input between tests
 winpeas.exe debug #display additional debug information
 winpeas.exe log #log output to out.txt instead of standard output
