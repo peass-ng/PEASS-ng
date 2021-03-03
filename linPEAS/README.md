@@ -153,6 +153,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 - **System Information**
   - [x] SO & kernel version 
   - [x] Sudo version
+  - [x] USBCreator PE
   - [x] PATH
   - [x] Date
   - [x] System stats
@@ -242,7 +243,15 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Keyring files
   - [x] Filelliza files
   - [x] Backup-manager
- 
+  - [x] Splunk
+  - [x] Gitlab
+  - [x] PGP/GPG files
+  - [x] Vim swp files
+  - [x] ctr
+  - [x] runc
+  - [x] Firefox user files
+  - [x] Google Chrome user files
+  - [x] Autologin files
 
 - **Generic Interesting Files**
   - [x] SUID & SGID files
@@ -287,11 +296,11 @@ If you want to **add something** and have **any cool idea** related to this proj
 
 ## Please, if this tool has been useful for you consider to donate
 
-[![Buy me a coffee](https://camo.githubusercontent.com/031fc5a134cdca5ae3460822aba371e63f794233/68747470733a2f2f7777772e6275796d6561636f666665652e636f6d2f6173736574732f696d672f637573746f6d5f696d616765732f6f72616e67655f696d672e706e67)](https://www.buymeacoffee.com/carlospolop)
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.patreon.com/peass)
 
-## Looking for a useful Privilege Escalation Course?
+## PEASS Style
 
-Contact me and ask about the **Privilege Escalation Course** I am preparing for attackers and defenders (**100% technical**).
+Are you a PEASS fan? Get now our merch at **[PEASS Shop](https://teespring.com/stores/peass)** and show your love for our favorite peas
 
 ## TODO
 

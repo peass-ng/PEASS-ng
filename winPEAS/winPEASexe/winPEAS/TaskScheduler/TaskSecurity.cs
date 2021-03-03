@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Runtime;
 using System.Security;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using JetBrains.Annotations;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
-	/// <summary>
-	/// Specifies the access control rights that can be applied to Task Scheduler tasks.
-	/// </summary>
-	[Flags]
+    /// <summary>
+    /// Specifies the access control rights that can be applied to Task Scheduler tasks.
+    /// </summary>
+    [Flags]
 	public enum TaskRights
 	{
 		/// <summary>Specifies the right to exert full control over a task folder or task, and to modify access control and audit rules. This value represents the right to do anything with a task and is the combination of all rights in this enumeration.</summary>
@@ -67,6 +65,17 @@ namespace Microsoft.Win32.TaskScheduler
 		{
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TaskAccessRule"/> class, specifying the name of the user or group the rule applies to, the access rights, and whether the specified access rights are allowed or denied.
+		/// </summary>
+		/// <param name="identity">The name of the user or group the rule applies to.</param>
+		/// <param name="eventRights">A bitwise combination of <see cref="TaskRights"/> values specifying the rights allowed or denied.</param>
+		/// <param name="type">One of the <see cref="AccessControlType"/> values specifying whether the rights are allowed or denied.</param>
+		public TaskAccessRule([NotNull] string identity, TaskRights eventRights, AccessControlType type)
+			: this(new NTAccount(identity), (int)eventRights, false, InheritanceFlags.None, PropagationFlags.None, type)
+		{
+		}
+
 		private TaskAccessRule([NotNull] IdentityReference identity, int accessMask, bool isInherited, InheritanceFlags inheritanceFlags, PropagationFlags propagationFlags, AccessControlType type)
 			: base(identity, accessMask, isInherited, inheritanceFlags, propagationFlags, type)
 		{
@@ -86,6 +95,17 @@ namespace Microsoft.Win32.TaskScheduler
 	/// </summary>
 	public sealed class TaskAuditRule : AuditRule
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TaskAuditRule" /> class, specifying the user or group to audit, the rights to audit, and whether to audit success, failure, or both.
+		/// </summary>
+		/// <param name="identity">The user or group the rule applies to. Must be of type <see cref="SecurityIdentifier" /> or a type such as <see cref="NTAccount" /> that can be converted to type <see cref="SecurityIdentifier" />.</param>
+		/// <param name="eventRights">A bitwise combination of <see cref="TaskRights" /> values specifying the kinds of access to audit.</param>
+		/// <param name="flags">The audit flags.</param>
+		public TaskAuditRule([NotNull] IdentityReference identity, TaskRights eventRights, AuditFlags flags)
+			: this(identity, (int)eventRights, false, InheritanceFlags.None, PropagationFlags.None, flags)
+		{
+		}
+
 		internal TaskAuditRule([NotNull] IdentityReference identity, int accessMask, bool isInherited, InheritanceFlags inheritanceFlags, PropagationFlags propagationFlags, AuditFlags flags)
 			: base(identity, accessMask, isInherited, inheritanceFlags, propagationFlags, flags)
 		{
@@ -150,7 +170,17 @@ namespace Microsoft.Win32.TaskScheduler
 			this.CanonicalizeAccessRules();
 		}
 
-
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TaskSecurity" /> class with the specified sections of the access control security rules from the specified task.
+		/// </summary>
+		/// <param name="folder">The folder.</param>
+		/// <param name="sections">The sections of the ACL to retrieve.</param>
+		public TaskSecurity([NotNull] TaskFolder folder, AccessControlSections sections = Task.defaultAccessControlSections)
+			: base(false)
+		{
+			SetSecurityDescriptorSddlForm(folder.GetSecurityDescriptorSddlForm(Convert(sections)), sections);
+			this.CanonicalizeAccessRules();
+		}
 
 		/// <summary>
 		/// Gets the enumeration that the <see cref="TaskSecurity"/> class uses to represent access rights.
@@ -170,7 +200,25 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>A <see cref="Type"/> object representing the <see cref="TaskAuditRule"/> class.</returns>
 		public override Type AuditRuleType => typeof(TaskAuditRule);
 
-        /// <summary>
+		/// <summary>
+		/// Gets a <see cref="TaskSecurity"/> object that represent the default access rights.
+		/// </summary>
+		/// <value>The default task security.</value>
+		public static TaskSecurity DefaultTaskSecurity
+		{
+			get
+			{
+				var ret = new TaskSecurity();
+				ret.AddAccessRule(new TaskAccessRule(new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null), TaskRights.FullControl, AccessControlType.Allow));
+				ret.AddAccessRule(new TaskAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null), TaskRights.Read | TaskRights.Write | TaskRights.Execute, AccessControlType.Allow));
+				ret.AddAccessRule(new TaskAccessRule(new SecurityIdentifier(WellKnownSidType.LocalServiceSid, null), TaskRights.Read, AccessControlType.Allow));
+				ret.AddAccessRule(new TaskAccessRule(new SecurityIdentifier(WellKnownSidType.AuthenticatedUserSid, null), TaskRights.Read, AccessControlType.Allow));
+				ret.AddAccessRule(new TaskAccessRule(new SecurityIdentifier(WellKnownSidType.NetworkServiceSid, null), TaskRights.Read, AccessControlType.Allow));
+				return ret;
+			}
+		}
+
+		/// <summary>
 		/// Creates a new access control rule for the specified user, with the specified access rights, access control, and flags.
 		/// </summary>
 		/// <param name="identityReference">An <see cref="IdentityReference"/> that identifies the user or group the rule applies to.</param>
@@ -185,6 +233,24 @@ namespace Microsoft.Win32.TaskScheduler
 		public override AccessRule AccessRuleFactory(IdentityReference identityReference, int accessMask, bool isInherited, InheritanceFlags inheritanceFlags, PropagationFlags propagationFlags, AccessControlType type) => new TaskAccessRule(identityReference, (TaskRights)accessMask, type);
 
 		/// <summary>
+		/// Searches for a matching rule with which the new rule can be merged. If none are found, adds the new rule.
+		/// </summary>
+		/// <param name="rule">The access control rule to add.</param>
+		public void AddAccessRule([NotNull] TaskAccessRule rule)
+		{
+			base.AddAccessRule(rule);
+		}
+
+		/// <summary>
+		/// Searches for an audit rule with which the new rule can be merged. If none are found, adds the new rule.
+		/// </summary>
+		/// <param name="rule">The audit rule to add. The user specified by this rule determines the search.</param>
+		public void AddAuditRule([NotNull] TaskAuditRule rule)
+		{
+			base.AddAuditRule(rule);
+		}
+
+		/// <summary>
 		/// Creates a new audit rule, specifying the user the rule applies to, the access rights to audit, and the outcome that triggers the audit rule.
 		/// </summary>
 		/// <param name="identityReference">An <see cref="IdentityReference"/> that identifies the user or group the rule applies to.</param>
@@ -197,6 +263,83 @@ namespace Microsoft.Win32.TaskScheduler
 		/// A <see cref="TaskAuditRule"/> object representing the specified audit rule for the specified user. The return type of the method is the base class, <see cref="AuditRule"/>, but the return value can be cast safely to the derived class.
 		/// </returns>
 		public override AuditRule AuditRuleFactory(IdentityReference identityReference, int accessMask, bool isInherited, InheritanceFlags inheritanceFlags, PropagationFlags propagationFlags, AuditFlags flags) => new TaskAuditRule(identityReference, accessMask, isInherited, inheritanceFlags, propagationFlags, flags);
+
+		/// <summary>
+		/// Searches for an access control rule with the same user and <see cref="AccessControlType"/> (allow or deny) as the specified rule, and with compatible inheritance and propagation flags; if such a rule is found, the rights contained in the specified access rule are removed from it.
+		/// </summary>
+		/// <param name="rule">A <see cref="TaskAccessRule"/> that specifies the user and <see cref="AccessControlType"/> to search for, and a set of inheritance and propagation flags that a matching rule, if found, must be compatible with. Specifies the rights to remove from the compatible rule, if found.</param>
+		/// <returns><c>true</c> if a compatible rule is found; otherwise <c>false</c>.</returns>
+		public bool RemoveAccessRule([NotNull] TaskAccessRule rule) => base.RemoveAccessRule(rule);
+
+		/// <summary>
+		/// Searches for all access control rules with the same user and <see cref="AccessControlType"/> (allow or deny) as the specified rule and, if found, removes them.
+		/// </summary>
+		/// <param name="rule">A <see cref="TaskAccessRule"/> that specifies the user and <see cref="AccessControlType"/> to search for, and a set of inheritance and propagation flags that a matching rule, if found, must be compatible with. Any rights specified by this rule are ignored.</param>
+		public void RemoveAccessRuleAll([NotNull] TaskAccessRule rule)
+		{
+			base.RemoveAccessRuleAll(rule);
+		}
+
+		/// <summary>
+		/// Searches for an access control rule that exactly matches the specified rule and, if found, removes it.
+		/// </summary>
+		/// <param name="rule">The <see cref="TaskAccessRule"/> to remove.</param>
+		public void RemoveAccessRuleSpecific([NotNull] TaskAccessRule rule)
+		{
+			base.RemoveAccessRuleSpecific(rule);
+		}
+
+		/// <summary>
+		/// Searches for an audit control rule with the same user as the specified rule, and with compatible inheritance and propagation flags; if a compatible rule is found, the rights contained in the specified rule are removed from it.
+		/// </summary>
+		/// <param name="rule">A <see cref="TaskAuditRule"/> that specifies the user to search for, and a set of inheritance and propagation flags that a matching rule, if found, must be compatible with. Specifies the rights to remove from the compatible rule, if found.</param>
+		/// <returns><c>true</c> if a compatible rule is found; otherwise <c>false</c>.</returns>
+		public bool RemoveAuditRule([NotNull] TaskAuditRule rule) => base.RemoveAuditRule(rule);
+
+		/// <summary>
+		/// Searches for all audit rules with the same user as the specified rule and, if found, removes them.
+		/// </summary>
+		/// <param name="rule">A <see cref="TaskAuditRule"/> that specifies the user to search for. Any rights specified by this rule are ignored.</param>
+		public void RemoveAuditRuleAll(TaskAuditRule rule)
+		{
+			base.RemoveAuditRuleAll(rule);
+		}
+
+		/// <summary>
+		/// Searches for an audit rule that exactly matches the specified rule and, if found, removes it.
+		/// </summary>
+		/// <param name="rule">The <see cref="TaskAuditRule"/> to remove.</param>
+		public void RemoveAuditRuleSpecific([NotNull] TaskAuditRule rule)
+		{
+			base.RemoveAuditRuleSpecific(rule);
+		}
+
+		/// <summary>
+		/// Removes all access control rules with the same user as the specified rule, regardless of <see cref="AccessControlType"/>, and then adds the specified rule.
+		/// </summary>
+		/// <param name="rule">The <see cref="TaskAccessRule"/> to add. The user specified by this rule determines the rules to remove before this rule is added.</param>
+		public void ResetAccessRule([NotNull] TaskAccessRule rule)
+		{
+			base.ResetAccessRule(rule);
+		}
+
+		/// <summary>
+		/// Removes all access control rules with the same user and <see cref="AccessControlType"/> (allow or deny) as the specified rule, and then adds the specified rule.
+		/// </summary>
+		/// <param name="rule">The <see cref="TaskAccessRule"/> to add. The user and <see cref="AccessControlType"/> of this rule determine the rules to remove before this rule is added.</param>
+		public void SetAccessRule([NotNull] TaskAccessRule rule)
+		{
+			base.SetAccessRule(rule);
+		}
+
+		/// <summary>
+		/// Removes all audit rules with the same user as the specified rule, regardless of the <see cref="AuditFlags"/> value, and then adds the specified rule.
+		/// </summary>
+		/// <param name="rule">The <see cref="TaskAuditRule"/> to add. The user specified by this rule determines the rules to remove before this rule is added.</param>
+		public void SetAuditRule([NotNull] TaskAuditRule rule)
+		{
+			base.SetAuditRule(rule);
+		}
 
 		/// <summary>
 		/// Returns a <see cref="System.String" /> that represents this instance.
@@ -217,6 +360,20 @@ namespace Microsoft.Win32.TaskScheduler
 				ret |= SecurityInfos.Group;
 			if ((si & AccessControlSections.Owner) != 0)
 				ret |= SecurityInfos.Owner;
+			return ret;
+		}
+
+		private static AccessControlSections Convert(SecurityInfos si)
+		{
+			AccessControlSections ret = AccessControlSections.None;
+			if ((si & SecurityInfos.SystemAcl) != 0)
+				ret |= AccessControlSections.Audit;
+			if ((si & SecurityInfos.DiscretionaryAcl) != 0)
+				ret |= AccessControlSections.Access;
+			if ((si & SecurityInfos.Group) != 0)
+				ret |= AccessControlSections.Group;
+			if ((si & SecurityInfos.Owner) != 0)
+				ret |= AccessControlSections.Owner;
 			return ret;
 		}
 
@@ -265,5 +422,43 @@ namespace Microsoft.Win32.TaskScheduler
 				WriteUnlock();
 			}
 		}
-    }
+
+		/// <summary>
+		/// Saves the specified sections of the security descriptor associated with this <see cref="TaskSecurity" /> object to permanent storage. We recommend that the values of the <paramref name="includeSections" /> parameters passed to the constructor and persist methods be identical.
+		/// </summary>
+		/// <param name="folder">The task folder used to retrieve the persisted information.</param>
+		/// <param name="includeSections">One of the <see cref="AccessControlSections" /> enumeration values that specifies the sections of the security descriptor (access rules, audit rules, owner, primary group) of the securable object to save.</param>
+		[SecurityCritical]
+		internal void Persist([NotNull] TaskFolder folder, AccessControlSections includeSections = Task.defaultAccessControlSections)
+		{
+			WriteLock();
+			try
+			{
+				AccessControlSections accessControlSectionsFromChanges = GetAccessControlSectionsFromChanges();
+				if (accessControlSectionsFromChanges != AccessControlSections.None)
+				{
+					folder.SetSecurityDescriptorSddlForm(GetSecurityDescriptorSddlForm(accessControlSectionsFromChanges));
+					OwnerModified = GroupModified = AccessRulesModified = AuditRulesModified = false;
+				}
+			}
+			finally
+			{
+				WriteUnlock();
+			}
+		}
+
+		/// <summary>
+		/// Saves the specified sections of the security descriptor associated with this <see cref="T:System.Security.AccessControl.ObjectSecurity" /> object to permanent storage. We recommend that the values of the <paramref name="includeSections" /> parameters passed to the constructor and persist methods be identical. For more information, see Remarks.
+		/// </summary>
+		/// <param name="name">The name used to retrieve the persisted information.</param>
+		/// <param name="includeSections">One of the <see cref="T:System.Security.AccessControl.AccessControlSections" /> enumeration values that specifies the sections of the security descriptor (access rules, audit rules, owner, primary group) of the securable object to save.</param>
+		protected override void Persist([NotNull] string name, AccessControlSections includeSections = Task.defaultAccessControlSections)
+		{
+			using (var ts = new TaskService())
+			{
+				var task = ts.GetTask(name);
+				Persist(task, includeSections);
+			}
+		}
+	}
 }

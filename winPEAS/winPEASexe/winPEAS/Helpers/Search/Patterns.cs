@@ -1,0 +1,102 @@
+﻿using System.Collections.Generic;
+
+namespace winPEAS.Helpers.Search
+{
+    static class Patterns
+    {        
+        public static readonly HashSet<string> WhitelistExtensions = new HashSet<string>()
+        {
+            ".cer",
+            ".csr",
+            ".der",
+            ".ftpconfig",
+            ".gpg",
+            ".kdbx",
+            ".ovpn",
+            ".p12",
+            ".pgp",
+            ".rdg",
+            ".git-credentials",
+            ".gitconfig",
+            ".htpasswd",
+        };
+      
+        public static readonly HashSet<string> WhiteListExactfilenamesWithExtensions = new HashSet<string>()
+        {
+            "id_dsa",
+            "id_rsa",
+            "access.log",
+            "access_tokens.db",
+            "accesstokens.json",
+            "appcmd.exe",
+            "appevent.evt",
+            "azureprofile.json",
+            "bash.exe",
+            "datasources.xml",
+            "default.sav",
+            "docker-compose.yml",
+            "dockerfile",
+            "drives.xml",
+            "error.log",
+            "ffftp.ini",
+            "filezilla.xml",
+            "freesshdservice.ini",
+            "groups.xml",
+            "httpd.conf",
+            "https-xampp.conf",
+            "https.conf",
+            "iis6.log",
+            "index.dat",
+            "keepass.config",
+            "keepass.config.xml",
+            "my.cnf",
+            "my.ini",
+            "netsetup.log",
+            "ntds.dit",
+            "ntuser.dat",
+            "pagefile.sys",
+            "php.ini",
+            "printers.xml",
+            "protecteduserkey.bin",
+            "rdcman.settings",
+            "recentservers.xml",
+            "sam",
+            "scclient.exe",
+            "scheduledtasks.xml",
+            "secevent.evt",
+            "security",
+            "security.sav",
+            "server.xml",
+            "services.xml",
+            "setupinfo",
+            "setupinfo.bak",
+            "sitemanager.xml",
+            "sites.ini",
+            "software",
+            "software.sav",
+            "sysprep.inf",
+            "sysprep.xml",
+            "system",
+            "system.sav",
+            "tomcat-users.xml",
+            "unattend.txt",
+            "unattend.xml",
+            "unattended.xml",
+            "wcx_ftp.ini",
+            "winscp.ini",
+            "ws_ftp.ini",
+            "wsl.exe",
+            "known_hosts",
+        };
+
+        public static readonly IList<string> WhiteListRegexp = new List<string>()
+        {
+            ".*_history\\.*",
+            "config.*\\.php$",
+            "vnc\\.*",
+            "elasticsearch\\.y*ml$",
+            "kibana\\.y*ml$",
+            "web.*\\.config$",
+        };       
+    }
+}

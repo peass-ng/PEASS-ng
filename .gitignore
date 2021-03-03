@@ -9,3 +9,6 @@ winPEAS/winPEASexe/winPEAS/bin/Debug/*
 ./*/.DS_Store
 ./*/.tmp1
 .tmp1
+obj
+bin
+packages

@@ -1,4 +1,11 @@
-﻿namespace System.Reflection
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>Extensions related to <c>System.Reflection</c></summary>
 	internal static class ReflectionHelper
@@ -54,6 +61,18 @@
 
 		/// <summary>Invokes a named method on a created instance of a type with parameters.</summary>
 		/// <typeparam name="T">The expected type of the method's return value.</typeparam>
+		/// <param name="type">The type to be instantiated and then used to invoke the method. This method assumes the type has a default public constructor.</param>
+		/// <param name="methodName">Name of the method.</param>
+		/// <param name="args">The arguments to provide to the method invocation.</param>
+		/// <returns>The value returned from the method.</returns>
+		public static T InvokeMethod<T>(Type type, string methodName, params object[] args)
+		{
+			object o = Activator.CreateInstance(type);
+			return InvokeMethod<T>(o, methodName, args);
+		}
+
+		/// <summary>Invokes a named method on a created instance of a type with parameters.</summary>
+		/// <typeparam name="T">The expected type of the method's return value.</typeparam>
 		/// <param name="type">The type to be instantiated and then used to invoke the method.</param>
 		/// <param name="instArgs">The arguments to supply to the constructor.</param>
 		/// <param name="methodName">Name of the method.</param>
@@ -71,7 +90,7 @@
 		/// <param name="args">The arguments to provide to the method invocation.</param>
 		public static T InvokeMethod<T>(object obj, string methodName, params object[] args)
 		{
-			Type[] argTypes = (args == null || args.Length == 0) ? Type.EmptyTypes : Array.ConvertAll(args, delegate(object o) { return o == null ? typeof(object) : o.GetType(); });
+			Type[] argTypes = (args == null || args.Length == 0) ? Type.EmptyTypes : Array.ConvertAll(args, delegate (object o) { return o == null ? typeof(object) : o.GetType(); });
 			return InvokeMethod<T>(obj, methodName, argTypes, args);
 		}
 

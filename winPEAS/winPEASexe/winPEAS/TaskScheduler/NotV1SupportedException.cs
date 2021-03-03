@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Security;
 using System.Security.Permissions;
-using JetBrains.Annotations;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Microsoft.Win32.TaskScheduler
+namespace winPEAS.TaskScheduler
 {
 	/// <summary>
 	/// Abstract class for throwing a method specific exception.
@@ -44,6 +47,16 @@ namespace Microsoft.Win32.TaskScheduler
 			myMessage = message;
 			min = minComp;
 		}
+
+		/// <summary>
+		/// Gets a message that describes the current exception.
+		/// </summary>
+		public override string Message => myMessage;
+
+		/// <summary>
+		/// Gets the minimum supported TaskScheduler version required for this method or property.
+		/// </summary>
+		public TaskCompatibility MinimumSupportedVersion => min;
 
 		internal abstract string LibName { get; }
 
@@ -94,6 +107,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// </summary>
 		/// <param name="serializationInfo">The serialization information.</param>
 		/// <param name="streamingContext">The streaming context.</param>
+		protected NotV2SupportedException(SerializationInfo serializationInfo, StreamingContext streamingContext) : base(serializationInfo, streamingContext) { }
 		internal NotV2SupportedException() : base(TaskCompatibility.V1) { }
 		internal NotV2SupportedException(string message) : base(message, TaskCompatibility.V1) { }
 		internal override string LibName => "Task Scheduler 2.0 (1.2)";
@@ -110,6 +124,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// </summary>
 		/// <param name="serializationInfo">The serialization information.</param>
 		/// <param name="streamingContext">The streaming context.</param>
+		protected NotSupportedPriorToException(SerializationInfo serializationInfo, StreamingContext streamingContext) : base(serializationInfo, streamingContext) { }
 		internal NotSupportedPriorToException(TaskCompatibility supportedVersion) : base(supportedVersion) { }
 		internal override string LibName => $"Task Scheduler versions prior to 2.{((int)min) - 2} (1.{(int)min})";
 	}

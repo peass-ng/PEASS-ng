@@ -6,7 +6,7 @@
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/peass.svg)](https://repology.org/project/peass/versions)
 
-Here you will find **privilege escalation tools for Windows and Linux/Unix\*** (in some near future  also for Mac).
+Here you will find **privilege escalation tools for Windows and Linux/Unix\* and MacOS**.
 
 These tools search for possible **local privilege escalation paths** that you could exploit and print them to you **with nice colors** so you can recognize the misconfigurations easily.
 
@@ -22,11 +22,11 @@ If you want to **add something** and have **any cool idea** related to this proj
 
 ## Please, if this tool has been useful for you consider to donate
 
-[![Buy me a coffee](https://camo.githubusercontent.com/031fc5a134cdca5ae3460822aba371e63f794233/68747470733a2f2f7777772e6275796d6561636f666665652e636f6d2f6173736574732f696d672f637573746f6d5f696d616765732f6f72616e67655f696d672e706e67)](https://www.buymeacoffee.com/carlospolop)
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.patreon.com/peass)
 
-## Looking for a useful Privilege Escalation Course?
+## PEASS Style
 
-Contact me and ask about the **Privilege Escalation Course** I am preparing for attackers and defenders (**100% technical**).
+Are you a PEASS fan? Get now our merch at **[PEASS Shop](https://teespring.com/stores/peass)** and show your love for our favorite peas
 
 ## Advisory
 

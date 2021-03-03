@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
-using JetBrains.Annotations;
-// ReSharper disable InconsistentNaming
-// ReSharper disable FieldCanBeMadeReadOnly.Global
+using winPEAS.TaskScheduler.TaskEditor.Native;
 
-namespace Microsoft.Win32.TaskScheduler.V1Interop
+namespace winPEAS.TaskScheduler.V1
 {
+#pragma warning disable CS0618 // Type or member is obsolete
+
 	#region class HRESULT -- Values peculiar to the task scheduler.
 	internal class HResult
 	{
@@ -322,8 +322,11 @@ namespace Microsoft.Win32.TaskScheduler.V1Interop
 		IEnumWorkItems Enum();
 		[return: MarshalAs(UnmanagedType.Interface)]
 		ITask Activate([In, MarshalAs(UnmanagedType.LPWStr)][NotNull] string Name, [In, MarshalAs(UnmanagedType.LPStruct)] Guid riid);
+		void Delete([In, MarshalAs(UnmanagedType.LPWStr)][NotNull] string Name);
 		[return: MarshalAs(UnmanagedType.Interface)]
 		ITask NewWorkItem([In, MarshalAs(UnmanagedType.LPWStr)][NotNull] string TaskName, [In, MarshalAs(UnmanagedType.LPStruct)] Guid rclsid, [In, MarshalAs(UnmanagedType.LPStruct)] Guid riid);
+		void AddWorkItem([In, MarshalAs(UnmanagedType.LPWStr)][NotNull] string TaskName, [In, MarshalAs(UnmanagedType.Interface)] ITask WorkItem);
+		void IsOfType([In, MarshalAs(UnmanagedType.LPWStr)][NotNull] string TaskName, [In, MarshalAs(UnmanagedType.LPStruct)] Guid riid);
 	}
 
 	[Guid("148BD528-A2AB-11CE-B11F-00AA00530503"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), System.Security.SuppressUnmanagedCodeSecurity]
@@ -386,16 +389,29 @@ namespace Microsoft.Win32.TaskScheduler.V1Interop
 		ushort GetTriggerCount();
 		[return: MarshalAs(UnmanagedType.Interface)]
 		ITaskTrigger GetTrigger([In] ushort TriggerIndex);
+		CoTaskMemString GetTriggerString([In] ushort TriggerIndex);
+		void GetRunTimes([In, MarshalAs(UnmanagedType.Struct)] ref NativeMethods.SYSTEMTIME Begin, [In, MarshalAs(UnmanagedType.Struct)] ref NativeMethods.SYSTEMTIME End, ref ushort Count, [In, Out] ref IntPtr TaskTimes);
 		[return: MarshalAs(UnmanagedType.Struct)]
+		NativeMethods.SYSTEMTIME GetNextRunTime();
 		void SetIdleWait([In] ushort IdleMinutes, [In] ushort DeadlineMinutes);
 		void GetIdleWait([Out] out ushort IdleMinutes, [Out] out ushort DeadlineMinutes);
+		void Run();
+		void Terminate();
+		void EditWorkItem([In] IntPtr hParent, [In] uint dwReserved);
+		[return: MarshalAs(UnmanagedType.Struct)]
+		NativeMethods.SYSTEMTIME GetMostRecentRunTime();
 		TaskStatus GetStatus();
+		uint GetExitCode();
 		void SetComment([In, MarshalAs(UnmanagedType.LPWStr)] string Comment);
 		CoTaskMemString GetComment();
 		void SetCreator([In, MarshalAs(UnmanagedType.LPWStr)] string Creator);
 		CoTaskMemString GetCreator();
 		void SetWorkItemData([In] ushort DataLen, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0, ArraySubType = UnmanagedType.U1)] byte[] Data);
 		void GetWorkItemData(out ushort DataLen, [Out] out IntPtr Data);
+		void SetErrorRetryCount([In] ushort RetryCount);
+		ushort GetErrorRetryCount();
+		void SetErrorRetryInterval([In] ushort RetryInterval);
+		ushort GetErrorRetryInterval();
 		void SetFlags([In] TaskFlags Flags);
 		TaskFlags GetFlags();
 		void SetAccountInformation([In, MarshalAs(UnmanagedType.LPWStr)] string AccountName, [In] IntPtr Password);
@@ -409,6 +425,7 @@ namespace Microsoft.Win32.TaskScheduler.V1Interop
 		void SetPriority([In] uint Priority);
 		uint GetPriority();
 		void SetTaskFlags([In] uint Flags);
+		uint GetTaskFlags();
 		void SetMaxRunTime([In] uint MaxRunTimeMS);
 		uint GetMaxRunTime();
 	}
@@ -438,7 +455,7 @@ namespace Microsoft.Win32.TaskScheduler.V1Interop
 		public CoTaskMemString(IntPtr handle) : this() { SetHandle(handle); }
 		public CoTaskMemString(string text) : this() { SetHandle(Marshal.StringToCoTaskMemUni(text)); }
 
-		public static implicit operator string (CoTaskMemString cmem) => cmem.ToString();
+		public static implicit operator string(CoTaskMemString cmem) => cmem.ToString();
 
 		public override bool IsInvalid => handle == IntPtr.Zero;
 
