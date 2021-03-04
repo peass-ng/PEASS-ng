@@ -9,13 +9,21 @@ using Microsoft.Win32;
 
 namespace winPEAS.Helpers
 {
+    internal enum PermissionType
+    {
+        DEFAULT,
+        READABLE_OR_WRITABLE,
+        WRITEABLE_OR_EQUIVALENT
+    }
+
+
     ///////////////////////////////////
     //////// Check Permissions ////////
     ///////////////////////////////////
     /// Get interesting permissions from Files, Folders and Registry
     internal static class PermissionsHelper
     {
-        public static List<string> GetPermissionsFile(string path, Dictionary<string, string> SIDs, bool isOnlyWriteOrEquivalentCheck = false)
+        public static List<string> GetPermissionsFile(string path, Dictionary<string, string> SIDs, PermissionType permissionType = PermissionType.DEFAULT)
         {
             /*Permisos especiales para carpetas 
              *https://docs.microsoft.com/en-us/windows/win32/secauthz/access-mask-format?redirectedfrom=MSDN
@@ -36,7 +44,7 @@ namespace winPEAS.Helpers
             try
             {
                 FileSecurity fSecurity = File.GetAccessControl(path);
-                results = GetMyPermissionsF(fSecurity, SIDs, isOnlyWriteOrEquivalentCheck);
+                results = GetMyPermissionsF(fSecurity, SIDs, permissionType);
             }
             catch
             {
@@ -45,7 +53,7 @@ namespace winPEAS.Helpers
             return results;
         }
 
-        public static List<string> GetPermissionsFolder(string path, Dictionary<string, string> SIDs, bool isOnlyWriteOrEquivalentCheck = false)
+        public static List<string> GetPermissionsFolder(string path, Dictionary<string, string> SIDs, PermissionType permissionType = PermissionType.DEFAULT)
         {
             List<string> results = new List<string>();
 
@@ -65,7 +73,7 @@ namespace winPEAS.Helpers
                 }
 
                 FileSecurity fSecurity = File.GetAccessControl(path);
-                results = GetMyPermissionsF(fSecurity, SIDs, isOnlyWriteOrEquivalentCheck);
+                results = GetMyPermissionsF(fSecurity, SIDs, permissionType);
             }
             catch
             {
@@ -74,7 +82,7 @@ namespace winPEAS.Helpers
             return results;
         }
 
-        public static List<string> GetMyPermissionsF(FileSecurity fSecurity, Dictionary<string, string> SIDs, bool isOnlyWriteOrEquivalentCheck = false)
+        public static List<string> GetMyPermissionsF(FileSecurity fSecurity, Dictionary<string, string> SIDs, PermissionType permissionType  = PermissionType.DEFAULT)
         {
             // Get interesting permissions in fSecurity (Only files and folders)
             List<string> results = new List<string>();
@@ -84,7 +92,7 @@ namespace winPEAS.Helpers
             {
                 //First, check if the rule to check is interesting
                 int current_perm = (int)rule.FileSystemRights;
-                string current_perm_str = PermInt2Str(current_perm, isOnlyWriteOrEquivalentCheck);
+                string current_perm_str = PermInt2Str(current_perm, permissionType);
                 if (current_perm_str == "")
                 {
                     continue;
@@ -133,7 +141,7 @@ namespace winPEAS.Helpers
                 foreach (RegistryAccessRule rule in rSecurity.GetAccessRules(true, true, typeof(SecurityIdentifier)))
                 {
                     int current_perm = (int)rule.RegistryRights;
-                    string current_perm_str = PermInt2Str(current_perm, true);
+                    string current_perm_str = PermInt2Str(current_perm, PermissionType.WRITEABLE_OR_EQUIVALENT);
                     if (current_perm_str == "")
                         continue;
 
@@ -169,9 +177,38 @@ namespace winPEAS.Helpers
             return results;
         }
 
-        public static string PermInt2Str(int current_perm, bool only_write_or_equivalent = false, bool is_service = false)
+        public static string PermInt2Str(int current_perm, PermissionType permissionType = PermissionType.DEFAULT, bool is_service = false)
         {
-            Dictionary<string, int> interesting_perms = new Dictionary<string, int>()
+            Dictionary<string, int> interesting_perms = new Dictionary<string, int>();
+
+            if (permissionType == PermissionType.DEFAULT)
+            {
+                interesting_perms = new Dictionary<string, int>()
+                {
+                    // This isn't an exhaustive list of possible permissions. Just the interesting ones.
+                    { "AllAccess", 0xf01ff},
+                    { "GenericAll", 0x10000000},
+                    { "FullControl", (int)FileSystemRights.FullControl },
+                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
+
+                    { "GenericWrite", 0x40000000 },
+                    { "WriteData/CreateFiles", (int)FileSystemRights.WriteData },
+                    { "Modify", (int)FileSystemRights.Modify },
+                    { "Write", (int)FileSystemRights.Write },
+
+                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
+
+                    { "Delete", (int)FileSystemRights.Delete },
+                    { "DeleteSubdirectoriesAndFiles", (int)FileSystemRights.DeleteSubdirectoriesAndFiles },
+                    { "AppendData/CreateDirectories", (int)FileSystemRights.AppendData },
+                    { "WriteAttributes", (int)FileSystemRights.WriteAttributes },
+                    { "WriteExtendedAttributes", (int)FileSystemRights.WriteExtendedAttributes },
+                };
+            }
+
+            else if (permissionType == PermissionType.READABLE_OR_WRITABLE)
+            {
+                interesting_perms = new Dictionary<string, int>()
                 {
                     // This isn't an exhaustive list of possible permissions. Just the interesting ones.
                     { "AllAccess", 0xf01ff},
@@ -195,8 +232,9 @@ namespace winPEAS.Helpers
                     { "WriteAttributes", (int)FileSystemRights.WriteAttributes },
                     { "WriteExtendedAttributes", (int)FileSystemRights.WriteExtendedAttributes },
                 };
+            }
 
-            if (only_write_or_equivalent)
+            else if (permissionType == PermissionType.WRITEABLE_OR_EQUIVALENT)
             {
                 interesting_perms = new Dictionary<string, int>()
                 {

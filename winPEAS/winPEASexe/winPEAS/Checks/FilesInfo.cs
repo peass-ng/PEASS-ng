@@ -201,7 +201,7 @@ namespace winPEAS.Checks
                 List<string> sam_files = InterestingFiles.InterestingFiles.GetSAMBackups();
                 foreach (string path in sam_files)
                 {
-                    var permissions = PermissionsHelper.GetPermissionsFile(path, Checks.CurrentUserSiDs);
+                    var permissions = PermissionsHelper.GetPermissionsFile(path, Checks.CurrentUserSiDs, PermissionType.READABLE_OR_WRITABLE);
 
                     if (permissions.Any())
                     {
@@ -593,7 +593,7 @@ namespace winPEAS.Checks
                                 FileAttributes attr = File.GetAttributes(file.FullPath);
                                 if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
                                 {
-                                    List<string> dirRights = PermissionsHelper.GetPermissionsFolder(file.FullPath, Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+                                    List<string> dirRights = PermissionsHelper.GetPermissionsFolder(file.FullPath, Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT);
 
                                     if (dirRights.Count > 0)
                                     {
@@ -602,7 +602,7 @@ namespace winPEAS.Checks
                                 }
                                 else
                                 {
-                                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(file.FullPath, Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+                                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(file.FullPath, Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT);
 
                                     if (fileRights.Count > 0)
                                     {
@@ -761,7 +761,7 @@ namespace winPEAS.Checks
                     if (file.Extension != null && allowedExtensions.Contains(file.Extension.ToLower()))
                     {
                         // check the file permissions
-                        List<string> fileRights = PermissionsHelper.GetPermissionsFile(file.FullPath, Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+                        List<string> fileRights = PermissionsHelper.GetPermissionsFile(file.FullPath, Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT);
 
                         if (fileRights.Count > 0)
                         {
