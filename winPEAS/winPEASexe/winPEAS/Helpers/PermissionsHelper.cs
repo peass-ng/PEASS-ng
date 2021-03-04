@@ -178,17 +178,11 @@ namespace winPEAS.Helpers
                     { "GenericAll", 0x10000000},
                     { "FullControl", (int)FileSystemRights.FullControl },
                     { "TakeOwnership", (int)FileSystemRights.TakeOwnership },
-
                     { "GenericWrite", 0x40000000 },
                     { "WriteData/CreateFiles", (int)FileSystemRights.WriteData },
                     { "Modify", (int)FileSystemRights.Modify },
                     { "Write", (int)FileSystemRights.Write },
-
-                    { "Read", (int)FileSystemRights.Read },
-                    { "ReadData", (int)FileSystemRights.ReadData },
-
                     { "ChangePermissions", (int)FileSystemRights.ChangePermissions },
-
                     { "Delete", (int)FileSystemRights.Delete },
                     { "DeleteSubdirectoriesAndFiles", (int)FileSystemRights.DeleteSubdirectoriesAndFiles },
                     { "AppendData/CreateDirectories", (int)FileSystemRights.AppendData },
