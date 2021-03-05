@@ -219,7 +219,7 @@ namespace winPEAS.Info.ServicesInfo
                         {
                             int serviceRights = ace.AccessMask;
 
-                            string current_perm_str = PermissionsHelper.PermInt2Str(serviceRights, PermissionType.WRITEABLE_OR_EQUIVALENT_SVC, true);
+                            string current_perm_str = PermissionsHelper.PermInt2Str(serviceRights, PermissionType.WRITEABLE_OR_EQUIVALENT_SVC);
                             if (!string.IsNullOrEmpty(current_perm_str) && !permissions.Contains(current_perm_str))
                                 permissions.Add(current_perm_str);
                         }
