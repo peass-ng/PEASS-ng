@@ -13,7 +13,8 @@ namespace winPEAS.Helpers
     {
         DEFAULT,
         READABLE_OR_WRITABLE,
-        WRITEABLE_OR_EQUIVALENT
+        WRITEABLE_OR_EQUIVALENT,
+        WRITEABLE_OR_EQUIVALENT_SVC,
     }
 
 
@@ -141,7 +142,7 @@ namespace winPEAS.Helpers
                 foreach (RegistryAccessRule rule in rSecurity.GetAccessRules(true, true, typeof(SecurityIdentifier)))
                 {
                     int current_perm = (int)rule.RegistryRights;
-                    string current_perm_str = PermInt2Str(current_perm, PermissionType.WRITEABLE_OR_EQUIVALENT);
+                    string current_perm_str = PermInt2Str(current_perm, PermissionType.WRITEABLE_OR_EQUIVALENT_SVC);
                     if (current_perm_str == "")
                         continue;
 
@@ -177,7 +178,7 @@ namespace winPEAS.Helpers
             return results;
         }
 
-        public static string PermInt2Str(int current_perm, PermissionType permissionType = PermissionType.DEFAULT, bool is_service = false)
+        public static string PermInt2Str(int current_perm, PermissionType permissionType = PermissionType.DEFAULT)
         {
             Dictionary<string, int> interesting_perms = new Dictionary<string, int>();
 
@@ -240,21 +241,33 @@ namespace winPEAS.Helpers
                 {
                     { "AllAccess", 0xf01ff},
                     { "GenericAll", 0x10000000},
-                    { "FullControl", (int)FileSystemRights.FullControl }, //0x1f01ff
-                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership }, //0x80000
+                    { "FullControl", (int)FileSystemRights.FullControl }, //0x1f01ff - 2032127
+                    { "TakeOwnership", (int)FileSystemRights.TakeOwnership }, //0x80000 - 524288
                     { "GenericWrite", 0x40000000 },
                     { "WriteData/CreateFiles", (int)FileSystemRights.WriteData }, //0x2
-                    { "Modify", (int)FileSystemRights.Modify }, //0x301bf
-                    { "Write", (int)FileSystemRights.Write }, //0x116
-                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions }, //0x40000
-                    { "AppendData/CreateDirectories", (int)FileSystemRights.AppendData },
+                    { "Modify", (int)FileSystemRights.Modify }, //0x301bf - 197055
+                    { "Write", (int)FileSystemRights.Write }, //0x116 - 278
+                    { "ChangePermissions", (int)FileSystemRights.ChangePermissions }, //0x40000 - 262144
+                    { "AppendData/CreateDirectories", (int)FileSystemRights.AppendData }, //4
                 };
             }
 
-            if (is_service)
+            else if (permissionType == PermissionType.WRITEABLE_OR_EQUIVALENT_SVC)
             {
-                interesting_perms["Start"] = 0x00000010;
-                interesting_perms["Stop"] = 0x00000020;
+                interesting_perms = new Dictionary<string, int>()
+                {
+                    { "AllAccess", 0xf01ff},
+                    { "GenericAll", 0x10000000},
+                    { "FullControl", (int)RegistryRights.FullControl }, //983103
+                    { "TakeOwnership", (int)RegistryRights.TakeOwnership }, //524288
+                    { "GenericWrite", 0x40000000 },
+                    { "WriteKey", (int)RegistryRights.WriteKey }, //131078
+                    { "SetValue", (int)RegistryRights.SetValue }, //2
+                    { "ChangePermissions", (int)RegistryRights.ChangePermissions }, //262144
+                    { "CreateSubKey", (int)RegistryRights.CreateSubKey }, //4
+                    { "Start", 0x00000010 },
+                    { "Stop", 0x00000020 },
+                };
             }
 
             try
