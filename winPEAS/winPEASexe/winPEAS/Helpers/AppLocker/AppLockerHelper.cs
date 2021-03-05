@@ -200,7 +200,7 @@ namespace winPEAS.Helpers.AppLocker
                         if (Directory.Exists(normalizedPath))
                         {
                             // can we write to the directory ?
-                            var folderPermissions = PermissionsHelper.GetPermissionsFolder(normalizedPath, Checks.Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+                            var folderPermissions = PermissionsHelper.GetPermissionsFolder(normalizedPath, Checks.Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT);
 
                             // we can write 
                             if (folderPermissions.Count > 0)
@@ -216,7 +216,7 @@ namespace winPEAS.Helpers.AppLocker
                                     // iterate over applocker bypass directories and check them
                                     foreach (var subfolders in _appLockerByPassDirectoriesByPath[normalizedPath])
                                     {
-                                        var subfolderPermissions = PermissionsHelper.GetPermissionsFolder(subfolders, Checks.Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+                                        var subfolderPermissions = PermissionsHelper.GetPermissionsFolder(subfolders, Checks.Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT);
 
                                         // we can write 
                                         if (subfolderPermissions.Count > 0)
@@ -373,7 +373,7 @@ namespace winPEAS.Helpers.AppLocker
 
             if (File.Exists(path))
             {
-                var filePermissions = PermissionsHelper.GetPermissionsFile(path, Checks.Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+                var filePermissions = PermissionsHelper.GetPermissionsFile(path, Checks.Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT);
 
                 if (filePermissions.Count > 0)
                 {
@@ -425,7 +425,7 @@ namespace winPEAS.Helpers.AppLocker
             }
             else
             {
-                var folderPermissions = PermissionsHelper.GetPermissionsFolder(directory, Checks.Checks.CurrentUserSiDs, isOnlyWriteOrEquivalentCheck: true);
+                var folderPermissions = PermissionsHelper.GetPermissionsFolder(directory, Checks.Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT);
 
                 if (folderPermissions.Count > 0)
                 {
