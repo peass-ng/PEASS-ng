@@ -14,6 +14,7 @@ namespace winPEAS.Helpers
         DEFAULT,
         READABLE_OR_WRITABLE,
         WRITEABLE_OR_EQUIVALENT,
+        WRITEABLE_OR_EQUIVALENT_REG,
         WRITEABLE_OR_EQUIVALENT_SVC,
     }
 
@@ -142,7 +143,7 @@ namespace winPEAS.Helpers
                 foreach (RegistryAccessRule rule in rSecurity.GetAccessRules(true, true, typeof(SecurityIdentifier)))
                 {
                     int current_perm = (int)rule.RegistryRights;
-                    string current_perm_str = PermInt2Str(current_perm, PermissionType.WRITEABLE_OR_EQUIVALENT_SVC);
+                    string current_perm_str = PermInt2Str(current_perm, PermissionType.WRITEABLE_OR_EQUIVALENT_REG);
                     if (current_perm_str == "")
                         continue;
 
@@ -252,7 +253,7 @@ namespace winPEAS.Helpers
                 };
             }
 
-            else if (permissionType == PermissionType.WRITEABLE_OR_EQUIVALENT_SVC)
+            else if (permissionType == PermissionType.WRITEABLE_OR_EQUIVALENT_REG)
             {
                 interesting_perms = new Dictionary<string, int>()
                 {
@@ -265,10 +266,36 @@ namespace winPEAS.Helpers
                     { "SetValue", (int)RegistryRights.SetValue }, //2
                     { "ChangePermissions", (int)RegistryRights.ChangePermissions }, //262144
                     { "CreateSubKey", (int)RegistryRights.CreateSubKey }, //4
-                    { "Start", 0x00000010 },
-                    { "Stop", 0x00000020 },
                 };
             }
+
+            else if (permissionType == PermissionType.WRITEABLE_OR_EQUIVALENT_SVC)
+            {
+                interesting_perms = new Dictionary<string, int>()
+                {
+                    { "AllAccess", 0xf01ff},
+                    //{"QueryConfig" , 1},  //Grants permission to query the service's configuration.
+                    //{"ChangeConfig" , 2}, //Grants permission to change the service's permission.
+                    //{"QueryStatus" , 4},  //Grants permission to query the service's status.
+                    //{"EnumerateDependents" , 8}, //Grants permissionto enumerate the service's dependent services.
+                    //{"PauseContinue" , 64}, //Grants permission to pause/continue the service.
+                    //{"Interrogate" , 128},  //Grants permission to interrogate the service (i.e. ask it to report its status immediately).
+                    //{"UserDefinedControl" , 256}, //Grants permission to run the service's user-defined control.
+                    //{"Delete" , 65536},  //Grants permission to delete the service.
+                    //{"ReadControl" , 131072}, //Grants permission to query the service's security descriptor.
+                    {"WriteDac" , 262144},  //Grants permission to set the service's discretionary access list.
+                    {"WriteOwner" , 524288},  //Grants permission to modify the group and owner of a service.
+                    //{"Synchronize" , 1048576},
+                    {"AccessSystemSecurity" , 16777216}, //The right to get or set the SACL in the object security descriptor.
+                    {"GenericAll" , 268435456},
+                    {"GenericWrite" , 1073741824},
+                    {"GenericExecute" , 536870912},
+                    {"Start" , 16}, //Grants permission to start the service.
+                    {"Stop" , 32},  //Grants permission to stop the service.
+                    //{"GenericRead" , 2147483648}
+                };
+            }
+
 
             try
             {
