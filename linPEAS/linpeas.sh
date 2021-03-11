@@ -11,7 +11,7 @@ if [ "$(/usr/bin/id -u)" -eq "0" ]; then
   MAXPATH_FIND_W="3"
 else
   IAMROOT=""
-  MAXPATH_FIND_W="7"
+  MAXPATH_FIND_W="1"
 fi
 
 
