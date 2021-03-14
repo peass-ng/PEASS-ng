@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.0.7"
+VERSION="v3.0.8"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -414,9 +414,11 @@ done
 
 notExtensions="\.tif$|\.tiff$|\.gif$|\.jpeg$|\.jpg|\.jif$|\.jfif$|\.jp2$|\.jpx$|\.j2k$|\.j2c$|\.fpx$|\.pcd$|\.png$|\.pdf$|\.flv$|\.mp4$|\.mp3$|\.gifv$|\.avi$|\.mov$|\.mpeg$|\.wav$|\.doc$|\.docx$|\.xls$|\.xlsx$|\.svg$"
 
-TIMEOUT=`command -v timeout 2>/dev/null`
+TIMEOUT="`command -v timeout 2>/dev/null`"
+STRACE="`command -v strace 2>/dev/null`"
+STRINGS="`command -v strings 2>/dev/null`"
 
-shscripsG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/dnsmap-bulk.sh|/gettext.sh|/go-rhn.sh|/gvmap.sh|/lesspipe.sh|/mksmbpasswd.sh|/power_report.sh|/setuporamysql.sh|/setup-nsssysinit.sh|/readlink_f.sh|/rescan-scsi-bus.sh|/testacg.sh|/testlahf.sh|/url_handler.sh"
+shscripsG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/crosh.sh|/dnsmap-bulk.sh|/get_bluetooth_device_class.sh|/gettext.sh|/go-rhn.sh|/gvmap.sh|/kernel_log_collector.sh|/lesspipe.sh|/lprsetup.sh|/mksmbpasswd.sh|/power_report.sh|/setuporamysql.sh|/setup-nsssysinit.sh|/readlink_f.sh|/rescan-scsi-bus.sh|/start_bluetoothd.sh|/start_bluetoothlog.sh|/testacg.sh|/testlahf.sh|/unix-lpr.sh|/url_handler.sh|/write_gpt.sh"
 
 notBackup="/tdbbackup$|/db_hotbackup$"
 
@@ -429,7 +431,7 @@ processesDump="gdm-password|gnome-keyring-daemon|lightdm|vsftpd|apache2|sshd:"
 
 mail_apps="Postfix|Dovecot|Exim|SquirrelMail|Cyrus|Sendmail|Courier"
 
-profiledG="01-locale-fix.sh|256term.csh|256term.sh|abrt-console-notification.sh|appmenu-qt5.sh|apps-bin-path.sh|bash_completion.sh|cedilla-portuguese.sh|colorgrep.csh|colorgrep.sh|colorls.csh|colorls.sh|colorxzgrep.csh|colorxzgrep.sh|colorzgrep.csh|colorzgrep.sh|csh.local|gawk.csh|gawk.sh|kali.sh|lang.csh|lang.sh|less.csh|less.sh|sh.local|vim.csh|vim.sh|vte.csh|vte-2.91.sh|which2.csh|which2.sh|Z97-byobu.sh|xdg_dirs_desktop_session.sh|Z99-cloudinit-warnings.sh|Z99-cloud-locale-test.sh"
+profiledG="01-locale-fix.sh|256term.csh|256term.sh|abrt-console-notification.sh|appmenu-qt5.sh|apps-bin-path.sh|bash_completion.sh|cedilla-portuguese.sh|colorgrep.csh|colorgrep.sh|colorls.csh|colorls.sh|colorxzgrep.csh|colorxzgrep.sh|colorzgrep.csh|colorzgrep.sh|csh.local|cursor.sh|gawk.csh|gawk.sh|kali.sh|lang.csh|lang.sh|less.csh|less.sh|flatpak.sh|sh.local|vim.csh|vim.sh|vte.csh|vte-2.91.sh|which2.csh|which2.sh|xauthority.sh|Z97-byobu.sh|xdg_dirs_desktop_session.sh|Z99-cloudinit-warnings.sh|Z99-cloud-locale-test.sh"
 
 knw_emails=".*@aivazian.fsnet.co.uk|.*@angband.pl|.*@canonical.com|.*centos.org|.*debian.net|.*debian.org|.*@jff.email|.*kali.org|.*linux.it|.*@linuxia.de|.*@lists.debian-maintainers.org|.*@mit.edu|.*@oss.sgi.com|.*@qualcomm.com|.*redhat.com|.*ubuntu.com|.*@vger.kernel.org|rogershimizu@gmail.com|thmarques@gmail.com"
 
@@ -567,7 +569,7 @@ check_dns(){
 # Adapted from https://github.com/carlospolop/bashReconScan/blob/master/brs.sh
 
 basic_net_info(){
-  printf $B"============================( "$GREEN"Basic Network Info"$B" )=============================\n"$NC
+  printf $B"═══════════════════════════╣ "$GREEN"Basic Network Info"$B" ╠═════════════════════════════\n"$NC
   (ifconfig || ip a) 2>/dev/null
   echo ""
 }
@@ -615,7 +617,7 @@ tcp_port_scan (){
   #Scan open ports of a host. Default: nmap top 1000, but the user can select others
   basic_net_info
 
-  printf $B"===================================( "$GREEN"Network Port Scanning"$B" )===================================\n"$NC
+  printf $B"═══════════════════════════════════╣ "$GREEN"Network Port Scanning"$B" ╠═══════════════════════════════════\n"$NC
   IP=$1
 	PORTS="$2"
   PORTS="`echo \"$PORTS\" | tr ',' ' '`"
@@ -639,7 +641,7 @@ discover_network (){
   #Check if IP and Netmask are correct and the use fping or ping to find hosts
   basic_net_info
 
-  printf $B"====================================( "$GREEN"Network Discovery"$B" )=====================================\n"$NC
+  printf $B"════════════════════════════════════╣ "$GREEN"Network Discovery"$B" ╠════════════════════════════════════\n"$NC
 
   DISCOVERY=$1
   IP=$(echo $DISCOVERY | cut -d "/" -f 1)
@@ -679,7 +681,7 @@ discovery_port_scan (){
   basic_net_info
 
   #Check if IP and Netmask are correct and the use nc to find hosts. By default check ports: 22 80 443 445 3389
-  printf $B"============================( "$GREEN"Network Discovery (scanning ports)"$B" )=============================\n"$NC
+  printf $B"═══════════════════════════╣ "$GREEN"Network Discovery (scanning ports)"$B" ╠═════════════════════════════\n"$NC
   DISCOVERY=$1
   MYPORTS=$2
 
@@ -733,7 +735,7 @@ fi
 #-----------) Some Basic Info (-----------#
 ###########################################
 
-printf $B"====================================( "$GREEN"Basic information"$B" )=====================================\n"$NC
+printf $B"════════════════════════════════════╣ "$GREEN"Basic information"$B" ╠════════════════════════════════════\n"$NC
 printf $LG"OS: "$NC
 (cat /proc/version || uname -a ) 2>/dev/null | sed -${E} "s,$kernelDCW_Ubuntu_Precise_1,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_2,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_3,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_4,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_5,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_6,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_1,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_2,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_3,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_4,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Xenial,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel5_1,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel5_2,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel5_3,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel6_1,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel6_2,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel6_3,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel6_4,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel7,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelB,${C}[1;31m&${C}[0m,"
 printf $LG"User & Groups: "$NC
@@ -969,7 +971,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   ###########################################
   #-------------) System Info (-------------#
   ###########################################
-  printf $B"====================================( "$GREEN"System Information"$B" )====================================\n"$NC
+  printf $B"════════════════════════════════════╣ "$GREEN"System Information"$B" ╠════════════════════════════════════\n"$NC
 
   #-- SY) OS
   printf $Y"[+] "$GREEN"Operative system\n"$NC
@@ -1140,7 +1142,7 @@ if [ "`echo $CHECKS | grep Devs`" ]; then
   ###########################################
   #---------------) Devices (---------------#
   ###########################################
-  printf $B"=========================================( "$GREEN"Devices"$B" )==========================================\n"$NC
+  printf $B"═════════════════════════════════════════╣ "$GREEN"Devices"$B" ╠══════════════════════════════════════════\n"$NC
 
   #-- 1D) sd in /dev
   printf $Y"[+] "$GREEN"Any sd*/disk* disk in /dev? (limit 20)\n"$NC
@@ -1165,7 +1167,7 @@ if [ "`echo $CHECKS | grep AvaSof`" ]; then
   ###########################################
   #---------) Available Software (----------#
   ###########################################
-  printf $B"====================================( "$GREEN"Available Software"$B" )====================================\n"$NC
+  printf $B"════════════════════════════════════╣ "$GREEN"Available Software"$B" ╠════════════════════════════════════\n"$NC
 
   #-- 1AS) Useful software
   printf $Y"[+] "$GREEN"Useful software\n"$NC
@@ -1185,7 +1187,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   ####################################################
   #-----) Processes & Cron & Services & Timers (-----#
   ####################################################
-  printf $B"================================( "$GREEN"Processes, Cron, Services, Timers & Sockets"$B" )================================\n"$NC
+  printf $B"══════════════════════════════╣ "$GREEN"Processes, Cron, Services, Timers & Sockets"$B" ╠════════════════════════════════\n"$NC
 
   #-- PCS) Cleaned proccesses
   printf $Y"[+] "$GREEN"Cleaned processes\n"$NC
@@ -1202,9 +1204,9 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
       echo "$psline"  | sed -${E} "s,$Wfolders,${C}[1;31m&${C}[0m,g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed -${E} "s,$rootcommon,${C}[1;32m&${C}[0m," | sed -${E} "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${C}[1;31m&${C}[0m," | sed -${E} "s,$processesVB,${C}[1;31;103m&${C}[0m,g" | sed "s,$processesB,${C}[1;31m&${C}[0m," | sed -${E} "s,$processesDump,${C}[1;31m&${C}[0m,"
       if [ "`command -v capsh`" ] && ! [ "`echo \"$psline\" | grep root`" ]; then
         cpid="`echo \"$psline\" | awk '{print $2}'`"
-        caphex=0x"`cat \"/proc/$cpid/status\" | grep \"CapEff\" | awk '{print $2}'`"
-        if [ $caphex != "0x0000000000000000" ]; then
-          printf "    |--(Caps) "; capsh --decode=$caphex 2>/dev/null | sed -${E} "s,$capsB,${C}[1;31m&${C}[0m,g"
+        caphex=0x"`cat \"/proc/$cpid/status\" 2> /dev/null | grep \"CapEff\" | awk '{print $2}'`"
+        if [ "$caphex" ] && [ "$caphex" != "0x0000000000000000" ]; then
+          printf "  └─(${DG}Caps${NC}) "; capsh --decode=$caphex 2>/dev/null | sed -${E} "s,$capsB,${C}[1;31m&${C}[0m,g"
         fi
       fi
     done
@@ -1434,7 +1436,7 @@ if [ "`echo $CHECKS | grep Net`" ]; then
   ###########################################
   #---------) Network Information (---------#
   ###########################################
-  printf $B"===================================( "$GREEN"Network Information"$B" )====================================\n"$NC
+  printf $B"═══════════════════════════════════╣ "$GREEN"Network Information"$B" ╠════════════════════════════════════\n"$NC
 
   #-- NI) Hostname, hosts and DNS
   printf $Y"[+] "$GREEN"Hostname, hosts and DNS\n"$NC
@@ -1467,7 +1469,7 @@ if [ "`echo $CHECKS | grep Net`" ]; then
   #-- NI) Ports
   printf $Y"[+] "$GREEN"Active Ports\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-ports\n"$NC
-  (netstat -punta || ss -ntpu || (netstat -a -p tcp && netstat -a -p udp) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+,${C}[1;31m&${C}[0m,"
+  ((netstat -punta || ss -ntpu || (netstat -a -p tcp && netstat -a -p udp)) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+,${C}[1;31m&${C}[0m,"
   echo ""
 
   #-- NI) tcpdump
@@ -1499,7 +1501,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   ###########################################
   #----------) Users Information (----------#
   ###########################################
-  printf $B"====================================( "$GREEN"Users Information"$B" )=====================================\n"$NC
+  printf $B"════════════════════════════════════╣ "$GREEN"Users Information"$B" ╠════════════════════════════════════\n"$NC
 
   #-- UI) My user
   printf $Y"[+] "$GREEN"My user\n"$NC
@@ -1677,7 +1679,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ###########################################
   #--------) Software Information (---------#
   ###########################################
-  printf $B"===================================( "$GREEN"Software Information"$B" )===================================\n"$NC
+  printf $B"═══════════════════════════════════╣ "$GREEN"Software Information"$B" ╠═══════════════════════════════════\n"$NC
 
   #-- SI) Mysql version
   printf $Y"[+] "$GREEN"MySQL version\n"$NC
@@ -1826,8 +1828,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Searching Wordpress wp-config.php files\n"$NC
   wp=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'wp-config\.php$')
   if [ "$wp" ]; then
-    printf "wp-config.php files found:\n$wp"
-    printf "$wp\n" | while read f; do grep "PASSWORD\|USER\|NAME\|HOST" "$f" 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; done
+    printf "$wp\n" | while read f; do echo "$f"; grep "PASSWORD\|USER\|NAME\|HOST" "$f" 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; echo ""; done
   else echo_not_found "wp-config.php"
   fi
   echo ""
@@ -2488,8 +2489,10 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Autologin Files\n"$NC
   autologinfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_MNT" | grep -E 'autologin|autologin.conf')
   printf "$autologinfiles\n" | while read f; do
-    ls -l "$f" 2>/dev/null
+    echo "$f"
+    ls -l "$f" 2>/dev/null | sed "s,passwd,${C}[1;31m&${C}[0m,"
     cat "$f" 2>/dev/null | sed "s,passwd,${C}[1;31m&${C}[0m,"
+    echo ""
   done
   echo ""
   echo ""
@@ -2502,15 +2505,15 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ###########################################
   #----------) Interesting files (----------#
   ###########################################
-  printf $B"====================================( "$GREEN"Interesting Files"$B" )=====================================\n"$NC
+  printf $B"════════════════════════════════════╣ "$GREEN"Interesting Files"$B" ╠════════════════════════════════════\n"$NC
 
   ##-- IF) SUID
   printf $Y"[+] "$GREEN"SUID - Check easy privesc, exploits and write perms\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid\n"$NC
-  if ! [ "`command -v strings 2>/dev/null`" ]; then
+  if ! [ "$STRINGS" ]; then
     echo_not_found "strings"
   fi
-  if ! [ "`command -v strace 2>/dev/null`" ]; then
+  if ! [ "$STRACE" ]; then
     echo_not_found "strace"
   fi
   find / -perm -4000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
@@ -2534,8 +2537,8 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
         else
           echo "$s" | sed -${E} "s,/.*,${C}[1m&${C}[0m,"
           printf $ITALIC
-          if [ "`command -v strings 2>/dev/null`" ]; then
-            strings "$sname" | sort | uniq | while read sline; do
+          if [ "$STRINGS" ]; then
+            $STRINGS "$sname" | sort | uniq | while read sline; do
               sline_first="`echo \"$sline\" | cut -d ' ' -f1`"
               if [ "`echo \"$sline_first\" | grep -Ev \"$cfuncs\"`" ]; then
                 if [ "`echo \"$sline_first\" | grep \"/\"`" ] && [ -f "$sline_first" ]; then #If a path
@@ -2549,10 +2552,10 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
                 fi
               fi
             done
-            if [ "$TIMEOUT" ] && [ "`command -v strace 2>/dev/null`" ] && ! [ "$NOTEXPORT" ]; then
+            if [ "$TIMEOUT" ] && [ "$STRACE" ] && ! [ "$NOTEXPORT" ]; then
               printf $ITALIC
               echo "  --- Trying to execute $sname with strace in order to look for hijackable libraries..."
-              timeout 2 strace "$sname" 2>&1 | grep -i -E "open|access|no such file" | sed -${E} "s,open|access|No such file,${C}[1;31m&${C}[0m$ITALIC,g"
+              timeout 2 "$STRACE" "$sname" 2>&1 | grep -i -E "open|access|no such file" | sed -${E} "s,open|access|No such file,${C}[1;31m&${C}[0m$ITALIC,g"
               printf $NC
               echo ""
             fi
@@ -2588,8 +2591,8 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
         else
           echo "$s" | sed -${E} "s,/.*,${C}[1m&${C}[0m,"
           printf $ITALIC
-          if [ "`command -v strings 2>/dev/null`" ]; then
-            strings "$sname" | sort | uniq | while read sline; do
+          if [ "$STRINGS" ]; then
+            $STRINGS "$sname" | sort | uniq | while read sline; do
               sline_first="`echo \"$sline\" | cut -d ' ' -f1`"
               if [ "`echo \"$sline_first\" | grep -Ev \"$cfuncs\"`" ]; then
                 if [ "`echo \"$sline_first\" | grep \"/\"`" ] && [ -f "$sline_first" ]; then #If a path
@@ -2603,10 +2606,10 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
                 fi
               fi
             done
-            if [ "$TIMEOUT" ] && [ "`command -v strace 2>/dev/null`" ] && [ ! "$SUPERFAST" ]; then
+            if [ "$TIMEOUT" ] && [ "$STRACE" ] && [ ! "$SUPERFAST" ]; then
               printf $ITALIC
               echo "  --- Trying to execute $sname with strace in order to look for hijackable libraries..."
-              timeout 2 strace "$sname" 2>&1 | grep -i -E "open|access|no such file" | sed -${E} "s,open|access|No such file,${C}[1;31m&${C}[0m$ITALIC,g"
+              timeout 2 "$STRACE" "$sname" 2>&1 | grep -i -E "open|access|no such file" | sed -${E} "s,open|access|No such file,${C}[1;31m&${C}[0m$ITALIC,g"
               printf $NC
               echo ""
             fi
@@ -2730,7 +2733,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Hashes in passwd file
   printf $Y"[+] "$GREEN"Hashes inside passwd file? ........... "$NC
-  if [ "`grep -v '^[^:]*:[x\*]\|^#\|^$' /etc/passwd /etc/master.passwd /etc/group 2>/dev/null`" ]; then grep -v '^[^:]*:[x\*]\|^#\|^$' /etc/passwd /etc/pwd.db /etc/master.passwd /etc/group 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"
+  if [ "`grep -v '^[^:]*:[x\*\!]\|^#\|^$' /etc/passwd /etc/master.passwd /etc/group 2>/dev/null`" ]; then grep -v '^[^:]*:[x\*]\|^#\|^$' /etc/passwd /etc/pwd.db /etc/master.passwd /etc/group 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"
   else echo_no
   fi
 
@@ -2837,7 +2840,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Backup folders
   printf $Y"[+] "$GREEN"Backup folders\n"$NC
   printf "$backup_folders\n" | while read b ; do 
-    ls -ld "$b"
+    ls -ld "$b" 2> /dev/null
     ls -l "$b" 2>/dev/null
   done
   echo ""
