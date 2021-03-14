@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.0.6"
+VERSION="v3.0.7"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -547,18 +547,18 @@ eval_bckgrd(){
 #---------) Internet functions (----------#
 ###########################################
 check_tcp_80(){
-  /bin/bash -c '(echo >/dev/tcp/1.1.1.1/80 && echo "Port 80 is accessible" || echo "Port 80 is not accessible") 2>/dev/null | grep "accessible"'
+  (timeout -s KILL 20 /bin/bash -c '( echo >/dev/tcp/1.1.1.1/80 && echo "Port 80 is accessible" || echo "Port 80 is not accessible") 2>/dev/null | grep "accessible"') 2>/dev/null || echo "Port 80 is not accessible"
 }
 check_tcp_443(){
-  /bin/bash -c '(echo >/dev/tcp/1.1.1.8/443 && echo "Port 443 is accessible" || echo "Port 443 is not accessible") 2>/dev/null | grep "accessible"'
+  (timeout -s KILL 20 /bin/bash -c '(echo >/dev/tcp/1.1.1.1/443 && echo "Port 443 is accessible" || echo "Port 443 is not accessible") 2>/dev/null | grep "accessible"') 2>/dev/null || echo "Port 443 is not accessible"
 }
 check_icmp(){
-  /bin/bash -c '(ping -c 1 1.1.1.1 | grep "1 received" && echo "icmp is available" || echo "icmp is not available") 2>/dev/null | grep "available"'
+  (timeout -s KILL 20 /bin/bash -c '(ping -c 1 1.1.1.1 | grep "1 received" && echo "Ping is available" || echo "Ping is not available") 2>/dev/null | grep "available"') 2>/dev/null || echo "Ping is not available"
 }
 #DNS function from: https://unix.stackexchange.com/questions/600194/create-dns-query-with-netcat-or-dev-udp
 #I cannot use this function because timeout doesn't find it, so it's copy/pasted below
 check_dns(){
-  /bin/bash -c '(( echo cfc9 0100 0001 0000 0000 0000 0a64 7563 6b64 7563 6b67 6f03 636f 6d00 0001 0001 | xxd -p -r >&3; dd bs=9000 count=1 <&3 2>/dev/null | xxd ) 3>/dev/udp/1.1.1.1/53 && echo "DNS available" || echo "DNS not available") 2>/dev/null | grep "available"'
+  (timeout 20 /bin/bash -c '(( echo cfc9 0100 0001 0000 0000 0000 0a64 7563 6b64 7563 6b67 6f03 636f 6d00 0001 0001 | xxd -p -r >&3; dd bs=9000 count=1 <&3 2>/dev/null | xxd ) 3>/dev/udp/1.1.1.1/53 && echo "DNS available" || echo "DNS not available") 2>/dev/null | grep "available"' ) 2>/dev/null || echo "DNS not available"
 }
 
 ###########################################
@@ -1481,12 +1481,12 @@ if [ "`echo $CHECKS | grep Net`" ]; then
   echo ""
 
   #-- NI) Internet access
-  if ! [ "$SUPERFAST" ] && ! [ "$FAST" ] && ! [ "$NOTEXPORT" ] && [ -f "/bin/bash" ]; then
+  if ! [ "$SUPERFAST" ] && ! [ "$FAST" ] && ! [ "$NOTEXPORT" ] && [ "$TIMEOUT" ] && [ -f "/bin/bash" ]; then
     printf $Y"[+] "$GREEN"Internet Access?\n"$NC
-    check_tcp_80 &
-    check_tcp_443 &
-    check_icmp &
-    timeout 10 /bin/bash -c '(( echo cfc9 0100 0001 0000 0000 0000 0a64 7563 6b64 7563 6b67 6f03 636f 6d00 0001 0001 | xxd -p -r >&3; dd bs=9000 count=1 <&3 2>/dev/null | xxd ) 3>/dev/udp/1.1.1.1/53 && echo "DNS available" || echo "DNS not available") 2>/dev/null | grep "available"' 2>/dev/null &
+    check_tcp_80 2>/dev/null &
+    check_tcp_443 2>/dev/null &
+    check_icmp 2>/dev/null &
+    check_dns 2>/dev/null &
     wait
     echo ""
   fi
