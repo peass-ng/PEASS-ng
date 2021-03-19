@@ -559,7 +559,7 @@ namespace winPEAS.Checks
                 string path = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate";
                 string path2 = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU";
                 string HKLM_WSUS = RegistryHelper.GetRegValue("HKLM", path, "WUServer");
-                string using_HKLM_WSUS = RegistryHelper.GetRegValue("HKLM", path, "UseWUServer");
+                string using_HKLM_WSUS = RegistryHelper.GetRegValue("HKLM", path2, "UseWUServer");
                 if (HKLM_WSUS.Contains("http://"))
                 {
                     Beaprint.BadPrint("    WSUS is using http: " + HKLM_WSUS);
