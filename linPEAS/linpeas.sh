@@ -569,7 +569,7 @@ check_dns(){
 # Adapted from https://github.com/carlospolop/bashReconScan/blob/master/brs.sh
 
 basic_net_info(){
-  printf $B"============================( "$GREEN"Basic Network Info"$B" )=============================\n"$NC
+  printf $B"═══════════════════════════╣ "$GREEN"Basic Network Info"$B" ╠═════════════════════════════\n"$NC
   (ifconfig || ip a) 2>/dev/null
   echo ""
 }
@@ -617,7 +617,7 @@ tcp_port_scan (){
   #Scan open ports of a host. Default: nmap top 1000, but the user can select others
   basic_net_info
 
-  printf $B"===================================( "$GREEN"Network Port Scanning"$B" )===================================\n"$NC
+  printf $B"═══════════════════════════════════╣ "$GREEN"Network Port Scanning"$B" ╠═══════════════════════════════════\n"$NC
   IP=$1
 	PORTS="$2"
   PORTS="`echo \"$PORTS\" | tr ',' ' '`"
@@ -641,7 +641,7 @@ discover_network (){
   #Check if IP and Netmask are correct and the use fping or ping to find hosts
   basic_net_info
 
-  printf $B"====================================( "$GREEN"Network Discovery"$B" )=====================================\n"$NC
+  printf $B"════════════════════════════════════╣ "$GREEN"Network Discovery"$B" ╠════════════════════════════════════\n"$NC
 
   DISCOVERY=$1
   IP=$(echo $DISCOVERY | cut -d "/" -f 1)
@@ -681,7 +681,7 @@ discovery_port_scan (){
   basic_net_info
 
   #Check if IP and Netmask are correct and the use nc to find hosts. By default check ports: 22 80 443 445 3389
-  printf $B"============================( "$GREEN"Network Discovery (scanning ports)"$B" )=============================\n"$NC
+  printf $B"═══════════════════════════╣ "$GREEN"Network Discovery (scanning ports)"$B" ╠═════════════════════════════\n"$NC
   DISCOVERY=$1
   MYPORTS=$2
 
@@ -735,7 +735,7 @@ fi
 #-----------) Some Basic Info (-----------#
 ###########################################
 
-printf $B"====================================( "$GREEN"Basic information"$B" )=====================================\n"$NC
+printf $B"════════════════════════════════════╣ "$GREEN"Basic information"$B" ╠════════════════════════════════════\n"$NC
 printf $LG"OS: "$NC
 (cat /proc/version || uname -a ) 2>/dev/null | sed -${E} "s,$kernelDCW_Ubuntu_Precise_1,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_2,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_3,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_4,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_5,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_6,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_1,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_2,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_3,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_4,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Ubuntu_Xenial,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel5_1,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel5_2,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel5_3,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel6_1,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel6_2,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel6_3,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel6_4,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelDCW_Rhel7,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$kernelB,${C}[1;31m&${C}[0m,"
 printf $LG"User & Groups: "$NC
@@ -971,7 +971,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   ###########################################
   #-------------) System Info (-------------#
   ###########################################
-  printf $B"====================================( "$GREEN"System Information"$B" )====================================\n"$NC
+  printf $B"════════════════════════════════════╣ "$GREEN"System Information"$B" ╠════════════════════════════════════\n"$NC
 
   #-- SY) OS
   printf $Y"[+] "$GREEN"Operative system\n"$NC
@@ -1142,7 +1142,7 @@ if [ "`echo $CHECKS | grep Devs`" ]; then
   ###########################################
   #---------------) Devices (---------------#
   ###########################################
-  printf $B"=========================================( "$GREEN"Devices"$B" )==========================================\n"$NC
+  printf $B"═════════════════════════════════════════╣ "$GREEN"Devices"$B" ╠══════════════════════════════════════════\n"$NC
 
   #-- 1D) sd in /dev
   printf $Y"[+] "$GREEN"Any sd*/disk* disk in /dev? (limit 20)\n"$NC
@@ -1167,7 +1167,7 @@ if [ "`echo $CHECKS | grep AvaSof`" ]; then
   ###########################################
   #---------) Available Software (----------#
   ###########################################
-  printf $B"====================================( "$GREEN"Available Software"$B" )====================================\n"$NC
+  printf $B"════════════════════════════════════╣ "$GREEN"Available Software"$B" ╠════════════════════════════════════\n"$NC
 
   #-- 1AS) Useful software
   printf $Y"[+] "$GREEN"Useful software\n"$NC
@@ -1187,7 +1187,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   ####################################################
   #-----) Processes & Cron & Services & Timers (-----#
   ####################################################
-  printf $B"================================( "$GREEN"Processes, Cron, Services, Timers & Sockets"$B" )================================\n"$NC
+  printf $B"══════════════════════════════╣ "$GREEN"Processes, Cron, Services, Timers & Sockets"$B" ╠════════════════════════════════\n"$NC
 
   #-- PCS) Cleaned proccesses
   printf $Y"[+] "$GREEN"Cleaned processes\n"$NC
@@ -1205,8 +1205,8 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
       if [ "`command -v capsh`" ] && ! [ "`echo \"$psline\" | grep root`" ]; then
         cpid="`echo \"$psline\" | awk '{print $2}'`"
         caphex=0x"`cat \"/proc/$cpid/status\" 2> /dev/null | grep \"CapEff\" | awk '{print $2}'`"
-        if [ "$caphex" ] && [ "$caphex" != "0x0000000000000000" ]; then
-          printf "    └─(${DG}Caps${NC}) "; capsh --decode=$caphex 2>/dev/null | sed -${E} "s,$capsB,${C}[1;31m&${C}[0m,g"
+        if [ "$caphex" ] && [ "$caphex" != "0x" ] && [ "`echo \"$caphex\" | grep -v '0x0000000000000000'`" ]; then
+          printf "  └─(${DG}Caps${NC}) "; capsh --decode=$caphex 2>/dev/null | sed -${E} "s,$capsB,${C}[1;31m&${C}[0m,g"
         fi
       fi
     done
@@ -1436,7 +1436,7 @@ if [ "`echo $CHECKS | grep Net`" ]; then
   ###########################################
   #---------) Network Information (---------#
   ###########################################
-  printf $B"===================================( "$GREEN"Network Information"$B" )====================================\n"$NC
+  printf $B"═══════════════════════════════════╣ "$GREEN"Network Information"$B" ╠════════════════════════════════════\n"$NC
 
   #-- NI) Hostname, hosts and DNS
   printf $Y"[+] "$GREEN"Hostname, hosts and DNS\n"$NC
@@ -1501,7 +1501,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   ###########################################
   #----------) Users Information (----------#
   ###########################################
-  printf $B"====================================( "$GREEN"Users Information"$B" )=====================================\n"$NC
+  printf $B"════════════════════════════════════╣ "$GREEN"Users Information"$B" ╠════════════════════════════════════\n"$NC
 
   #-- UI) My user
   printf $Y"[+] "$GREEN"My user\n"$NC
@@ -1679,7 +1679,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ###########################################
   #--------) Software Information (---------#
   ###########################################
-  printf $B"===================================( "$GREEN"Software Information"$B" )===================================\n"$NC
+  printf $B"═══════════════════════════════════╣ "$GREEN"Software Information"$B" ╠═══════════════════════════════════\n"$NC
 
   #-- SI) Mysql version
   printf $Y"[+] "$GREEN"MySQL version\n"$NC
@@ -2505,7 +2505,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ###########################################
   #----------) Interesting files (----------#
   ###########################################
-  printf $B"====================================( "$GREEN"Interesting Files"$B" )=====================================\n"$NC
+  printf $B"════════════════════════════════════╣ "$GREEN"Interesting Files"$B" ╠════════════════════════════════════\n"$NC
 
   ##-- IF) SUID
   printf $Y"[+] "$GREEN"SUID - Check easy privesc, exploits and write perms\n"$NC
@@ -3018,7 +3018,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Passwords files in home
   printf $Y"[+] "$GREEN"Finding *password* or *credential* files in home (limit 70)\n"$NC
-  (echo "$FIND_HOME $FIND_USR" | grep -E '.*password.*|.*credential.*|creds.*' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 3){ print line_init; } if (cont == "3"){print "  There are more creds/passwds files in the previous parent folder"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 70 | sed -${E} "s,password|credential,${C}[1;31m&${C}[0m," | sed "s,There are more creds/passwds files in the previous parent folder,${C}[1;32m&${C}[0m,") || echo_not_found
+  (echo "$FIND_HOME $FIND_USR" | grep -E '.*password.*|.*credential.*|creds.*' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 3){ print line_init; } if (cont == "3"){print "  #)There are more creds/passwds files in the previous parent folder\n"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 70 | sed -${E} "s,password|credential,${C}[1;31m&${C}[0m," | sed "s,There are more creds/passwds files in the previous parent folder,${C}[3m&${C}[0m,") || echo_not_found
   echo ""
 
   if ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
@@ -3077,7 +3077,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     regexsha1='(^|[^a-zA-Z0-9])[a-fA-F0-9]{40}([^a-zA-Z0-9]|$)'
     regexsha256='(^|[^a-zA-Z0-9])[a-fA-F0-9]{64}([^a-zA-Z0-9]|$)'
     regexsha512='(^|[^a-zA-Z0-9])[a-fA-F0-9]{128}([^a-zA-Z0-9]|$)'
-    timeout 150 grep -RIEHo "$regexmd5|$regexsha1|$regexsha256|$regexsha512" /etc $backup_folders_row /tmp /var/tmp /var/www /root $HOMESEARCH /mnt /Users /private /Applications 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -Ev "$notExtensions" | grep -Ev "0{20,}" | awk -F: '{if (pre != $1){ print $0; }; pre=$1}' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 2){ print line_init; } if (cont == "2"){print "  There are more hashes files in the previous parent folder"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 50 | sed "s,:.*,${C}[1;31m&${C}[0m," | sed "s,There are more hashes files in the previous parent folder,${C}[1;32m&${C}[0m,"
+    timeout 150 grep -RIEHo "$regexmd5|$regexsha1|$regexsha256|$regexsha512" /etc $backup_folders_row /tmp /var/tmp /var/www /root $HOMESEARCH /mnt /Users /private /Applications 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -Ev "$notExtensions" | grep -Ev "0{20,}" | awk -F: '{if (pre != $1){ print $0; }; pre=$1}' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 2){ print line_init; } if (cont == "2"){print "  #)There are more hashes files in the previous parent folder\n"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 50 | sed "s,:.*,${C}[1;31m&${C}[0m," | sed "s,There are more hashes files in the previous parent folder,${C}[3m&${C}[0m,"
     echo ""
   fi
   
