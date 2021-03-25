@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.0.9"
+VERSION="v3.1.0"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -242,8 +242,8 @@ mountpermsG="nosuid|nouser|noexec"
 
 rootcommon="/init$|upstart-udev-bridge|udev|/getty|cron|apache2|java|tomcat|/vmtoolsd|/VGAuthService"
 
-groupsB="\(root\)|\(shadow\)|\(admin\)|\(video\)|\(adm\)"
-groupsVB="\(sudo\)|\(docker\)|\(lxd\)|\(wheel\)|\(disk\)|\(lxc\)"
+groupsB="\(root\)|\(shadow\)|\(admin\)|\(video\)|\(adm\)|\(wheel\)|\(auth\)"
+groupsVB="\(sudo\)|\(docker\)|\(lxd\)|\(disk\)|\(lxc\)"
 knw_grps='\(lpadmin\)|\(cdrom\)|\(plugdev\)|\(nogroup\)' #https://www.togaware.com/linux/survivor/Standard_Groups.html
 mygroups=`groups 2>/dev/null | tr " " "|"`
 
@@ -339,7 +339,7 @@ if [ $? -ne 0 ] ; then
 fi
 
 writeB="00-header|10-help-text|50-motd-news|80-esm|91-release-upgrade|\.sh$|\./|/authorized_keys|/bin/|/boot/|/etc/apache2/apache2.conf|/etc/apache2/httpd.conf|/etc/hosts.allow|/etc/hosts.deny|/etc/httpd/conf/httpd.conf|/etc/httpd/httpd.conf|/etc/inetd.conf|/etc/incron.conf|/etc/login.defs|/etc/logrotate.d/|/etc/modprobe.d/|/etc/pam.d/|/etc/php.*/fpm/pool.d/|/etc/php/.*/fpm/pool.d/|/etc/rsyslog.d/|/etc/skel/|/etc/sysconfig/network-scripts/|/etc/sysctl.conf|/etc/sysctl.d/|/etc/uwsgi/apps-enabled/|/etc/xinetd.conf|/etc/xinetd.d/|/etc/|/home//|/lib/|/log/|/mnt/|/root|/sys/|/usr/bin|/usr/games|/usr/lib|/usr/local/bin|/usr/local/games|/usr/local/sbin|/usr/sbin|/sbin/|/var/log/|\.timer$|\.service$|.socket$"
-writeVB="/etc/anacrontab|/etc/bash.bashrc|/etc/bash_completion|/etc/bash_completion.d/|/etc/cron|/etc/environment|/etc/environment.d/|/etc/group|/etc/incron.d/|/etc/init|/etc/ld.so.conf.d/|/etc/master.passwd|/etc/passwd|/etc/profile.d/|/etc/profile|/etc/rc.d|/etc/shadow|/etc/sudoers|/etc/sudoers.d/|/etc/supervisor/conf.d/|/etc/supervisor/supervisord.conf|/etc/systemd|/etc/sys|/lib/systemd|/etc/update-motd.d/|/root/.ssh/|/run/systemd|/usr/lib/systemd|/systemd/system|/var/spool/anacron|/var/spool/cron/crontabs|"`echo $PATH 2>/dev/null | sed 's/:\.:/:/g' | sed 's/:\.$//g' | sed 's/^\.://g' | sed 's/:/$|^/g'` #Add Path but remove simple dot in PATH
+writeVB="/etc/anacrontab|/etc/bash.bashrc|/etc/bash_completion|/etc/bash_completion.d/|/etc/cron|/etc/environment|/etc/environment.d/|/etc/group|/etc/incron.d/|/etc/init|/etc/ld.so.conf.d/|/etc/master.passwd|/etc/passwd|/etc/profile.d/|/etc/profile|/etc/rc.d|/etc/shadow|/etc/skey/|/etc/sudoers|/etc/sudoers.d/|/etc/supervisor/conf.d/|/etc/supervisor/supervisord.conf|/etc/systemd|/etc/sys|/lib/systemd|/etc/update-motd.d/|/root/.ssh/|/run/systemd|/usr/lib/systemd|/systemd/system|/var/db/yubikey/|/var/spool/anacron|/var/spool/cron/crontabs|"`echo $PATH 2>/dev/null | sed 's/:\.:/:/g' | sed 's/:\.$//g' | sed 's/^\.://g' | sed 's/:/$|^/g'` #Add Path but remove simple dot in PATH
 
 if [ "$MACPEAS" ]; then
   sh_usrs="ImPoSSssSiBlEee"
@@ -1087,7 +1087,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   
    #-- SY) Running in a virtual environment
   printf $Y"[+] "$GREEN"Is this a virtual machine? ..... "$NC
-  hypervisorflag=`cat /proc/cpuinfo | grep flags | grep hypervisor 2>/dev/null`
+  hypervisorflag=`cat /proc/cpuinfo 2>/dev/null | grep flags | grep hypervisor`
   if [ `command -v systemd-detect-virt 2>/dev/null` ]; then
     detectedvirt=`systemd-detect-virt`
     if [ "$hypervisorflag" ]; then printf $RED"Yes ("$detectedvirt")"$NC; else printf $GREEN"No"$NC; fi
@@ -2488,7 +2488,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   done
   echo ""
 
-#-- SI) Autologin files
+  #-- SI) Autologin files
   printf $Y"[+] "$GREEN"Autologin Files\n"$NC
   autologinfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_MNT" | grep -E 'autologin|autologin.conf')
   printf "$autologinfiles\n" | while read f; do
@@ -2497,6 +2497,34 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     cat "$f" 2>/dev/null | sed "s,passwd,${C}[1;31m&${C}[0m,"
     echo ""
   done
+  echo ""
+
+  #-- SI) S/Key athentication
+  printf $Y"[+] "$GREEN"S/Key authentication\n"$NC
+  if [ "`grep auth= /etc/login.conf | grep -v \"^#\" | grep skey`" ]; then
+    printf "System supports$RED S/Key$NC authentication\n"
+    if ! [ -d /etc/skey/ ]; then
+      echo "${GREEN}S/Key authentication enabled, but has not been initialized"
+    elif [ -w /etc/skey/ ]; then
+      echo "${RED}/etc/skey/ is writable by you"
+      ls -ld /etc/skey/
+    else
+      ls -ld /etc/skey/ 2>/dev/null
+    fi
+  fi
+  echo ""
+
+  #-- SI) YubiKey athentication
+  printf $Y"[+] "$GREEN"YubiKey authentication\n"$NC
+  if [ "`grep auth= /etc/login.conf | grep -v \"^#\" | grep yubikey`" ]; then
+    printf "System supports$RED YubiKey$NC authentication\n"
+    if [ -w /var/db/yubikey/ ]; then
+      echo "${RED}/var/db/yubikey/ is writable by you"
+      ls -ld /var/db/yubikey/ 
+    else
+      ls -ld /var/db/yubikey/ 2>/dev/null
+    fi
+  fi
   echo ""
   echo ""
 
@@ -2646,12 +2674,12 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $Y"[+] "$GREEN"Capabilities\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#capabilities\n"$NC
   echo "Current capabilities:"
-  (capsh --print | grep "Current:" | sed -${E} "s,$capsB,${C}[1;31;103m&${C}[0m," ) || echo_not_found "capsh"
-  (cat "/proc/$$/status" 2> /dev/null | grep Cap | sed -${E} "s,.*0000000000000000|CapBnd:	0000003fffffffff,${C}[1;32m&${C}[0m,") || echo_not_found "/proc/$$/status"
+  (capsh --print 2>/dev/null | grep "Current:" | sed -${E} "s,$capsB,${C}[1;31;103m&${C}[0m," ) || echo_not_found "capsh"
+  (cat "/proc/$$/status" | grep Cap | sed -${E} "s,.*0000000000000000|CapBnd:	0000003fffffffff,${C}[1;32m&${C}[0m,") 2>/dev/null || echo_not_found "/proc/$$/status"
   echo ""
   echo "Shell capabilities:"
-  (capsh --decode=0x"`cat \"/proc/$PPID/status\" | grep \"CapEff\" | awk '{print $2}'`" ) || echo_not_found "capsh"
-  (cat "/proc/$PPID/status" 2> /dev/null | grep Cap | sed -${E} "s,.*0000000000000000|CapBnd:	0000003fffffffff,${C}[1;32m&${C}[0m,") || echo_not_found "/proc/$PPID/status"
+  (capsh --decode=0x"`cat \"/proc/$PPID/status\" | grep \"CapEff\" | awk '{print $2}'`" 2>/dev/null) || echo_not_found "capsh"
+  (cat "/proc/$PPID/status" | grep Cap | sed -${E} "s,.*0000000000000000|CapBnd:	0000003fffffffff,${C}[1;32m&${C}[0m,") 2>/dev/null || echo_not_found "/proc/$PPID/status"
   echo ""
   echo "Files with capabilities:"
   getcap -r / 2>/dev/null | while read cb; do
