@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.1.1"
+VERSION="v3.1.2"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -1669,7 +1669,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
       printf $GREEN"It's not possible to brute-force su.\n\n"$NC
     fi
   else
-    printf $Y"[+] "$GREEN"Do not forget to test 'su' as any other user with shell: without password and with their names as password (I can't do it...)\n"$NC
+    printf $Y"--> "$GREEN"Do not forget to test 'su' as any other user with shell: without password and with their names as password (I can't do it...)\n"$NC
   fi
   printf $Y"[+] "$GREEN"Do not forget to execute 'sudo -l' without password or with valid password (if you know it)!!\n"$NC
   echo ""
@@ -1839,10 +1839,10 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) Drupal user, password, databname and host
   printf $Y"[+] "$GREEN"Searching Drupal settings.php files\n"$NC
   drup=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'settings\.php$')
-  if [ "`echo $drup | grep '/default/settings.php'`" ]; then #Check path /default/settings.php
+  if [ "$drup" ]; then #Check path /default/settings.php
     printf "settings.php files found:\n$drup"
-    printf "$drup\n" | while read f; do grep "drupal_hash_salt\|'database'\|'username'\|'password'\|'host'\|'port'\|'driver'\|'prefix'" $f 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; done
-  else echo_not_found "/default/settings.php"
+    printf "$drup\n" | while read f; do grep "drupal_hash_salt\|'database'\|'username'\|'password'\|'host'\|'port'\|'driver'\|'prefix'" "$f" 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; done
+  else echo_not_found "settings.php"
   fi
   echo ""
 
@@ -2497,7 +2497,6 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     cat "$f" 2>/dev/null | sed "s,passwd,${C}[1;31m&${C}[0m,"
     echo ""
   done
-  echo ""
 
   #-- SI) S/Key athentication
   printf $Y"[+] "$GREEN"S/Key authentication\n"$NC
