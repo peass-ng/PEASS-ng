@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.1.2"
+VERSION="v3.1.3"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -834,7 +834,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
   OVPN_RELEVANT_NAMES="*.ovpn"
   SSH_RELEVANT_NAMES="id_dsa* id_rsa* known_hosts authorized_hosts authorized_keys *.pem *.cer *.crt *.csr *.der *.pfx *.p12 agent* config vault-ssh-helper.hcl .vault-token"
   CLOUD_KEYS_RELEVANT_NAMES="credentials credentials.db legacy_credentials.db access_tokens.db accessTokens.json azureProfile.json cloud.cfg"
-  KERBEROS_RELEVANT_NAMES="krb5.conf krb5.keytab"
+  KERBEROS_RELEVANT_NAMES="krb5.conf krb5.keytab .k5login kadm5.acl"
   KIBANA_RELEVANT_NAMES="kibana.y*ml"
   KNOCK_RELEVANT_NAMES="knockd"
   LOGSTASH_RELEVANT_NAMES="logstash"
@@ -860,7 +860,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
   AUTOLOGIN_RELEVANT_NAMES="autologin autologin.conf"
 
   DB_RELEVANT_NAMES="*.db *.sqlite *.sqlite3 *.sql"
-  INSTERESTING_RELEVANT_NAMES=".env .google_authenticator *_history .recently-used.xbel .lesshst .sudo_as_admin_successful .profile *bashrc *httpd.conf *.plan .htpasswd .gitconfig .git-credentials .git .svn *.rhost hosts.equiv .ldaprc"
+  INSTERESTING_RELEVANT_NAMES=".msmtprc .env .google_authenticator *_history .recently-used.xbel .lesshst .sudo_as_admin_successful .profile *bashrc *httpd.conf *.plan .htpasswd .gitconfig .git-credentials .git .svn *.rhost hosts.equiv .ldaprc"
   PASSWORD_RELEVANT_NAMES="*password* *credential* creds*"
   BACKUPS_DIRS_RELEVANT_NAMES="backup backups"
 
@@ -1669,7 +1669,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
       printf $GREEN"It's not possible to brute-force su.\n\n"$NC
     fi
   else
-    printf $Y"--> "$GREEN"Do not forget to test 'su' as any other user with shell: without password and with their names as password (I can't do it...)\n"$NC
+    printf $Y"[+] "$GREEN"Do not forget to test 'su' as any other user with shell: without password and with their names as password (I can't do it...)\n"$NC
   fi
   printf $Y"[+] "$GREEN"Do not forget to execute 'sudo -l' without password or with valid password (if you know it)!!\n"$NC
   echo ""
@@ -1839,10 +1839,10 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) Drupal user, password, databname and host
   printf $Y"[+] "$GREEN"Searching Drupal settings.php files\n"$NC
   drup=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'settings\.php$')
-  if [ "$drup" ]; then #Check path /default/settings.php
+  if [ "`echo $drup | grep '/default/settings.php'`" ]; then #Check path /default/settings.php
     printf "settings.php files found:\n$drup"
-    printf "$drup\n" | while read f; do grep "drupal_hash_salt\|'database'\|'username'\|'password'\|'host'\|'port'\|'driver'\|'prefix'" "$f" 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; done
-  else echo_not_found "settings.php"
+    printf "$drup\n" | while read f; do grep "drupal_hash_salt\|'database'\|'username'\|'password'\|'host'\|'port'\|'driver'\|'prefix'" $f 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; done
+  else echo_not_found "/default/settings.php"
   fi
   echo ""
 
@@ -2087,15 +2087,37 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) Kerberos
   printf $Y"[+] "$GREEN"Searching kerberos conf files and tickets\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88#pass-the-ticket-ptt\n"$NC
-  krb5=$(echo "$FIND_DIR_VAR\n$FIND_DIR_ETC\n$FIND_DIR_HOME\n$FIND_DIR_TMP\n$FIND_DIR_USR\n$FIND_DIR_OPT\n$FIND_DIR_USERS\n$FIND_DIR_PRIVATE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_MNT" | grep -E 'krb5\.conf|krb5.keytab')
-  if [ "$krb5" ]; then
-    printf "$krb5\n" | while read f; do
-      if [ -r "$f" ]; then
+  kadmin_exists="`command -v kadmin`"
+  klist_exists="`command -v klist`"
+  if [ "$kadmin_exists" ]; then echo "kadmin was found on $kadmin_exists" | sed "s,$kadmin_exists,${C}[1;31m&${C}[0m,"; fi
+  if [ "$klist_exists" ] && [ -x "$klist_exists" ]; then echo "klist execution"; klist; fi
+  
+  krb5=$(echo "$FIND_DIR_VAR\n$FIND_DIR_ETC\n$FIND_DIR_HOME\n$FIND_DIR_TMP\n$FIND_DIR_USR\n$FIND_DIR_OPT\n$FIND_DIR_USERS\n$FIND_DIR_PRIVATE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_MNT" | grep -E 'krb5\.conf|krb5.keytab|\.k5login')
+  printf "$krb5\n" | while read f; do
+    if [ -r "$f" ]; then
+      if [ "`echo \"$f\" | grep .k5login`" ]; then
+        echo ".k5login file (users with access to the user who has this file in his home)"
+        cat "$f" 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,g"
+      elif [ "`echo \"$f\" | grep keytab`" ]; then
+        echo ""
+        echo "keytab file found, you may be able to impersonate some kerberos principals and add users or modify passwords"
+        klist -k "$f" 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,g"
+        printf "`klist -k \"$f\" 2>/dev/null`\n" | awk '{print $2}' | while read l; do
+          if [ "$l" ] && [ "`echo \"$l\" | grep \"@\"`"  ]; then
+            printf "$ITALIC  --- Impersonation command: ${NC}kadmin -k -t /etc/krb5.keytab -p \"$l\"\n" | sed -${E} "s,$l,${C}[1;31m&${C}[0m,g"
+            #kadmin -k -t /etc/krb5.keytab -p "$l" -q getprivs 2>/dev/null #This should show the permissions of each impersoanted user, the thing is that in a test it showed that every user had the same permissions (even if they didn't). So this test isn't valid
+            #We could also try to create a new user or modify a password, but I'm not user if linpeas should do that
+          fi
+        done
+      elif [ "`echo \"$f\" | grep krb5.conf`" ]; then
+        ls -l "$f"
         cat "$f" 2>/dev/null | grep default_ccache_name | sed -${E} "s,default_ccache_name,${C}[1;31m&${C}[0m,"; 
+      elif [ "`echo \"$f\" | grep kadm5.acl`" ]; then
+        ls -l "$f"
+        cat "$f" 2>/dev/null
       fi
-    done
-  else echo_not_found "krb5.conf"
-  fi
+    fi
+  done
   ls -l "/tmp/krb5cc*" "/var/lib/sss/db/ccache_*" "/etc/opt/quest/vas/host.keytab" 2>/dev/null || echo_not_found "tickets kerberos"
   klist 2>/dev/null || echo_not_found "klist"
   echo ""
@@ -2364,9 +2386,9 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   SPLUNK_BIN="`command -v splunk 2>/dev/null`"
   if [ "$SPLUNK_BIN" ]; then echo "splunk binary was found installed on $SPLUNK_BIN" | sed "s,.*,${C}[1;31m&${C}[0m,"; fi
   printf "$splunkpwd\n" | sort | uniq | while read f; do
-    if [ -f "$f" ]; then 
+    if [ -f "$f" ] && ! [ -x "$f" ]; then 
       echo "passwd file: $f" | sed "s,$f,${C}[1;31m&${C}[0m,"
-      cat "$f" 2>/dev/null | grep "'pass'|'password'|'user'|'database'|'host'" | sed -${E} "s,password|pass|user|database|host,${C}[1;31m&${C}[0m,"
+      cat "$f" 2>/dev/null | grep "'pass'|'password'|'user'|'database'|'host'|\$" | sed -${E} "s,password|pass|user|database|host|\$,${C}[1;31m&${C}[0m,"
     fi
   done
   echo ""
@@ -2497,6 +2519,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     cat "$f" 2>/dev/null | sed "s,passwd,${C}[1;31m&${C}[0m,"
     echo ""
   done
+  echo ""
 
   #-- SI) S/Key athentication
   printf $Y"[+] "$GREEN"S/Key authentication\n"$NC
@@ -2573,7 +2596,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
           echo "$s" | sed -${E} "s,/.*,${C}[1m&${C}[0m,"
           printf $ITALIC
           if [ "$STRINGS" ]; then
-            $STRINGS "$sname" | sort | uniq | while read sline; do
+            $STRINGS "$sname" 2>/dev/null | sort | uniq | while read sline; do
               sline_first="`echo \"$sline\" | cut -d ' ' -f1`"
               if [ "`echo \"$sline_first\" | grep -Ev \"$cfuncs\"`" ]; then
                 if [ "`echo \"$sline_first\" | grep \"/\"`" ] && [ -f "$sline_first" ]; then #If a path
@@ -2587,11 +2610,13 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
                 fi
               fi
             done
-            if [ "$TIMEOUT" ] && [ "$STRACE" ] && ! [ "$NOTEXPORT" ]; then
+            if [ "$TIMEOUT" ] && [ "$STRACE" ] && ! [ "$NOTEXPORT" ] && [ -x "$sname" ]; then
               printf $ITALIC
+              echo "----------------------------------------------------------------------------------------"
               echo "  --- Trying to execute $sname with strace in order to look for hijackable libraries..."
               timeout 2 "$STRACE" "$sname" 2>&1 | grep -i -E "open|access|no such file" | sed -${E} "s,open|access|No such file,${C}[1;31m&${C}[0m$ITALIC,g"
               printf $NC
+              echo "----------------------------------------------------------------------------------------"
               echo ""
             fi
           fi
@@ -2952,10 +2977,10 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Interesting files
   printf $Y"[+] "$GREEN"Readable hidden interesting files\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#read-sensitive-data\n"$NC
-  fils=$(echo "$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_MNT\n$FIND_VAR\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E '.google_authenticator|\.recently-used.xbel|\.lesshst|.*_history|\.sudo_as_admin_successful|\.profile|.*bashrc|.*httpd\.conf|.*\.plan|\.htpasswd|\.gitconfig|\.git-credentials|\.git|\.svn|\.rhosts|hosts\.equiv')
+  fils=$(echo "$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_MNT\n$FIND_VAR\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E '\.msmtprc|\.env|\.google_authenticator|\.recently-used.xbel|\.lesshst|.*_history|\.sudo_as_admin_successful|\.profile|.*bashrc|.*httpd\.conf|.*\.plan|\.htpasswd|\.gitconfig|\.git-credentials|\.git|\.svn|\.rhosts|hosts\.equiv')
   printf "$fils\n" | while read f; do 
     if [ -r "$f" ]; then 
-      ls -ld "$f" 2>/dev/null | sed "s,.env|.google_authenticator|_history|\.lesshst|.recently-used.xbel|\.sudo_as_admin_successful|.profile|bashrc|httpd.conf|\.plan|\.htpasswd|.gitconfig|\.git-credentials|.git|.svn|\.rhosts|hosts.equiv|\.ldaprc,${C}[1;31m&${C}[0m," | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
+      ls -ld "$f" 2>/dev/null | sed "s,\.msmtprc|\.env|.google_authenticator|_history|\.lesshst|.recently-used.xbel|\.sudo_as_admin_successful|.profile|bashrc|httpd.conf|\.plan|\.htpasswd|.gitconfig|\.git-credentials|.git|.svn|\.rhosts|hosts.equiv|\.ldaprc,${C}[1;31m&${C}[0m," | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
       if [ "`echo \"$f\" | grep \"_history\"`" ]; then
         printf $GREEN"Searching possible passwords inside $f (limit 100)\n"$NC
         cat "$f" | grep -aE "$pwd_inside_history" | sed '/^.\{150\}./d' | sed -${E} "s,$pwd_inside_history,${C}[1;31m&${C}[0m," | head -n 100
@@ -2975,6 +3000,10 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
       elif [ "`echo \"$f\" | grep \"\.env\"`" ]; then
         printf $GREEN"Reading $f\n"$NC
         cat "$f" | grep -v "^#" | sed -${E} "s,[pP][aA][sS][sS].*,${C}[1;31m&${C}[0m,"
+        echo ""
+      elif [ "`echo \"$f\" | grep \"\.msmtprc\"`" ]; then
+        printf $GREEN"Reading $f\n"$NC
+        cat "$f" | grep -v "^#" | sed -${E} "s,user.*|password.*,${C}[1;31m&${C}[0m,"
         echo ""
       fi;
     fi; 
