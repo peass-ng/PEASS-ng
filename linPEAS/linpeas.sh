@@ -1,4 +1,4 @@
-#!/bin/sh
+f#!/bin/sh
 
 VERSION="v3.1.4"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
@@ -289,7 +289,7 @@ sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
  /screen$%GNU_Screen_4.5.0\
  /sdtcm_convert$%Sun_Solaris_7.0\
  /sendmail$%Sendmail_8.10.1/Sendmail_8.11.x/Linux_Kernel_2.2.x_2.4.0-test1_\(SGI_ProPack_1.2/1.3\)\
- /sudo$\
+ /check_sudo_version$\
  /sudoedit$%Sudo/SudoEdit_1.6.9p21/1.7.2p4/\(RHEL_5/6/7/Ubuntu\)/Sudo<=1.8.14\
  /tmux$%Tmux_1.3_1.4_privesc\(CVE-2011-1496\)\
  /traceroute$%LBL_Traceroute_\[2000-11-15\]\
