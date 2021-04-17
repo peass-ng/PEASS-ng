@@ -1100,7 +1100,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 
   #-- SY) Container
   printf $Y"[+] "$GREEN"Is this a container? ........... "$NC
-  dockercontainer=`grep -i docker /proc/self/cgroup  2>/dev/null; find / -maxdepth 3 -name "*dockerenv*" -exec ls -la {} \; 2>/dev/null`
+  dockercontainer=`grep -i docker /proc/self/cgroup  2>/dev/null; grep -i kubepods /proc/self/cgroup  2>/dev/null; find / -maxdepth 3 -name "*dockerenv*" -exec ls -la {} \; 2>/dev/null`
   lxccontainer=`grep -qa container=lxc /proc/1/environ 2>/dev/null`
   if [ "$dockercontainer" ]; then echo "Looks like we're in a Docker container" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,";
   elif [ "$lxccontainer" ]; then echo "Looks like we're in a LXC container" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,";
