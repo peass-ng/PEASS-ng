@@ -213,6 +213,8 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
   - [x] Apache (Version)
   - [x] PHP cookies
   - [x] Wordpress (Database credentials)
+  - [x] Drupal (Database credentials)
+  - [x] Moodle (Database credentials)
   - [x] Tomcat (Credentials)
   - [x] Mongo (Version, Credentials)
   - [x] Supervisor (Credentials)
