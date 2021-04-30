@@ -1135,7 +1135,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   if [ "$dockercontainer" ] || [ "$dockercontainers" -ne "0" ]; then
     printf $Y"[+] "$GREEN"Looking for docker breakout techniques\n"$NC
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout\n"$NC
-    capsh --print 2>/dev/null | sed -${E} "s,$containercapsB,${C}[1;31m&${C}[0m,"
+    capsh --print 2>/dev/null | sed -${E} "s,$containercapsB,${C}[1;31m&${C}[0m,g"
     echo ""
     ls /var/run/docker.sock 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
     ls /run/docker.sock 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
