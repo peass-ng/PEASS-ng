@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.1.6"
+VERSION="v3.1.7"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -249,7 +249,7 @@ mygroups=`groups 2>/dev/null | tr " " "|"`
 
 # Default Binaries List
 sidG1="/abuild-sudo$|/accton$|/allocate$|/ARDAgent|/arping$|/atq$|/atrm$|/authpf$|/authpf-noip$|/authopen$|/batch$|/bbsuid$|/bsd-write$|/btsockstat$|/bwrap$|/cacaocsc$|/camel-lock-helper-1.2$|/ccreds_validate$|/cdrw$|/chage$|/check-foreground-console$|/chrome-sandbox$|/chsh$|/cons.saver$|/crontab$|/ct$|/cu$|/dbus-daemon-launch-helper$|/deallocate$|/desktop-create-kmenu$|/dma$|/dma-mbox-create$|/dmcrypt-get-device$|/doas$|/dotlockfile$|/dotlock.mailutils$|/dtaction$|/dtfile$|/eject$|/execabrt-action-install-debuginfo-to-abrt-cache$|/execdbus-daemon-launch-helper$|/execdma-mbox-create$|/execlockspool$|/execlogin_chpass$|/execlogin_lchpass$|/execlogin_passwd$|/execssh-keysign$|/execulog-helper$|/exim4|/expiry$|/fdformat$|/fstat$|/fusermount$|/fusermount3$"
-sidG2="/gnome-pty-helper$|/glines$|/gnibbles$|/gnobots2$|/gnome-suspend$|/gnometris$|/gnomine$|/gnotski$|/gnotravex$|/gpasswd$|/gpg$|/gpio$|/gtali|/.hal-mtab-lock$|/helper$|/imapd$|/inndstart$|/kismet_cap_nrf_51822$|/kismet_cap_nxp_kw41z$|/kismet_cap_ti_cc_2531$|/kismet_cap_ti_cc_2540$|/kismet_cap_ubertooth_one$|/kismet_capture$|/kismet_cap_linux_bluetooth$|/kismet_cap_linux_wifi$|/kismet_cap_nrf_mousejack$|/ksu$|/list_devices$|/locate$|/lock$|/lockdev$|/lockfile$|/login_activ$|/login_crypto$|/login_radius$|/login_skey$|/login_snk$|/login_token$|/login_yubikey$|/lpc$|/lpd$|/lpd-port$|/lppasswd$|/lpq$|/lpr$|/lprm$|/lpset$|/lxc-user-nic$|/mahjongg$|/mail-lock$|/mailq$|/mail-touchlock$|/mail-unlock$|/mksnap_ffs$|/mlocate$|/mlock$|/mount$|/mount.cifs$|/mount.ecryptfs_private$|/mount.nfs$|/mount.nfs4$|/mtr$|/mutt_dotlock$"
+sidG2="/gnome-pty-helper$|/glines$|/gnibbles$|/gnobots2$|/gnome-suspend$|/gnometris$|/gnomine$|/gnotski$|/gnotravex$|/gpasswd$|/gpg$|/gpio$|/gtali|/.hal-mtab-lock$|/helper$|/imapd$|/inndstart$|/kismet_cap_nrf_51822$|/kismet_cap_nxp_kw41z$|/kismet_cap_ti_cc_2531$|/kismet_cap_ti_cc_2540$|/kismet_cap_ubertooth_one$|/kismet_capture$|/kismet_cap_linux_bluetooth$|/kismet_cap_linux_wifi$|/kismet_cap_nrf_mousejack$|/ksu$|/list_devices$|/load_osxfuse$|/locate$|/lock$|/lockdev$|/lockfile$|/login_activ$|/login_crypto$|/login_radius$|/login_skey$|/login_snk$|/login_token$|/login_yubikey$|/lpc$|/lpd$|/lpd-port$|/lppasswd$|/lpq$|/lpr$|/lprm$|/lpset$|/lxc-user-nic$|/mahjongg$|/mail-lock$|/mailq$|/mail-touchlock$|/mail-unlock$|/mksnap_ffs$|/mlocate$|/mlock$|/mount$|/mount.cifs$|/mount.ecryptfs_private$|/mount.nfs$|/mount.nfs4$|/mount_osxfuse$|/mtr$|/mutt_dotlock$"
 sidG3="/ncsa_auth$|/netpr$|/netkit-rcp$|/netkit-rlogin$|/netkit-rsh$|/netreport$|/netstat$|/newgidmap$|/newtask$|/newuidmap$|/nvmmctl$|/opieinfo$|/opiepasswd$|/pam_auth$|/pam_extrausers_chkpwd$|/pam_timestamp_check$|/pamverifier$|/pfexec$|/ping$|/ping6$|/pmconfig$|/pmap$|/polkit-agent-helper-1$|/polkit-explicit-grant-helper$|/polkit-grant-helper$|/polkit-grant-helper-pam$|/polkit-read-auth-helper$|/polkit-resolve-exe-helper$|/polkit-revoke-helper$|/polkit-set-default-helper$|/postdrop$|/postqueue$|/poweroff$|/ppp$|/procmail$|/pstat$|/pt_chmod$|/pwdb_chkpwd$|/quota$|/rcmd|/remote.unknown$|/rlogin$|/rmformat$|/rnews$|/run-mailcap$|/sacadm$|/same-gnome$|screen.real$|/security_authtrampoline$|/sendmail.sendmail$|/shutdown$|/skeyaudit$|/skeyinfo$|/skeyinit$|/sliplogin|/slocate$|/smbmnt$|/smbumount$|/smpatch$|/smtpctl$|/sperl5.8.8$|/ssh-agent$|/ssh-keysign$|/staprun$|/startinnfeed$|/stclient$|/su$|/suexec$|/sys-suspend$|/sysstat$|/systat$"
 sidG4="/telnetlogin$|/timedc$|/tip$|/top$|/traceroute6$|/traceroute6.iputils$|/trpt$|/tsoldtlabel$|/tsoljdslabel$|/tsolxagent$|/ufsdump$|/ufsrestore$|/ulog-helper$|/umount.cifs$|/umount.nfs$|/umount.nfs4$|/unix_chkpwd$|/uptime$|/userhelper$|/userisdnctl$|/usernetctl$|/utempter$|/utmp_update$|/uucico$|/uuglist$|/uuidd$|/uuname$|/uusched$|/uustat$|/uux$|/uuxqt$|/VBoxHeadless$|/VBoxNetAdpCtl$|/VBoxNetDHCP$|/VBoxNetNAT$|/VBoxSDL$|/VBoxVolInfo$|/VirtualBoxVM$|/vmstat$|/vmware-authd$|/vmware-user-suid-wrapper$|/vmware-vmx$|/vmware-vmx-debug$|/vmware-vmx-stats$|/vncserver-x11$|/volrmmount$|/w$|/wall$|/whodo$|/write$|/X$|/Xorg.wrap$|/Xsun$|/Xvnc$|/yppasswd$"
 
@@ -293,7 +293,7 @@ sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
  /sdtcm_convert$%Sun_Solaris_7.0\
  /sendmail$%Sendmail_8.10.1/Sendmail_8.11.x/Linux_Kernel_2.2.x_2.4.0-test1_\(SGI_ProPack_1.2/1.3\)\
  /snap-confine$%Ubuntu_snapd<2.37_dirty_sock_Local_Privilege_Escalation\(CVE-2019-7304\)\
- /sudo%check_if_the_sudo_version_is_vulnerable$\
+ /sudo%check_if_the_sudo_version_is_vulnerable\
  /Serv-U%FTP_Server<15.1.7(CVE-2019-12181)
  /sudoedit$%Sudo/SudoEdit_1.6.9p21/1.7.2p4/\(RHEL_5/6/7/Ubuntu\)/Sudo<=1.8.14\
  /tmux$%Tmux_1.3_1.4_privesc\(CVE-2011-1496\)\
@@ -308,7 +308,8 @@ sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
  /xorg$%Xorg_1.19_to_1.20.x\(CVE_2018-14665\)/xorg-x11-server<=1.20.3/AIX_7.1_\(6.x_to_7.x_should_be_vulnerable\)_X11.base.rte<7.1.5.32_and_\
  /xterm$%Solaris_5.5.1_X11R6.3\(05-1997\)/Debian_xterm_version_222-1etch2\(01-2009\)"
 #To update sidVB: curl https://github.com/GTFOBins/GTFOBins.github.io/tree/master/_gtfobins 2>/dev/null | grep 'href="/GTFOBins/' | grep '.md">' | awk -F 'title="' '{print $2}' | cut -d '"' -f1 | cut -d "." -f1 | sed  -e 's,^,/,' | sed  -e 's,$,\$,' | tr '\n' '|'
-sidVB='/apt-get$|/apt$|/ar$|/aria2c$|/arp$|/ash$|/at$|/atobm$|/awk$|/base32$|/base64$|/basenc$|/bash$|/bpftrace$|/bridge$|/bundler$|/busctl$|/busybox$|/byebug$|/cancel$|/capsh$|/cat$|/certbot$|/check_by_ssh$|/check_cups$|/check_log$|/check_memory$|/check_raid$|/check_ssl_cert$|/check_statusfile$|/chmod$|/chown$|/chroot$|/cobc$|/column$|/comm$|/composer$|/cowsay$|/cowthink$|/cp$|/cpan$|/cpio$|/cpulimit$|/crash$|/crontab$|/csh$|/csplit$|/csvtool$|/cupsfilter$|/curl$|/cut$|/dash$|/date$|/dd$|/dialog$|/diff$|/dig$|/dmesg$|/dmsetup$|/dnf$|/docker$|/dpkg$|/dvips$|/easy_install$|/eb$|/ed$|/emacs$|/env$|/eqn$|/ex$|/exiftool$|/expand$|/expect$|/facter$|/file$|/find$|/finger$|/flock$|/fmt$|/fold$|/ftp$|/gawk$|/gcc$|/gdb$|/gem$|/genisoimage$|/ghc$|/ghci$|/gimp$|/git$|/grep$|/gtester$|/gzip$|/hd$|/head$|/hexdump$|/highlight$|/hping3$|/iconv$|/iftop$|/install$|/ionice$|/ip$|/irb$|/jjs$|/join$|/journalctl$|/jq$|/jrunscript$|/ksh$|/ksshell$|/latex$|/ld$|/ldconfig$|/less$|/logsave$|/look$|/ltrace$|/lua$|/lualatex$|/luatex$|/lwp-download$|/lwp-request$|/mail$|/make$|/man$|/mawk$|/more$|/mount$|/mtr$|/mv$|/mysql$|/nano$|/nawk$|/nc$|/nice$|/nl$|/nmap$|/node$|/nohup$|/npm$|/nroff$|/nsenter$|/octave$|/od$|/openssl$|/openvpn$|/openvt$|/paste$|/pdb$|/pdflatex$|/pdftex$|/perl$|/pg$|/php$|/pic$|/pico$|/pip$|/pkexec$|/pkg$|/pr$|/pry$|/psql$|/puppet$|/python$|/rake$|/readelf$|/red$|/redcarpet$|/restic$|/rev$|/rlogin$|/rlwrap$|/rpm$|/rpmquery$|/rsync$|/ruby$|/run-mailcap$|/run-parts$|/rview$|/rvim$|/scp$|/screen$|/script$|/sed$|/service$|/setarch$|/sftp$|/sg$|/shuf$|/slsh$|/smbclient$|/snap$|/socat$|/soelim$|/sort$|/split$|/sqlite3$|/ss$|/ssh-keygen$|/ssh-keyscan$|/ssh$|/start-stop-daemon$|/stdbuf$|/strace$|/strings$|/su$|/sysctl$|/systemctl$|/tac$|/tail$|/tar$|/taskset$|/tbl$|/tclsh$|/tcpdump$|/tee$|/telnet$|/tex$|/tftp$|/time$|/timeout$|/tmux$|/top$|/troff$|/ul$|/unexpand$|/uniq$|/unshare$|/update-alternatives$|/uudecode$|/uuencode$|/valgrind$|/vi$|/view$|/vigr$|/vim$|/vimdiff$|/vipw$|/virsh$|/watch$|/wc$|/wget$|/whois$|/wish$|/xargs$|/xelatex$|/xetex$|/xmodmap$|/xxd$|/xz$|/yelp$|/yum$|/zip$|/zsh$|/zsoelim$|/zypper$'
+sidVB='/apt-get$|/apt$|/ar$|/aria2c$|/arp$|/ash$|/at$|/atobm$|/awk$|/base32$|/base64$|/basenc$|/bash$|/bpftrace$|/bridge$|/bundler$|/busctl$|/busybox$|/byebug$|/cancel$|/capsh$|/cat$|/certbot$|/check_by_ssh$|/check_cups$|/check_log$|/check_memory$|/check_raid$|/check_ssl_cert$|/check_statusfile$|/chmod$|/chown$|/chroot$|/cobc$|/column$|/comm$|/composer$|/cowsay$|/cowthink$|/cp$|/cpan$|/cpio$|/cpulimit$|/crash$|/crontab$|/csh$|/csplit$|/csvtool$|/cupsfilter$|/curl$|/cut$|/dash$|/date$|/dd$|/dialog$|/diff$|/dig$|/dmesg$|/dmsetup$|/dnf$|/docker$|/dpkg$|/dvips$|/easy_install$|/eb$|/ed$|/emacs$|/env$|/eqn$|/ex$|/exiftool$|/expand$|/expect$|/facter$|/file$|/find$|/finger$|/flock$|/fmt$|/fold$|/ftp$|/gawk$|/gcc$|/gdb$|/gem$|/genisoimage$|/ghc$|/ghci$|/gimp$|/git$|/grep$|/gtester$|/gzip$|/hd$|/head$|/hexdump$|/highlight$|/hping3$|/iconv$|/iftop$|/install$|/ionice$|/ip$|/irb$|/jjs$|/join$|/journalctl$|/jq$|/jrunscript$|/ksh$|/ksshell$'
+sidVB2='/latex$|/ld$|/ldconfig$|/less$|/logsave$|/look$|/ltrace$|/lua$|/lualatex$|/luatex$|/lwp-download$|/lwp-request$|/mail$|/make$|/man$|/mawk$|/more$|/mount$|/mtr$|/mv$|/mysql$|/nano$|/nawk$|/nc$|/nice$|/nl$|/nmap$|/node$|/nohup$|/npm$|/nroff$|/nsenter$|/octave$|/od$|/openssl$|/openvpn$|/openvt$|/paste$|/pdb$|/pdflatex$|/pdftex$|/perl$|/pg$|/php$|/pic$|/pico$|/pip$|/pkexec$|/pkg$|/pr$|/pry$|/psql$|/puppet$|/python$|/rake$|/readelf$|/red$|/redcarpet$|/restic$|/rev$|/rlogin$|/rlwrap$|/rpm$|/rpmquery$|/rsync$|/ruby$|/run-mailcap$|/run-parts$|/rview$|/rvim$|/scp$|/screen$|/script$|/sed$|/service$|/setarch$|/sftp$|/sg$|/shuf$|/slsh$|/smbclient$|/snap$|/socat$|/soelim$|/sort$|/split$|/sqlite3$|/ss$|/ssh-keygen$|/ssh-keyscan$|/ssh$|/start-stop-daemon$|/stdbuf$|/strace$|/strings$|/su$|/sysctl$|/systemctl$|/tac$|/tail$|/tar$|/taskset$|/tbl$|/tclsh$|/tcpdump$|/tee$|/telnet$|/tex$|/tftp$|/time$|/timeout$|/tmux$|/top$|/troff$|/ul$|/unexpand$|/uniq$|/unshare$|/update-alternatives$|/uudecode$|/uuencode$|/valgrind$|/vi$|/view$|/vigr$|/vim$|/vimdiff$|/vipw$|/virsh$|/watch$|/wc$|/wget$|/whois$|/wish$|/xargs$|/xelatex$|/xetex$|/xmodmap$|/xxd$|/xz$|/yelp$|/yum$|/zip$|/zsh$|/zsoelim$|/zypper$'
 cfuncs='file|free|main|more|read|split|write'
 
 sudoVB=" \*|env_keep\+=LD_PRELOAD|apt-get$|apt$|aria2c$|arp$|ash$|awk$|base64$|bash$|busybox$|cat$|chmod$|chown$|cp$|cpan$|cpulimit$|crontab$|csh$|curl$|cut$|dash$|date$|dd$|diff$|dmesg$|dmsetup$|dnf$|docker$|dpkg$|easy_install$|ed$|emacs$|env$|expand$|expect$|facter$|file$|find$|flock$|fmt$|fold$|ftp$|gdb$|gimp$|git$|grep$|head$|ionice$|ip$|irb$|jjs$|journalctl$|jq$|jrunscript$|ksh$|ld.so$|less$|logsave$|ltrace$|lua$|mail$|make$|man$|more$|mount$|mtr$|mv$|mysql$|nano$|nc$|nice$|nl$|nmap$|node$|od$|openssl$|perl$|pg$|php$|pic$|pico$|pip$|puppet$|python$|readelf$|red$|rlwrap$|rpm$|rpmquery$|rsync$|ruby$|run-mailcap$|run-parts$|rvim$|scp$|screen$|script$|sed$|service$|setarch$|sftp$|smbclient$|socat$|sort$|sqlite3$|ssh$|start-stop-daemon$|stdbuf$|strace$|systemctl$|tail$|tar$|taskset$|tclsh$|tcpdump$|tee$|telnet$|tftp$|time$|timeout$|tmux$|ul$|unexpand$|uniq$|unshare$|vi$|vim$|watch$|wget$|wish$|xargs$|xxd$|yum$|zip$|zsh$|zypper$"
@@ -1045,7 +1046,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   #-- SY) Environment vars 
   printf $Y"[+] "$GREEN"Environment\n"$NC
   printf $B"[i] "$Y"Any private information inside environment variables?\n"$NC
-  (env || set) 2>/dev/null | grep -v "RELEVANT*\|FIND*\|^VERSION=\|dbuslistG\|mygroups\|ldsoconfdG\|pwd_inside_history\|kernelDCW_Ubuntu_Precise\|kernelDCW_Ubuntu_Trusty\|kernelDCW_Ubuntu_Xenial\|kernelDCW_Rhel\|^sudovB=\|^rootcommon=\|^mounted=\|^mountG=\|^notmounted=\|^mountpermsB=\|^mountpermsG=\|^kernelB=\|^C=\|^RED=\|^GREEN=\|^Y=\|^B=\|^NC=\|TIMEOUT=\|groupsB=\|groupsVB=\|knw_grps=\|sidG\|sidB=\|sidVB=\|sudoB=\|sudoG=\|sudoVB=\|sudocapsB=\|timersG=\|capsB=\|\notExtensions=\|Wfolders=\|writeB=\|writeVB=\|_usrs=\|compiler=\|PWD=\|LS_COLORS=\|pathshG=\|notBackup=\|processesDump\|processesB\|commonrootdirs" | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[aA][pP][iI][kK][eE][yY]|[aA][pP][iI][_][kK][eE][yY],${C}[1;31m&${C}[0m,g" || echo_not_found "env || set"
+  (env || set) 2>/dev/null | grep -v "RELEVANT*|FIND*|^VERSION=|dbuslistG|mygroups|ldsoconfdG|pwd_inside_history|kernelDCW_Ubuntu_Precise|kernelDCW_Ubuntu_Trusty|kernelDCW_Ubuntu_Xenial|kernelDCW_Rhel|^sudovB=|^rootcommon=|^mounted=|^mountG=|^notmounted=|^mountpermsB=|^mountpermsG=|^kernelB=|^C=|^RED=|^GREEN=|^Y=|^B=|^NC=|TIMEOUT=|groupsB=|groupsVB=|knw_grps=|sidG|sidB=|sidVB=|sidVB2=|sudoB=|sudoG=|sudoVB=|sudocapsB=|timersG=|capsB=|notExtensions=|Wfolders=|writeB=|writeVB=|_usrs=|compiler=|PWD=|LS_COLORS=|pathshG=|notBackup=|processesDump|processesB|commonrootdirs" | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[aA][pP][iI][kK][eE][yY]|[aA][pP][iI][_][kK][eE][yY],${C}[1;31m&${C}[0m,g" || echo_not_found "env || set"
   echo ""
 
   #-- SY) Dmesg
@@ -1373,13 +1374,13 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
         echo "$s is calling this writable listener: $sl" | sed "s,writable.*,${C}[1;31m&${C}[0m,g";
       fi
     done
-    if [ -w "/var/run/docker.sock" ]; then
-      echo "Docker socket /var/run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${C}[1;31;103m&${C}[0m,g"
-    fi
-    if [ -w "/run/docker.sock" ]; then
-      echo "Docker socket /run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${C}[1;31;103m&${C}[0m,g"
-    fi
   done
+  if [ -w "/var/run/docker.sock" ]; then
+    echo "Docker socket /var/run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${C}[1;31;103m&${C}[0m,g"
+  fi
+  if [ -w "/run/docker.sock" ]; then
+    echo "Docker socket /run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${C}[1;31;103m&${C}[0m,g"
+  fi
   echo ""
 
   #-- PSC) Search HTTP sockets
@@ -2547,10 +2548,12 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Autologin Files\n"$NC
   autologinfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_MNT" | grep -E 'autologin|autologin.conf')
   printf "$autologinfiles\n" | while read f; do
-    echo "$f"
-    ls -l "$f" 2>/dev/null | sed "s,passwd,${C}[1;31m&${C}[0m,"
-    cat "$f" 2>/dev/null | sed "s,passwd,${C}[1;31m&${C}[0m,"
-    echo ""
+    if [ "$f" ]; then
+      echo "$f"
+      ls -l "$f" 2>/dev/null | sed "s,passwd,${C}[1;31m&${C}[0m,"
+      cat "$f" 2>/dev/null | sed "s,passwd,${C}[1;31m&${C}[0m,"
+      echo ""
+    fi
   done
   echo ""
 
@@ -2591,9 +2594,11 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"FastCGI Params\n"$NC
   fastcgi_paramsfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_MNT\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E 'fastcgi_params')
   printf "$fastcgi_paramsfiles\n" | while read f; do
-    ls -l "$f" 2>/dev/null
-    cat "$f" 2>/dev/null | grep -E "DB_NAME|DB_USER|DB_PASS" | sed -${E} "s,DB_NAME|DB_USER|DB_PASS,${C}[1;31m&${C}[0m,"
-    echo ""
+    if [ "$f" ]; then
+      ls -l "$f" 2>/dev/null
+      cat "$f" 2>/dev/null | grep -E "DB_NAME|DB_USER|DB_PASS" | sed -${E} "s,DB_NAME|DB_USER|DB_PASS,${C}[1;31m&${C}[0m,"
+      echo ""
+    fi
   done
   echo ""
 
@@ -2645,10 +2650,10 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
         fi
       done;
       if [ "$c" ]; then
-        if [ "`echo \"$s\" | grep -E \"$sidG1\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG2\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG3\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG4\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB\"`" ]; then
-          echo "$s" | sed -${E} "s,$sidG1,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidG2,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidG3,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidG4,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidVB,${C}[1;31;103m&${C}[0m,"
+        if [ "`echo \"$s\" | grep -E \"$sidG1\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG2\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG3\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG4\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB2\"`" ]; then
+          echo "$s" | sed -${E} "s,$sidG1,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidG2,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidG3,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidG4,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidVB,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$sidVB2,${C}[1;31;103m&${C}[0m,"
         else
-          echo "$s (Unknown SGID binary)" | sed -${E} "s,/.*,${C}[1;31m&${C}[0m,"
+          echo "$s (Unknown SUID binary)" | sed -${E} "s,/.*,${C}[1;31m&${C}[0m,"
           printf $ITALIC
           if [ "$STRINGS" ]; then
             $STRINGS "$sname" 2>/dev/null | sort | uniq | while read sline; do
@@ -2704,10 +2709,10 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
         fi
       done;
       if [ "$c" ]; then
-        if [ "`echo \"$s\" | grep -E \"$sidG1\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG2\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG3\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG4\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB\"`" ]; then
-          echo "$s" | sed -${E} "s,$sidG1,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidG2,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidG3,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidG4,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidVB,${C}[1;31;103m&${C}[0m,"
+        if [ "`echo \"$s\" | grep -E \"$sidG1\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG2\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG3\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG4\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB2\"`" ]; then
+          echo "$s" | sed -${E} "s,$sidG1,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidG2,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidG3,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidG4,${C}[1;32m&${C}[0m," | sed -${E} "s,$sidVB,${C}[1;31;103m&${C}[0m," | sed -${E} "s,$sidVB2,${C}[1;31;103m&${C}[0m,"
         else
-          echo "$s (Unknown SUID binary)" | sed -${E} "s,/.*,${C}[1;31m&${C}[0m,"
+          echo "$s (Unknown SGID binary)" | sed -${E} "s,/.*,${C}[1;31m&${C}[0m,"
           printf $ITALIC
           if [ "$STRINGS" ]; then
             $STRINGS "$sname" | sort | uniq | while read sline; do
@@ -2768,8 +2773,8 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   (capsh --decode=0x"`cat \"/proc/$PPID/status\" 2>/dev/null | grep \"CapEff\" | awk '{print $2}'`" 2>/dev/null) || echo_not_found "capsh"
   (cat "/proc/$PPID/status" | grep Cap | sed -${E} "s,.*0000000000000000|CapBnd:	0000003fffffffff,${C}[1;32m&${C}[0m,") 2>/dev/null || echo_not_found "/proc/$PPID/status"
   echo ""
-  echo "Files with capabilities:"
-  getcap -r / 2>/dev/null | while read cb; do
+  echo "Files with capabilities (limited to 50):"
+  getcap -r / 2>/dev/null | head -n 50 | while read cb; do
     echo "$cb" | sed -${E} "s,$sudocapsB,${C}[1;31m&${C}[0m," | sed -${E} "s,$capsB,${C}[1;31m&${C}[0m,"
     if [ -w "`echo \"$cb\" | cut -d \" \" -f1`" ]; then
       echo "$cb is writable" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"
@@ -2958,15 +2963,15 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Backup folders
   printf $Y"[+] "$GREEN"Backup folders\n"$NC
   printf "$backup_folders\n" | while read b ; do 
-    ls -ld "$b" 2> /dev/null
+    ls -ld "$b" 2> /dev/null | sed -${E} "s,backups|backup,${C}[1;31m&${C}[0m,g";
     ls -l "$b" 2>/dev/null && echo ""
   done
   echo ""
 
   ##-- IF) Backup files
-  printf $Y"[+] "$GREEN"Backup files\n"$NC
+  printf $Y"[+] "$GREEN"Backup files (limited 100)\n"$NC
   backs=`find / -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*\.bak\.*" -o -name "*\.bck" -o -name "*\.bck\.*" -o -name "*\.bk" -o -name "*\.bk\.*" -o -name "*\.old" -o -name "*\.old\.*" \) -not -path "/proc/*" 2>/dev/null` 
-  printf "$backs\n" | while read b ; do 
+  printf "$backs\n" | head -n 100 | while read b ; do 
     if [ -r "$b" ]; then 
       ls -l "$b" | grep -Ev "$notBackup" | grep -Ev "$notExtensions" | sed -${E} "s,backup|bck|\.bak|\.old,${C}[1;31m&${C}[0m,g"; 
     fi; 
@@ -3070,7 +3075,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) All hidden files
   printf $Y"[+] "$GREEN"All hidden files (not in /sys/ or the ones listed in the previous check) (limit 70)\n"$NC
-  find / -type f -iname ".*" ! -path "/sys/*" ! -path "/System/*" ! -path "/private/var/*" -exec ls -l {} \; 2>/dev/null | grep -v "\.env|\.google_authenticator|_history$|\.recently-used.xbel|\.lesshst|.sudo_as_admin_successful|\.profile|\.bashrc|\.plan|\.htpasswd|.gitconfig|\.git-credentials|\.rhosts|\.gitignore|.npmignore|\.listing|\.ignore|\.uuid|.depend|.placeholder|.gitkeep|.keep" | head -n 70
+  find / -type f -iname ".*" ! -path "/sys/*" ! -path "/System/*" ! -path "/private/var/*" -exec ls -l {} \; 2>/dev/null | grep -Ev "\.env|\.google_authenticator|_history$|\.recently-used.xbel|\.lesshst|.sudo_as_admin_successful|\.profile|\.bashrc|\.plan|\.htpasswd|.gitconfig|\.git-credentials|\.rhosts|\.gitignore|.npmignore|\.listing|\.ignore|\.uuid|\.depend|\.placeholder|\.gitkeep|\.keep|\.keepme" | head -n 70
   echo ""
 
   ##-- IF) Readable files in /tmp, /var/tmp, bachups

