@@ -1,0 +1,2 @@
+# Ensure that winPEAS.bat has windows style line endings
+winPEAS.bat text eol=crlf
