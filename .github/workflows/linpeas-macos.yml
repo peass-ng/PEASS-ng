@@ -27,4 +27,4 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Run linpeas
-        run: linPEAS/linpeas.sh -a
+        run: linPEAS/linpeas.sh
