@@ -190,7 +190,7 @@ echo "  RED: You must take a look at it" | sed "s,RED,${C}[1;31m&${C}[0m,"
 echo "  LightCyan: Users with console" | sed "s,LightCyan,${C}[1;96m&${C}[0m,"
 echo "  Blue: Users without console & mounted devs" | sed "s,Blue,${C}[1;34m&${C}[0m,"
 echo "  Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts, cronjobs) " | sed "s,Green,${C}[1;32m&${C}[0m,"
-echo "  LightMangeta: Your username" | sed "s,LightMagenta,${C}[1;95m&${C}[0m,"
+echo "  LightMagenta: Your username" | sed "s,LightMagenta,${C}[1;95m&${C}[0m,"
 if [ "$IAMROOT" ]; then
   echo ""
   echo "  YOU ARE ALREADY ROOT!!! (it could take longer to complete execution)" | sed "s,YOU ARE ALREADY ROOT!!!,${C}[1;31;103m&${C}[0m,"
