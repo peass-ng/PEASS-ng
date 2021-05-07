@@ -26,5 +26,5 @@ jobs:
       - uses: actions/checkout@v2
 
       # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: linPEAS/linpeas.sh
+      - name: Run linpeas
+        run: linPEAS/linpeas.sh -a
