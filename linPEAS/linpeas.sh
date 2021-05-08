@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.1.7"
+VERSION="v3.1.8"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -44,7 +44,7 @@ NOTEXPORT=""
 DISCOVERY=""
 PORTS=""
 QUIET=""
-CHECKS="SysI,Devs,AvaSof,ProCronSrvcsTmrsSocks,Net,UsrI,SofI,IntFiles"
+CHECKS="SysI,Container,Devs,AvaSof,ProCronSrvcsTmrsSocks,Net,UsrI,SofI,IntFiles"
 WAIT=""
 PASSWORD=""
 THREADS="`((grep -c processor /proc/cpuinfo 2>/dev/null) || ((command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n"`"
@@ -60,7 +60,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
       $Y-w$B Wait execution between big blocks
       $Y-n$B Do not export env variables related with history and do not check Internet connectivity
       $Y-P$B Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
-      $Y-o$B Only execute selected checks (SysI, Devs, AvaSof, ProCronSrvcsTmrsSocks, Net, UsrI, SofI, IntFiles). Select a comma separated list.
+      $Y-o$B Only execute selected checks (SysI, Container, Devs, AvaSof, ProCronSrvcsTmrsSocks, Net, UsrI, SofI, IntFiles). Select a comma separated list.
       $Y-L$B Force linpeas execution.
       $Y-M$B Force macpeas execution.
       $Y-t$B Threads to search files inside the system (by default it's the number of CPU threads).
@@ -450,6 +450,12 @@ ldsoconfdG="/lib32|/lib/x86_64-linux-gnu|/usr/lib32|/usr/lib/oracle/19.6/client6
 
 dbuslistG="^:1\.[0-9\.]+|com.hp.hplip|com.redhat.ifcfgrh1|com.redhat.NewPrinterNotification|com.redhat.PrinterDriversInstaller|com.redhat.RHSM1|com.redhat.RHSM1.Facts|com.redhat.tuned|com.ubuntu.LanguageSelector|com.ubuntu.SoftwareProperties|com.ubuntu.SystemService|com.ubuntu.USBCreator|com.ubuntu.WhoopsiePreferences|io.netplan.Netplan|io.snapcraft.SnapdLoginService|fi.epitest.hostap.WPASupplicant|fi.w1.wpa_supplicant1|NAME|org.blueman.Mechanism|org.bluez|org.debian.apt|org.fedoraproject.FirewallD1|org.fedoraproject.Setroubleshootd|org.fedoraproject.SetroubleshootFixit|org.fedoraproject.SetroubleshootPrivileged|org.freedesktop.Accounts|org.freedesktop.Avahi|org.freedesktop.bolt|org.freedesktop.ColorManager|org.freedesktop.DBus|org.freedesktop.DisplayManager|org.freedesktop.fwupd|org.freedesktop.GeoClue2|org.freedesktop.hostname1|org.freedesktop.import1|org.freedesktop.locale1|org.freedesktop.login1|org.freedesktop.machine1|org.freedesktop.ModemManager1|org.freedesktop.NetworkManager|org.freedesktop.network1|org.freedesktop.nm_dispatcher|org.freedesktop.PackageKit|org.freedesktop.PolicyKit1|org.freedesktop.portable1|org.freedesktop.realmd|org.freedesktop.RealtimeKit1|org.freedesktop.resolve1|org.freedesktop.systemd1|org.freedesktop.thermald|org.freedesktop.timedate1|org.freedesktop.timesync1|org.freedesktop.UDisks2|org.freedesktop.UPower|org.opensuse.CupsPkHelper.Mechanism"
 
+CONTAINER_CMDS="docker lxc rkt kubectl podman runc"
+TIP_DOCKER_ROOTLESS="In rootless mode privilege escalation to root will not be possible."
+GREP_DOCKER_SOCK_INFOS="Architecture|OSType|Name|DockerRootDir|NCPU|OperatingSystem|KernelVersion|ServerVersion"
+GREP_DOCKER_SOCK_INFOS_IGNORE="IndexConfig"
+GREP_IGNORE_MOUNTS="/ /|/cgroup|/var/lib/docker/|/null | proc proc |/dev/console|docker.sock"
+
 ###########################################
 #---------) Checks before start (---------#
 ###########################################
@@ -735,6 +741,116 @@ if ! [ "$NOTEXPORT" ]; then
   export HISTSIZE=0
   export HISTFILESIZE=0
 fi
+
+
+###########################################
+#---------) Container functions (---------#
+###########################################
+
+containerCheck() {
+  inContainer=""
+  containerType="`echo_no`"
+
+  # Are we inside docker?
+  if [ -f "/.dockerenv" ] ||
+    grep "/docker/" /proc/1/cgroup -qa 2>/dev/null ||
+    grep -qai docker /proc/self/cgroup  2>/dev/null ||
+    [ "`find / -maxdepth 3 -name \"*dockerenv*\" -exec ls -la {} \; 2>/dev/null`" ] ; then
+    
+    inContainer="1"
+    containerType="docker"
+  fi
+
+  # Are we inside kubenetes?
+  if grep "/kubepod" /proc/1/cgroup -qa 2>/dev/null ||
+    grep -qai kubepods /proc/self/cgroup 2>/dev/null; then
+
+    inContainer="1"
+    if [ "$containerType" ]; then containerType="$containerType (kubentes)"
+    else containerType="kubentes"
+    fi
+  fi
+
+  # Are we inside LXC?
+  if env | grep "container=lxc" -qa || 
+      grep "/lxc/" /proc/1/cgroup -qa; then
+    
+    inContainer="1"
+    containerType="lxc"
+  fi
+}
+
+inDockerGroup() {
+  DOCKER_GROUP="No"
+  if groups | grep -q '\bdocker\b'; then
+    DOCKER_GROUP="Yes"
+  fi
+}
+
+checkDockerRootless() {
+  DOCKER_ROOTLESS="No"
+  if docker info 2>/dev/null|grep -q rootless; then
+    DOCKER_ROOTLESS="Yes ($TIP_DOCKER_ROOTLESS)"
+  fi
+}
+
+enumerateDockerSockets() {
+  dockerVersion="Unknown"
+  if ! [ "$SEARCHED_DOCKER_SOCKETS" ]; then
+    SEARCHED_DOCKER_SOCKETS="1"
+    for dock_sock in `find / ! -path "/sys/*" -type s -name "docker.sock" -o -name "docker.socket" 2>/dev/null`; do
+      if [ -w "$dock_sock" ]; then
+        echo "You have write permissions over Docker socket $dock_sock" | sed -${E} "s,$dock_sock,${C}[1;31;103m&${C}[0m,g"
+        echo "Docker enummeration:"
+        docker_enumerated=""
+        
+        if [ "$(command -v curl)" ]; then
+          sockInfoResponse="`curl -s --unix-socket \"$dockerSockPath\" http://localhost/info`"
+          dockerVersion=$(echo "$sockInfoResponse" | tr ',' '\n' | grep 'ServerVersion' | cut -d'"' -f 4)
+          echo $sockInfoResponse | tr ',' '\n' | grep -E "$GREP_DOCKER_SOCK_INFOS" | grep -v "$GREP_DOCKER_SOCK_INFOS_IGNORE" | tr -d '"'
+          if [ "$sockInfoResponse" ]; then docker_enumerated="1"; fi
+        fi
+        
+        if [ "$(command -v docker)" ] and ![ "$docker_enumerated" ]; then
+          sockInfoResponse="`docker info`"
+          dockerVersion=$(echo "$sockInfoResponse" | tr ',' '\n' | grep 'Server Version' | cut -d' ' -f 4)
+          printf $sockInfoResponse | tr ',' '\n' | grep -E "$GREP_DOCKER_SOCK_INFOS" | grep -v "$GREP_DOCKER_SOCK_INFOS_IGNORE" | tr -d '"'
+        fi
+        
+      else
+        echo "You don't have write permissions over Docker socket $dock_sock" | sed -${E} "s,$dock_sock,${C}[1;32m&${C}[0m,g"
+      fi
+    done
+  fi
+}
+
+checkDockerVersionExploits() {
+  if [ "`echo \"$dockerVersion\" | grep -i \"unknown\"`" ]; then
+    VULN_CVE_2019_13139="Unknown"
+    VULN_CVE_2019_5736="Unknown"
+    return
+  fi
+
+  VULN_CVE_2019_13139="No"
+  if [ "$(ver "$dockerVersion")" -lt "$(ver 18.9.5)" ]; then
+    VULN_CVE_2019_13139="Yes"
+  fi
+
+  VULN_CVE_2019_5736="No"
+  if [ "$(ver "$dockerVersion")" -lt "$(ver 18.9.3)" ]; then
+    VULN_CVE_2019_5736="Yes"
+  fi
+}
+
+checkContainerExploits() {
+  VULN_CVE_2019_5021="No"
+  if [ -f "/etc/alpine-release" ]; then
+    alpineVersion=$(cat /etc/alpine-release)
+    if [ "$(ver "$alpineVersion")" -ge "$(ver 3.3.0)" ] && [ "$(ver "$alpineVersion")" -le "$(ver 3.6.0)" ]; then
+      VULN_CVE_2019_5021="Yes"
+    fi
+  fi
+}
 
 
 ###########################################
@@ -1107,19 +1223,22 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
     if [ "$hypervisorflag" ]; then printf $RED"Yes"$NC; else printf $GREEN"No"$NC; fi
   fi
   echo ""
+  echo ""
+  if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi
+fi
 
-  #-- SY) Container
-  printf $Y"[+] "$GREEN"Is this a container? ........... "$NC
-  dockercontainer=`grep -i docker /proc/self/cgroup  2>/dev/null; find / -maxdepth 3 -name "*dockerenv*" -exec ls -la {} \; 2>/dev/null`
-  kubernetescontainer=`grep -i kubepods /proc/self/cgroup  2>/dev/null`
-  lxccontainer=`grep -qa container=lxc /proc/1/environ 2>/dev/null`
-  if [ "$kubernetescontainer" ]; then echo "Looks like we're in a Docker container (inside kubernetes)" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,";
-  elif [ "$dockercontainer" ]; then echo "Looks like we're in a Docker container (NOT inside kubernetes)" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,";
-  elif [ "$lxccontainer" ]; then echo "Looks like we're in a LXC container" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,";
-  else echo_no
-  fi
 
-  #-- SY) Containers Running
+if [ "`echo $CHECKS | grep Container`" ]; then
+  ##############################################
+  #---------------) Containers (---------------#
+  ##############################################
+  printf $B"═════════════════════════════════════════╣ "$GREEN"Containers"$B" ╠══════════════════════════════════════════\n"$NC
+  containerCheck
+  printf $Y"[+] "$GREEN"Is this a container? ...........$NC $containerType\n"
+  
+  printf $Y"[+] "$GREEN"Container related tools present\n"$NC
+  which $CONTAINER_CMDS
+
   printf $Y"[+] "$GREEN"Any running containers? ........ "$NC
   # Get counts of running containers for each platform
   dockercontainers=`docker ps --format "{{.Names}}" 2>/dev/null | wc -l`
@@ -1138,21 +1257,65 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
     if [ "$lxccontainers" -ne "0" ]; then echo "Running LXC Containers" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; lxc list 2>/dev/null; echo ""; fi
     if [ "$rktcontainers" -ne "0" ]; then echo "Running RKT Containers" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; rkt list 2>/dev/null; echo ""; fi
   fi
-  echo ""
+  
+  #If docker
+  if [ "`echo \"$containerType\" | grep -i \"docker\"`" ]; then
+    inDockerGroup
+    printf $Y"[+] "$GREEN"Am I inside Docker group .....$NC $DOCKER_GROUP\n" | sed -${E} "s,Yes,${C}[1;31;103m&${C}[0m,"
+    printf $Y"[+] "$GREEN"Looking and enumerating Docker Sockets\n"$NC
+    enumerateDockerSockets
+    printf $Y"[+] "$GREEN"Docker version ...............$NC $dockerVersion\n"
+    checkDockerVersionExploits
+    printf $Y"[+] "$GREEN"Vulnerable to CVE-2019-5736 .. $VULN_CVE_2019_5736\n"$NC | sed -${E} "s,Yes,${C}[1;31;103m&${C}[0m,"
+    printf $Y"[+] "$GREEN"Vulnerable to CVE-2019-13139 . $VULN_CVE_2019_13139\n"$NC | sed -${E} "s,Yes,${C}[1;31;103m&${C}[0m,"
+    if [ "$inContainer" ]; then
+      checkDockerRootless
+      printf $Y"[+] "$GREEN"Rooless Docker? .............. $DOCKER_ROOTLESS\n"$NC | sed -${E} "s,No,${C}[1;31m&${C}[0m,"
+    fi
+  fi
 
-  if [ "$dockercontainer" ] || [ "$dockercontainers" -ne "0" ]; then
-    printf $Y"[+] "$GREEN"Looking for docker breakout techniques\n"$NC
+  if [ "$inContainer" ]; then
+    echo ""
+    printf $Y"[+] "$GREEN"Container & breakout enumeration\n"$NC
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout\n"$NC
+    printf $Y"[+] "$GREEN"Container ID ...................$NC `cat /etc/hostname`\n"
+    if [ "`echo \"$containerType\" | grep -i \"docker\"`" ]; then
+      printf $Y"[+] "$GREEN"Container Full ID ..............$NC `basename "$(cat /proc/1/cpuset)"`\n"
+    fi
+
+    checkContainerExploits
+    printf $Y"[+] "$GREEN"Vulnerable to CVE-2019-5021 .. $VULN_CVE_2019_5021\n"$NC | sed -${E} "s,Yes,${C}[1;31;103m&${C}[0m,"
+    echo ""
+
+    printf $Y"[+] "$GREEN"Container Capabilities\n"$NC
     capsh --print 2>/dev/null | sed -${E} "s,$containercapsB,${C}[1;31m&${C}[0m,g"
     echo ""
-    ls /var/run/docker.sock 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
-    ls /run/docker.sock 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
-    find / ! -path "/sys/*" -name "docker.sock" -o -name "docker.socket" 2>/dev/null | sed "s,.*,${C}[1;31m&${C}[0m,"
+
+    printf $Y"[+] "$GREEN"Privilege Mode\n"$NC
+    if [ -x "$(command -v fdisk)" ]; then
+      if [ "$(fdisk -l 2>/dev/null | wc -l)" -gt 0 ]; then
+        echo "Privilege Mode is enabled"| sed -${E} "s,enabled,${C}[1;31;103m&${C}[0m,"
+      else
+        echo "Privilege Mode is disabled"| sed -${E} "s,disabled,${C}[1;32m&${C}[0m,"
+      fi
+    else
+      echo_not_found
+    fi
+    echo ""
+
+    printf $Y"[+] "$GREEN"Interesting Files Mounted\n"$NC
+    grep -Ev "$GREP_IGNORE_MOUNTS" /proc/self/mountinfo | cut -d' ' -f 4-
+    echo ""
+
+    printf $Y"[+] "$GREEN"Possible Entrypoints\n"$NC
+    ls -lah /*.sh /*entrypoint* /**/entrypoint* /**/*.sh /deploy* 2>/dev/null | sort | uniq
+    echo ""
   fi
 
   echo ""
   if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi
 fi
+
 
 
 if [ "`echo $CHECKS | grep Devs`" ]; then
@@ -1188,7 +1351,7 @@ if [ "`echo $CHECKS | grep AvaSof`" ]; then
 
   #-- 1AS) Useful software
   printf $Y"[+] "$GREEN"Useful software\n"$NC
-  which nmap aws nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch docker lxc ctr runc rkt kubectl 2>/dev/null
+  which $CONTAINER_CMDS nmap aws nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch ctr 2>/dev/null
   echo ""
 
   #-- 2AS) Search for compilers
