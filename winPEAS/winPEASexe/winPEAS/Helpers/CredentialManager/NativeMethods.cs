@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
@@ -47,7 +48,13 @@ namespace winPEAS.Helpers.CredentialManager
             var ret = Advapi32.CredEnumerate(null, 0, out count, out pCredentials);
 
             if (ret == false)
-                throw new Exception("Failed to enumerate credentials");
+            {
+                string exceptionDetails = string.Format("Win32Exception: {0}", new Win32Exception(Marshal.GetLastWin32Error()).ToString());
+                Beaprint.NoColorPrint($"  [!] Unable to enumerate credentials automatically, error: '{exceptionDetails}'");
+                Beaprint.NoColorPrint("Please run: ");
+                Beaprint.ColorPrint("cmdkey /list", Beaprint.ansi_color_yellow);
+                return Enumerable.Empty<CREDENTIAL>();
+            }
 
             var credentials = new IntPtr[count];
             for (var n = 0; n < count; n++)
