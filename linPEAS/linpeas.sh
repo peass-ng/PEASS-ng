@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.1.9"
+VERSION="v3.2.0"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -441,7 +441,7 @@ profiledG="01-locale-fix.sh|256term.csh|256term.sh|abrt-console-notification.sh|
 
 knw_emails=".*@aivazian.fsnet.co.uk|.*@angband.pl|.*@canonical.com|.*centos.org|.*debian.net|.*debian.org|.*@jff.email|.*kali.org|.*linux.it|.*@linuxia.de|.*@lists.debian-maintainers.org|.*@mit.edu|.*@oss.sgi.com|.*@qualcomm.com|.*redhat.com|.*ubuntu.com|.*@vger.kernel.org|rogershimizu@gmail.com|thmarques@gmail.com"
 
-timersG="anacron.timer|apt-daily.timer|apt-daily-upgrade.timer|e2scrub_all.timer|fstrim.timer|fwupd-refresh.timer|io.netplan.Netplan|logrotate.timer|man-db.timer|motd-news.timer|phpsessionclean.timer|snapd.refresh.timer|snapd.snap-repair.timer|systemd-tmpfiles-clean.timer|systemd-readahead-done.timer|ureadahead-stop.timer"
+timersG="anacron.timer|apt-daily.timer|apt-daily-upgrade.timer|e2scrub_all.timer|fstrim.timer|fwupd-refresh.timer|geoipupdate.timer|io.netplan.Netplan|logrotate.timer|man-db.timer|mlocate.timer|motd-news.timer|phpsessionclean.timer|snapd.refresh.timer|snapd.snap-repair.timer|systemd-tmpfiles-clean.timer|systemd-readahead-done.timer|ureadahead-stop.timer"
 
 commonrootdirsG="^/$|/bin$|/boot$|/.cache$|/cdrom|/dev$|/etc$|/home$|/lost+found$|/lib$|/lib64$|/media$|/mnt$|/opt$|/proc$|/root$|/run$|/sbin$|/snap$|/srv$|/sys$|/tmp$|/usr$|/var$"
 commonrootdirsMacG="^/$|/.DocumentRevisions-V100|/.fseventsd|/.PKInstallSandboxManager-SystemSoftware|/.Spotlight-V100|/.Trashes|/.vol|/Applications|/bin|/cores|/dev|/home|/Library|/macOS Install Data|/net|/Network|/opt|/private|/sbin|/System|/Users|/usr|/Volumes"
@@ -1468,13 +1468,13 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   printf $Y"[+] "$GREEN"Analyzing .service files\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#services\n"$NC
   services=$(echo "$FIND_ETC\n$FIND_LIB\n$FIND_RUN\n$FIND_USR\n$FIND_SYSTEMD\n$FIND_SYSTEM\n$FIND_PRIVATE\n$FIND_VAR\n$FIND_SYS\n$FIND_SNAP" | grep -E '\.service')
-  printf "$services\n" | while read s; do
+  printf "%s\n" "$services\n" | while read s; do
     if [ ! -O "$s" ]; then #Remove services that belongs to the current user
       if [ -w "$s" ] && [ -f "$s" ]; then
         echo "$s" | sed -${E} "s,.*,${C}[1;31;103m&${C}[0m,g"
       fi
       servicebinpaths="`grep -Eo '^Exec.*?=[!@+-]*[a-zA-Z0-9_/\-]+' \"$s\" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,'`" #Get invoked paths
-      printf "$servicebinpaths\n" | while read sp; do
+      printf "%s\n" "$servicebinpaths\n" | while read sp; do
         if [ -w "$sp" ]; then
           echo "$s is calling this writable executable: $sp" | sed "s,writable.*,${C}[1;31;103m&${C}[0m,g"
         fi
@@ -1503,12 +1503,12 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   printf $Y"[+] "$GREEN"Analyzing .timer files\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#timers\n"$NC
   timers=$(echo "$FIND_ETC\n$FIND_LIB\n$FIND_RUN\n$FIND_USR\n$FIND_SYSTEMD\n$FIND_SYSTEM\n$FIND_PRIVATE\n$FIND_VAR\n$FIND_SYS\n$FIND_SNAP" | grep -E '\.timer')
-  printf "$timers\n" | while read t; do
+  printf "%s\n" "$timers\n" | while read t; do
     if [ -w "$t" ]; then
       echo "$t" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,g"
     fi
     timerbinpaths="`grep -Po '^Unit=*(.*?$)' \"$t\" 2>/dev/null | cut -d '=' -f2`"
-    printf "$timerbinpaths\n" | while read tb; do
+    printf "%s\n" "$timerbinpaths" | while read tb; do
       if [ -w "$tb" ]; then
         echo "$t timer is calling this writable executable: $tb" | sed "s,writable.*,${C}[1;31m&${C}[0m,g"
       fi
@@ -1525,18 +1525,18 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   printf $Y"[+] "$GREEN"Analyzing .socket files\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets\n"$NC
   sockets=$(echo "$FIND_ETC\n$FIND_LIB\n$FIND_RUN\n$FIND_USR\n$FIND_SYSTEMD\n$FIND_SYSTEM\n$FIND_PRIVATE\n$FIND_VAR\n$FIND_SYS\n$FIND_SNAP" | grep -E '\.socket')
-  printf "$sockets\n" | while read s; do
+  printf "%s\n" "$sockets" | while read s; do
     if [ -w "$s" ] && [ -f "$s" ]; then
       echo "Writable .socket file: $s" | sed "s,/.*,${C}[1;31m&${C}[0m,g"
     fi
     socketsbinpaths="`grep -Eo '^(Exec).*?=[!@+-]*/[a-zA-Z0-9_/\-]+' \"$s\" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,'`"
-    printf "$socketsbinpaths\n" | while read sb; do
+    printf "%s\n" "$socketsbinpaths" | while read sb; do
       if [ -w "$sb" ]; then
         echo "$s is calling this writable executable: $sb" | sed "s,writable.*,${C}[1;31m&${C}[0m,g"
       fi
     done
     socketslistpaths="`grep -Eo '^(Listen).*?=[!@+-]*/[a-zA-Z0-9_/\-]+' \"$s\" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,'`"
-    printf "$socketsbinpaths\n" | while read sl; do
+    printf "%s\n" "$socketsbinpaths" | while read sl; do
       if [ -w "$sl" ]; then
         echo "$s is calling this writable listener: $sl" | sed "s,writable.*,${C}[1;31m&${C}[0m,g";
       fi
@@ -1568,7 +1568,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#d-bus\n"$NC
   dbusfols=$(echo "$FIND_DIR_ETC" | grep -E '/dbus-1/system.d|/dbus-1/session.d')
   if [ "$dbusfols" ]; then
-    printf "$dbusfols\n" | while read d; do
+    printf "%s\n" "$dbusfols" | while read d; do
       for f in $d/*; do
         if [ -w "$f" ]; then
           echo "Writable $f" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,g"
@@ -1789,7 +1789,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   else
     no_shells="`cat /etc/passwd 2>/dev/null | grep -Ev "sh$" | cut -d ":" -f 7 | sort | uniq`"
     unexpected_shells=""
-    printf "$no_shells\n" | while read f; do
+    printf "%s\n" "$no_shells" | while read f; do
       if [ "`$f -c 'whoami' 2>/dev/null | grep \"$USER\"`" ]; then 
         unexpected_shells="$f\n$unexpected_shells"
       fi
@@ -1798,7 +1798,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
     if [ "$unexpected_shells" ]; then
       echo "These unexpected binaries are acting like shells:\n$unexpected_shells" | sed -${E} "s,/.*,${C}[1;31m&${C}[0m,g"
       echo "Unexpected users with shells:"
-      printf "$unexpected_shells\n" | while read f; do
+      printf "%s\n" "$unexpected_shells" | while read f; do
         if [ "$f" ]; then
           grep -E "${f}$" /etc/passwd | sed -${E} "s,/.*,${C}[1;31m&${C}[0m,g"
         fi
@@ -1843,7 +1843,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
     POSSIBE_SU_BRUTE=`check_if_su_brute`;
     if [ "$POSSIBE_SU_BRUTE" ]; then
       SHELLUSERS=`cat /etc/passwd 2>/dev/null | grep -i "sh$" | cut -d ":" -f 1`
-      printf "$SHELLUSERS\n" | while read u; do
+      printf "%s\n" "$SHELLUSERS" | while read u; do
         echo "  Bruteforcing user $u..."
         su_brute_user_num $u $PASSTRY
       done
@@ -1902,7 +1902,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Searching mysql credentials and exec\n"$NC
   mysqldirs=$(echo "$FIND_DIR_ETC\n$FIND_DIR_USR\n$FIND_DIR_VAR\n$FIND_DIR_MNT" | grep -E '^/etc/.*mysql|/usr/var/lib/.*mysql|/var/lib/.*mysql' | grep -v "mysql/mysql")
   if [ "$mysqldirs" ]; then
-    printf "$mysqldirs\n" | while read d; do 
+    printf "%s\n" "$mysqldirs" | while read d; do 
       for f in `find $d -name debian.cnf 2>/dev/null`; do
         if [ -r $f ]; then 
           echo "We can read the mysql debian.cnf. You can use this username/password to log in MySQL" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"
@@ -1945,7 +1945,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   if [ "$postgver" ] || [ "$postgdb" ] || [ "$postgconfs" ]; then
     if [ "$postgver" ]; then echo "Version: $postgver"; fi
     if [ "$postgdb" ]; then echo "PostgreSQL database: $postgdb" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; fi
-    printf "$postgconfs\n" | while read f; do
+    printf "%s\n" "$postgconfs" | while read f; do
       if [ -r "$f" ]; then 
         echo "Found readable $f"
         cat "$f" | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v "^$" | sed -${E} "s,auth|password|md5|user=|pass=|trust,${C}[1;31m&${C}[0m," 2>/dev/null
@@ -1987,10 +1987,10 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   if [ "$apachever" ]; then
     echo "Version: $apachever"
     sitesenabled=$(echo "$FIND_DIR_VAR\n$FIND_DIR_ETC\n$FIND_DIR_HOME\n$FIND_DIR_TMP\n$FIND_DIR_USR\n$FIND_DIR_OPT\n$FIND_DIR_USERS\n$FIND_DIR_PRIVATE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_MNT" | grep "sites-enabled")
-    printf "$sitesenabled\n" | while read d; do for f in "$d/*"; do grep "AuthType\|AuthName\|AuthUserFile\|ServerName\|ServerAlias" $f 2>/dev/null | grep -v "#" | sed "s,Auth|ServerName|ServerAlias,${C}[1;31m&${C}[0m,"; done; done
+    printf "%s\n" "$sitesenabled" | while read d; do for f in "$d/*"; do grep "AuthType\|AuthName\|AuthUserFile\|ServerName\|ServerAlias" $f 2>/dev/null | grep -v "#" | sed "s,Auth|ServerName|ServerAlias,${C}[1;31m&${C}[0m,"; done; done
     if [ !"$sitesenabled" ]; then
       default00=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep "000-default")
-      printf "$default00\n" | while read f; do grep -E "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias" "$f" 2>/dev/null | grep -v "#" | sed -${E} "s,Auth|ServerName|ServerAlias,${C}[1;31m&${C}[0m,"; done
+      printf "%s\n" "$default00" | while read f; do grep -E "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias" "$f" 2>/dev/null | grep -v "#" | sed -${E} "s,Auth|ServerName|ServerAlias,${C}[1;31m&${C}[0m,"; done
     fi
     echo "PHP exec extensions"
     grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null
@@ -2022,7 +2022,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Searching Drupal settings.php files\n"$NC
   drup=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'settings\.php$')
   if [ "$drup" ]; then
-    printf "$drup\n" | while read f; do 
+    printf "%s\n" "$drup" | while read f; do 
       if [ "`echo $f | grep '/default/settings.php'`" ]; then #Check path /default/settings.php
         printf "Drupal settings.php file found: $f\n"
         grep -E "drupal_hash_salt|'database'|'username'|'password'|'host'|'port'|'driver'|'prefix'" $f 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,";
@@ -2037,7 +2037,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Searching Moodle config.php files\n"$NC
   moo=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'config\.php$')
   if [ "$moo" ]; then
-      printf "$moo\n" | while read f; do 
+      printf "%s\n" "$moo" | while read f; do 
         if [ "`echo $f | grep -i moodle/config.php`" ]; then
           printf "Moodle config.php file found: $f\n"
           grep -E "dbtype|dbhost|dbuser|dbhost|dbpass|dbport" $f 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; 
@@ -2052,7 +2052,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   tomcat=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'tomcat-users\.xml$')
   if [ "$tomcat" ]; then
     echo "tomcat-users.xml file found: $tomcat"
-    printf "$tomcat\n" | while read f; do grep "username=" "$f" 2>/dev/null | grep "password=" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; done
+    printf "%s\n" "$tomcat" | while read f; do grep "username=" "$f" 2>/dev/null | grep "password=" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; done
   else echo_not_found "tomcat-users.xml"
   fi
   echo ""
@@ -2061,7 +2061,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Mongo information\n"$NC
   mongos=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'mongod.*\.conf$')
   (mongo --version 2>/dev/null || mongod --version 2>/dev/null) || echo_not_found "mongo binary"
-  printf "$mongos\n" | while read f; do
+  printf "%s\n" "$mongos" | while read f; do
     if [ "$f" ]; then
       echo "Found $f"
       cat "$f" | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v "^$" | sed -${E} "s,auth*=*true|pass.*,${C}[1;31m&${C}[0m," 2>/dev/null
@@ -2075,7 +2075,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Searching supervisord configuration file\n"$NC
   supervisorf=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'supervisord\.conf')
   if [ "$supervisorf" ]; then
-    printf "$supervisorf\n" | while read f; do 
+    printf "%s\n" "$supervisorf" | while read f; do 
       echo "Found $f"; 
       cat "$f" 2>/dev/null | grep -E "port.*=|username.*=|password.*=" | sed -${E} "s,port|username|password,${C}[1;31m&${C}[0m,"; 
     done
@@ -2088,7 +2088,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Searching cesi configuration file\n"$NC
   if [ "$cesi" ]; then
     printf "$cesi\n"
-    printf "$cesi\n" | while read f; do cat "$f" 2>/dev/null | grep "username.*=\|password.*=\|host.*=\|port.*=\|database.*=" | sed -${E} "s,username|password|database,${C}[1;31m&${C}[0m,"; done
+    printf "%s\n" "$cesi" | while read f; do cat "$f" 2>/dev/null | grep "username.*=\|password.*=\|host.*=\|port.*=\|database.*=" | sed -${E} "s,username|password|database,${C}[1;31m&${C}[0m,"; done
   else echo_not_found "cesi.conf"
   fi
   echo ""
@@ -2097,7 +2097,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   rsyncd=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'rsyncd\.conf|rsyncd\.secrets')
   printf $Y"[+] "$GREEN"Searching Rsyncd config file\n"$NC
   if [ "$rsyncd" ]; then
-    printf "$rsyncd\n" | while read f; do 
+    printf "%s\n" "$rsyncd" | while read f; do 
       printf "$f\n"
       if [ `echo "$f" | grep -i "secrets"` ]; then
         cat "$f" 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"
@@ -2115,7 +2115,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   if [ "$hostapd" ]; then
     printf $Y"[+] "$GREEN"Hostapd conf was found\n"$NC
     printf "$hostapd\n"
-    printf "$hostapd\n" | while read f; do cat "$f" 2>/dev/null | grep "passphrase" | sed "s,passphrase.*,${C}[1;31m&${C}[0m,"; done
+    printf "%s\n" "$hostapd" | while read f; do cat "$f" 2>/dev/null | grep "passphrase" | sed "s,passphrase.*,${C}[1;31m&${C}[0m,"; done
   else echo_not_found "hostapd.conf"
   fi
   echo ""
@@ -2124,7 +2124,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Searching wifi conns file\n"$NC
   wifi=`find /etc/NetworkManager/system-connections/ -type f 2>/dev/null`
   if [ "$wifi" ]; then
-    printf "$wifi\n" | while read f; do echo "$f"; cat "$f" 2>/dev/null | grep "psk.*=" | sed "s,psk.*,${C}[1;31m&${C}[0m,"; done
+    printf "%s\n" "$wifi" | while read f; do echo "$f"; cat "$f" 2>/dev/null | grep "psk.*=" | sed "s,psk.*,${C}[1;31m&${C}[0m,"; done
   else echo_not_found
   fi
   echo ""
@@ -2134,7 +2134,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   anaconda=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'anaconda-ks\.cfg')
   if [ "$anaconda" ]; then
     printf "$anaconda\n"
-    printf "$anaconda\n" | while read f; do cat "$f" 2>/dev/null | grep "rootpw" | sed "s,rootpw.*,${C}[1;31m&${C}[0m,"; done
+    printf "%s\n" "$anaconda" | while read f; do cat "$f" 2>/dev/null | grep "rootpw" | sed "s,rootpw.*,${C}[1;31m&${C}[0m,"; done
   else echo_not_found "anaconda-ks.cfg"
   fi
   echo ""
@@ -2144,7 +2144,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   vnc=$(echo "$FIND_DIR_HOME\n$FIND_DIR_USERS\n$FIND_DIR_MNT" | grep -E '\.vnc')
   if [ "$vnc" ]; then
     printf "$vnc\n"
-    printf "$vnc\n" | while read d; do find "$d" -name "passwd" -exec ls -l {} \; 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; done
+    printf "%s\n" "$vnc" | while read d; do find "$d" -name "passwd" -exec ls -l {} \; 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; done
   else echo_not_found ".vnc"
   fi
   echo ""
@@ -2155,7 +2155,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   if [ "$ldap" ]; then
     printf "$ldap\n"
     echo "The password hash is from the {SSHA} to 'structural'";
-    printf "$ldap" | while read d; do cat "$d/*.bdb" 2>/dev/null | grep -i -a -E -o "description.*" | sort | uniq | sed -${E} "s,administrator|password|ADMINISTRATOR|PASSWORD|Password|Administrator,${C}[1;31m&${C}[0m,g"; done
+    printf "%s\n" "$ldap" | while read d; do cat "$d/*.bdb" 2>/dev/null | grep -i -a -E -o "description.*" | sort | uniq | sed -${E} "s,administrator|password|ADMINISTRATOR|PASSWORD|Password|Administrator,${C}[1;31m&${C}[0m,g"; done
   else echo_not_found "ldap"
   fi
   echo ""
@@ -2165,7 +2165,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ovpn=$(echo "$FIND_ETC\n$FIND_USR\n$FIND_HOME\n$FIND_TMP\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E '\.ovpn')
   if [ "$ovpn" ]; then
     printf "$ovpn\n"
-    printf "$ovpn\n" | while read f; do 
+    printf "%s\n" "$ovpn" | while read f; do 
       if [ -r "$f" ]; then
         echo "Checking $f:"
         cat "$f" 2>/dev/null | grep "auth-user-pass" | sed -${E} "s,auth-user-pass.*,${C}[1;31m&${C}[0m,";
@@ -2231,7 +2231,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   if [ "$homesshconfig" ]; then
     echo " --> Some home ssh config file was found"
     printf "$homesshconfig\n"
-    printf "$homesshconfig\n" | while read f; do cat "$f" 2>/dev/null | grep -v "^$" | sed -${E} "s,User|ProxyCommand,${C}[1;31m&${C}[0m,"; done
+    printf "%s\n" "$homesshconfig" | while read f; do cat "$f" 2>/dev/null | grep -v "^$" | sed -${E} "s,User|ProxyCommand,${C}[1;31m&${C}[0m,"; done
   fi
   if [ "$hostsdenied" ]; then
     echo " --> /etc/hosts.denied file found, read the rules:"
@@ -2265,9 +2265,9 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Searching Cloud credentials (AWS, Azure, GC)\n"$NC
   cloudcreds=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'credentials$|credentials\.db$|legacy_credentials\.db$|access_tokens\.db$|accessTokens\.json$|azureProfile\.json$')
   if [ "$cloudcreds" ]; then
-    printf "$cloudcreds\n" | while read f; do 
+    printf "%s\n" "$cloudcreds" | while read f; do 
       if [ -f "$f" ]; then #Check if file, here we only look for filenames, not dirs
-        printf "Trying to read $f\n" | sed -${E} "s,credentials|credentials.db|legacy_credentials.db|access_tokens.db|accessTokens.json|azureProfile.json,${C}[1;31m&${C}[0m,g"
+        printf "%s\n" "Trying to read $f" | sed -${E} "s,credentials|credentials.db|legacy_credentials.db|access_tokens.db|accessTokens.json|azureProfile.json,${C}[1;31m&${C}[0m,g"
         if [ -r "$f" ]; then
           cat "$f" 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,g"
         fi
@@ -2294,7 +2294,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   if [ "$klist_exists" ] && [ -x "$klist_exists" ]; then echo "klist execution"; klist; fi
   
   krb5=$(echo "$FIND_DIR_VAR\n$FIND_DIR_ETC\n$FIND_DIR_HOME\n$FIND_DIR_TMP\n$FIND_DIR_USR\n$FIND_DIR_OPT\n$FIND_DIR_USERS\n$FIND_DIR_PRIVATE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_MNT" | grep -E 'krb5\.conf|krb5.keytab|\.k5login')
-  printf "$krb5\n" | while read f; do
+  printf "%s\n" "$krb5" | while read f; do
     if [ -r "$f" ]; then
       if [ "`echo \"$f\" | grep .k5login`" ]; then
         echo ".k5login file (users with access to the user who has this file in his home)"
@@ -2328,7 +2328,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   kibana=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'kibana\.y.*ml')
   if [ "$kibana" ]; then
     printf "$kibana\n"
-    printf "$kibana\n" | while read f; do
+    printf "%s\n" "$kibana" | while read f; do
       if [ -r "$f" ]; then
         cat "$f" 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v "^$" | grep -v -e '^[[:space:]]*$' | sed -${E} "s,username|password|host|port|elasticsearch|ssl,${C}[1;31m&${C}[0m,"; 
       fi
@@ -2341,7 +2341,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Searching Knock configuration\n"$NC
   Knock=$(echo "$FIND_ETC\n$FIND_MNT" | grep -E '/etc/init.d/.*knockd.*')
   if [ "$Knock" ]; then
-    printf "$Knock\n" | while read f; do
+    printf "%s\n" "$Knock" | while read f; do
       h=$(grep -R -i "defaults_file=" $f | cut -b 15-) ##Search string to know where is the default knock file - example - DEFAULTS_FILE=/etc/default/knockd
       i=$(grep -R -i "please edit" $h | awk '{print $4}') ##Search string to know where is config file - example - # PLEASE EDIT /etc/knockd.conf BEFORE ENABLING
       j=$(grep -R -i "sequence" $i) ##If we want we can show sequence number - 'hidded'
@@ -2357,7 +2357,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   logstash=$(echo "$FIND_DIR_VAR\n$FIND_DIR_ETC\n$FIND_DIR_HOME\n$FIND_DIR_TMP\n$FIND_DIR_USR\n$FIND_DIR_OPT\n$FIND_DIR_USERS\n$FIND_DIR_PRIVATE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_MNT" | grep -E 'logstash')
   if [ "$logstash" ]; then
     printf "$logstash\n"
-    printf "$logstash\n" | while read d; do
+    printf "%s\n" "$logstash" | while read d; do
       if [ -r "$d/startup.options" ]; then 
         echo "Logstash is running as user:"
         cat "$d/startup.options" 2>/dev/null | grep "LS_USER\|LS_GROUP" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed -${E} "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed -${E} "s,$USER,${C}[1;95m&${C}[0m," | sed -${E} "s,root,${C}[1;31m&${C}[0m,"
@@ -2374,7 +2374,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   elasticsearch=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'elasticsearch\.y.*ml')
   if [ "$elasticsearch" ]; then
     printf "$elasticsearch\n"
-    printf "$elasticsearch\n" | while read f; do
+    printf "%s\n" "$elasticsearch" | while read f; do
       if [ -r "$f" ]; then
         cat $f 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v -e '^[[:space:]]*$' | grep "path.data\|path.logs\|cluster.name\|node.name\|network.host\|discovery.zen.ping.unicast.hosts"; 
       fi
@@ -2389,7 +2389,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   vaultssh=$(echo "$FIND_ETC\n$FIND_USR\n$FIND_HOME\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'vault-ssh-helper\.hcl')
   if [ "$vaultssh" ]; then
     printf "$vaultssh\n"
-    printf "$vaultssh\n" | while read f; do cat "$f" 2>/dev/null; vault-ssh-helper -verify-only -config "$f" 2>/dev/null; done
+    printf "%s\n" "$vaultssh" | while read f; do cat "$f" 2>/dev/null; vault-ssh-helper -verify-only -config "$f" 2>/dev/null; done
     echo ""
     vault secrets list 2>/dev/null
     echo "$FIND_ETC\n$FIND_HOME\n$FIND_USR\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E '\.vault-token' | sed -${E} "s,.*,${C}[1;31m&${C}[0m," 2>/dev/null
@@ -2430,7 +2430,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) Couchdb
   printf $Y"[+] "$GREEN"Searching Couchdb directory\n"$NC
   couchdb_dirs=$(echo "$FIND_DIR_VAR\n$FIND_DIR_ETC\n$FIND_DIR_HOME\n$FIND_DIR_TMP\n$FIND_DIR_USR\n$FIND_DIR_OPT\n$FIND_DIR_USERS\n$FIND_DIR_PRIVATE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_MNT" | grep -E 'couchdb')
-  printf "$couchdb_dirs\n" | while read d; do
+  printf "%s\n" "$couchdb_dirs" | while read d; do
     for f in `find $d -name local.ini 2>/dev/null`; do
       if [ -r "$f" ]; then 
         echo "Found readable $f"
@@ -2443,7 +2443,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) Redis
   printf $Y"[+] "$GREEN"Searching redis.conf\n"$NC
   redisconfs=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'redis\.conf$')
-  printf "$redisconfs\n" | while read f; do
+  printf "%s\n" "$redisconfs" | while read f; do
     if [ -r "$f" ]; then 
       echo "Found readable $f"
       cat "$f" | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v "^$" | sed -${E} "s,masterauth.*|requirepass.*,${C}[1;31m&${C}[0m," 2>/dev/null
@@ -2470,7 +2470,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) Mosquitto
   printf $Y"[+] "$GREEN"Searching mosquitto.conf\n"$NC
   mqttconfs=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'mosquitto\.conf$')
-  printf "$mqttconfs" | while read f; do
+  printf "%s\n" "$mqttconfs" | while read f; do
     if [ -r "$f" ]; then 
       echo "Found readable $f"
       cat "$f" | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v "^$" | sed -${E} "s,password_file.*|psk_file.*|allow_anonymous.*true|auth,${C}[1;31m&${C}[0m," 2>/dev/null
@@ -2481,7 +2481,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) Neo4j
   printf $Y"[+] "$GREEN"Searching neo4j auth file\n"$NC
   neo4j=$(echo "$FIND_DIR_VAR\n$FIND_DIR_ETC\n$FIND_DIR_HOME\n$FIND_DIR_TMP\n$FIND_DIR_USR\n$FIND_DIR_OPT\n$FIND_DIR_USERS\n$FIND_DIR_PRIVATE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_MNT" | grep -E 'neo4j')
-  printf "$neo4j\n" | while read d; do
+  printf "%s\n" "$neo4j" | while read d; do
     if [ -r "$d" ]; then 
       echo "Found readable $d"
       find $d -type f -name "auth" -exec cat {} \; 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m," 2>/dev/null
@@ -2492,7 +2492,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) Cloud-Init
   printf $Y"[+] "$GREEN"Searching Cloud-Init conf file\n"$NC
   cloudcfg=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'cloud\.cfg$')
-  printf "$cloudcfg\n" | while read f; do
+  printf "%s\n" "$cloudcfg" | while read f; do
     if [ -r "$f" ]; then 
       echo "Found readable $f"
       cat "$f" | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -v "^$" | grep -E "consumer_key|token_key|token_secret|metadata_url|password:|passwd:|PRIVATE KEY|PRIVATE KEY|encrypted_data_bag_secret|_proxy" | sed -${E} "s,consumer_key|token_key|token_secret|metadata_url|password:|passwd:|PRIVATE KEY|PRIVATE KEY|encrypted_data_bag_secret|_proxy,${C}[1;31m&${C}[0m,"
@@ -2503,7 +2503,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) Erlang
   printf $Y"[+] "$GREEN"Searching Erlang cookie file\n"$NC
   erlangcoo=$(echo "$FIND_ETC\n$FIND_HOME\n$FIND_USR\n$FIND_VAR\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E '.erlang.cookie$')
-  printf "$erlangcoo\n" | while read f; do
+  printf "%s\n" "$erlangcoo" | while read f; do
     if [ -r "$f" ]; then 
       echo "Found Erlang cookie: $f"
       cat "$f" 2>/dev/null | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"
@@ -2514,7 +2514,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) GVM
   printf $Y"[+] "$GREEN"Searching GVM auth file\n"$NC
   gvmconfs=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_TMP\n$FIND_OTP\n$FIND_USR\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'gvm-tools\.conf')
-  printf "$gvmconfs\n" | while read f; do
+  printf "%s\n" "$gvmconfs" | while read f; do
     if [ -r "$f" ]; then 
       echo "Found GVM auth file: $f"
       cat "$f" 2>/dev/null | sed -${E} "s,username.*|password.*,${C}[1;31m&${C}[0m,"
@@ -2525,7 +2525,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) IPSEC
   printf $Y"[+] "$GREEN"Searching IPSEC files\n"$NC
   ipsecconfs=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_TMP\n$FIND_OTP\n$FIND_USR\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_MNT" | grep -E 'ipsec\.secrets|ipsec\.conf')
-  printf "$ipsecconfs\n" | while read f; do
+  printf "%s\n" "$ipsecconfs" | while read f; do
     if [ -r "$f" ]; then 
       echo "Found IPSEC file: $f"
       cat "$f" 2>/dev/null | sed -${E} "s,.*PSK.*|.*RSA.*|.*EAP =.*|.*XAUTH.*,${C}[1;31m&${C}[0m,"
@@ -2536,7 +2536,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) IRSSI
   printf $Y"[+] "$GREEN"Searching IRSSI files\n"$NC
   irssifols=$(echo "$FIND_DIR_VAR\n$FIND_DIR_HOME\n$FIND_DIR_ETC\n$FIND_DIR_OTP\n$FIND_DIR_USR\n$FIND_DIR_PRIVATE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_MNT" | grep -E '.irssi')
-  printf "$irssifols\n" | while read d; do
+  printf "%s\n" "$irssifols" | while read d; do
     if [ -r "$d/config" ]; then 
       echo "Found IRSSI config file: $d/config"
       cat "$d/config" 2>/dev/null | sed -${E} "s,password.*,${C}[1;31m&${C}[0m,"
@@ -2547,7 +2547,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) Keyring
   printf $Y"[+] "$GREEN"Searching Keyring files\n"$NC
   keyringsfilesfolds=$(echo "$FIND_DIR_VAR\n$FIND_DIR_ETC\n$FIND_DIR_HOME\n$FIND_DIR_TMP\n$FIND_DIR_USR\n$FIND_DIR_OPT\n$FIND_DIR_USERS\n$FIND_DIR_PRIVATE\n$FIND_DIR_APPLICATIONS\n$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_MNT\n$FIND_USR\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E 'keyrings|*\.keyring$|*\.keystore$')
-  printf "$keyringsfilesfolds\n" | sort | uniq | while read f; do
+  printf "%s\n" "$keyringsfilesfolds" | sort | uniq | while read f; do
     if [ -f "$f" ]; then 
       echo "Keyring file: $f" | sed "s,$f,${C}[1;31m&${C}[0m,"
     elif [ -d "$f" ]; then
@@ -2560,7 +2560,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) Filezilla
   printf $Y"[+] "$GREEN"Searching Filezilla sites file\n"$NC
   filezillaconfs=$(echo "$FIND_DIR_VAR\n$FIND_DIR_ETC\n$FIND_DIR_HOME\n$FIND_DIR_OPT\n$FIND_DIR_MNT" | grep -E 'filelliza')
-  printf "$filezillaconfs\n" | uniq | while read f; do
+  printf "%s\n" "$filezillaconfs" | uniq | while read f; do
     if [ -d "$f" ]; then 
       echo "Found Filezilla folder: $f"
       if [ -f "$f/sitemanager.xml" ]; then
@@ -2573,7 +2573,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) BACKUP-MANAGER
   printf $Y"[+] "$GREEN"Searching backup-manager files\n"$NC
   backupmanager=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_OPT\n$FIND_MNT\n$FIND_USR\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E 'storage.php|database.php')
-  printf "$backupmanager\n" | sort | uniq | while read f; do
+  printf "%s\n" "$backupmanager" | sort | uniq | while read f; do
     if [ -f "$f" ]; then 
       echo "backup-manager file: $f" | sed "s,$f,${C}[1;31m&${C}[0m,"
       cat "$f" 2>/dev/null | grep "'pass'|'password'|'user'|'database'|'host'" | sed -${E} "s,password|pass|user|database|host,${C}[1;31m&${C}[0m,"
@@ -2586,7 +2586,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   splunkpwd=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_MNT\n$FIND_SYSTEM\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -v "/etc/passwd$" | grep -E 'passwd$')
   SPLUNK_BIN="`command -v splunk 2>/dev/null`"
   if [ "$SPLUNK_BIN" ]; then echo "splunk binary was found installed on $SPLUNK_BIN" | sed "s,.*,${C}[1;31m&${C}[0m,"; fi
-  printf "$splunkpwd\n" | sort | uniq | while read f; do
+  printf "%s\n" "$splunkpwd" | sort | uniq | while read f; do
     if [ -f "$f" ] && ! [ -x "$f" ]; then 
       echo "passwd file: $f" | sed "s,$f,${C}[1;31m&${C}[0m,"
       cat "$f" 2>/dev/null | grep "'pass'|'password'|'user'|'database'|'host'|\$" | sed -${E} "s,password|pass|user|database|host|\$,${C}[1;31m&${C}[0m,"
@@ -2611,7 +2611,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   fi
   #Check gitlab files
   gitlabfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_MNT\n$FIND_SYSTEM\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -v "/lib" | grep -E "secrets.yml$|gitlab.yml$|gitlab.rb$")
-  printf "$gitlabfiles\n" | sort | uniq | while read f; do
+  printf "%s\n" "$gitlabfiles" | sort | uniq | while read f; do
     if [ "`echo $f | grep secrets.yml`" ]; then
       echo "Found $f" | sed "s,$f,${C}[1;31m&${C}[0m,"
       cat "$f" 2>/dev/null | grep -v "^$" | grep -v "^#"
@@ -2630,7 +2630,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Searching PGP/GPG\n"$NC
   pgpg=$(echo "$FIND_HOME\n$FIND_PRIVATE\n$FIND_MNT" | grep -E '\.pgp$|\.gpg$|.gnupg')
   if [ "$pgpg" ]; then echo "PGP/GPG files found:" ;
-    printf "$pgpg\n" | sort | uniq | while read f; do
+    printf "%s\n" "$pgpg" | sort | uniq | while read f; do
       if [ -f "$f" ]; then 
         ls -l "$f"
       else
@@ -2651,7 +2651,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) vi swp files
   printf $Y"[+] "$GREEN"Searching vim files\n"$NC
   vimfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_MNT\n$FIND_SYSTEM\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E "\.swp$|\.viminfo$")
-  printf "$vimfiles\n" | sort | uniq | while read f; do
+  printf "%s\n" "$vimfiles" | sort | uniq | while read f; do
     ls -l "$f" 2>/dev/null
   done
   echo ""
@@ -2679,7 +2679,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Searching docker files\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket\n"$NC
   dockerfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_MNT\n$FIND_RUN\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E 'docker.socket|docker.sock|Dockerfile|docker-compose.yml')
-  printf "$dockerfiles\n" | while read f; do
+  printf "%s\n" "$dockerfiles" | while read f; do
     ls -l "$f" 2>/dev/null
     if [ -S "$f" ] && [ -w "$f" ]; then
       echo "Docker socket file ($f) is writable" | sed -${E} "s,.*,${C}[1;31;103m&${C}[0m,"
@@ -2691,7 +2691,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Interesting Firefox Files\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/forensics/basic-forensics-esp/browser-artifacts#firefox\n"$NC
   firefoxdirs=$(echo "$FIND_DIR_HOME" | grep -E '\.mozilla')
-  printf "$firefoxdirs\n" | while read f; do
+  printf "%s\n" "$firefoxdirs" | while read f; do
     if [ "$f" ]; then
       echo "Found $f"
       find "$f" -name "places.sqlite" -o -name "bookmarkbackups" -o -name "formhistory.sqlite" -o -name "handlers.json" -o -name "persdict.dat" -o -name "addons.json" -o -name "cookies.sqlite" -o -name "cache2" -o -name "startupCache" -o -name "favicons.sqlite" -o -name "prefs.js" -o -name "downloads.sqlite" -o -name "thumbnails" -o -name "logins.json" -o -name "key4.db" -o -name "key3.db" 2>/dev/null | sort
@@ -2703,7 +2703,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   printf $Y"[+] "$GREEN"Interesting Chrome Files\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/forensics/basic-forensics-esp/browser-artifacts#firefox\n"$NC
   chromedirs=$(echo "$FIND_DIR_HOME" | grep -E 'google-chrome')
-  printf "$chromedirs\n" | while read f; do
+  printf "%s\n" "$chromedirs" | while read f; do
     if [ "$f" ]; then
       echo "Found $f"
       find "$f" -name "History" -o -name "Cookies" -o -name "Cache" -o -name "Bookmarks" -o -name "Web Data" -o -name "Favicons" -o -name "Login Data" -o -name "Current Session" -o -name "Current Tabs" -o -name "Last Session" -o -name "Last Tabs" -o -name "Extensions" -o -name "Thumbnails" 2>/dev/null | sort
@@ -2714,7 +2714,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) Autologin files
   printf $Y"[+] "$GREEN"Autologin Files\n"$NC
   autologinfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_MNT" | grep -E 'autologin|autologin.conf')
-  printf "$autologinfiles\n" | while read f; do
+  printf "%s\n" "$autologinfiles" | while read f; do
     if [ "$f" ]; then
       echo "$f"
       ls -l "$f" 2>/dev/null | sed "s,passwd,${C}[1;31m&${C}[0m,"
@@ -2760,7 +2760,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) FastCGI params
   printf $Y"[+] "$GREEN"FastCGI Params\n"$NC
   fastcgi_paramsfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_MNT\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E 'fastcgi_params')
-  printf "$fastcgi_paramsfiles\n" | while read f; do
+  printf "%s\n" "$fastcgi_paramsfiles" | while read f; do
     if [ "$f" ]; then
       ls -l "$f" 2>/dev/null
       cat "$f" 2>/dev/null | grep -E "DB_NAME|DB_USER|DB_PASS" | sed -${E} "s,DB_NAME|DB_USER|DB_PASS,${C}[1;31m&${C}[0m,"
@@ -2772,7 +2772,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) SNMP params
   printf $Y"[+] "$GREEN"SNMPs\n"$NC
   snmpdfiles=$(echo "$FIND_HOME\n$FIND_ETC\n$FIND_VAR\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_MNT\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E 'snmpd.conf')
-  printf "$snmpdfiles\n" | while read f; do
+  printf "%s\n" "$snmpdfiles" | while read f; do
     ls -l "$f" 2>/dev/null
     cat "$f" 2>/dev/null | grep -E "rocommunity|rwcommunity" | sed -${E} "s,rocommunity|rwcommunity,${C}[1;31m&${C}[0m,"
     echo ""
@@ -2964,9 +2964,9 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   echo ""
 
   ##-- IF) Files with ACLs
-  printf $Y"[+] "$GREEN"Files with ACLs\n"$NC
+  printf $Y"[+] "$GREEN"Files with ACLs (limited to 50)\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#acls\n"$NC
-  ((getfacl -t -s -R -p /bin /etc $HOMESEARCH /opt /sbin /usr /tmp /root 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed -${E} "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m,"
+  ((getfacl -t -s -R -p /bin /etc $HOMESEARCH /opt /sbin /usr /tmp /root 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | head -n 50 | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed -${E} "s,$knw_usrs,${C}[1;32m&${C}[0m," | sed "s,$USER,${C}[1;31m&${C}[0m,"
   echo ""
   
   ##-- IF) .sh files in PATH
@@ -3100,7 +3100,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   logrotate --version 2>/dev/null || echo_not_found "logrotate"
   lastWlogFolder="ImPOsSiBleeElastWlogFolder"
   logfind=`find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 3){ print line_init; }; if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; pre=act}' | head -n 100`
-  printf "$logfind\n" | while read log; do
+  printf "%s\n" "$logfind" | while read log; do
     if [ -w "$log" ] || [ `echo "$log" | grep -E "$Wfolders"` ]; then #Only print info if something interesting found
       if [ "`echo \"$log\" | grep \"You_can_write_more_log_files_inside_last_directory\"`" ]; then printf $ITALIC"$log\n"$NC;
       elif [ -w "$log" ] && [ "`command -v logrotate 2>/dev/null`" ] && [ "`logrotate --version 2>&1 | grep -E ' 1| 2| 3.1'`" ]; then printf "Writable:$RED $log\n"$NC; #Check vuln version of logrotate is used and print red in that case
@@ -3134,7 +3134,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Backup folders
   printf $Y"[+] "$GREEN"Backup folders\n"$NC
-  printf "$backup_folders\n" | while read b ; do 
+  printf "%s\n" "$backup_folders" | while read b ; do 
     ls -ld "$b" 2> /dev/null | sed -${E} "s,backups|backup,${C}[1;31m&${C}[0m,g";
     ls -l "$b" 2>/dev/null && echo ""
   done
@@ -3143,7 +3143,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Backup files
   printf $Y"[+] "$GREEN"Backup files (limited 100)\n"$NC
   backs=`find / -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*\.bak\.*" -o -name "*\.bck" -o -name "*\.bck\.*" -o -name "*\.bk" -o -name "*\.bk\.*" -o -name "*\.old" -o -name "*\.old\.*" \) -not -path "/proc/*" 2>/dev/null` 
-  printf "$backs\n" | head -n 100 | while read b ; do 
+  printf "%s\n" "$backs" | head -n 100 | while read b ; do 
     if [ -r "$b" ]; then 
       ls -l "$b" | grep -Ev "$notBackup" | grep -Ev "$notExtensions" | sed -${E} "s,backup|bck|\.bak|\.old,${C}[1;31m&${C}[0m,g"; 
     fi; 
@@ -3155,7 +3155,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   dbfiles=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_OPT\n$FIND_USR\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E '.*\.db$|.*\.sqlite$|.*\.sqlite3$' | grep -E -v '/man/.*|/usr/.*|/var/cache/.*' | head -n 100)
   FILECMD="`command -v file 2>/dev/null`"
   if [ "$dbfiles" ]; then
-    printf "$dbfiles\n" | while read f; do
+    printf "%s\n" "$dbfiles" | while read f; do
       if [ "$FILECMD" ]; then
         echo "Found: `file \"$f\"`" | sed -${E} "s,\.db|\.sql|\.sqlite|\.sqlite3,${C}[1;31m&${C}[0m,g"; 
       else
@@ -3163,7 +3163,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
       fi
     done
     SQLITEPYTHON=""
-    printf "$dbfiles\n" | while read f; do 
+    printf "%s\n" "$dbfiles" | while read f; do 
       if ([ -r "$f" ] && [ "$FILECMD" ] && [ "`file \"$f\" | grep -i sqlite`" ]) || ([ -r "$f" ] && [ ! "$FILECMD" ]); then #If readable and filecmd and sqlite, or readable and not filecmd
         printf $GREEN" -> Extracting tables from$NC $f $DG(limit 20)\n"$NC
         if [ "`command -v sqlite3 2>/dev/null`" ]; then
@@ -3177,7 +3177,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
           tables=""
         fi
         if [ "$tables" ]; then
-           printf "$tables\n" | while read t; do
+           printf "%s\n" "$tables" | while read t; do
             columns=""
             # Search for credentials inside the table using sqlite3
             if [ -z "$SQLITEPYTHON" ]; then
@@ -3213,7 +3213,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $Y"[+] "$GREEN"Readable hidden interesting files\n"$NC
   printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#read-sensitive-data\n"$NC
   fils=$(echo "$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_MNT\n$FIND_VAR\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E '\.msmtprc|\.env|\.google_authenticator|\.recently-used.xbel|\.lesshst|.*_history|\.sudo_as_admin_successful|\.profile|.*bashrc|.*httpd\.conf|.*\.plan|\.htpasswd|\.gitconfig|\.git-credentials|\.git|\.svn|\.rhosts|hosts\.equiv')
-  printf "$fils\n" | while read f; do 
+  printf "%s\n" "$fils" | while read f; do 
     if [ -r "$f" ]; then 
       ls -ld "$f" 2>/dev/null | sed "s,\.msmtprc|\.env|.google_authenticator|_history|\.lesshst|.recently-used.xbel|\.sudo_as_admin_successful|.profile|bashrc|httpd.conf|\.plan|\.htpasswd|.gitconfig|\.git-credentials|.git|.svn|\.rhosts|hosts.equiv|\.ldaprc,${C}[1;31m&${C}[0m," | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;31m&${C}[0m,g"; 
       if [ "`echo \"$f\" | grep \"_history\"`" ]; then
@@ -3253,7 +3253,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Readable files in /tmp, /var/tmp, bachups
   printf $Y"[+] "$GREEN"Readable files inside /tmp, /var/tmp, /private/tmp, /private/var/at/tmp, /private/var/tmp, and backup folders (limit 70)\n"$NC
   filstmpback=`find /tmp /var/tmp /private/tmp /private/var/at/tmp /private/var/tmp $backup_folders_row -type f 2>/dev/null | head -n 70`
-  printf "$filstmpback\n" | while read f; do if [ -r "$f" ]; then ls -l "$f" 2>/dev/null; fi; done
+  printf "%s\n" "$filstmpback" | while read f; do if [ -r "$f" ]; then ls -l "$f" 2>/dev/null; fi; done
   echo ""
 
   ##-- IF) Interesting writable files by ownership or all
@@ -3262,7 +3262,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     printf $B"[i] "$Y"https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files\n"$NC
     #In the next file, you need to specify type "d" and "f" to avoid fake link files apparently writable by all
     obmowbe=`find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | sort | uniq | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500`
-    printf "$obmowbe\n" | while read entry; do
+    printf "%s\n" "$obmowbe" | while read entry; do
       if [ "`echo \"$entry\" | grep \"You_can_write_even_more_files_inside_last_directory\"`" ]; then printf $ITALIC"$entry\n"$NC;
       elif [ "`echo \"$entry\" | grep -E \"$writeVB\"`" ]; then 
         echo "$entry" | sed -${E} "s,$writeVB,${C}[1;31;103m&${C}[0m,"
@@ -3280,7 +3280,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     for g in `groups`; do 
       printf "  Group "$GREEN"$g:\n"$NC; 
       iwfbg=`find / '(' -type f -or -type d ')' -group $g -perm -g=w ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500`
-      printf "$iwfbg\n" | while read entry; do
+      printf "%s\n" "$iwfbg" | while read entry; do
         if [ "`echo \"$entry\" | grep \"You_can_write_even_more_files_inside_last_directory\"`" ]; then printf $ITALIC"$entry\n"$NC;
         elif [ "`echo \"$entry\" | grep -E \"$writeVB\"`" ]; then 
           echo "$entry" | sed -${E} "s,$writeVB,${C}[1;31;103m&${C}[0m,"
@@ -3295,7 +3295,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Passwords in config PHP files
   printf $Y"[+] "$GREEN"Searching passwords in config PHP files\n"$NC
   configs=$(echo "$FIND_VAR\n$FIND_ETC\n$FIND_HOME\n$FIND_TMP\n$FIND_USR\n$FIND_OPT\n$FIND_PRIVATE\n$FIND_APPLICATIONS" | grep -E '.*config.*\.php|database.php|db.php|storage.php|settings.php')
-  printf "$configs\n" | while read c; do grep -EiI "(pwd|passwd|password|PASSWD|PASSWORD|dbuser|dbpass).*[=:].+|define ?\('(\w*passw|\w*user|\w*datab)" $c 2>/dev/null | grep -Ev "function|password.*= ?\"\"|password.*= ?''" | sed '/^.\{150\}./d' | sort | uniq | sed -${E} "s,[pP][aA][sS][sS][wW]|[dD][bB]_[pP][aA][sS][sS],${C}[1;31m&${C}[0m,g"; done
+  printf "%s\n" "$configs" | while read c; do grep -EiI "(pwd|passwd|password|PASSWD|PASSWORD|dbuser|dbpass).*[=:].+|define ?\('(\w*passw|\w*user|\w*datab)" $c 2>/dev/null | grep -Ev "function|password.*= ?\"\"|password.*= ?''" | sed '/^.\{150\}./d' | sort | uniq | sed -${E} "s,[pP][aA][sS][sS][wW]|[dD][bB]_[pP][aA][sS][sS],${C}[1;31m&${C}[0m,g"; done
   echo ""
 
   ##-- IF) TTY passwords
@@ -3328,11 +3328,11 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     ##-- IF) Find possible files with passwords
     printf $Y"[+] "$GREEN"Finding passwords inside key folders (limit 70) - only PHP files\n"$NC
     intpwdfiles=`timeout 150 grep -RiIE "(pwd|passwd|password|PASSWD|PASSWORD|dbuser|dbpass).*[=:].+|define ?\('(\w*passw|\w*user|\w*datab)" $HOMESEARCH /var/www /usr/local/www/ $backup_folders_row /tmp /etc /root /mnt /Users /private 2>/dev/null`
-    printf "$intpwdfiles" | grep -I ".php:" | sed '/^.\{150\}./d' | sort | uniq | grep -iIv "linpeas" | head -n 70 | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[dD][eE][fF][iI][nN][eE],${C}[1;31m&${C}[0m,g"
+    printf "%s\n" "$intpwdfiles" | grep -I ".php:" | sed '/^.\{150\}./d' | sort | uniq | grep -iIv "linpeas" | head -n 70 | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[dD][eE][fF][iI][nN][eE],${C}[1;31m&${C}[0m,g"
     echo ""
 
     printf $Y"[+] "$GREEN"Finding passwords inside key folders (limit 70) - no PHP files\n"$NC
-    printf "$intpwdfiles" | grep -vI ".php:" | grep -E "^/" | grep ":" | sed '/^.\{150\}./d' | sort | uniq | grep -iIv "linpeas" | head -n 70 | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[dD][eE][fF][iI][nN][eE],${C}[1;31m&${C}[0m,g"
+    printf "%s\n" "$intpwdfiles" | grep -vI ".php:" | grep -E "^/" | grep ":" | sed '/^.\{150\}./d' | sort | uniq | grep -iIv "linpeas" | head -n 70 | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[dD][eE][fF][iI][nN][eE],${C}[1;31m&${C}[0m,g"
     echo ""
 
     ##-- IF) Find possible files with passwords
@@ -3344,7 +3344,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     ##-- IF) Find possible conf files with passwords
     printf $Y"[+] "$GREEN"Finding possible password in config files\n"$NC
     ppicf=`find $HOMESEARCH /etc /root /tmp /private /Applications -name "*.conf" -o -name "*.cnf" -o -name "*.config" -name "*.json" 2>/dev/null`
-    printf "$ppicf\n" | while read f; do
+    printf "%s\n" "$ppicf" | while read f; do
       if [ "`grep -EiI 'passwd.*|creden.*' \"$f\" 2>/dev/null`" ]; then
         echo $ITALIC" $f"$NC
         grep -EiIo 'passw.*|creden.*' "$f" 2>/dev/null | sed -${E} "s,[pP][aA][sS][sS][wW]|[cC][rR][eE][dD][eE][nN],${C}[1;31m&${C}[0m,g"
