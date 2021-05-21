@@ -62,7 +62,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
       $Y-P$B Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
       $Y-o$B Only execute selected checks (SysI, Container, Devs, AvaSof, ProCronSrvcsTmrsSocks, Net, UsrI, SofI, IntFiles). Select a comma separated list.
       $Y-L$B Force linpeas execution.
-      $Y-M$B Force macpeas execution.
+      $Y-M$B Force macpeas execution UwU.
       $Y-t$B Threads to search files inside the system (by default it's the number of CPU threads).
       $Y-d <IP/NETMASK>$B Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
       $Y-p <PORT(s)> -d <IP/NETMASK>$B Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
