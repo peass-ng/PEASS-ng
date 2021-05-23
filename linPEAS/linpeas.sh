@@ -778,6 +778,22 @@ containerCheck() {
     inContainer="1"
     containerType="lxc"
   fi
+
+  # Are we inside podman?
+  if env | grep -qa "container=podman" 2>/dev/null ||
+      grep -qa "container=podman" /proc/1/environ 2>/dev/null; then
+
+    inContainer="1"
+    containerType="podman"
+  fi
+
+  # Check for other container platforms that report themselves in PID 1 env
+  if [ -z "$inContainer" ]; then
+    if grep -a 'container=' /proc/1/environ 2>/dev/null; then
+      inContainer="1"
+      containerType="`grep -a 'container=' /proc/1/environ | cut -d= -f2`"
+    fi
+  fi
 }
 
 inDockerGroup() {
@@ -1242,18 +1258,21 @@ if [ "`echo $CHECKS | grep Container`" ]; then
   printf $Y"[+] "$GREEN"Any running containers? ........ "$NC
   # Get counts of running containers for each platform
   dockercontainers=`docker ps --format "{{.Names}}" 2>/dev/null | wc -l`
+  podmancontainers=`podman ps --format "{{.Names}}" 2>/dev/null | wc -l`
   lxccontainers=`lxc list -c n --format csv 2>/dev/null | wc -l`
   rktcontainers=`rkt list 2>/dev/null | tail -n +2  | wc -l`
-  if [ "$dockercontainers" -eq "0" ] && [ "$lxccontainers" -eq "0" ] && [ "$rktcontainers" -eq "0" ]; then
+  if [ "$dockercontainers" -eq "0" ] && [ "$lxccontainers" -eq "0" ] && [ "$rktcontainers" -eq "0" ] && [ "$podmancontainers" -eq "0" ]; then
     echo_no
   else
     containerCounts=""
     if [ "$dockercontainers" -ne "0" ]; then containerCounts="${containerCounts}docker($dockercontainers) "; fi
+    if [ "$podmancontainers" -ne "0" ]; then containerCounts="${containerCounts}podman($podmancontainers) "; fi
     if [ "$lxccontainers" -ne "0" ]; then containerCounts="${containerCounts}lxc($lxccontainers) "; fi
     if [ "$rktcontainers" -ne "0" ]; then containerCounts="${containerCounts}rkt($rktcontainers) "; fi
     echo "Yes $containerCounts" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"
     # List any running containers
     if [ "$dockercontainers" -ne "0" ]; then echo "Running Docker Containers" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; docker ps | tail -n +2 2>/dev/null; echo ""; fi
+    if [ "$podmancontainers" -ne "0" ]; then echo "Running Podman Containers" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; podman ps | tail -n +2 2>/dev/null; echo ""; fi
     if [ "$lxccontainers" -ne "0" ]; then echo "Running LXC Containers" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; lxc list 2>/dev/null; echo ""; fi
     if [ "$rktcontainers" -ne "0" ]; then echo "Running RKT Containers" | sed -${E} "s,.*,${C}[1;31m&${C}[0m,"; rkt list 2>/dev/null; echo ""; fi
   fi
