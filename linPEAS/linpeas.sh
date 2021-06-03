@@ -71,7 +71,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
 
 while getopts "h?asnd:p:i:P:qo:LMwt:" opt; do
   case "$opt" in
-    h|\?) printf "$HELP"$NC; exit 0;;
+    h|\?) printf "%s" "$HELP$NC"; exit 0;;
     a)  FAST="";;
     s)  SUPERFAST=1;;
     n)  NOTEXPORT=1;;
