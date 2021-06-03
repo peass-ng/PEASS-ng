@@ -451,7 +451,7 @@ CALL :T_Progress 1
 
 :UnquotedServicePaths
 CALL :ColorLine " %E%33m[+]%E%97m UNQUOTED SERVICE PATHS"
-ECHO.   [i] When the path is not quoted (ex: C:\Program files\soft\new folder\exec.exe) Windows will try to execute first 'C:\Progam.exe', then 'C:\Program Files\soft\new.exe' and finally 'C:\Program Files\soft\new folder\exec.exe'. Try to create 'C:\Program Files\soft\new.exe'
+ECHO.   [i] When the path is not quoted (ex: C:\Program files\soft\new folder\exec.exe) Windows will try to execute first 'C:\Program.exe', then 'C:\Program Files\soft\new.exe' and finally 'C:\Program Files\soft\new folder\exec.exe'. Try to create 'C:\Program Files\soft\new.exe'
 ECHO.   [i] The permissions are also checked and filtered using icacls
 ECHO.   [?] https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#services
 for /f "tokens=2" %%n in ('sc query state^= all^| findstr SERVICE_NAME') do (

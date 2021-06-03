@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.2.1"
+VERSION="v3.2.2"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -47,6 +47,7 @@ QUIET=""
 CHECKS="SysI,Container,Devs,AvaSof,ProCronSrvcsTmrsSocks,Net,UsrI,SofI,IntFiles"
 WAIT=""
 PASSWORD=""
+NOCOLOR=""
 THREADS="`((grep -c processor /proc/cpuinfo 2>/dev/null) || ((command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n"`"
 [ -z "$THREADS" ] && THREADS="2" #If THREADS is empty, put number 2
 [ -n "$THREADS" ] && eTHREADS="2" #If THREADS is null, put number 2
@@ -59,6 +60,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
       $Y-s$B SuperFast (don't check some time consuming checks) - Stealth mode
       $Y-w$B Wait execution between big blocks
       $Y-n$B Do not export env variables related with history and do not check Internet connectivity
+      $Y-N$B Do not use colours
       $Y-P$B Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
       $Y-o$B Only execute selected checks (SysI, Container, Devs, AvaSof, ProCronSrvcsTmrsSocks, Net, UsrI, SofI, IntFiles). Select a comma separated list.
       $Y-L$B Force linpeas execution.
@@ -69,7 +71,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
       $Y-i <IP> [-p <PORT(s)>]$B Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
       $GREEN Notice$B that if you select some network action, no PE check will be performed\n\n$NC"
 
-while getopts "h?asnd:p:i:P:qo:LMwt:" opt; do
+while getopts "h?asnd:p:i:P:qo:LMwt:N" opt; do
   case "$opt" in
     h|\?) printf "%s" "$HELP$NC"; exit 0;;
     a)  FAST="";;
@@ -85,10 +87,24 @@ while getopts "h?asnd:p:i:P:qo:LMwt:" opt; do
     M)  MACPEAS="1";;
     w)  WAIT=1;;
     t)  THREADS=$OPTARG;;
+    N)  NOCOLOR="1";;
     esac
 done
 
 if [ "$MACPEAS" ]; then SCRIPTNAME="macpeas"; else SCRIPTNAME="linpeas"; fi
+if [ "$NOCOLOR" ]; then
+  echo lalalala
+  C=""
+  RED=""
+  GREEN=""
+  Y=""
+  B=""
+  LG=""
+  DG=""
+  NC=""
+  UNDERLINED=""
+  ITALIC=""
+fi
 
 
 ###########################################
@@ -186,7 +202,7 @@ echo ""
 printf $B"Linux Privesc Checklist: "$Y"https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist\n"$NC
 echo " LEGEND:" | sed "s,LEGEND,${C}[1;4m&${C}[0m,"
 echo "  RED/YELLOW: 95% a PE vector" | sed "s,RED/YELLOW,${C}[1;31;103m&${C}[0m,"
-echo "  RED: You must take a look at it" | sed "s,RED,${C}[1;31m&${C}[0m,"
+echo "  RED: You should take a look to it" | sed "s,RED,${C}[1;31m&${C}[0m,"
 echo "  LightCyan: Users with console" | sed "s,LightCyan,${C}[1;96m&${C}[0m,"
 echo "  Blue: Users without console & mounted devs" | sed "s,Blue,${C}[1;34m&${C}[0m,"
 echo "  Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts, cronjobs) " | sed "s,Green,${C}[1;32m&${C}[0m,"
@@ -405,8 +421,8 @@ while $SEDOVERFLOW; do
   #else
   #  WF=`find / -maxdepth $MAXPATH_FIND_W -type d ! -path "/proc/*" -and '(' -writable -or -user $USER ')' 2>/dev/null | sort`
   #fi
-  Wfolders=`printf "$WF" | tr '\n' '|'`"|[^\*][^\ ]*\ \*"
-  Wfolder="`printf "$WF" | grep "tmp\|shm\|home\|Users\|root\|etc\|var\|opt\|bin\|lib\|mnt\|private\|Applications" | head -n1`"
+  Wfolders=`printf "%s" "$WF" | tr '\n' '|'`"|[^\*][^\ ]*\ \*"
+  Wfolder="`printf "%s" "$WF" | grep "tmp\|shm\|home\|Users\|root\|etc\|var\|opt\|bin\|lib\|mnt\|private\|Applications" | head -n1`"
   printf "test\ntest\ntest\ntest"| sed -${E} "s,$Wfolders|\./|\.:|:\.,${C}[1;31;103m&${C}[0m,g" >/dev/null 2>&1
   if [ $? -eq 0 ]; then
       SEDOVERFLOW=false
