@@ -639,6 +639,7 @@
     <Compile Include="3rdParty\Watson\Msrc\CVE-2020-0668.cs" />
     <Compile Include="3rdParty\Watson\Msrc\CVE-2020-0683.cs" />
     <Compile Include="3rdParty\Watson\Msrc\CVE-2020-1013.cs" />
+    <Compile Include="3rdParty\Watson\Msrc\CVE-2020-0796.cs" />
     <Compile Include="3rdParty\Watson\Vulnerability.cs" />
     <Compile Include="3rdParty\Watson\VulnerabilityCollection.cs" />
     <Compile Include="3rdParty\Watson\Watson.cs" />
