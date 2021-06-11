@@ -1,0 +1,291 @@
+root_folders:
+  - applications  #common
+  - etc           #common
+  - home          #common
+  - lib
+  - mnt           #common
+  - opt           #common
+  - private       #common
+  - run
+  - snap          #common
+  - sys 
+  - system
+  - systemd
+  - tmp           #common
+  - usr           #common
+  - var           #common
+
+common_file_folders: "applications etc home mnt opt private snap tmp usr var"
+common_directory_folders: "applications etc home mnt opt private tmp usr var"
+
+
+defaults:
+  auto_check: False           #The builder will generate a ceck for the file
+  bad_regex: ""               #The regex used to color red and grep lines (if only_bad_lines and no line_grep)
+  check_extra_path: ""        #Check if the found files are in a specific path
+  good_regex: ""              #The regex to color green
+  line_grep: ""               #The regex to grep lines in a file (if only_bad_lines), by default bad_regex is used here if empty
+  only_bad_lines: False       #Only print lines containing something red
+  regex_remove: ""            #Extra regex to remove some lines
+  remove_empty_lines : False  #Remove empty lines
+
+  dir_file_list: True         #List specific files searched inside a found directory
+  dir_file_cat: False         #Cat specific files searched inside a found directory
+
+
+#Files & folders to search
+search: 
+  Systemd: 
+    ? "*.service"
+    : 
+      type: f
+      search_in: 
+        - all
+  
+  Timer: 
+    ? "*.timer"
+    : 
+      type: f
+      search_in: 
+        - all   
+  
+  Socket: 
+    ? "*.socket"
+    : 
+      type: f
+      search_in: 
+        - all
+  
+  DBus: 
+    ? "system.d"
+    : 
+      type: d
+      search_in:
+        - etc
+    
+    ? "system.d"
+    : 
+      type: d
+      search_in: 
+        - etc
+    
+  MySQL:
+    mysql:
+      type: d
+      search_in: 
+        - common_directory_folders
+  
+  PostgreSQL:
+    ? "pgadmin*.db"
+    : 
+      type: f
+      search_in: 
+        - common_file_folders
+    
+    ? "pg_hba.conf"
+    : 
+      type: f
+      search_in: 
+        - common_file_folders
+    
+    ? "postgresql.conf"
+    : 
+      type: f
+      search_in: 
+        - common_file_folders
+    
+    ? "pgsql.conf"
+    : 
+      type: f
+      search_in: 
+        - common_file_folders
+    
+  Apache:
+    ? "sites-enabled"
+    : 
+      type: d
+      search_in: 
+        - common_directory_folders
+    
+    ? "000-default"
+    : 
+      type: f
+      search_in: 
+        - common_file_folders
+  
+  PHP_files:
+    ? "sess_*"
+    : 
+      type: f
+      search_in: 
+        - common_file_folders
+    
+    ? "*config*.php"
+    : 
+      type: f
+      search_in: 
+        - common_file_folders
+    
+    ? "database.php"
+    : 
+      type: f
+      search_in: 
+        - common_file_folders
+    
+    ? "db.php"
+    : 
+      type: f
+      search_in: 
+        - common_file_folders
+
+    ? "storage.php"
+    : 
+      type: f
+      search_in: 
+        - common_file_folders
+  
+  Wordpress:
+    ? "wp-config.php"
+    : 
+      auto_check: True
+      bad_regex: "PASSWORD|USER|NAME|HOST"
+			only_bad_lines: True
+      type: f
+      search_in: 
+        - common_file_folders
+  
+  Drupal:
+    ? "settings.php"
+    : 
+      auto_check: True
+      bad_regex: "drupal_hash_salt|'database'|'username'|'password'|'host'|'port'|'driver'|'prefix'"
+      check_extra_path: "/default/settings.php"
+			only_bad_lines: True
+      type: f
+      search_in: 
+        - common_file_folders
+  
+  Moodle:
+    ? "config.php"
+    : 
+      auto_check: True
+      bad_regex: "dbtype|dbhost|dbuser|dbhost|dbpass|dbport"
+      check_extra_path: "moodle/config.php"
+			only_bad_lines: True
+      type: f
+      search_in: 
+        - common_file_folders
+
+  Tomcat:
+    ? "tomcat-users.xml"
+    : 
+      auto_check: True
+      bad_regex: "dbtype|dbhost|dbuser|dbhost|dbpass|dbport"
+      check_extra_path: "username=|password="
+			only_bad_lines: True
+      type: f
+      search_in: 
+        - common_file_folders
+  
+  Mongo:
+    ? "mongod*.conf"
+    : 
+      type: f
+      search_in: 
+        - common_file_folders
+  
+  Supervisord:
+    ? "supervisord.conf"
+    : 
+      auto_check: True
+      bad_regex: "port.*=|username.*=|password.*="
+      type: f
+      search_in: 
+        - common_file_folders
+
+  Cesi:
+    ? "cesi.conf"
+    : 
+      auto_check: True
+      bad_regex: "username.*=|password.*=|host.*=|port.*=|database.*="
+      type: f
+      search_in: 
+        - common_file_folders
+  
+  Rsync:
+    ? "rsyncd.conf"
+    : 
+      auto_check: True
+      bad_regex: "secrets.*|auth.*users.*="
+      type: f
+      remove_line: True
+      remove_regex: '"\W+\#|^#"'
+      search_in: 
+        - common_file_folders
+    
+    ? "rsyncd.secrets"
+    : 
+      auto_check: True
+      bad_regex: ".*"
+      type: f
+      search_in: 
+        - common_file_folders
+
+  Hostapd:
+    ? "hostapd.conf"
+    : 
+      auto_check: True
+      bad_regex: "passphrase.*="
+      type: f
+      search_in: 
+        - common_file_folders
+  
+  Anaconda-ks:
+    ? "anaconda-ks.cfg"
+    : 
+      auto_check: True
+      bad_regex: "rootpw.*"
+      only_bad_lines: True
+      type: f
+      search_in: 
+        - common_file_folders
+  
+  VNC:
+    ? ".vnc"
+    : 
+      auto_check: True
+      files:
+        ? "passwd"
+        :
+          dir_file_list: True
+          dir_file_cat: False
+      type: d
+      search_in: 
+        - common_directory_folders
+
+  Ldap:
+    ? "ldap"
+    : 
+      auto_check: True
+      files:
+        ? "*.bdb"
+        :
+          dir_file_list: True
+          dir_file_cat: True
+          bad_regex: "administrator|password|ADMINISTRATOR|PASSWORD|Password|Administrator"
+          line_grep: '-i -a -E -o "description.*"'
+      type: d
+      search_in: 
+        - common_directory_folders
+
+  Anaconda-ks:
+    ? "*.ovpn"
+    : 
+      auto_check: True
+      bad_regex: "auth-user-pass.*"
+      only_bad_lines: True
+      type: f
+      search_in: 
+        - common_file_folders
+  
+  SSH:
