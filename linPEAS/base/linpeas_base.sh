@@ -2741,7 +2741,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Others files in my dirs
   if ! [ "$IAMROOT" ]; then
     print_2title "Searching folders owned by me containing others files on it"
-    (find / -type d -user "$USER" -d 1 -not -path "/proc/*" 2>/dev/null | while read d; do find "$d" -maxdepth 1 ! -user "$USER" -exec dirname {} \; 2>/dev/null; done) | sort | uniq | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed -${E} "s,$knw_usrs,${C}[1;32m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;13m&${C}[0m,g"
+    (find / -type d -user "$USER" ! -path "/proc/*" 2>/dev/null | while read d; do find "$d" -maxdepth 1 ! -user "$USER" -type f -or -type d -exec dirname {} \; 2>/dev/null; done) | sort | uniq | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${C}[1;34m&${C}[0m," | sed -${E} "s,$knw_usrs,${C}[1;32m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;13m&${C}[0m,g"
     echo ""
   fi
 
