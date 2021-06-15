@@ -1,7 +1,7 @@
 root_folders:
   - /applications  #common
   - /etc           #common
-  - /home          #common
+  - $HOMESEARCH    #common, use this instead of "/home"
   - /lib
   - /lib32
   - /lib64
@@ -20,7 +20,7 @@ root_folders:
 common_file_folders:
   - /applications 
   - /etc
-  - /home
+  - $HOMESEARCH
   - /mnt
   - /opt
   - /private
@@ -32,13 +32,18 @@ common_file_folders:
 common_directory_folders:
   - /applications
   - /etc
-  - /home
+  - $HOMESEARCH
   - /mnt
   - /opt
   - /private
   - /tmp
   - /usr
   - /var
+
+peas_search_markup: "peass{SEARCHES_HERE}"
+find_search_markup: "peass{FIND_HERE}"
+find_template: >
+          `eval_bckgrd "find peass{FIND_HERE} 2>/dev/null | sort; printf \\\$Y'. '\\\$NC 1>&2;"`
 
 
 defaults:
@@ -103,13 +108,13 @@ search:
       : 
         type: d
         search_in:
-          - etc
+          - /etc
       
       ? "system.d"
       : 
         type: d
         search_in: 
-          - etc
+          - /etc
     
   MySQL:
     config:
@@ -199,9 +204,9 @@ search:
         check_extra_path: '/tmp/.*sess_.*|/var/tmp/.*sess_.*'
         type: f
         search_in: 
-          - tmp
-          - var
-          - mnt
+          - /tmp
+          - /var
+          - /mnt
   
   PHP_files:
     config:
@@ -506,19 +511,21 @@ search:
       : 
         type: f
         search_in: 
-          - tmp
+          - /tmp
       
       ? "*ssh*config*"
       : 
         type: f
         search_in: 
-          - usr home
+          - /usr 
+          - $HOMESEARCH
       
       ? "*config*ssh*"
       : 
         type: f
         search_in: 
-          - usr home
+          - /usr
+          - $HOMESEARCH
   
   Cloud credentials:
     config:
@@ -627,7 +634,7 @@ search:
         check_extra_path: "/etc/init.d/"
         type: f
         search_in: 
-          - etc
+          - /etc
 
   Logstash:
     config:
@@ -1063,7 +1070,7 @@ search:
 
         type: d
         search_in: 
-          - home
+          - $HOMESEARCH
 
   Chrome:
     config:
@@ -1122,7 +1129,7 @@ search:
             just_list_file: True
         
         search_in: 
-          - home
+          - $HOMESEARCH
 
   Autologin:
     config:

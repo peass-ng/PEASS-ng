@@ -3,6 +3,8 @@ import yaml
 
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+LINPEAS_BASE_PATH = CURRENT_DIR + "/base/" + "linpeas_base.sh"
+FINAL_LINPEAS_PATH = CURRENT_DIR + "/" + "linpeas.sh"
 YAML_NAME = "sensitive_files.yaml"
 FILES_YAML = CURRENT_DIR + "/../build_lists/" + YAML_NAME
 
@@ -13,8 +15,11 @@ ROOT_FOLDER = YAML_LOADED["root_folders"]
 DEFAULTS = YAML_LOADED["defaults"]
 COMMON_FILE_FOLDERS = YAML_LOADED["common_file_folders"]
 COMMON_DIR_FOLDERS = YAML_LOADED["common_directory_folders"]
-assert  all(f in ROOT_FOLDER for f in COMMON_FILE_FOLDERS)
-assert  all(f in ROOT_FOLDER for f in COMMON_DIR_FOLDERS)
+assert all(f in ROOT_FOLDER for f in COMMON_FILE_FOLDERS)
+assert all(f in ROOT_FOLDER for f in COMMON_DIR_FOLDERS)
+PEAS_SEARCH_MARKUP = YAML_LOADED["peas_search_markup"]
+FIND_SEARCH_MARKUP = YAML_LOADED["find_search_markup"]
+FIND_TEMPLATE = YAML_LOADED["find_template"]
 
 
 class FileRecord:
@@ -45,8 +50,27 @@ class FileRecord:
         self.remove_regex = remove_regex
         self.remove_empty_lines = remove_empty_lines
         self.remove_path = remove_path
-        self.type = search_in
         self.type = type
+        self.search_in = self.__resolve_search_in(search_in)
+
+    def __resolve_search_in(self, search_in):
+        """ Resolve spacial values to the correct directories """
+
+        if "all" in search_in:
+            search_in.remove("all")
+            search_in = ROOT_FOLDER
+
+        if "common" in search_in:
+            search_in.remove("common")
+            if self.type == "d":
+                search_in = list(set(search_in + COMMON_DIR_FOLDERS))
+            else:
+                search_in = list(set(search_in + COMMON_FILE_FOLDERS))
+        
+        #Check that folders to search in are specified in ROOT_FOLDER
+        assert all(r in ROOT_FOLDER for r in search_in)
+        
+        return search_in
 
 
 class PEASRecord:
@@ -81,9 +105,63 @@ class PEASLoaded:
             )
 
 
+class LinpeasBuilder:
+    def __init__(self, ploaded:PEASLoaded):
+        self.ploaded = ploaded
+        self.__get_files_to_search()
+        with open(LINPEAS_BASE_PATH, 'r') as file:
+            self.linpeas_sh = file.read()
+
+    def build(self):
+        find_calls = self.__generate_finds()
+        self.__write_finds(find_calls)
+        self.__write_linpeas()
+
+
+    def __get_files_to_search(self):
+        """Given a PEASLoaded and find the files that need to be searched on each root folder"""
+        self.dict_to_search = {"d": {}, "f": {}}
+        self.dict_to_search["d"] = {r: set() for r in ROOT_FOLDER}
+        self.dict_to_search["f"] = {r: set() for r in ROOT_FOLDER}
+
+        for precord in self.ploaded.peasrecords:
+            for frecord in precord.filerecords:
+                for folder in frecord.search_in:
+                    self.dict_to_search[frecord.type][folder].add(frecord.regex)
+
+
+    def __generate_finds(self):
+        """Given the regexes to search on each root folder, generate the find command"""
+        finds = []
+        for type,searches in self.dict_to_search.items():
+            for r,regexes in searches.items():
+                find_line = f"{r} "
+                if type == "d": find_line += "-type d "
+                find_line += '-name \\"' + '\\" -o -name \\"'.join(regexes) + '\\"'
+
+                find_line = FIND_TEMPLATE.replace(FIND_SEARCH_MARKUP, find_line)
+                find_line = f"FIND_{r[1:].upper()}={find_line}"
+                finds.append(find_line)
+        
+        return finds
+
+
+    def __write_finds(self, find_calls):
+        """Substitude the markup with the actual find code"""
+        self.linpeas_sh = self.linpeas_sh.replace(PEAS_SEARCH_MARKUP, "\n".join(find_calls))
+    
+    def __write_linpeas(self):
+        """Write on disk the final linpeas"""
+        with open(FINAL_LINPEAS_PATH, "w") as f:
+            f.write(self.linpeas_sh)
+
+
 
 def main():
     ploaded = PEASLoaded()
-    print(ploaded.peasrecords)
+    lbuilder = LinpeasBuilder(ploaded)
+    lbuilder.build()
 
-main()
+
+if __name__ == "__main__":
+    main()
