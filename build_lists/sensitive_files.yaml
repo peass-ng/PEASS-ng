@@ -1,15 +1,21 @@
 root_folders:
   - /applications  #common
+  - /bin           #common
+  - /.cache        #common
+  - /cdrom         #common
   - /etc           #common
   - $HOMESEARCH    #common, use this instead of "/home"
   - /lib
   - /lib32
   - /lib64
+  - /media         #common
   - /mnt           #common
   - /opt           #common
   - /private       #common
   - /run
+  - /sbin          #common
   - /snap          #common
+  - /srv           #common
   - /sys 
   - /system
   - /systemd
@@ -17,33 +23,55 @@ root_folders:
   - /usr           #common
   - /var           #common
 
+
 common_file_folders:
   - /applications 
+  - /bin
+  - /.cache
+  - /cdrom
   - /etc
   - $HOMESEARCH
+  - /media
   - /mnt
   - /opt
   - /private
+  - /sbin
   - /snap
+  - /srv
   - /tmp
   - /usr
   - /var
 
 common_directory_folders:
-  - /applications
+  - /applications 
+  - /bin
+  - /.cache
+  - /cdrom
   - /etc
   - $HOMESEARCH
+  - /media
   - /mnt
   - /opt
   - /private
+  - /sbin
+  - /snap
+  - /srv
   - /tmp
   - /usr
   - /var
 
-peas_search_markup: "peass{SEARCHES_HERE}"
-find_search_markup: "peass{FIND_HERE}"
+peas_finds_markup: "peass{FINDS_HERE}"
+find_line_markup: "peass{FIND_PARAMS_HERE}"
 find_template: >
-          `eval_bckgrd "find peass{FIND_HERE} 2>/dev/null | sort; printf \\\$Y'. '\\\$NC 1>&2;"`
+          `eval_bckgrd "find peass{FIND_PARAMS_HERE} 2>/dev/null | sort; printf \\\$Y'. '\\\$NC 1>&2;"`
+
+peas_storages_markup: "peass{STORAGES_HERE}"
+storage_line_markup: "peass{STORAGE_PARAMS_HERE}"
+storage_line_extra_markup: "peass{STORAGE_PARAMS_EXTRA_HERE}"
+storage_template: >
+          $(echo "peass{STORAGE_PARAMS_HERE}" peass{STORAGE_PARAMS_EXTRA_HERE} | sort | uniq | head -n 100)
+
+int_hidden_files_markup: "peass{INT_HIDDEN_FILES}"
 
 
 defaults:
@@ -55,7 +83,7 @@ defaults:
   line_grep: ""               #The regex to grep lines in a file (if only_bad_lines), by default bad_regex is used here if empty
   only_bad_lines: False       #Only print lines containing something red
   remove_empty_lines: False   #Remove empty lines
-  remove_path: ""             #Not interested in files contaiing this path
+  remove_path: ""             #Not interested in files containing this path
   remove_regex: ""            #Extra regex to remove some lines
   search_in:                  #By default search in defined common
     - common
@@ -292,7 +320,7 @@ search:
       ? "tomcat-users.xml"
       : 
         bad_regex: "dbtype|dbhost|dbuser|dbhost|dbpass|dbport"
-        check_extra_path: "username=|password="
+        line_grep: "username=|password="
         only_bad_lines: True
         type: f
         search_in: 
@@ -430,7 +458,7 @@ search:
         search_in: 
           - common
   
-  SSH:
+  SSH_FILES:
     config:
       auto_check: False
 
@@ -464,55 +492,87 @@ search:
         type: f
         search_in: 
           - common
-      
+  
+  CERTSB4:
+    config:
+      auto_check: False
+    
+    files:
       ? "*.pem"
       : 
         type: f
+        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*'
         search_in: 
           - common
       
       ? "*.cer"
       : 
         type: f
+        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*'
         search_in: 
           - common
       
       ? "*.crt"
       : 
         type: f
+        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*'
         search_in: 
           - common
-
+  
+  CERTSBIN:
+    config:
+      auto_check: False
+    
+    files:
       ? "*.csr"
       : 
         type: f
+        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
         search_in: 
           - common
       
       ? "*.der"
       : 
         type: f
+        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
         search_in: 
           - common
-      
+  
+  CERTSCLIENT:
+    config:
+      auto_check: False
+    
+    files:
       ? "*.pfx"
       : 
         type: f
+        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
         search_in: 
           - common
       
       ? "*.p12"
       : 
         type: f
+        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
         search_in: 
           - common
-      
+  
+  SSH_AGENTS:
+    config:
+      auto_check: False
+    
+    files:
       ? "agent*"
       : 
         type: f
         search_in: 
           - /tmp
       
+  SSH_CONFIG:
+    config:
+      auto_check: False
+    
+    files:
       ? "*ssh*config*"
       : 
         type: f
@@ -662,7 +722,7 @@ search:
         search_in: 
           - common
   
-  Vault-ssh:
+  Vault_ssh_helper:
     config:
       auto_check: False
 
@@ -672,7 +732,12 @@ search:
         type: f
         search_in: 
           - common
-      
+
+  Vault_ssh_token:
+    config:
+      auto_check: False
+
+    files:
       ? ".vault-token"
       : 
         type: f
@@ -1206,11 +1271,13 @@ search:
     files:
       ? ".*_history"
       : 
+        bad_regex: "$pwd_inside_history"
+        line_grep: '-a "$pwd_inside_history"'
         type: f
         search_in: 
           - common
     
-  Http.conf:
+  Http_conf:
     config:
       auto_check: True
 
@@ -1395,7 +1462,7 @@ search:
           - common
 
 # Final section
-  Dabatase:
+  Database:
     config:
       auto_check: False
 
@@ -1438,7 +1505,7 @@ search:
         search_in: 
           - common
 
-  Password Files:
+  Password_Files:
     config:
       auto_check: False
 

@@ -1,5 +1,6 @@
 import os
 import yaml
+import re
 
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -17,9 +18,19 @@ COMMON_FILE_FOLDERS = YAML_LOADED["common_file_folders"]
 COMMON_DIR_FOLDERS = YAML_LOADED["common_directory_folders"]
 assert all(f in ROOT_FOLDER for f in COMMON_FILE_FOLDERS)
 assert all(f in ROOT_FOLDER for f in COMMON_DIR_FOLDERS)
-PEAS_SEARCH_MARKUP = YAML_LOADED["peas_search_markup"]
-FIND_SEARCH_MARKUP = YAML_LOADED["find_search_markup"]
+
+
+PEAS_FINDS_MARKUP = YAML_LOADED["peas_finds_markup"]
+FIND_LINE_MARKUP = YAML_LOADED["find_line_markup"]
 FIND_TEMPLATE = YAML_LOADED["find_template"]
+
+PEAS_STORAGES_MARKUP = YAML_LOADED["peas_storages_markup"]
+STORAGE_LINE_MARKUP = YAML_LOADED["storage_line_markup"]
+STORAGE_LINE_EXTRA_MARKUP = YAML_LOADED["storage_line_extra_markup"]
+STORAGE_TEMPLATE = YAML_LOADED["storage_template"]
+
+INT_HIDDEN_FILES_MARKUP = YAML_LOADED["int_hidden_files_markup"]
+
 
 
 class FileRecord:
@@ -76,6 +87,7 @@ class FileRecord:
 class PEASRecord:
     def __init__(self, name, auto_check: bool, exec: list, filerecords: list):
         self.name = name
+        self.bash_name = name.upper().replace(" ","_").replace("-","_")
         self.auto_check = auto_check
         self.exec = exec
         self.filerecords = filerecords
@@ -108,13 +120,27 @@ class PEASLoaded:
 class LinpeasBuilder:
     def __init__(self, ploaded:PEASLoaded):
         self.ploaded = ploaded
+        self.hidden_files = set()
+        self.bash_find_f_vars, self.bash_find_d_vars = set(), set()
+        self.bash_storages = set()
         self.__get_files_to_search()
         with open(LINPEAS_BASE_PATH, 'r') as file:
             self.linpeas_sh = file.read()
 
     def build(self):
         find_calls = self.__generate_finds()
-        self.__write_finds(find_calls)
+        self.__replace_mark(PEAS_FINDS_MARKUP, find_calls, "  ")
+
+        storage_vars = self.__generate_storages()
+        self.__replace_mark(PEAS_STORAGES_MARKUP, storage_vars, "  ")
+
+        #Check all the expected STORAGES in linpeas have been created
+        for s in re.findall(r'PSTORAGE_[\w]*', self.linpeas_sh):
+            assert s in self.bash_storages, f"{s} isn't created"
+
+        #Replace interesting hidden files markup for a list of all the serched hidden files
+        self.__replace_mark(INT_HIDDEN_FILES_MARKUP, self.hidden_files, "|")
+
         self.__write_linpeas()
 
 
@@ -128,27 +154,85 @@ class LinpeasBuilder:
             for frecord in precord.filerecords:
                 for folder in frecord.search_in:
                     self.dict_to_search[frecord.type][folder].add(frecord.regex)
+                
+                if frecord.regex[0] == "." or frecord.regex[:2] == "*.":
+                    self.hidden_files.add(frecord.regex.replace("*",""))
 
 
-    def __generate_finds(self):
+    def __generate_finds(self) -> list:
         """Given the regexes to search on each root folder, generate the find command"""
         finds = []
         for type,searches in self.dict_to_search.items():
             for r,regexes in searches.items():
-                find_line = f"{r} "
-                if type == "d": find_line += "-type d "
-                find_line += '-name \\"' + '\\" -o -name \\"'.join(regexes) + '\\"'
+                if regexes:
+                    find_line = f"{r} "
+                    
+                    if type == "d": 
+                        find_line += "-type d "
+                        bash_find_var = f"FIND_DIR_{r[1:].replace('.','').upper()}"
+                        self.bash_find_d_vars.add(bash_find_var)
+                    else:
+                        bash_find_var = f"FIND_{r[1:].replace('.','').upper()}"
+                        self.bash_find_f_vars.add(bash_find_var)
 
-                find_line = FIND_TEMPLATE.replace(FIND_SEARCH_MARKUP, find_line)
-                find_line = f"FIND_{r[1:].upper()}={find_line}"
-                finds.append(find_line)
-        
+                    find_line += '-name \\"' + '\\" -o -name \\"'.join(regexes) + '\\"'
+                    find_line = FIND_TEMPLATE.replace(FIND_LINE_MARKUP, find_line)
+                    find_line = f"{bash_find_var}={find_line}"
+                    finds.append(find_line)
+            
         return finds
 
+    def __generate_storages(self) -> list:
+        """Generate the storages to save the results per entry"""
+        storages = []
+        all_f_finds = "$" + "\\n$".join(self.bash_find_f_vars)
+        all_d_finds = "$" + "\\n$".join(self.bash_find_d_vars)
+        all_finds = "$" + "\\n$".join(list(self.bash_find_f_vars) + list(self.bash_find_d_vars))
+        
+        for precord in self.ploaded.peasrecords:
+            bash_storage_var = f"PSTORAGE_{precord.bash_name}"
+            self.bash_storages.add(bash_storage_var)
+            
+            #Select the FIND_ variables to search on depending on the type files
+            if all(frecord.type == "f" for frecord in precord.filerecords):
+                storage_line = STORAGE_TEMPLATE.replace(STORAGE_LINE_MARKUP, all_f_finds)
+            elif all(frecord.type == "d" for frecord in precord.filerecords):
+                storage_line = STORAGE_TEMPLATE.replace(STORAGE_LINE_MARKUP, all_d_finds)
+            else:
+                storage_line = STORAGE_TEMPLATE.replace(STORAGE_LINE_MARKUP, all_finds)
 
-    def __write_finds(self, find_calls):
-        """Substitude the markup with the actual find code"""
-        self.linpeas_sh = self.linpeas_sh.replace(PEAS_SEARCH_MARKUP, "\n".join(find_calls))
+            #Grep by filename regex (ended in '$')
+            bsp = '\\.' #A 'f' expression cannot contain a backslash, so we generate here the bs need in the line below
+            grep_names = f" | grep -E \"{'|'.join([frecord.regex.replace('.',bsp).replace('*', '.*')+'$' for frecord in precord.filerecords])}\""
+
+            #Grep extra paths. They are accumulative between files of the same PEASRecord
+            grep_extra_paths = ""
+            if any(True for frecord in precord.filerecords if frecord.check_extra_path):
+                grep_extra_paths = f" | grep -E '{'|'.join([frecord.check_extra_path for frecord in precord.filerecords if frecord.check_extra_path])}'"
+            
+            #Grep to remove paths. They are accumulative between files of the same PEASRecord
+            grep_remove_path = ""
+            if any(True for frecord in precord.filerecords if frecord.remove_path):
+                grep_remove_path = f" | grep -v -E '{'|'.join([frecord.remove_path for frecord in precord.filerecords if frecord.remove_path])}'"
+            
+            #Construct the final line like: STORAGE_MYSQL=$(echo "$FIND_DIR_ETC\n$FIND_DIR_USR\n$FIND_DIR_VAR\n$FIND_DIR_MNT" | grep -E '^/etc/.*mysql|/usr/var/lib/.*mysql|/var/lib/.*mysql' | grep -v "mysql/mysql")
+            storage_line = storage_line.replace(STORAGE_LINE_EXTRA_MARKUP, f"{grep_remove_path}{grep_extra_paths}{grep_names}")
+            storage_line = f"{bash_storage_var}={storage_line}"
+            storages.append(storage_line)
+        
+        return storages
+
+        
+
+    def __generate_sections(self):
+        """Generate auto_check sections"""
+        pass
+
+
+
+    def __replace_mark(self, mark: str, find_calls: list, join_char: str):
+        """Substitude the markup with the actual code"""
+        self.linpeas_sh = self.linpeas_sh.replace(mark, join_char.join(find_calls)) #New line char is't needed
     
     def __write_linpeas(self):
         """Write on disk the final linpeas"""
