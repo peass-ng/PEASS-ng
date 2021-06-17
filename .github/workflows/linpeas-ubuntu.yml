@@ -34,18 +34,3 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run linpeas
         run: linPEAS/linpeas.sh
-
-      - name: Create local changes
-        run: git add linPEAS/linpeas.sh
-
-      - name: Commit results to Github
-        run: |
-          git config --local user.email ""
-          git config --global user.name "CI-linpeas-ubuntu"
-          git commit -m "linpeas.sh auto update" -a --allow-empty
-      
-      - name: Push changes
-        uses: ad-m/github-push-action@linpeasdevelop
-        with:
-           github_token: ${{ secrets.GITHUB_TOKEN }}
-           branch: ${{ github.ref }}
