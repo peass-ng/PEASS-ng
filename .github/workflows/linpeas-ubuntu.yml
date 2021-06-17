@@ -45,7 +45,7 @@ jobs:
           git commit -m "linpeas.sh auto update" -a --allow-empty
       
       - name: Push changes
-        uses: ad-m/github-push-action@linpeasdevelop
+        uses: ad-m/github-push-action@master
         with:
            github_token: ${{ secrets.GITHUB_TOKEN }}
            branch: ${{ github.ref }}
