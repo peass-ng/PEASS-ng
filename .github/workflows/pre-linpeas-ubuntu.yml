@@ -5,8 +5,8 @@ name: CI-linpeas-ubuntu
 # Controls when the action will run. 
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
-  pull_request:
-    branches: [ master ]
+  push:
+    branches: [ linpeasdevelop ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -23,6 +23,30 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      - name: Build linpeas
+        run: |
+          python3 -m pip install PyYAML
+          cd linPEAS
+          python3 -m builder.linpeas_builder
+
       # Runs a single command using the runners shell
       - name: Run linpeas
-        run: linPEAS/linpeas.sh
+        run: linPEAS/linpeas.sh -h
+
+      - name: Create local changes
+        run: git add linPEAS/linpeas.sh
+
+      - name: Commit results to Github
+        run: |
+          git config --local user.email ""
+          git config --global user.name "CI-linpeas-ubuntu"
+          git commit -m "linpeas.sh auto update" -a --allow-empty
+      
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+           github_token: ${{ secrets.GITHUB_TOKEN }}
+           branch: ${{ github.ref }}
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
