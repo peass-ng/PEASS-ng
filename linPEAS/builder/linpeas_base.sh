@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.2.3"
+VERSION="v3.2.4"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -548,19 +548,19 @@ print_title(){
 }
 
 print_2title(){
-  printf ${BLUE}"═══════════) "$GREEN"$1\n"$NC
+  printf ${BLUE}"╔══════════╣ "$GREEN"$1\n"$NC #There are 10 "═"
 }
 
 print_3title(){
-  printf ${BLUE}"-) "$GREEN"$1\n"$NC
+  printf ${BLUE}"══╣ "$GREEN"$1\n"$NC #There are 2 "═"
 }
 
 print_list(){
-  printf ${BLUE}"+ "$GREEN"$1"$NC
+  printf ${BLUE}"═╣ "$GREEN"$1"$NC #There is 1 "═"
 }
 
 print_info(){
-  printf "${ITALIC_BLUE}$1\n"$NC
+  printf "${BLUE}╚ ${ITALIC_BLUE}$1\n"$NC
 }
 
 print_ps (){
