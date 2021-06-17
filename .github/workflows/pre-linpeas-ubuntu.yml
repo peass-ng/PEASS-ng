@@ -13,8 +13,20 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+  Run on Macos:
+    # The type of runner that the job will run on
+    runs-on: macos-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Run linpeas
+        run: linPEAS/linpeasasdasdasd.sh
+
+  Run on Ubuntu:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -47,6 +59,4 @@ jobs:
         with:
            github_token: ${{ secrets.GITHUB_TOKEN }}
            branch: ${{ github.ref }}
-      
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v3
+
