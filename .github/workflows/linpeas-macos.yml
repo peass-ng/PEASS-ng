@@ -1,12 +1,12 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: CI-linpeas-macos
 
 # Controls when the action will run. 
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
+    branches: [ linpeasdevelop ]
   pull_request:
     branches: [ master ]
 
@@ -25,6 +25,11 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      - name: Build linpeas
+        run: |
+          cd linPEAS
+          python3 -m builder.linpeas_builder
+
       # Runs a single command using the runners shell
       - name: Run linpeas
-        run: linPEAS/linpeas.sh
+        run: ./linpeas.sh
