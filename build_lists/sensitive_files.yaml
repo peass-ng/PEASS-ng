@@ -63,7 +63,7 @@ common_directory_folders:
 peas_finds_markup: "peass{FINDS_HERE}"
 find_line_markup: "peass{FIND_PARAMS_HERE}"
 find_template: >
-          `eval_bckgrd "find peass{FIND_PARAMS_HERE} 2>/dev/null | sort; printf \\\$Y'. '\\\$NC 1>&2;"`
+          `eval_bckgrd "find peass{FIND_PARAMS_HERE} 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
 
 peas_storages_markup: "peass{STORAGES_HERE}"
 storage_line_markup: "peass{STORAGE_PARAMS_HERE}"
@@ -434,6 +434,34 @@ search:
         search_in: 
           - common
 
+      ? "*vnc*.c*nf*"
+      : 
+        bad_regex: ".*"
+        type: f
+        search_in: 
+          - common
+
+      ? "*vnc*.ini"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+      ? "*vnc*.txt"
+      : 
+        bad_regex: ".*"
+        type: f
+        search_in: 
+          - common
+
+      ? "*vnc*.xml"
+      : 
+        bad_regex: ".*"
+        type: f
+        search_in: 
+          - common
+
   Ldap:
     config:
       auto_check: True
@@ -648,6 +676,30 @@ search:
       : 
         bad_regex: ".*"
         type: f
+        search_in: 
+          - common
+
+      ? "TokenCache.dat"
+      : 
+        bad_regex: ".*"
+        type: f
+        search_in: 
+          - common
+
+      ? "AzureRMContext.json"
+      : 
+        bad_regex: ".*"
+        type: f
+        search_in: 
+          - common
+      
+      ? ".bluemix"
+      : 
+        files:
+          ? "config.json"
+          :
+            bad_regex: ".*"
+        type: d
         search_in: 
           - common
 
@@ -934,6 +986,13 @@ search:
             remove_empty_lines: True
             remove_regex: "^;"
         type: d
+        search_in: 
+          - common
+
+      ? "filezilla.xml"
+      : 
+        just_list_file: True
+        type: f
         search_in: 
           - common
 
@@ -1406,6 +1465,98 @@ search:
         search_in: 
           - common
 
+  Keepass:
+    config:
+      auto_check: True
+
+    files:
+      ? "*.kdbx"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+      ? "KeePass.config*"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+      ? "KeePass.ini"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+      ? "KeePass.enforced*"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+  FTP:
+    config:
+      auto_check: True
+
+    files:
+      ? "*.ftpconfig"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+      ? "ffftp.ini"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+      ? "ftp.ini"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+      ? "ftp.config"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+      ? "ws_ftp.ini"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+  Interesting logs:
+    config:
+      auto_check: True
+
+    files:
+      ? "access.log"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+      ? "error.log"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
   Other Interesting Files:
     config:
       auto_check: True
@@ -1472,6 +1623,361 @@ search:
         just_list_file: True
         type: f
         search_in: 
+          - common
+
+  Windows Files:
+    config:
+      auto_check: True
+
+    files:
+      ? "unattend.inf"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "*.rdg"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "AppEvent.Evt"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "ConsoleHost_history.txt"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "FreeSSHDservice.ini"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "NetSetup.log"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "Ntds.dit"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "RDCMan.settings"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "SAM"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "SYSTEM"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "SecEvent.Evt"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "appcmd.exe"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "bash.exe"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "datasources.xml"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "default.sav"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "drives.xml"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "groups.xml"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "https-xampp.conf"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "https.conf"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "iis6.log"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "index.dat"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "my.cnf"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "my.ini"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "ntuser.dat"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "pagefile.sys"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "php.ini"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "printers.xml"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "recentservers.xml"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "scclient.exe"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "scheduledtasks.xml"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "security"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "security.sav"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "server.xml"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "services.xml"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "setupinfo"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "setupinfo.bak"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "sitemanager.xml"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "sites.ini"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "software"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "software.sav"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "sysprep.inf"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "sysprep.xml"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "system.sav"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "unattend.txt"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "unattend.xml"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "unattended.xml"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "wcx_ftp.ini"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "web*.config"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "winscp.ini"
+      :
+        just_list_file: True
+        type: f
+        search_in:
+          - common
+
+      ? "wsl.exe"
+      :
+        just_list_file: True
+        type: f
+        search_in:
           - common
 
 # Final section

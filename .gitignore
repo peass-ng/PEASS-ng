@@ -12,3 +12,6 @@ winPEAS/winPEASexe/winPEAS/bin/Debug/*
 obj
 bin
 packages
+*cpython*
+*/*cpython*
+launch.json

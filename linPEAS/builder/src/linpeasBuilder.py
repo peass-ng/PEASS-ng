@@ -15,7 +15,6 @@ from .yamlGlobals import (
     FIND_LINE_MARKUP,
     STORAGE_LINE_MARKUP,
     STORAGE_LINE_EXTRA_MARKUP,
-    FINAL_LINPEAS_PATH
 )
 
 
@@ -59,8 +58,6 @@ class LinpeasBuilder:
         #Check that there aren peass marks left in linpeas
         peass_marks = self.__get_peass_marks()
         assert len(peass_marks) == 0, f"There are peass marks left: {', '.join(peass_marks)}"
-
-        self.__write_linpeas()
 
     
     def __get_peass_marks(self):
@@ -171,12 +168,13 @@ class LinpeasBuilder:
 
     def __construct_file_line(self, precord: PEASRecord, frecord: FileRecord, init: bool = True) -> str:
         real_regex = frecord.regex[1:] if frecord.regex.startswith("*") else frecord.regex
-        real_regex = real_regex.replace("*",".*").replace(".","\\.")
+        real_regex = real_regex.replace(".","\\.").replace("*",".*")
         real_regex += "$"
         
         analise_line = ""
         if init:
-            analise_line = 'printf "%s" "$PSTORAGE_'+precord.bash_name+'" | grep -E "'+real_regex+'" | while read f; do ls -ld "$f" | sed -${E} "s,'+real_regex+',${SED_RED},"; '
+            analise_line = 'if ! [ "`echo \\\"$PSTORAGE_'+precord.bash_name+'\\\" | grep -E \\\"'+real_regex+'\\\"`" ]; then echo_not_found "'+frecord.regex+'"; fi; '
+            analise_line += 'printf "%s" "$PSTORAGE_'+precord.bash_name+'" | grep -E "'+real_regex+'" | while read f; do ls -ld "$f" | sed -${E} "s,'+real_regex+',${SED_RED},"; '
 
         #If just list, just list the file/directory
         if frecord.just_list_file:
@@ -234,7 +232,7 @@ class LinpeasBuilder:
         """Substitude the markup with the actual code"""
         self.linpeas_sh = self.linpeas_sh.replace(mark, join_char.join(find_calls)) #New line char is't needed
     
-    def __write_linpeas(self):
+    def write_linpeas(self, path):
         """Write on disk the final linpeas"""
-        with open(FINAL_LINPEAS_PATH, "w") as f:
+        with open(path, "w") as f:
             f.write(self.linpeas_sh)

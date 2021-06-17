@@ -73,13 +73,12 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
       ${YELLOW}-o${BLUE} Only execute selected checks (SysI, Container, Devs, AvaSof, ProCronSrvcsTmrsSocks, Net, UsrI, SofI, IntFiles). Select a comma separated list.
       ${YELLOW}-L${BLUE} Force linpeas execution.
       ${YELLOW}-M${BLUE} Force macpeas execution.
-      ${YELLOW}-t${BLUE} Threads to search files inside the system (by default it's the number of CPU threads).
       ${YELLOW}-d <IP/NETMASK>${BLUE} Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
       ${YELLOW}-p <PORT(s)> -d <IP/NETMASK>${BLUE} Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
       ${YELLOW}-i <IP> [-p <PORT(s)>]${BLUE} Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
       $GREEN Notice${BLUE} that if you select some network action, no PE check will be performed$NC"
 
-while getopts "h?asnd:p:i:P:qo:LMwt:N" opt; do
+while getopts "h?asnd:p:i:P:qo:LMwN" opt; do
   case "$opt" in
     h|\?) printf "%s\n\n" "$HELP$NC"; exit 0;;
     a)  FAST="";;
@@ -94,7 +93,6 @@ while getopts "h?asnd:p:i:P:qo:LMwt:N" opt; do
     L)  MACPEAS="";;
     M)  MACPEAS="1";;
     w)  WAIT=1;;
-    t)  THREADS=$OPTARG;;
     N)  NOCOLOR="1";;
     esac
 done
@@ -1001,7 +999,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
   #----------) Caching Finds (--------------#
   ###########################################
 
-  printf $GREEN"Caching directories using${YELLOW} $THREADS$GREEN threads "$NC
+  printf $GREEN"Caching directories "$NC
 
 
   #Get home
@@ -2313,6 +2311,14 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   peass{Msmtprc}
 
+  peass{Keepass}
+
+  peass{FTP}
+
+  peass{Interesting logs}
+
+  peass{Windows Files}
+
   peass{Other Interesting Files}
 
   echo ""
@@ -2615,7 +2621,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Others files in my dirs
   if ! [ "$IAMROOT" ]; then
     print_2title "Searching folders owned by me containing others files on it (limit 100)"
-    (find / -type d -user "$USER" ! -path "/proc/*" 2>/dev/null | head -n 100 | while read d; do find "$d" -maxdepth 1 ! -user "$USER" -type f -or -type d -exec dirname {} \; 2>/dev/null; done) | sort | uniq | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;13m&${C}[0m,g"
+    (find / -type d -user "$USER" ! -path "/proc/*" 2>/dev/null | head -n 100 | while read d; do find "$d" -maxdepth 1 ! -user "$USER" \( -type f -or -type d \) -exec dirname {} \; 2>/dev/null; done) | sort | uniq | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;13m&${C}[0m,g"
     echo ""
   fi
 
