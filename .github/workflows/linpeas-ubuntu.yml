@@ -33,10 +33,10 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Run linpeas
-        run: ./linpeas.sh
+        run: linPEAS/linpeas.sh
 
       - name: Create local changes
-        run: git add linpeas.sh
+        run: git add linPEAS/linpeas.sh
 
       - name: Commit results to Github
         run: |
