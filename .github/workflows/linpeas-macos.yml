@@ -27,7 +27,7 @@ jobs:
 
       - name: Build linpeas
         run: |
-          python3 -m pip install yaml
+          python3 -m pip install PyYAML
           cd linPEAS
           python3 -m builder.linpeas_builder
 
