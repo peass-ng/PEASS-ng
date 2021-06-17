@@ -69,7 +69,7 @@ peas_storages_markup: "peass{STORAGES_HERE}"
 storage_line_markup: "peass{STORAGE_PARAMS_HERE}"
 storage_line_extra_markup: "peass{STORAGE_PARAMS_EXTRA_HERE}"
 storage_template: >
-          $(echo "peass{STORAGE_PARAMS_HERE}" peass{STORAGE_PARAMS_EXTRA_HERE} | sort | uniq | head -n 100)
+          $(echo -e "peass{STORAGE_PARAMS_HERE}" peass{STORAGE_PARAMS_EXTRA_HERE} | sort | uniq | head -n 70)
 
 int_hidden_files_markup: "peass{INT_HIDDEN_FILES}"
 
@@ -82,7 +82,7 @@ defaults:
   just_list_file: False       #Just mention the path to the file, do not cat it
   line_grep: ""               #The regex to grep lines in a file (if only_bad_lines), by default bad_regex is used here if empty
   only_bad_lines: False       #Only print lines containing something red
-  remove_empty_lines: False   #Remove empty lines
+  remove_empty_lines: False   #Remove empty lines, use only for text files (-I param in grep)
   remove_path: ""             #Not interested in files containing this path
   remove_regex: ""            #Extra regex to remove some lines
   search_in:                  #By default search in defined common
@@ -160,13 +160,13 @@ search:
     config:
       auto_check: True
       exec:
-        - "echo Version: $(warn_exec psql -V 2>/dev/null)"
+        - 'echo "Version: $(warn_exec psql -V 2>/dev/null)"'
 
     files:
       ? "pgadmin*.db"
       : 
         type: f
-        bad_regex: ".*"
+        just_list_file: True
         search_in: 
           - common
       
@@ -181,13 +181,19 @@ search:
       
       ? "postgresql.conf"
       : 
+        bad_regex: "auth|password|md5|user=|pass=|trust"
         type: f
+        remove_empty_lines: True
+        remove_regex: '\W+\#|^#'
         search_in: 
           - common
       
       ? "pgsql.conf"
       : 
+        bad_regex: "auth|password|md5|user=|pass=|trust"
         type: f
+        remove_empty_lines: True
+        remove_regex: '\W+\#|^#'
         search_in: 
           - common
     
@@ -195,7 +201,7 @@ search:
     config:
       auto_check: True
       exec:
-        - "echo Version: $(warn_exec apache2 -v 2>/dev/null; warn_exec httpd -v 2>/dev/null)"
+        - 'echo "Version: $(warn_exec apache2 -v 2>/dev/null; warn_exec httpd -v 2>/dev/null)"'
         - "print_3title 'PHP exec extensions'"
         - 'grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null'
     
@@ -320,7 +326,7 @@ search:
       ? "tomcat-users.xml"
       : 
         bad_regex: "dbtype|dbhost|dbuser|dbhost|dbpass|dbport"
-        line_grep: "username=|password="
+        line_grep: '"username=|password="'
         only_bad_lines: True
         type: f
         search_in: 
@@ -330,7 +336,7 @@ search:
     config:
       auto_check: True
       exec:
-        - "echo Version: $(warn_exec mongo --version 2>/dev/null; warn_exec mongod --version 2>/dev/null)"
+        - 'echo "Version: $(warn_exec mongo --version 2>/dev/null; warn_exec mongod --version 2>/dev/null)"'
 
     files:
       ? "mongod*.conf"
@@ -430,7 +436,9 @@ search:
 
   Ldap:
     config:
-      auto_check: False
+      auto_check: True
+      exec:
+        - echo "The password hash is from the {SSHA} to 'structural'"
 
     files:
       ? "ldap"
@@ -440,7 +448,7 @@ search:
           ? "*.bdb"
           :
             bad_regex: "administrator|password|ADMINISTRATOR|PASSWORD|Password|Administrator"
-            line_grep: '-i -a -E -o "description.*"'
+            line_grep: '-i -a -o "description.*" | sort | uniq'
         type: d
         search_in: 
           - common
@@ -576,6 +584,7 @@ search:
       ? "*ssh*config*"
       : 
         type: f
+        remove_path: '\..{1,4}$' #No interested in filenames with extensions
         search_in: 
           - /usr 
           - $HOMESEARCH
@@ -583,6 +592,7 @@ search:
       ? "*config*ssh*"
       : 
         type: f
+        remove_path: '\..{1,4}$' #No interested in filenames with extensions
         search_in: 
           - /usr
           - $HOMESEARCH
@@ -711,12 +721,12 @@ search:
     config:
       auto_check: True
       exec:
-        - echo "Version: $(curl -X GET '127.0.0.1:9200' 2>/dev/null | grep number | cut -d ':' -f 2)"
+        - echo "The version is $(curl -X GET '127.0.0.1:9200' 2>/dev/null | grep number | cut -d ':' -f 2)"
 
     files:
       ? "elasticsearch.y*ml"
       : 
-        line_grep: "path.data|path.logs|cluster.name|node.name|network.host|discovery.zen.ping.unicast.hosts"
+        line_grep: '"path.data|path.logs|cluster.name|node.name|network.host|discovery.zen.ping.unicast.hosts"'
         remove_regex: '\W+\#|^#'
         type: f
         search_in: 
@@ -936,7 +946,8 @@ search:
       : 
       
         bad_regex: "password|pass|user|database|host"
-        only_bad_lines: True
+        line_grep: >- 
+          "'pass'|'password'|'user'|'database'|'host'"
         type: f
         search_in: 
           - common
@@ -944,6 +955,8 @@ search:
       ? "database.php"
       : 
         bad_regex: "password|pass|user|database|host"
+        line_grep: >-
+          "'pass'|'password'|'user'|'database'|'host'"
         only_bad_lines: True
         type: f
         search_in: 
@@ -1353,13 +1366,6 @@ search:
       auto_check: True
 
     files:
-      ? ".git"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-
       ? ".github"
       : 
         just_list_file: True
@@ -1375,6 +1381,13 @@ search:
           - common
         
       ? ".git-credentials"
+      : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+      ? ".git"
       : 
         just_list_file: True
         type: f

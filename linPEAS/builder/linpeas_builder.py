@@ -4,10 +4,10 @@ import re
 
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-LINPEAS_BASE_PATH = CURRENT_DIR + "/base/" + "linpeas_base.sh"
-FINAL_LINPEAS_PATH = CURRENT_DIR + "/" + "linpeas.sh"
+LINPEAS_BASE_PATH = CURRENT_DIR + "/linpeas_base.sh"
+FINAL_LINPEAS_PATH = CURRENT_DIR + "/../" + "linpeas.sh"
 YAML_NAME = "sensitive_files.yaml"
-FILES_YAML = CURRENT_DIR + "/../build_lists/" + YAML_NAME
+FILES_YAML = CURRENT_DIR + "/../../build_lists/" + YAML_NAME
 
 with open(FILES_YAML, 'r') as file:
     YAML_LOADED = yaml.load(file, Loader=yaml.FullLoader)
@@ -141,7 +141,28 @@ class LinpeasBuilder:
         #Replace interesting hidden files markup for a list of all the serched hidden files
         self.__replace_mark(INT_HIDDEN_FILES_MARKUP, self.hidden_files, "|")
 
+        #Check if there are duplecate peass marks
+        peass_marks = self.__get_peass_marks()
+        for i,mark in enumerate(peass_marks):
+            for j in range(i+1,len(peass_marks)):
+                assert mark != peass_marks[j], f"Found repeated peass mark: {mark}"
+
+        #Generate autocheck sections
+        sections = self.__generate_sections()
+        for section_name, bash_lines in sections.items():
+            mark = "peass{"+section_name+"}"
+            assert mark in peass_marks, f"Mark {mark} wasn't found in linpeas base"
+            self.__replace_mark(mark, list(bash_lines), "")
+
+        #Check that there aren peass marks left in linpeas
+        peass_marks = self.__get_peass_marks()
+        assert len(peass_marks) == 0, f"There are peass marks left: {', '.join(peass_marks)}"
+
         self.__write_linpeas()
+
+    
+    def __get_peass_marks(self):
+        return re.findall(r'peass\{[\w\-\._ ]*\}', self.linpeas_sh)
 
 
     def __get_files_to_search(self):
@@ -205,18 +226,21 @@ class LinpeasBuilder:
             bsp = '\\.' #A 'f' expression cannot contain a backslash, so we generate here the bs need in the line below
             grep_names = f" | grep -E \"{'|'.join([frecord.regex.replace('.',bsp).replace('*', '.*')+'$' for frecord in precord.filerecords])}\""
 
+            #Grep by searched folders
+            grep_folders_searched = f" | grep -E \"^{'|^'.join(list(set([d for frecord in precord.filerecords for d in frecord.search_in])))}\"".replace("HOMESEARCH","GREPHOMESEARCH")
+
             #Grep extra paths. They are accumulative between files of the same PEASRecord
             grep_extra_paths = ""
             if any(True for frecord in precord.filerecords if frecord.check_extra_path):
-                grep_extra_paths = f" | grep -E '{'|'.join([frecord.check_extra_path for frecord in precord.filerecords if frecord.check_extra_path])}'"
+                grep_extra_paths = f" | grep -E '{'|'.join(list(set([frecord.check_extra_path for frecord in precord.filerecords if frecord.check_extra_path])))}'"
             
             #Grep to remove paths. They are accumulative between files of the same PEASRecord
             grep_remove_path = ""
             if any(True for frecord in precord.filerecords if frecord.remove_path):
-                grep_remove_path = f" | grep -v -E '{'|'.join([frecord.remove_path for frecord in precord.filerecords if frecord.remove_path])}'"
+                grep_remove_path = f" | grep -v -E '{'|'.join(list(set([frecord.remove_path for frecord in precord.filerecords if frecord.remove_path])))}'"
             
             #Construct the final line like: STORAGE_MYSQL=$(echo "$FIND_DIR_ETC\n$FIND_DIR_USR\n$FIND_DIR_VAR\n$FIND_DIR_MNT" | grep -E '^/etc/.*mysql|/usr/var/lib/.*mysql|/var/lib/.*mysql' | grep -v "mysql/mysql")
-            storage_line = storage_line.replace(STORAGE_LINE_EXTRA_MARKUP, f"{grep_remove_path}{grep_extra_paths}{grep_names}")
+            storage_line = storage_line.replace(STORAGE_LINE_EXTRA_MARKUP, f"{grep_remove_path}{grep_extra_paths}{grep_folders_searched}{grep_names}")
             storage_line = f"{bash_storage_var}={storage_line}"
             storages.append(storage_line)
         
@@ -224,10 +248,84 @@ class LinpeasBuilder:
 
         
 
-    def __generate_sections(self):
-        """Generate auto_check sections"""
-        pass
+    def __generate_sections(self) -> dict:
+        """Generate sections for records with auto_check to True"""
+        sections = {}
 
+        for precord in self.ploaded.peasrecords:
+            if precord.auto_check:
+                section = f'  print_2title "Analizing {precord.name} Files (limit 70)"\n'
+
+                for exec_line in precord.exec:
+                    if exec_line:
+                        section += "    " + exec_line + "\n"
+
+                for frecord in precord.filerecords:
+                    section += "    " + self.__construct_file_line(precord, frecord) + "\n"
+                
+                sections[precord.name] = section
+
+        return sections
+
+    def __construct_file_line(self, precord: PEASRecord, frecord: FileRecord, init: bool = True) -> str:
+        real_regex = frecord.regex[1:] if frecord.regex.startswith("*") else frecord.regex
+        real_regex = real_regex.replace("*",".*").replace(".","\\.")
+        real_regex += "$"
+        
+        analise_line = ""
+        if init:
+            analise_line = 'printf "%s" "$PSTORAGE_'+precord.bash_name+'" | grep -E "'+real_regex+'" | while read f; do ls -ld "$f" | sed -${E} "s,'+real_regex+',${SED_RED},"; '
+
+        #If just list, just list the file/directory
+        if frecord.just_list_file:
+            if frecord.type == "d":
+                analise_line += 'ls -lRA "$f";'
+            analise_line += 'done; echo "";'
+            return analise_line
+        
+        if frecord.type == "f":
+            grep_empty_lines = ' | grep -IEv "^$"'
+            grep_line_grep = f' | grep -E {frecord.line_grep}' if frecord.line_grep else ""
+            grep_only_bad_lines = f' | grep -E "{frecord.bad_regex}"' if frecord.bad_regex else ""
+            grep_remove_regex = f' | grep -Ev "{frecord.remove_regex}"' if frecord.remove_regex else ""
+            sed_bad_regex = ' | sed -${E} "s,'+frecord.bad_regex+',${SED_RED},g"' if frecord.bad_regex else ""
+            sed_good_regex = ' | sed -${E} "s,'+frecord.good_regex+',${SED_GOOD},g"' if frecord.good_regex else ""
+
+            if init:
+                analise_line += 'cat "$f" 2>/dev/null'
+            else:
+                analise_line += 'cat "$ff" 2>/dev/null'
+
+            if grep_empty_lines:
+                analise_line += grep_empty_lines
+
+            if grep_line_grep:
+                analise_line += grep_line_grep
+
+            if frecord.only_bad_lines and not grep_line_grep:
+                analise_line += grep_only_bad_lines
+
+            if grep_remove_regex:
+                analise_line += grep_remove_regex
+            
+            if sed_bad_regex:
+                analise_line += sed_bad_regex
+
+            if sed_good_regex:
+                analise_line += sed_good_regex
+            
+            analise_line += '; done; echo "";'
+            return analise_line
+
+        #In case file is type "d"
+        if frecord.files:
+            for ffrecord in frecord.files:
+                ff_real_regex = ffrecord.regex[1:] if ffrecord.regex.startswith("*") else ffrecord.regex
+                ff_real_regex = ff_real_regex.replace("*",".*")
+                analise_line += 'for ff in $(find "$f" -name "'+ffrecord.regex+'"); do ls -ld "$ff" | sed -${E} "s,'+ff_real_regex+',${SED_RED},"; ' + self.__construct_file_line(precord, ffrecord, init=False)
+        
+        analise_line += 'done; echo "";'
+        return analise_line
 
 
     def __replace_mark(self, mark: str, find_calls: list, join_char: str):
