@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI-Pro
+name: CI-linpeas_prod
 
 # Controls when the action will run. 
 on:
@@ -15,7 +15,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  Run_on_ubuntu:
+  Test_linpeas_ubuntu:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -28,7 +28,7 @@ jobs:
       - name: Run linpeas
         run: linPEAS/linpeas.sh
 
-  Run_on_macos:
+  Test_linpeas_macos:
     runs-on: macos-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
