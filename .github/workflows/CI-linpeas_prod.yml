@@ -24,4 +24,4 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Run linpeas
-        run: linPEAS/linpeas.sh
+        run: linPEAS/linpeas.sh -a

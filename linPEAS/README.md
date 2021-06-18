@@ -1,4 +1,5 @@
 # LinPEAS - Linux Privilege Escalation Awesome Script 
+[![CI-linpeas_prod](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/actions/workflows/CI-linpeas_prod.yml/badge.svg)](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/actions/workflows/CI-linpeas_prod.yml)
 
 ![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/linpeas.png)
 
