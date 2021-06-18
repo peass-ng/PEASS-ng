@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.2.4"
+VERSION="v3.2.5"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
