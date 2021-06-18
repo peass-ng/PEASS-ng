@@ -3,10 +3,7 @@ name: CI-linpeas_prod
 on:
   pull_request:
     branches:
-      - master
       - linpeas_prod
-    paths:
-      - 'linPEAS/linpeas.sh'
 
   workflow_dispatch:
 
