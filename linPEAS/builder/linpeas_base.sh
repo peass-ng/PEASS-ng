@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.2.4"
+VERSION="v3.2.5"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -544,10 +544,32 @@ echo_no (){
 }
 
 print_title(){
+  END_T2_TIME=`date +%s 2>/dev/null`
+  if [ "$START_T2_TIME" ]; then
+    TOTAL_T2_TIME=$(($END_T2_TIME - $START_T2_TIME))
+    printf $DG"The section execution took $TOTAL_T2_TIME seconds\n"$NC
+  fi
+
+  END_T1_TIME=`date +%s 2>/dev/null`
+  if [ "$START_T1_TIME" ]; then
+    TOTAL_T1_TIME=$(($END_T1_TIME - $START_T1_TIME))
+    printf $DG"The total section execution took $TOTAL_T1_TIME seconds\n"$NC
+    echo ""
+  fi
+
+  START_T1_TIME=`date +%s 2>/dev/null`
   printf ${BLUE}"════════════════════════════════════╣ "$GREEN"$1"${BLUE}" ╠════════════════════════════════════\n"$NC
 }
 
 print_2title(){
+  END_T2_TIME=`date +%s 2>/dev/null`
+  if [ "$START_T2_TIME" ]; then
+    TOTAL_T2_TIME=$(($END_T2_TIME - $START_T2_TIME))
+    printf $DG"The section execution took $TOTAL_T2_TIME seconds\n"$NC
+    echo ""
+  fi
+
+  START_T2_TIME=`date +%s 2>/dev/null`
   printf ${BLUE}"╔══════════╣ "$GREEN"$1\n"$NC #There are 10 "═"
 }
 

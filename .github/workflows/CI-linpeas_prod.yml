@@ -8,15 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  Test_linpeas_ubuntu:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Run linpeas
-        run: linPEAS/linpeas.sh
-
   Test_linpeas_macos:
     runs-on: macos-latest
 
@@ -24,4 +15,13 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Run linpeas
-        run: linPEAS/linpeas.sh
+        run: linPEAS/linpeas.sh -o SysI,Container,Devs,AvaSof,ProCronSrvcsTmrsSocks,Net,UsrI,SofI
+    
+  Test_linpeas_ubuntu:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run linpeas
+        run: linPEAS/linpeas.sh -a
