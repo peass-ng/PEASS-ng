@@ -56,4 +56,4 @@ jobs:
         uses: repo-sync/pull-request@v2
         with:
           destination_branch: "linpeas_prod"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PULL_REQUEST_TOKEN }}
