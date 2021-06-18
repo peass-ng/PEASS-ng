@@ -55,5 +55,5 @@ jobs:
       - name: pull-request
         uses: repo-sync/pull-request@v2
         with:
-          destination_branch: "linpeas-prod" #Pull request to master
+          destination_branch: "linpeas_prod"
           github_token: ${{ secrets.GITHUB_TOKEN }}
