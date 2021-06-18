@@ -8,17 +8,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  Test_linpeas_ubuntu:
-    runs-on: ubuntu-latest
+  Test_Linpeas_MacOS:
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v2
 
       - name: Run linpeas
         run: linPEAS/linpeas.sh
-
-  Test_linpeas_macos:
-    runs-on: macos-latest
+    
+  Test_Linpeas_Ubuntu:
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
