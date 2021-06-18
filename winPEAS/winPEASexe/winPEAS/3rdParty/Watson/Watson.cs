@@ -73,6 +73,7 @@ namespace winPEAS._3rdParty.Watson
             CVE_2020_0668.Check(vulnerabilities, buildNumber, installedKBs);
             CVE_2020_0683.Check(vulnerabilities, buildNumber, installedKBs);
             CVE_2020_1013.Check(vulnerabilities, buildNumber, installedKBs);
+            CVE_2020_0796.Check(vulnerabilities, buildNumber, installedKBs);
 
             // Print the results
             vulnerabilities.ShowResults();
