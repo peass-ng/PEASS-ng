@@ -2628,7 +2628,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Readable files belonging to root and not world readable
   if ! [ "$IAMROOT" ]; then
     print_2title "Readable files belonging to root and readable by me but not world readable"
-    (timeout 150 find / -type f -user root ! -perm -o=r 2>/dev/null | grep -v "\.journal" | while read f; do if [ -r "$f" ]; then ls -l "$f" 2>/dev/null | sed -${E} "s,/.*,${SED_RED},"; fi; done) || echo_not_found
+    (find / -type f -user root ! -perm -o=r 2>/dev/null | grep -v "\.journal" | while read f; do if [ -r "$f" ]; then ls -l "$f" 2>/dev/null | sed -${E} "s,/.*,${SED_RED},"; fi; done) || echo_not_found
     echo ""
   fi
 
