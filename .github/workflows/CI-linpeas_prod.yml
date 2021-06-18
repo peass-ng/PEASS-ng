@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Test_Linpeas_MacOS:
+  Test_linpeas_macos:
     runs-on: macos-latest
 
     steps:
@@ -17,7 +17,7 @@ jobs:
       - name: Run linpeas
         run: linPEAS/linpeas.sh
     
-  Test_Linpeas_Ubuntu:
+  Test_linpeas_ubuntu:
     runs-on: ubuntu-latest
 
     steps:
