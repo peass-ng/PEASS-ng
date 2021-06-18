@@ -6,7 +6,10 @@ name: CI-linpeas-ubuntu
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ linpeasdevelop ]
+    branches: 
+      - 'linpeasdevelop'
+    paths:
+      - '!**linpeas.sh'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
