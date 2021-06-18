@@ -7,7 +7,7 @@ on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches: 
-      - 'linpeasdevelop'
+      - 'linpeas-dev'
     paths:
       - '!**linpeas.sh'
 
@@ -55,5 +55,5 @@ jobs:
       - name: pull-request
         uses: repo-sync/pull-request@v2
         with:
-          destination_branch: "master" #Pull request to master
+          destination_branch: "linpeas-prod" #Pull request to master
           github_token: ${{ secrets.GITHUB_TOKEN }}
