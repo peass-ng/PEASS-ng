@@ -1,0 +1,27 @@
+name: CI-linpeas_prod
+
+on:
+  pull_request:
+    branches:
+      - linpeas_prod
+
+  workflow_dispatch:
+
+jobs:
+  Test_Linpeas_MacOS:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run linpeas
+        run: linPEAS/linpeas.sh
+    
+  Test_Linpeas_Ubuntu:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run linpeas
+        run: linPEAS/linpeas.sh
