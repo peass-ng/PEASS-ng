@@ -1568,11 +1568,11 @@ search:
 
     files:
       ? "ddclient.conf"
-        : 
-          bad_regex: ".*password.*"
-          type: f
-          search_in: 
-            - common
+      : 
+        bad_regex: ".*password.*"
+        type: f
+        search_in: 
+          - common
 
   Interesting logs:
     config:
