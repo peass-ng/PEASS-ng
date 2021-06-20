@@ -1562,6 +1562,18 @@ search:
         search_in: 
           - common
 
+  Ddclient:
+    config:
+      auto_check: True
+
+    files:
+      ? "ddclient.conf"
+        : 
+          bad_regex: ".*password.*"
+          type: f
+          search_in: 
+            - common
+
   Interesting logs:
     config:
       auto_check: True
