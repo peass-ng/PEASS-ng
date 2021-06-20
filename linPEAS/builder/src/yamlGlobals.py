@@ -28,3 +28,5 @@ STORAGE_LINE_EXTRA_MARKUP = YAML_LOADED["storage_line_extra_markup"]
 STORAGE_TEMPLATE = YAML_LOADED["storage_template"]
 
 INT_HIDDEN_FILES_MARKUP = YAML_LOADED["int_hidden_files_markup"]
+
+EXTRASECTIONS_MARKUP = YAML_LOADED["peas_extrasections_markup"]
