@@ -1,13 +1,15 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI-linpeas_dev
+name: CI-linpeas_prod_rebuild
 
 # Controls when the action will run. 
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
-  push:
+  pull_request:
     branches: 
-      - linpeas_dev
+      - master
+    paths:
+      - 'build_lists/sensitive_files.yaml'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -48,10 +50,3 @@ jobs:
         with:
            github_token: ${{ secrets.GITHUB_TOKEN }}
            branch: ${{ github.ref }}
-
-      - uses: actions/checkout@v2
-      - name: pull-request
-        uses: repo-sync/pull-request@v2
-        with:
-          destination_branch: "linpeas_prod"
-          github_token: ${{ secrets.PULL_REQUEST_TOKEN }}
