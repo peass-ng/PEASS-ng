@@ -470,9 +470,9 @@ profiledG="01-locale-fix.sh|256term.csh|256term.sh|abrt-console-notification.sh|
 
 knw_emails=".*@aivazian.fsnet.co.uk|.*@angband.pl|.*@canonical.com|.*centos.org|.*debian.net|.*debian.org|.*@jff.email|.*kali.org|.*linux.it|.*@linuxia.de|.*@lists.debian-maintainers.org|.*@mit.edu|.*@oss.sgi.com|.*@qualcomm.com|.*redhat.com|.*ubuntu.com|.*@vger.kernel.org|rogershimizu@gmail.com|thmarques@gmail.com"
 
-timersG="anacron.timer|apt-daily.timer|apt-daily-upgrade.timer|e2scrub_all.timer|fstrim.timer|fwupd-refresh.timer|geoipupdate.timer|io.netplan.Netplan|logrotate.timer|man-db.timer|mlocate.timer|motd-news.timer|phpsessionclean.timer|snapd.refresh.timer|snapd.snap-repair.timer|systemd-tmpfiles-clean.timer|systemd-readahead-done.timer|ureadahead-stop.timer"
+timersG="anacron.timer|apt-daily.timer|apt-daily-upgrade.timer|e2scrub_all.timer|fstrim.timer|fwupd-refresh.timer|geoipupdate.timer|io.netplan.Netplan|logrotate.timer|man-db.timer|mlocate.timer|motd-news.timer|phpsessionclean.timer|snapd.refresh.timer|snapd.snap-repair.timer|systemd-tmpfiles-clean.timer|systemd-readahead-done.timer|ua-messaging.timer|ureadahead-stop.timer"
 
-commonrootdirsG="^/$|/bin$|/boot$|/.cache$|/cdrom|/dev$|/etc$|/home$|/lost+found$|/lib$|/lib64$|/media$|/mnt$|/opt$|/proc$|/root$|/run$|/sbin$|/snap$|/srv$|/sys$|/tmp$|/usr$|/var$"
+commonrootdirsG="^/$|/bin$|/boot$|/.cache$|/cdrom|/dev$|/etc$|/home$|/lost+found$|/lib$|/lib32$|libx32$|/lib64$|lost\+found|/media$|/mnt$|/opt$|/proc$|/root$|/run$|/sbin$|/snap$|/srv$|/sys$|/tmp$|/usr$|/var$"
 commonrootdirsMacG="^/$|/.DocumentRevisions-V100|/.fseventsd|/.PKInstallSandboxManager-SystemSoftware|/.Spotlight-V100|/.Trashes|/.vol|/Applications|/bin|/cores|/dev|/home|/Library|/macOS Install Data|/net|/Network|/opt|/private|/sbin|/System|/Users|/usr|/Volumes"
 
 ldsoconfdG="/lib32|/lib/x86_64-linux-gnu|/usr/lib32|/usr/lib/oracle/19.6/client64/lib/|/usr/lib/x86_64-linux-gnu/libfakeroot|/usr/lib/x86_64-linux-gnu|/usr/local/lib/x86_64-linux-gnu|/usr/local/lib"
@@ -547,7 +547,7 @@ print_title(){
   END_T2_TIME=`date +%s 2>/dev/null`
   if [ "$START_T2_TIME" ]; then
     TOTAL_T2_TIME=$(($END_T2_TIME - $START_T2_TIME))
-    printf $DG"The section execution took $TOTAL_T2_TIME seconds\n"$NC
+    printf $DG"This check took $TOTAL_T2_TIME seconds\n"$NC
   fi
 
   END_T1_TIME=`date +%s 2>/dev/null`
@@ -1404,8 +1404,8 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   crontab -l 2>/dev/null | tr -d "\r" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,root,${SED_RED},"
   command -v incrontab 2>/dev/null || echo_not_found "incrontab"
   incrontab -l 2>/dev/null
-  ls -al /etc/cron* 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g"
-  cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs /var/spool/cron/crontabs/* /var/spool/anacron /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
+  ls -alR /etc/cron* /var/spool/cron/crontabs /var/spool/anacron 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g"
+  cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/* /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
   ls -l /usr/lib/cron/tabs/ /Library/LaunchAgents/ /Library/LaunchDaemons/ ~/Library/LaunchAgents/ 2>/dev/null #MacOS paths
   echo ""
@@ -1971,9 +1971,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   hostsdenied="`ls /etc/hosts.denied 2>/dev/null`"
   hostsallow="`ls /etc/hosts.allow 2>/dev/null`"
 
-  if [ "$PSTORAGE_SSH_FILES"  ]; then
-    printf "$PSTORAGE_SSH_FILES\n"
-  fi
+  peass{SSH_FILES}
 
   grep "PermitRootLogin \|ChallengeResponseAuthentication \|PasswordAuthentication \|UsePAM \|Port\|PermitEmptyPasswords\|PubkeyAuthentication\|ListenAddress\|ForwardAgent\|AllowAgentForwarding\|AuthorizedKeysFiles" /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | sed -${E} "s,PermitRootLogin.*es|PermitEmptyPasswords.*es|ChallengeResponseAuthentication.*es|FordwardAgent.*es,${SED_RED},"
 
@@ -2336,6 +2334,8 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   peass{Keepass}
 
   peass{FTP}
+
+  peass{EXTRA_SECTIONS}
 
   peass{Interesting logs}
 

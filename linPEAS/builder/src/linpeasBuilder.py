@@ -15,6 +15,7 @@ from .yamlGlobals import (
     FIND_LINE_MARKUP,
     STORAGE_LINE_MARKUP,
     STORAGE_LINE_EXTRA_MARKUP,
+    EXTRASECTIONS_MARKUP
 )
 
 
@@ -42,7 +43,7 @@ class LinpeasBuilder:
         #Replace interesting hidden files markup for a list of all the serched hidden files
         self.__replace_mark(INT_HIDDEN_FILES_MARKUP, self.hidden_files, "|")
 
-        #Check if there are duplecate peass marks
+        #Check if there are duplicate peass marks
         peass_marks = self.__get_peass_marks()
         for i,mark in enumerate(peass_marks):
             for j in range(i+1,len(peass_marks)):
@@ -52,8 +53,12 @@ class LinpeasBuilder:
         sections = self.__generate_sections()
         for section_name, bash_lines in sections.items():
             mark = "peass{"+section_name+"}"
-            assert mark in peass_marks, f"Mark {mark} wasn't found in linpeas base"
-            self.__replace_mark(mark, list(bash_lines), "")
+            if mark in peass_marks:
+                self.__replace_mark(mark, list(bash_lines), "")
+            else:
+                self.__replace_mark(EXTRASECTIONS_MARKUP, [bash_lines, EXTRASECTIONS_MARKUP], "\n\n")
+        
+        self.__replace_mark(EXTRASECTIONS_MARKUP, list(""), "") #Delete extra markup
 
         #Check that there aren peass marks left in linpeas
         peass_marks = self.__get_peass_marks()
@@ -153,7 +158,7 @@ class LinpeasBuilder:
 
         for precord in self.ploaded.peasrecords:
             if precord.auto_check:
-                section = f'  print_2title "Analizing {precord.name} Files (limit 70)"\n'
+                section = f'  print_2title "Analizing {precord.name.replace("_"," ")} Files (limit 70)"\n'
 
                 for exec_line in precord.exec:
                     if exec_line:
