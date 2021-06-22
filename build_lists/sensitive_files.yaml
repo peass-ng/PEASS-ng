@@ -484,7 +484,7 @@ search:
     files:
       ? "*.ovpn"
       : 
-        bad_regex: "auth-user-pass.*"
+        bad_regex: "auth-user-pass.+"
         only_bad_lines: True
         type: f
         search_in: 
@@ -606,20 +606,11 @@ search:
       auto_check: False
     
     files:
-      ? "*ssh*config*"
+      ? "ssh*config"
       : 
         type: f
-        remove_path: '\..{1,4}$' #No interested in filenames with extensions
-        search_in: 
+        search_in:
           - /usr 
-          - $HOMESEARCH
-      
-      ? "*config*ssh*"
-      : 
-        type: f
-        remove_path: '\..{1,4}$' #No interested in filenames with extensions
-        search_in: 
-          - /usr
           - $HOMESEARCH
   
   Cloud credentials:
@@ -1079,6 +1070,7 @@ search:
       ? "*.gnupg"
       : 
         type: f
+        remove_path: "README.gnupg"
         search_in: 
           - common
 
@@ -1304,7 +1296,7 @@ search:
     files:
       ? "snmpd.conf"
       : 
-        bad_regex: "rocommunity|rwcommunity"
+        bad_regex: "rocommunity|rwcommunity|extend.*"
         only_bad_lines: True
         type: f
         search_in: 
@@ -1552,6 +1544,22 @@ search:
             bad_regex: ".*"
             remove_empty_lines: True
             remove_regex: "^#"
+        type: d
+        search_in: 
+          - common
+
+  SeedDMS:
+    config:
+      auto_check: True
+
+    files:
+      ? "seeddms*"
+      : 
+        files:
+          ? "settings.xml"
+          :
+            bad_regex: "[pP][aA][sS][sS]"
+            line_grep: '"="'
         type: d
         search_in: 
           - common
