@@ -139,12 +139,6 @@ search:
         type: d
         search_in:
           - /etc
-      
-      ? "system.d"
-      : 
-        type: d
-        search_in: 
-          - /etc
     
   MySQL:
     config:
@@ -1661,7 +1655,7 @@ search:
         search_in: 
           - common
 
-  Windows Files:
+  Windows_Files:
     config:
       auto_check: True
 
