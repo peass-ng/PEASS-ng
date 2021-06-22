@@ -565,7 +565,7 @@ print_2title(){
   END_T2_TIME=`date +%s 2>/dev/null`
   if [ "$START_T2_TIME" ]; then
     TOTAL_T2_TIME=$(($END_T2_TIME - $START_T2_TIME))
-    printf $DG"The section execution took $TOTAL_T2_TIME seconds\n"$NC
+    printf $DG"This check took $TOTAL_T2_TIME seconds\n"$NC
     echo ""
   fi
 
@@ -892,7 +892,7 @@ enumerateDockerSockets() {
   if ! [ "$SEARCHED_DOCKER_SOCKETS" ]; then
     SEARCHED_DOCKER_SOCKETS="1"
     for dock_sock in `find / ! -path "/sys/*" -type s -name "docker.sock" -o -name "docker.socket" 2>/dev/null`; do
-      if [ -w "$dock_sock" ]; then
+      if ! [ "$IAMROOT" ] && [ -w "$dock_sock" ]; then
         echo "You have write permissions over Docker socket $dock_sock" | sed -${E} "s,$dock_sock,${SED_RED_YELLOW},g"
         echo "Docker enummeration:"
         docker_enumerated=""
@@ -1143,7 +1143,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 
   #-- SY) PaX
   print_list "PaX bins present? .............. "$NC
-  (which paxctl-ng paxctl >/dev/null 2>&1 && echo "Yes" || echo_not_found "PaX")
+  (command -v paxctl-ng paxctl >/dev/null 2>&1 && echo "Yes" || echo_not_found "PaX")
 
   #-- SY) Execshield
   print_list "Execshield enabled? ............ "$NC
@@ -1190,7 +1190,7 @@ if [ "`echo $CHECKS | grep Container`" ]; then
   containerCheck
 
   print_2title "Container related tools present"
-  which $CONTAINER_CMDS
+  command -v $CONTAINER_CMDS
 
   print_2title "Container details"
   print_list "Is this a container? ...........$NC $containerType"
@@ -1315,12 +1315,12 @@ if [ "`echo $CHECKS | grep AvaSof`" ]; then
 
   #-- 1AS) Useful software
   print_2title "Useful software"
-  which $CONTAINER_CMDS nmap aws nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch ctr 2>/dev/null
+  command -v $CONTAINER_CMDS nmap aws nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch ctr 2>/dev/null
   echo ""
 
   #-- 2AS) Search for compilers
   print_2title "Installed Compiler"
-  (dpkg --list 2>/dev/null | grep "compiler" | grep -v "decompiler\|lib" 2>/dev/null || yum list installed 'gcc*' 2>/dev/null | grep gcc 2>/dev/null; which gcc g++ 2>/dev/null || locate -r "/gcc[0-9\.-]\+$" 2>/dev/null | grep -v "/doc/");
+  (dpkg --list 2>/dev/null | grep "compiler" | grep -v "decompiler\|lib" 2>/dev/null || yum list installed 'gcc*' 2>/dev/null | grep gcc 2>/dev/null; command -v gcc g++ 2>/dev/null || locate -r "/gcc[0-9\.-]\+$" 2>/dev/null | grep -v "/doc/");
   echo ""
   echo ""
   if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi
@@ -1429,7 +1429,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#services"
   printf "%s\n" "$PSTORAGE_SYSTEMD\n" | while read s; do
     if [ ! -O "$s" ]; then #Remove services that belongs to the current user
-      if [ -w "$s" ] && [ -f "$s" ]; then
+      if ! [ "$IAMROOT" ] && [ -w "$s" ] && [ -f "$s" ]; then
         echo "$s" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
       fi
       servicebinpaths="`grep -Eo '^Exec.*?=[!@+-]*[a-zA-Z0-9_/\-]+' \"$s\" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,'`" #Get invoked paths
@@ -1462,7 +1462,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   print_2title "Analyzing .timer files"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#timers"
   printf "%s\n" "$PSTORAGE_TIMER\n" | while read t; do
-    if [ -w "$t" ]; then
+    if ! [ "$IAMROOT" ] && [ -w "$t" ]; then
       echo "$t" | sed -${E} "s,.*,${SED_RED},g"
     fi
     timerbinpaths="`grep -Po '^Unit=*(.*?$)' \"$t\" 2>/dev/null | cut -d '=' -f2`"
@@ -1483,7 +1483,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   print_2title "Analyzing .socket files"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
   printf "%s\n" "$PSTORAGE_SOCKET" | while read s; do
-    if [ -w "$s" ] && [ -f "$s" ]; then
+    if ! [ "$IAMROOT" ] && [ -w "$s" ] && [ -f "$s" ]; then
       echo "Writable .socket file: $s" | sed "s,/.*,${SED_RED},g"
     fi
     socketsbinpaths="`grep -Eo '^(Exec).*?=[!@+-]*/[a-zA-Z0-9_/\-]+' \"$s\" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,'`"
@@ -1499,10 +1499,10 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
       fi
     done
   done
-  if [ -w "/var/run/docker.sock" ]; then
+  if ! [ "$IAMROOT" ] && [ -w "/var/run/docker.sock" ]; then
     echo "Docker socket /var/run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${SED_RED_YELLOW},g"
   fi
-  if [ -w "/run/docker.sock" ]; then
+  if ! [ "$IAMROOT" ] && [ -w "/run/docker.sock" ]; then
     echo "Docker socket /run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${SED_RED_YELLOW},g"
   fi
   echo ""
@@ -1526,7 +1526,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   if [ "$PSTORAGE_DBUS" ]; then
     printf "%s\n" "$PSTORAGE_DBUS" | while read d; do
       for f in $d/*; do
-        if [ -w "$f" ]; then
+        if ! [ "$IAMROOT" ] && [ -w "$f" ]; then
           echo "Writable $f" | sed -${E} "s,.*,${SED_RED},g"
         fi
 
@@ -1678,7 +1678,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
     (echo "$PASSWORD" | sudo -S -l | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoB,${SED_RED},g" | sed -${E} "s,$sudoVB,${SED_RED_YELLOW},") 2>/dev/null  || echo_not_found "sudo"
   fi
   (cat /etc/sudoers | grep -Iv "^$" | grep -v "#" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,pwfeedback,${SED_RED},g" | sed -${E} "s,$sudoVB,${SED_RED_YELLOW},") 2>/dev/null  || echo_not_found "/etc/sudoers"
-  if [ -w '/etc/sudoers.d/' ]; then
+  if ! [ "$IAMROOT" ] && [ -w '/etc/sudoers.d/' ]; then
     echo "You can create a file in /etc/sudoers.d/ and escalate privileges" | sed -${E} "s,.*,${SED_RED_YELLOW},"
   fi
   for filename in '/etc/sudoers.d/*'; do
@@ -2276,7 +2276,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket"
   printf "%s\n" "$PSTORAGE_DOCKER" | head -n 70 | while read f; do
     ls -l "$f" 2>/dev/null
-    if [ -S "$f" ] && [ -w "$f" ]; then
+    if ! [ "$IAMROOT" ] && [ -S "$f" ] && [ -w "$f" ]; then
       echo "Docker socket file ($f) is writable" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     fi
   done
@@ -2294,7 +2294,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     printf "System supports$RED S/Key$NC authentication\n"
     if ! [ -d /etc/skey/ ]; then
       echo "${GREEN}S/Key authentication enabled, but has not been initialized"
-    elif [ -w /etc/skey/ ]; then
+    elif ! [ "$IAMROOT" ] && [ -w /etc/skey/ ]; then
       echo "${RED}/etc/skey/ is writable by you"
       ls -ld /etc/skey/
     else
@@ -2307,7 +2307,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   print_2title "YubiKey authentication"
   if [ "`grep auth= /etc/login.conf 2>/dev/null | grep -v \"^#\" | grep yubikey`" ]; then
     printf "System supports$RED YubiKey$NC authentication\n"
-    if [ -w /var/db/yubikey/ ]; then
+    if ! [ "$IAMROOT" ] && [ -w /var/db/yubikey/ ]; then
       echo "${RED}/var/db/yubikey/ is writable by you"
       ls -ld /var/db/yubikey/
     else
@@ -2371,9 +2371,9 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     sname="`echo \"$s\" | awk '{print $9}'`"
     if [ "$sname" = "."  ] || [ "$sname" = ".."  ]; then
       true #Don't do nothing
-    elif [ -O "$sname" ]; then
+    elif ! [ "$IAMROOT" ] && [ -O "$sname" ]; then
       echo "You own the SUID file: $sname" | sed -${E} "s,.*,${SED_RED},"
-    elif [ -w "$sname" ]; then #If write permision, win found (no check exploits)
+    elif ! [ "$IAMROOT" ] && [ -w "$sname" ]; then #If write permision, win found (no check exploits)
       echo "You can write SUID file: $sname" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     else
       c="a"
@@ -2432,9 +2432,9 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     sname="`echo \"$s\" | awk '{print $9}'`"
     if [ "$sname" = "."  ] || [ "$sname" = ".."  ]; then
       true #Don't do nothing
-    elif [ -O "$sname" ]; then
+    elif ! [ "$IAMROOT" ] && [ -O "$sname" ]; then
       echo "You own the SGID file: $sname" | sed -${E} "s,.*,${SED_RED},"
-    elif [ -w "$sname" ]; then #If write permision, win found (no check exploits)
+    elif ! [ "$IAMROOT" ] &6 [ -w "$sname" ]; then #If write permision, win found (no check exploits)
       echo "You can write SGID file: $sname" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     else
       c="a"
@@ -2513,7 +2513,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   echo "Files with capabilities (limited to 50):"
   getcap -r / 2>/dev/null | head -n 50 | while read cb; do
     echo "$cb" | sed -${E} "s,$sudocapsB,${SED_RED}," | sed -${E} "s,$capsB,${SED_RED},"
-    if [ -w "`echo \"$cb\" | cut -d \" \" -f1`" ]; then
+    if ! [ "$IAMROOT" ] && [ -w "`echo \"$cb\" | cut -d \" \" -f1`" ]; then
       echo "$cb is writable" | sed -${E} "s,.*,${SED_RED},"
     fi
   done
@@ -2539,9 +2539,9 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#script-binaries-in-path"
   echo $PATH | tr ":" "\n" | while read d; do
     for f in `find "$d" -name "*.sh" 2>/dev/null`; do
-      if [ -O "$f" ]; then
+      if ! [ "$IAMROOT" ] && [ -O "$f" ]; then
         echo "You own the script: $f" | sed -${E} "s,.*,${SED_RED},"
-      elif [ -w "$f" ]; then #If write permision, win found (no check exploits)
+      elif ! [ "$IAMROOT" ] && [ -w "$f" ]; then #If write permision, win found (no check exploits)
         echo "You can write script: $f" | sed -${E} "s,.*,${SED_RED_YELLOW},"
       else
         echo $f | sed -${E} "s,$shscripsG,${SED_GREEN}," | sed -${E} "s,$Wfolders,${SED_RED},";
@@ -2564,9 +2564,9 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#profiles-files"
   if [ ! "$MACPEAS" ]; then #Those folders don´t exist on a MacOS
     (ls -la /etc/profile.d/ 2>/dev/null | sed -${E} "s,$profiledG,${SED_GREEN},") || echo_not_found "/etc/profile.d/"
-    if [ -w "/etc/profile" ]; then echo "You can modify /etc/profile" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ -w "/etc/profile.d/" ]; then echo "You have write privileges over /etc/profile.d/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ "`find /etc/profile.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/profile.d/ '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ -w "/etc/profile" ]; then echo "You can modify /etc/profile" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ -w "/etc/profile.d/" ]; then echo "You have write privileges over /etc/profile.d/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "`find /etc/profile.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/profile.d/ '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
   fi
   echo ""
 
@@ -2574,20 +2574,20 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   print_2title "Permissions in init, init.d, systemd, and rc.d"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#init-init-d-systemd-and-rc-d"
   if [ ! "$MACPEAS" ]; then #Those folders don´t exist on a MacOS
-    if [ -w "/etc/init/" ]; then echo "You have write privileges over /etc/init/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ "`find /etc/init/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/init/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ -w "/etc/init.d/" ]; then echo "You have write privileges over /etc/init.d/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ "`find /etc/init.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/init.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ -w "/etc/rc.d/init.d" ]; then echo "You have write privileges over /etc/rc.d/init.d" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ "`find /etc/rc.d/init.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d/init.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ -w "/usr/local/etc/rc.d" ]; then echo "You have write privileges over /usr/local/etc/rc.d" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ "`find /usr/local/etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /usr/local/etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ -w "/etc/rc.d" ]; then echo "You have write privileges over /etc/rc.d" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ "`find /etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ -w "/etc/systemd/" ]; then echo "You have write privileges over /etc/systemd/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ "`find /etc/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ -w "/lib/systemd/" ]; then echo "You have write privileges over /lib/systemd/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if [ "`find /lib/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /lib/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ -w "/etc/init/" ]; then echo "You have write privileges over /etc/init/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "`find /etc/init/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/init/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ -w "/etc/init.d/" ]; then echo "You have write privileges over /etc/init.d/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "`find /etc/init.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/init.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ -w "/etc/rc.d/init.d" ]; then echo "You have write privileges over /etc/rc.d/init.d" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "`find /etc/rc.d/init.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d/init.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ -w "/usr/local/etc/rc.d" ]; then echo "You have write privileges over /usr/local/etc/rc.d" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "`find /usr/local/etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /usr/local/etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ -w "/etc/rc.d" ]; then echo "You have write privileges over /etc/rc.d" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "`find /etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ -w "/etc/systemd/" ]; then echo "You have write privileges over /etc/systemd/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "`find /etc/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ -w "/lib/systemd/" ]; then echo "You have write privileges over /lib/systemd/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "`find /lib/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /lib/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
   fi
   echo ""
 
@@ -2625,7 +2625,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) network-scripts
   print_list "Can I write in network-scripts? ...... "
-  if [ -w "/etc/sysconfig/network-scripts/" ]; then echo "You have write privileges on /etc/sysconfig/network-scripts/" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+  if ! [ "$IAMROOT" ] && [ -w "/etc/sysconfig/network-scripts/" ]; then echo "You have write privileges on /etc/sysconfig/network-scripts/" | sed -${E} "s,.*,${SED_RED_YELLOW},"
   elif [ "`find /etc/sysconfig/network-scripts/ '(' -not -type l -and '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges on `find /etc/sysconfig/network-scripts/ '(' -not -type l -and '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' ')' 2>/dev/null`" | sed -${E} "s,.*,${SED_RED_YELLOW},"
   else echo_no
   fi
@@ -2666,11 +2666,11 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   lastWlogFolder="ImPOsSiBleeElastWlogFolder"
   logfind=`find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 3){ print line_init; }; if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; pre=act}' | head -n 100`
   printf "%s\n" "$logfind" | while read log; do
-    if [ -w "$log" ] || [ `echo "$log" | grep -E "$Wfolders"` ]; then #Only print info if something interesting found
+    if ! [ "$IAMROOT" ] && [ -w "$log" ] || ! [ "$IAMROOT" ] && [ `echo "$log" | grep -E "$Wfolders"` ]; then #Only print info if something interesting found
       if [ "`echo \"$log\" | grep \"You_can_write_more_log_files_inside_last_directory\"`" ]; then printf $ITALIC"$log\n"$NC;
-      elif [ -w "$log" ] && [ "`command -v logrotate 2>/dev/null`" ] && [ "`logrotate --version 2>&1 | grep -E ' 1| 2| 3.1'`" ]; then printf "Writable:$RED $log\n"$NC; #Check vuln version of logrotate is used and print red in that case
-      elif [ -w "$log" ]; then echo "Writable: $log";
-      elif [ "`echo \"$log\" | grep -E \"$Wfolders\"`" ] && [ "$log" ] && [ ! "$lastWlogFolder" == "$log" ]; then lastWlogFolder="$log"; echo "Writable folder: $log" | sed -${E} "s,$Wfolders,${SED_RED},g";
+      elif ! [ "$IAMROOT" ] && [ -w "$log" ] && [ "`command -v logrotate 2>/dev/null`" ] && [ "`logrotate --version 2>&1 | grep -E ' 1| 2| 3.1'`" ]; then printf "Writable:$RED $log\n"$NC; #Check vuln version of logrotate is used and print red in that case
+      elif ! [ "$IAMROOT" ] && [ -w "$log" ]; then echo "Writable: $log";
+      elif ! [ "$IAMROOT" ] && [ "`echo \"$log\" | grep -E \"$Wfolders\"`" ] && [ "$log" ] && [ ! "$lastWlogFolder" == "$log" ]; then lastWlogFolder="$log"; echo "Writable folder: $log" | sed -${E} "s,$Wfolders,${SED_RED},g";
       fi
     fi
   done
