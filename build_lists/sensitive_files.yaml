@@ -211,7 +211,7 @@ search:
             bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
             only_bad_lines: True
             remove_empty_lines: True
-            remove_regex: "^#"
+            remove_regex: '^#'
         search_in: 
           - common
       
@@ -477,7 +477,7 @@ search:
         search_in: 
           - common
 
-  Open VPN:
+  Open_VPN:
     config:
       auto_check: True
 
@@ -613,7 +613,7 @@ search:
           - /usr 
           - $HOMESEARCH
   
-  Cloud credentials:
+  Cloud_credentials:
     config:
       auto_check: True
 
@@ -984,7 +984,7 @@ search:
         search_in: 
           - common
 
-  Backup Manager:
+  Backup_Manager:
     config:
       auto_check: True
 
@@ -1361,7 +1361,7 @@ search:
       ? ".htpasswd"
       : 
         bad_regex: ".*"
-        remove_regex: "^#"
+        remove_regex: '^#'
         remove_empty_lines: True
         type: f
         search_in: 
@@ -1375,7 +1375,7 @@ search:
       ? ".ldaprc"
       : 
         bad_regex: ".*"
-        remove_regex: "^#"
+        remove_regex: '^#'
         remove_empty_lines: True
         type: f
         search_in: 
@@ -1389,7 +1389,7 @@ search:
       ? ".env"
       : 
         bad_regex: "[pP][aA][sS][sS].*"
-        remove_regex: "^#"
+        remove_regex: '^#'
         remove_empty_lines: True
         type: f
         search_in: 
@@ -1403,7 +1403,7 @@ search:
       ? ".msmtprc"
       : 
         bad_regex: "user.*|password.*"
-        remove_regex: "^#"
+        remove_regex: '^#'
         remove_empty_lines: True
         type: f
         search_in: 
@@ -1543,7 +1543,7 @@ search:
           :
             bad_regex: ".*"
             remove_empty_lines: True
-            remove_regex: "^#"
+            remove_regex: '^#'
         type: d
         search_in: 
           - common
@@ -1576,7 +1576,7 @@ search:
         search_in: 
           - common
 
-  Interesting logs:
+  Interesting_logs:
     config:
       auto_check: True
 
@@ -1595,7 +1595,7 @@ search:
         search_in: 
           - common
 
-  Other Interesting Files:
+  Other_Interesting_Files:
     config:
       auto_check: True
 

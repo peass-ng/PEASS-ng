@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION="v3.2.5"
+VERSION="v3.2.6"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
 
 ###########################################
@@ -56,6 +56,7 @@ CHECKS="SysI,Container,Devs,AvaSof,ProCronSrvcsTmrsSocks,Net,UsrI,SofI,IntFiles"
 WAIT=""
 PASSWORD=""
 NOCOLOR=""
+VERBOSE=""
 THREADS="`((grep -c processor /proc/cpuinfo 2>/dev/null) || ((command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n"`"
 [ -z "$THREADS" ] && THREADS="2" #If THREADS is empty, put number 2
 [ -n "$THREADS" ] && eTHREADS="2" #If THREADS is null, put number 2
@@ -69,6 +70,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
       ${YELLOW}-w${BLUE} Wait execution between big blocks
       ${YELLOW}-n${BLUE} Do not export env variables related with history and do not check Internet connectivity
       ${YELLOW}-N${BLUE} Do not use colours
+      ${YELLOW}-v${BLUE} Verbose execution
       ${YELLOW}-P${BLUE} Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
       ${YELLOW}-o${BLUE} Only execute selected checks (SysI, Container, Devs, AvaSof, ProCronSrvcsTmrsSocks, Net, UsrI, SofI, IntFiles). Select a comma separated list.
       ${YELLOW}-L${BLUE} Force linpeas execution.
@@ -78,7 +80,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
       ${YELLOW}-i <IP> [-p <PORT(s)>]${BLUE} Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
       $GREEN Notice${BLUE} that if you select some network action, no PE check will be performed$NC"
 
-while getopts "h?asnd:p:i:P:qo:LMwN" opt; do
+while getopts "h?asnd:p:i:P:qo:LMwNv" opt; do
   case "$opt" in
     h|\?) printf "%s\n\n" "$HELP$NC"; exit 0;;
     a)  FAST="";;
@@ -94,6 +96,7 @@ while getopts "h?asnd:p:i:P:qo:LMwN" opt; do
     M)  MACPEAS="1";;
     w)  WAIT=1;;
     N)  NOCOLOR="1";;
+    v)  VERBOSE="1";;
     esac
 done
 
@@ -532,7 +535,9 @@ fi
 ###########################################
 
 echo_not_found (){
-  printf $DG"$1 Not Found\n"$NC
+  if [ "$VERBOSE" ]; then
+    printf $DG"$1 Not Found\n"$NC
+  fi
 }
 
 warn_exec(){
@@ -544,32 +549,38 @@ echo_no (){
 }
 
 print_title(){
-  END_T2_TIME=`date +%s 2>/dev/null`
-  if [ "$START_T2_TIME" ]; then
-    TOTAL_T2_TIME=$(($END_T2_TIME - $START_T2_TIME))
-    printf $DG"This check took $TOTAL_T2_TIME seconds\n"$NC
+  if [ "$VERBOSE" ]; then
+    END_T2_TIME=`date +%s 2>/dev/null`
+    if [ "$START_T2_TIME" ]; then
+      TOTAL_T2_TIME=$(($END_T2_TIME - $START_T2_TIME))
+      printf $DG"This check took $TOTAL_T2_TIME seconds\n"$NC
+    fi
+
+    END_T1_TIME=`date +%s 2>/dev/null`
+    if [ "$START_T1_TIME" ]; then
+      TOTAL_T1_TIME=$(($END_T1_TIME - $START_T1_TIME))
+      printf $DG"The total section execution took $TOTAL_T1_TIME seconds\n"$NC
+      echo ""
+    fi
+
+    START_T1_TIME=`date +%s 2>/dev/null`
   fi
 
-  END_T1_TIME=`date +%s 2>/dev/null`
-  if [ "$START_T1_TIME" ]; then
-    TOTAL_T1_TIME=$(($END_T1_TIME - $START_T1_TIME))
-    printf $DG"The total section execution took $TOTAL_T1_TIME seconds\n"$NC
-    echo ""
-  fi
-
-  START_T1_TIME=`date +%s 2>/dev/null`
   printf ${BLUE}"════════════════════════════════════╣ "$GREEN"$1"${BLUE}" ╠════════════════════════════════════\n"$NC
 }
 
 print_2title(){
-  END_T2_TIME=`date +%s 2>/dev/null`
-  if [ "$START_T2_TIME" ]; then
-    TOTAL_T2_TIME=$(($END_T2_TIME - $START_T2_TIME))
-    printf $DG"This check took $TOTAL_T2_TIME seconds\n"$NC
-    echo ""
+  if [ "$VERBOSE" ]; then
+    END_T2_TIME=`date +%s 2>/dev/null`
+    if [ "$START_T2_TIME" ]; then
+      TOTAL_T2_TIME=$(($END_T2_TIME - $START_T2_TIME))
+      printf $DG"This check took $TOTAL_T2_TIME seconds\n"$NC
+      echo ""
+    fi
+
+    START_T2_TIME=`date +%s 2>/dev/null`
   fi
 
-  START_T2_TIME=`date +%s 2>/dev/null`
   printf ${BLUE}"╔══════════╣ "$GREEN"$1\n"$NC #There are 10 "═"
 }
 
@@ -1962,7 +1973,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   peass{Ldap}
 
-  peass{Open VPN}
+  peass{Open_VPN}
 
   #-- SI) ssh files
   print_2title "Searching ssl/ssh files"
@@ -2181,7 +2192,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   peass{Neo4j}
 
-  peass{Cloud credentials}
+  peass{Cloud_credentials}
 
   peass{Cloud-Init}
 
@@ -2199,7 +2210,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   peass{Filezilla}
 
-  peass{Backup Manager}
+  peass{Backup_Manager}
 
   ##-- SI) passwd files (splunk)
   print_2title "Searching uncommon passwd files (splunk)"
@@ -2337,11 +2348,11 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   peass{EXTRA_SECTIONS}
 
-  peass{Interesting logs}
+  peass{Interesting_logs}
 
-  peass{Windows Files}
+  peass{Windows_Files}
 
-  peass{Other Interesting Files}
+  peass{Other_Interesting_Files}
 
   echo ""
 
