@@ -69,6 +69,7 @@ namespace winPEAS.Checks
                 PrintLSAProtection,
                 PrintCredentialGuard,
                 PrintCachedCreds,
+                PrintRegistryCreds,
                 PrintAVInfo,
                 PrintWindowsDefenderInfo,
                 PrintUACInfo,
@@ -1100,6 +1101,46 @@ namespace winPEAS.Checks
                     }
 
                     Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private static void PrintRegistryCreds()
+        {
+            try
+            {
+                Beaprint.MainPrint("Enumerating saved credentials in Registry (CurrentPass)");
+                string currentPass = "CurrentPass";
+                var hive = "HKLM";
+                var path = "System";
+                var controlSet = "ControlSet";
+
+                var colors = new Dictionary<string, string>
+                {
+                    { currentPass, Beaprint.ansi_color_bad }
+                };
+
+                var subkeys = RegistryHelper.GetRegSubkeys(hive, path);
+
+                foreach (var subkey in subkeys.Where(i => i.Contains(controlSet)))
+                {
+                    try
+                    {
+                        var subPath = @$"{path}\{subkey}\Control";
+                        var key = $@"{hive}\{subPath}\{currentPass}";
+                        var value = RegistryHelper.GetRegValue(hive, subPath, currentPass);
+
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            Beaprint.AnsiPrint($@"    {key,-60}   :   {value}", colors);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
             }
             catch (Exception ex)
