@@ -2021,7 +2021,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   fi
   echo ""
 
-    print_2title "Analizing PostgreSQL Files (limit 70)"
+    print_2title "Analyzing PostgreSQL Files (limit 70)"
     echo "Version: $(warn_exec psql -V 2>/dev/null)"
     if ! [ "`echo \"$PSTORAGE_POSTGRESQL\" | grep -E \"pgadmin.*\.db$\"`" ]; then echo_not_found "pgadmin*.db"; fi; printf "%s" "$PSTORAGE_POSTGRESQL" | grep -E "pgadmin.*\.db$" | while read f; do ls -ld "$f" | sed -${E} "s,pgadmin.*\.db$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_POSTGRESQL\" | grep -E \"pg_hba\.conf$\"`" ]; then echo_not_found "pg_hba.conf"; fi; printf "%s" "$PSTORAGE_POSTGRESQL" | grep -E "pg_hba\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,pg_hba\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -Ev "\W+\#|^#" | sed -${E} "s,auth|password|md5|user=|pass=|trust,${SED_RED},g"; done; echo "";
@@ -2054,12 +2054,12 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     echo ""
   fi
 
-    print_2title "Analizing Mongo Files (limit 70)"
+    print_2title "Analyzing Mongo Files (limit 70)"
     echo "Version: $(warn_exec mongo --version 2>/dev/null; warn_exec mongod --version 2>/dev/null)"
     if ! [ "`echo \"$PSTORAGE_MONGO\" | grep -E \"mongod.*\.conf$\"`" ]; then echo_not_found "mongod*.conf"; fi; printf "%s" "$PSTORAGE_MONGO" | grep -E "mongod.*\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,mongod.*\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -Ev "\W+\#|^#"; done; echo "";
 
 
-    print_2title "Analizing Apache Files (limit 70)"
+    print_2title "Analyzing Apache Files (limit 70)"
     echo "Version: $(warn_exec apache2 -v 2>/dev/null; warn_exec httpd -v 2>/dev/null)"
     print_3title 'PHP exec extensions'
     grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null
@@ -2067,53 +2067,53 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     if ! [ "`echo \"$PSTORAGE_APACHE\" | grep -E \"000-default$\"`" ]; then echo_not_found "000-default"; fi; printf "%s" "$PSTORAGE_APACHE" | grep -E "000-default$" | while read f; do ls -ld "$f" | sed -${E} "s,000-default$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,AuthType|AuthName|AuthUserFile|ServerName|ServerAlias,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Tomcat Files (limit 70)"
+    print_2title "Analyzing Tomcat Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_TOMCAT\" | grep -E \"tomcat-users\.xml$\"`" ]; then echo_not_found "tomcat-users.xml"; fi; printf "%s" "$PSTORAGE_TOMCAT" | grep -E "tomcat-users\.xml$" | while read f; do ls -ld "$f" | sed -${E} "s,tomcat-users\.xml$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "username=|password=" | sed -${E} "s,dbtype|dbhost|dbuser|dbhost|dbpass|dbport,${SED_RED},g"; done; echo "";
 
   
-    print_2title "Analizing FastCGI Files (limit 70)"
+    print_2title "Analyzing FastCGI Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_FASTCGI\" | grep -E \"fastcgi_params$\"`" ]; then echo_not_found "fastcgi_params"; fi; printf "%s" "$PSTORAGE_FASTCGI" | grep -E "fastcgi_params$" | while read f; do ls -ld "$f" | sed -${E} "s,fastcgi_params$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "DB_NAME|DB_USER|DB_PASS" | sed -${E} "s,DB_NAME|DB_USER|DB_PASS,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Http conf Files (limit 70)"
+    print_2title "Analyzing Http conf Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_HTTP_CONF\" | grep -E \"httpd\.conf$\"`" ]; then echo_not_found "httpd.conf"; fi; printf "%s" "$PSTORAGE_HTTP_CONF" | grep -E "httpd\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,httpd\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "htaccess.*|htpasswd.*" | grep -Ev "\W+\#|^#" | sed -${E} "s,htaccess.*|htpasswd.*,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Htpasswd Files (limit 70)"
+    print_2title "Analyzing Htpasswd Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_HTPASSWD\" | grep -E \"\.htpasswd$\"`" ]; then echo_not_found ".htpasswd"; fi; printf "%s" "$PSTORAGE_HTPASSWD" | grep -E "\.htpasswd$" | while read f; do ls -ld "$f" | sed -${E} "s,\.htpasswd$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -Ev "^#" | sed -${E} "s,.*,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing PHPCookies Files (limit 70)"
+    print_2title "Analyzing PHPCookies Files (limit 70)"
     ls /var/lib/php/sessions 2>/dev/null || echo_not_found /var/lib/php/sessions
     if ! [ "`echo \"$PSTORAGE_PHPCOOKIES\" | grep -E \"sess_.*$\"`" ]; then echo_not_found "sess_*"; fi; printf "%s" "$PSTORAGE_PHPCOOKIES" | grep -E "sess_.*$" | while read f; do ls -ld "$f" | sed -${E} "s,sess_.*$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$"; done; echo "";
 
 
-    print_2title "Analizing Wordpress Files (limit 70)"
+    print_2title "Analyzing Wordpress Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_WORDPRESS\" | grep -E \"wp-config\.php$\"`" ]; then echo_not_found "wp-config.php"; fi; printf "%s" "$PSTORAGE_WORDPRESS" | grep -E "wp-config\.php$" | while read f; do ls -ld "$f" | sed -${E} "s,wp-config\.php$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "PASSWORD|USER|NAME|HOST" | sed -${E} "s,PASSWORD|USER|NAME|HOST,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Drupal Files (limit 70)"
+    print_2title "Analyzing Drupal Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_DRUPAL\" | grep -E \"settings\.php$\"`" ]; then echo_not_found "settings.php"; fi; printf "%s" "$PSTORAGE_DRUPAL" | grep -E "settings\.php$" | while read f; do ls -ld "$f" | sed -${E} "s,settings\.php$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "drupal_hash_salt|'database'|'username'|'password'|'host'|'port'|'driver'|'prefix'" | sed -${E} "s,drupal_hash_salt|'database'|'username'|'password'|'host'|'port'|'driver'|'prefix',${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Moodle Files (limit 70)"
+    print_2title "Analyzing Moodle Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_MOODLE\" | grep -E \"config\.php$\"`" ]; then echo_not_found "config.php"; fi; printf "%s" "$PSTORAGE_MOODLE" | grep -E "config\.php$" | while read f; do ls -ld "$f" | sed -${E} "s,config\.php$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "dbtype|dbhost|dbuser|dbhost|dbpass|dbport" | sed -${E} "s,dbtype|dbhost|dbuser|dbhost|dbpass|dbport,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Supervisord Files (limit 70)"
+    print_2title "Analyzing Supervisord Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_SUPERVISORD\" | grep -E \"supervisord\.conf$\"`" ]; then echo_not_found "supervisord.conf"; fi; printf "%s" "$PSTORAGE_SUPERVISORD" | grep -E "supervisord\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,supervisord\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "port.*=|username.*=|password.*=" | sed -${E} "s,port.*=|username.*=|password.*=,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Cesi Files (limit 70)"
+    print_2title "Analyzing Cesi Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_CESI\" | grep -E \"cesi\.conf$\"`" ]; then echo_not_found "cesi.conf"; fi; printf "%s" "$PSTORAGE_CESI" | grep -E "cesi\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,cesi\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "username.*=|password.*=|host.*=|port.*=|database.*=" | sed -${E} "s,username.*=|password.*=|host.*=|port.*=|database.*=,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Rsync Files (limit 70)"
+    print_2title "Analyzing Rsync Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_RSYNC\" | grep -E \"rsyncd\.conf$\"`" ]; then echo_not_found "rsyncd.conf"; fi; printf "%s" "$PSTORAGE_RSYNC" | grep -E "rsyncd\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,rsyncd\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -Ev "\W+\#|^#" | sed -${E} "s,secrets.*|auth.*users.*=,${SED_RED},g"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_RSYNC\" | grep -E \"rsyncd\.secrets$\"`" ]; then echo_not_found "rsyncd.secrets"; fi; printf "%s" "$PSTORAGE_RSYNC" | grep -E "rsyncd\.secrets$" | while read f; do ls -ld "$f" | sed -${E} "s,rsyncd\.secrets$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,.*,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Hostapd Files (limit 70)"
+    print_2title "Analyzing Hostapd Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_HOSTAPD\" | grep -E \"hostapd\.conf$\"`" ]; then echo_not_found "hostapd.conf"; fi; printf "%s" "$PSTORAGE_HOSTAPD" | grep -E "hostapd\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,hostapd\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,passphrase.*,${SED_RED},g"; done; echo "";
 
 
@@ -2126,11 +2126,11 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   fi
   echo ""
 
-    print_2title "Analizing Anaconda-ks Files (limit 70)"
+    print_2title "Analyzing Anaconda-ks Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_ANACONDA_KS\" | grep -E \"anaconda-ks\.cfg$\"`" ]; then echo_not_found "anaconda-ks.cfg"; fi; printf "%s" "$PSTORAGE_ANACONDA_KS" | grep -E "anaconda-ks\.cfg$" | while read f; do ls -ld "$f" | sed -${E} "s,anaconda-ks\.cfg$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "rootpw.*" | sed -${E} "s,rootpw.*,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing VNC Files (limit 70)"
+    print_2title "Analyzing VNC Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_VNC\" | grep -E \"\.vnc$\"`" ]; then echo_not_found ".vnc"; fi; printf "%s" "$PSTORAGE_VNC" | grep -E "\.vnc$" | while read f; do ls -ld "$f" | sed -${E} "s,\.vnc$,${SED_RED},"; for ff in $(find "$f" -name "passwd"); do ls -ld "$ff" | sed -${E} "s,passwd,${SED_RED},"; done; echo "";done; echo "";
     if ! [ "`echo \"$PSTORAGE_VNC\" | grep -E \"vnc.*\.c.*nf.*$\"`" ]; then echo_not_found "*vnc*.c*nf*"; fi; printf "%s" "$PSTORAGE_VNC" | grep -E "vnc.*\.c.*nf.*$" | while read f; do ls -ld "$f" | sed -${E} "s,vnc.*\.c.*nf.*$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,.*,${SED_RED},g"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_VNC\" | grep -E \"vnc.*\.ini$\"`" ]; then echo_not_found "*vnc*.ini"; fi; printf "%s" "$PSTORAGE_VNC" | grep -E "vnc.*\.ini$" | while read f; do ls -ld "$f" | sed -${E} "s,vnc.*\.ini$,${SED_RED},"; done; echo "";
@@ -2138,12 +2138,12 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     if ! [ "`echo \"$PSTORAGE_VNC\" | grep -E \"vnc.*\.xml$\"`" ]; then echo_not_found "*vnc*.xml"; fi; printf "%s" "$PSTORAGE_VNC" | grep -E "vnc.*\.xml$" | while read f; do ls -ld "$f" | sed -${E} "s,vnc.*\.xml$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,.*,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Ldap Files (limit 70)"
+    print_2title "Analyzing Ldap Files (limit 70)"
     echo "The password hash is from the {SSHA} to 'structural'"
     if ! [ "`echo \"$PSTORAGE_LDAP\" | grep -E \"ldap$\"`" ]; then echo_not_found "ldap"; fi; printf "%s" "$PSTORAGE_LDAP" | grep -E "ldap$" | while read f; do ls -ld "$f" | sed -${E} "s,ldap$,${SED_RED},"; for ff in $(find "$f" -name "*.bdb"); do ls -ld "$ff" | sed -${E} "s,.bdb,${SED_RED},"; cat "$ff" 2>/dev/null | grep -IEv "^$" | grep -E -i -a -o "description.*" | sort | uniq | sed -${E} "s,administrator|password|ADMINISTRATOR|PASSWORD|Password|Administrator,${SED_RED},g"; done; echo "";done; echo "";
 
 
-    print_2title "Analizing Open VPN Files (limit 70)"
+    print_2title "Analyzing Open VPN Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_OPEN_VPN\" | grep -E \"\.ovpn$\"`" ]; then echo_not_found "*.ovpn"; fi; printf "%s" "$PSTORAGE_OPEN_VPN" | grep -E "\.ovpn$" | while read f; do ls -ld "$f" | sed -${E} "s,\.ovpn$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "auth-user-pass.+" | sed -${E} "s,auth-user-pass.+,${SED_RED},g"; done; echo "";
 
 
@@ -2154,7 +2154,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   hostsdenied="`ls /etc/hosts.denied 2>/dev/null`"
   hostsallow="`ls /etc/hosts.allow 2>/dev/null`"
 
-    print_2title "Analizing SSH FILES Files (limit 70)"
+    print_2title "Analyzing SSH FILES Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_SSH_FILES\" | grep -E \"id_dsa.*$\"`" ]; then echo_not_found "id_dsa*"; fi; printf "%s" "$PSTORAGE_SSH_FILES" | grep -E "id_dsa.*$" | while read f; do ls -ld "$f" | sed -${E} "s,id_dsa.*$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_SSH_FILES\" | grep -E \"id_rsa.*$\"`" ]; then echo_not_found "id_rsa*"; fi; printf "%s" "$PSTORAGE_SSH_FILES" | grep -E "id_rsa.*$" | while read f; do ls -ld "$f" | sed -${E} "s,id_rsa.*$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_SSH_FILES\" | grep -E \"known_hosts$\"`" ]; then echo_not_found "known_hosts"; fi; printf "%s" "$PSTORAGE_SSH_FILES" | grep -E "known_hosts$" | while read f; do ls -ld "$f" | sed -${E} "s,known_hosts$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$"; done; echo "";
@@ -2282,15 +2282,15 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   klist 2>/dev/null || echo_not_found "klist"
   echo ""
 
-    print_2title "Analizing Knockd Files (limit 70)"
+    print_2title "Analyzing Knockd Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_KNOCKD\" | grep -E \"knockd.*$\"`" ]; then echo_not_found "*knockd*"; fi; printf "%s" "$PSTORAGE_KNOCKD" | grep -E "knockd.*$" | while read f; do ls -ld "$f" | sed -${E} "s,knockd.*$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$"; done; echo "";
 
 
-    print_2title "Analizing Kibana Files (limit 70)"
+    print_2title "Analyzing Kibana Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_KIBANA\" | grep -E \"kibana\.y.*ml$\"`" ]; then echo_not_found "kibana.y*ml"; fi; printf "%s" "$PSTORAGE_KIBANA" | grep -E "kibana\.y.*ml$" | while read f; do ls -ld "$f" | sed -${E} "s,kibana\.y.*ml$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -Ev "\W+\#|^#|^[[:space:]]*$" | sed -${E} "s,username|password|host|port|elasticsearch|ssl,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Elasticsearch Files (limit 70)"
+    print_2title "Analyzing Elasticsearch Files (limit 70)"
     echo "The version is $(curl -X GET '127.0.0.1:9200' 2>/dev/null | grep number | cut -d ':' -f 2)"
     if ! [ "`echo \"$PSTORAGE_ELASTICSEARCH\" | grep -E \"elasticsearch\.y.*ml$\"`" ]; then echo_not_found "elasticsearch.y*ml"; fi; printf "%s" "$PSTORAGE_ELASTICSEARCH" | grep -E "elasticsearch\.y.*ml$" | while read f; do ls -ld "$f" | sed -${E} "s,elasticsearch\.y.*ml$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "path.data|path.logs|cluster.name|node.name|network.host|discovery.zen.ping.unicast.hosts" | grep -Ev "\W+\#|^#"; done; echo "";
 
@@ -2353,11 +2353,11 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   fi
   echo ""
 
-    print_2title "Analizing CouchDB Files (limit 70)"
+    print_2title "Analyzing CouchDB Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_COUCHDB\" | grep -E \"couchdb$\"`" ]; then echo_not_found "couchdb"; fi; printf "%s" "$PSTORAGE_COUCHDB" | grep -E "couchdb$" | while read f; do ls -ld "$f" | sed -${E} "s,couchdb$,${SED_RED},"; for ff in $(find "$f" -name "local.ini"); do ls -ld "$ff" | sed -${E} "s,local.ini,${SED_RED},"; cat "$ff" 2>/dev/null | grep -IEv "^$" | grep -Ev "^;" | sed -${E} "s,admin.*|password.*|cert_file.*|key_file.*|hashed.*|pbkdf2.*,${SED_RED},g"; done; echo "";done; echo "";
 
 
-    print_2title "Analizing Redis Files (limit 70)"
+    print_2title "Analyzing Redis Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_REDIS\" | grep -E \"redis\.conf$\"`" ]; then echo_not_found "redis.conf"; fi; printf "%s" "$PSTORAGE_REDIS" | grep -E "redis\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,redis\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -Ev "\W+\#|^#" | sed -${E} "s,masterauth.*|requirepass.*,${SED_RED},g"; done; echo "";
 
 
@@ -2377,15 +2377,15 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 	fi
   echo ""
 
-    print_2title "Analizing Mosquitto Files (limit 70)"
+    print_2title "Analyzing Mosquitto Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_MOSQUITTO\" | grep -E \"mosquitto\.conf$\"`" ]; then echo_not_found "mosquitto.conf"; fi; printf "%s" "$PSTORAGE_MOSQUITTO" | grep -E "mosquitto\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,mosquitto\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -Ev "\W+\#|^#" | sed -${E} "s,password_file.*|psk_file.*|allow_anonymous.*true|auth,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Neo4j Files (limit 70)"
+    print_2title "Analyzing Neo4j Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_NEO4J\" | grep -E \"neo4j$\"`" ]; then echo_not_found "neo4j"; fi; printf "%s" "$PSTORAGE_NEO4J" | grep -E "neo4j$" | while read f; do ls -ld "$f" | sed -${E} "s,neo4j$,${SED_RED},"; for ff in $(find "$f" -name "auth"); do ls -ld "$ff" | sed -${E} "s,auth,${SED_RED},"; cat "$ff" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,.*,${SED_RED},g"; done; echo "";done; echo "";
 
 
-    print_2title "Analizing Cloud credentials Files (limit 70)"
+    print_2title "Analyzing Cloud credentials Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_CLOUD_CREDENTIALS\" | grep -E \"credentials$\"`" ]; then echo_not_found "credentials"; fi; printf "%s" "$PSTORAGE_CLOUD_CREDENTIALS" | grep -E "credentials$" | while read f; do ls -ld "$f" | sed -${E} "s,credentials$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,.*,${SED_RED},g"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_CLOUD_CREDENTIALS\" | grep -E \"credentials\.db$\"`" ]; then echo_not_found "credentials.db"; fi; printf "%s" "$PSTORAGE_CLOUD_CREDENTIALS" | grep -E "credentials\.db$" | while read f; do ls -ld "$f" | sed -${E} "s,credentials\.db$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,.*,${SED_RED},g"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_CLOUD_CREDENTIALS\" | grep -E \"legacy_credentials\.db$\"`" ]; then echo_not_found "legacy_credentials.db"; fi; printf "%s" "$PSTORAGE_CLOUD_CREDENTIALS" | grep -E "legacy_credentials\.db$" | while read f; do ls -ld "$f" | sed -${E} "s,legacy_credentials\.db$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,.*,${SED_RED},g"; done; echo "";
@@ -2398,44 +2398,44 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     if ! [ "`echo \"$PSTORAGE_CLOUD_CREDENTIALS\" | grep -E \"\.bluemix$\"`" ]; then echo_not_found ".bluemix"; fi; printf "%s" "$PSTORAGE_CLOUD_CREDENTIALS" | grep -E "\.bluemix$" | while read f; do ls -ld "$f" | sed -${E} "s,\.bluemix$,${SED_RED},"; for ff in $(find "$f" -name "config.json"); do ls -ld "$ff" | sed -${E} "s,config.json,${SED_RED},"; cat "$ff" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,.*,${SED_RED},g"; done; echo "";done; echo "";
 
 
-    print_2title "Analizing Cloud-Init Files (limit 70)"
+    print_2title "Analyzing Cloud-Init Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_CLOUD_INIT\" | grep -E \"cloud\.cfg$\"`" ]; then echo_not_found "cloud.cfg"; fi; printf "%s" "$PSTORAGE_CLOUD_INIT" | grep -E "cloud\.cfg$" | while read f; do ls -ld "$f" | sed -${E} "s,cloud\.cfg$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "consumer_key|token_key|token_secret|metadata_url|password:|passwd:|PRIVATE KEY|PRIVATE KEY|encrypted_data_bag_secret|_proxy" | grep -Ev "\W+\#|^#" | sed -${E} "s,consumer_key|token_key|token_secret|metadata_url|password:|passwd:|PRIVATE KEY|PRIVATE KEY|encrypted_data_bag_secret|_proxy,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing CloudFlare Files (limit 70)"
+    print_2title "Analyzing CloudFlare Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_CLOUDFLARE\" | grep -E \"\.cloudflared$\"`" ]; then echo_not_found ".cloudflared"; fi; printf "%s" "$PSTORAGE_CLOUDFLARE" | grep -E "\.cloudflared$" | while read f; do ls -ld "$f" | sed -${E} "s,\.cloudflared$,${SED_RED},"; done; echo "";
 
 
-    print_2title "Analizing Erlang Files (limit 70)"
+    print_2title "Analyzing Erlang Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_ERLANG\" | grep -E \"\.erlang\.cookie$\"`" ]; then echo_not_found ".erlang.cookie"; fi; printf "%s" "$PSTORAGE_ERLANG" | grep -E "\.erlang\.cookie$" | while read f; do ls -ld "$f" | sed -${E} "s,\.erlang\.cookie$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,.*,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing GMV Auth Files (limit 70)"
+    print_2title "Analyzing GMV Auth Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_GMV_AUTH\" | grep -E \"gvm-tools\.conf$\"`" ]; then echo_not_found "gvm-tools.conf"; fi; printf "%s" "$PSTORAGE_GMV_AUTH" | grep -E "gvm-tools\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,gvm-tools\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,username.*|password.*,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing IPSec Files (limit 70)"
+    print_2title "Analyzing IPSec Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_IPSEC\" | grep -E \"ipsec\.secrets$\"`" ]; then echo_not_found "ipsec.secrets"; fi; printf "%s" "$PSTORAGE_IPSEC" | grep -E "ipsec\.secrets$" | while read f; do ls -ld "$f" | sed -${E} "s,ipsec\.secrets$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,.*PSK.*|.*RSA.*|.*EAP =.*|.*XAUTH.*,${SED_RED},g"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_IPSEC\" | grep -E \"ipsec\.conf$\"`" ]; then echo_not_found "ipsec.conf"; fi; printf "%s" "$PSTORAGE_IPSEC" | grep -E "ipsec\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,ipsec\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,.*PSK.*|.*RSA.*|.*EAP =.*|.*XAUTH.*,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing IRSSI Files (limit 70)"
+    print_2title "Analyzing IRSSI Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_IRSSI\" | grep -E \"\.irssi$\"`" ]; then echo_not_found ".irssi"; fi; printf "%s" "$PSTORAGE_IRSSI" | grep -E "\.irssi$" | while read f; do ls -ld "$f" | sed -${E} "s,\.irssi$,${SED_RED},"; for ff in $(find "$f" -name "config"); do ls -ld "$ff" | sed -${E} "s,config,${SED_RED},"; cat "$ff" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,password.*,${SED_RED},g"; done; echo "";done; echo "";
 
 
-    print_2title "Analizing Keyring Files (limit 70)"
+    print_2title "Analyzing Keyring Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_KEYRING\" | grep -E \"keyrings$\"`" ]; then echo_not_found "keyrings"; fi; printf "%s" "$PSTORAGE_KEYRING" | grep -E "keyrings$" | while read f; do ls -ld "$f" | sed -${E} "s,keyrings$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_KEYRING\" | grep -E \"\.keyring$\"`" ]; then echo_not_found "*.keyring"; fi; printf "%s" "$PSTORAGE_KEYRING" | grep -E "\.keyring$" | while read f; do ls -ld "$f" | sed -${E} "s,\.keyring$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_KEYRING\" | grep -E \"\.keystore$\"`" ]; then echo_not_found "*.keystore"; fi; printf "%s" "$PSTORAGE_KEYRING" | grep -E "\.keystore$" | while read f; do ls -ld "$f" | sed -${E} "s,\.keystore$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_KEYRING\" | grep -E \"\.jks$\"`" ]; then echo_not_found "*.jks"; fi; printf "%s" "$PSTORAGE_KEYRING" | grep -E "\.jks$" | while read f; do ls -ld "$f" | sed -${E} "s,\.jks$,${SED_RED},"; done; echo "";
 
 
-    print_2title "Analizing Filezilla Files (limit 70)"
+    print_2title "Analyzing Filezilla Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_FILEZILLA\" | grep -E \"filelliza$\"`" ]; then echo_not_found "filelliza"; fi; printf "%s" "$PSTORAGE_FILEZILLA" | grep -E "filelliza$" | while read f; do ls -ld "$f" | sed -${E} "s,filelliza$,${SED_RED},"; for ff in $(find "$f" -name "sitemanager.xml"); do ls -ld "$ff" | sed -${E} "s,sitemanager.xml,${SED_RED},"; cat "$ff" 2>/dev/null | grep -IEv "^$" | grep -Ev "^;" | sed -${E} "s,Host.*|Port.*|Protocol.*|User.*|Pass.*,${SED_RED},g"; done; echo "";done; echo "";
     if ! [ "`echo \"$PSTORAGE_FILEZILLA\" | grep -E \"filezilla\.xml$\"`" ]; then echo_not_found "filezilla.xml"; fi; printf "%s" "$PSTORAGE_FILEZILLA" | grep -E "filezilla\.xml$" | while read f; do ls -ld "$f" | sed -${E} "s,filezilla\.xml$,${SED_RED},"; done; echo "";
 
 
-    print_2title "Analizing Backup Manager Files (limit 70)"
+    print_2title "Analyzing Backup Manager Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_BACKUP_MANAGER\" | grep -E \"storage\.php$\"`" ]; then echo_not_found "storage.php"; fi; printf "%s" "$PSTORAGE_BACKUP_MANAGER" | grep -E "storage\.php$" | while read f; do ls -ld "$f" | sed -${E} "s,storage\.php$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "'pass'|'password'|'user'|'database'|'host'" | sed -${E} "s,password|pass|user|database|host,${SED_RED},g"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_BACKUP_MANAGER\" | grep -E \"database\.php$\"`" ]; then echo_not_found "database.php"; fi; printf "%s" "$PSTORAGE_BACKUP_MANAGER" | grep -E "database\.php$" | while read f; do ls -ld "$f" | sed -${E} "s,database\.php$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "'pass'|'password'|'user'|'database'|'host'" | sed -${E} "s,password|pass|user|database|host,${SED_RED},g"; done; echo "";
 
@@ -2483,18 +2483,18 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   done
   echo ""
 
-    print_2title "Analizing Github Files (limit 70)"
+    print_2title "Analyzing Github Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_GITHUB\" | grep -E \"\.github$\"`" ]; then echo_not_found ".github"; fi; printf "%s" "$PSTORAGE_GITHUB" | grep -E "\.github$" | while read f; do ls -ld "$f" | sed -${E} "s,\.github$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_GITHUB\" | grep -E \"\.gitconfig$\"`" ]; then echo_not_found ".gitconfig"; fi; printf "%s" "$PSTORAGE_GITHUB" | grep -E "\.gitconfig$" | while read f; do ls -ld "$f" | sed -${E} "s,\.gitconfig$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_GITHUB\" | grep -E \"\.git-credentials$\"`" ]; then echo_not_found ".git-credentials"; fi; printf "%s" "$PSTORAGE_GITHUB" | grep -E "\.git-credentials$" | while read f; do ls -ld "$f" | sed -${E} "s,\.git-credentials$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_GITHUB\" | grep -E \"\.git$\"`" ]; then echo_not_found ".git"; fi; printf "%s" "$PSTORAGE_GITHUB" | grep -E "\.git$" | while read f; do ls -ld "$f" | sed -${E} "s,\.git$,${SED_RED},"; done; echo "";
 
 
-    print_2title "Analizing Svn Files (limit 70)"
+    print_2title "Analyzing Svn Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_SVN\" | grep -E \"\.svn$\"`" ]; then echo_not_found ".svn"; fi; printf "%s" "$PSTORAGE_SVN" | grep -E "\.svn$" | while read f; do ls -ld "$f" | sed -${E} "s,\.svn$,${SED_RED},"; ls -lRA "$f";done; echo "";
 
 
-    print_2title "Analizing PGP-GPG Files (limit 70)"
+    print_2title "Analyzing PGP-GPG Files (limit 70)"
     ((command -v gpg && gpg --list-keys) || echo_not_found "gpg") 2>/dev/null
     ((command -v netpgpkeys && netpgpkeys --list-keys) || echo_not_found "netpgpkeys") 2>/dev/null
     (command -v netpgp || echo_not_found "netpgp") 2>/dev/null
@@ -2503,7 +2503,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     if ! [ "`echo \"$PSTORAGE_PGP_GPG\" | grep -E \"\.gnupg$\"`" ]; then echo_not_found "*.gnupg"; fi; printf "%s" "$PSTORAGE_PGP_GPG" | grep -E "\.gnupg$" | while read f; do ls -ld "$f" | sed -${E} "s,\.gnupg$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$"; done; echo "";
 
 
-    print_2title "Analizing Cache Vi Files (limit 70)"
+    print_2title "Analyzing Cache Vi Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_CACHE_VI\" | grep -E \"\.swp$\"`" ]; then echo_not_found "*.swp"; fi; printf "%s" "$PSTORAGE_CACHE_VI" | grep -E "\.swp$" | while read f; do ls -ld "$f" | sed -${E} "s,\.swp$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_CACHE_VI\" | grep -E \"\.viminfo$\"`" ]; then echo_not_found "*.viminfo"; fi; printf "%s" "$PSTORAGE_CACHE_VI" | grep -E "\.viminfo$" | while read f; do ls -ld "$f" | sed -${E} "s,\.viminfo$,${SED_RED},"; done; echo "";
 
@@ -2538,15 +2538,15 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   done
   echo ""
 
-    print_2title "Analizing Firefox Files (limit 70)"
+    print_2title "Analyzing Firefox Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_FIREFOX\" | grep -E \"\.mozilla$\"`" ]; then echo_not_found ".mozilla"; fi; printf "%s" "$PSTORAGE_FIREFOX" | grep -E "\.mozilla$" | while read f; do ls -ld "$f" | sed -${E} "s,\.mozilla$,${SED_RED},"; for ff in $(find "$f" -name "places.sqlite"); do ls -ld "$ff" | sed -${E} "s,places.sqlite,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "bookmarkbackups"); do ls -ld "$ff" | sed -${E} "s,bookmarkbackups,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "formhistory.sqlite"); do ls -ld "$ff" | sed -${E} "s,formhistory.sqlite,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "handlers.json"); do ls -ld "$ff" | sed -${E} "s,handlers.json,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "persdict.dat"); do ls -ld "$ff" | sed -${E} "s,persdict.dat,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "addons.json"); do ls -ld "$ff" | sed -${E} "s,addons.json,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "cookies.sqlite"); do ls -ld "$ff" | sed -${E} "s,cookies.sqlite,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "cache2"); do ls -ld "$ff" | sed -${E} "s,cache2,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "startupCache"); do ls -ld "$ff" | sed -${E} "s,startupCache,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "favicons.sqlite"); do ls -ld "$ff" | sed -${E} "s,favicons.sqlite,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "prefs.js"); do ls -ld "$ff" | sed -${E} "s,prefs.js,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "downloads.sqlite"); do ls -ld "$ff" | sed -${E} "s,downloads.sqlite,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "thumbnails"); do ls -ld "$ff" | sed -${E} "s,thumbnails,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "logins.json"); do ls -ld "$ff" | sed -${E} "s,logins.json,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "key4.db"); do ls -ld "$ff" | sed -${E} "s,key4.db,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "key3.db"); do ls -ld "$ff" | sed -${E} "s,key3.db,${SED_RED},"; done; echo "";done; echo "";
 
 
-    print_2title "Analizing Chrome Files (limit 70)"
+    print_2title "Analyzing Chrome Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_CHROME\" | grep -E \"google-chrome$\"`" ]; then echo_not_found "google-chrome"; fi; printf "%s" "$PSTORAGE_CHROME" | grep -E "google-chrome$" | while read f; do ls -ld "$f" | sed -${E} "s,google-chrome$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$"; done; echo "";
 
 
-    print_2title "Analizing Autologin Files (limit 70)"
+    print_2title "Analyzing Autologin Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_AUTOLOGIN\" | grep -E \"autologin$\"`" ]; then echo_not_found "autologin"; fi; printf "%s" "$PSTORAGE_AUTOLOGIN" | grep -E "autologin$" | while read f; do ls -ld "$f" | sed -${E} "s,autologin$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,passwd,${SED_RED},g"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_AUTOLOGIN\" | grep -E \"autologin\.conf$\"`" ]; then echo_not_found "autologin.conf"; fi; printf "%s" "$PSTORAGE_AUTOLOGIN" | grep -E "autologin\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,autologin\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,passwd,${SED_RED},g"; done; echo "";
 
@@ -2584,34 +2584,34 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   grep -Ri "passwd" /etc/pam.d/ 2>/dev/null | grep -v ":#" | sed "s,passwd,${SED_RED},"
   echo ""
 
-    print_2title "Analizing SNMP Files (limit 70)"
+    print_2title "Analyzing SNMP Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_SNMP\" | grep -E \"snmpd\.conf$\"`" ]; then echo_not_found "snmpd.conf"; fi; printf "%s" "$PSTORAGE_SNMP" | grep -E "snmpd\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,snmpd\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -E "rocommunity|rwcommunity|extend.*" | sed -${E} "s,rocommunity|rwcommunity|extend.*,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Pypirc Files (limit 70)"
+    print_2title "Analyzing Pypirc Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_PYPIRC\" | grep -E \"\.pypirc$\"`" ]; then echo_not_found ".pypirc"; fi; printf "%s" "$PSTORAGE_PYPIRC" | grep -E "\.pypirc$" | while read f; do ls -ld "$f" | sed -${E} "s,\.pypirc$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,username|password,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Ldaprc Files (limit 70)"
+    print_2title "Analyzing Ldaprc Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_LDAPRC\" | grep -E \"\.ldaprc$\"`" ]; then echo_not_found ".ldaprc"; fi; printf "%s" "$PSTORAGE_LDAPRC" | grep -E "\.ldaprc$" | while read f; do ls -ld "$f" | sed -${E} "s,\.ldaprc$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -Ev "^#" | sed -${E} "s,.*,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Env Files (limit 70)"
+    print_2title "Analyzing Env Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_ENV\" | grep -E \"\.env$\"`" ]; then echo_not_found ".env"; fi; printf "%s" "$PSTORAGE_ENV" | grep -E "\.env$" | while read f; do ls -ld "$f" | sed -${E} "s,\.env$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -Ev "^#" | sed -${E} "s,[pP][aA][sS][sS].*,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Msmtprc Files (limit 70)"
+    print_2title "Analyzing Msmtprc Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_MSMTPRC\" | grep -E \"\.msmtprc$\"`" ]; then echo_not_found ".msmtprc"; fi; printf "%s" "$PSTORAGE_MSMTPRC" | grep -E "\.msmtprc$" | while read f; do ls -ld "$f" | sed -${E} "s,\.msmtprc$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | grep -Ev "^#" | sed -${E} "s,user.*|password.*,${SED_RED},g"; done; echo "";
 
 
-    print_2title "Analizing Keepass Files (limit 70)"
+    print_2title "Analyzing Keepass Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_KEEPASS\" | grep -E \"\.kdbx$\"`" ]; then echo_not_found "*.kdbx"; fi; printf "%s" "$PSTORAGE_KEEPASS" | grep -E "\.kdbx$" | while read f; do ls -ld "$f" | sed -${E} "s,\.kdbx$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_KEEPASS\" | grep -E \"KeePass\.config.*$\"`" ]; then echo_not_found "KeePass.config*"; fi; printf "%s" "$PSTORAGE_KEEPASS" | grep -E "KeePass\.config.*$" | while read f; do ls -ld "$f" | sed -${E} "s,KeePass\.config.*$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_KEEPASS\" | grep -E \"KeePass\.ini$\"`" ]; then echo_not_found "KeePass.ini"; fi; printf "%s" "$PSTORAGE_KEEPASS" | grep -E "KeePass\.ini$" | while read f; do ls -ld "$f" | sed -${E} "s,KeePass\.ini$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_KEEPASS\" | grep -E \"KeePass\.enforced.*$\"`" ]; then echo_not_found "KeePass.enforced*"; fi; printf "%s" "$PSTORAGE_KEEPASS" | grep -E "KeePass\.enforced.*$" | while read f; do ls -ld "$f" | sed -${E} "s,KeePass\.enforced.*$,${SED_RED},"; done; echo "";
 
 
-    print_2title "Analizing FTP Files (limit 70)"
+    print_2title "Analyzing FTP Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_FTP\" | grep -E \"\.ftpconfig$\"`" ]; then echo_not_found "*.ftpconfig"; fi; printf "%s" "$PSTORAGE_FTP" | grep -E "\.ftpconfig$" | while read f; do ls -ld "$f" | sed -${E} "s,\.ftpconfig$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_FTP\" | grep -E \"ffftp\.ini$\"`" ]; then echo_not_found "ffftp.ini"; fi; printf "%s" "$PSTORAGE_FTP" | grep -E "ffftp\.ini$" | while read f; do ls -ld "$f" | sed -${E} "s,ffftp\.ini$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_FTP\" | grep -E \"ftp\.ini$\"`" ]; then echo_not_found "ftp.ini"; fi; printf "%s" "$PSTORAGE_FTP" | grep -E "ftp\.ini$" | while read f; do ls -ld "$f" | sed -${E} "s,ftp\.ini$,${SED_RED},"; done; echo "";
@@ -2619,26 +2619,26 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     if ! [ "`echo \"$PSTORAGE_FTP\" | grep -E \"ws_ftp\.ini$\"`" ]; then echo_not_found "ws_ftp.ini"; fi; printf "%s" "$PSTORAGE_FTP" | grep -E "ws_ftp\.ini$" | while read f; do ls -ld "$f" | sed -${E} "s,ws_ftp\.ini$,${SED_RED},"; done; echo "";
 
 
-    print_2title "Analizing Bind Files (limit 70)"
+    print_2title "Analyzing Bind Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_BIND\" | grep -E \"bind$\"`" ]; then echo_not_found "bind"; fi; printf "%s" "$PSTORAGE_BIND" | grep -E "bind$" | while read f; do ls -ld "$f" | sed -${E} "s,bind$,${SED_RED},"; for ff in $(find "$f" -name "*"); do ls -ld "$ff" | sed -${E} "s,,${SED_RED},"; done; echo "";for ff in $(find "$f" -name "*.key"); do ls -ld "$ff" | sed -${E} "s,.key,${SED_RED},"; cat "$ff" 2>/dev/null | grep -IEv "^$" | grep -Ev "^#" | sed -${E} "s,.*,${SED_RED},g"; done; echo "";done; echo "";
 
 
-  print_2title "Analizing SeedDMS Files (limit 70)"
+  print_2title "Analyzing SeedDMS Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_SEEDDMS\" | grep -E \"seeddms.*$\"`" ]; then echo_not_found "seeddms*"; fi; printf "%s" "$PSTORAGE_SEEDDMS" | grep -E "seeddms.*$" | while read f; do ls -ld "$f" | sed -${E} "s,seeddms.*$,${SED_RED},"; for ff in $(find "$f" -name "settings.xml"); do ls -ld "$ff" | sed -${E} "s,settings.xml,${SED_RED},"; cat "$ff" 2>/dev/null | grep -IEv "^$" | grep -E "=" | sed -${E} "s,[pP][aA][sS][sS],${SED_RED},g"; done; echo "";done; echo "";
 
 
-  print_2title "Analizing Ddclient Files (limit 70)"
+  print_2title "Analyzing Ddclient Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_DDCLIENT\" | grep -E \"ddclient\.conf$\"`" ]; then echo_not_found "ddclient.conf"; fi; printf "%s" "$PSTORAGE_DDCLIENT" | grep -E "ddclient\.conf$" | while read f; do ls -ld "$f" | sed -${E} "s,ddclient\.conf$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$" | sed -${E} "s,.*password.*,${SED_RED},g"; done; echo "";
 
 
 
 
-    print_2title "Analizing Interesting logs Files (limit 70)"
+    print_2title "Analyzing Interesting logs Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_INTERESTING_LOGS\" | grep -E \"access\.log$\"`" ]; then echo_not_found "access.log"; fi; printf "%s" "$PSTORAGE_INTERESTING_LOGS" | grep -E "access\.log$" | while read f; do ls -ld "$f" | sed -${E} "s,access\.log$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_INTERESTING_LOGS\" | grep -E \"error\.log$\"`" ]; then echo_not_found "error.log"; fi; printf "%s" "$PSTORAGE_INTERESTING_LOGS" | grep -E "error\.log$" | while read f; do ls -ld "$f" | sed -${E} "s,error\.log$,${SED_RED},"; done; echo "";
 
 
-    print_2title "Analizing Windows Files Files (limit 70)"
+    print_2title "Analyzing Windows Files Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_WINDOWS_FILES\" | grep -E \"unattend\.inf$\"`" ]; then echo_not_found "unattend.inf"; fi; printf "%s" "$PSTORAGE_WINDOWS_FILES" | grep -E "unattend\.inf$" | while read f; do ls -ld "$f" | sed -${E} "s,unattend\.inf$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_WINDOWS_FILES\" | grep -E \"\.rdg$\"`" ]; then echo_not_found "*.rdg"; fi; printf "%s" "$PSTORAGE_WINDOWS_FILES" | grep -E "\.rdg$" | while read f; do ls -ld "$f" | sed -${E} "s,\.rdg$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_WINDOWS_FILES\" | grep -E \"AppEvent\.Evt$\"`" ]; then echo_not_found "AppEvent.Evt"; fi; printf "%s" "$PSTORAGE_WINDOWS_FILES" | grep -E "AppEvent\.Evt$" | while read f; do ls -ld "$f" | sed -${E} "s,AppEvent\.Evt$,${SED_RED},"; done; echo "";
@@ -2691,7 +2691,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     if ! [ "`echo \"$PSTORAGE_WINDOWS_FILES\" | grep -E \"wsl\.exe$\"`" ]; then echo_not_found "wsl.exe"; fi; printf "%s" "$PSTORAGE_WINDOWS_FILES" | grep -E "wsl\.exe$" | while read f; do ls -ld "$f" | sed -${E} "s,wsl\.exe$,${SED_RED},"; done; echo "";
 
 
-    print_2title "Analizing Other Interesting Files Files (limit 70)"
+    print_2title "Analyzing Other Interesting Files Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_OTHER_INTERESTING_FILES\" | grep -E \"\.bashrc$\"`" ]; then echo_not_found ".bashrc"; fi; printf "%s" "$PSTORAGE_OTHER_INTERESTING_FILES" | grep -E "\.bashrc$" | while read f; do ls -ld "$f" | sed -${E} "s,\.bashrc$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_OTHER_INTERESTING_FILES\" | grep -E \"\.google_authenticator$\"`" ]; then echo_not_found ".google_authenticator"; fi; printf "%s" "$PSTORAGE_OTHER_INTERESTING_FILES" | grep -E "\.google_authenticator$" | while read f; do ls -ld "$f" | sed -${E} "s,\.google_authenticator$,${SED_RED},"; done; echo "";
     if ! [ "`echo \"$PSTORAGE_OTHER_INTERESTING_FILES\" | grep -E \"hosts\.equiv$\"`" ]; then echo_not_found "hosts.equiv"; fi; printf "%s" "$PSTORAGE_OTHER_INTERESTING_FILES" | grep -E "hosts\.equiv$" | while read f; do ls -ld "$f" | sed -${E} "s,hosts\.equiv$,${SED_RED},"; done; echo "";
