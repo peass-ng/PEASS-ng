@@ -105,9 +105,8 @@ def read_file(output_path: str) -> [str]:
 
     Reads file from a specich path and returns it as a list
     """
-    with open(output_path, 'r') as file:
-        return [row.strip() for row in file.readlines() if row]
-
+    return [row.strip() for row in open(output_path, 'r').readlines() if row]
+    
 def is_starting_section(
     row: str,
     pattern: str = MAIN_section_PATTERN
@@ -237,4 +236,3 @@ def main():
 if __name__ == "__main__":
     # execute only if run as a script
     main()
-    
