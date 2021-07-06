@@ -30,6 +30,7 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '4.5.2'
+          source-url: https://www.nuget.org/packages/rb.DotNet4.5.2
             
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild.exe
