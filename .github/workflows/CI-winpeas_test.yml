@@ -24,15 +24,19 @@ jobs:
       # checkout
       - name: Checkout
         uses: actions/checkout@v2
-
             
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v1.0.2
+       
+      # Setup NuGet
+      - name: Setup NuGet.exe
+        uses: nuget/setup-nuget@v1  
         
       # Restore the packages for testing
       - name: Restore the application
-        run: msbuild -m $env:Solution_Path /t:Restore /p:Configuration=$env:Configuration        
+      #  run: msbuild -m $env:Solution_Path /t:Restore /p:Configuration=$env:Configuration        
+        run: nuget restore $env:Solution_Path
         
       # build
       - name: run MSBuild
