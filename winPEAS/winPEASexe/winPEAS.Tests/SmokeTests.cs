@@ -11,7 +11,7 @@ namespace winPEAS.Tests
         {
             try
             {
-                string[] args = new string[0];
+                string[] args = new string[] { "systeminfo", "userinfo", "networkinfo", "servicesinfo","processinfo" };
                 Program.Main(args);
             }
             catch (Exception e)
