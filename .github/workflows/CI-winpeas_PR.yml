@@ -4,6 +4,8 @@ on:
   push:
     branches: 
       - winpeas_dev
+      - linpeas_dev
+      - master
     paths:
       - 'build_lists\sensitive_files.yaml'
       - 'winPEAS\winPEASexe\**'
