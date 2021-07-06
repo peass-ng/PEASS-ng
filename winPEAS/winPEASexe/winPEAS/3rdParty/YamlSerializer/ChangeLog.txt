@@ -1,0 +1,47 @@
+﻿--- 2009-10-04 Osamu TAKEUCHI <osamu@big.jp>
+Alpha release of YamlSerializer as 0.9.0.2
+
+* All "_"s in integer and floating point values are neglected
+  to accommodate the !!int and !!float encoding.
+* YamlConfig.DontUseVerbatimTag is added but the default value is set false.
+  Note that !<!System.Int32[,]> is much human friendly than !System.Int32%5B%2C%5D.
+* Equality of YamlNode with an unknown tag is evaluated by identity,
+  while that of !!map and !!seq node is still evaluated by YAML's standard.
+  Note that equality of !!map and !!seq are different from that of object[]
+  and Dictionary<object, object>.
+* YamlConfig.OmitTagForRootNode was added. Fixed issue #2850.
+* Serialize Dictionary<object,object> to !!map. Fixed #2891.
+* Modified [126-130] ns-plain-???, [147] c-ns-flow-map-separate-value(n,c)
+  to accommodate revision 2009-10-01
+* Omit !< > if Tag contains only ns-tag-char, Fixed issue #2813
+
+--- 2009-09-23 Osamu TAKEUCHI <osamu@big.jp>
+Alpha release of YamlSerializer as 0.9.0.1
+
+* Removed TODO's for reporting bugs in YAML spec that are done.
+* Fixed assembly copyright.
+* !!merge is supported. Fixed issue#2605.
+* Read-only class-type member with no child members are omitted when 
+  serializing. Fixed issue#2599.
+* Culture for TypeConverter is set to be CultureInfo.InvariantCulture. 
+  Fixed issue #2629.
+* To fix Issue#2631
+  * Field names and property names are always presented as simple texts.
+  * When deserializing, we can not avoid the parser parses some spacial
+    names to !!bool and !!null. Such non-text nodes are converted to
+    texts at construction stage.
+* To fix issue#2663
+  * Hash code stored in a mapping node is now updated when the a key node's
+    content is changed.
+  * Hash code and equality became independent on the order of keys in a 
+    mapping node.
+  * A mapping node checks for duplicated keys every time the node content 
+    is changed.
+  * Test results are changed because some of them are dependent on the hash 
+    key order.
+* The current equality evaluation is too strict, probably needs some adjustment.
+* NativeObject property was added to YamlScalar.
+* YamlScalar's equality is evaluated by comparing NativeObject.
+
+--- 2009-09-11 Osamu TAKEUCHI <osamu@big.jp>
+First release of YamlSerializer as 0.9.0.0
