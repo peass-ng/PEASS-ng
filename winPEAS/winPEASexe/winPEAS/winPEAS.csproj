@@ -371,8 +371,27 @@
     <Compile Include="3rdParty\SQLite\src\walker_c.cs" />
     <Compile Include="3rdParty\SQLite\src\where_c.cs" />
     <Compile Include="3rdParty\SQLite\src\_Custom.cs" />
+    <Compile Include="3rdParty\YamlSerializer\EasyTypeConverter.cs" />
+    <Compile Include="3rdParty\YamlSerializer\ObjectExtensions.cs" />
+    <Compile Include="3rdParty\YamlSerializer\ObjectMemberAccessor.cs" />
+    <Compile Include="3rdParty\YamlSerializer\Parser.cs" />
+    <Compile Include="3rdParty\YamlSerializer\RehashableDictionary.cs" />
+    <Compile Include="3rdParty\YamlSerializer\TypeUtils.cs" />
+    <Compile Include="3rdParty\YamlSerializer\UriEncoding.cs" />
+    <Compile Include="3rdParty\YamlSerializer\YamlAnchorDictionary.cs" />
+    <Compile Include="3rdParty\YamlSerializer\YamlConstructor.cs" />
+    <Compile Include="3rdParty\YamlSerializer\YamlDoubleQuoteEscaping.cs" />
+    <Compile Include="3rdParty\YamlSerializer\YamlNode.cs" />
+    <Compile Include="3rdParty\YamlSerializer\YamlParser.cs" />
+    <Compile Include="3rdParty\YamlSerializer\YamlPresenter.cs" />
+    <Compile Include="3rdParty\YamlSerializer\YamlRepresenter.cs" />
+    <Compile Include="3rdParty\YamlSerializer\YamlSerializer.cs" />
+    <Compile Include="3rdParty\YamlSerializer\YamlTagPrefixes.cs" />
+    <Compile Include="3rdParty\YamlSerializer\YamlTagResolutionScheme.cs" />
+    <Compile Include="3rdParty\YamlSerializer\YamlTagValidator.cs" />
     <Compile Include="Checks\ApplicationsInfo.cs" />
     <Compile Include="Checks\BrowserInfo.cs" />
+    <Compile Include="Checks\FileAnalysis.cs" />
     <Compile Include="Checks\FilesInfo.cs" />
     <Compile Include="Checks\Globals.cs" />
     <Compile Include="Checks\ISystemCheck.cs" />
@@ -399,6 +418,8 @@
     <Compile Include="Helpers\PermissionsHelper.cs" />
     <Compile Include="Helpers\Search\LOLBAS.cs" />
     <Compile Include="Helpers\Search\Patterns.cs" />
+    <Compile Include="Helpers\YamlConfig\YamlConfig.cs" />
+    <Compile Include="Helpers\YamlConfig\YamlConfigHelper.cs" />
     <Compile Include="Info\ApplicationInfo\ApplicationInfoHelper.cs" />
     <Compile Include="Info\ApplicationInfo\AutoRuns.cs" />
     <Compile Include="Info\ApplicationInfo\DeviceDrivers.cs" />
@@ -658,6 +679,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="..\..\..\build_lists\sensitive_files.yaml" />
     <EmbeddedResource Include="Properties\Resources.de.resx" />
     <EmbeddedResource Include="Properties\Resources.es.resx" />
     <EmbeddedResource Include="Properties\Resources.fr.resx" />
@@ -670,6 +692,5 @@
     <EmbeddedResource Include="Properties\Resources.ru.resx" />
     <EmbeddedResource Include="Properties\Resources.zh-CN.resx" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

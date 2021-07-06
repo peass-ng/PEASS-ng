@@ -2,16 +2,17 @@
 {
     internal class CustomFileInfo
     {
-        public string Filename { get; set; }
-        public string Extension { get; set; }
-        public string FullPath { get; set; }
-        public bool IsDirectory { get { return string.IsNullOrEmpty(Filename); } }
+        public string Filename { get; }
+        public string Extension { get; }
+        public string FullPath { get; }
+        public bool IsDirectory { get; }
 
-        public CustomFileInfo(string filename, string extension, string fullPath)
+        public CustomFileInfo(string filename, string extension, string fullPath, bool isDirectory)
         {
             Filename = filename;
             Extension = extension;
             FullPath = fullPath;
+            IsDirectory = isDirectory;
         }
     }
 }

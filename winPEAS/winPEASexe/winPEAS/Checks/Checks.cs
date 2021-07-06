@@ -8,6 +8,7 @@ using winPEAS.Helpers;
 using winPEAS.Helpers.AppLocker;
 using winPEAS.Helpers.Registry;
 using winPEAS.Helpers.Search;
+using winPEAS.Helpers.YamlConfig;
 using winPEAS.Info.UserInfo;
 
 namespace winPEAS.Checks
@@ -35,6 +36,7 @@ namespace winPEAS.Checks
         public static string PaintDisabledUsersNoAdministrator = "";
         //static string paint_lockoutUsers = "";
         public static string PaintAdminUsers = "";
+        public static YamlConfig YamlConfig;
 
         private static List<SystemCheck> _systemChecks;
         private static readonly HashSet<string> _systemCheckSelectedKeysHashSet = new HashSet<string>();
@@ -78,6 +80,7 @@ namespace winPEAS.Checks
                 new SystemCheck("windowscreds", new WindowsCreds()),
                 new SystemCheck("browserinfo", new BrowserInfo()),
                 new SystemCheck("filesinfo", new FilesInfo()),
+                new SystemCheck("fileAnalysis", new FileAnalysis())
             };
 
             var systemCheckAllKeys = new HashSet<string>(_systemChecks.Select(i => i.Key));
@@ -188,6 +191,8 @@ namespace winPEAS.Checks
 
                     RunChecks(isAllChecks, wait);
 
+                    SearchHelper.CleanLists();
+
                     Beaprint.PrintMarketingBanner();
                 }, IsDebug, "Total time");
 
@@ -225,9 +230,20 @@ namespace winPEAS.Checks
 
         private static void CreateDynamicLists()
         {
+            Beaprint.GrayPrint("   Creating Dynamic lists, this could take a while, please wait...");
+
             try
             {
-                Beaprint.GrayPrint("   Creating Dynamic lists, this could take a while, please wait...");
+                Beaprint.GrayPrint("   - Loading YAML definitions file...");
+                YamlConfig = YamlConfigHelper.GetWindowsSearchConfig();
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("Error while getting AD info: " + ex);
+            }
+
+            try
+            {
                 Beaprint.GrayPrint("   - Checking if domain...");
                 CurrentAdDomainName = DomainHelper.IsDomainJoined();
                 IsPartOfDomain = !string.IsNullOrEmpty(CurrentAdDomainName);

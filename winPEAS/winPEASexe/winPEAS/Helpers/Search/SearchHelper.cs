@@ -10,20 +10,20 @@ namespace winPEAS.Helpers.Search
 {
     static class SearchHelper
     {
-        public static List<CustomFileInfo> RootDirUsers;
-        private static List<CustomFileInfo> RootDirCurrentUser;
-        public static List<CustomFileInfo> ProgramFiles;
-        public static List<CustomFileInfo> ProgramFilesX86;
-        public static List<CustomFileInfo> DocumentsAndSettings;
-        private static List<CustomFileInfo> GroupPolicyHistory;
+        public static List<CustomFileInfo> RootDirUsers = new List<CustomFileInfo>();
+        public static List<CustomFileInfo> RootDirCurrentUser = new List<CustomFileInfo>();
+        public static List<CustomFileInfo> ProgramFiles = new List<CustomFileInfo>();
+        public static List<CustomFileInfo> ProgramFilesX86 = new List<CustomFileInfo>();
+        public static List<CustomFileInfo> DocumentsAndSettings = new List<CustomFileInfo>();
+        public static List<CustomFileInfo> GroupPolicyHistory = new List<CustomFileInfo>();
 
-        private static string SystemDrive = Environment.GetEnvironmentVariable("SystemDrive");
+        public static string SystemDrive = Environment.GetEnvironmentVariable("SystemDrive");
         private static string GlobalPattern = "*";
 
         public static List<CustomFileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null, bool isFoldersIncluded = false)
         {
             ConcurrentBag<CustomFileInfo> files = new ConcurrentBag<CustomFileInfo>();
-            IEnumerable<DirectoryInfo> startDirs = GetStartDirectories(folder, files, pattern);
+            IEnumerable<DirectoryInfo> startDirs = GetStartDirectories(folder, files, pattern, isFoldersIncluded);
             IList<DirectoryInfo> startDirsExcluded = new List<DirectoryInfo>();
 
             if (excludedDirs != null)
@@ -52,7 +52,7 @@ namespace winPEAS.Helpers.Search
                 {
                     GetFiles(dir.FullName, pattern).ForEach(
                         (f) =>
-                            files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName))
+                            files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName, false))
                         );
                 });
             });
@@ -132,13 +132,13 @@ namespace winPEAS.Helpers.Search
                     {
                         foreach (var directory in directories)
                         {
-                            files.Add(new CustomFileInfo(null, null, directory.FullName));
+                            files.Add(new CustomFileInfo(directory.Name, null, directory.FullName, true));
                         }
                     }
 
                     foreach (var f in dirInfo.GetFiles(pattern))
                     {
-                        files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName));
+                        files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName, false));
                     }
 
                     if (directories.Length > 1) return new List<DirectoryInfo>(directories);
