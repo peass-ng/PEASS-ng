@@ -20,7 +20,7 @@ jobs:
       Solution_Path: 'winPEAS\winPEASexe\winPEAS.sln'
       Configuration: 'Release'
       DotFuscatorGeneratedPath: 'winPEAS\winPEASexe\binaries\Obfuscated Releases\Dotfuscated'
-      DotFuscatorExePath: 'winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE\dotfuscator.exe'
+      DotFuscatorExePath: 'DotfuscatorCE\dotfuscator.exe'
 
     steps:
       # checkout
