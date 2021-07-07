@@ -19,7 +19,6 @@ jobs:
     env:
       Solution_Path: 'winPEAS\winPEASexe\winPEAS.sln'
       Configuration: 'Release'
-      DotFuscatorLicensePath: '$env:USERPROFILE\AppData\Local\PreEmptive Solutions\Dotfuscator Community Edition\6.0'
       DotFuscatorGeneratedPath: 'winPEAS\winPEASexe\binaries\Obfuscated Releases\Dotfuscated'
       DotFuscatorExePath: 'winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE\dotfuscator.exe'
 
@@ -76,8 +75,9 @@ jobs:
       - name: Setup DotFuscator
         run: |
             7z x winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE.zip
-            mkdir -p $env:DotFuscatorLicensePath -erroraction 'silentlycontinue'
-            cp winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE\license\* $env:DotFuscatorLicensePath\
+            whoami
+            mkdir -p $env:USERPROFILE\AppData\Local\"PreEmptive Solutions"\"Dotfuscator Community Edition"\6.0 -erroraction 'silentlycontinue'
+            cp winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE\license\* $env:USERPROFILE\AppData\Local\"PreEmptive Solutions"\"Dotfuscator Community Edition"\6.0\
 
       # build obfuscated versions
       - name: Build obfuscated versions
