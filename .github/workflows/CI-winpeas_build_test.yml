@@ -21,7 +21,7 @@ jobs:
       Configuration: 'Release'
       DotFuscatorLicensePath: "$env:USERPROFILE\AppData\Local\PreEmptive Solutions\Dotfuscator Community Edition\6.0"
       DotFuscatorGeneratedPath: 'winPEAS\winPEASexe\binaries\Obfuscated Releases\Dotfuscated'
-      DotFuscatorExePath: winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE\dotfuscator.exe
+      DotFuscatorExePath: 'winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE\dotfuscator.exe'
 
     steps:
       # checkout
