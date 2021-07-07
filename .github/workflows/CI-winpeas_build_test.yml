@@ -17,8 +17,11 @@ jobs:
     
     # environment variables
     env:
-      Solution_Path: 'winPEAS\winPEASexe\winPEAS.sln'      
+      Solution_Path: 'winPEAS\winPEASexe\winPEAS.sln'
       Configuration: 'Release'
+      DotFuscatorLicensePath: '$env:USERPROFILE\AppData\Local\PreEmptive Solutions\Dotfuscator Community Edition\6.0'
+      DotFuscatorGeneratedPath: 'winPEAS\winPEASexe\binaries\Obfuscated Releases\Dotfuscated'
+      DotFuscatorExePath: winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE\dotfuscator.exe
 
     steps:
       # checkout
@@ -69,9 +72,35 @@ jobs:
             echo "copy Any"
             cp winPEAS\winPEASexe\winPEAS\bin\$env:Configuration\winPEAS.exe winPEAS\winPEASexe\binaries\$env:Configuration\winPEASany.exe        
       
+      # build obfuscated versions
+      - name: Setup DotFuscator
+        run: |
+            7z x winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE.zip
+            mkdir -p "$env:DotFuscatorLicensePath" -erroraction 'silentlycontinue'
+            cp winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE\license\* "$env:DotFuscatorLicensePath\"
+
+      # build obfuscated versions
+      - name: Build obfuscated versions
+        run: |
+            $env:DotFuscatorExePath "winPEAS\winPEASexe\binaries\Obfuscated Releases\x64.xml"
+            $env:DotFuscatorExePath "winPEAS\winPEASexe\binaries\Obfuscated Releases\x32.xml"
+            $env:DotFuscatorExePath "winPEAS\winPEASexe\binaries\Obfuscated Releases\any.xml" 
+
+
+      # copy the files
+      - name: Copy Dotfuscator generated files
+        run: |
+            cp "$env:DotFuscatorGeneratedPath\x64\winPEASx64.exe" "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64.exe"            
+            cp "$env:DotFuscatorGeneratedPath\x86\winPEASx86.exe" "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86.exe"
+            cp "$env:DotFuscatorGeneratedPath\any\winPEASany.exe" "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany.exe"
+
       # Git add
       - name: Create local changes
-        run: git add winPEAS\winPEASexe\binaries\*
+        run: |
+            git add winPEAS\winPEASexe\binaries\Release\*
+            git add winPEAS\winPEASexe\binaries\x64\*
+            git add winPEAS\winPEASexe\binaries\x86\*
+            git add "winPEAS\winPEASexe\binaries\Obfuscated Releases\*.exe"
 
       # Git commit
       - name: Commit results to Github
@@ -86,4 +115,3 @@ jobs:
         with:
            github_token: ${{ secrets.GITHUB_TOKEN }}
            branch: master
-        
