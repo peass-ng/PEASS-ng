@@ -42,8 +42,8 @@ jobs:
         run: msbuild $env:Solution_Path
         
       # Execute all unit tests in the solution
-      - name: Execute unit tests
-        run: dotnet test $env:Solution_Path
+      #- name: Execute unit tests
+      #  run: dotnet test $env:Solution_Path
         
       # Build & update all versions
       - name: Build all versions
@@ -77,7 +77,7 @@ jobs:
       - name: Commit results to Github
         run: |
           git config --local user.email ""
-          git config --global user.name "CI-winpeas"
+          git config --global user.name "CI-linpeas-ubuntu"
           git commit -m "winpeas binaries auto update" -a --allow-empty
       
       # Git push
@@ -85,5 +85,5 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
            github_token: ${{ secrets.GITHUB_TOKEN }}
-           branch: ${{ github.ref }}
+           branch: master
         
