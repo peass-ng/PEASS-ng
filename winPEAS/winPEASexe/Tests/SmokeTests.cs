@@ -11,7 +11,25 @@ namespace winPEAS.Tests
         {
             try
             {
-                string[] args = new string[] { "systeminfo", "userinfo", "networkinfo", "servicesinfo","processinfo" };
+                string[] args = new string[] { 
+                    "systeminfo", "networkinfo", "servicesinfo", "processinfo", "applicationsinfo", "browserinfo", "debug" 
+                };
+                Program.Main(args);
+            }
+            catch (Exception e)
+            {
+                Assert.Fail($"Exception thrown: {e.Message}");
+            }
+        }
+
+        [TestMethod]
+        public void ShouldDisplayHelp()
+        {
+            try
+            {
+                string[] args = new string[] {
+                    "help",
+                };
                 Program.Main(args);
             }
             catch (Exception e)
