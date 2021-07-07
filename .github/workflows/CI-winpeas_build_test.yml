@@ -82,7 +82,7 @@ jobs:
       - name: Build obfuscated versions
         run: |
             DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\x64.xml"
-            DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\x32.xml"
+            DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\x86.xml"
             DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\any.xml" 
 
 
