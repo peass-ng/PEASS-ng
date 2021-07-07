@@ -20,7 +20,6 @@ jobs:
       Solution_Path: 'winPEAS\winPEASexe\winPEAS.sln'
       Configuration: 'Release'
       DotFuscatorGeneratedPath: 'winPEAS\winPEASexe\binaries\Obfuscated Releases\Dotfuscated'
-      DotFuscatorExePath: 'DotfuscatorCE\dotfuscator.exe'
 
     steps:
       # checkout
@@ -82,9 +81,9 @@ jobs:
       # build obfuscated versions
       - name: Build obfuscated versions
         run: |
-            $env:DotFuscatorExePath "winPEAS\winPEASexe\binaries\Obfuscated Releases\x64.xml"
-            $env:DotFuscatorExePath "winPEAS\winPEASexe\binaries\Obfuscated Releases\x32.xml"
-            $env:DotFuscatorExePath "winPEAS\winPEASexe\binaries\Obfuscated Releases\any.xml" 
+            DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\x64.xml"
+            DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\x32.xml"
+            DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\any.xml" 
 
 
       # copy the files
