@@ -77,7 +77,7 @@ jobs:
             7z x winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE.zip
             whoami
             mkdir -p $env:USERPROFILE\AppData\Local\"PreEmptive Solutions"\"Dotfuscator Community Edition"\6.0 -erroraction 'silentlycontinue'
-            cp winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE\license\* $env:USERPROFILE\AppData\Local\"PreEmptive Solutions"\"Dotfuscator Community Edition"\6.0\
+            cp DotfuscatorCE\license\* $env:USERPROFILE\AppData\Local\"PreEmptive Solutions"\"Dotfuscator Community Edition"\6.0\
 
       # build obfuscated versions
       - name: Build obfuscated versions
