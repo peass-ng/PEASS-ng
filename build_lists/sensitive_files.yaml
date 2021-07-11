@@ -215,7 +215,7 @@ search:
         search_in: 
           - common
       
-      ? "000-default"
+      ? "000-default.conf"
       : 
         bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
         type: f

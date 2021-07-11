@@ -59,7 +59,7 @@ NOCOLOR=""
 VERBOSE=""
 THREADS="`((grep -c processor /proc/cpuinfo 2>/dev/null) || ((command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n"`"
 [ -z "$THREADS" ] && THREADS="2" #If THREADS is empty, put number 2
-[ -n "$THREADS" ] && eTHREADS="2" #If THREADS is null, put number 2
+[ -n "$THREADS" ] && THREADS="2" #If THREADS is null, put number 2
 [ "$THREADS" -eq "$THREADS" ] 2>/dev/null && : || THREADS="2" #It THREADS is not a number, put number 2
 HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
 ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user, processes and file permissions, special file permissions, readable/writable files, bruteforce other users(top1000pwds), passwords...)$NC inside the host and highlight possible misconfigurations with colors.
@@ -2788,14 +2788,15 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   find / -perm -2000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
     if [ "`echo \"$s\" | grep -E \"^total\"`" ];then break; fi
-
+    echo 1;
     sname="`echo \"$s\" | awk '{print $9}'`"
+    echo 2;
     if [ "$sname" = "."  ] || [ "$sname" = ".."  ]; then
       true #Don't do nothing
     elif ! [ "$IAMROOT" ] && [ -O "$sname" ]; then
       echo "You own the SGID file: $sname" | sed -${E} "s,.*,${SED_RED},"
     elif ! [ "$IAMROOT" ] &6 [ -w "$sname" ]; then #If write permision, win found (no check exploits)
-      echo "You can write SGID file: $sname" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+      echo "a"
     else
       c="a"
       for b in $sidB; do
@@ -2805,37 +2806,6 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
           break;
         fi
       done;
-      if [ "$c" ]; then
-        if [ "`echo \"$s\" | grep -E \"$sidG1\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG2\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG3\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG4\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB2\"`" ]; then
-          echo "$s" | sed -${E} "s,$sidG1,${SED_GREEN}," | sed -${E} "s,$sidG2,${SED_GREEN}," | sed -${E} "s,$sidG3,${SED_GREEN}," | sed -${E} "s,$sidG4,${SED_GREEN}," | sed -${E} "s,$sidVB,${SED_RED_YELLOW}," | sed -${E} "s,$sidVB2,${SED_RED_YELLOW},"
-        else
-          echo "$s (Unknown SGID binary)" | sed -${E} "s,/.*,${SED_RED},"
-          printf $ITALIC
-          if [ "$STRINGS" ]; then
-            $STRINGS "$sname" | sort | uniq | while read sline; do
-              sline_first="`echo \"$sline\" | cut -d ' ' -f1`"
-              if [ "`echo \"$sline_first\" | grep -Ev \"$cfuncs\"`" ]; then
-                if [ "`echo \"$sline_first\" | grep \"/\"`" ] && [ -f "$sline_first" ]; then #If a path
-                  if [ -O "$sline_first" ] || [ -w "$sline_first" ]; then #And modifiable
-                    printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is using $RED$sline_first$NC$ITALIC and you can modify it (strings line: $sline)\n"
-                  fi
-                else #If not a path
-                  if [ ${#sline_first} -gt 2 ] && [ "`command -v \"$sline_first\" 2>/dev/null | grep '/' `" ]; then #Check if existing binary
-                    printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is executing $RED$sline_first$NC$ITALIC and you can impersonate it (strings line: $sline)\n"
-                  fi
-                fi
-              fi
-            done
-            if [ "$TIMEOUT" ] && [ "$STRACE" ] && [ ! "$SUPERFAST" ]; then
-              printf $ITALIC
-              echo "  --- Trying to execute $sname with strace in order to look for hijackable libraries..."
-              timeout 2 "$STRACE" "$sname" 2>&1 | grep -i -E "open|access|no such file" | sed -${E} "s,open|access|No such file,${SED_RED}$ITALIC,g"
-              printf $NC
-              echo ""
-            fi
-          fi
-        fi
-      fi
     fi
   done;
   echo ""
