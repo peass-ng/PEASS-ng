@@ -27,6 +27,9 @@ STORAGE_LINE_MARKUP = YAML_LOADED["storage_line_markup"]
 STORAGE_LINE_EXTRA_MARKUP = YAML_LOADED["storage_line_extra_markup"]
 STORAGE_TEMPLATE = YAML_LOADED["storage_template"]
 
+PEAS_VARIABLES_MARKUP = YAML_LOADED["variables_markup"]
+YAML_VARIABLES = YAML_LOADED["variables"]
+
 INT_HIDDEN_FILES_MARKUP = YAML_LOADED["int_hidden_files_markup"]
 
 EXTRASECTIONS_MARKUP = YAML_LOADED["peas_extrasections_markup"]
