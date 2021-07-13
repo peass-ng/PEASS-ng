@@ -1,9 +1,8 @@
-name: CI-linpeas_test
+name: CI-linpeas_master_test
 
 on:
   pull_request:
     branches:
-      - linpeas_dev
       - master
     paths:
       - 'build_lists\sensitive_files.yaml'
@@ -12,7 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Build_and_test_linpeas:
+  Build_and_test_linpeas_master:
     runs-on: ubuntu-latest
 
     steps:
@@ -42,14 +41,7 @@ jobs:
            github_token: ${{ secrets.GITHUB_TOKEN }}
            branch: ${{ github.ref }}
 
-      - uses: actions/checkout@v2
-      - name: pull-request
-        uses: repo-sync/pull-request@v2
-        with:
-          destination_branch: "master"
-          github_token: ${{ secrets.PULL_REQUEST_TOKEN }}
-
-  Build_and_test_macpeas:
+  Build_and_test_macpeas_master:
     runs-on: macos-latest
 
     steps:
