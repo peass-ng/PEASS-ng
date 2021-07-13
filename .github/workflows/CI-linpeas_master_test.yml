@@ -1,0 +1,57 @@
+name: CI-linpeas_master_test
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'build_lists\sensitive_files.yaml'
+      - 'linPEAS\**'
+
+  workflow_dispatch:
+
+jobs:
+  Build_and_test_linpeas_master:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build linpeas
+        run: |
+          python3 -m pip install PyYAML
+          cd linPEAS
+          python3 -m builder.linpeas_builder
+
+      - name: Run linpeas
+        run: linPEAS/linpeas.sh
+
+      - name: Create local changes
+        run: git add linPEAS/linpeas.sh
+
+      - name: Commit results to Github
+        run: |
+          git config --local user.email ""
+          git config --global user.name "CI-linpeas-ubuntu"
+          git commit -m "linpeas.sh auto update" -a --allow-empty
+      
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+           github_token: ${{ secrets.GITHUB_TOKEN }}
+           branch: ${{ github.ref }}
+
+  Build_and_test_macpeas_master:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build macpeas
+        run: |
+          python3 -m pip install PyYAML
+          cd linPEAS
+          python3 -m builder.linpeas_builder
+
+      - name: Run macpeas
+        run: linPEAS/linpeas.sh -o SysI,Container,Devs,AvaSof,ProCronSrvcsTmrsSocks,Net,UsrI,SofI

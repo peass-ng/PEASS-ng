@@ -93,6 +93,8 @@ defaults:
   
   exec: []
 
+variables_markup: "peass{VARIABLES}"
+
 variables:
    - name: pwd_inside_history
      value: "7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|root|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|xfreerdp|^ssh|steghide|@"
@@ -173,6 +175,16 @@ search:
                 remove_path: "mysql/mysql"
                 search_in: 
                   - common
+    
+          - name: "debian.cnf"
+            value: 
+                bad_regex: "user.*|password.*"
+                type: f
+                only_bad_lines: True
+                search_in: 
+                  - common
+
+
   
   - name: PostgreSQL
     value:
@@ -239,7 +251,7 @@ search:
                 search_in: 
                     - common
       
-            - name: "000-default"
+            - name: "000-default.conf"
               value: 
                 bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
                 type: f
@@ -438,7 +450,7 @@ search:
                 search_in: 
                   - common
   
-  - name: Anaconda ks        
+  - name: Anaconda ks
     value:
         config:
           auto_check: True
@@ -516,7 +528,7 @@ search:
                 search_in: 
                   - common
 
-  - name: Open VPN
+  - name: OpenVPN
     value:
         config:
           auto_check: True
@@ -942,7 +954,7 @@ search:
                 search_in: 
                   - common
   
-  - name: GMV_Auth
+  - name: GMV Auth
     value:
         config:
           auto_check: True
@@ -1708,6 +1720,41 @@ search:
                 search_in: 
                   - common
 
+  - name: Cacti
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "cacti"
+            value:
+                files:
+                  - name: "config.php"
+                    value:
+                        bad_regex: "database_pw.*|database_user.*|database_pass.*"
+                        line_grep: '"database_pw|database_user|database_pass|database_type|database_default|detabase_hostname|database_port|database_ssl"'
+
+                  - name: "config.php.dist"
+                    value:
+                        bad_regex: "database_pw.*|database_user.*|database_pass.*"
+                        line_grep: '"database_pw|database_user|database_pass|database_type|database_default|detabase_hostname|database_port|database_ssl"'
+
+                  - name: "installer.php"
+                    value:
+                        bad_regex: "database_pw.*|database_user.*|database_pass.*"
+                        line_grep: '"database_pw|database_user|database_pass|database_type|database_default|detabase_hostname|database_port|database_ssl"'
+
+                  - name: "check_all_pages"
+                    value:
+                        bad_regex: "database_pw.*|database_user.*|database_pass.*"
+                        line_grep: '"database_pw|database_user|database_pass|database_type|database_default|detabase_hostname|database_port|database_ssl"'
+
+
+                type: d
+                search_in: 
+                  - common
+
+
   - name: Interesting logs
     value:
         config:
@@ -2020,13 +2067,6 @@ search:
                 search_in:
                   - common
 
-          - name: "security"
-            value:
-                just_list_file: True
-                type: f
-                search_in:
-                  - common
-
           - name: "security.sav"
             value:
                 just_list_file: True
@@ -2035,13 +2075,6 @@ search:
                   - common
 
           - name: "server.xml"
-            value:
-                just_list_file: True
-                type: f
-                search_in:
-                  - common
-
-          - name: "services.xml"
             value:
                 just_list_file: True
                 type: f
@@ -2168,6 +2201,28 @@ search:
                   - common
 
           - name: "wsl.exe"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Other Windows Files
+    value:
+        config:
+          auto_check: True
+          disable:
+          - linpeas
+
+        files:
+          - name: "security"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "services.xml"
             value:
                 just_list_file: True
                 type: f

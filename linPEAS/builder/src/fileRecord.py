@@ -20,7 +20,7 @@ class FileRecord:
         self.regex = regex
         self.bad_regex = bad_regex
         self.check_extra_path = check_extra_path
-        self.files = [FileRecord(regex=regex,**fr) for regex,fr in files.items()]
+        self.files = [FileRecord(regex=fr["name"],**fr["value"]) for fr in files]
         self.good_regex = good_regex
         self.just_list_file = just_list_file
         self.line_grep = line_grep

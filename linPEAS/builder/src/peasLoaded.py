@@ -6,21 +6,26 @@ class PEASLoaded:
     def __init__(self):
         to_search = YAML_LOADED["search"]
         self.peasrecords = []
-        for name,peasrecord_json in to_search.items():
+        for record in to_search:
+            record_value = record["value"]
+            if "linpeas" in str(record_value["config"].get("disable","")).lower():
+                continue
+
             filerecords = []
-            for regex,fr in peasrecord_json["files"].items():
+            for filerecord in record_value["files"]:
                 filerecords.append(
                     FileRecord(
-                        regex=regex,
-                        **fr
+                        regex=filerecord["name"],
+                        **filerecord["value"]
                     )
                 )
-                
+            
+            name = record["name"]
             self.peasrecords.append(
                 PEASRecord(
                     name=name,
-                    auto_check=peasrecord_json["config"]["auto_check"],
-                    exec=peasrecord_json["config"].get("exec", DEFAULTS["exec"]),
+                    auto_check=record_value["config"]["auto_check"],
+                    exec=record_value["config"].get("exec", DEFAULTS["exec"]),
                     filerecords=filerecords
                 )
             )
