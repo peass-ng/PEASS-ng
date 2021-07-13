@@ -59,7 +59,7 @@ NOCOLOR=""
 VERBOSE=""
 THREADS="`((grep -c processor /proc/cpuinfo 2>/dev/null) || ((command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n"`"
 [ -z "$THREADS" ] && THREADS="2" #If THREADS is empty, put number 2
-[ -n "$THREADS" ] && eTHREADS="2" #If THREADS is null, put number 2
+[ -n "$THREADS" ] && THREADS="2" #If THREADS is null, put number 2
 [ "$THREADS" -eq "$THREADS" ] 2>/dev/null && : || THREADS="2" #It THREADS is not a number, put number 2
 HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
 ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user, processes and file permissions, special file permissions, readable/writable files, bruteforce other users(top1000pwds), passwords...)$NC inside the host and highlight possible misconfigurations with colors.
@@ -535,9 +535,7 @@ fi
 ###########################################
 
 echo_not_found (){
-  if [ "$VERBOSE" ]; then
-    printf $DG"$1 Not Found\n"$NC
-  fi
+  printf $DG"$1 Not Found\n"$NC
 }
 
 warn_exec(){
