@@ -1,0 +1,116 @@
+name: CI-winpeas_test
+
+on:
+  pull_request:
+    branches:
+      - winpeas_dev
+    paths:
+      - 'build_lists\sensitive_files.yaml'
+      - 'winPEAS\winPEASexe\**'
+
+  workflow_dispatch:
+
+jobs:  
+
+  Build_and_test_winpeas:
+    runs-on: windows-latest
+    
+    # environment variables
+    env:
+      Solution_Path: 'winPEAS\winPEASexe\winPEAS.sln'
+      Configuration: 'Release'
+      DotFuscatorGeneratedPath: 'winPEAS\winPEASexe\binaries\Obfuscated Releases\Dotfuscated'
+
+    steps:
+      # checkout
+      - name: Checkout
+        uses: actions/checkout@v2
+            
+      # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v1.0.2
+       
+      # Setup NuGet
+      - name: Setup NuGet.exe
+        uses: nuget/setup-nuget@v1  
+        
+      # Restore the packages for testing
+      - name: Restore the application       
+        run: nuget restore $env:Solution_Path
+        
+      # build
+      - name: run MSBuild
+        run: msbuild $env:Solution_Path
+        
+      # Execute all unit tests in the solution
+      - name: Execute unit tests
+        run: dotnet test $env:Solution_Path
+        
+      # Build & update all versions
+      - name: Build all versions
+        run: |
+            echo "build x64"
+            msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="x64"
+            
+            echo "build x86"
+            msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="x86"
+            
+            echo "build Any CPU"
+            msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="Any CPU"
+      
+      # Copy the built versions
+      - name: Copy all versions
+        run: |
+            echo "copy x64"
+            cp winPEAS\winPEASexe\winPEAS\bin\x64\$env:Configuration\winPEAS.exe winPEAS\winPEASexe\binaries\x64\$env:Configuration\winPEASx64.exe
+            
+            echo "copy x86"
+            cp winPEAS\winPEASexe\winPEAS\bin\x86\$env:Configuration\winPEAS.exe winPEAS\winPEASexe\binaries\x86\$env:Configuration\winPEASx86.exe
+            
+            echo "copy Any"
+            cp winPEAS\winPEASexe\winPEAS\bin\$env:Configuration\winPEAS.exe winPEAS\winPEASexe\binaries\$env:Configuration\winPEASany.exe        
+      
+      # build obfuscated versions
+      - name: Setup DotFuscator
+        run: |
+            7z x winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE.zip
+            whoami
+            mkdir -p $env:USERPROFILE\AppData\Local\"PreEmptive Solutions"\"Dotfuscator Community Edition"\6.0 -erroraction 'silentlycontinue'
+            cp DotfuscatorCE\license\* $env:USERPROFILE\AppData\Local\"PreEmptive Solutions"\"Dotfuscator Community Edition"\6.0\
+
+      # build obfuscated versions
+      - name: Build obfuscated versions
+        run: |
+            DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\x64.xml"
+            DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\x86.xml"
+            DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\any.xml" 
+
+
+      # copy the files
+      - name: Copy Dotfuscator generated files
+        run: |
+            cp $env:DotFuscatorGeneratedPath\x64\winPEASx64.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64.exe"            
+            cp $env:DotFuscatorGeneratedPath\x86\winPEASx86.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86.exe"
+            cp $env:DotFuscatorGeneratedPath\any\winPEASany.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany.exe"
+
+      # Git add
+      - name: Create local changes
+        run: |
+            git add winPEAS\winPEASexe\binaries\Release\*
+            git add winPEAS\winPEASexe\binaries\x64\*
+            git add winPEAS\winPEASexe\binaries\x86\*
+            git add "winPEAS\winPEASexe\binaries\Obfuscated Releases\*.exe"
+
+      # Git commit
+      - name: Commit results to Github
+        run: |
+          git config --local user.email "ci@winpeas.com"
+          git config --global user.name "CI-winpeas"
+          git commit -m "winpeas binaries auto update" -a --allow-empty
+      
+      # Git push
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+           github_token: ${{ secrets.GITHUB_TOKEN }}
+           branch: master

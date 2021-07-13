@@ -15,7 +15,9 @@ from .yamlGlobals import (
     FIND_LINE_MARKUP,
     STORAGE_LINE_MARKUP,
     STORAGE_LINE_EXTRA_MARKUP,
-    EXTRASECTIONS_MARKUP
+    EXTRASECTIONS_MARKUP,
+    PEAS_VARIABLES_MARKUP,
+    YAML_VARIABLES
 )
 
 
@@ -30,6 +32,9 @@ class LinpeasBuilder:
             self.linpeas_sh = file.read()
 
     def build(self):
+        variables = self.__generate_variables()
+        self.__replace_mark(PEAS_VARIABLES_MARKUP, variables, "")
+
         find_calls = self.__generate_finds()
         self.__replace_mark(PEAS_FINDS_MARKUP, find_calls, "  ")
 
@@ -67,6 +72,15 @@ class LinpeasBuilder:
     
     def __get_peass_marks(self):
         return re.findall(r'peass\{[\w\-\._ ]*\}', self.linpeas_sh)
+
+    
+    def __generate_variables(self):
+        """Generate the variables from the yaml to set into linpeas bash script"""
+        variables_bash = ""
+        for var in YAML_VARIABLES:
+            variables_bash += f"{var['name']}=\"{var['value']}\"\n"
+        
+        return variables_bash
 
 
     def __get_files_to_search(self):
@@ -158,7 +172,7 @@ class LinpeasBuilder:
 
         for precord in self.ploaded.peasrecords:
             if precord.auto_check:
-                section = f'  print_2title "Analizing {precord.name.replace("_"," ")} Files (limit 70)"\n'
+                section = f'  print_2title "Analyzing {precord.name.replace("_"," ")} Files (limit 70)"\n'
 
                 for exec_line in precord.exec:
                     if exec_line:

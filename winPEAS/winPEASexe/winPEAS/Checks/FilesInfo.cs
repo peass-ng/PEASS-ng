@@ -142,10 +142,8 @@ namespace winPEAS.Checks
                 PrintHiddenFilesAndFolders,
                 PrintOtherUsersInterestingFiles,
                 PrintExecutablesInNonDefaultFoldersWithWritePermissions,
-                PrintWSLDistributions,
+                PrintWSLDistributions
             }.ForEach(action => CheckRunner.Run(action, isDebug));
-
-            SearchHelper.CleanLists();
         }
 
         void PrintCloudCreds()

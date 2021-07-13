@@ -77,7 +77,7 @@ int_hidden_files_markup: "peass{INT_HIDDEN_FILES}"
 
 
 defaults:
-  auto_check: False           #The builder will generate a ceck for the file
+  auto_check: False           #The builder will generate a check for the file
   bad_regex: ""               #The regex used to color red and grep lines (if only_bad_lines and no line_grep)
   check_extra_path: ""        #Check if the found files are in a specific path
   good_regex: ""              #The regex to color green
@@ -93,2004 +93,2218 @@ defaults:
   
   exec: []
 
+variables_markup: "peass{VARIABLES}"
+
+variables:
+   - name: pwd_inside_history
+     value: "7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|root|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|xfreerdp|^ssh|steghide|@"
+
 
 #Files & folders to search
 search: 
-  Systemd:
-    config:
-      auto_check: False
-
-    files:
-      ? "*.service"
-      : 
-        type: f
-        search_in: 
-          - all
+  - name: Systemd
+    value:
+        disable:
+          - winpeas
   
-  Timer:
-    config:
-      auto_check: False
-    
-    files:
-      ? "*.timer"
-      : 
-        type: f
-        search_in: 
-          - all   
-    
-  Socket:
-    config:
-      auto_check: False
+        config:
+          auto_check: False
 
-    files:
-      ? "*.socket"
-      : 
-        type: f
-        search_in: 
-          - all
-  
-  DBus:
-    config:
-      auto_check: False
-
-    files:
-      ? "system.d"
-      : 
-        type: d
-        search_in:
-          - /etc
-    
-  MySQL:
-    config:
-      auto_check: False
-
-    files:
-      mysql:
-        type: d
-        check_extra_path: "^/etc/.*mysql|/usr/var/lib/.*mysql|/var/lib/.*mysql"
-        remove_path: "mysql/mysql"
-        search_in: 
-          - common
-  
-  PostgreSQL:
-    config:
-      auto_check: True
-      exec:
-        - 'echo "Version: $(warn_exec psql -V 2>/dev/null)"'
-
-    files:
-      ? "pgadmin*.db"
-      : 
-        type: f
-        just_list_file: True
-        search_in: 
-          - common
-      
-      ? "pg_hba.conf"
-      : 
-        bad_regex: "auth|password|md5|user=|pass=|trust"
-        type: f
-        remove_empty_lines: True
-        remove_regex: '\W+\#|^#'
-        search_in: 
-          - common
-      
-      ? "postgresql.conf"
-      : 
-        bad_regex: "auth|password|md5|user=|pass=|trust"
-        type: f
-        remove_empty_lines: True
-        remove_regex: '\W+\#|^#'
-        search_in: 
-          - common
-      
-      ? "pgsql.conf"
-      : 
-        bad_regex: "auth|password|md5|user=|pass=|trust"
-        type: f
-        remove_empty_lines: True
-        remove_regex: '\W+\#|^#'
-        search_in: 
-          - common
-    
-  Apache:
-    config:
-      auto_check: True
-      exec:
-        - 'echo "Version: $(warn_exec apache2 -v 2>/dev/null; warn_exec httpd -v 2>/dev/null)"'
-        - "print_3title 'PHP exec extensions'"
-        - 'grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null'
-    
-    files:
-      ? "sites-enabled"
-      : 
-        type: d
         files:
-          ? "*"
-          :
-            bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
-            only_bad_lines: True
-            remove_empty_lines: True
-            remove_regex: '^#'
-        search_in: 
-          - common
-      
-      ? "000-default.conf"
-      : 
-        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
-        type: f
-        search_in: 
-          - common
-
-  PHPCookies:
-    config:
-      auto_check: True
-      exec:
-      - "ls /var/lib/php/sessions 2>/dev/null || echo_not_found /var/lib/php/sessions"
-
-    files:
-      ? "sess_*"
-      : 
-        check_extra_path: '/tmp/.*sess_.*|/var/tmp/.*sess_.*'
-        type: f
-        search_in: 
-          - /tmp
-          - /var
-          - /mnt
+          - name: "*.service"
+            value: 
+                type: f
+                search_in: 
+                  - all
   
-  PHP_files:
-    config:
-      auto_check: False
+  - name: Timer
+    value:
+        disable:
+          - winpeas
+  
+        config:
+          auto_check: False
     
-    files:
-      ? "*config*.php"
-      : 
-        type: f
-        search_in: 
-          - common
-      
-      ? "database.php"
-      : 
-        type: f
-        search_in: 
-          - common
-      
-      ? "db.php"
-      : 
-        type: f
-        search_in: 
-          - common
-
-      ? "storage.php"
-      : 
-        type: f
-        search_in: 
-          - common
-
-      ? "settings.php"
-      : 
-        type: f
-        search_in: 
-          - common
-  
-  Wordpress:
-    config:
-      auto_check: True
-
-    files:
-      ? "wp-config.php"
-      : 
-        bad_regex: "PASSWORD|USER|NAME|HOST"
-        only_bad_lines: True
-        type: f
-        search_in: 
-          - common
-  
-  Drupal:
-    config:
-      auto_check: True
-
-    files:
-      ? "settings.php"
-      : 
-        bad_regex: "drupal_hash_salt|'database'|'username'|'password'|'host'|'port'|'driver'|'prefix'"
-        check_extra_path: "/default/settings.php"
-        only_bad_lines: True
-        type: f
-        search_in: 
-          - common
-  
-  Moodle:
-    config:
-      auto_check: True
-
-    files:
-      ? "config.php"
-      : 
-        bad_regex: "dbtype|dbhost|dbuser|dbhost|dbpass|dbport"
-        check_extra_path: "moodle/config.php"
-        only_bad_lines: True
-        type: f
-        search_in: 
-          - common
-
-  Tomcat:
-    config:
-      auto_check: True
-
-    files:
-      ? "tomcat-users.xml"
-      : 
-        bad_regex: "dbtype|dbhost|dbuser|dbhost|dbpass|dbport"
-        line_grep: '"username=|password="'
-        only_bad_lines: True
-        type: f
-        search_in: 
-          - common
-  
-  Mongo:
-    config:
-      auto_check: True
-      exec:
-        - 'echo "Version: $(warn_exec mongo --version 2>/dev/null; warn_exec mongod --version 2>/dev/null)"'
-
-    files:
-      ? "mongod*.conf"
-      : 
-        type: f
-        remove_empty_lines: True
-        remove_regex: '\W+\#|^#'
-        search_in: 
-          - common
-  
-  Supervisord:
-    config:
-      auto_check: True
-
-    files:
-      ? "supervisord.conf"
-      : 
-        bad_regex: "port.*=|username.*=|password.*="
-        only_bad_lines: True
-        type: f
-        search_in: 
-          - common
-
-  Cesi:
-    config:
-      auto_check: True
-
-    files:
-      ? "cesi.conf"
-      : 
-        bad_regex: "username.*=|password.*=|host.*=|port.*=|database.*="
-        only_bad_lines: True
-        type: f
-        search_in: 
-          - common
-  
-  Rsync:
-    config:
-      auto_check: True
-
-    files:
-      ? "rsyncd.conf"
-      : 
-        bad_regex: "secrets.*|auth.*users.*="
-        type: f
-        remove_empty_lines: True
-        remove_regex: '\W+\#|^#'
-        search_in: 
-          - common
-      
-      ? "rsyncd.secrets"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-
-  Hostapd:
-    config:
-      auto_check: True
-
-    files:
-      ? "hostapd.conf"
-      : 
-        bad_regex: "passphrase.*"
-        type: f
-        search_in: 
-          - common
-  
-  Anaconda-ks:
-    config:
-      auto_check: True
-
-    files:
-      ? "anaconda-ks.cfg"
-      : 
-        bad_regex: "rootpw.*"
-        only_bad_lines: True
-        type: f
-        search_in: 
-          - common
-  
-  VNC:
-    config:
-      auto_check: True
-
-    files:
-      ? ".vnc"
-      : 
         files:
-          ? "passwd"
-          :
-            just_list_file: True
-        type: d
-        search_in: 
-          - common
+          - name: "*.timer"
+            value:
+                type: f
+                search_in: 
+                  - all   
+    
+  - name: Socket
+    value:
+        disable:
+          - winpeas
+  
+        config:
+          auto_check: False
 
-      ? "*vnc*.c*nf*"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-
-      ? "*vnc*.ini"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-
-      ? "*vnc*.txt"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-
-      ? "*vnc*.xml"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-
-  Ldap:
-    config:
-      auto_check: True
-      exec:
-        - echo "The password hash is from the {SSHA} to 'structural'"
-
-    files:
-      ? "ldap"
-      : 
-        
         files:
-          ? "*.bdb"
-          :
-            bad_regex: "administrator|password|ADMINISTRATOR|PASSWORD|Password|Administrator"
-            line_grep: '-i -a -o "description.*" | sort | uniq'
-        type: d
-        search_in: 
-          - common
-
-  Open_VPN:
-    config:
-      auto_check: True
-
-    files:
-      ? "*.ovpn"
-      : 
-        bad_regex: "auth-user-pass.+"
-        only_bad_lines: True
-        type: f
-        search_in: 
-          - common
+          - name: "*.socket"
+            value: 
+                type: f
+                search_in: 
+                  - all
   
-  SSH_FILES:
-    config:
-      auto_check: True
-
-    files:
-      ? "id_dsa*"
-      : 
-        type: f
-        search_in: 
-          - common
-      
-      ? "id_rsa*"
-      : 
-        type: f
-        search_in: 
-          - common
-
-      ? "known_hosts"
-      : 
-        type: f
-        search_in: 
-          - common
-      
-      ? "authorized_hosts"
-      : 
-        type: f
-        search_in: 
-          - common
-      
-      ? "authorized_keys"
-      : 
-        good_regex: 'from=[\w\._\-]+'
-        type: f
-        search_in: 
-          - common
+  - name: DBus
+    value:
+        disable:
+          - winpeas
   
-  CERTSB4:
-    config:
-      auto_check: False
-    
-    files:
-      ? "*.pem"
-      : 
-        type: f
-        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*'
-        search_in: 
-          - common
-      
-      ? "*.cer"
-      : 
-        type: f
-        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*'
-        search_in: 
-          - common
-      
-      ? "*.crt"
-      : 
-        type: f
-        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*'
-        search_in: 
-          - common
-  
-  CERTSBIN:
-    config:
-      auto_check: False
-    
-    files:
-      ? "*.csr"
-      : 
-        type: f
-        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
-        search_in: 
-          - common
-      
-      ? "*.der"
-      : 
-        type: f
-        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
-        search_in: 
-          - common
-  
-  CERTSCLIENT:
-    config:
-      auto_check: False
-    
-    files:
-      ? "*.pfx"
-      : 
-        type: f
-        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
-        search_in: 
-          - common
-      
-      ? "*.p12"
-      : 
-        type: f
-        remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
-        search_in: 
-          - common
-  
-  SSH_AGENTS:
-    config:
-      auto_check: False
-    
-    files:
-      ? "agent*"
-      : 
-        type: f
-        search_in: 
-          - /tmp
-      
-  SSH_CONFIG:
-    config:
-      auto_check: False
-    
-    files:
-      ? "ssh*config"
-      : 
-        type: f
-        search_in:
-          - /usr 
-          - $HOMESEARCH
-  
-  Cloud_credentials:
-    config:
-      auto_check: True
+        config:
+          auto_check: False
 
-    files:
-      ? "credentials"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-      
-      ? "credentials.db"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-      
-      ? "legacy_credentials.db"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-
-      ? "access_tokens.db"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-      
-      ? "access_tokens.json"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-
-      ? "accessTokens.json"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-
-      ? "azureProfile.json"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-
-      ? "TokenCache.dat"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-
-      ? "AzureRMContext.json"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-      
-      ? ".bluemix"
-      : 
         files:
-          ? "config.json"
-          :
-            bad_regex: ".*"
-        type: d
-        search_in: 
-          - common
-
-  Kerberos:
-    config:
-      auto_check: False
-
-    files:
-      ? "krb5.conf"
-      : 
-        type: f
-        search_in: 
-          - common
-
-      ? "krb5.keytab"
-      : 
-        type: f
-        search_in: 
-          - common
-
-      ? ".k5login"
-      : 
-        type: f
-        search_in: 
-          - common
-      
-      ? "kadm5.acl"
-      : 
-        type: f
-        search_in: 
-          - common
-
-  Kibana:
-    config:
-      auto_check: True
-
-    files:
-      ? "kibana.y*ml"
-      : 
-        bad_regex: "username|password|host|port|elasticsearch|ssl"
-        type: f
-        remove_empty_lines: True
-        remove_regex: '\W+\#|^#|^[[:space:]]*$'
-        search_in: 
-          - common
-  
-  Knockd:
-    config:
-      auto_check: True
+          - name: "system.d"
+            value: 
+                type: d
+                search_in:
+                  - /etc
     
-    files:
-      ? "*knockd*"
-      : 
-        check_extra_path: "/etc/init.d/"
-        type: f
-        search_in: 
-          - /etc
+  - name: MySQL
+    value:
+        config:
+          auto_check: False
 
-  Logstash:
-    config:
-      auto_check: False
-
-    files:
-      ? "logstash"
-      : 
-        type: d
-        search_in: 
-          - common
-  
-  Elasticsearch:
-    config:
-      auto_check: True
-      exec:
-        - echo "The version is $(curl -X GET '127.0.0.1:9200' 2>/dev/null | grep number | cut -d ':' -f 2)"
-
-    files:
-      ? "elasticsearch.y*ml"
-      : 
-        line_grep: '"path.data|path.logs|cluster.name|node.name|network.host|discovery.zen.ping.unicast.hosts"'
-        remove_regex: '\W+\#|^#'
-        type: f
-        search_in: 
-          - common
-  
-  Vault_ssh_helper:
-    config:
-      auto_check: False
-
-    files:
-      ? "vault-ssh-helper.hcl"
-      : 
-        type: f
-        search_in: 
-          - common
-
-  Vault_ssh_token:
-    config:
-      auto_check: False
-
-    files:
-      ? ".vault-token"
-      : 
-        type: f
-        search_in: 
-          - common
-  
-  CouchDB:
-    config:
-      auto_check: True
-
-    files:
-      ? "couchdb"
-      : 
         files:
-          ? "local.ini"
-          :
-            bad_regex: "admin.*|password.*|cert_file.*|key_file.*|hashed.*|pbkdf2.*"
-            remove_empty_lines: True
-            remove_regex: "^;"
-        type: d
-        search_in: 
-          - common
+          - name: mysql
+            value:
+                type: d
+                check_extra_path: "^/etc/.*mysql|/usr/var/lib/.*mysql|/var/lib/.*mysql"
+                remove_path: "mysql/mysql"
+                search_in: 
+                  - common
+    
+          - name: "debian.cnf"
+            value: 
+                bad_regex: "user.*|password.*"
+                type: f
+                only_bad_lines: True
+                search_in: 
+                  - common
+
+
   
-  Redis:
-    config:
-      auto_check: True
+  - name: PostgreSQL
+    value:
+        config:
+          auto_check: True
+          exec:
+            - 'echo "Version: $(warn_exec psql -V 2>/dev/null)"'
 
-    files:
-      ? "redis.conf"
-      : 
-        bad_regex: "masterauth.*|requirepass.*"
-        type: f
-        remove_empty_lines: True
-        remove_regex: '\W+\#|^#'
-        search_in: 
-          - common
-  
-  Mosquitto:
-    config:
-      auto_check: True
-
-    files:
-      ? "mosquitto.conf"
-      : 
-        bad_regex: "password_file.*|psk_file.*|allow_anonymous.*true|auth"
-        type: f
-        remove_empty_lines: True
-        remove_regex: '\W+\#|^#'
-        search_in: 
-          - common
-
-  Neo4j:
-    config:
-      auto_check: True
-
-    files:
-      ? "neo4j"
-      : 
         files:
-          ? "auth"
-          :
-            bad_regex: ".*"
-            remove_empty_lines: True
-        type: d
-        search_in: 
-          - common
-  
-  Cloud-Init:
-    config:
-      auto_check: True
-
-    files:
-      ? "cloud.cfg"
-      : 
-        bad_regex: "consumer_key|token_key|token_secret|metadata_url|password:|passwd:|PRIVATE KEY|PRIVATE KEY|encrypted_data_bag_secret|_proxy"
-        only_bad_lines: True
-        type: f
-        remove_empty_lines: True
-        remove_regex: '\W+\#|^#'
-        search_in: 
-          - common
-  
-  Erlang:
-    config:
-      auto_check: True
+          - name: "pgadmin*.db"
+            value: 
+                type: f
+                just_list_file: True
+                search_in: 
+                  - common
+      
+          - name: "pg_hba.conf"
+            value: 
+                bad_regex: "auth|password|md5|user=|pass=|trust"
+                type: f
+                remove_empty_lines: True
+                remove_regex: '\W+\#|^#'
+                search_in: 
+                  - common
+      
+          - name: "postgresql.conf"
+            value: 
+                bad_regex: "auth|password|md5|user=|pass=|trust"
+                type: f
+                remove_empty_lines: True
+                remove_regex: '\W+\#|^#'
+                search_in: 
+                  - common
+      
+          - name: "pgsql.conf"
+            value: 
+                bad_regex: "auth|password|md5|user=|pass=|trust"
+                type: f
+                remove_empty_lines: True
+                remove_regex: '\W+\#|^#'
+                search_in: 
+                  - common
     
-    files:
-      ? ".erlang.cookie"
-      : 
-        bad_regex: ".*"
-        type: f
-        search_in: 
-          - common
-  
-  GMV Auth:
-    config:
-      auto_check: True
-
-    files:
-      ? "gvm-tools.conf"
-      : 
-        bad_regex: "username.*|password.*"
-        type: f
-        search_in: 
-          - common
+  - name: Apache
+    value:
+        config:
+            auto_check: True
+            exec:
+            - 'echo "Version: $(warn_exec apache2 -v 2>/dev/null; warn_exec httpd -v 2>/dev/null)"'
+            - "print_3title 'PHP exec extensions'"
+            - 'grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null'
     
-  IPSec:
-    config:
-      auto_check: True
-
-    files:
-      ? "ipsec.secrets"
-      : 
-        bad_regex: ".*PSK.*|.*RSA.*|.*EAP =.*|.*XAUTH.*"
-        type: f
-        search_in: 
-          - common
-
-      ? "ipsec.conf"
-      : 
-        bad_regex: ".*PSK.*|.*RSA.*|.*EAP =.*|.*XAUTH.*"
-        type: f
-        search_in: 
-          - common
-  
-  IRSSI:
-    config:
-      auto_check: True
-
-    files:
-      ? ".irssi"
-      : 
         files:
-          ? "config"
-          :
-            bad_regex: "password.*"      
-        type: d
-        search_in: 
-          - common
-    
-  Keyring:
-    config:
-      auto_check: True
+            - name: "sites-enabled"
+              value: 
+                type: d
+                files:
+                    - name: "*"
+                      value:
+                        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
+                        only_bad_lines: True
+                        remove_empty_lines: True
+                        remove_regex: '^#'
+                search_in: 
+                    - common
+      
+            - name: "000-default.conf"
+              value: 
+                bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
+                type: f
+                search_in: 
+                    - common
 
-    files:
-      ? "keyrings"
-      : 
-        type: d
-        search_in: 
-          - common
-      
-      ? "*.keyring"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-      
-      ? "*.keystore"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-      
-      ? "*.jks"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-  
-  Filezilla:
-    config:
-      auto_check: True
+  - name: PHP Sessions
+    value:
+        config:
+          auto_check: True
+          exec:
+          - "ls /var/lib/php/sessions 2>/dev/null || echo_not_found /var/lib/php/sessions"
 
-    files:
-      ? "filelliza"
-      : 
         files:
-          ? "sitemanager.xml"
-          :
-            bad_regex: "Host.*|Port.*|Protocol.*|User.*|Pass.*"
-            remove_empty_lines: True
-            remove_regex: "^;"
-        type: d
-        search_in: 
-          - common
-
-      ? "filezilla.xml"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-
-  Backup_Manager:
-    config:
-      auto_check: True
-
-    files:
-      ? "storage.php"
-      : 
-      
-        bad_regex: "password|pass|user|database|host"
-        line_grep: >- 
-          "'pass'|'password'|'user'|'database'|'host'"
-        type: f
-        search_in: 
-          - common
-      
-      ? "database.php"
-      : 
-        bad_regex: "password|pass|user|database|host"
-        line_grep: >-
-          "'pass'|'password'|'user'|'database'|'host'"
-        only_bad_lines: True
-        type: f
-        search_in: 
-          - common
-    
-  Splunk:
-    config:
-      auto_check: False
-
-    files:
-      ? "passwd"
-      : 
-        type: f
-        search_in: 
-          - common
+          - name: "sess_*"
+            value: 
+                check_extra_path: '/tmp/.*sess_.*|/var/tmp/.*sess_.*'
+                type: f
+                search_in: 
+                  - /tmp
+                  - /var
+                  - /mnt
   
-  GitLab:
-    config:
-      auto_check: False
+  - name: PHP_files
+    value:
+        config:
+          auto_check: False
     
-    files:
-      ? "secrets.yml"
-      : 
-        type: f
-        remove_path: "/lib"
-        search_in: 
-          - common
-
-      ? "gitlab.yml"
-      : 
-        type: f
-        remove_path: "/lib"
-        search_in: 
-          - common
-      
-      ? "gitlab.rm"
-      : 
-        type: f
-        remove_path: "/lib"
-        search_in: 
-          - common
-  
-  PGP-GPG:
-    config:
-      auto_check: True
-      exec:
-        - '((command -v gpg && gpg --list-keys) || echo_not_found "gpg") 2>/dev/null'
-        - '((command -v netpgpkeys && netpgpkeys --list-keys) || echo_not_found "netpgpkeys") 2>/dev/null'
-        - '(command -v netpgp || echo_not_found "netpgp") 2>/dev/null'
-
-    files:
-      ? "*.pgp"
-      : 
-        type: f
-        search_in: 
-          - common
-
-      ? "*.gpg"
-      : 
-        type: f
-        search_in: 
-          - common
-
-      ? "*.gnupg"
-      : 
-        type: f
-        remove_path: "README.gnupg"
-        search_in: 
-          - common
-
-  Cache Vi:
-    config:
-      auto_check: True
-
-    files:
-      ? "*.swp"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-      
-      ? "*.viminfo"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-    
-  Docker:
-    config:
-      auto_check: False
-
-    files:
-      ? "docker.socket"
-      : 
-        type: f
-        search_in: 
-          - common
-      
-      ? "docker.sock"
-      : 
-        type: f
-        search_in: 
-          - common
-
-      ? "Dockerfile"
-      : 
-        type: f
-        search_in: 
-          - common
-      
-      ? "docker-compose.yml"
-      : 
-        type: f
-        search_in: 
-          - common
-
-  Firefox:
-    config:
-      auto_check: True
-
-    files:
-      ? ".mozilla"
-      : 
         files:
-          ? "places.sqlite"
-          :
-            just_list_file: True
+          - name: "*config*.php"
+            value: 
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "database.php"
+            value: 
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "db.php"
+            value: 
+                type: f
+                search_in: 
+                  - common
+
+          - name: "storage.php"
+            value: 
+                type: f
+                search_in: 
+                  - common
+
+          - name: "settings.php"
+            value: 
+                type: f
+                search_in: 
+                  - common
+  
+  - name: Wordpress
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "wp-config.php"
+            value: 
+                bad_regex: "PASSWORD|USER|NAME|HOST"
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
+  
+  - name: Drupal
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "settings.php"
+            value: 
+                bad_regex: "drupal_hash_salt|'database'|'username'|'password'|'host'|'port'|'driver'|'prefix'"
+                check_extra_path: "/default/settings.php"
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
+  
+  - name: Moodle
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "config.php"
+            value: 
+                bad_regex: "dbtype|dbhost|dbuser|dbhost|dbpass|dbport"
+                check_extra_path: "moodle/config.php"
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
+
+  - name: Tomcat
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "tomcat-users.xml"
+            value: 
+                bad_regex: "dbtype|dbhost|dbuser|dbhost|dbpass|dbport"
+                line_grep: '"username=|password="'
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
+  
+  - name: Mongo
+    value:
+        config:
+          auto_check: True
+          exec:
+            - 'echo "Version: $(warn_exec mongo --version 2>/dev/null; warn_exec mongod --version 2>/dev/null)"'
+
+        files:
+          - name: "mongod*.conf"
+            value: 
+                type: f
+                remove_empty_lines: True
+                remove_regex: '\W+\#|^#'
+                search_in: 
+                  - common
+  
+  
+  - name: Supervisord
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name:  "supervisord.conf"
+            value: 
+                bad_regex: "port.*=|username.*=|password.*="
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
+
+  - name: Cesi
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "cesi.conf"
+            value: 
+                bad_regex: "username.*=|password.*=|host.*=|port.*=|database.*="
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
+  
+  - name: Rsync
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "rsyncd.conf"
+            value: 
+                bad_regex: "secrets.*|auth.*users.*="
+                type: f
+                remove_empty_lines: True
+                remove_regex: '\W+\#|^#'
+                search_in: 
+                  - common
+      
+          - name: "rsyncd.secrets"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+
+  - name: Hostapd
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name:  "hostapd.conf"
+            value: 
+                bad_regex: "passphrase.*"
+                type: f
+                search_in: 
+                  - common
+  
+  - name: Anaconda ks
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "anaconda-ks.cfg"
+            value: 
+                bad_regex: "rootpw.*"
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
+  
+  - name: VNC
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name:  ".vnc"
+            value: 
+                files:
+                  - name: "passwd"
+                    value:
+                        just_list_file: True
+                type: d
+                search_in: 
+                  - common
+
+          - name: "*vnc*.c*nf*"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+
+          - name: "*vnc*.ini"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+
+          - name: "*vnc*.txt"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+
+          - name: "*vnc*.xml"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+
+  - name: Ldap
+    value:
+        config:
+          auto_check: True
+          exec:
+            - echo "The password hash is from the {SSHA} to 'structural'"
+
+        files:
+          - name: "ldap"
+            value:         
+                files:
+                  - name: "*.bdb"
+                    value:
+                        bad_regex: "administrator|password|ADMINISTRATOR|PASSWORD|Password|Administrator"
+                        line_grep: '-i -a -o "description.*" | sort | uniq'
+                        type: f
+                type: d
+                search_in: 
+                  - common
+
+  - name: OpenVPN
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "*.ovpn"
+            value: 
+                bad_regex: "auth-user-pass.+"
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
+  
+  - name: SSH
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "id_dsa*"
+            value: 
+                type: f
+                search_in: 
+                  - common
+      
+          - name:  "id_rsa*"
+            value: 
+                type: f
+                search_in: 
+                  - common
+
+          - name: "known_hosts"
+            value: 
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "authorized_hosts"
+            value: 
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "authorized_keys"
+            value: 
+                good_regex: 'from=[\w\._\-]+'
+                type: f
+                search_in: 
+                  - common
+  
+  - name: CERTSB4
+    value:
+        config:
+          auto_check: False
+    
+        files:
+          - name: "*.pem"
+            value: 
+                type: f
+                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*'
+                search_in: 
+                  - common
+      
+          - name: "*.cer"
+            value: 
+                type: f
+                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*'
+                search_in: 
+                  - common
+      
+          - name: "*.crt"
+            value: 
+                type: f
+                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*'
+                search_in: 
+                  - common
+  
+  - name: CERTSBIN
+    value:
+        config:
+          auto_check: False
+    
+        files:
+          - name: "*.csr"
+            value: 
+                type: f
+                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
+                search_in: 
+                  - common
+      
+          - name: "*.der"
+            value: 
+                type: f
+                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
+                search_in: 
+                  - common
+  
+  - name: CERTSCLIENT
+    value:
+        config:
+          auto_check: False
+    
+        files:
+          - name: "*.pfx"
+            value: 
+                type: f
+                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
+                search_in: 
+                  - common
+      
+          - name: "*.p12"
+            value: 
+                type: f
+                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
+                search_in: 
+                  - common
+  
+  - name: SSH AGENTS
+    value:
+        config:
+          auto_check: False
+    
+        files:
+          - name: "agent*"
+            value: 
+                type: f
+                search_in: 
+                  - /tmp
+      
+  - name: SSH_CONFIG
+    value:
+        config:
+          auto_check: False
+    
+        files:
+          - name: "ssh*config"
+            value: 
+                type: f
+                search_in:
+                  - /usr 
+                  - $HOMESEARCH
+  
+  - name: Cloud Credentials
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "credentials"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "credentials.db"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "legacy_credentials.db"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+
+          - name: "access_tokens.db"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "access_tokens.json"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+
+          - name: "accessTokens.json"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+
+          - name: "azureProfile.json"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+
+          - name: "TokenCache.dat"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+
+          - name: "AzureRMContext.json"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+      
+          - name: ".bluemix"
+            value: 
+                files:
+                  - name: "config.json"
+                    value:
+                        bad_regex: ".*"
+                type: d
+                search_in: 
+                  - common
+
+  - name: Kerberos
+    value:
+        config:
+          auto_check: False
+
+        files:
+          - name: "krb5.conf"
+            value: 
+                type: f
+                search_in: 
+                  - common
+
+          - name: "krb5.keytab"
+            value: 
+                type: f
+                search_in: 
+                  - common
+
+          - name: ".k5login"
+            value: 
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "kadm5.acl"
+            value: 
+                type: f
+                search_in: 
+                  - common
+
+  - name: Kibana
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "kibana.y*ml"
+            value: 
+                bad_regex: "username|password|host|port|elasticsearch|ssl"
+                type: f
+                remove_empty_lines: True
+                remove_regex: '\W+\#|^#|^[[:space:]]*$'
+                search_in: 
+                  - common
+  
+  - name: Knockd
+    value:
+        config:
+          auto_check: True
+    
+        files:
+          - name: "*knockd*"
+            value: 
+                check_extra_path: "/etc/init.d/"
+                type: f
+                search_in: 
+                  - /etc
+
+  - name: Logstash
+    value:
+        config:
+          auto_check: False
+
+        files:
+          - name: "logstash"
+            value: 
+                type: d
+                search_in: 
+                  - common
+  
+  - name: Elasticsearch
+    value:
+        config:
+          auto_check: True
+          exec:
+            - echo "The version is $(curl -X GET '127.0.0.1:9200' 2>/dev/null | grep number | cut -d ':' -f 2)"
+
+        files:
+          - name: "elasticsearch.y*ml"
+            value: 
+                line_grep: '"path.data|path.logs|cluster.name|node.name|network.host|discovery.zen.ping.unicast.hosts"'
+                remove_regex: '\W+\#|^#'
+                type: f
+                search_in: 
+                  - common
+  
+  - name: Vault_ssh_helper
+    value:
+        config:
+          auto_check: False
+
+        files:
+          - name: "vault-ssh-helper.hcl"
+            value: 
+                type: f
+                search_in: 
+                  - common
+
+  - name: Vault_ssh_token
+    value:
+        config:
+          auto_check: False
+
+        files:
+          - name: ".vault-token"
+            value: 
+                type: f
+                search_in: 
+                  - common
+  
+  - name: CouchDB
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "couchdb"
+            value: 
+                files:
+                  - name: "local.ini"
+                    value:
+                        bad_regex: "admin.*|password.*|cert_file.*|key_file.*|hashed.*|pbkdf2.*"
+                        remove_empty_lines: True
+                        remove_regex: "^;"
+                type: d
+                search_in: 
+                  - common
+  
+  - name: Redis
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "redis.conf"
+            value: 
+                bad_regex: "masterauth.*|requirepass.*"
+                type: f
+                remove_empty_lines: True
+                remove_regex: '\W+\#|^#'
+                search_in: 
+                  - common
+  
+  - name: Mosquitto
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "mosquitto.conf"
+            value: 
+                bad_regex: "password_file.*|psk_file.*|allow_anonymous.*true|auth"
+                type: f
+                remove_empty_lines: True
+                remove_regex: '\W+\#|^#'
+                search_in: 
+                  - common
+
+  - name: Neo4j
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "neo4j"
+            value: 
+                files:
+                  - name: "auth"
+                    value:
+                        bad_regex: ".*"
+                        remove_empty_lines: True
+                type: d
+                search_in: 
+                  - common
+  
+  - name: Cloud Init
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "cloud.cfg"
+            value: 
+                bad_regex: "consumer_key|token_key|token_secret|metadata_url|password:|passwd:|PRIVATE KEY|PRIVATE KEY|encrypted_data_bag_secret|_proxy"
+                only_bad_lines: True
+                type: f
+                remove_empty_lines: True
+                remove_regex: '\W+\#|^#'
+                search_in: 
+                  - common
+  
+  - name: Erlang
+    value:
+        config:
+          auto_check: True
+    
+        files:
+          - name: ".erlang.cookie"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+  
+  - name: GMV Auth
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "gvm-tools.conf"
+            value: 
+                bad_regex: "username.*|password.*"
+                type: f
+                search_in: 
+                  - common
+    
+  - name: IPSec
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "ipsec.secrets"
+            value: 
+                bad_regex: ".*PSK.*|.*RSA.*|.*EAP =.*|.*XAUTH.*"
+                type: f
+                search_in: 
+                  - common
+
+          - name: "ipsec.conf"
+            value: 
+                bad_regex: ".*PSK.*|.*RSA.*|.*EAP =.*|.*XAUTH.*"
+                type: f
+                search_in: 
+                  - common
+  
+  - name: IRSSI
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name:  ".irssi"
+            value: 
+                files:
+                  - name: "config"
+                    value:
+                        bad_regex: "password.*"      
+                type: d
+                search_in: 
+                  - common
+    
+  - name: Keyring
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "keyrings"
+            value: 
+                type: d
+                search_in: 
+                  - common
+      
+          - name: "*.keyring"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "*.keystore"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "*.jks"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+  
+  - name: Filezilla
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "filezilla"
+            value: 
+                files:
+                  - name: "sitemanager.xml"
+                    value:
+                        bad_regex: "Host.*|Port.*|Protocol.*|User.*|Pass.*"
+                        remove_empty_lines: True
+                        remove_regex: "^;"
+                type: d
+                search_in: 
+                  - common
+
+          - name: "filezilla.xml"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "recentservers.xml"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+
+  - name: Backup Manager
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "storage.php"
+            value:
+                bad_regex: "password|pass|user|database|host"
+                line_grep: >- 
+                  "'pass'|'password'|'user'|'database'|'host'"
+                type: f
+                search_in: 
+                  - common
+      
+          - name:  "database.php"
+            value: 
+                bad_regex: "password|pass|user|database|host"
+                line_grep: >-
+                  "'pass'|'password'|'user'|'database'|'host'"
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
+    
+  - name: Splunk
+    value:
+        config:
+          auto_check: False
+
+        files:
+          - name:  "passwd"
+            value: 
+                type: f
+                search_in: 
+                  - common
+  
+  - name: GitLab
+    value:
+        config:
+          auto_check: False
+    
+        files:
+          - name: "secrets.yml"
+            value: 
+                type: f
+                remove_path: "/lib"
+                search_in: 
+                  - common
+
+          - name:  "gitlab.yml"
+            value: 
+                type: f
+                remove_path: "/lib"
+                search_in: 
+                  - common
+      
+          - name: "gitlab.rm"
+            value: 
+                type: f
+                remove_path: "/lib"
+                search_in: 
+                  - common
+  
+  - name: PGP-GPG
+    value:
+        config:
+          auto_check: True
+          exec:
+            - '((command -v gpg && gpg --list-keys) || echo_not_found "gpg") 2>/dev/null'
+            - '((command -v netpgpkeys && netpgpkeys --list-keys) || echo_not_found "netpgpkeys") 2>/dev/null'
+            - '(command -v netpgp || echo_not_found "netpgp") 2>/dev/null'
+
+        files:
+          - name: "*.pgp"
+            value: 
+                type: f
+                search_in: 
+                  - common
+
+          - name: "*.gpg"
+            value: 
+                type: f
+                search_in: 
+                  - common
+
+          - name: "*.gnupg"
+            value: 
+                type: f
+                remove_path: "README.gnupg"
+                search_in: 
+                  - common
+
+  - name: Cache Vi
+    value:
+        disable:
+          - winpeas
+    
+        config:
+          auto_check: True
+
+        files:
+          - name: "*.swp"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "*.viminfo"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+    
+  - name: Docker
+    value:
+        config:
+          auto_check: False
+
+        files:
+          - name: "docker.socket"
+            value: 
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "docker.sock"
+            value: 
+                type: f
+                search_in: 
+                  - common
+
+          - name: "Dockerfile"
+            value: 
+                type: f
+                search_in: 
+                  - common
+      
+          - name: "docker-compose.yml"
+            value: 
+                type: f
+                search_in: 
+                  - common
+
+  - name: Firefox
+    value:
+        disable:
+          - winpeas
+    
+        config:
+          auto_check: True
+
+        files:
+          - name: ".mozilla"
+            value: 
+                files:
+                  - name:  "places.sqlite"
+                    value:
+                        just_list_file: True
             
-          ? "bookmarkbackups"
-          :
-            just_list_file: True
+                  - name: "bookmarkbackups"
+                    value:
+                        just_list_file: True
           
-          ? "formhistory.sqlite"
-          :
-            just_list_file: True
+                  - name: "formhistory.sqlite"
+                    value:
+                        just_list_file: True
             
-          ? "handlers.json"
-          :
-            just_list_file: True
+                  - name: "handlers.json"
+                    value:
+                        just_list_file: True
 
-          ? "persdict.dat"
-          :
-            just_list_file: True
+                  - name: "persdict.dat"
+                    value:
+                        just_list_file: True
 
-          ? "addons.json"
-          :
-            just_list_file: True
+                  - name:  "addons.json"
+                    value:
+                        just_list_file: True
 
-          ? "cookies.sqlite"
-          :
-            just_list_file: True
+                  - name: "cookies.sqlite"
+                    value:
+                        just_list_file: True
           
-          ? "cache2"
-          :
-            just_list_file: True
+                  - name: "cache2"
+                    value:
+                        just_list_file: True
 
-          ? "startupCache"
-          :
-            just_list_file: True
+                  - name: "startupCache"
+                    value:
+                        just_list_file: True
 
-          ? "favicons.sqlite"
-          :
-            just_list_file: True
+                  - name: "favicons.sqlite"
+                    value:
+                        just_list_file: True
 
-          ? "prefs.js"
-          :
-            just_list_file: True
+                  - name: "prefs.js"
+                    value:
+                        just_list_file: True
 
-          ? "downloads.sqlite"
-          :
-            just_list_file: True
+                  - name: "downloads.sqlite"
+                    value:
+                        just_list_file: True
           
-          ? "thumbnails"
-          :
-            just_list_file: True
+                  - name: "thumbnails"
+                    value:
+                        just_list_file: True
 
-          ? "logins.json"
-          :
-            just_list_file: True
+                  - name: "logins.json"
+                    value:
+                        just_list_file: True
 
-          ? "key4.db"
-          :
-            just_list_file: True
+                  - name: "key4.db"
+                    value:
+                        just_list_file: True
 
-          ? "key3.db"
-          :
-            just_list_file: True
+                  - name: "key3.db"
+                    value:
+                        just_list_file: True
 
-        type: d
-        search_in: 
-          - $HOMESEARCH
+            type: d
+            search_in: 
+              - $HOMESEARCH
 
-  Chrome:
-    config:
-      auto_check: True
+  - name: Chrome
+    value:
+        disable:
+          - winpeas
     
-    files:
-      ? "google-chrome"
-      : 
+        config:
+          auto_check: True
+    
         files:
-          ? "Cookies"
-          :
-            just_list_file: True
+          - name: "google-chrome"
+            value: 
+                files:
+                  - name: "Cookies"
+                    value:
+                        just_list_file: True
           
-          ? "Cache"
-          :
-            just_list_file: True
+                  - name: "Cache"
+                    value:
+                        just_list_file: True
 
-          ? "Bookmarks"
-          :
-            just_list_file: True
+                  - name: "Bookmarks"
+                    value:
+                        just_list_file: True
           
-          ? "Web Data"
-          :
-            just_list_file: True
+                  - name: "Web Data"
+                    value:
+                        just_list_file: True
           
-          ? "Favicons"
-          :
-            just_list_file: True
+                  - name: "Favicons"
+                    value:
+                        just_list_file: True
           
-          ? "Login Data"
-          :
-            just_list_file: True
+                  - name: "Login Data"
+                    value:
+                        just_list_file: True
           
-          ? "Current Session"
-          :
-            just_list_file: True
+                  - name: "Current Session"
+                    value:
+                        just_list_file: True
 
-          ? "Current Tabs"
-          :
-            just_list_file: True
+                  - name: "Current Tabs"
+                    value:
+                        just_list_file: True
 
-          ? "Last Session"
-          :
-            just_list_file: True
+                  - name: "Last Session"
+                    value:
+                        just_list_file: True
 
-          ? "Last Tabs"
-          :
-            just_list_file: True
+                  - name: "Last Tabs"
+                    value: 
+                        just_list_file: True
 
-          ? "Extensions"
-          :
-            just_list_file: True
+                  - name: "Extensions"
+                    value:
+                        just_list_file: True
 
-          ? "Thumbnails"
-          :
-            just_list_file: True
+                  - name: "Thumbnails"
+                    value:
+                        just_list_file: True
+            
+            type: d
+            search_in: 
+              - $HOMESEARCH
+
+  - name: Autologin
+    value:
+        disable:
+          - winpeas
         
-        search_in: 
-          - $HOMESEARCH
+        config:
+          auto_check: True
 
-  Autologin:
-    config:
-      auto_check: True
+        files:
+          - name: "autologin"
+            value: 
+                bad_regex: "passwd"
+                type: f
+                search_in: 
+                  - common
 
-    files:
-      ? "autologin"
-      : 
-        bad_regex: "passwd"
-        type: f
-        search_in: 
-          - common
-
-      ? "autologin.conf"
-      : 
-        bad_regex: "passwd"
-        type: f
-        search_in: 
-          - common
+          - name: "autologin.conf"
+            value: 
+                bad_regex: "passwd"
+                type: f
+                search_in: 
+                  - common
   
-  FastCGI:
-    config:
-      auto_check: True
+  - name: FastCGI
+    value:
+        config:
+          auto_check: True
 
-    files:
-      ? "fastcgi_params"
-      : 
-        bad_regex: "DB_NAME|DB_USER|DB_PASS"
-        only_bad_lines: True
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: "fastcgi_params"
+            value: 
+                bad_regex: "DB_NAME|DB_USER|DB_PASS"
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
   
-  SNMP:
-    config:
-      auto_check: True
+  - name: SNMP
+    value:
+        config:
+          auto_check: True
 
-    files:
-      ? "snmpd.conf"
-      : 
-        bad_regex: "rocommunity|rwcommunity|extend.*"
-        only_bad_lines: True
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: "snmpd.conf"
+            value: 
+                bad_regex: "rocommunity|rwcommunity|extend.*"
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
 
-  Pypirc:
-    config:
-      auto_check: True
+  - name: Pypirc
+    value:
+        config:
+          auto_check: True
 
-    files:
-      ? ".pypirc"
-      : 
-        bad_regex: "username|password"
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: ".pypirc"
+            value: 
+                bad_regex: "username|password"
+                type: f
+                search_in: 
+                  - common
 
-  CloudFlare:
-    config:
-      auto_check: True
+  - name: CloudFlare
+    value:
+        config:
+          auto_check: True
 
-    files:
-      ? ".cloudflared"
-      : 
-        type: d
-        search_in: 
-          - common
+        files:
+          - name: ".cloudflared"
+            value: 
+                type: d
+                just_list_file: True
+                search_in: 
+                  - common
 
-  History:
-    config:
-      auto_check: False
+  - name: History
+    value:
+        config:
+          auto_check: False
 
-    files:
-      ? ".*_history"
-      : 
-        bad_regex: "$pwd_inside_history"
-        line_grep: '-a "$pwd_inside_history"'
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: ".*_history.*"
+            value: 
+                bad_regex: "$pwd_inside_history"
+                line_grep: '-a "$pwd_inside_history"'
+                type: f
+                search_in: 
+                  - common
     
-  Http_conf:
-    config:
-      auto_check: True
+  - name: Http_conf
+    value:
+        config:
+          auto_check: True
 
-    files:
-      ? "httpd.conf"
-      : 
-        bad_regex: "htaccess.*|htpasswd.*"
-        only_bad_lines: True
-        remove_regex: '\W+\#|^#'
-        remove_empty_lines: True
-        type: f
-        search_in: 
-          - common
+        files:
+          - name:  "httpd.conf"
+            value: 
+                bad_regex: "htaccess.*|htpasswd.*"
+                only_bad_lines: True
+                remove_regex: '\W+\#|^#'
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
 
-  Htpasswd:
-    config:
-      auto_check: True
+  - name: Htpasswd
+    value:
+        config:
+          auto_check: True
 
-    files:
-      ? ".htpasswd"
-      : 
-        bad_regex: ".*"
-        remove_regex: '^#'
-        remove_empty_lines: True
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: ".htpasswd"
+            value: 
+                bad_regex: ".*"
+                remove_regex: '^#'
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
 
-  Ldaprc:
-    config:
-      auto_check: True
+  - name: Ldaprc
+    value:
+        config:
+          auto_check: True
 
-    files:
-      ? ".ldaprc"
-      : 
-        bad_regex: ".*"
-        remove_regex: '^#'
-        remove_empty_lines: True
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: ".ldaprc"
+            value: 
+                bad_regex: ".*"
+                remove_regex: '^#'
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
     
-  Env:
-    config:
-      auto_check: True
+  - name: Env
+    value:
+        config:
+          auto_check: True
 
-    files:
-      ? ".env"
-      : 
-        bad_regex: "[pP][aA][sS][sS].*"
-        remove_regex: '^#'
-        remove_empty_lines: True
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: ".env"
+            value: 
+                bad_regex: "[pP][aA][sS][sS].*"
+                remove_regex: '^#'
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
     
-  Msmtprc:
-    config:
-      auto_check: True
+  - name: Msmtprc
+    value:
+        config:
+          auto_check: True
 
-    files:
-      ? ".msmtprc"
-      : 
-        bad_regex: "user.*|password.*"
-        remove_regex: '^#'
-        remove_empty_lines: True
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: ".msmtprc"
+            value: 
+                bad_regex: "user.*|password.*"
+                remove_regex: '^#'
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
   
-  Github:
-    config:
-      auto_check: True
+  - name: Github
+    value:
+        config:
+          auto_check: True
 
-    files:
-      ? ".github"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: ".github"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
       
-      ? ".gitconfig"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: ".gitconfig"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
         
-      ? ".git-credentials"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: ".git-credentials"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-      ? ".git"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: ".git"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-  Svn:
-    config:
-      auto_check: True
+  - name: Svn
+    value:
+        config:
+          auto_check: True
 
-    files:
-      ? ".svn"
-      : 
-        just_list_file: True
-        type: d
-        search_in: 
-          - common
-
-  Keepass:
-    config:
-      auto_check: True
-
-    files:
-      ? "*.kdbx"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-
-      ? "KeePass.config*"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-
-      ? "KeePass.ini"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-
-      ? "KeePass.enforced*"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-
-  FTP:
-    config:
-      auto_check: True
-
-    files:
-      ? "*.ftpconfig"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-
-      ? "ffftp.ini"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-
-      ? "ftp.ini"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-
-      ? "ftp.config"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-
-      ? "ws_ftp.ini"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
-
-  Bind:
-    config:
-      auto_check: True
-
-    files:
-      ? "bind"
-      : 
         files:
-          ? "*"
-          :
-            just_list_file: True
+          - name: ".svn"
+            value: 
+                just_list_file: True
+                type: d
+                search_in: 
+                  - common
 
-          ? "*.key"
-          :
-            bad_regex: ".*"
-            remove_empty_lines: True
-            remove_regex: '^#'
-        type: d
-        search_in: 
-          - common
+  - name: Keepass
+    value:
+        config:
+          auto_check: True
 
-  SeedDMS:
-    config:
-      auto_check: True
-
-    files:
-      ? "seeddms*"
-      : 
         files:
-          ? "settings.xml"
-          :
-            bad_regex: "[pP][aA][sS][sS]"
-            line_grep: '"="'
-        type: d
-        search_in: 
-          - common
+          - name: "*.kdbx"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-  Ddclient:
-    config:
-      auto_check: True
+          - name: "KeePass.config*"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-    files:
-      ? "ddclient.conf"
-      : 
-        bad_regex: ".*password.*"
-        type: f
-        search_in: 
-          - common
+          - name: "KeePass.ini"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-  Interesting_logs:
-    config:
-      auto_check: True
+          - name: "KeePass.enforced*"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-    files:
-      ? "access.log"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+  - name: FTP
+    value:
+        config:
+          auto_check: True
 
-      ? "error.log"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: "*.ftpconfig"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-  Other_Interesting_Files:
-    config:
-      auto_check: True
+          - name: "ffftp.ini"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-    files:
-      ? ".bashrc"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: "ftp.ini"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+
+          - name: "ftp.config"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+
+          - name: "sites.ini"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+
+          - name: "wcx_ftp.ini"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+
+          - name: "winscp.ini"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+
+          - name: "ws_ftp.ini"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+
+  - name: Bind
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "bind"
+            value: 
+                files:
+                  - name: "*"
+                    value:
+                        just_list_file: True
+
+                  - name: "*.key"
+                    value:
+                        bad_regex: ".*"
+                        remove_empty_lines: True
+                        remove_regex: '^#'
+                type: d
+                search_in: 
+                  - common
+
+  - name: SeedDMS
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "seeddms*"
+            value: 
+                files:
+                  - name: "settings.xml"
+                    value:
+                        bad_regex: "[pP][aA][sS][sS]"
+                        line_grep: '"="'
+                type: d
+                search_in: 
+                  - common
+
+  - name: Ddclient
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "ddclient.conf"
+            value: 
+                bad_regex: ".*password.*"
+                type: f
+                search_in: 
+                  - common
+
+  - name: Cacti
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "cacti"
+            value:
+                files:
+                  - name: "config.php"
+                    value:
+                        bad_regex: "database_pw.*|database_user.*|database_pass.*"
+                        line_grep: '"database_pw|database_user|database_pass|database_type|database_default|detabase_hostname|database_port|database_ssl"'
+
+                  - name: "config.php.dist"
+                    value:
+                        bad_regex: "database_pw.*|database_user.*|database_pass.*"
+                        line_grep: '"database_pw|database_user|database_pass|database_type|database_default|detabase_hostname|database_port|database_ssl"'
+
+                  - name: "installer.php"
+                    value:
+                        bad_regex: "database_pw.*|database_user.*|database_pass.*"
+                        line_grep: '"database_pw|database_user|database_pass|database_type|database_default|detabase_hostname|database_port|database_ssl"'
+
+                  - name: "check_all_pages"
+                    value:
+                        bad_regex: "database_pw.*|database_user.*|database_pass.*"
+                        line_grep: '"database_pw|database_user|database_pass|database_type|database_default|detabase_hostname|database_port|database_ssl"'
+
+
+                type: d
+                search_in: 
+                  - common
+
+
+  - name: Interesting logs
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "access.log"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+
+          - name: "error.log"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+
+  - name: Other Interesting Files
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: ".bashrc"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
     
-      ? ".google_authenticator"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: ".google_authenticator"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-      ? "hosts.equiv"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: "hosts.equiv"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-      ? ".lesshst"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: ".lesshst"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-      ? ".plan"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: ".plan"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
       
-      ? ".profile"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: ".profile"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-      ? ".recently-used.xbel"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: ".recently-used.xbel"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-      ? ".rhosts"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: ".rhosts"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-      ? ".sudo_as_admin_successful"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: ".sudo_as_admin_successful"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-  Windows_Files:
-    config:
-      auto_check: True
+  - name: Windows Files
+    value:
+        config:
+          auto_check: True
 
-    files:
-      ? "unattend.inf"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+        files:
+          - name: "unattend.inf"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "*.rdg"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "*.rdg"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "AppEvent.Evt"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "AppEvent.Evt"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "ConsoleHost_history.txt"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "ConsoleHost_history.txt"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "FreeSSHDservice.ini"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "FreeSSHDservice.ini"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "NetSetup.log"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "NetSetup.log"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "Ntds.dit"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "Ntds.dit"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "RDCMan.settings"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "protecteduserkey.bin"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "SAM"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "RDCMan.settings"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "SYSTEM"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "SAM"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "SecEvent.Evt"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "SYSTEM"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "appcmd.exe"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "SecEvent.Evt"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "bash.exe"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "appcmd.exe"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "datasources.xml"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "bash.exe"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "default.sav"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "datasources.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "drives.xml"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "default.sav"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "groups.xml"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "drives.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "https-xampp.conf"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "groups.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "https.conf"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "https-xampp.conf"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "iis6.log"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "https.conf"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "index.dat"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "iis6.log"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "my.cnf"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "index.dat"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "my.ini"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "my.cnf"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "ntuser.dat"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "my.ini"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "pagefile.sys"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "ntuser.dat"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "php.ini"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "pagefile.sys"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "printers.xml"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "php.ini"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "recentservers.xml"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "printers.xml"
+            value: 
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "scclient.exe"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "recentservers.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "scheduledtasks.xml"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "scclient.exe"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "security"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "scheduledtasks.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "security.sav"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "security.sav"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "server.xml"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "server.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "services.xml"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "setupinfo"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "setupinfo"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "setupinfo.bak"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "setupinfo.bak"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "sitemanager.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "sitemanager.xml"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "sites.ini"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "sites.ini"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "software"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "software"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "software.sav"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "software.sav"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "sysprep.inf"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "sysprep.inf"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "sysprep.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "sysprep.xml"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "system"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "system.sav"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "system.sav"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "unattend.txt"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "unattend.txt"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "unattend.xml"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "unattend.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "unattended.xml"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "unattended.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "wcx_ftp.ini"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "wcx_ftp.ini"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "web*.config"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "ws_ftp.ini"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "winscp.ini"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "web*.config"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
-      ? "wsl.exe"
-      :
-        just_list_file: True
-        type: f
-        search_in:
-          - common
+          - name: "winscp.ini"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "wsl.exe"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Other Windows Files
+    value:
+        config:
+          auto_check: True
+          disable:
+          - linpeas
+
+        files:
+          - name: "security"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "services.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
 # Final section
-  Database:
-    config:
-      auto_check: False
+  - name: Database
+    value:
+        config:
+          auto_check: False
 
-    files:
-      ? "*.db"
-      : 
-        remove_path: "/man/|/usr/|/var/cache/"
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: "*.db"
+            value: 
+                remove_path: "/man/|/usr/|/var/cache/"
+                type: f
+                search_in: 
+                  - common
       
-      ? "*.sqlite"
-      : 
-        remove_path: "/man/|/usr/|/var/cache/"
-        type: f
-        search_in: 
-          - common
+          - name: "*.sqlite"
+            value: 
+                remove_path: "/man/|/usr/|/var/cache/"
+                type: f
+                search_in: 
+                  - common
 
-      ? "*.sqlite3"
-      : 
-        remove_path: "/man/|/usr/|/var/cache/"
-        type: f
-        search_in: 
-          - common
+          - name: "*.sqlite3"
+            value: 
+                remove_path: "/man/|/usr/|/var/cache/"
+                type: f
+                search_in: 
+                  - common
 
-  Backups:
-    config:
-      auto_check: False
+  - name: Backups
+    value:
+        config:
+          auto_check: False
 
-    files:
-      ? "backup"
-      : 
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: "backup"
+            value: 
+                type: f
+                search_in: 
+                  - common
       
-      ? "backups"
-      : 
-        type: f
-        search_in: 
-          - common
+          - name: "backups"
+            value: 
+                type: f
+                search_in: 
+                  - common
 
-  Password_Files:
-    config:
-      auto_check: False
+  - name: Password Files
+    value:
+        config:
+          auto_check: False
 
-    files:
-      ? "*password*"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+        files:
+          - name: "*password*"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
       
-      ? "*credential*"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: "*credential*"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-      ? "creds*"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: "creds*"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
-      ? "*.key"
-      : 
-        just_list_file: True
-        type: f
-        search_in: 
-          - common
+          - name: "*.key"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common

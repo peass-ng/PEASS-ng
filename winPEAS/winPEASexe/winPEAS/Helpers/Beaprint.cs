@@ -154,27 +154,37 @@ namespace winPEAS.Helpers
         /////////////////////////////////
         public static void GreatPrint(string toPrint)
         {
+            // print_title
 
             Console.WriteLine();
             Console.WriteLine();
             int halfTotal = 60;
-            Console.WriteLine(LCYAN + "  " + new String('=', halfTotal - toPrint.Length) + "(" + NOCOLOR + YELLOW + toPrint + LCYAN + ")" + new String('=', halfTotal - toPrint.Length) + NOCOLOR);
+            //Console.WriteLine(LCYAN + "  " + new String('=', halfTotal - toPrint.Length) + "(" + NOCOLOR + YELLOW + toPrint + LCYAN + ")" + new String('=', halfTotal - toPrint.Length) + NOCOLOR);
+
+            Console.WriteLine($"{LCYAN}════════════════════════════════════╣ {GREEN}{toPrint}{LCYAN} ╠════════════════════════════════════{NOCOLOR}");
         }
 
         public static void MainPrint(string toPrint)
         {
+            // print_2title
+
             Console.WriteLine();
-            Console.WriteLine(YELLOW + "  [+] " + GREEN + toPrint + NOCOLOR);
+            //Console.WriteLine(YELLOW + "  [+] " + GREEN + toPrint + NOCOLOR);
+            Console.WriteLine($"{LCYAN}╔══════════╣ {GREEN}{toPrint}{NOCOLOR}");
         }
 
         public static void LinkPrint(string link, string comment = "")
         {
-            Console.WriteLine(YELLOW + "   [?] " + LBLUE + comment + " " + LYELLOW + link + NOCOLOR);
+            // print_info
+            //Console.WriteLine(YELLOW + "   [?] " + LBLUE + comment + " " + LYELLOW + link + NOCOLOR);            
+            Console.WriteLine($"{LCYAN}╚ {LBLUE}{comment} {LYELLOW}{link}{NOCOLOR}");
         }
 
         public static void InfoPrint(string toPrint)
         {
-            Console.WriteLine(YELLOW + "    [i] " + LBLUE + toPrint + NOCOLOR);
+            // print_info
+            //Console.WriteLine(YELLOW + "    [i] " + LBLUE + toPrint + NOCOLOR);
+            Console.WriteLine($"{LCYAN}╚ {LBLUE}{toPrint}{NOCOLOR}");
         }
 
         public static void NotFoundPrint()
@@ -361,6 +371,7 @@ namespace winPEAS.Helpers
                 foreach (string elem in list_to_print)
                 {
                     Console.WriteLine("    " + elem);
+                    // printf ${BLUE}"═╣ "$GREEN"$1"$NC #There is 1 "═"
                 }
             }
             else
