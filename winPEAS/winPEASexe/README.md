@@ -107,7 +107,7 @@ REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
 Below you have some indications about what does each color means exacty, but keep in mind that **Red** is for something interesting (from a pentester perspective) and **Green** is something well configured (from a defender perspective).
 
 
-## Instructions to compile
+## Instructions to compile you own obfuscated version
 
 In order to compile an **ofuscated version** of Winpeas and bypass some AVs you need to ** install dotfuscator ** in *VisualStudio*. 
 
