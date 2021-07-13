@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - master
-    paths:
-      - 'build_lists\sensitive_files.yaml'
-      - 'linPEAS\**'
 
   workflow_dispatch:
 
