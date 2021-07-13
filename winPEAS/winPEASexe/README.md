@@ -264,11 +264,6 @@ Once you have installed and activated it you need to:
 
 </details>
 
-## Let's improve PEASS together
-
-If you want to **add something** and have **any cool idea** related to this project, please let me know it in the **telegram group https://t.me/peass** or using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)** and we will update the master version.
-
-
 ## TODO
 - Add more checks
 - Mantain updated Watson (last JAN 2021)
