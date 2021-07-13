@@ -6,7 +6,7 @@ If you wan tto make a suggestion for linpeas or winpeas please use **[github iss
 ## Searching for files with sensitive information
 From the PEASS-ng release **winpeas and linpeas are auto-built** and will search for files containing sensitive information specified in the **[sesitive_files.yaml](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/build_lists/sensitive_files.yaml)** file.
 
-If you want to **contribute adding the search of new files that can contain sensitive information**, please, just update **[sesitive_files.yaml](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/build_lists/sensitive_files.yaml)** and create a **PR to master** (*linpeas and winpeas will be auto-built in this PR*).
+If you want to **contribute adding the search of new files that can contain sensitive information**, please, just update **[sesitive_files.yaml](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/build_lists/sensitive_files.yaml)** and create a **PR to master** (*linpeas and winpeas will be auto-built in this PR*). You can find examples of how to contribute to this file inside the file.
 Also, in the comments of this PR, put links to pages where and example of the file containing sensitive information can be foud.
 
 ## Specific LinPEAS additions
