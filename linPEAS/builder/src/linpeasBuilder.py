@@ -46,7 +46,7 @@ class LinpeasBuilder:
             assert s in self.bash_storages, f"{s} isn't created"
 
         #Replace interesting hidden files markup for a list of all the serched hidden files
-        self.__replace_mark(INT_HIDDEN_FILES_MARKUP, self.hidden_files, "|")
+        self.__replace_mark(INT_HIDDEN_FILES_MARKUP, sorted(self.hidden_files), "|")
 
         #Check if there are duplicate peass marks
         peass_marks = self.__get_peass_marks()

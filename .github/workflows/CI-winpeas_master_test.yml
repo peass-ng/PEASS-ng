@@ -1,15 +1,15 @@
-name: CI-winpeas_test
+name: CI-winpeas_master_test
 
 on:
-  push:
+  pull_request:
     branches:
-      - winpeas_dev
+      - master
 
   workflow_dispatch:
 
-jobs:  
+jobs:
 
-  Build_and_test_winpeas:
+  Build_and_test_winpeas_master:
     runs-on: windows-latest
     
     # environment variables
