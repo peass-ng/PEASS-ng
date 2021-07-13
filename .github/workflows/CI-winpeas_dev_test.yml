@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - winpeas_dev
+    paths:
+      - 'build_lists/sensitive_files.yaml'
+      - 'winPEAS/winPEASexe/**'
 
   workflow_dispatch:
 
@@ -67,7 +70,7 @@ jobs:
             echo "copy Any"
             cp winPEAS\winPEASexe\winPEAS\bin\$env:Configuration\winPEAS.exe winPEAS\winPEASexe\binaries\$env:Configuration\winPEASany.exe        
       
-      # build obfuscated versions
+      # Setup DotFuscator
       - name: Setup DotFuscator
         run: |
             7z x winPEAS\winPEASexe\Dotfuscator\DotfuscatorCE.zip
