@@ -58,4 +58,4 @@ jobs:
           python3 -m builder.linpeas_builder
 
       - name: Run macpeas
-        run: linPEAS/linpeas.sh -o SysI,Container,Devs,AvaSof,ProCronSrvcsTmrsSocks,Net,UsrI,SofI
+        run: linPEAS/linpeas.sh -o SofI
