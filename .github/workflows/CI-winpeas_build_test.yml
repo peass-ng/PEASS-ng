@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - winpeas_dev
-    paths:
-      - 'build_lists\sensitive_files.yaml'
-      - 'winPEAS\winPEASexe\**'
 
   workflow_dispatch:
 
