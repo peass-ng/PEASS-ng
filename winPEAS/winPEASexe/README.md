@@ -10,7 +10,7 @@ Check also the **Local Windows Privilege Escalation checklist** from **[book.hac
 
 ## Quick Start
 
-**.Net >= 4.5 is required**
+**.Net >= 4.5.2 is required**
 
 Precompiled binaries:
 - Download the **[latest obfuscated version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/binaries/Obfuscated%20Releases)** or **compile it yourself** (read instructions for compilation).

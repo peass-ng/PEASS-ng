@@ -7,7 +7,7 @@ Check the **Local Windows Privilege Escalation checklist** from **[book.hacktric
 Check more **information about how to exploit** found misconfigurations in **[book.hacktricks.xyz](https://book.hacktricks.xyz/windows/windows-local-privilege-escalation)**
 
 ## WinPEAS .exe and .bat
-- [Link to WinPEAS C# project (.exe)](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe) (.Net >= 4.5 required)
+- [Link to WinPEAS C# project (.exe)](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe) (.Net >= 4.5.2 required)
 - [Link to WinPEAS .bat project](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASbat) 
 
 ## Let's improve PEASS together
