@@ -1,3 +1,7 @@
+############################
+## LINPEAS SPECIFICATIONS ##
+############################
+
 root_folders:
   - /applications  #common
   - /bin           #common
@@ -76,22 +80,11 @@ storage_template: >
 int_hidden_files_markup: "peass{INT_HIDDEN_FILES}"
 
 
-defaults:
-  auto_check: False           #The builder will generate a check for the file
-  bad_regex: ""               #The regex used to color red and grep lines (if only_bad_lines and no line_grep)
-  check_extra_path: ""        #Check if the found files are in a specific path
-  good_regex: ""              #The regex to color green
-  just_list_file: False       #Just mention the path to the file, do not cat it
-  line_grep: ""               #The regex to grep lines in a file (if only_bad_lines), by default bad_regex is used here if empty
-  only_bad_lines: False       #Only print lines containing something red
-  remove_empty_lines: False   #Remove empty lines, use only for text files (-I param in grep)
-  remove_path: ""             #Not interested in files containing this path
-  remove_regex: ""            #Extra regex to remove some lines
-  search_in:                  #By default search in defined common
-    - common
-  type: f                     #File by default
-  
-  exec: []
+
+##############################
+## AUTO GENERATED VARIABLES ##
+## FOR WINPEAS & LINPEAS    ##
+##############################
 
 variables_markup: "peass{VARIABLES}"
 
@@ -100,7 +93,141 @@ variables:
      value: "7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|root|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|xfreerdp|^ssh|steghide|@"
 
 
-#Files & folders to search
+
+####################
+## DEFAULT VALUES ##
+####################
+
+defaults:
+  auto_check: False           #The builder will generate a check for the file (only linpeas)
+  bad_regex: ""               #The regex used to color red. If only_bad_lines and no line_grep, then only lines containing this regex will be printed
+  check_extra_path: ""        #Check if the found files are in a specific path (only linpeas)
+  good_regex: ""              #The regex to color green
+  just_list_file: False       #Just mention the path to the file, do not cat it
+  line_grep: ""               #The regex to grep lines in a file. IMPORTANT: This is the argument for "grep" command so you need to specify the single and double quotes (see examples)
+  only_bad_lines: False       #Only print lines containing something red (cnotaining bad_regex)
+  remove_empty_lines: False   #Remove empty lines, use only for text files (-I param in grep)
+  remove_path: ""             #Not interested in files containing this path (only linpeas)
+  remove_regex: ""            #Remove linpeas containing this regex
+  search_in:                  #By default search in defined common (only linpeas)
+    - common
+  type: f                     #File by default
+  
+  exec: []                    #Cmd to execute with the check (only linpeas)
+
+
+##############
+## EXAMPLES ##
+##############
+
+#-) In the following example PostgreSQL searches are performed:
+## - auto_check is True (by default set it always to True)
+## - exec is and array of sh commands to execute, in this case a command is executed to get the postgresql version
+## - The file "pgadmin*.db" is searched
+### - just_list_file is True, so the content of the list is not going to be read, just the path of the file will be indicated
+### - type is f (file, not dir)
+### - search_in is "common", so look for this file in common directories
+## - The file "pg_hba.conf" is searched
+### - bad_regex indicates the content of the file that if found is going to be written in red in the output
+### - type is f (file, not dir)
+### - remove_empty_lines is True, this indicates that empty lines of the file aren't going to be written in the output
+### - remove_regex is a regex to avoid printing lines where the regex is found
+### - search_in is "common", so look for this file in common directories
+
+#- name: PostgreSQL
+#    value:
+#        config:
+#          auto_check: True
+#          exec:
+#            - 'echo "Version: $(warn_exec psql -V 2>/dev/null)"'
+#
+#        files:
+#          - name: "pgadmin*.db"
+#            value: 
+#                type: f
+#                just_list_file: True
+#                search_in: 
+#                  - common
+#      
+#          - name: "pg_hba.conf"
+#            value: 
+#                bad_regex: "auth|password|md5|user=|pass=|trust"
+#                type: f
+#                remove_empty_lines: True
+#                remove_regex: '\W+\#|^#'
+#                search_in: 
+#                  - common
+
+
+
+#-) In the following example Elasticsearch searches are performed:
+## - auto_check is True (by default set it always to True)
+## - exec is and array of sh commands to execute, in this case a HTTP request is performed to obtain the version
+## - The file "elasticsearch.y*ml" is searched
+### - line_grep is the grep argument to filter interesting lineas
+### - remove_regex is a regex to avoid printing lines where the regex is found
+### - type is f (file, not dir)
+### - search_in is "common", so look for this file in common directories
+
+#- name: Elasticsearch
+#    value:
+#        config:
+#          auto_check: True
+#          exec:
+#            - echo "The version is $(curl -X GET '127.0.0.1:9200' 2>/dev/null | grep number | cut -d ':' -f 2)"
+#
+#        files:
+#          - name: "elasticsearch.y*ml"
+#            value: 
+#                line_grep: '"path.data|path.logs|cluster.name|node.name|network.host|discovery.zen.ping.unicast.hosts"'
+#                remove_regex: '\W+\#|^#'
+#                type: f
+#                search_in: 
+#                  - common
+
+
+
+#-) In the following example Apache searches are performed:
+## - auto_check is True (by default set it always to True)
+## - exec is and array of sh commands to execute during the check
+## - The directory "sites-enabled" is searched
+### - type is d (dir)
+### - search_in is "common", so look for this file in common directories
+#### Inside this directory the file "*" is searched (in this case "*" will get all the files, but more specific regex can be used)
+##### - bad_regex indicates the content of the file that if found is going to be written in red in the output
+##### - only_bad_lines indicate that only lines that contains the regex indicated in bad_regex are going to be printed
+##### - remove_empty_lines is True, this indicates that empty lines of the file aren't going to be written in the output
+##### - remove_regex is a regex to avoid printing lines where the regex is found
+
+#- name: Apache
+#    value:
+#        config:
+#            auto_check: True
+#            exec:
+#            - 'echo "Version: $(warn_exec apache2 -v 2>/dev/null; warn_exec httpd -v 2>/dev/null)"'
+#            - "print_3title 'PHP exec extensions'"
+#            - 'grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null'
+#    
+#        files:
+#            - name: "sites-enabled"
+#              value: 
+#                type: d
+#                files:
+#                    - name: "*"
+#                      value:
+#                        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
+#                        only_bad_lines: True
+#                        remove_empty_lines: True
+#                        remove_regex: '^#'
+#                search_in: 
+#                    - common
+
+
+
+###############################
+## Files & folders to search ##
+###############################
+
 search: 
   - name: Systemd
     value:
