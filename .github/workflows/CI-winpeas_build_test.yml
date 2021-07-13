@@ -1,7 +1,7 @@
 name: CI-winpeas_test
 
 on:
-  pull_request:
+  push:
     branches:
       - winpeas_dev
     paths:
