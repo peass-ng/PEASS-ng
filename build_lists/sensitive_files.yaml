@@ -2,6 +2,7 @@
 ## LINPEAS SPECIFICATIONS ##
 ############################
 
+
 root_folders:
   - /applications  #common
   - /bin           #common
