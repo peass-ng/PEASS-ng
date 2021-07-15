@@ -20,14 +20,13 @@ jobs:
     env:
       Solution_Path: 'winPEAS\winPEASexe\winPEAS.sln'
       Configuration: 'Release'
-      DotFuscatorGeneratedPath: 'winPEAS\winPEASexe\binaries\Obfuscated Releases\Dotfuscated'
 
     steps:
       # checkout
       - name: Checkout
         uses: actions/checkout@v2
             
-      # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+      # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v1.0.2
        
@@ -44,8 +43,8 @@ jobs:
         run: msbuild $env:Solution_Path
         
       # Execute all unit tests in the solution
-      #- name: Execute unit tests
-      #  run: dotnet test $env:Solution_Path
+      - name: Execute unit tests
+        run: dotnet test $env:Solution_Path
       
       
   create_pull_request:
@@ -60,11 +59,7 @@ jobs:
       # PR     
       - name: Pull Request
         uses: repo-sync/pull-request@v2
-        #uses: peter-evans/create-pull-request@v3
-        #env:
-        #  GITHUB_TOKEN: ${{ secrets.PULL_REQUEST_TOKEN }}
         with:
           destination_branch: "master"
           github_token: ${{ secrets.PULL_REQUEST_TOKEN }}
-          #branch: "master"
-          #token: ${{ secrets.PULL_REQUEST_TOKEN }}
+      
