@@ -47,14 +47,24 @@ jobs:
       #- name: Execute unit tests
       #  run: dotnet test $env:Solution_Path
       
+      
+  create_pull_request:
+    runs-on: ubuntu-latest
+    needs: Build_and_test_winpeas_dev
+    
+    steps:
+      # checkout
+      - name: Checkout
+        uses: actions/checkout@v2
+    
       # PR     
       - name: Pull Request
-      #  uses: repo-sync/pull-request@v2
-        uses: peter-evans/create-pull-request@v1.6.1-multi
-        env:
-          GITHUB_TOKEN: ${{ secrets.PULL_REQUEST_TOKEN }}
+        uses: repo-sync/pull-request@v2
+        #uses: peter-evans/create-pull-request@v3
+        #env:
+        #  GITHUB_TOKEN: ${{ secrets.PULL_REQUEST_TOKEN }}
         with:
-          #destination_branch: "master"
-          #github_token: ${{ secrets.PULL_REQUEST_TOKEN }}
-          branch: "master"
-          token: ${{ secrets.PULL_REQUEST_TOKEN }}
+          destination_branch: "master"
+          github_token: ${{ secrets.PULL_REQUEST_TOKEN }}
+          #branch: "master"
+          #token: ${{ secrets.PULL_REQUEST_TOKEN }}
