@@ -50,7 +50,7 @@ jobs:
       # PR     
       - name: Pull Request
       #  uses: repo-sync/pull-request@v2
-        uses: peter-evans/create-pull-request@v3.10.0-multi
+        uses: peter-evans/create-pull-request@v1.6.1-multi
         env:
           GITHUB_TOKEN: ${{ secrets.PULL_REQUEST_TOKEN }}
         with:
