@@ -44,13 +44,17 @@ jobs:
         run: msbuild $env:Solution_Path
         
       # Execute all unit tests in the solution
-      - name: Execute unit tests
-        run: dotnet test $env:Solution_Path
+      #- name: Execute unit tests
+      #  run: dotnet test $env:Solution_Path
       
-      # PR
-      - uses: actions/checkout@v2
-      - name: pull-request
-        uses: repo-sync/pull-request@v2
+      # PR     
+      - name: Pull Request
+      #  uses: repo-sync/pull-request@v2
+        uses: peter-evans/create-pull-request@v1.3.1-multi
+        env:
+          GITHUB_TOKEN: ${{ secrets.PULL_REQUEST_TOKEN }}
         with:
-          destination_branch: "master"
-          github_token: ${{ secrets.PULL_REQUEST_TOKEN }}
+          #destination_branch: "master"
+          #github_token: ${{ secrets.PULL_REQUEST_TOKEN }}
+          branch: "master"
+          token: ${{ secrets.PULL_REQUEST_TOKEN }}
