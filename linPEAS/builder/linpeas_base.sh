@@ -30,6 +30,10 @@ SED_RED_YELLOW="${C}[1;31;103m&${C}[0m"
 BLUE="${C}[1;34m"
 SED_BLUE="${C}[1;34m&${C}[0m"
 ITALIC_BLUE="${C}[1;34m${C}[3m"
+LIGHT_MAGENTA="${C}[1;95m"
+SED_LIGHT_MAGENTA="${C}[1;95m&${C}[0m"
+LIGHT_CYAN="${C}[1;96m"
+SED_LIGHT_CYAN="${C}[1;96m&${C}[0m"
 LG="${C}[1;37m" #LightGray
 SED_LG="${C}[1;37m&${C}[0m"
 DG="${C}[1;90m" #DarkGray
@@ -104,19 +108,23 @@ if [ "$MACPEAS" ]; then SCRIPTNAME="macpeas"; else SCRIPTNAME="linpeas"; fi
 if [ "$NOCOLOR" ]; then
   C=""
   RED=""
-  SED_RED=""
+  SED_RED="&"
   GREEN=""
-  SED_GREEN=""
+  SED_GREEN="&"
   YELLOW=""
-  SED_YELLOW=""
-  SED_RED_YELLOW=""
+  SED_YELLOW="&"
+  SED_RED_YELLOW="&"
   BLUE=""
-  SED_BLUE=""
+  SED_BLUE="&"
   ITALIC_BLUE=""
+  LIGHT_MAGENTA=""
+  SED_LIGHT_MAGENTA="&"
+  LIGHT_CYAN=""
+  SED_LIGHT_CYAN="&"
   LG=""
-  SED_LG=""
+  SED_LG="&"
   DG=""
-  SED_DG=""
+  SED_DG="&"
   NC=""
   UNDERLINED=""
   ITALIC=""
@@ -205,12 +213,26 @@ print_banner(){
 }
 
 
+print_support (){
+  printf """
+       ${GREEN}/---------------------------------------------------------------------------\\
+       |                             ${BLUE}Do you like PEASS?${GREEN}                            |
+       |---------------------------------------------------------------------------| 
+       |         ${YELLOW}Become a Patreon${GREEN}    :     ${RED}https://www.patreon.com/peass${GREEN}           |
+       |         ${YELLOW}Follow on Twitter${GREEN}   :     ${RED}@carlospolopm${GREEN}                           |
+       |         ${YELLOW}Respect on HTB${GREEN}      :     ${RED}SirBroccoli & makikvues${GREEN}                 |
+       |---------------------------------------------------------------------------|
+       |                                 ${BLUE}Thank you! ${GREEN}                               |
+       \---------------------------------------------------------------------------/
+"""
+}
+
 ###########################################
 #-----------) Starting Output (-----------#
 ###########################################
 
 echo ""
-if [ !"$QUIET" ]; then print_banner; fi
+if [ !"$QUIET" ]; then print_banner; print_support; fi
 printf ${BLUE}"  $SCRIPTNAME-$VERSION ${YELLOW}by carlospolop\n"$NC;
 echo ""
 printf ${YELLOW}"ADVISORY: "${BLUE}"$ADVISORY\n"$NC
@@ -219,10 +241,10 @@ printf ${BLUE}"Linux Privesc Checklist: "${YELLOW}"https://book.hacktricks.xyz/l
 echo " LEGEND:" | sed "s,LEGEND,${C}[1;4m&${C}[0m,"
 echo "  RED/YELLOW: 95% a PE vector" | sed "s,RED/YELLOW,${SED_RED_YELLOW},"
 echo "  RED: You should take a look to it" | sed "s,RED,${SED_RED},"
-echo "  LightCyan: Users with console" | sed "s,LightCyan,${C}[1;96m&${C}[0m,"
+echo "  LightCyan: Users with console" | sed "s,LightCyan,${SED_LIGHT_CYAN},"
 echo "  Blue: Users without console & mounted devs" | sed "s,Blue,${SED_BLUE},"
 echo "  Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts, cronjobs) " | sed "s,Green,${SED_GREEN},"
-echo "  LightMagenta: Your username" | sed "s,LightMagenta,${C}[1;95m&${C}[0m,"
+echo "  LightMagenta: Your username" | sed "s,LightMagenta,${SED_LIGHT_MAGENTA},"
 if [ "$IAMROOT" ]; then
   echo ""
   echo "  YOU ARE ALREADY ROOT!!! (it could take longer to complete execution)" | sed "s,YOU ARE ALREADY ROOT!!!,${SED_RED_YELLOW},"
@@ -963,7 +985,7 @@ print_title "Basic information"
 printf $LG"OS: "$NC
 (cat /proc/version || uname -a ) 2>/dev/null | sed -${E} "s,$kernelDCW_Ubuntu_Precise_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_5,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_6,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Xenial,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel7,${SED_RED_YELLOW}," | sed -${E} "s,$kernelB,${SED_RED},"
 printf $LG"User & Groups: "$NC
-(id || (whoami && groups)) 2>/dev/null | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed -${E} "s,$idB,${SED_RED},g"
+(id || (whoami && groups)) 2>/dev/null | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$idB,${SED_RED},g"
 printf $LG"Hostname: "$NC
 hostname 2>/dev/null
 printf $LG"Writable folder: "$NC;
@@ -1350,11 +1372,11 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   print_info "Check weird & unexpected proceses run by root: https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes"
 
   if [ "$NOUSEPS" ]; then
-    print_ps | sed -${E} "s,$Wfolders,${SED_RED},g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$rootcommon,${SED_GREEN}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${SED_RED}," | sed -${E} "s,$processesVB,${SED_RED_YELLOW},g" | sed "s,$processesB,${SED_RED}," | sed -${E} "s,$processesDump,${SED_RED},"
+    print_ps | sed -${E} "s,$Wfolders,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$rootcommon,${SED_GREEN}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED}," | sed -${E} "s,$processesVB,${SED_RED_YELLOW},g" | sed "s,$processesB,${SED_RED}," | sed -${E} "s,$processesDump,${SED_RED},"
     pslist=`print_ps`
   else
     (ps fauxwww || ps auxwww | sort ) 2>/dev/null | grep -v "\[" | grep -v "%CPU" | while read psline; do
-      echo "$psline"  | sed -${E} "s,$Wfolders,${SED_RED},g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$rootcommon,${SED_GREEN}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${SED_RED}," | sed -${E} "s,$processesVB,${SED_RED_YELLOW},g" | sed "s,$processesB,${SED_RED}," | sed -${E} "s,$processesDump,${SED_RED},"
+      echo "$psline"  | sed -${E} "s,$Wfolders,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$rootcommon,${SED_GREEN}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED}," | sed -${E} "s,$processesVB,${SED_RED_YELLOW},g" | sed "s,$processesB,${SED_RED}," | sed -${E} "s,$processesDump,${SED_RED},"
       if [ "`command -v capsh`" ] && ! [ "`echo \"$psline\" | grep root`" ]; then
         cpid="`echo \"$psline\" | awk '{print $2}'`"
         caphex=0x"`cat \"/proc/$cpid/status\" 2> /dev/null | grep \"CapEff\" | awk '{print $2}'`"
@@ -1383,7 +1405,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   if ! [ "$IAMROOT" ]; then
     print_2title "Files opened by processes belonging to other users"
     print_info "This is usually empty because of the lack of privileges to read other user processes information"
-    lsof 2>/dev/null | grep -v "$USER" | grep -iv "permission denied" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,root,${SED_RED},"
+    lsof 2>/dev/null | grep -v "$USER" | grep -iv "permission denied" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,root,${SED_RED},"
     echo ""
   fi
 
@@ -1410,11 +1432,11 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   print_2title "Cron jobs"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#scheduled-cron-jobs"
   command -v crontab 2>/dev/null || echo_not_found "crontab"
-  crontab -l 2>/dev/null | tr -d "\r" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,root,${SED_RED},"
+  crontab -l 2>/dev/null | tr -d "\r" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,root,${SED_RED},"
   command -v incrontab 2>/dev/null || echo_not_found "incrontab"
   incrontab -l 2>/dev/null
   ls -alR /etc/cron* /var/spool/cron/crontabs /var/spool/anacron 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g"
-  cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/* /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
+  cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/* /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
   ls -l /usr/lib/cron/tabs/ /Library/LaunchAgents/ /Library/LaunchDaemons/ ~/Library/LaunchAgents/ 2>/dev/null #MacOS paths
   echo ""
@@ -1523,7 +1545,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
     socketcurl="`curl --max-time 2 --unix-socket \"$s\" http:/index 2>/dev/null`"
     if [ $? -eq 0 ]; then
       owner="`ls -l \"$s\" | cut -d ' ' -f 3`"
-      echo "Socket $s owned by $owner uses HTTP. Response to /index:" | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED},g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed -${E} "s,$idB,${SED_RED},g"
+      echo "Socket $s owned by $owner uses HTTP. Response to /index:" | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed -${E} "s,$idB,${SED_RED},g"
       echo "$socketcurl"
     fi
   done
@@ -1540,16 +1562,16 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
         fi
 
         genpol=`grep "<policy>" "$f" 2>/dev/null`
-        if [ "$genpol" ]; then printf "Weak general policy found on $f ($genpol)\n" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${SED_RED},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$mygroups,${SED_RED},g"; fi
+        if [ "$genpol" ]; then printf "Weak general policy found on $f ($genpol)\n" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_RED},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$mygroups,${SED_RED},g"; fi
         #if [ "`grep \"<policy user=\\\"$USER\\\">\" \"$f\" 2>/dev/null`" ]; then printf "Possible weak user policy found on $f () \n" | sed "s,$USER,${SED_RED},g"; fi
 
         userpol=`grep "<policy user=" "$f" 2>/dev/null | grep -v "root"`
-        if [ "$userpol" ]; then printf "Possible weak user policy found on $f ($userpol)\n" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${SED_RED},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$mygroups,${SED_RED},g"; fi
+        if [ "$userpol" ]; then printf "Possible weak user policy found on $f ($userpol)\n" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_RED},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$mygroups,${SED_RED},g"; fi
         #for g in `groups`; do
         #  if [ "`grep \"<policy group=\\\"$g\\\">\" \"$f\" 2>/dev/null`" ]; then printf "Possible weak group ($g) policy found on $f\n" | sed "s,$g,${SED_RED},g"; fi
         #done
         grppol=`grep "<policy group=" "$f" 2>/dev/null | grep -v "root"`
-        if [ "$grppol" ]; then printf "Possible weak user policy found on $f ($grppol)\n" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${SED_RED},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$mygroups,${SED_RED},g"; fi
+        if [ "$grppol" ]; then printf "Possible weak user policy found on $f ($grppol)\n" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_RED},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$mygroups,${SED_RED},g"; fi
 
         #TODO: identify allows in context="default"
       done
@@ -1655,7 +1677,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   #-- UI) My user
   print_2title "My user"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#users"
-  (id || (whoami && groups)) 2>/dev/null | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed -${E} "s,$idB,${SED_RED},g"
+  (id || (whoami && groups)) 2>/dev/null | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed -${E} "s,$idB,${SED_RED},g"
   echo ""
 
   #-- UI) PGP keys?
@@ -1733,12 +1755,12 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   #-- UI) Pkexec policy
   print_2title "Checking Pkexec policy"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/interesting-groups-linux-pe#pe-method-2"
-  (cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | sed -${E} "s,$groupsB,${SED_RED}," | sed -${E} "s,$groupsVB,${SED_RED}," | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,$USER,${SED_RED_YELLOW}," | sed -${E} "s,$Groups,${SED_RED_YELLOW},") || echo_not_found "/etc/polkit-1/localauthority.conf.d"
+  (cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | sed -${E} "s,$groupsB,${SED_RED}," | sed -${E} "s,$groupsVB,${SED_RED}," | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,$USER,${SED_RED_YELLOW}," | sed -${E} "s,$Groups,${SED_RED_YELLOW},") || echo_not_found "/etc/polkit-1/localauthority.conf.d"
   echo ""
 
   #-- UI) Superusers
   print_2title "Superusers"
-  awk -F: '($3 == "0") {print}' /etc/passwd 2>/dev/null | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED_YELLOW}," | sed "s,root,${SED_RED},"
+  awk -F: '($3 == "0") {print}' /etc/passwd 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED_YELLOW}," | sed "s,root,${SED_RED},"
   echo ""
 
   #-- UI) Users with console
@@ -1747,7 +1769,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
     dscl . list /Users | while read uname; do
       ushell=`dscl . -read "/Users/$uname" UserShell | cut -d " " -f2`
       if [ "`grep \"$ushell\" /etc/shells`" ]; then #Shell user
-        dscl . -read "/Users/$uname" UserShell RealName RecordName Password NFSHomeDirectory 2>/dev/null | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${SED_RED},"
+        dscl . -read "/Users/$uname" UserShell RealName RecordName Password NFSHomeDirectory 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
         echo ""
       fi
     done
@@ -1759,7 +1781,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
         unexpected_shells="$f\n$unexpected_shells"
       fi
     done
-    cat /etc/passwd 2>/dev/null | grep "sh$" | sort | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${SED_RED},"
+    cat /etc/passwd 2>/dev/null | grep "sh$" | sort | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
     if [ "$unexpected_shells" ]; then
       echo "These unexpected binaries are acting like shells:\n$unexpected_shells" | sed -${E} "s,/.*,${SED_RED},g"
       echo "Unexpected users with shells:"
@@ -1775,25 +1797,25 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   #-- UI) All users & groups
   print_2title "All users & groups"
   if [ "$MACPEAS" ]; then
-    dscl . list /Users | while read i; do id $i;done 2>/dev/null | sort | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED},g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g"
+    dscl . list /Users | while read i; do id $i;done 2>/dev/null | sort | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g"
   else
-    cut -d":" -f1 /etc/passwd 2>/dev/null| while read i; do id $i;done 2>/dev/null | sort | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED},g" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m,g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g"
+    cut -d":" -f1 /etc/passwd 2>/dev/null| while read i; do id $i;done 2>/dev/null | sort | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g"
   fi
   echo ""
 
   #-- UI) Login now
   print_2title "Login now"
-  (w || who || users) 2>/dev/null | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${SED_RED},"
+  (w || who || users) 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
   echo ""
 
   #-- UI) Last logons
   print_2title "Last logons"
-  (last -Faiw || last) 2>/dev/null | tail | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_RED}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${SED_RED},"
+  (last -Faiw || last) 2>/dev/null | tail | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_RED}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
   echo ""
 
   #-- UI) Login info
   print_2title "Last time logon each user"
-  lastlog 2>/dev/null | grep -v "Never" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${SED_RED},"
+  lastlog 2>/dev/null | grep -v "Never" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
   echo ""
 
   #-- UI) Password policy
@@ -1882,7 +1904,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
       for f in `grep -lr "user\s*=" $d 2>/dev/null | grep -v "debian.cnf"`; do
         if [ -r "$f" ]; then
           u=`cat "$f" | grep -v "#" | grep "user" | grep "=" 2>/dev/null`
-          echo "From '$f' Mysql user: $u" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${C}[1;95m&${C}[0m," | sed "s,root,${SED_RED},"
+          echo "From '$f' Mysql user: $u" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
         fi
       done
       for f in `find $d -name my.cnf 2>/dev/null`; do
@@ -2115,7 +2137,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     printf "%s\n" "$PSTORAGE_LOGSTASH" | while read d; do
       if [ -r "$d/startup.options" ]; then
         echo "Logstash is running as user:"
-        cat "$d/startup.options" 2>/dev/null | grep "LS_USER\|LS_GROUP" | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed -${E} "s,$USER,${C}[1;95m&${C}[0m," | sed -${E} "s,root,${SED_RED},"
+        cat "$d/startup.options" 2>/dev/null | grep "LS_USER\|LS_GROUP" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed -${E} "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,root,${SED_RED},"
       fi
       cat "$d/conf.d/out*" | grep "exec\s*{\|command\s*=>" | sed -${E} "s,exec\W*\{|command\W*=>,${SED_RED},"
       cat "$d/conf.d/filt*" | grep "path\s*=>\|code\s*=>\|ruby\s*{" | sed -${E} "s,path\W*=>|code\W*=>|ruby\W*\{,${SED_RED},"
@@ -2532,7 +2554,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   print_2title "Users with capabilities"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#capabilities"
   if [ -f "/etc/security/capability.conf" ]; then
-    grep -v '^#\|none\|^$' /etc/security/capability.conf 2>/dev/null | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED},"
+    grep -v '^#\|none\|^$' /etc/security/capability.conf 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED},"
   else echo_not_found "/etc/security/capability.conf"
   fi
   echo ""
@@ -2540,7 +2562,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Files with ACLs
   print_2title "Files with ACLs (limited to 50)"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#acls"
-  ((getfacl -t -s -R -p /bin /etc $HOMESEARCH /opt /sbin /usr /tmp /root 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | head -n 50 | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED},"
+  ((getfacl -t -s -R -p /bin /etc $HOMESEARCH /opt /sbin /usr /tmp /root 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | head -n 50 | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED},"
   echo ""
 
   ##-- IF) .sh files in PATH
@@ -2646,13 +2668,13 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Root files in home dirs
   print_2title "Searching root files in home dirs (limit 30)"
-  (find $HOMESEARCH /Users -user root 2>/dev/null | head -n 30 | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed "s,$USER,${SED_RED},") || echo_not_found
+  (find $HOMESEARCH /Users -user root 2>/dev/null | head -n 30 | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_RED},") || echo_not_found
   echo ""
 
   ##-- IF) Others files in my dirs
   if ! [ "$IAMROOT" ]; then
     print_2title "Searching folders owned by me containing others files on it (limit 100)"
-    (find / -type d -user "$USER" ! -path "/proc/*" 2>/dev/null | head -n 100 | while read d; do find "$d" -maxdepth 1 ! -user "$USER" \( -type f -or -type d \) -exec dirname {} \; 2>/dev/null; done) | sort | uniq | sed -${E} "s,$sh_usrs,${C}[1;96m&${C}[0m," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,$USER,${C}[1;95m&${C}[0m,g" | sed "s,root,${C}[1;13m&${C}[0m,g"
+    (find / -type d -user "$USER" ! -path "/proc/*" 2>/dev/null | head -n 100 | while read d; do find "$d" -maxdepth 1 ! -user "$USER" \( -type f -or -type d \) -exec dirname {} \; 2>/dev/null; done) | sort | uniq | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed "s,root,${C}[1;13m&${C}[0m,g"
     echo ""
   fi
 
