@@ -1,4 +1,4 @@
-name: CI-winpeas_dev_test
+name: CI-PR_from_dev
 
 on:
   push:
