@@ -103,7 +103,6 @@ jobs:
         run: |
           git config --local user.email "ci@winpeas.com"
           git config --global user.name "CI-winpeas"
-          git pull
           git commit -m "winpeas binaries auto update" -a --allow-empty
       
       # Git push
