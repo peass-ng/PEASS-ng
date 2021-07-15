@@ -105,10 +105,6 @@ jobs:
           git config --global user.name "CI-winpeas"
           git commit -m "winpeas binaries auto update" -a --allow-empty
       
-      # Git Pull
-      - name: Pull possible previous changes
-        run: git pull
-      
       # Git push
       - name: Push changes
         uses: ad-m/github-push-action@master
@@ -118,6 +114,7 @@ jobs:
 
   Build_and_test_linpeas_master:
     runs-on: ubuntu-latest
+    needs: Build_and_test_winpeas_master
 
     steps:
       - uses: actions/checkout@v2
@@ -138,9 +135,6 @@ jobs:
           git config --local user.email ""
           git config --global user.name "CI-linpeas-ubuntu"
           git commit -m "linpeas.sh auto update" -a --allow-empty
-          
-      - name: Pull possible previous changes
-        run: git pull
       
       - name: Push changes
         uses: ad-m/github-push-action@master
