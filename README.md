@@ -4,6 +4,8 @@
 
 ![](https://img.shields.io/badge/Black-Arch-black) ![](https://img.shields.io/badge/Arch-AUR-brightgreen) ![](https://img.shields.io/badge/Black%20Hat%20Arsenal-Asia%202020-red)
 
+[![CI-master_test](https://github.com/carlospolop/PEASS-ng/actions/workflows/CI-master_tests.yml/badge.svg)](https://github.com/carlospolop/PEASS-ng/actions/workflows/CI-master_tests.yml)
+
 [![Packaging status](https://repology.org/badge/vertical-allrepos/peass.svg)](https://repology.org/project/peass/versions)
 
 Here you will find **privilege escalation tools for Windows and Linux/Unix\* and MacOS**.
