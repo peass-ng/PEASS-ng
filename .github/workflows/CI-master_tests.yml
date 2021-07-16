@@ -120,9 +120,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+        uses: actions/checkout@master
 
       - name: Build linpeas
         run: |
@@ -130,7 +128,7 @@ jobs:
           cd linPEAS
           python3 -m builder.linpeas_builder
       - name: Run linpeas
-        run: linPEAS/linpeas.sh
+        run: linPEAS/linpeas.sh -h
 
       - name: Create local changes
         run: git add linPEAS/linpeas.sh
