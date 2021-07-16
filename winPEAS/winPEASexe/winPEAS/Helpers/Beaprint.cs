@@ -36,7 +36,7 @@ namespace winPEAS.Helpers
             "Any misuse of this software will not be the responsibility of the author or of any other collaborator. " +
             "Use it at your own networks and/or with the network owner's permission.";
 
-        private static string Version = "v2.0-beta";
+        private static string Version = "ng";
 
         /////////////////////////////////
         /////////  PRINT THINGS /////////
@@ -87,6 +87,7 @@ namespace winPEAS.Helpers
        |---------------------------------------------------------------------------| 
        |         {3}Become a Patreon{0}    :     {2}https://www.patreon.com/peass{0}           |
        |         {3}Follow on Twitter{0}   :     {2}@carlospolopm{0}                           |
+       |         {3}Respect on HTB{0}      :     {2}SirBroccoli & makikvues{0}                 |
        |---------------------------------------------------------------------------|
        |                                 {1}Thank you!{0}                                |
        \---------------------------------------------------------------------------/
@@ -101,7 +102,7 @@ namespace winPEAS.Helpers
                 PrintBanner();
             }
 
-            Console.WriteLine(YELLOW + "  WinPEAS " + GREEN + Version + NOCOLOR + YELLOW + " by @carlospolopm, makikvues(makikvues2[at]gmail[dot]com)" + NOCOLOR);
+            Console.WriteLine(YELLOW + "  WinPEAS" + GREEN + Version + NOCOLOR + YELLOW + " by @carlospolopm, makikvues(makikvues2[at]gmail[dot]com)" + NOCOLOR);
 
             PrintMarketingBanner();
 
