@@ -561,7 +561,7 @@ echo_not_found (){
 }
 
 warn_exec(){
-  $* || echo_not_found $1
+  $* 2>/dev/null || echo_not_found $1
 }
 
 echo_no (){
@@ -1089,7 +1089,10 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   print_2title "Operative system"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#kernel-exploits"
   (cat /proc/version || uname -a ) 2>/dev/null | sed -${E} "s,$kernelDCW_Ubuntu_Precise_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_5,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_6,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Xenial,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel7,${SED_RED_YELLOW}," | sed -${E} "s,$kernelB,${SED_RED},"
-  lsb_release -a 2>/dev/null
+  warn_exec lsb_release -a 2>/dev/null
+  if [ "$MACPEAS" ]; then
+    warn_exec sw_vers
+  fi
   echo ""
 
   #-- SY) Sudo
@@ -1128,31 +1131,32 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   echo ""
 
   #-- SY) Date
-  print_2title "Date"
-  date 2>/dev/null || echo_not_found "date"
+  print_2title "Date & uptime"
+  warn_exec date 2>/dev/null
+  warn_exec uptime 2>/dev/null
   echo ""
 
   #-- SY) System stats
   print_2title "System stats"
   (df -h || lsblk) 2>/dev/null || echo_not_found "df and lsblk"
-  free 2>/dev/null || echo_not_found "free"
+  warn_exec free 2>/dev/null
   echo ""
 
   #-- SY) CPU info
   print_2title "CPU info"
-  lscpu 2>/dev/null || echo_not_found "lscpu"
+  warn_exec lscpu 2>/dev/null
   echo ""
 
   #-- SY) Environment vars
   print_2title "Environment"
   print_info "Any private information inside environment variables?"
-  (env || set) 2>/dev/null | grep -v "RELEVANT*|FIND*|^VERSION=|dbuslistG|mygroups|ldsoconfdG|pwd_inside_history|kernelDCW_Ubuntu_Precise|kernelDCW_Ubuntu_Trusty|kernelDCW_Ubuntu_Xenial|kernelDCW_Rhel|^sudovB=|^rootcommon=|^mounted=|^mountG=|^notmounted=|^mountpermsB=|^mountpermsG=|^kernelB=|^C=|^RED=|^GREEN=|^Y=|^B=|^NC=|TIMEOUT=|groupsB=|groupsVB=|knw_grps=|sidG|sidB=|sidVB=|sidVB2=|sudoB=|sudoG=|sudoVB=|sudocapsB=|timersG=|capsB=|notExtensions=|Wfolders=|writeB=|writeVB=|_usrs=|compiler=|PWD=|LS_COLORS=|pathshG=|notBackup=|processesDump|processesB|commonrootdirs" | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[aA][pP][iI][kK][eE][yY]|[aA][pP][iI][_][kK][eE][yY],${SED_RED},g" || echo_not_found "env || set"
+  (env || printenv || set) 2>/dev/null | grep -v "RELEVANT*|FIND*|^VERSION=|dbuslistG|mygroups|ldsoconfdG|pwd_inside_history|kernelDCW_Ubuntu_Precise|kernelDCW_Ubuntu_Trusty|kernelDCW_Ubuntu_Xenial|kernelDCW_Rhel|^sudovB=|^rootcommon=|^mounted=|^mountG=|^notmounted=|^mountpermsB=|^mountpermsG=|^kernelB=|^C=|^RED=|^GREEN=|^Y=|^B=|^NC=|TIMEOUT=|groupsB=|groupsVB=|knw_grps=|sidG|sidB=|sidVB=|sidVB2=|sudoB=|sudoG=|sudoVB=|sudocapsB=|timersG=|capsB=|notExtensions=|Wfolders=|writeB=|writeVB=|_usrs=|compiler=|PWD=|LS_COLORS=|pathshG=|notBackup=|processesDump|processesB|commonrootdirs" | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[aA][pP][iI][kK][eE][yY]|[aA][pP][iI][_][kK][eE][yY],${SED_RED},g" || echo_not_found "env || set"
   echo ""
 
   #-- SY) Dmesg
   print_2title "Searching Signature verification failed in dmseg"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#dmesg-signature-verification-failed"
-  (dmesg 2>/dev/null | grep "signature") || echo_not_found
+  (dmesg 2>/dev/null | grep "signature") || echo_not_found "dmesg"
   echo ""
 
   #-- SY) AppArmor
@@ -1184,6 +1188,12 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   print_list "SELinux enabled? ............... "$NC
   (sestatus 2>/dev/null || echo_not_found "sestatus") | sed "s,disabled,${SED_RED},"
 
+  #-- SY) SElinux
+  if [ "$MACPEAS" ]; then
+    print_list "Gatekeeper enabled? .......... "$NC
+    (spctl --status 2>/dev/null || echo_not_found "sestatus") | sed "s,disabled,${SED_RED},"
+  fi
+
   #-- SY) ASLR
   print_list "Is ASLR enabled? ............... "$NC
   ASLR=`cat /proc/sys/kernel/randomize_va_space 2>/dev/null`
@@ -1196,7 +1206,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 
   #-- SY) Printer
   print_list "Printer? ....................... "$NC
-  lpstat -a 2>/dev/null || echo_not_found "lpstat"
+  warn_exec lpstat -a 2>/dev/null
 
    #-- SY) Running in a virtual environment
   print_list "Is this a virtual machine? ..... "$NC
@@ -1332,6 +1342,10 @@ if [ "`echo $CHECKS | grep Devs`" ]; then
   else
     echo_not_found "/etc/fstab"
   fi
+  echo ""
+
+  print_2title "Mounted SMB Shares"
+  warn_exec smbutil statshares -a
   echo ""
   echo ""
   if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi
@@ -1612,7 +1626,7 @@ if [ "`echo $CHECKS | grep Net`" ]; then
   #-- NI) Hostname, hosts and DNS
   print_2title "Hostname, hosts and DNS"
   cat /etc/hostname /etc/hosts /etc/resolv.conf 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null
-  dnsdomainname 2>/dev/null || echo_not_found "dnsdomainname"
+  warn_exec dnsdomainname 2>/dev/null
   echo ""
 
   #-- NI) /etc/inetd.conf
@@ -1628,7 +1642,11 @@ if [ "`echo $CHECKS | grep Net`" ]; then
 
   #-- NI) Neighbours
   print_2title "Networks and neighbours"
-  (route || ip n || cat /proc/net/route) 2>/dev/null
+  if [ "$MACOS" ]; then
+    netstat -rn 2>/dev/null
+  else
+    (route || ip n || cat /proc/net/route) 2>/dev/null
+  fi
   (arp -e || arp -a || cat /proc/net/arp) 2>/dev/null
   echo ""
 
@@ -1640,7 +1658,7 @@ if [ "`echo $CHECKS | grep Net`" ]; then
   #-- NI) Ports
   print_2title "Active Ports"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-ports"
-  ((netstat -punta || ss -ntpu || (netstat -a -p tcp && netstat -a -p udp)) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+,${SED_RED},"
+  ((netstat -punta || ss -ntpu || netstat -an) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+,${SED_RED},"
   echo ""
 
   #-- NI) tcpdump
@@ -1805,7 +1823,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
 
   #-- UI) Login now
   print_2title "Login now"
-  (w || who || users) 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
+  (w || who || finger || users) 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
   echo ""
 
   #-- UI) Last logons
@@ -1816,6 +1834,17 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   #-- UI) Login info
   print_2title "Last time logon each user"
   lastlog 2>/dev/null | grep -v "Never" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
+  
+  EXISTS_FINGER="`command -v finger 2>/dev/null`"
+  if [ "$MACPEAS" ] && [ "$EXISTS_FINGER" ]; then
+    dscl . list /Users | while read uname; do
+      ushell=`dscl . -read "/Users/$uname" UserShell | cut -d " " -f2`
+      if [ "`grep \"$ushell\" /etc/shells`" ]; then #Shell user
+        finger "$uname"
+        echo ""
+      fi
+    done
+  fi
   echo ""
 
   #-- UI) Password policy
