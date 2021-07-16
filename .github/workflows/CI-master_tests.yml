@@ -22,7 +22,7 @@ jobs:
     steps:
       # checkout
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@master
         with:
           fetch-depth: 0
             
@@ -121,6 +121,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
+        with:
+          fetch-depth: 0
 
       - name: Build linpeas
         run: |
