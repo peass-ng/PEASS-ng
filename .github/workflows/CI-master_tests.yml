@@ -24,6 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@master
         with:
+          persist-credentials: false
           fetch-depth: 0
             
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
@@ -122,6 +123,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@master
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Build linpeas
