@@ -120,15 +120,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@master
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Checkout Repo
+        uses: actions/checkout@master
 
       - name: Build linpeas
         run: |
           python3 -m pip install PyYAML
           cd linPEAS
           python3 -m builder.linpeas_builder
+          
       - name: Run linpeas
         run: linPEAS/linpeas.sh -h
 
