@@ -1158,6 +1158,12 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   (dmesg 2>/dev/null | grep "signature") || echo_not_found "dmesg"
   echo ""
 
+  #-- SY) Kernel extensions
+  if [ "$MACPEAS" ]; then
+    print_2title "Kernel Extensions not belonging to apple"
+    kextstat 2>/dev/null | grep -Ev " com.apple."
+  fi
+
   #-- SY) AppArmor
   print_2title "Linux Protections"
   print_list "AppArmor enabled? .............. "$NC
@@ -1343,6 +1349,10 @@ if [ "`echo $CHECKS | grep Devs`" ]; then
   fi
   echo ""
 
+  print_2title "Mounted disks information"
+  warn_exec diskutil list
+  echo ""
+
   print_2title "Mounted SMB Shares"
   warn_exec smbutil statshares -a
   echo ""
@@ -1452,6 +1462,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/* /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
   ls -l /usr/lib/cron/tabs/ /Library/LaunchAgents/ /Library/LaunchDaemons/ ~/Library/LaunchAgents/ 2>/dev/null #MacOS paths
+  atq 2>/dev/null
   echo ""
 
   #-- PCS) Services
@@ -1659,6 +1670,33 @@ if [ "`echo $CHECKS | grep Net`" ]; then
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-ports"
   ((netstat -punta || ss -ntpu || netstat -an) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+,${SED_RED},"
   echo ""
+
+  #-- NI) MacOS hardware ports
+  if [ "$MACPEAS" ]; then
+    print_2title "Hardware Ports"
+    networksetup -listallhardwareports
+    echo ""
+
+    print_2title "VLANs"
+    networksetup -listVLANs
+    echo ""
+
+    print_2title "Wifi Info"
+    networksetup -getinfo Wi-Fi
+    echo ""
+
+    print_2title "Wifi Proxy URL"
+    networksetup -getautoproxyurl Wi-Fi
+    echo ""
+    
+    print_2title "Wifi Web Proxy"
+    networksetup -getwebproxy Wi-Fi
+    echo ""
+
+    print_2title "Wifi FTP Proxy"
+    networksetup -getftpproxy Wi-Fi
+    echo ""
+  fi
 
   #-- NI) tcpdump
   print_2title "Can I sniff with tcpdump?"
@@ -2590,8 +2628,20 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Files with ACLs
   print_2title "Files with ACLs (limited to 50)"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#acls"
-  ((getfacl -t -s -R -p /bin /etc $HOMESEARCH /opt /sbin /usr /tmp /root 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | head -n 50 | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED},"
+  ((getfacl -t -s -R -p /bin /etc $HOMESEARCH /opt /sbin /usr /tmp /root 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | head -n 70 | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED},"
+  
+  if [ "$MACPEAS" ] && ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && ! [ "`command -v getfacl`" ]; then  #Find ACL files in macos (veeeery slow)
+    ls -RAle / 2>/dev/null | grep -v "group:everyone deny delete" | grep -E -B1 "\d: " | head -n 70 | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED},"
+  fi
   echo ""
+
+  ##-- IF) Files with ResourceFork
+  #if [ "$MACPEAS" ] && ! [ "$FAST" ] && ! [ "$SUPERFAST" ]; then # TOO SLOW, CHECK IT LATER
+  #  print_2title "Files with ResourceFork"
+  #  print_info "https://book.hacktricks.xyz/macos/macos-security-and-privilege-escalation#resource-forks-or-macos-ads"
+  #  find $HOMESEARCH -type f -exec ls -ld {} \; 2>/dev/null | grep -E ' [x\-]@ ' | awk '{printf $9; printf "\n"}' | xargs -I {} xattr -lv {} | grep "com.apple.ResourceFork"
+  #fi
+  #echo ""
 
   ##-- IF) .sh files in PATH
   print_2title ".sh files in path"

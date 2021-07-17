@@ -401,6 +401,7 @@ search:
                   - /tmp
                   - /var
                   - /mnt
+                  - /private
   
   - name: PHP_files
     value:
@@ -784,6 +785,7 @@ search:
                 type: f
                 search_in: 
                   - /tmp
+                  - /private
       
   - name: SSH_CONFIG
     value:
