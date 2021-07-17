@@ -118,6 +118,7 @@ jobs:
         with:
           branch: refs/heads/${{ github.head_ref }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
 
   Build_and_test_linpeas_master:
     runs-on: ubuntu-latest
@@ -136,8 +137,11 @@ jobs:
           cd linPEAS
           python3 -m builder.linpeas_builder
           
-      - name: Run linpeas
+      - name: Run linpeas help
         run: linPEAS/linpeas.sh -h
+        
+      - name: Run linpeas
+        run: linPEAS/linpeas.sh
 
       - name: Create local changes
         run: git add linPEAS/linpeas.sh
@@ -167,5 +171,9 @@ jobs:
           python3 -m pip install PyYAML
           cd linPEAS
           python3 -m builder.linpeas_builder
+      
+      - name: Run macpeas help
+        run: linPEAS/linpeas.sh -h
+      
       - name: Run macpeas
         run: linPEAS/linpeas.sh -o SysI,Container,Devs,AvaSof,ProCronSrvcsTmrsSocks,Net,UsrI,SofI
