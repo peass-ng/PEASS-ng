@@ -24,7 +24,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@master
         with:
+          persist-credentials: false
+          # Otherwise, you will failed to push refs to dest repo.
           fetch-depth: 0
+          ref: refs/heads/${{ github.head_ref }}
             
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild.exe
@@ -106,31 +109,35 @@ jobs:
         run: |
           git config --local user.email "ci@winpeas.com"
           git config --global user.name "CI-winpeas"
+          git pull origin "${{ github.ref }}" --autostash --rebase -Xours
           git commit -m "winpeas binaries auto update" -a --allow-empty
       
       # Git push
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-           github_token: ${{ secrets.GITHUB_TOKEN }}
-           branch: ${{ github.ref }}
+          branch: refs/heads/${{ github.head_ref }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   Build_and_test_linpeas_master:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@master
+      - uses: actions/checkout@v2
         with:
+          persist-credentials: false
+          # Otherwise, you will failed to push refs to dest repo.
           fetch-depth: 0
+          ref: refs/heads/${{ github.head_ref }}
 
       - name: Build linpeas
         run: |
           python3 -m pip install PyYAML
           cd linPEAS
           python3 -m builder.linpeas_builder
+          
       - name: Run linpeas
-        run: linPEAS/linpeas.sh -h
+        run: linPEAS/linpeas.sh
 
       - name: Create local changes
         run: git add linPEAS/linpeas.sh
@@ -139,13 +146,14 @@ jobs:
         run: |
           git config --local user.email ""
           git config --global user.name "CI-linpeas-ubuntu"
+          git pull origin "${{ github.ref }}" --autostash --rebase -Xours
           git commit -m "linpeas.sh auto update" -a --allow-empty
       
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-           github_token: ${{ secrets.GITHUB_TOKEN }}
-           branch: ${{ github.ref }}
+          branch: refs/heads/${{ github.head_ref }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   Build_and_test_macpeas_master:
     runs-on: macos-latest
