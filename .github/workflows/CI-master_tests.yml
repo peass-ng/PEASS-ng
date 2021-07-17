@@ -137,7 +137,7 @@ jobs:
           python3 -m builder.linpeas_builder
           
       - name: Run linpeas
-        run: linPEAS/linpeas.sh
+        run: linPEAS/linpeas.sh -h
 
       - name: Create local changes
         run: git add linPEAS/linpeas.sh
@@ -152,7 +152,7 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-          branch: refs/heads/${{ github.head_ref }}
+          branch: ${{ github.ref }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
   Build_and_test_macpeas_master:
