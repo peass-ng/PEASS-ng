@@ -2874,6 +2874,11 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   fi
   echo ""
 
+  if [ "$MACPEAS" ]; then
+    print_2title "Downloaded Files"
+    sqlite3 "$HOME/Library/Preferences/com.apple.LaunchServices.QuarantineEventsV2"  "select * from LSQuarantineEvent;" 2>/dev/null | grep "http"
+  fi
+
   ##-- IF) Web files
   print_2title "Web files?(output limit)"
   ls -alhR /var/www/ 2>/dev/null | head
