@@ -1355,7 +1355,78 @@ search:
           - name: ".mozilla"
             value: 
                 files:
-                  - name:  "places.sqlite"
+                  - name: "places.sqlite"
+                    value:
+                        just_list_file: True
+            
+                  - name: "bookmarkbackups"
+                    value:
+                        just_list_file: True
+          
+                  - name: "formhistory.sqlite"
+                    value:
+                        just_list_file: True
+            
+                  - name: "handlers.json"
+                    value:
+                        just_list_file: True
+
+                  - name: "persdict.dat"
+                    value:
+                        just_list_file: True
+
+                  - name:  "addons.json"
+                    value:
+                        just_list_file: True
+
+                  - name: "cookies.sqlite"
+                    value:
+                        just_list_file: True
+          
+                  - name: "cache2"
+                    value:
+                        just_list_file: True
+
+                  - name: "startupCache"
+                    value:
+                        just_list_file: True
+
+                  - name: "favicons.sqlite"
+                    value:
+                        just_list_file: True
+
+                  - name: "prefs.js"
+                    value:
+                        just_list_file: True
+
+                  - name: "downloads.sqlite"
+                    value:
+                        just_list_file: True
+          
+                  - name: "thumbnails"
+                    value:
+                        just_list_file: True
+
+                  - name: "logins.json"
+                    value:
+                        just_list_file: True
+
+                  - name: "key4.db"
+                    value:
+                        just_list_file: True
+
+                  - name: "key3.db"
+                    value:
+                        just_list_file: True
+
+            type: d
+            search_in: 
+              - $HOMESEARCH
+          
+          - name: "Firefox"
+            value: 
+                files:
+                  - name: "places.sqlite"
                     value:
                         just_list_file: True
             
@@ -1435,6 +1506,10 @@ search:
           - name: "google-chrome"
             value: 
                 files:
+                  - name: "History"
+                    value:
+                        just_list_file: True
+
                   - name: "Cookies"
                     value:
                         just_list_file: True
@@ -1480,6 +1555,185 @@ search:
                         just_list_file: True
 
                   - name: "Thumbnails"
+                    value:
+                        just_list_file: True
+
+                  - name: "Preferences"
+                    value:
+                        just_list_file: True
+            
+            type: d
+            search_in: 
+              - $HOMESEARCH
+
+          - name: "Chrome"
+            value: 
+                files:
+                  - name: "History"
+                    value:
+                        just_list_file: True
+
+                  - name: "Cookies"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Cache"
+                    value:
+                        just_list_file: True
+
+                  - name: "Bookmarks"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Web Data"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Favicons"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Login Data"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Current Session"
+                    value:
+                        just_list_file: True
+
+                  - name: "Current Tabs"
+                    value:
+                        just_list_file: True
+
+                  - name: "Last Session"
+                    value:
+                        just_list_file: True
+
+                  - name: "Last Tabs"
+                    value: 
+                        just_list_file: True
+
+                  - name: "Extensions"
+                    value:
+                        just_list_file: True
+
+                  - name: "Thumbnails"
+                    value:
+                        just_list_file: True
+
+                  - name: "Preferences"
+                    value:
+                        just_list_file: True
+            
+            type: d
+            search_in: 
+              - $HOMESEARCH          
+
+  - name: Opera
+    value:
+        disable:
+          - winpeas
+    
+        config:
+          auto_check: True
+
+        files:
+          - name: "com.operasoftware.Opera"
+            value: 
+                files:
+                  - name: "History"
+                    value:
+                        just_list_file: True
+
+                  - name: "Cookies"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Cache"
+                    value:
+                        just_list_file: True
+
+                  - name: "Bookmarks"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Web Data"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Favicons"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Login Data"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Current Session"
+                    value:
+                        just_list_file: True
+
+                  - name: "Current Tabs"
+                    value:
+                        just_list_file: True
+
+                  - name: "Last Session"
+                    value:
+                        just_list_file: True
+
+                  - name: "Last Tabs"
+                    value: 
+                        just_list_file: True
+
+                  - name: "Extensions"
+                    value:
+                        just_list_file: True
+
+                  - name: "Thumbnails"
+                    value:
+                        just_list_file: True
+
+                  - name: "Preferences"
+                    value:
+                        just_list_file: True
+
+            type: d
+            search_in: 
+              - $HOMESEARCH
+  
+  - name: Safari
+    value:
+        disable:
+          - winpeas
+    
+        config:
+          auto_check: True
+
+        files:
+          - name: "Safari"
+            value: 
+                files:
+                  - name:  "History.db"
+                    value:
+                        just_list_file: True
+                  
+                  - name:  "Downloads.plist"
+                    value:
+                        just_list_file: True
+                  
+                  - name:  "Book-marks.plist"
+                    value:
+                        just_list_file: True
+                  
+                  - name:  "TopSites.plist"
+                    value:
+                        just_list_file: True
+
+                  - name:  "UserNotificationPermissions.plist"
+                    value:
+                        just_list_file: True
+
+                  - name:  "LastSession.plist"
                     value:
                         just_list_file: True
             
