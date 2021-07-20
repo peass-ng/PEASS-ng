@@ -396,7 +396,7 @@ if [ $? -ne 0 ] ; then
 fi
 
 writeB="00-header|10-help-text|50-motd-news|80-esm|91-release-upgrade|\.sh$|\./|/authorized_keys|/bin/|/boot/|/etc/apache2/apache2.conf|/etc/apache2/httpd.conf|/etc/hosts.allow|/etc/hosts.deny|/etc/httpd/conf/httpd.conf|/etc/httpd/httpd.conf|/etc/inetd.conf|/etc/incron.conf|/etc/login.defs|/etc/logrotate.d/|/etc/modprobe.d/|/etc/pam.d/|/etc/php.*/fpm/pool.d/|/etc/php/.*/fpm/pool.d/|/etc/rsyslog.d/|/etc/skel/|/etc/sysconfig/network-scripts/|/etc/sysctl.conf|/etc/sysctl.d/|/etc/uwsgi/apps-enabled/|/etc/xinetd.conf|/etc/xinetd.d/|/etc/|/home//|/lib/|/log/|/mnt/|/root|/sys/|/usr/bin|/usr/games|/usr/lib|/usr/local/bin|/usr/local/games|/usr/local/sbin|/usr/sbin|/sbin/|/var/log/|\.timer$|\.service$|.socket$"
-writeVB="/etc/anacrontab|/etc/bash.bashrc|/etc/bash_completion|/etc/bash_completion.d/|/etc/cron|/etc/environment|/etc/environment.d/|/etc/group|/etc/incron.d/|/etc/init|/etc/ld.so.conf.d/|/etc/master.passwd|/etc/passwd|/etc/profile.d/|/etc/profile|/etc/rc.d|/etc/shadow|/etc/skey/|/etc/sudoers|/etc/sudoers.d/|/etc/supervisor/conf.d/|/etc/supervisor/supervisord.conf|/etc/systemd|/etc/sys|/lib/systemd|/etc/update-motd.d/|/root/.ssh/|/run/systemd|/usr/lib/systemd|/systemd/system|/var/db/yubikey/|/var/spool/anacron|/var/spool/cron/crontabs|"`echo $PATH 2>/dev/null | sed 's/:\.:/:/g' | sed 's/:\.$//g' | sed 's/^\.://g' | sed 's/:/$|^/g'` #Add Path but remove simple dot in PATH
+writeVB="/etc/anacrontab|/etc/bash.bashrc|/etc/bash_completion|/etc/bash_completion.d/|/etc/cron|/etc/environment|/etc/environment.d/|/etc/group|/etc/incron.d/|/etc/init|/etc/ld.so.conf.d/|/etc/master.passwd|/etc/passwd|/etc/profile.d/|/etc/profile|/etc/rc.d|/etc/shadow|/etc/skey/|/etc/sudoers|/etc/sudoers.d/|/etc/supervisor/conf.d/|/etc/supervisor/supervisord.conf|/etc/systemd|/etc/sys|/lib/systemd|/etc/update-motd.d/|/root/.ssh/|/run/systemd|/usr/lib/cron/tabs/|/usr/lib/systemd|/systemd/system|/var/db/yubikey/|/var/spool/anacron|/var/spool/cron/crontabs|"`echo $PATH 2>/dev/null | sed 's/:\.:/:/g' | sed 's/:\.$//g' | sed 's/^\.://g' | sed 's/:/$|^/g'` #Add Path but remove simple dot in PATH
 
 if [ "$MACPEAS" ]; then
   sh_usrs="ImPoSSssSiBlEee"
@@ -661,6 +661,13 @@ eval_bckgrd(){
   CONT_THREADS=$(($CONT_THREADS+1)); if [ "$(($CONT_THREADS%$THREADS))" -eq "0" ]; then wait; fi
 }
 
+macosNotSigned(){
+  for filename in $1/*; do
+    if [ "`codesign -vv -d \"$filename\" 2>&1 | grep 'not signed'`" ]; then
+      echo "$filename isn't signed" | sed -${E} "s,.*,${SED_RED},"
+    fi
+  done
+}
 
 ###########################################
 #---------) Internet functions (----------#
@@ -1160,6 +1167,10 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   if [ "$MACPEAS" ]; then
     print_2title "Kernel Extensions not belonging to apple"
     kextstat 2>/dev/null | grep -Ev " com.apple."
+
+    print_2title "Unsigned Kernel Extensions"
+    macosNotSigned /Library/Extensions
+    macosNotSigned /System/Library/Extensions
   fi
 
   #-- SY) AppArmor
@@ -1459,9 +1470,23 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   ls -alR /etc/cron* /var/spool/cron/crontabs /var/spool/anacron 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g"
   cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/* /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
-  ls -l /usr/lib/cron/tabs/ /Library/LaunchAgents/ /Library/LaunchDaemons/ ~/Library/LaunchAgents/ 2>/dev/null #MacOS paths
+  ls -l /usr/lib/cron/tabs/ /private/var/at/jobs 2>/dev/null #MacOS paths
   atq 2>/dev/null
   echo ""
+
+  if [ "$MACPEAS" ]; then
+    print_2title "Third party LaunchAgents & LaunchDemons"
+    print_info "TODO"
+    ls -l /Library/LaunchAgents/ /Library/LaunchDaemons/ ~/Library/LaunchAgents/ 2>/dev/null
+
+    print_2title "Startup Folders"
+    print_info "TODO"
+    ls -l /Library/StartupItems/ /System/Library/StartupItems/ 2>/dev/null
+
+    print_2title "Login Items"
+    print_info "TODO"
+    osascript -e 'tell application "System Events" to get the name of every login item' 2>/dev/null
+  fi
 
   #-- PCS) Services
   print_2title "Services"
@@ -1733,6 +1758,15 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   (id || (whoami && groups)) 2>/dev/null | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed -${E} "s,$idB,${SED_RED},g"
   echo ""
 
+  if [ "$MACPEAS" ];then
+    print_2title "Current user Login and Logout hooks"
+    defaults read $HOME/Library/Preferences/com.apple.loginwindow.plist 2>/dev/null | grep -e "Hook"
+
+    print_2title "All Login and Logout hooks"
+    defaults read /Users/*/Library/Preferences/com.apple.loginwindow.plist 2>/dev/null | grep -e "Hook"
+    defaults read /private/var/root/Library/Preferences/com.apple.loginwindow.plist
+  fi
+
   #-- UI) PGP keys?
   print_2title "Do I have PGP keys?"
   command -v gpg 2>/dev/null || echo_not_found "gpg"
@@ -1886,6 +1920,11 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   print_2title "Password policy"
   grep "^PASS_MAX_DAYS\|^PASS_MIN_DAYS\|^PASS_WARN_AGE\|^ENCRYPT_METHOD" /etc/login.defs 2>/dev/null || echo_not_found "/etc/login.defs"
   echo ""
+
+  if [ "$MACPEASS" ]; then
+    print_2title "Relevant last user info and user configs"
+    defaults read /Library/Preferences/com.apple.loginwindow.plist 2>/dev/null
+  fi
 
   #-- UI) Brute su
   EXISTS_SUDO="`command -v sudo 2>/dev/null`"
@@ -2657,6 +2696,11 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   done
   echo ""
 
+  if [ "$MACPEAS" ]; then
+    print_2title "Unsigned Applications"
+    macosNotSigned /System/Applications
+  fi
+
   ##-- IF) Unexpected folders in /
   print_2title "Unexpected in root"
   if [ "$MACPEAS" ]; then
@@ -2871,6 +2915,11 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     done
   fi
   echo ""
+
+  if [ "$MACPEAS" ]; then
+    print_2title "Downloaded Files"
+    sqlite3 "$HOME/Library/Preferences/com.apple.LaunchServices.QuarantineEventsV2"  "select * from LSQuarantineEvent;" 2>/dev/null | grep "http"
+  fi
 
   ##-- IF) Web files
   print_2title "Web files?(output limit)"
