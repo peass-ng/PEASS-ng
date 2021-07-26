@@ -19,10 +19,8 @@ COLORS = {
     "GREEN": [r"\x1b\[1;32m"],
     "YELLOW": [r"\x1b\[1;33m"],
     "BLUE": [r"\x1b\[1;34m"],
-    "LIGHT_MAGENTA": [r"\x1b\[1;95m"],
-    "MAGENTA": [r"\x1b\[1;35m"],
-    "CYAN": [r"\x1b\[1;36m"],
-    "LIGHT_CYAN": [r"\x1b\[1;96m"],
+    "MAGENTA": [r"\x1b\[1;95m", r"\x1b\[1;35m"],
+    "CYAN": [r"\x1b\[1;36m", r"\x1b\[1;96m"],
     "LIGHT_GREY": [r"\x1b\[1;37m"],
     "DARKGREY": [r"\x1b\[1;90m"],
 }
