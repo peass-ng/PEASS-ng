@@ -90,7 +90,7 @@ variables_markup: "peass{VARIABLES}"
 
 variables:
    - name: pwd_inside_history
-     value: "7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|root|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|xfreerdp|^ssh|steghide|@"
+     value: "enable_autologin|7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|root|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|xfreerdp|^ssh|steghide|@"
 
 
 
@@ -574,6 +574,8 @@ search:
           - name:  "hostapd.conf"
             value: 
                 bad_regex: "passphrase.*"
+                remove_regex: '^#'
+                remove_empty_lines: True
                 type: f
                 search_in: 
                   - common
@@ -1266,8 +1268,8 @@ search:
         config:
           auto_check: True
           exec:
-            - '((command -v gpg && gpg --list-keys) || echo_not_found "gpg") 2>/dev/null'
-            - '((command -v netpgpkeys && netpgpkeys --list-keys) || echo_not_found "netpgpkeys") 2>/dev/null'
+            - '( (command -v gpg && gpg --list-keys) || echo_not_found "gpg") 2>/dev/null'
+            - '( (command -v netpgpkeys && netpgpkeys --list-keys) || echo_not_found "netpgpkeys") 2>/dev/null'
             - '(command -v netpgp || echo_not_found "netpgp") 2>/dev/null'
 
         files:
@@ -2102,6 +2104,19 @@ search:
                 type: f
                 search_in: 
                   - common
+  
+  - name: kcpassword
+    value:
+        config:
+          auto_check: False
+
+        files:
+          - name: "kcpassword"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
 
   - name: Cacti
     value:
@@ -2520,13 +2535,6 @@ search:
                 search_in:
                   - common
 
-          - name: "system"
-            value:
-                just_list_file: True
-                type: f
-                search_in:
-                  - common
-
           - name: "system.sav"
             value:
                 just_list_file: True
@@ -2606,6 +2614,13 @@ search:
                   - common
 
           - name: "services.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+          
+          - name: "system"
             value:
                 just_list_file: True
                 type: f

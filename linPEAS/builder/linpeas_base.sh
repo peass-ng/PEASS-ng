@@ -230,7 +230,7 @@ print_support (){
 
 echo ""
 if [ ! "$QUIET" ]; then print_banner; print_support; fi
-printf ${BLUE}"  $SCRIPTNAME-$VERSION ${YELLOW}by carlospolop\n"$NC;
+printf ${BLUE}"        $SCRIPTNAME-$VERSION ${YELLOW}by carlospolop\n"$NC;
 echo ""
 printf ${YELLOW}"ADVISORY: ${BLUE}$ADVISORY\n$NC"
 echo ""
@@ -469,6 +469,7 @@ while $SEDOVERFLOW; do
   fi
 done
 
+
 notExtensions="\.tif$|\.tiff$|\.gif$|\.jpeg$|\.jpg|\.jif$|\.jfif$|\.jp2$|\.jpx$|\.j2k$|\.j2c$|\.fpx$|\.pcd$|\.png$|\.pdf$|\.flv$|\.mp4$|\.mp3$|\.gifv$|\.avi$|\.mov$|\.mpeg$|\.wav$|\.doc$|\.docx$|\.xls$|\.xlsx$|\.svg$"
 
 TIMEOUT="$(command -v timeout 2>/dev/null)"
@@ -479,7 +480,7 @@ shscripsG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/crosh.sh|/dnsma
 
 notBackup="/tdbbackup$|/db_hotbackup$"
 
-cronjobsG=".placeholder|0anacron|0hourly|anacron|apache2|apport|apt|aptitude|apt-compat|bsdmainutils|certwatch|cracklib-runtime|debtags|dpkg|e2scrub_all|fake-hwclock|fstrim|john|locate|logrotate|man-db.cron|man-db|mdadm|mlocate|ntp|passwd|php|popularity-contest|raid-check|rwhod|samba|standard|sysstat|ubuntu-advantage-tools|update-notifier-common|upstart"
+cronjobsG=".placeholder|0anacron|0hourly|110.clean-tmps|130.clean-msgs|140.clean-rwho|199.clean-fax|199.rotate-fax|200.accounting|310.accounting|400.status-disks|420.status-network|430.status-rwho|999.local|anacron|apache2|apport|apt|aptitude|apt-compat|bsdmainutils|certwatch|cracklib-runtime|debtags|dpkg|e2scrub_all|fake-hwclock|fstrim|john|locate|logrotate|man-db.cron|man-db|mdadm|mlocate|ntp|passwd|php|popularity-contest|raid-check|rwhod|samba|standard|sysstat|ubuntu-advantage-tools|update-notifier-common|upstart|"
 cronjobsB="centreon"
 
 processesVB="jdwp|tmux |screen |--inspect|--remote-debugging-port"
@@ -932,13 +933,13 @@ enumerateDockerSockets() {
         docker_enumerated=""
 
         if [ "$(command -v curl)" ]; then
-          sockInfoResponse="$(curl -s --unix-socket \"$dockerSockPath\" http://localhost/info)"
+          sockInfoResponse="$(curl -s --unix-socket \"$dock_sock\" http://localhost/info)"
           dockerVersion=$(echo "$sockInfoResponse" | tr ',' '\n' | grep 'ServerVersion' | cut -d'"' -f 4)
           echo $sockInfoResponse | tr ',' '\n' | grep -E "$GREP_DOCKER_SOCK_INFOS" | grep -v "$GREP_DOCKER_SOCK_INFOS_IGNORE" | tr -d '"'
           if [ "$sockInfoResponse" ]; then docker_enumerated="1"; fi
         fi
 
-        if [ "$(command -v docker)" ] and ![ "$docker_enumerated" ]; then
+        if [ "$(command -v docker)" ] && ! [ "$docker_enumerated" ]; then
           sockInfoResponse="$(docker info)"
           dockerVersion=$(echo "$sockInfoResponse" | tr ',' '\n' | grep 'Server Version' | cut -d' ' -f 4)
           printf "$sockInfoResponse" | tr ',' '\n' | grep -E "$GREP_DOCKER_SOCK_INFOS" | grep -v "$GREP_DOCKER_SOCK_INFOS_IGNORE" | tr -d '"'
@@ -1173,13 +1174,13 @@ if echo $CHECKS | grep -q SysI; then
   fi
 
   #-- SY) AppArmor
-  print_2title "Linux Protections"
+  print_2title "Protections"
   print_list "AppArmor enabled? .............. "$NC
-  if [ $(command -v aa-status 2>/dev/null) ]; then
+  if [ "$(command -v aa-status 2>/dev/null)" ]; then
     aa-status 2>&1 | sed "s,disabled,${SED_RED},"
-  elif [ $(command -v apparmor_status 2>/dev/null) ]; then
+  elif [ "$(command -v apparmor_status 2>/dev/null)" ]; then
     apparmor_status 2>&1 | sed "s,disabled,${SED_RED},"
-  elif [ $(ls -d /etc/apparmor* 2>/dev/null) ]; then
+  elif [ "$(ls -d /etc/apparmor* 2>/dev/null)" ]; then
     ls -d /etc/apparmor*
   else
     echo_not_found "AppArmor"
@@ -1201,10 +1202,16 @@ if echo $CHECKS | grep -q SysI; then
   print_list "SELinux enabled? ............... "$NC
   (sestatus 2>/dev/null || echo_not_found "sestatus") | sed "s,disabled,${SED_RED},"
 
-  #-- SY) SElinux
+  #-- SY) Gatekeeper
   if [ "$MACPEAS" ]; then
     print_list "Gatekeeper enabled? .......... "$NC
     (spctl --status 2>/dev/null || echo_not_found "sestatus") | sed "s,disabled,${SED_RED},"
+    
+    print_list "sleepimage encrypted? ........ "$NC
+    (sysctl vm.swapusage | grep "encrypted" | sed "s,encrypted,${SED_GREEN},") || echo_no
+
+    print_list "XProtect? ........ "$NC
+    (system_profiler SPInstallHistoryDataType 2>/dev/null | grep -A 4 "XProtectPlistConfigData" | tail -n 5 | grep -Iv "^$") || echo_no
   fi
 
   #-- SY) ASLR
@@ -1223,8 +1230,8 @@ if echo $CHECKS | grep -q SysI; then
 
    #-- SY) Running in a virtual environment
   print_list "Is this a virtual machine? ..... "$NC
-  hypervisorflag=$(cat /proc/cpuinfo 2>/dev/null | grep flags | grep hypervisor)
-  if [ $(command -v systemd-detect-virt 2>/dev/null) ]; then
+  hypervisorflag=$(grep flags /proc/cpuinfo 2>/dev/null | grep hypervisor)
+  if [ "$(command -v systemd-detect-virt 2>/dev/null)" ]; then
     detectedvirt=$(systemd-detect-virt)
     if [ "$hypervisorflag" ]; then printf $RED"Yes ($detectedvirt)"$NC; else printf $GREEN"No"$NC; fi
   else
@@ -1351,7 +1358,7 @@ if echo $CHECKS | grep -q Devs; then
   print_2title "Unmounted file-system?"
   print_info "Check if you can mount umounted devices"
   if [ -f "/etc/fstab" ]; then
-    cat /etc/fstab 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" | sed -${E} "s,$mountG,${SED_GREEN},g" | sed -${E} "s,$notmounted,${SED_RED}," | sed -${E} "s,$mounted,${SED_BLUE}," | sed -${E} "s,$Wfolders,${SED_RED}," | sed -${E} "s,$mountpermsB,${SED_RED},g" | sed -${E} "s,$mountpermsG,${SED_GREEN},g"
+    grep -v "^#" /etc/fstab 2>/dev/null | grep -Ev "\W+\#|^#" | sed -${E} "s,$mountG,${SED_GREEN},g" | sed -${E} "s,$notmounted,${SED_RED}," | sed -${E} "s,$mounted,${SED_BLUE}," | sed -${E} "s,$Wfolders,${SED_RED}," | sed -${E} "s,$mountpermsB,${SED_RED},g" | sed -${E} "s,$mountpermsG,${SED_GREEN},g"
   else
     echo_not_found "/etc/fstab"
   fi
@@ -1455,7 +1462,8 @@ if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks; then
   if ! [ "$FAST" ] && ! [ "$SUPERFAST" ]; then
     print_2title "Different processes executed during 1 min (interesting is low number of repetitions)"
     print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#frequent-cron-jobs"
-    if [ "$(ps -e -o command 2>/dev/null)" ]; then for i in $(seq 1 1250); do ps -e -o command >> $file.tmp1 2>/dev/null; sleep 0.05; done; sort $file.tmp1 2>/dev/null | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort -r -n | grep -E -v "\s*[1-9][0-9][0-9][0-9]"; rm $file.tmp1; fi
+    temp_file=$(mktemp)
+    if [ "$(ps -e -o command 2>/dev/null)" ]; then for i in $(seq 1 1250); do ps -e -o command >> "$temp_file" 2>/dev/null; sleep 0.05; done; sort "$temp_file" 2>/dev/null | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort -r -n | grep -E -v "\s*[1-9][0-9][0-9][0-9]"; rm "$temp_file"; fi
     echo ""
   fi
 
@@ -1469,7 +1477,7 @@ if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks; then
   ls -alR /etc/cron* /var/spool/cron/crontabs /var/spool/anacron 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g"
   cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/* /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
-  ls -l /usr/lib/cron/tabs/ /private/var/at/jobs 2>/dev/null #MacOS paths
+  ls -lR /usr/lib/cron/tabs/ /private/var/at/jobs /etc/periodic/ 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g" #MacOS paths
   atq 2>/dev/null
   echo ""
 
@@ -1860,16 +1868,16 @@ if echo $CHECKS | grep -q UsrI; then
       fi
     done
   else
-    no_shells="$(cat /etc/passwd 2>/dev/null | grep -Ev "sh$" | cut -d ":" -f 7 | sort | uniq)"
+    no_shells="$(grep -Ev "sh$" /etc/passwd 2>/dev/null | cut -d ":" -f 7 | sort | uniq)"
     unexpected_shells=""
     printf "%s\n" "$no_shells" | while read f; do
       if $f -c 'whoami' 2>/dev/null | grep -q "$USER"; then
         unexpected_shells="$f\n$unexpected_shells"
       fi
     done
-    cat /etc/passwd 2>/dev/null | grep "sh$" | sort | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
+    grep "sh$" /etc/passwd 2>/dev/null | sort | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
     if [ "$unexpected_shells" ]; then
-      echo "These unexpected binaries are acting like shells:\n$unexpected_shells" | sed -${E} "s,/.*,${SED_RED},g"
+      printf "%s" "These unexpected binaries are acting like shells:\n$unexpected_shells" | sed -${E} "s,/.*,${SED_RED},g"
       echo "Unexpected users with shells:"
       printf "%s\n" "$unexpected_shells" | while read f; do
         if [ "$f" ]; then
@@ -1908,7 +1916,7 @@ if echo $CHECKS | grep -q UsrI; then
     dscl . list /Users | while read uname; do
       ushell=$(dscl . -read "/Users/$uname" UserShell | cut -d " " -f2)
       if grep -q "$ushell" /etc/shells; then #Shell user
-        finger "$uname"
+        finger "$uname" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
         echo ""
       fi
     done
@@ -2168,15 +2176,15 @@ if echo $CHECKS | grep -q SofI; then
   if [ "$sshconfig" ]; then
     echo ""
     echo "Searching inside /etc/ssh/ssh_config for interesting info"
-    cat /etc/ssh/ssh_config 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -Iv "^$" | sed -${E} "s,Host|ForwardAgent|User|ProxyCommand,${SED_RED},"
+    grep -v "^#" /etc/ssh/ssh_config 2>/dev/null | grep -Ev "\W+\#|^#" 2>/dev/null | grep -Iv "^$" | sed -${E} "s,Host|ForwardAgent|User|ProxyCommand,${SED_RED},"
   fi
   echo ""
 
   #-- SI) PAM auth
   print_2title "Searching unexpected auth lines in /etc/pam.d/sshd"
-  pamssh=$(cat /etc/pam.d/sshd 2>/dev/null | grep -v "^#\|^@" | grep -i auth)
+  pamssh=$(grep -v "^#\|^@" /etc/pam.d/sshd 2>/dev/null | grep -i auth)
   if [ "$pamssh" ]; then
-    cat /etc/pam.d/sshd 2>/dev/null | grep -v "^#\|^@" | grep -i auth | sed -${E} "s,.*,${SED_RED},"
+    grep -v "^#\|^@" /etc/pam.d/sshd 2>/dev/null | grep -i auth | sed -${E} "s,.*,${SED_RED},"
   else echo_no
   fi
   echo ""
@@ -2184,7 +2192,7 @@ if echo $CHECKS | grep -q SofI; then
   #-- SI) NFS exports
   print_2title "NFS exports?"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/nfs-no_root_squash-misconfiguration-pe"
-  if [ "$(cat /etc/exports 2>/dev/null)" ]; then cat /etc/exports 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | sed -${E} "s,no_root_squash|no_all_squash ,${SED_RED_YELLOW}," | sed -${E} "s,insecure,${SED_RED},"
+  if [ "$(cat /etc/exports 2>/dev/null)" ]; then grep -v "^#" /etc/exports 2>/dev/null | grep -Ev "\W+\#|^#" 2>/dev/null | sed -${E} "s,no_root_squash|no_all_squash ,${SED_RED_YELLOW}," | sed -${E} "s,insecure,${SED_RED},"
   else echo_not_found "/etc/exports"
   fi
   echo ""
@@ -2346,6 +2354,14 @@ if echo $CHECKS | grep -q SofI; then
   done
   echo ""
 
+  print_2title "Analyzing kcpassword files"
+  print_info "TODO"
+  printf "%s\n" "$PSTORAGE_KCPASSWORD\n" | while read f; do
+    echo "$f" | sed -${E} "s,.*,${SED_RED},"
+    base64 "$f" 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
+  done
+  echo ""
+
   ##-- SI) Gitlab
   print_2title "Searching GitLab related files"
   #Check gitlab-rails
@@ -2497,7 +2513,8 @@ if echo $CHECKS | grep -q IntFiles; then
   if ! [ "$STRACE" ]; then
     echo_not_found "strace"
   fi
-  find / -perm -4000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
+  find / -perm -4000 -type f ! -path "/dev/*" 2>/dev/null | while read s; do
+    s=$(ls -lahtr "$s")
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
     if echo "$s" | grep -qE "^total"; then break; fi
 
@@ -2558,7 +2575,8 @@ if echo $CHECKS | grep -q IntFiles; then
   ##-- IF) SGID
   print_2title "SGID"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid"
-  find / -perm -2000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
+  find / -perm -2000 -type f ! -path "/dev/*" 2>/dev/null | while read s; do
+    s=$(ls -lahtr "$s")
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
     if echo "$s" | grep -qE "^total";then break; fi
 
@@ -2767,6 +2785,12 @@ if echo $CHECKS | grep -q IntFiles; then
   else echo_no
   fi
 
+  print_list "Can I read shadow plists? ............ "
+  (for l in /var/db/dslocal/nodes/Default/users/*; do if [ -r "$l" ];then echo "$l"; defaults read "$l"; fi; done) 2>/dev/null || echo_no
+
+  print_list "Can I write shadow plists? ........... "
+  (for l in /var/db/dslocal/nodes/Default/users/*; do if [ -w "$l" ];then echo "$l"; fi; done) 2>/dev/null || echo_no
+
   ##-- IF) Read opasswd file
   print_list "Can I read opasswd file? ............. "
   if [ -r "/etc/security/opasswd" ]; then cat /etc/security/opasswd 2>/dev/null || echo ""
@@ -2946,8 +2970,8 @@ if echo $CHECKS | grep -q IntFiles; then
     #In the next file, you need to specify type "d" and "f" to avoid fake link files apparently writable by all
     obmowbe=$(find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | sort | uniq | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500)
     printf "%s\n" "$obmowbe" | while read entry; do
-      if echo \"$entry\" | grep -q \"You_can_write_even_more_files_inside_last_directory\"; then printf $ITALIC"$entry\n"$NC;
-      elif echo \"$entry\" | grep -qE \"$writeVB\"; then
+      if echo "$entry" | grep -q "You_can_write_even_more_files_inside_last_directory"; then printf $ITALIC"$entry\n"$NC;
+      elif echo "$entry" | grep -qE "$writeVB"; then
         echo "$entry" | sed -${E} "s,$writeVB,${SED_RED_YELLOW},"
       else
         echo "$entry" | sed -${E} "s,$writeB,${SED_RED},"
@@ -2964,8 +2988,8 @@ if echo $CHECKS | grep -q IntFiles; then
       printf "  Group $GREEN$g:\n$NC";
       iwfbg=$(find / '(' -type f -or -type d ')' -group $g -perm -g=w ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500)
       printf "%s\n" "$iwfbg" | while read entry; do
-        if echo \"$entry\" | grep -q \"You_can_write_even_more_files_inside_last_directory\"; then printf $ITALIC"$entry\n"$NC;
-        elif echo \"$entry\" | grep -Eq \"$writeVB\"; then
+        if echo "$entry" | grep -q "You_can_write_even_more_files_inside_last_directory"; then printf $ITALIC"$entry\n"$NC;
+        elif echo "$entry" | grep -Eq "$writeVB"; then
           echo "$entry" | sed -${E} "s,$writeVB,${SED_RED_YELLOW},"
         else
           echo "$entry" | sed -${E} "s,$writeB,${SED_RED},"
