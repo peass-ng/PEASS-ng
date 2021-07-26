@@ -49,7 +49,7 @@ ITALIC="${C}[3m"
 # --) FAST - Do not check 1min of procceses and su brute
 # --) SUPERFAST - FAST & do not search for special filaes in all the folders
 
-if [ "`uname 2>/dev/null | grep 'Darwin'`" ] || [ "`/usr/bin/uname 2>/dev/null | grep 'Darwin'`" ]; then MACPEAS="1"; else MACPEAS=""; fi
+if uname 2>/dev/null | grep -q 'Darwin' || /usr/bin/uname 2>/dev/null | grep -q 'Darwin'; then MACPEAS="1"; else MACPEAS=""; fi
 FAST="1" #By default stealth/fast mode
 SUPERFAST=""
 NOTEXPORT=""
@@ -61,7 +61,7 @@ WAIT=""
 PASSWORD=""
 NOCOLOR=""
 VERBOSE=""
-THREADS="`((grep -c processor /proc/cpuinfo 2>/dev/null) || ((command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n"`"
+THREADS="$( ( (grep -c processor /proc/cpuinfo 2>/dev/null) || ( (command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n")"
 [ -z "$THREADS" ] && THREADS="2" #If THREADS is empty, put number 2
 [ -n "$THREADS" ] && THREADS="2" #If THREADS is null, put number 2
 [ "$THREADS" -eq "$THREADS" ] 2>/dev/null && : || THREADS="2" #It THREADS is not a number, put number 2
@@ -229,12 +229,12 @@ print_support (){
 ###########################################
 
 echo ""
-if [ !"$QUIET" ]; then print_banner; print_support; fi
-printf ${BLUE}"  $SCRIPTNAME-$VERSION ${YELLOW}by carlospolop\n"$NC;
+if [ ! "$QUIET" ]; then print_banner; print_support; fi
+printf ${BLUE}"        $SCRIPTNAME-$VERSION ${YELLOW}by carlospolop\n"$NC;
 echo ""
-printf ${YELLOW}"ADVISORY: "${BLUE}"$ADVISORY\n"$NC
+printf ${YELLOW}"ADVISORY: ${BLUE}$ADVISORY\n$NC"
 echo ""
-printf ${BLUE}"Linux Privesc Checklist: "${YELLOW}"https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist\n"$NC
+printf ${BLUE}"Linux Privesc Checklist: ${YELLOW}https://book.hacktricks.xyz/linux-unix/linux-privilege-escalation-checklist\n"$NC
 echo " LEGEND:" | sed "s,LEGEND,${C}[1;4m&${C}[0m,"
 echo "  RED/YELLOW: 95% a PE vector" | sed "s,RED/YELLOW,${SED_RED_YELLOW},"
 echo "  RED: You should take a look to it" | sed "s,RED,${SED_RED},"
@@ -278,16 +278,16 @@ kernelDCW_Rhel6_4="2.6.32-431.71.1.el6|2.6.32-431.72.1.el6|2.6.32-431.73.2.el6|2
 kernelDCW_Rhel7="3.10.0-229.rt56.141.el7|3.10.0-229.1.2.rt56.141.2.el7_1|3.10.0-229.4.2.rt56.141.6.el7_1|3.10.0-229.7.2.rt56.141.6.el7_1|3.10.0-229.11.1.rt56.141.11.el7_1|3.10.0-229.14.1.rt56.141.13.el7_1|3.10.0-229.20.1.rt56.141.14.el7_1|3.10.0-229.rt56.141.el7|3.10.0-327.rt56.204.el7|3.10.0-327.4.5.rt56.206.el7_2|3.10.0-327.10.1.rt56.211.el7_2|3.10.0-327.13.1.rt56.216.el7_2|3.10.0-327.18.2.rt56.223.el7_2|3.10.0-327.22.2.rt56.230.el7_2|3.10.0-327.28.2.rt56.234.el7_2|3.10.0-327.28.3.rt56.235.el7|3.10.0-327.36.1.rt56.237.el7|3.10.0-123.el7|3.10.0-123.1.2.el7|3.10.0-123.4.2.el7|3.10.0-123.4.4.el7|3.10.0-123.6.3.el7|3.10.0-123.8.1.el7|3.10.0-123.9.2.el7|3.10.0-123.9.3.el7|3.10.0-123.13.1.el7|3.10.0-123.13.2.el7|3.10.0-123.20.1.el7|3.10.0-229.el7|3.10.0-229.1.2.el7|3.10.0-229.4.2.el7|3.10.0-229.7.2.el7|3.10.0-229.11.1.el7|3.10.0-229.14.1.el7|3.10.0-229.20.1.el7|3.10.0-229.24.2.el7|3.10.0-229.26.2.el7|3.10.0-229.28.1.el7|3.10.0-229.30.1.el7|3.10.0-229.34.1.el7|3.10.0-229.38.1.el7|3.10.0-229.40.1.el7|3.10.0-229.42.1.el7|3.10.0-327.el7|3.10.0-327.3.1.el7|3.10.0-327.4.4.el7|3.10.0-327.4.5.el7|3.10.0-327.10.1.el7|3.10.0-327.13.1.el7|3.10.0-327.18.2.el7|3.10.0-327.22.2.el7|3.10.0-327.28.2.el7|3.10.0-327.28.3.el7|3.10.0-327.36.1.el7|3.10.0-327.36.2.el7|3.10.0-229.1.2.ael7b|3.10.0-229.4.2.ael7b|3.10.0-229.7.2.ael7b|3.10.0-229.11.1.ael7b|3.10.0-229.14.1.ael7b|3.10.0-229.20.1.ael7b|3.10.0-229.24.2.ael7b|3.10.0-229.26.2.ael7b|3.10.0-229.28.1.ael7b|3.10.0-229.30.1.ael7b|3.10.0-229.34.1.ael7b|3.10.0-229.38.1.ael7b|3.10.0-229.40.1.ael7b|3.10.0-229.42.1.ael7b|4.2.0-0.21.el7"
 
 
-MyUID=`id -u $(whoami)`
-if [ `echo $MyUID` ]; then myuid=$MyUID; elif [ `id -u $(whoami) 2>/dev/null` ]; then myuid=`id -u $(whoami) 2>/dev/null`; elif [ `id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1` ]; then myuid=`id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1`; fi
+MyUID=$(id -u $(whoami))
+if [ "$MyUID" ]; then myuid=$MyUID; elif [ $(id -u $(whoami) 2>/dev/null) ]; then myuid=$(id -u $(whoami) 2>/dev/null); elif [ "$(id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1)" ]; then myuid=$(id 2>/dev/null | cut -d "=" -f 2 | cut -d "(" -f 1); fi
 if [ $myuid -gt 2147483646 ]; then baduid="|$myuid"; fi
 idB="euid|egid$baduid"
 sudovB="[01].[012345678].[0-9]+|1.9.[01234]|1.9.5p1"
 
-mounted=`(mount -l || cat /proc/mounts || cat /proc/self/mounts) 2>/dev/null | grep "^/" | cut -d " " -f1 | tr '\n' '|'``cat /etc/fstab 2>/dev/null | grep -v "#" | grep -E '\W/\W' | awk '{print $1}'`
+mounted=$( (mount -l || cat /proc/mounts || cat /proc/self/mounts) 2>/dev/null | grep "^/" | cut -d " " -f1 | tr '\n' '|')$(cat /etc/fstab 2>/dev/null | grep -v "#" | grep -E '\W/\W' | awk '{print $1}')
 if ! [ "$mounted" ]; then mounted="ImPoSSssSiBlEee"; fi #Don't let any blacklist to be empty
 mountG="swap|/cdrom|/floppy|/dev/shm"
-notmounted=`cat /etc/fstab 2>/dev/null | grep "^/" | grep -Ev "$mountG" | awk '{print $1}' | grep -Ev "$mounted" | tr '\n' '|'`"ImPoSSssSiBlEee"
+notmounted=$(cat /etc/fstab 2>/dev/null | grep "^/" | grep -Ev "$mountG" | awk '{print $1}' | grep -Ev "$mounted" | tr '\n' '|')"ImPoSSssSiBlEee"
 mountpermsB="\Wsuid|\Wuser|\Wexec"
 mountpermsG="nosuid|nouser|noexec"
 
@@ -296,7 +296,7 @@ rootcommon="/init$|upstart-udev-bridge|udev|/getty|cron|apache2|java|tomcat|/vmt
 groupsB="\(root\)|\(shadow\)|\(admin\)|\(video\)|\(adm\)|\(wheel\)|\(auth\)"
 groupsVB="\(sudo\)|\(docker\)|\(lxd\)|\(disk\)|\(lxc\)"
 knw_grps='\(lpadmin\)|\(cdrom\)|\(plugdev\)|\(nogroup\)' #https://www.togaware.com/linux/survivor/Standard_Groups.html
-mygroups=`groups 2>/dev/null | tr " " "|"`
+mygroups=$(groups 2>/dev/null | tr " " "|")
 
 # Default Binaries List
 sidG1="/abuild-sudo$|/accton$|/allocate$|/ARDAgent|/arping$|/atq$|/atrm$|/authpf$|/authpf-noip$|/authopen$|/batch$|/bbsuid$|/bsd-write$|/btsockstat$|/bwrap$|/cacaocsc$|/camel-lock-helper-1.2$|/ccreds_validate$|/cdrw$|/chage$|/check-foreground-console$|/chrome-sandbox$|/chsh$|/cons.saver$|/crontab$|/ct$|/cu$|/dbus-daemon-launch-helper$|/deallocate$|/desktop-create-kmenu$|/dma$|/dma-mbox-create$|/dmcrypt-get-device$|/doas$|/dotlockfile$|/dotlock.mailutils$|/dtaction$|/dtfile$|/eject$|/execabrt-action-install-debuginfo-to-abrt-cache$|/execdbus-daemon-launch-helper$|/execdma-mbox-create$|/execlockspool$|/execlogin_chpass$|/execlogin_lchpass$|/execlogin_passwd$|/execssh-keysign$|/execulog-helper$|/exim4|/expiry$|/fdformat$|/fstat$|/fusermount$|/fusermount3$"
@@ -380,7 +380,7 @@ ADDPATH=":/usr/local/sbin\
  :/bin"
 spath=":$PATH"
 for P in $ADDPATH; do
-  if [ ! -z "${spath##*$P*}" ]; then export PATH="$PATH$P" 2>/dev/null; fi
+  if [ "${spath##*$P*}" ]; then export PATH="$PATH$P" 2>/dev/null; fi
 done
 
 # test if sed supports -E or -r
@@ -396,30 +396,30 @@ if [ $? -ne 0 ] ; then
 fi
 
 writeB="00-header|10-help-text|50-motd-news|80-esm|91-release-upgrade|\.sh$|\./|/authorized_keys|/bin/|/boot/|/etc/apache2/apache2.conf|/etc/apache2/httpd.conf|/etc/hosts.allow|/etc/hosts.deny|/etc/httpd/conf/httpd.conf|/etc/httpd/httpd.conf|/etc/inetd.conf|/etc/incron.conf|/etc/login.defs|/etc/logrotate.d/|/etc/modprobe.d/|/etc/pam.d/|/etc/php.*/fpm/pool.d/|/etc/php/.*/fpm/pool.d/|/etc/rsyslog.d/|/etc/skel/|/etc/sysconfig/network-scripts/|/etc/sysctl.conf|/etc/sysctl.d/|/etc/uwsgi/apps-enabled/|/etc/xinetd.conf|/etc/xinetd.d/|/etc/|/home//|/lib/|/log/|/mnt/|/root|/sys/|/usr/bin|/usr/games|/usr/lib|/usr/local/bin|/usr/local/games|/usr/local/sbin|/usr/sbin|/sbin/|/var/log/|\.timer$|\.service$|.socket$"
-writeVB="/etc/anacrontab|/etc/bash.bashrc|/etc/bash_completion|/etc/bash_completion.d/|/etc/cron|/etc/environment|/etc/environment.d/|/etc/group|/etc/incron.d/|/etc/init|/etc/ld.so.conf.d/|/etc/master.passwd|/etc/passwd|/etc/profile.d/|/etc/profile|/etc/rc.d|/etc/shadow|/etc/skey/|/etc/sudoers|/etc/sudoers.d/|/etc/supervisor/conf.d/|/etc/supervisor/supervisord.conf|/etc/systemd|/etc/sys|/lib/systemd|/etc/update-motd.d/|/root/.ssh/|/run/systemd|/usr/lib/cron/tabs/|/usr/lib/systemd|/systemd/system|/var/db/yubikey/|/var/spool/anacron|/var/spool/cron/crontabs|"`echo $PATH 2>/dev/null | sed 's/:\.:/:/g' | sed 's/:\.$//g' | sed 's/^\.://g' | sed 's/:/$|^/g'` #Add Path but remove simple dot in PATH
+writeVB="/etc/anacrontab|/etc/bash.bashrc|/etc/bash_completion|/etc/bash_completion.d/|/etc/cron|/etc/environment|/etc/environment.d/|/etc/group|/etc/incron.d/|/etc/init|/etc/ld.so.conf.d/|/etc/master.passwd|/etc/passwd|/etc/profile.d/|/etc/profile|/etc/rc.d|/etc/shadow|/etc/skey/|/etc/sudoers|/etc/sudoers.d/|/etc/supervisor/conf.d/|/etc/supervisor/supervisord.conf|/etc/systemd|/etc/sys|/lib/systemd|/etc/update-motd.d/|/root/.ssh/|/run/systemd|/usr/lib/cron/tabs/|/usr/lib/systemd|/systemd/system|/var/db/yubikey/|/var/spool/anacron|/var/spool/cron/crontabs|"$(echo $PATH 2>/dev/null | sed 's/:\.:/:/g' | sed 's/:\.$//g' | sed 's/^\.://g' | sed 's/:/$|^/g') #Add Path but remove simple dot in PATH
 
 if [ "$MACPEAS" ]; then
   sh_usrs="ImPoSSssSiBlEee"
   nosh_usrs="ImPoSSssSiBlEee"
   dscl . list /Users | while read uname; do
-    ushell=`dscl . -read "/Users/$uname" UserShell | cut -d " " -f2`
-    if [ "`grep \"$ushell\" /etc/shells`" ]; then sh_usrs="$sh_usrs|$uname"; else nosh_usrs="$nosh_usrs|$uname"; fi
+    ushell=$(dscl . -read "/Users/$uname" UserShell | cut -d " " -f2)
+    if  grep -q \"$ushell\" /etc/shells; then sh_usrs="$sh_usrs|$uname"; else nosh_usrs="$nosh_usrs|$uname"; fi
   done
 else
-  sh_usrs=`cat /etc/passwd 2>/dev/null | grep -v "^root:" | grep -i "sh$" | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|bin|/|bin[\\\s:]|^bin$|/' | sed 's/|sys|/|sys[\\\s:]|^sys$|/' | sed 's/|daemon|/|daemon[\\\s:]|^daemon$|/'`"ImPoSSssSiBlEee" #Modified bin, sys and daemon so they are not colored everywhere
-  nosh_usrs=`cat /etc/passwd 2>/dev/null | grep -i -v "sh$" | sort | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|bin|/|bin[\\\s:]|^bin$|/'`"ImPoSSssSiBlEee"
+  sh_usrs=$(cat /etc/passwd 2>/dev/null | grep -v "^root:" | grep -i "sh$" | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|bin|/|bin[\\\s:]|^bin$|/' | sed 's/|sys|/|sys[\\\s:]|^sys$|/' | sed 's/|daemon|/|daemon[\\\s:]|^daemon$|/')"ImPoSSssSiBlEee" #Modified bin, sys and daemon so they are not colored everywhere
+  nosh_usrs=$(cat /etc/passwd 2>/dev/null | grep -i -v "sh$" | sort | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|bin|/|bin[\\\s:]|^bin$|/')"ImPoSSssSiBlEee"
 fi
 knw_usrs='daemon\W|^daemon$|message\+|syslog|www|www-data|mail|noboby|Debian\-\+|rtkit|systemd\+'
-USER=`whoami 2>/dev/null || echo "UserUnknown"`
+USER=$(whoami 2>/dev/null || echo "UserUnknown")
 if [ ! "$HOME" ]; then
   if [ -d "/Users/$USER" ]; then HOME="/Users/$USER"; #Mac home
   else HOME="/home/$USER";
   fi
 fi
-Groups="ImPoSSssSiBlEee"`groups "$USER" 2>/dev/null | cut -d ":" -f 2 | tr ' ' '|'`
+Groups="ImPoSSssSiBlEee"$(groups "$USER" 2>/dev/null | cut -d ":" -f 2 | tr ' ' '|')
 
 #This variables are dived in several different ones because NetBSD required it
-pwd_inside_history="7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|root|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|xfreerdp|^ssh|steghide|@"
+pwd_inside_history="enable_autologin|7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|root|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|xfreerdp|^ssh|steghide|@"
 
 pwd_in_variables1="Dgpg.passphrase|Dsonar.login|Dsonar.projectKey|GITHUB_TOKEN|HB_CODESIGN_GPG_PASS|HB_CODESIGN_KEY_PASS|PUSHOVER_TOKEN|PUSHOVER_USER|VIRUSTOTAL_APIKEY|ACCESSKEY|ACCESSKEYID|ACCESS_KEY|ACCESS_KEY_ID|ACCESS_KEY_SECRET|ACCESS_SECRET|ACCESS_TOKEN|ACCOUNT_SID|ADMIN_EMAIL|ADZERK_API_KEY|ALGOLIA_ADMIN_KEY_1|ALGOLIA_ADMIN_KEY_2|ALGOLIA_ADMIN_KEY_MCM|ALGOLIA_API_KEY|ALGOLIA_API_KEY_MCM|ALGOLIA_API_KEY_SEARCH|ALGOLIA_APPLICATION_ID|ALGOLIA_APPLICATION_ID_1|ALGOLIA_APPLICATION_ID_2|ALGOLIA_APPLICATION_ID_MCM|ALGOLIA_APP_ID|ALGOLIA_APP_ID_MCM|ALGOLIA_SEARCH_API_KEY|ALGOLIA_SEARCH_KEY|ALGOLIA_SEARCH_KEY_1|ALIAS_NAME|ALIAS_PASS|ALICLOUD_ACCESS_KEY|ALICLOUD_SECRET_KEY|amazon_bucket_name|AMAZON_SECRET_ACCESS_KEY|ANDROID_DOCS_DEPLOY_TOKEN|android_sdk_license|android_sdk_preview_license|aos_key|aos_sec|APIARY_API_KEY|APIGW_ACCESS_TOKEN|API_KEY|API_KEY_MCM|API_KEY_SECRET|API_KEY_SID|API_SECRET|appClientSecret|APP_BUCKET_PERM|APP_NAME|APP_REPORT_TOKEN_KEY|APP_TOKEN|ARGOS_TOKEN|ARTIFACTORY_KEY|ARTIFACTS_AWS_ACCESS_KEY_ID|ARTIFACTS_AWS_SECRET_ACCESS_KEY|ARTIFACTS_BUCKET|ARTIFACTS_KEY|ARTIFACTS_SECRET|ASSISTANT_IAM_APIKEY|AURORA_STRING_URL|AUTH0_API_CLIENTID|AUTH0_API_CLIENTSECRET|AUTH0_AUDIENCE|AUTH0_CALLBACK_URL|AUTH0_CLIENT_ID"
 pwd_in_variables2="AUTH0_CLIENT_SECRET|AUTH0_CONNECTION|AUTH0_DOMAIN|AUTHOR_EMAIL_ADDR|AUTHOR_NPM_API_KEY|AUTH_TOKEN|AWS-ACCT-ID|AWS-KEY|AWS-SECRETS|AWS.config.accessKeyId|AWS.config.secretAccessKey|AWSACCESSKEYID|AWSCN_ACCESS_KEY_ID|AWSCN_SECRET_ACCESS_KEY|AWSSECRETKEY|AWS_ACCESS|AWS_ACCESS_KEY|AWS_ACCESS_KEY_ID|AWS_CF_DIST_ID|AWS_DEFAULT|AWS_DEFAULT_REGION|AWS_S3_BUCKET|AWS_SECRET|AWS_SECRET_ACCESS_KEY|AWS_SECRET_KEY|AWS_SES_ACCESS_KEY_ID|AWS_SES_SECRET_ACCESS_KEY|B2_ACCT_ID|B2_APP_KEY|B2_BUCKET|baseUrlTravis|bintrayKey|bintrayUser|BINTRAY_APIKEY|BINTRAY_API_KEY|BINTRAY_KEY|BINTRAY_TOKEN|BINTRAY_USER|BLUEMIX_ACCOUNT|BLUEMIX_API_KEY|BLUEMIX_AUTH|BLUEMIX_NAMESPACE|BLUEMIX_ORG|BLUEMIX_ORGANIZATION|BLUEMIX_PASS|BLUEMIX_PASS_PROD|BLUEMIX_SPACE|BLUEMIX_USER|BRACKETS_REPO_OAUTH_TOKEN|BROWSERSTACK_ACCESS_KEY|BROWSERSTACK_PROJECT_NAME|BROWSER_STACK_ACCESS_KEY|BUCKETEER_AWS_ACCESS_KEY_ID|BUCKETEER_AWS_SECRET_ACCESS_KEY|BUCKETEER_BUCKET_NAME|BUILT_BRANCH_DEPLOY_KEY|BUNDLESIZE_GITHUB_TOKEN|CACHE_S3_SECRET_KEY|CACHE_URL|CARGO_TOKEN|CATTLE_ACCESS_KEY|CATTLE_AGENT_INSTANCE_AUTH|CATTLE_SECRET_KEY|CC_TEST_REPORTER_ID|CC_TEST_REPOTER_ID|CENSYS_SECRET|CENSYS_UID|CERTIFICATE_OSX_P12|CF_ORGANIZATION|CF_PROXY_HOST|channelId|CHEVERNY_TOKEN|CHROME_CLIENT_ID"
@@ -446,19 +446,19 @@ PASSTRY="2000" #Default num of passwds to try (all by default)
 
 if [ "$PORTS" ] || [ "$DISCOVERY" ] || [ "$IP" ]; then MAXPATH_FIND_W="1"; fi #If Network reduce the time on this
 SEDOVERFLOW=true
-for grp in `groups $USER 2>/dev/null | cut -d ":" -f2`; do
+for grp in $(groups $USER 2>/dev/null | cut -d ":" -f2); do
   wgroups="$wgroups -group $grp -or "
 done
-wgroups="`echo $wgroups | sed -e 's/ -or$//'`"
+wgroups="$(echo $wgroups | sed -e 's/ -or$//')"
 while $SEDOVERFLOW; do
   #WF=`find /dev /srv /proc /home /media /sys /lost+found /run /etc /root /var /tmp /mnt /boot /opt -type d -maxdepth $MAXPATH_FIND_W -writable -or -user $USER 2>/dev/null | sort`
   #if [ "$MACPEAS" ]; then
-    WF=`find / -maxdepth $MAXPATH_FIND_W -type d ! -path "/proc/*" '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'  2>/dev/null | sort` #OpenBSD find command doesn't have "-writable" option
+    WF=$(find / -maxdepth $MAXPATH_FIND_W -type d ! -path "/proc/*" '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'  2>/dev/null | sort) #OpenBSD find command doesn't have "-writable" option
   #else
   #  WF=`find / -maxdepth $MAXPATH_FIND_W -type d ! -path "/proc/*" -and '(' -writable -or -user $USER ')' 2>/dev/null | sort`
   #fi
-  Wfolders=`printf "%s" "$WF" | tr '\n' '|'`"|[^\*][^\ ]*\ \*"
-  Wfolder="`printf "%s" "$WF" | grep "tmp\|shm\|home\|Users\|root\|etc\|var\|opt\|bin\|lib\|mnt\|private\|Applications" | head -n1`"
+  Wfolders=$(printf "%s" "$WF" | tr '\n' '|')"|[^\*][^\ ]*\ \*"
+  Wfolder="$(printf "%s" "$WF" | grep "tmp\|shm\|home\|Users\|root\|etc\|var\|opt\|bin\|lib\|mnt\|private\|Applications" | head -n1)"
   printf "test\ntest\ntest\ntest"| sed -${E} "s,$Wfolders|\./|\.:|:\.,${SED_RED_YELLOW},g" >/dev/null 2>&1
   if [ $? -eq 0 ]; then
       SEDOVERFLOW=false
@@ -470,17 +470,18 @@ while $SEDOVERFLOW; do
   fi
 done
 
+
 notExtensions="\.tif$|\.tiff$|\.gif$|\.jpeg$|\.jpg|\.jif$|\.jfif$|\.jp2$|\.jpx$|\.j2k$|\.j2c$|\.fpx$|\.pcd$|\.png$|\.pdf$|\.flv$|\.mp4$|\.mp3$|\.gifv$|\.avi$|\.mov$|\.mpeg$|\.wav$|\.doc$|\.docx$|\.xls$|\.xlsx$|\.svg$"
 
-TIMEOUT="`command -v timeout 2>/dev/null`"
-STRACE="`command -v strace 2>/dev/null`"
-STRINGS="`command -v strings 2>/dev/null`"
+TIMEOUT="$(command -v timeout 2>/dev/null)"
+STRACE="$(command -v strace 2>/dev/null)"
+STRINGS="$(command -v strings 2>/dev/null)"
 
 shscripsG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/crosh.sh|/dnsmap-bulk.sh|/get_bluetooth_device_class.sh|/gettext.sh|/go-rhn.sh|/gvmap.sh|/kernel_log_collector.sh|/lesspipe.sh|/lprsetup.sh|/mksmbpasswd.sh|/power_report.sh|/setuporamysql.sh|/setup-nsssysinit.sh|/readlink_f.sh|/rescan-scsi-bus.sh|/start_bluetoothd.sh|/start_bluetoothlog.sh|/testacg.sh|/testlahf.sh|/unix-lpr.sh|/url_handler.sh|/write_gpt.sh"
 
 notBackup="/tdbbackup$|/db_hotbackup$"
 
-cronjobsG=".placeholder|0anacron|0hourly|anacron|apache2|apport|apt|aptitude|apt-compat|bsdmainutils|certwatch|cracklib-runtime|debtags|dpkg|e2scrub_all|fake-hwclock|fstrim|john|locate|logrotate|man-db.cron|man-db|mdadm|mlocate|ntp|passwd|php|popularity-contest|raid-check|rwhod|samba|standard|sysstat|ubuntu-advantage-tools|update-notifier-common|upstart"
+cronjobsG=".placeholder|0anacron|0hourly|110.clean-tmps|130.clean-msgs|140.clean-rwho|199.clean-fax|199.rotate-fax|200.accounting|310.accounting|400.status-disks|420.status-network|430.status-rwho|999.local|anacron|apache2|apport|apt|aptitude|apt-compat|bsdmainutils|certwatch|cracklib-runtime|debtags|dpkg|e2scrub_all|fake-hwclock|fstrim|john|locate|logrotate|man-db.cron|man-db|mdadm|mlocate|ntp|passwd|php|popularity-contest|raid-check|rwhod|samba|standard|sysstat|ubuntu-advantage-tools|update-notifier-common|upstart|"
 cronjobsB="centreon"
 
 processesVB="jdwp|tmux |screen |--inspect|--remote-debugging-port"
@@ -516,7 +517,7 @@ INT_HIDDEN_FILES="._history.|.bashrc|.bluemix|.cer|.cloudflared|.crt|.csr|.db|.d
 # --) ps working good
 # --) Network binaries
 
-if [ `ps auxwww 2>/dev/null | wc -l 2>/dev/null` -lt 8 ]; then
+if [ "$(ps auxwww 2>/dev/null | wc -l 2>/dev/null)" -lt 8 ]; then
   NOUSEPS="1"
 fi
 
@@ -568,46 +569,46 @@ echo_no (){
 
 print_title(){
   if [ "$VERBOSE" ]; then
-    END_T2_TIME=`date +%s 2>/dev/null`
+    END_T2_TIME=$(date +%s 2>/dev/null)
     if [ "$START_T2_TIME" ]; then
       TOTAL_T2_TIME=$(($END_T2_TIME - $START_T2_TIME))
       printf $DG"This check took $TOTAL_T2_TIME seconds\n"$NC
     fi
 
-    END_T1_TIME=`date +%s 2>/dev/null`
+    END_T1_TIME=$(date +%s 2>/dev/null)
     if [ "$START_T1_TIME" ]; then
       TOTAL_T1_TIME=$(($END_T1_TIME - $START_T1_TIME))
       printf $DG"The total section execution took $TOTAL_T1_TIME seconds\n"$NC
       echo ""
     fi
 
-    START_T1_TIME=`date +%s 2>/dev/null`
+    START_T1_TIME=$(date +%s 2>/dev/null)
   fi
 
-  printf ${BLUE}"════════════════════════════════════╣ "$GREEN"$1"${BLUE}" ╠════════════════════════════════════\n"$NC
+  printf ${BLUE}"════════════════════════════════════╣ $GREEN$1${BLUE} ╠════════════════════════════════════\n"$NC
 }
 
 print_2title(){
   if [ "$VERBOSE" ]; then
-    END_T2_TIME=`date +%s 2>/dev/null`
+    END_T2_TIME=$(date +%s 2>/dev/null)
     if [ "$START_T2_TIME" ]; then
       TOTAL_T2_TIME=$(($END_T2_TIME - $START_T2_TIME))
       printf $DG"This check took $TOTAL_T2_TIME seconds\n"$NC
       echo ""
     fi
 
-    START_T2_TIME=`date +%s 2>/dev/null`
+    START_T2_TIME=$(date +%s 2>/dev/null)
   fi
 
-  printf ${BLUE}"╔══════════╣ "$GREEN"$1\n"$NC #There are 10 "═"
+  printf ${BLUE}"╔══════════╣ $GREEN$1\n"$NC #There are 10 "═"
 }
 
 print_3title(){
-  printf ${BLUE}"══╣ "$GREEN"$1\n"$NC #There are 2 "═"
+  printf ${BLUE}"══╣ $GREEN$1\n"$NC #There are 2 "═"
 }
 
 print_list(){
-  printf ${BLUE}"═╣ "$GREEN"$1"$NC #There is 1 "═"
+  printf ${BLUE}"═╣ $GREEN$1"$NC #There is 1 "═"
 }
 
 print_info(){
@@ -616,9 +617,9 @@ print_info(){
 
 print_ps (){
   (ls -d /proc/*/ 2>/dev/null | while read f; do
-    CMDLINE=`cat $f/cmdline 2>/dev/null | grep -av "seds,"`; #Delete my own sed processess
+    CMDLINE=$(cat $f/cmdline 2>/dev/null | grep -av "seds,"); #Delete my own sed processess
     if [ "$CMDLINE" ];
-      then USER2=ls -ld $f | awk '{print $3}'; PID=`echo $f | cut -d "/" -f3`;
+      then var USER2=ls -ld $f | awk '{print $3}'; PID=$(echo $f | cut -d "/" -f3);
       printf "  %-13s  %-8s  %s\n" "$USER2" "$PID" "$CMDLINE";
     fi;
   done) 2>/dev/null | sort -r
@@ -627,7 +628,7 @@ print_ps (){
 su_try_pwd (){
   BFUSER=$1
   PASSWORDTRY=$2
-  trysu=`echo "$PASSWORDTRY" | timeout 1 su $BFUSER -c whoami 2>/dev/null`
+  trysu=$(echo "$PASSWORDTRY" | timeout 1 su $BFUSER -c whoami 2>/dev/null)
   if [ "$trysu" ]; then
     echo "  You can login as $BFUSER using password: $PASSWORDTRY" | sed -${E} "s,.*,${SED_RED_YELLOW},"
   fi
@@ -636,35 +637,34 @@ su_try_pwd (){
 su_brute_user_num (){
   BFUSER=$1
   TRIES=$2
-  su_try_pwd $BFUSER "" &    #Try without password
-  su_try_pwd $BFUSER $BFUSER & #Try username as password
-  su_try_pwd $BFUSER `echo $BFUSER | rev 2>/dev/null` & #Try reverse username as password
+  su_try_pwd "$BFUSER" "" &    #Try without password
+  su_try_pwd "$BFUSER" "$BFUSER" & #Try username as password
+  su_try_pwd "$BFUSER" "$(echo $BFUSER | rev 2>/dev/null)" & #Try reverse username as password
   if [ "$PASSWORD" ]; then
-    su_try_pwd $BFUSER $PASSWORD & #Try given password
+    su_try_pwd "$BFUSER" "$PASSWORD" & #Try given password
   fi
-  for i in `seq $TRIES`; do
-    su_try_pwd $BFUSER `echo $top2000pwds | cut -d " " -f $i` & #Try TOP TRIES of passwords (by default 2000)
+  for i in $(seq "$TRIES"); do
+    su_try_pwd "$BFUSER" "$(echo "$top2000pwds" | cut -d " " -f "$i")" & #Try TOP TRIES of passwords (by default 2000)
     sleep 0.007 # To not overload the system
   done
   wait
 }
 
 check_if_su_brute(){
-  error=$(echo "" | timeout 1 su `whoami` -c whoami 2>&1);
-  if [ ! "`echo $error | grep "must be run from a terminal"`" ]; then
+  error=$(echo "" | timeout 1 su $(whoami) -c whoami 2>&1);
+  if ! echo $error | grep -q "must be run from a terminal"; then
     echo "1"
   fi
 }
 
 eval_bckgrd(){
-  CMD_PARAM="$1"
   eval "$1" &
   CONT_THREADS=$(($CONT_THREADS+1)); if [ "$(($CONT_THREADS%$THREADS))" -eq "0" ]; then wait; fi
 }
 
 macosNotSigned(){
   for filename in $1/*; do
-    if [ "`codesign -vv -d \"$filename\" 2>&1 | grep 'not signed'`" ]; then
+    if codesign -vv -d \"$filename\" 2>&1 | grep -q 'not signed'; then
       echo "$filename isn't signed" | sed -${E} "s,.*,${SED_RED},"
     fi
   done
@@ -732,7 +732,7 @@ tcp_recon (){
   for port in $PORTS; do
     for j in $(seq 1 254)
     do
-      ($NC_SCAN $IP3.$j $port 2>&1 | grep -iv "Connection refused\|No route\|Version\|bytes\| out" | sed -${E} "s,[0-9\.],${SED_RED},g") &
+      ($NC_SCAN "$IP3"."$j" "$port" 2>&1 | grep -iv "Connection refused\|No route\|Version\|bytes\| out" | sed -${E} "s,[0-9\.],${SED_RED},g") &
     done
     wait
   done
@@ -745,7 +745,7 @@ tcp_port_scan (){
   print_title "Network Port Scanning"
   IP=$1
 	PORTS="$2"
-  PORTS="`echo \"$PORTS\" | tr ',' ' '`"
+  PORTS="$(echo \"$PORTS\" | tr ',' ' ')"
 
   if [ -z "$PORTS" ]; then
     printf ${YELLOW}"[+]${BLUE} Ports going to be scanned: DEFAULT (nmap top 1000)" $NC | tr '\n' " "
@@ -757,7 +757,7 @@ tcp_port_scan (){
   fi
 
   for port in $PORTS; do
-    ($NC_SCAN $IP $port 2>&1 | grep -iv "Connection refused\|No route\|Version\|bytes\| out" | sed -${E} "s,[0-9\.],${SED_RED},g") &
+    ($NC_SCAN "$IP" "$port" 2>&1 | grep -iv "Connection refused\|No route\|Version\|bytes\| out" | sed -${E} "s,[0-9\.],${SED_RED},g") &
   done
   wait
 }
@@ -769,10 +769,10 @@ discover_network (){
   print_title "Network Discovery"
 
   DISCOVERY=$1
-  IP=$(echo $DISCOVERY | cut -d "/" -f 1)
-  NETMASK=$(echo $DISCOVERY | cut -d "/" -f 2)
+  IP=$(echo "$DISCOVERY" | cut -d "/" -f 1)
+  NETMASK=$(echo "$DISCOVERY" | cut -d "/" -f 2)
 
-  if [ -z $IP ] || [ -z $NETMASK ]; then
+  if [ -z "$IP" ] || [ -z "$NETMASK" ]; then
     printf $RED"[-] Err: Bad format. Example: 127.0.0.1/24"$NC;
     printf ${BLUE}"$HELP"$NC;
     exit 0
@@ -780,20 +780,20 @@ discover_network (){
 
   #Using fping if possible
   if [ "$FPING" ]; then
-    $FPING -a -q -g $DISCOVERY | sed -${E} "s,.*,${SED_RED},"
+    $FPING -a -q -g "$DISCOVERY" | sed -${E} "s,.*,${SED_RED},"
 
   #Loop using ping
   else
-    if [ $NETMASK -eq "24" ]; then
+    if [ "$NETMASK" -eq "24" ]; then
       printf ${YELLOW}"[+]$GREEN Netmask /24 detected, starting...\n$NC"
       icmp_recon $IP
 
-    elif [ $NETMASK -eq "16" ]; then
+    elif [ "$NETMASK" -eq "16" ]; then
       printf ${YELLOW}"[+]$GREEN Netmask /16 detected, starting...\n$NC"
       for i in $(seq 1 254)
       do
-        NEWIP=$(echo $IP | cut -d "." -f 1,2).$i.1
-        icmp_recon $NEWIP
+        NEWIP=$(echo "$IP" | cut -d "." -f 1,2).$i.1
+        icmp_recon "$NEWIP"
       done
     else
       printf $RED"[-] Err: Sorry, only Netmask /24 and /16 supported in ping mode. Netmask detected: $NETMASK"$NC;
@@ -810,8 +810,8 @@ discovery_port_scan (){
   DISCOVERY=$1
   MYPORTS=$2
 
-  IP=$(echo $DISCOVERY | cut -d "/" -f 1)
-  NETMASK=$(echo $DISCOVERY | cut -d "/" -f 2)
+  IP=$(echo "$DISCOVERY" | cut -d "/" -f 1)
+  NETMASK=$(echo "$DISCOVERY" | cut -d "/" -f 2)
   echo "Scanning: $DISCOVERY"
 
   if [ -z "$IP" ] || [ -z "$NETMASK" ] || [ "$IP" = "$NETMASK" ]; then
@@ -823,19 +823,19 @@ discovery_port_scan (){
     exit 0
   fi
 
-  PORTS="22 80 443 445 3389 `echo \"$MYPORTS\" | tr \",\" \" \"`"
-  PORTS=`echo "$PORTS" | tr " " "\n" | sort -u` #Delete repetitions
+  PORTS="22 80 443 445 3389 $(echo \"$MYPORTS\" | tr \",\" \" \")"
+  PORTS=$(echo "$PORTS" | tr " " "\n" | sort -u) #Delete repetitions
 
   if [ "$NETMASK" -eq "24" ]; then
     printf ${YELLOW}"[+]$GREEN Netmask /24 detected, starting...\n" $NC
-		tcp_recon $IP "$PORTS"
+		tcp_recon "$IP" "$PORTS"
 
 	elif [ "$NETMASK" -eq "16" ]; then
     printf ${YELLOW}"[+]$GREEN Netmask /16 detected, starting...\n" $NC
 		for i in $(seq 0 255)
 		do
-			NEWIP=$(echo $IP | cut -d "." -f 1,2).$i.1
-			tcp_recon $NEWIP "$PORTS"
+			NEWIP=$(echo "$IP" | cut -d "." -f 1,2).$i.1
+			tcp_recon "$NEWIP" "$PORTS"
 		done
   else
       printf $RED"[-] Err: Sorry, only netmask /24 and /16 are supported in port discovery mode. Netmask detected: $NETMASK\n"$NC;
@@ -862,13 +862,13 @@ fi
 
 containerCheck() {
   inContainer=""
-  containerType="`echo_no`"
+  containerType="$(echo_no)"
 
   # Are we inside docker?
   if [ -f "/.dockerenv" ] ||
     grep "/docker/" /proc/1/cgroup -qa 2>/dev/null ||
     grep -qai docker /proc/self/cgroup  2>/dev/null ||
-    [ "`find / -maxdepth 3 -name \"*dockerenv*\" -exec ls -la {} \; 2>/dev/null`" ] ; then
+    [ "$(find / -maxdepth 3 -name \"*dockerenv*\" -exec ls -la {} \; 2>/dev/null)" ] ; then
 
     inContainer="1"
     containerType="docker"
@@ -904,7 +904,7 @@ containerCheck() {
   if [ -z "$inContainer" ]; then
     if grep -a 'container=' /proc/1/environ 2>/dev/null; then
       inContainer="1"
-      containerType="`grep -a 'container=' /proc/1/environ | cut -d= -f2`"
+      containerType="$(grep -a 'container=' /proc/1/environ | cut -d= -f2)"
     fi
   fi
 }
@@ -924,26 +924,26 @@ checkDockerRootless() {
 }
 
 enumerateDockerSockets() {
-  dockerVersion="`echo_not_found`"
+  dockerVersion="$(echo_not_found)"
   if ! [ "$SEARCHED_DOCKER_SOCKETS" ]; then
     SEARCHED_DOCKER_SOCKETS="1"
-    for dock_sock in `find / ! -path "/sys/*" -type s -name "docker.sock" -o -name "docker.socket" 2>/dev/null`; do
+    for dock_sock in $(find / ! -path "/sys/*" -type s -name "docker.sock" -o -name "docker.socket" 2>/dev/null); do
       if ! [ "$IAMROOT" ] && [ -w "$dock_sock" ]; then
         echo "You have write permissions over Docker socket $dock_sock" | sed -${E} "s,$dock_sock,${SED_RED_YELLOW},g"
         echo "Docker enummeration:"
         docker_enumerated=""
 
         if [ "$(command -v curl)" ]; then
-          sockInfoResponse="`curl -s --unix-socket \"$dockerSockPath\" http://localhost/info`"
+          sockInfoResponse="$(curl -s --unix-socket \"$dock_sock\" http://localhost/info)"
           dockerVersion=$(echo "$sockInfoResponse" | tr ',' '\n' | grep 'ServerVersion' | cut -d'"' -f 4)
           echo $sockInfoResponse | tr ',' '\n' | grep -E "$GREP_DOCKER_SOCK_INFOS" | grep -v "$GREP_DOCKER_SOCK_INFOS_IGNORE" | tr -d '"'
           if [ "$sockInfoResponse" ]; then docker_enumerated="1"; fi
         fi
 
-        if [ "$(command -v docker)" ] and ![ "$docker_enumerated" ]; then
-          sockInfoResponse="`docker info`"
+        if [ "$(command -v docker)" ] && ! [ "$docker_enumerated" ]; then
+          sockInfoResponse="$(docker info)"
           dockerVersion=$(echo "$sockInfoResponse" | tr ',' '\n' | grep 'Server Version' | cut -d' ' -f 4)
-          printf $sockInfoResponse | tr ',' '\n' | grep -E "$GREP_DOCKER_SOCK_INFOS" | grep -v "$GREP_DOCKER_SOCK_INFOS_IGNORE" | tr -d '"'
+          printf "$sockInfoResponse" | tr ',' '\n' | grep -E "$GREP_DOCKER_SOCK_INFOS" | grep -v "$GREP_DOCKER_SOCK_INFOS_IGNORE" | tr -d '"'
         fi
 
       else
@@ -954,28 +954,28 @@ enumerateDockerSockets() {
 }
 
 checkDockerVersionExploits() {
-  if [ "`echo \"$dockerVersion\" | grep -i \"not found\"`" ]; then
-    VULN_CVE_2019_13139="`echo_not_found`"
-    VULN_CVE_2019_5736="`echo_not_found`"
+  if echo \"$dockerVersion\" | grep -iq \"not found\"; then
+    VULN_CVE_2019_13139="$(echo_not_found)"
+    VULN_CVE_2019_5736="$(echo_not_found)"
     return
   fi
 
-  VULN_CVE_2019_13139="`echo_no`"
-  if [ "`echo \"$dockerVersion\" | sed 's,\.,,g'`" -lt "1895" ]; then
+  VULN_CVE_2019_13139="$(echo_no)"
+  if [ "$(echo \"$dockerVersion\" | sed 's,\.,,g')" -lt "1895" ]; then
     VULN_CVE_2019_13139="Yes"
   fi
 
-  VULN_CVE_2019_5736="`echo_no`"
-  if [ "`echo \"$dockerVersion\" | sed 's,\.,,g'`" -lt "1893" ]; then
+  VULN_CVE_2019_5736="$(echo_no)"
+  if [ "$(echo \"$dockerVersion\" | sed 's,\.,,g')" -lt "1893" ]; then
     VULN_CVE_2019_5736="Yes"
   fi
 }
 
 checkContainerExploits() {
-  VULN_CVE_2019_5021="`echo_no`"
+  VULN_CVE_2019_5021="$(echo_no)"
   if [ -f "/etc/alpine-release" ]; then
     alpineVersion=$(cat /etc/alpine-release)
-    if [ "`echo \"$alpineVersion\" | sed 's,\.,,g'`" -ge "330" ] && [ "`echo \"$alpineVersion\" | sed 's,\.,,g'`" -le "360" ]; then
+    if [ "$(echo \"$alpineVersion\" | sed 's,\.,,g')" -ge "330" ] && [ "$(echo \"$alpineVersion\" | sed 's,\.,,g')" -le "360" ]; then
       VULN_CVE_2019_5021="Yes"
     fi
   fi
@@ -996,19 +996,19 @@ hostname 2>/dev/null
 printf $LG"Writable folder: "$NC;
 echo $Wfolder
 if [ "$DISCOVER_BAN_GOOD" ]; then
-  printf ${YELLOW}"[+] $DISCOVER_BAN_GOOD\n"$NC
+  printf $YELLOW"[+] $DISCOVER_BAN_GOOD\n$NC"
 else
-  printf $RED"[-] $DISCOVER_BAN_BAD\n"$NC
+  printf $RED"[-] $DISCOVER_BAN_BAD\n$NC"
 fi
 
 if [ "$SCAN_BAN_GOOD" ]; then
-  printf ${YELLOW}"[+] $SCAN_BAN_GOOD\n"$NC
+  printf $YELLOW"[+] $SCAN_BAN_GOOD\n$NC"
 else
-  printf $RED"[-] $SCAN_BAN_BAD\n"$NC
+  printf $RED"[-] $SCAN_BAN_BAD\n$NC"
 fi
-if [ "`command -v nmap 2>/dev/null`" ];then
+if [ "$(command -v nmap 2>/dev/null)" ];then
   NMAP_GOOD=$GREEN"nmap${BLUE} is available for network discover & port scanning, you should use it yourself"
-  printf ${YELLOW}"[+] $NMAP_GOOD\n"$NC
+  printf $YELLOW"[+] $NMAP_GOOD\n$NC"
 fi
 echo ""
 echo ""
@@ -1018,7 +1018,7 @@ echo ""
 ###########################################
 if [ "$PORTS" ]; then
   if [ "$SCAN_BAN_GOOD" ]; then
-    if [ "`echo -n $PORTS | sed 's,[0-9, ],,g'`" ]; then
+    if [ "$(echo -n $PORTS | sed 's,[0-9, ],,g')" ]; then
       printf $RED"[-] Err: Symbols detected in the port, for discovering purposes select only 1 port\n"$NC;
       printf ${BLUE}"$HELP"$NC;
       exit 0
@@ -1052,7 +1052,7 @@ elif [ "$IP" ]; then
 fi
 
 
-if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep IntFiles`" ] || [ "`echo $CHECKS | grep SofI`" ]; then
+if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks || echo $CHECKS | grep -q IntFiles || echo $CHECKS | grep -q SofI; then
   ###########################################
   #----------) Caching Finds (--------------#
   ###########################################
@@ -1061,151 +1061,152 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ] || [ "`echo $CHECKS | grep 
 
 
   #Get home
-  HOMESEARCH="/home/ /Users/ /root/ `cat /etc/passwd 2>/dev/null | grep "sh$" | cut -d ":" -f 6 | grep -Ev "^/root|^/home|^/Users" | tr "\n" " "`"
-  if [ ! "`echo \"$HOMESEARCH\" | grep \"$HOME\"`" ] && [ ! "`echo \"$HOMESEARCH\" | grep -E \"^/root|^/home|^/Users\"`" ]; then #If not listed and not in /home, /Users/ or /root, add current home folder
+  HOMESEARCH="/home/ /Users/ /root/ $(cat /etc/passwd 2>/dev/null | grep "sh$" | cut -d ":" -f 6 | grep -Ev "^/root|^/home|^/Users" | tr "\n" " ")"
+  if ! echo "$HOMESEARCH" | grep -q "$HOME" && ! echo "$HOMESEARCH" | grep -qE "^/root|^/home|^/Users"; then #If not listed and not in /home, /Users/ or /root, add current home folder
     HOMESEARCH="$HOME $HOMESEARCH"
   fi
-  GREPHOMESEARCH=`echo "$HOMESEARCH" | sed 's/ *$//g' | tr " " "|"` #Remove ending spaces before putting "|"
+  GREPHOMESEARCH=$(echo "$HOMESEARCH" | sed 's/ *$//g' | tr " " "|") #Remove ending spaces before putting "|"
 
   CONT_THREADS=0
   # FIND ALL KNOWN INTERESTING SOFTWARE FILES
-  FIND_DIR_APPLICATIONS=`eval_bckgrd "find /applications -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_BIN=`eval_bckgrd "find /bin -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_CACHE=`eval_bckgrd "find /.cache -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_CDROM=`eval_bckgrd "find /cdrom -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_ETC=`eval_bckgrd "find /etc -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".svn\" -o -name \".cloudflared\" -o -name \"system.d\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_HOMESEARCH=`eval_bckgrd "find $HOMESEARCH -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_MEDIA=`eval_bckgrd "find /media -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_MNT=`eval_bckgrd "find /mnt -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_OPT=`eval_bckgrd "find /opt -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_PRIVATE=`eval_bckgrd "find /private -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_SBIN=`eval_bckgrd "find /sbin -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_SNAP=`eval_bckgrd "find /snap -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_SRV=`eval_bckgrd "find /srv -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_TMP=`eval_bckgrd "find /tmp -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_USR=`eval_bckgrd "find /usr -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_DIR_VAR=`eval_bckgrd "find /var -type d -name \"sites-enabled\" -o -name \".vnc\" -o -name \"ldap\" -o -name \".irssi\" -o -name \"seeddms*\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"neo4j\" -o -name \"bind\" -o -name \"mysql\" -o -name \"couchdb\" -o -name \"keyrings\" -o -name \".bluemix\" -o -name \"logstash\" -o -name \".cloudflared\" -o -name \".svn\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_APPLICATIONS=`eval_bckgrd "find /applications -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_BIN=`eval_bckgrd "find /bin -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_CACHE=`eval_bckgrd "find /.cache -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_CDROM=`eval_bckgrd "find /cdrom -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_ETC=`eval_bckgrd "find /etc -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"*knockd*\" -o -name \".vault-token\" -o -name \"backups\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_HOMESEARCH=`eval_bckgrd "find $HOMESEARCH -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"ssh*config\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_LIB=`eval_bckgrd "find /lib -name \"*.timer\" -o -name \"*.service\" -o -name \"*.socket\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_LIB32=`eval_bckgrd "find /lib32 -name \"*.timer\" -o -name \"*.service\" -o -name \"*.socket\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_LIB64=`eval_bckgrd "find /lib64 -name \"*.timer\" -o -name \"*.service\" -o -name \"*.socket\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_MEDIA=`eval_bckgrd "find /media -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_MNT=`eval_bckgrd "find /mnt -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"sess_*\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_OPT=`eval_bckgrd "find /opt -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_PRIVATE=`eval_bckgrd "find /private -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"sess_*\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"agent*\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_RUN=`eval_bckgrd "find /run -name \"*.timer\" -o -name \"*.service\" -o -name \"*.socket\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_SBIN=`eval_bckgrd "find /sbin -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_SNAP=`eval_bckgrd "find /snap -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_SRV=`eval_bckgrd "find /srv -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_SYS=`eval_bckgrd "find /sys -name \"*.timer\" -o -name \"*.service\" -o -name \"*.socket\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_SYSTEM=`eval_bckgrd "find /system -name \"*.timer\" -o -name \"*.service\" -o -name \"*.socket\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_SYSTEMD=`eval_bckgrd "find /systemd -name \"*.timer\" -o -name \"*.service\" -o -name \"*.socket\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_TMP=`eval_bckgrd "find /tmp -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"sess_*\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"agent*\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_USR=`eval_bckgrd "find /usr -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"ssh*config\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
-  FIND_VAR=`eval_bckgrd "find /var -name \"Dockerfile\" -o -name \"*.rdg\" -o -name \"rsyncd.conf\" -o -name \"anaconda-ks.cfg\" -o -name \"tomcat-users.xml\" -o -name \"*vnc*.xml\" -o -name \".k5login\" -o -name \"groups.xml\" -o -name \"credentials.db\" -o -name \"system\" -o -name \".profile\" -o -name \"*vnc*.c*nf*\" -o -name \"*.csr\" -o -name \"datasources.xml\" -o -name \"authorized_keys\" -o -name \"SYSTEM\" -o -name \"*.timer\" -o -name \"*.db\" -o -name \"httpd.conf\" -o -name \"SAM\" -o -name \"snmpd.conf\" -o -name \"appcmd.exe\" -o -name \"mosquitto.conf\" -o -name \"pagefile.sys\" -o -name \"winscp.ini\" -o -name \"Ntds.dit\" -o -name \"iis6.log\" -o -name \"authorized_hosts\" -o -name \"*.socket\" -o -name \"*.gnupg\" -o -name \"config.php\" -o -name \"software.sav\" -o -name \"sitemanager.xml\" -o -name \"passwd\" -o -name \".pypirc\" -o -name \".sudo_as_admin_successful\" -o -name \".env\" -o -name \"error.log\" -o -name \"*password*\" -o -name \"sites.ini\" -o -name \"*.ovpn\" -o -name \"storage.php\" -o -name \"elasticsearch.y*ml\" -o -name \".ldaprc\" -o -name \"docker-compose.yml\" -o -name \"gitlab.yml\" -o -name \"https.conf\" -o -name \"database.php\" -o -name \"sysprep.inf\" -o -name \"pgadmin*.db\" -o -name \"web*.config\" -o -name \"settings.php\" -o -name \".git-credentials\" -o -name \"*.cer\" -o -name \"*.p12\" -o -name \"hosts.equiv\" -o -name \"TokenCache.dat\" -o -name \".plan\" -o -name \"id_rsa*\" -o -name \"access_tokens.json\" -o -name \"*.keystore\" -o -name \"recentservers.xml\" -o -name \"docker.sock\" -o -name \"*.sqlite3\" -o -name \"KeePass.config*\" -o -name \"*.pfx\" -o -name \".github\" -o -name \"azureProfile.json\" -o -name \"my.cnf\" -o -name \"*.jks\" -o -name \"*config*.php\" -o -name \"unattend.xml\" -o -name \"autologin\" -o -name \"index.dat\" -o -name \"protecteduserkey.bin\" -o -name \"bash.exe\" -o -name \"ftp.config\" -o -name \"my.ini\" -o -name \"sysprep.xml\" -o -name \"system.sav\" -o -name \"krb5.conf\" -o -name \"ws_ftp.ini\" -o -name \"secrets.yml\" -o -name \"vault-ssh-helper.hcl\" -o -name \"unattend.inf\" -o -name \"backups\" -o -name \".vault-token\" -o -name \"*credential*\" -o -name \"db.php\" -o -name \"*.keyring\" -o -name \"drives.xml\" -o -name \"unattend.txt\" -o -name \"kibana.y*ml\" -o -name \"setupinfo.bak\" -o -name \"redis.conf\" -o -name \"access.log\" -o -name \"default.sav\" -o -name \"known_hosts\" -o -name \".htpasswd\" -o -name \"kadm5.acl\" -o -name \"sess_*\" -o -name \"id_dsa*\" -o -name \"KeePass.ini\" -o -name \"ftp.ini\" -o -name \"autologin.conf\" -o -name \"wp-config.php\" -o -name \"wcx_ftp.ini\" -o -name \"fastcgi_params\" -o -name \"AppEvent.Evt\" -o -name \"mongod*.conf\" -o -name \"debian.cnf\" -o -name \"*.pem\" -o -name \".*_history.*\" -o -name \"legacy_credentials.db\" -o -name \"pg_hba.conf\" -o -name \"cloud.cfg\" -o -name \"scheduledtasks.xml\" -o -name \"software\" -o -name \".google_authenticator\" -o -name \"*vnc*.txt\" -o -name \"ipsec.secrets\" -o -name \"*.viminfo\" -o -name \"printers.xml\" -o -name \"cesi.conf\" -o -name \"000-default.conf\" -o -name \"accessTokens.json\" -o -name \"gvm-tools.conf\" -o -name \"*.swp\" -o -name \"FreeSSHDservice.ini\" -o -name \"*vnc*.ini\" -o -name \"gitlab.rm\" -o -name \".bashrc\" -o -name \"NetSetup.log\" -o -name \".rhosts\" -o -name \"backup\" -o -name \"ddclient.conf\" -o -name \"ConsoleHost_history.txt\" -o -name \"SecEvent.Evt\" -o -name \"setupinfo\" -o -name \"ipsec.conf\" -o -name \"scclient.exe\" -o -name \"supervisord.conf\" -o -name \"postgresql.conf\" -o -name \"unattended.xml\" -o -name \"server.xml\" -o -name \"docker.socket\" -o -name \"php.ini\" -o -name \"ffftp.ini\" -o -name \"*.der\" -o -name \".gitconfig\" -o -name \"wsl.exe\" -o -name \"access_tokens.db\" -o -name \"*.kdbx\" -o -name \"ntuser.dat\" -o -name \"krb5.keytab\" -o -name \"*.sqlite\" -o -name \"RDCMan.settings\" -o -name \"rsyncd.secrets\" -o -name \"AzureRMContext.json\" -o -name \"creds*\" -o -name \"*.service\" -o -name \"*.ftpconfig\" -o -name \"hostapd.conf\" -o -name \".git\" -o -name \"*.gpg\" -o -name \"*.pgp\" -o -name \"*.crt\" -o -name \"https-xampp.conf\" -o -name \".lesshst\" -o -name \"*.key\" -o -name \"pgsql.conf\" -o -name \"KeePass.enforced*\" -o -name \".msmtprc\" -o -name \"filezilla.xml\" -o -name \".recently-used.xbel\" -o -name \"security.sav\" -o -name \".erlang.cookie\" -o -name \"credentials\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_APPLICATIONS=`eval_bckgrd "find /applications -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_BIN=`eval_bckgrd "find /bin -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_CACHE=`eval_bckgrd "find /.cache -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_CDROM=`eval_bckgrd "find /cdrom -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_ETC=`eval_bckgrd "find /etc -type d -name \"couchdb\" -o -name \"seeddms*\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \"mysql\" -o -name \".bluemix\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"filezilla\" -o -name \"system.d\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_HOMESEARCH=`eval_bckgrd "find $HOMESEARCH -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_MEDIA=`eval_bckgrd "find /media -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_MNT=`eval_bckgrd "find /mnt -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_OPT=`eval_bckgrd "find /opt -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_PRIVATE=`eval_bckgrd "find /private -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_SBIN=`eval_bckgrd "find /sbin -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_SNAP=`eval_bckgrd "find /snap -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_SRV=`eval_bckgrd "find /srv -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_TMP=`eval_bckgrd "find /tmp -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_USR=`eval_bckgrd "find /usr -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_DIR_VAR=`eval_bckgrd "find /var -type d -name \"couchdb\" -o -name \".cloudflared\" -o -name \".vnc\" -o -name \"ldap\" -o -name \"keyrings\" -o -name \"logstash\" -o -name \".irssi\" -o -name \"neo4j\" -o -name \".bluemix\" -o -name \"mysql\" -o -name \".svn\" -o -name \"bind\" -o -name \"sites-enabled\" -o -name \"cacti\" -o -name \"seeddms*\" -o -name \"filezilla\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_APPLICATIONS=`eval_bckgrd "find /applications -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_BIN=`eval_bckgrd "find /bin -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_CACHE=`eval_bckgrd "find /.cache -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_CDROM=`eval_bckgrd "find /cdrom -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_ETC=`eval_bckgrd "find /etc -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*knockd*\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_HOMESEARCH=`eval_bckgrd "find $HOMESEARCH -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"ssh*config\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_LIB=`eval_bckgrd "find /lib -name \"*.service\" -o -name \"*.socket\" -o -name \"*.timer\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_LIB32=`eval_bckgrd "find /lib32 -name \"*.service\" -o -name \"*.socket\" -o -name \"*.timer\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_LIB64=`eval_bckgrd "find /lib64 -name \"*.service\" -o -name \"*.socket\" -o -name \"*.timer\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_MEDIA=`eval_bckgrd "find /media -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_MNT=`eval_bckgrd "find /mnt -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"sess_*\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_OPT=`eval_bckgrd "find /opt -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_PRIVATE=`eval_bckgrd "find /private -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"agent*\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"sess_*\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_RUN=`eval_bckgrd "find /run -name \"*.service\" -o -name \"*.socket\" -o -name \"*.timer\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_SBIN=`eval_bckgrd "find /sbin -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_SNAP=`eval_bckgrd "find /snap -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_SRV=`eval_bckgrd "find /srv -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_SYS=`eval_bckgrd "find /sys -name \"*.service\" -o -name \"*.socket\" -o -name \"*.timer\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_SYSTEM=`eval_bckgrd "find /system -name \"*.service\" -o -name \"*.socket\" -o -name \"*.timer\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_SYSTEMD=`eval_bckgrd "find /systemd -name \"*.service\" -o -name \"*.socket\" -o -name \"*.timer\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_TMP=`eval_bckgrd "find /tmp -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"agent*\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"sess_*\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_USR=`eval_bckgrd "find /usr -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"ssh*config\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+  FIND_VAR=`eval_bckgrd "find /var -name \"known_hosts\" -o -name \"krb5.conf\" -o -name \"storage.php\" -o -name \"*.swp\" -o -name \"wp-config.php\" -o -name \"docker.sock\" -o -name \"printers.xml\" -o -name \"software\" -o -name \"scheduledtasks.xml\" -o -name \"unattend.inf\" -o -name \"gitlab.yml\" -o -name \"redis.conf\" -o -name \"fastcgi_params\" -o -name \"appcmd.exe\" -o -name \"*.gnupg\" -o -name \".git-credentials\" -o -name \"sites.ini\" -o -name \"ftp.config\" -o -name \"000-default.conf\" -o -name \"snmpd.conf\" -o -name \"sysprep.xml\" -o -name \"autologin.conf\" -o -name \"ddclient.conf\" -o -name \".google_authenticator\" -o -name \".lesshst\" -o -name \"wcx_ftp.ini\" -o -name \"KeePass.ini\" -o -name \"*.cer\" -o -name \"mongod*.conf\" -o -name \"authorized_hosts\" -o -name \"*vnc*.ini\" -o -name \"iis6.log\" -o -name \"https.conf\" -o -name \"datasources.xml\" -o -name \".env\" -o -name \"hostapd.conf\" -o -name \"pgsql.conf\" -o -name \"docker-compose.yml\" -o -name \"Dockerfile\" -o -name \"wsl.exe\" -o -name \"backup\" -o -name \"legacy_credentials.db\" -o -name \"gvm-tools.conf\" -o -name \"*.sqlite3\" -o -name \"id_dsa*\" -o -name \"ConsoleHost_history.txt\" -o -name \".bashrc\" -o -name \"pagefile.sys\" -o -name \"*.db\" -o -name \"security.sav\" -o -name \"ftp.ini\" -o -name \"web*.config\" -o -name \"*.crt\" -o -name \".sudo_as_admin_successful\" -o -name \"setupinfo.bak\" -o -name \"*.socket\" -o -name \"sysprep.inf\" -o -name \"mosquitto.conf\" -o -name \"pg_hba.conf\" -o -name \"winscp.ini\" -o -name \".ldaprc\" -o -name \"access.log\" -o -name \"anaconda-ks.cfg\" -o -name \"*.keyring\" -o -name \"system\" -o -name \"*credential*\" -o -name \"server.xml\" -o -name \"*.der\" -o -name \".erlang.cookie\" -o -name \"credentials\" -o -name \".msmtprc\" -o -name \"docker.socket\" -o -name \"my.ini\" -o -name \"settings.php\" -o -name \"system.sav\" -o -name \"sess_*\" -o -name \"*password*\" -o -name \"setupinfo\" -o -name \"ipsec.secrets\" -o -name \"AppEvent.Evt\" -o -name \"php.ini\" -o -name \"*.csr\" -o -name \"authorized_keys\" -o -name \"filezilla.xml\" -o -name \"httpd.conf\" -o -name \"database.php\" -o -name \"accessTokens.json\" -o -name \"unattend.xml\" -o -name \"azureProfile.json\" -o -name \"kadm5.acl\" -o -name \".recently-used.xbel\" -o -name \".git\" -o -name \"*.kdbx\" -o -name \"*config*.php\" -o -name \"*.viminfo\" -o -name \".gitconfig\" -o -name \"*.service\" -o -name \"unattended.xml\" -o -name \"autologin\" -o -name \"*vnc*.txt\" -o -name \"id_rsa*\" -o -name \"postgresql.conf\" -o -name \"RDCMan.settings\" -o -name \"config.php\" -o -name \"KeePass.config*\" -o -name \"*vnc*.xml\" -o -name \"*.pfx\" -o -name \"*.gpg\" -o -name \"*.pem\" -o -name \"db.php\" -o -name \"krb5.keytab\" -o -name \".htpasswd\" -o -name \"TokenCache.dat\" -o -name \"ntuser.dat\" -o -name \"*.timer\" -o -name \"*.keystore\" -o -name \"*.ovpn\" -o -name \"Ntds.dit\" -o -name \"*vnc*.c*nf*\" -o -name \"credentials.db\" -o -name \"*.jks\" -o -name \".profile\" -o -name \"vault-ssh-helper.hcl\" -o -name \".k5login\" -o -name \"bash.exe\" -o -name \".rhosts\" -o -name \"index.dat\" -o -name \".pypirc\" -o -name \"*.rdg\" -o -name \"*.pgp\" -o -name \"*.sqlite\" -o -name \"FreeSSHDservice.ini\" -o -name \"debian.cnf\" -o -name \"software.sav\" -o -name \"rsyncd.conf\" -o -name \"secrets.yml\" -o -name \"ffftp.ini\" -o -name \"pgadmin*.db\" -o -name \"default.sav\" -o -name \"recentservers.xml\" -o -name \"gitlab.rm\" -o -name \"passwd\" -o -name \"access_tokens.db\" -o -name \"https-xampp.conf\" -o -name \".vault-token\" -o -name \"hosts.equiv\" -o -name \"drives.xml\" -o -name \"AzureRMContext.json\" -o -name \"*.key\" -o -name \"sitemanager.xml\" -o -name \"ws_ftp.ini\" -o -name \"cesi.conf\" -o -name \".plan\" -o -name \"scclient.exe\" -o -name \".github\" -o -name \"unattend.txt\" -o -name \"*.p12\" -o -name \"SYSTEM\" -o -name \"creds*\" -o -name \"elasticsearch.y*ml\" -o -name \"*.ftpconfig\" -o -name \"my.cnf\" -o -name \"rsyncd.secrets\" -o -name \"tomcat-users.xml\" -o -name \"SAM\" -o -name \"protecteduserkey.bin\" -o -name \"access_tokens.json\" -o -name \"NetSetup.log\" -o -name \"cloud.cfg\" -o -name \"ipsec.conf\" -o -name \"KeePass.enforced*\" -o -name \"supervisord.conf\" -o -name \"SecEvent.Evt\" -o -name \".*_history.*\" -o -name \"error.log\" -o -name \"groups.xml\" -o -name \"backups\" -o -name \"kcpassword\" -o -name \"kibana.y*ml\" 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
 
 
   wait # Always wait at the end
   CONT_THREADS=0 #Reset the threads counter
 
   #GENERATE THE STORAGES OF THE FOUND FILES
-  PSTORAGE_SYSTEMD=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/cdrom|^/opt|^/media|^/usr|^/lib|^/lib64|^/sys|^/sbin|^/var|^/srv|^/bin|^/snap|^/.cache|^/private|^/run|^/applications|^/lib32|^/mnt|^/tmp|^/etc|^$GREPHOMESEARCH|^/system|^/systemd" | grep -E ".*\.service$" | sort | uniq | head -n 70)
-  PSTORAGE_TIMER=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/cdrom|^/opt|^/media|^/usr|^/lib|^/lib64|^/sys|^/sbin|^/var|^/srv|^/bin|^/snap|^/.cache|^/private|^/run|^/applications|^/lib32|^/mnt|^/tmp|^/etc|^$GREPHOMESEARCH|^/system|^/systemd" | grep -E ".*\.timer$" | sort | uniq | head -n 70)
-  PSTORAGE_SOCKET=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/cdrom|^/opt|^/media|^/usr|^/lib|^/lib64|^/sys|^/sbin|^/var|^/srv|^/bin|^/snap|^/.cache|^/private|^/run|^/applications|^/lib32|^/mnt|^/tmp|^/etc|^$GREPHOMESEARCH|^/system|^/systemd" | grep -E ".*\.socket$" | sort | uniq | head -n 70)
-  PSTORAGE_DBUS=$(echo -e "$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/etc" | grep -E "system\.d$" | sort | uniq | head -n 70)
-  PSTORAGE_MYSQL=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -v -E 'mysql/mysql' | grep -E '^/etc/.*mysql|/usr/var/lib/.*mysql|/var/lib/.*mysql' | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "mysql$|debian\.cnf$" | sort | uniq | head -n 70)
-  PSTORAGE_POSTGRESQL=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "pgadmin.*\.db$|pg_hba\.conf$|postgresql\.conf$|pgsql\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_APACHE=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "sites-enabled$|000-default\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_PHP_SESSIONS=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E '/tmp/.*sess_.*|/var/tmp/.*sess_.*' | grep -E "^/var|^/private|^/tmp|^/mnt" | grep -E "sess_.*$" | sort | uniq | head -n 70)
-  PSTORAGE_PHP_FILES=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E ".*config.*\.php$|database\.php$|db\.php$|storage\.php$|settings\.php$" | sort | uniq | head -n 70)
-  PSTORAGE_WORDPRESS=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "wp-config\.php$" | sort | uniq | head -n 70)
-  PSTORAGE_DRUPAL=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E '/default/settings.php' | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "settings\.php$" | sort | uniq | head -n 70)
-  PSTORAGE_MOODLE=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E 'moodle/config.php' | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "config\.php$" | sort | uniq | head -n 70)
-  PSTORAGE_TOMCAT=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "tomcat-users\.xml$" | sort | uniq | head -n 70)
-  PSTORAGE_MONGO=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "mongod.*\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_SUPERVISORD=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "supervisord\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_CESI=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "cesi\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_RSYNC=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "rsyncd\.conf$|rsyncd\.secrets$" | sort | uniq | head -n 70)
-  PSTORAGE_HOSTAPD=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "hostapd\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_ANACONDA_KS=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "anaconda-ks\.cfg$" | sort | uniq | head -n 70)
-  PSTORAGE_VNC=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.vnc$|.*vnc.*\.c.*nf.*$|.*vnc.*\.ini$|.*vnc.*\.txt$|.*vnc.*\.xml$" | sort | uniq | head -n 70)
-  PSTORAGE_LDAP=$(echo -e "$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "ldap$" | sort | uniq | head -n 70)
-  PSTORAGE_OPENVPN=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E ".*\.ovpn$" | sort | uniq | head -n 70)
-  PSTORAGE_SSH=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "id_dsa.*$|id_rsa.*$|known_hosts$|authorized_hosts$|authorized_keys$" | sort | uniq | head -n 70)
-  PSTORAGE_CERTSB4=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -v -E '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*' | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E ".*\.pem$|.*\.cer$|.*\.crt$" | sort | uniq | head -n 70)
-  PSTORAGE_CERTSBIN=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -v -E '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*' | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E ".*\.csr$|.*\.der$" | sort | uniq | head -n 70)
-  PSTORAGE_CERTSCLIENT=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -v -E '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*' | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E ".*\.pfx$|.*\.p12$" | sort | uniq | head -n 70)
-  PSTORAGE_SSH_AGENTS=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/private|^/tmp" | grep -E "agent.*$" | sort | uniq | head -n 70)
-  PSTORAGE_SSH_CONFIG=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/usr|^$GREPHOMESEARCH" | grep -E "ssh.*config$" | sort | uniq | head -n 70)
-  PSTORAGE_CLOUD_CREDENTIALS=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "credentials$|credentials\.db$|legacy_credentials\.db$|access_tokens\.db$|access_tokens\.json$|accessTokens\.json$|azureProfile\.json$|TokenCache\.dat$|AzureRMContext\.json$|\.bluemix$" | sort | uniq | head -n 70)
-  PSTORAGE_KERBEROS=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "krb5\.conf$|krb5\.keytab$|\.k5login$|kadm5\.acl$" | sort | uniq | head -n 70)
-  PSTORAGE_KIBANA=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "kibana\.y.*ml$" | sort | uniq | head -n 70)
-  PSTORAGE_KNOCKD=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E '/etc/init.d/' | grep -E "^/etc" | grep -E ".*knockd.*$" | sort | uniq | head -n 70)
-  PSTORAGE_LOGSTASH=$(echo -e "$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "logstash$" | sort | uniq | head -n 70)
-  PSTORAGE_ELASTICSEARCH=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "elasticsearch\.y.*ml$" | sort | uniq | head -n 70)
-  PSTORAGE_VAULT_SSH_HELPER=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "vault-ssh-helper\.hcl$" | sort | uniq | head -n 70)
-  PSTORAGE_VAULT_SSH_TOKEN=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.vault-token$" | sort | uniq | head -n 70)
-  PSTORAGE_COUCHDB=$(echo -e "$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "couchdb$" | sort | uniq | head -n 70)
-  PSTORAGE_REDIS=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "redis\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_MOSQUITTO=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "mosquitto\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_NEO4J=$(echo -e "$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "neo4j$" | sort | uniq | head -n 70)
-  PSTORAGE_CLOUD_INIT=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "cloud\.cfg$" | sort | uniq | head -n 70)
-  PSTORAGE_ERLANG=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.erlang\.cookie$" | sort | uniq | head -n 70)
-  PSTORAGE_GMV_AUTH=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "gvm-tools\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_IPSEC=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "ipsec\.secrets$|ipsec\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_IRSSI=$(echo -e "$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.irssi$" | sort | uniq | head -n 70)
-  PSTORAGE_KEYRING=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "keyrings$|.*\.keyring$|.*\.keystore$|.*\.jks$" | sort | uniq | head -n 70)
-  PSTORAGE_FILEZILLA=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "filezilla$|filezilla\.xml$|recentservers\.xml$" | sort | uniq | head -n 70)
-  PSTORAGE_BACKUP_MANAGER=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "storage\.php$|database\.php$" | sort | uniq | head -n 70)
-  PSTORAGE_SPLUNK=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "passwd$" | sort | uniq | head -n 70)
-  PSTORAGE_GITLAB=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -v -E '/lib' | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "secrets\.yml$|gitlab\.yml$|gitlab\.rm$" | sort | uniq | head -n 70)
-  PSTORAGE_PGP_GPG=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -v -E 'README.gnupg' | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E ".*\.pgp$|.*\.gpg$|.*\.gnupg$" | sort | uniq | head -n 70)
-  PSTORAGE_CACHE_VI=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E ".*\.swp$|.*\.viminfo$" | sort | uniq | head -n 70)
-  PSTORAGE_DOCKER=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "docker\.socket$|docker\.sock$|Dockerfile$|docker-compose\.yml$" | sort | uniq | head -n 70)
-  PSTORAGE_FIREFOX=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^" | grep -E "\.mozilla$|Firefox$" | sort | uniq | head -n 70)
-  PSTORAGE_CHROME=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^" | grep -E "google-chrome$|Chrome$" | sort | uniq | head -n 70)
-  PSTORAGE_OPERA=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^" | grep -E "com\.operasoftware\.Opera$" | sort | uniq | head -n 70)
-  PSTORAGE_SAFARI=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^" | grep -E "Safari$" | sort | uniq | head -n 70)
-  PSTORAGE_AUTOLOGIN=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "autologin$|autologin\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_FASTCGI=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "fastcgi_params$" | sort | uniq | head -n 70)
-  PSTORAGE_SNMP=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "snmpd\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_PYPIRC=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.pypirc$" | sort | uniq | head -n 70)
-  PSTORAGE_CLOUDFLARE=$(echo -e "$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.cloudflared$" | sort | uniq | head -n 70)
-  PSTORAGE_HISTORY=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\..*_history\..*$" | sort | uniq | head -n 70)
-  PSTORAGE_HTTP_CONF=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "httpd\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_HTPASSWD=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.htpasswd$" | sort | uniq | head -n 70)
-  PSTORAGE_LDAPRC=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.ldaprc$" | sort | uniq | head -n 70)
-  PSTORAGE_ENV=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.env$" | sort | uniq | head -n 70)
-  PSTORAGE_MSMTPRC=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.msmtprc$" | sort | uniq | head -n 70)
-  PSTORAGE_GITHUB=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.github$|\.gitconfig$|\.git-credentials$|\.git$" | sort | uniq | head -n 70)
-  PSTORAGE_SVN=$(echo -e "$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.svn$" | sort | uniq | head -n 70)
-  PSTORAGE_KEEPASS=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E ".*\.kdbx$|KeePass\.config.*$|KeePass\.ini$|KeePass\.enforced.*$" | sort | uniq | head -n 70)
-  PSTORAGE_FTP=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E ".*\.ftpconfig$|ffftp\.ini$|ftp\.ini$|ftp\.config$|sites\.ini$|wcx_ftp\.ini$|winscp\.ini$|ws_ftp\.ini$" | sort | uniq | head -n 70)
-  PSTORAGE_BIND=$(echo -e "$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "bind$" | sort | uniq | head -n 70)
-  PSTORAGE_SEEDDMS=$(echo -e "$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "seeddms.*$" | sort | uniq | head -n 70)
-  PSTORAGE_DDCLIENT=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "ddclient\.conf$" | sort | uniq | head -n 70)
-  PSTORAGE_CACTI=$(echo -e "$FIND_DIR_SBIN\n$FIND_DIR_SNAP\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SRV\n$FIND_DIR_TMP\n$FIND_DIR_CDROM\n$FIND_DIR_VAR\n$FIND_DIR_BIN\n$FIND_DIR_ETC\n$FIND_DIR_PRIVATE\n$FIND_DIR_CACHE\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_MNT\n$FIND_DIR_OPT"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "cacti$" | sort | uniq | head -n 70)
-  PSTORAGE_INTERESTING_LOGS=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "access\.log$|error\.log$" | sort | uniq | head -n 70)
-  PSTORAGE_OTHER_INTERESTING_FILES=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "\.bashrc$|\.google_authenticator$|hosts\.equiv$|\.lesshst$|\.plan$|\.profile$|\.recently-used\.xbel$|\.rhosts$|\.sudo_as_admin_successful$" | sort | uniq | head -n 70)
-  PSTORAGE_WINDOWS_FILES=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "unattend\.inf$|.*\.rdg$|AppEvent\.Evt$|ConsoleHost_history\.txt$|FreeSSHDservice\.ini$|NetSetup\.log$|Ntds\.dit$|protecteduserkey\.bin$|RDCMan\.settings$|SAM$|SYSTEM$|SecEvent\.Evt$|appcmd\.exe$|bash\.exe$|datasources\.xml$|default\.sav$|drives\.xml$|groups\.xml$|https-xampp\.conf$|https\.conf$|iis6\.log$|index\.dat$|my\.cnf$|my\.ini$|ntuser\.dat$|pagefile\.sys$|php\.ini$|printers\.xml$|recentservers\.xml$|scclient\.exe$|scheduledtasks\.xml$|security\.sav$|server\.xml$|setupinfo$|setupinfo\.bak$|sitemanager\.xml$|sites\.ini$|software$|software\.sav$|sysprep\.inf$|sysprep\.xml$|system$|system\.sav$|unattend\.txt$|unattend\.xml$|unattended\.xml$|wcx_ftp\.ini$|ws_ftp\.ini$|web.*\.config$|winscp\.ini$|wsl\.exe$" | sort | uniq | head -n 70)
-  PSTORAGE_DATABASE=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -v -E '/man/|/usr/|/var/cache/' | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E ".*\.db$|.*\.sqlite$|.*\.sqlite3$" | sort | uniq | head -n 70)
-  PSTORAGE_BACKUPS=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E "backup$|backups$" | sort | uniq | head -n 70)
-  PSTORAGE_PASSWORD_FILES=$(echo -e "$FIND_LIB64\n$FIND_CDROM\n$FIND_LIB32\n$FIND_SBIN\n$FIND_LIB\n$FIND_SYSTEM\n$FIND_CACHE\n$FIND_SYSTEMD\n$FIND_PRIVATE\n$FIND_OPT\n$FIND_BIN\n$FIND_APPLICATIONS\n$FIND_USR\n$FIND_SYS\n$FIND_ETC\n$FIND_TMP\n$FIND_RUN\n$FIND_MEDIA\n$FIND_SNAP\n$FIND_MNT\n$FIND_HOMESEARCH\n$FIND_VAR\n$FIND_SRV"  | grep -E "^/sbin|^/var|^/srv|^/usr|^/bin|^/etc|^/.cache|^/snap|^$GREPHOMESEARCH|^/tmp|^/private|^/cdrom|^/applications|^/opt|^/media|^/mnt" | grep -E ".*password.*$|.*credential.*$|creds.*$|.*\.key$" | sort | uniq | head -n 70)
+  PSTORAGE_SYSTEMD=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/lib32|^/snap|^/srv|^/sys|^/mnt|^/run|^/tmp|^/etc|^/applications|^/usr|^/systemd|^/var|^$GREPHOMESEARCH|^/.cache|^/cdrom|^/lib64|^/opt|^/bin|^/private|^/sbin|^/lib|^/system" | grep -E ".*\.service$" | sort | uniq | head -n 70)
+  PSTORAGE_TIMER=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/lib32|^/snap|^/srv|^/sys|^/mnt|^/run|^/tmp|^/etc|^/applications|^/usr|^/systemd|^/var|^$GREPHOMESEARCH|^/.cache|^/cdrom|^/lib64|^/opt|^/bin|^/private|^/sbin|^/lib|^/system" | grep -E ".*\.timer$" | sort | uniq | head -n 70)
+  PSTORAGE_SOCKET=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/lib32|^/snap|^/srv|^/sys|^/mnt|^/run|^/tmp|^/etc|^/applications|^/usr|^/systemd|^/var|^$GREPHOMESEARCH|^/.cache|^/cdrom|^/lib64|^/opt|^/bin|^/private|^/sbin|^/lib|^/system" | grep -E ".*\.socket$" | sort | uniq | head -n 70)
+  PSTORAGE_DBUS=$(echo -e "$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/etc" | grep -E "system\.d$" | sort | uniq | head -n 70)
+  PSTORAGE_MYSQL=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -v -E 'mysql/mysql' | grep -E '^/etc/.*mysql|/usr/var/lib/.*mysql|/var/lib/.*mysql' | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "mysql$|debian\.cnf$" | sort | uniq | head -n 70)
+  PSTORAGE_POSTGRESQL=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "pgadmin.*\.db$|pg_hba\.conf$|postgresql\.conf$|pgsql\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_APACHE=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "sites-enabled$|000-default\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_PHP_SESSIONS=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E '/tmp/.*sess_.*|/var/tmp/.*sess_.*' | grep -E "^/private|^/tmp|^/mnt|^/var" | grep -E "sess_.*$" | sort | uniq | head -n 70)
+  PSTORAGE_PHP_FILES=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E ".*config.*\.php$|database\.php$|db\.php$|storage\.php$|settings\.php$" | sort | uniq | head -n 70)
+  PSTORAGE_WORDPRESS=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "wp-config\.php$" | sort | uniq | head -n 70)
+  PSTORAGE_DRUPAL=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E '/default/settings.php' | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "settings\.php$" | sort | uniq | head -n 70)
+  PSTORAGE_MOODLE=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E 'moodle/config.php' | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "config\.php$" | sort | uniq | head -n 70)
+  PSTORAGE_TOMCAT=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "tomcat-users\.xml$" | sort | uniq | head -n 70)
+  PSTORAGE_MONGO=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "mongod.*\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_SUPERVISORD=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "supervisord\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_CESI=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "cesi\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_RSYNC=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "rsyncd\.conf$|rsyncd\.secrets$" | sort | uniq | head -n 70)
+  PSTORAGE_HOSTAPD=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "hostapd\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_ANACONDA_KS=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "anaconda-ks\.cfg$" | sort | uniq | head -n 70)
+  PSTORAGE_VNC=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.vnc$|.*vnc.*\.c.*nf.*$|.*vnc.*\.ini$|.*vnc.*\.txt$|.*vnc.*\.xml$" | sort | uniq | head -n 70)
+  PSTORAGE_LDAP=$(echo -e "$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "ldap$" | sort | uniq | head -n 70)
+  PSTORAGE_OPENVPN=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E ".*\.ovpn$" | sort | uniq | head -n 70)
+  PSTORAGE_SSH=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "id_dsa.*$|id_rsa.*$|known_hosts$|authorized_hosts$|authorized_keys$" | sort | uniq | head -n 70)
+  PSTORAGE_CERTSB4=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -v -E '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*' | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E ".*\.pem$|.*\.cer$|.*\.crt$" | sort | uniq | head -n 70)
+  PSTORAGE_CERTSBIN=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -v -E '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*' | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E ".*\.csr$|.*\.der$" | sort | uniq | head -n 70)
+  PSTORAGE_CERTSCLIENT=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -v -E '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*' | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E ".*\.pfx$|.*\.p12$" | sort | uniq | head -n 70)
+  PSTORAGE_SSH_AGENTS=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/private|^/tmp" | grep -E "agent.*$" | sort | uniq | head -n 70)
+  PSTORAGE_SSH_CONFIG=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/usr|^$GREPHOMESEARCH" | grep -E "ssh.*config$" | sort | uniq | head -n 70)
+  PSTORAGE_CLOUD_CREDENTIALS=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "credentials$|credentials\.db$|legacy_credentials\.db$|access_tokens\.db$|access_tokens\.json$|accessTokens\.json$|azureProfile\.json$|TokenCache\.dat$|AzureRMContext\.json$|\.bluemix$" | sort | uniq | head -n 70)
+  PSTORAGE_KERBEROS=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "krb5\.conf$|krb5\.keytab$|\.k5login$|kadm5\.acl$" | sort | uniq | head -n 70)
+  PSTORAGE_KIBANA=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "kibana\.y.*ml$" | sort | uniq | head -n 70)
+  PSTORAGE_KNOCKD=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E '/etc/init.d/' | grep -E "^/etc" | grep -E ".*knockd.*$" | sort | uniq | head -n 70)
+  PSTORAGE_LOGSTASH=$(echo -e "$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "logstash$" | sort | uniq | head -n 70)
+  PSTORAGE_ELASTICSEARCH=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "elasticsearch\.y.*ml$" | sort | uniq | head -n 70)
+  PSTORAGE_VAULT_SSH_HELPER=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "vault-ssh-helper\.hcl$" | sort | uniq | head -n 70)
+  PSTORAGE_VAULT_SSH_TOKEN=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.vault-token$" | sort | uniq | head -n 70)
+  PSTORAGE_COUCHDB=$(echo -e "$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "couchdb$" | sort | uniq | head -n 70)
+  PSTORAGE_REDIS=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "redis\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_MOSQUITTO=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "mosquitto\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_NEO4J=$(echo -e "$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "neo4j$" | sort | uniq | head -n 70)
+  PSTORAGE_CLOUD_INIT=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "cloud\.cfg$" | sort | uniq | head -n 70)
+  PSTORAGE_ERLANG=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.erlang\.cookie$" | sort | uniq | head -n 70)
+  PSTORAGE_GMV_AUTH=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "gvm-tools\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_IPSEC=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "ipsec\.secrets$|ipsec\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_IRSSI=$(echo -e "$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.irssi$" | sort | uniq | head -n 70)
+  PSTORAGE_KEYRING=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "keyrings$|.*\.keyring$|.*\.keystore$|.*\.jks$" | sort | uniq | head -n 70)
+  PSTORAGE_FILEZILLA=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC\n$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "filezilla$|filezilla\.xml$|recentservers\.xml$" | sort | uniq | head -n 70)
+  PSTORAGE_BACKUP_MANAGER=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "storage\.php$|database\.php$" | sort | uniq | head -n 70)
+  PSTORAGE_SPLUNK=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "passwd$" | sort | uniq | head -n 70)
+  PSTORAGE_GITLAB=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -v -E '/lib' | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "secrets\.yml$|gitlab\.yml$|gitlab\.rm$" | sort | uniq | head -n 70)
+  PSTORAGE_PGP_GPG=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -v -E 'README.gnupg' | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E ".*\.pgp$|.*\.gpg$|.*\.gnupg$" | sort | uniq | head -n 70)
+  PSTORAGE_CACHE_VI=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E ".*\.swp$|.*\.viminfo$" | sort | uniq | head -n 70)
+  PSTORAGE_DOCKER=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "docker\.socket$|docker\.sock$|Dockerfile$|docker-compose\.yml$" | sort | uniq | head -n 70)
+  PSTORAGE_FIREFOX=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^" | grep -E "\.mozilla$|Firefox$" | sort | uniq | head -n 70)
+  PSTORAGE_CHROME=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^" | grep -E "google-chrome$|Chrome$" | sort | uniq | head -n 70)
+  PSTORAGE_OPERA=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^" | grep -E "com\.operasoftware\.Opera$" | sort | uniq | head -n 70)
+  PSTORAGE_SAFARI=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^" | grep -E "Safari$" | sort | uniq | head -n 70)
+  PSTORAGE_AUTOLOGIN=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "autologin$|autologin\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_FASTCGI=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "fastcgi_params$" | sort | uniq | head -n 70)
+  PSTORAGE_SNMP=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "snmpd\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_PYPIRC=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.pypirc$" | sort | uniq | head -n 70)
+  PSTORAGE_CLOUDFLARE=$(echo -e "$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.cloudflared$" | sort | uniq | head -n 70)
+  PSTORAGE_HISTORY=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\..*_history\..*$" | sort | uniq | head -n 70)
+  PSTORAGE_HTTP_CONF=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "httpd\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_HTPASSWD=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.htpasswd$" | sort | uniq | head -n 70)
+  PSTORAGE_LDAPRC=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.ldaprc$" | sort | uniq | head -n 70)
+  PSTORAGE_ENV=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.env$" | sort | uniq | head -n 70)
+  PSTORAGE_MSMTPRC=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.msmtprc$" | sort | uniq | head -n 70)
+  PSTORAGE_GITHUB=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.github$|\.gitconfig$|\.git-credentials$|\.git$" | sort | uniq | head -n 70)
+  PSTORAGE_SVN=$(echo -e "$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.svn$" | sort | uniq | head -n 70)
+  PSTORAGE_KEEPASS=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E ".*\.kdbx$|KeePass\.config.*$|KeePass\.ini$|KeePass\.enforced.*$" | sort | uniq | head -n 70)
+  PSTORAGE_FTP=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E ".*\.ftpconfig$|ffftp\.ini$|ftp\.ini$|ftp\.config$|sites\.ini$|wcx_ftp\.ini$|winscp\.ini$|ws_ftp\.ini$" | sort | uniq | head -n 70)
+  PSTORAGE_BIND=$(echo -e "$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "bind$" | sort | uniq | head -n 70)
+  PSTORAGE_SEEDDMS=$(echo -e "$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "seeddms.*$" | sort | uniq | head -n 70)
+  PSTORAGE_DDCLIENT=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "ddclient\.conf$" | sort | uniq | head -n 70)
+  PSTORAGE_KCPASSWORD=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "kcpassword$" | sort | uniq | head -n 70)
+  PSTORAGE_CACTI=$(echo -e "$FIND_DIR_USR\n$FIND_DIR_MEDIA\n$FIND_DIR_SNAP\n$FIND_DIR_BIN\n$FIND_DIR_SRV\n$FIND_DIR_SBIN\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_VAR\n$FIND_DIR_PRIVATE\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_CDROM\n$FIND_DIR_ETC\n$FIND_DIR_CACHE\n$FIND_DIR_MNT\n$FIND_DIR_OPT\n$FIND_DIR_TMP"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "cacti$" | sort | uniq | head -n 70)
+  PSTORAGE_INTERESTING_LOGS=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "access\.log$|error\.log$" | sort | uniq | head -n 70)
+  PSTORAGE_OTHER_INTERESTING_FILES=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "\.bashrc$|\.google_authenticator$|hosts\.equiv$|\.lesshst$|\.plan$|\.profile$|\.recently-used\.xbel$|\.rhosts$|\.sudo_as_admin_successful$" | sort | uniq | head -n 70)
+  PSTORAGE_WINDOWS_FILES=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "unattend\.inf$|.*\.rdg$|AppEvent\.Evt$|ConsoleHost_history\.txt$|FreeSSHDservice\.ini$|NetSetup\.log$|Ntds\.dit$|protecteduserkey\.bin$|RDCMan\.settings$|SAM$|SYSTEM$|SecEvent\.Evt$|appcmd\.exe$|bash\.exe$|datasources\.xml$|default\.sav$|drives\.xml$|groups\.xml$|https-xampp\.conf$|https\.conf$|iis6\.log$|index\.dat$|my\.cnf$|my\.ini$|ntuser\.dat$|pagefile\.sys$|php\.ini$|printers\.xml$|recentservers\.xml$|scclient\.exe$|scheduledtasks\.xml$|security\.sav$|server\.xml$|setupinfo$|setupinfo\.bak$|sitemanager\.xml$|sites\.ini$|software$|software\.sav$|sysprep\.inf$|sysprep\.xml$|system$|system\.sav$|unattend\.txt$|unattend\.xml$|unattended\.xml$|wcx_ftp\.ini$|ws_ftp\.ini$|web.*\.config$|winscp\.ini$|wsl\.exe$" | sort | uniq | head -n 70)
+  PSTORAGE_DATABASE=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -v -E '/man/|/usr/|/var/cache/' | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E ".*\.db$|.*\.sqlite$|.*\.sqlite3$" | sort | uniq | head -n 70)
+  PSTORAGE_BACKUPS=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E "backup$|backups$" | sort | uniq | head -n 70)
+  PSTORAGE_PASSWORD_FILES=$(echo -e "$FIND_PRIVATE\n$FIND_CACHE\n$FIND_SYS\n$FIND_LIB64\n$FIND_RUN\n$FIND_SNAP\n$FIND_SYSTEM\n$FIND_BIN\n$FIND_LIB\n$FIND_APPLICATIONS\n$FIND_SBIN\n$FIND_SRV\n$FIND_MEDIA\n$FIND_LIB32\n$FIND_MNT\n$FIND_VAR\n$FIND_OPT\n$FIND_TMP\n$FIND_CDROM\n$FIND_USR\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_ETC"  | grep -E "^/media|^/srv|^/applications|^/opt|^/mnt|^/var|^$GREPHOMESEARCH|^/bin|^/.cache|^/private|^/sbin|^/tmp|^/etc|^/snap|^/usr|^/cdrom" | grep -E ".*password.*$|.*credential.*$|creds.*$|.*\.key$" | sort | uniq | head -n 70)
 
 
   ##### POST SERACH VARIABLES #####
-  backup_folders_row="`echo $PSTORAGE_BACKUPS | tr '\n' ' '`"
+  backup_folders_row="$(echo $PSTORAGE_BACKUPS | tr '\n' ' ')"
   printf ${YELLOW}"DONE\n"$NC
   echo ""
 fi
 
 
-if [ "`echo $CHECKS | grep SysI`" ]; then
+if echo $CHECKS | grep -q SysI; then
   ###########################################
   #-------------) System Info (-------------#
   ###########################################
@@ -1223,7 +1224,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 
   #-- SY) Sudo
   print_2title "Sudo version"
-  if [ "`command -v sudo 2>/dev/null`" ]; then
+  if [ "$(command -v sudo 2>/dev/null)" ]; then
     print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-version"
     sudo -V 2>/dev/null | grep "Sudo ver" | sed -${E} "s,$sudovB,${SED_RED},"
   else echo_not_found "sudo"
@@ -1242,7 +1243,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
         pc_length=${#pc_version}
         pc_major=$(echo "$pc_version" | cut -d. -f1)
         pc_minor=$(echo "$pc_version" | cut -d. -f2)
-        if [ $pc_length -eq 4 -a $pc_major -eq 0 -a $pc_minor  -lt 21 ]; then
+        if [ "$pc_length" -eq 4 ] && [ "$pc_major" -eq 0 ] && [ "$pc_minor"  -lt 21 ]; then
             echo "Vulnerable!!" | sed -${E} "s,.*,${SED_RED},"
         fi
     fi
@@ -1252,7 +1253,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   #-- SY) PATH
   print_2title "PATH"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-path-abuses"
-  echo $OLDPATH 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\.,${SED_RED_YELLOW},g"
+  echo "$OLDPATH" 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\.,${SED_RED_YELLOW},g"
   echo "New path exported: $PATH" 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\. ,${SED_RED_YELLOW},g"
   echo ""
 
@@ -1296,13 +1297,13 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   fi
 
   #-- SY) AppArmor
-  print_2title "Linux Protections"
+  print_2title "Protections"
   print_list "AppArmor enabled? .............. "$NC
-  if [ `command -v aa-status 2>/dev/null` ]; then
+  if [ "$(command -v aa-status 2>/dev/null)" ]; then
     aa-status 2>&1 | sed "s,disabled,${SED_RED},"
-  elif [ `command -v apparmor_status 2>/dev/null` ]; then
+  elif [ "$(command -v apparmor_status 2>/dev/null)" ]; then
     apparmor_status 2>&1 | sed "s,disabled,${SED_RED},"
-  elif [ `ls -d /etc/apparmor* 2>/dev/null` ]; then
+  elif [ "$(ls -d /etc/apparmor* 2>/dev/null)" ]; then
     ls -d /etc/apparmor*
   else
     echo_not_found "AppArmor"
@@ -1310,7 +1311,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 
   #-- SY) grsecurity
   print_list "grsecurity present? ............ "$NC
-  ((uname -r | grep "\-grsec" >/dev/null 2>&1 || grep "grsecurity" /etc/sysctl.conf >/dev/null 2>&1) && echo "Yes" || echo_not_found "grsecurity")
+  ( (uname -r | grep "\-grsec" >/dev/null 2>&1 || grep "grsecurity" /etc/sysctl.conf >/dev/null 2>&1) && echo "Yes" || echo_not_found "grsecurity")
 
   #-- SY) PaX
   print_list "PaX bins present? .............. "$NC
@@ -1324,15 +1325,21 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   print_list "SELinux enabled? ............... "$NC
   (sestatus 2>/dev/null || echo_not_found "sestatus") | sed "s,disabled,${SED_RED},"
 
-  #-- SY) SElinux
+  #-- SY) Gatekeeper
   if [ "$MACPEAS" ]; then
     print_list "Gatekeeper enabled? .......... "$NC
     (spctl --status 2>/dev/null || echo_not_found "sestatus") | sed "s,disabled,${SED_RED},"
+    
+    print_list "sleepimage encrypted? ........ "$NC
+    (sysctl vm.swapusage | grep "encrypted" | sed "s,encrypted,${SED_GREEN},") || echo_no
+
+    print_list "XProtect? ........ "$NC
+    (system_profiler SPInstallHistoryDataType 2>/dev/null | grep -A 4 "XProtectPlistConfigData" | tail -n 5) || echo_no
   fi
 
   #-- SY) ASLR
   print_list "Is ASLR enabled? ............... "$NC
-  ASLR=`cat /proc/sys/kernel/randomize_va_space 2>/dev/null`
+  ASLR=$(cat /proc/sys/kernel/randomize_va_space 2>/dev/null)
   if [ -z "$ASLR" ]; then
     echo_not_found "/proc/sys/kernel/randomize_va_space";
   else
@@ -1346,10 +1353,10 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 
    #-- SY) Running in a virtual environment
   print_list "Is this a virtual machine? ..... "$NC
-  hypervisorflag=`cat /proc/cpuinfo 2>/dev/null | grep flags | grep hypervisor`
-  if [ `command -v systemd-detect-virt 2>/dev/null` ]; then
-    detectedvirt=`systemd-detect-virt`
-    if [ "$hypervisorflag" ]; then printf $RED"Yes ("$detectedvirt")"$NC; else printf $GREEN"No"$NC; fi
+  hypervisorflag=$(grep flags /proc/cpuinfo 2>/dev/null | grep hypervisor)
+  if [ "$(command -v systemd-detect-virt 2>/dev/null)" ]; then
+    detectedvirt=$(systemd-detect-virt)
+    if [ "$hypervisorflag" ]; then printf $RED"Yes ($detectedvirt)"$NC; else printf $GREEN"No"$NC; fi
   else
     if [ "$hypervisorflag" ]; then printf $RED"Yes"$NC; else printf $GREEN"No"$NC; fi
   fi
@@ -1359,7 +1366,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
 fi
 
 
-if [ "`echo $CHECKS | grep Container`" ]; then
+if echo $CHECKS | grep -q Container; then
   ##############################################
   #---------------) Containers (---------------#
   ##############################################
@@ -1367,17 +1374,17 @@ if [ "`echo $CHECKS | grep Container`" ]; then
   containerCheck
 
   print_2title "Container related tools present"
-  command -v $CONTAINER_CMDS
+  command -v "$CONTAINER_CMDS"
 
   print_2title "Container details"
   print_list "Is this a container? ...........$NC $containerType"
 
   print_list "Any running containers? ........ "$NC
   # Get counts of running containers for each platform
-  dockercontainers=`docker ps --format "{{.Names}}" 2>/dev/null | wc -l`
-  podmancontainers=`podman ps --format "{{.Names}}" 2>/dev/null | wc -l`
-  lxccontainers=`lxc list -c n --format csv 2>/dev/null | wc -l`
-  rktcontainers=`rkt list 2>/dev/null | tail -n +2  | wc -l`
+  dockercontainers=$(docker ps --format "{{.Names}}" 2>/dev/null | wc -l)
+  podmancontainers=$(podman ps --format "{{.Names}}" 2>/dev/null | wc -l)
+  lxccontainers=$(lxc list -c n --format csv 2>/dev/null | wc -l)
+  rktcontainers=$(rkt list 2>/dev/null | tail -n +2  | wc -l)
   if [ "$dockercontainers" -eq "0" ] && [ "$lxccontainers" -eq "0" ] && [ "$rktcontainers" -eq "0" ] && [ "$podmancontainers" -eq "0" ]; then
     echo_no
   else
@@ -1395,7 +1402,7 @@ if [ "`echo $CHECKS | grep Container`" ]; then
   fi
 
   #If docker
-  if [ "`echo \"$containerType\" | grep -i \"docker\"`" ]; then
+  if echo "$containerType" | grep -qi "docker"; then
     print_2title "Docker Container details"
     inDockerGroup
     print_list "Am I inside Docker group .......$NC $DOCKER_GROUP\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
@@ -1415,13 +1422,13 @@ if [ "`echo $CHECKS | grep Container`" ]; then
     echo ""
     print_2title "Container & breakout enumeration"
     print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout"
-    print_list "Container ID ...................$NC" `cat /etc/hostname`
-    if [ "`echo \"$containerType\" | grep -i \"docker\"`" ]; then
-      print_list "Container Full ID ..............$NC `basename \"$(cat /proc/1/cpuset)\"`\n"
+    print_list "Container ID ...................$NC" $(cat /etc/hostname)
+    if echo "$containerType" | grep -qi "docker"; then
+      print_list "Container Full ID ..............$NC $(basename \"$(cat /proc/1/cpuset)\")\n"
     fi
-    if [ "`echo \"$containerType\" | grep -i \"kubernetes\"`" ]; then
-      print_list "Kubernetes namespace ...........$NC `cat /run/secrets/kubernetes.io/serviceaccount/namespace /secrets/kubernetes.io/serviceaccount/namespace 2>/dev/null`\n"
-      print_list "Kubernetes token ...............$NC `cat /run/secrets/kubernetes.io/serviceaccount/token /secrets/kubernetes.io/serviceaccount/token 2>/dev/null`\n"
+    if echo "$containerType" | grep -qi "kubernetes"; then
+      print_list "Kubernetes namespace ...........$NC $(cat /run/secrets/kubernetes.io/serviceaccount/namespace /secrets/kubernetes.io/serviceaccount/namespace 2>/dev/null)\n"
+      print_list "Kubernetes token ...............$NC $(cat /run/secrets/kubernetes.io/serviceaccount/token /secrets/kubernetes.io/serviceaccount/token 2>/dev/null)\n"
     fi
 
     checkContainerExploits
@@ -1459,7 +1466,7 @@ fi
 
 
 
-if [ "`echo $CHECKS | grep Devs`" ]; then
+if echo $CHECKS | grep -q Devs; then
   ###########################################
   #---------------) Devices (---------------#
   ###########################################
@@ -1474,7 +1481,7 @@ if [ "`echo $CHECKS | grep Devs`" ]; then
   print_2title "Unmounted file-system?"
   print_info "Check if you can mount umounted devices"
   if [ -f "/etc/fstab" ]; then
-    cat /etc/fstab 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" | sed -${E} "s,$mountG,${SED_GREEN},g" | sed -${E} "s,$notmounted,${SED_RED}," | sed -${E} "s,$mounted,${SED_BLUE}," | sed -${E} "s,$Wfolders,${SED_RED}," | sed -${E} "s,$mountpermsB,${SED_RED},g" | sed -${E} "s,$mountpermsG,${SED_GREEN},g"
+    grep -v "^#" /etc/fstab 2>/dev/null | grep -Ev "\W+\#|^#" | sed -${E} "s,$mountG,${SED_GREEN},g" | sed -${E} "s,$notmounted,${SED_RED}," | sed -${E} "s,$mounted,${SED_BLUE}," | sed -${E} "s,$Wfolders,${SED_RED}," | sed -${E} "s,$mountpermsB,${SED_RED},g" | sed -${E} "s,$mountpermsG,${SED_GREEN},g"
   else
     echo_not_found "/etc/fstab"
   fi
@@ -1492,7 +1499,7 @@ if [ "`echo $CHECKS | grep Devs`" ]; then
 fi
 
 
-if [ "`echo $CHECKS | grep AvaSof`" ]; then
+if echo $CHECKS | grep -q AvaSof; then
   ###########################################
   #---------) Available Software (----------#
   ###########################################
@@ -1500,7 +1507,7 @@ if [ "`echo $CHECKS | grep AvaSof`" ]; then
 
   #-- 1AS) Useful software
   print_2title "Useful software"
-  command -v $CONTAINER_CMDS nmap aws nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch ctr 2>/dev/null
+  command -v "$CONTAINER_CMDS" nmap aws nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch ctr 2>/dev/null
   echo ""
 
   #-- 2AS) Search for compilers
@@ -1512,7 +1519,7 @@ if [ "`echo $CHECKS | grep AvaSof`" ]; then
 fi
 
 
-if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
+if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks; then
   ####################################################
   #-----) Processes & Cron & Services & Timers (-----#
   ####################################################
@@ -1521,25 +1528,25 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   #-- PCS) Cleaned proccesses
   print_2title "Cleaned processes"
   if [ "$NOUSEPS" ]; then
-    printf ${BLUE}"[i] "$GREEN"Looks like ps is not finding processes, going to read from /proc/ and not going to monitor 1min of processes\n"$NC
+    printf ${BLUE}"[i]$GREEN Looks like ps is not finding processes, going to read from /proc/ and not going to monitor 1min of processes\n"$NC
   fi
   print_info "Check weird & unexpected proceses run by root: https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes"
 
   if [ "$NOUSEPS" ]; then
     print_ps | sed -${E} "s,$Wfolders,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$rootcommon,${SED_GREEN}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED}," | sed -${E} "s,$processesVB,${SED_RED_YELLOW},g" | sed "s,$processesB,${SED_RED}," | sed -${E} "s,$processesDump,${SED_RED},"
-    pslist=`print_ps`
+    pslist=$(print_ps)
   else
     (ps fauxwww || ps auxwww | sort ) 2>/dev/null | grep -v "\[" | grep -v "%CPU" | while read psline; do
       echo "$psline"  | sed -${E} "s,$Wfolders,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$rootcommon,${SED_GREEN}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED}," | sed -${E} "s,$processesVB,${SED_RED_YELLOW},g" | sed "s,$processesB,${SED_RED}," | sed -${E} "s,$processesDump,${SED_RED},"
-      if [ "`command -v capsh`" ] && ! [ "`echo \"$psline\" | grep root`" ]; then
-        cpid="`echo \"$psline\" | awk '{print $2}'`"
-        caphex=0x"`cat \"/proc/$cpid/status\" 2> /dev/null | grep \"CapEff\" | awk '{print $2}'`"
-        if [ "$caphex" ] && [ "$caphex" != "0x" ] && [ "`echo \"$caphex\" | grep -v '0x0000000000000000'`" ]; then
+      if [ "$(command -v capsh)" ] && ! echo "$psline" | grep -q root; then
+        cpid="$(echo \"$psline\" | awk '{print $2}')"
+        caphex=0x"$(cat \"/proc/$cpid/status\" 2> /dev/null | grep \"CapEff\" | awk '{print $2}')"
+        if [ "$caphex" ] && [ "$caphex" != "0x" ] && echo "$caphex" | grep -qv '0x0000000000000000'; then
           printf "  └─(${DG}Caps${NC}) "; capsh --decode=$caphex 2>/dev/null | sed -${E} "s,$capsB,${SED_RED},g"
         fi
       fi
     done
-    pslist=`ps auxwww`
+    pslist=$(ps auxwww)
     echo ""
 
     #-- PCS) Binary processes permissions
@@ -1566,19 +1573,20 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   #-- PCS) Processes with credentials inside memory
   print_2title "Processes with credentials in memory (root req)"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#credentials-from-process-memory"
-  if [ "`echo \"$pslist\" | grep \"gdm-password\"`" ]; then echo "gdm-password process found (dump creds from memory as root)" | sed "s,gdm-password process,${SED_RED},"; else echo_not_found "gdm-password"; fi
-  if [ "`echo \"$pslist\" | grep \"gnome-keyring-daemon\"`" ]; then echo "gnome-keyring-daemon process found (dump creds from memory as root)" | sed "s,gnome-keyring-daemon,${SED_RED},"; else echo_not_found "gnome-keyring-daemon"; fi
-  if [ "`echo \"$pslist\" | grep \"lightdm\"`" ]; then echo "lightdm process found (dump creds from memory as root)" | sed "s,lightdm,${SED_RED},"; else echo_not_found "lightdm"; fi
-  if [ "`echo \"$pslist\" | grep \"vsftpd\"`" ]; then echo "vsftpd process found (dump creds from memory as root)" | sed "s,vsftpd,${SED_RED},"; else echo_not_found "vsftpd"; fi
-  if [ "`echo \"$pslist\" | grep \"apache2\"`" ]; then echo "apache2 process found (dump creds from memory as root)" | sed "s,apache2,${SED_RED},"; else echo_not_found "apache2"; fi
-  if [ "`echo \"$pslist\" | grep \"sshd:\"`" ]; then echo "sshd: process found (dump creds from memory as root)" | sed "s,sshd:,${SED_RED},"; else echo_not_found "sshd"; fi
+  if echo "$pslist" | grep -q "gdm-password"; then echo "gdm-password process found (dump creds from memory as root)" | sed "s,gdm-password process,${SED_RED},"; else echo_not_found "gdm-password"; fi
+  if echo "$pslist" | grep -q "gnome-keyring-daemon"; then echo "gnome-keyring-daemon process found (dump creds from memory as root)" | sed "s,gnome-keyring-daemon,${SED_RED},"; else echo_not_found "gnome-keyring-daemon"; fi
+  if echo "$pslist" | grep -q "lightdm"; then echo "lightdm process found (dump creds from memory as root)" | sed "s,lightdm,${SED_RED},"; else echo_not_found "lightdm"; fi
+  if echo "$pslist" | grep -q "vsftpd"; then echo "vsftpd process found (dump creds from memory as root)" | sed "s,vsftpd,${SED_RED},"; else echo_not_found "vsftpd"; fi
+  if echo "$pslist" | grep -q "apache2"; then echo "apache2 process found (dump creds from memory as root)" | sed "s,apache2,${SED_RED},"; else echo_not_found "apache2"; fi
+  if echo "$pslist" | grep -q "sshd:"; then echo "sshd: process found (dump creds from memory as root)" | sed "s,sshd:,${SED_RED},"; else echo_not_found "sshd"; fi
   echo ""
 
   #-- PCS) Different processes 1 min
   if ! [ "$FAST" ] && ! [ "$SUPERFAST" ]; then
     print_2title "Different processes executed during 1 min (interesting is low number of repetitions)"
     print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#frequent-cron-jobs"
-    if [ "`ps -e -o command 2>/dev/null`" ]; then for i in $(seq 1 1250); do ps -e -o command >> $file.tmp1 2>/dev/null; sleep 0.05; done; sort $file.tmp1 2>/dev/null | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort -r -n | grep -E -v "\s*[1-9][0-9][0-9][0-9]"; rm $file.tmp1; fi
+    temp_file=$(mktemp)
+    if [ "$(ps -e -o command 2>/dev/null)" ]; then for i in $(seq 1 1250); do ps -e -o command >> "$temp_file" 2>/dev/null; sleep 0.05; done; sort "$temp_file" 2>/dev/null | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort -r -n | grep -E -v "\s*[1-9][0-9][0-9][0-9]"; rm "$temp_file"; fi
     echo ""
   fi
 
@@ -1592,7 +1600,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   ls -alR /etc/cron* /var/spool/cron/crontabs /var/spool/anacron 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g"
   cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/* /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
-  ls -l /usr/lib/cron/tabs/ /private/var/at/jobs 2>/dev/null #MacOS paths
+  ls -lR /usr/lib/cron/tabs/ /private/var/at/jobs /etc/periodic/ 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g" #MacOS paths
   atq 2>/dev/null
   echo ""
 
@@ -1620,7 +1628,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   print_2title "Systemd PATH"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#systemd-path-relative-paths"
   systemctl show-environment 2>/dev/null | grep "PATH" | sed -${E} "s,$Wfolders\|\./\|\.:\|:\.,${SED_RED_YELLOW},g"
-  WRITABLESYSTEMDPATH=`systemctl show-environment 2>/dev/null | grep "PATH" | grep -E "$Wfolders"`
+  WRITABLESYSTEMDPATH=$(systemctl show-environment 2>/dev/null | grep "PATH" | grep -E "$Wfolders")
   echo ""
 
   #-- PSC) .service files
@@ -1632,14 +1640,14 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
       if ! [ "$IAMROOT" ] && [ -w "$s" ] && [ -f "$s" ]; then
         echo "$s" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
       fi
-      servicebinpaths="`grep -Eo '^Exec.*?=[!@+-]*[a-zA-Z0-9_/\-]+' \"$s\" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,'`" #Get invoked paths
+      servicebinpaths="$(grep -Eo '^Exec.*?=[!@+-]*[a-zA-Z0-9_/\-]+' \"$s\" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,')" #Get invoked paths
       printf "%s\n" "$servicebinpaths\n" | while read sp; do
         if [ -w "$sp" ]; then
           echo "$s is calling this writable executable: $sp" | sed "s,writable.*,${SED_RED_YELLOW},g"
         fi
       done
-      relpath1="`grep -E '^Exec.*=(?:[^/]|-[^/]|\+[^/]|![^/]|!![^/]|)[^/@\+!-].*' \"$s\" 2>/dev/null | grep -Iv \"=/\"`"
-      relpath2="`grep -E '^Exec.*=.*/bin/[a-zA-Z0-9_]*sh ' \"$s\" 2>/dev/null | grep -Ev \"/[a-zA-Z0-9_]+/\"`"
+      relpath1="$(grep -E '^Exec.*=(?:[^/]|-[^/]|\+[^/]|![^/]|!![^/]|)[^/@\+!-].*' \"$s\" 2>/dev/null | grep -Iv \"=/\")"
+      relpath2="$(grep -E '^Exec.*=.*/bin/[a-zA-Z0-9_]*sh ' \"$s\" 2>/dev/null | grep -Ev \"/[a-zA-Z0-9_]+/\")"
       if [ "$relpath1" ] || [ "$relpath2" ]; then
         if [ "$WRITABLESYSTEMDPATH" ]; then
           echo "$s is executing some relative path" | sed -${E} "s,.*,${SED_RED},";
@@ -1665,7 +1673,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
     if ! [ "$IAMROOT" ] && [ -w "$t" ]; then
       echo "$t" | sed -${E} "s,.*,${SED_RED},g"
     fi
-    timerbinpaths="`grep -Po '^Unit=*(.*?$)' \"$t\" 2>/dev/null | cut -d '=' -f2`"
+    timerbinpaths="$(grep -Po '^Unit=*(.*?$)' \"$t\" 2>/dev/null | cut -d '=' -f2)"
     printf "%s\n" "$timerbinpaths" | while read tb; do
       if [ -w "$tb" ]; then
         echo "$t timer is calling this writable executable: $tb" | sed "s,writable.*,${SED_RED},g"
@@ -1686,14 +1694,14 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
     if ! [ "$IAMROOT" ] && [ -w "$s" ] && [ -f "$s" ]; then
       echo "Writable .socket file: $s" | sed "s,/.*,${SED_RED},g"
     fi
-    socketsbinpaths="`grep -Eo '^(Exec).*?=[!@+-]*/[a-zA-Z0-9_/\-]+' \"$s\" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,'`"
+    socketsbinpaths="$(grep -Eo '^(Exec).*?=[!@+-]*/[a-zA-Z0-9_/\-]+' \"$s\" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,')"
     printf "%s\n" "$socketsbinpaths" | while read sb; do
       if [ -w "$sb" ]; then
         echo "$s is calling this writable executable: $sb" | sed "s,writable.*,${SED_RED},g"
       fi
     done
-    socketslistpaths="`grep -Eo '^(Listen).*?=[!@+-]*/[a-zA-Z0-9_/\-]+' \"$s\" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,'`"
-    printf "%s\n" "$socketsbinpaths" | while read sl; do
+    socketslistpaths="$(grep -Eo '^(Listen).*?=[!@+-]*/[a-zA-Z0-9_/\-]+' \"$s\" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,')"
+    printf "%s\n" "$socketslistpaths" | while read sl; do
       if [ -w "$sl" ]; then
         echo "$s is calling this writable listener: $sl" | sed "s,writable.*,${SED_RED},g";
       fi
@@ -1711,9 +1719,9 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   print_2title "HTTP sockets"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
   ss -xlp -H state listening 2>/dev/null | grep -Eo "/.* " | cut -d " " -f1 | while read s; do
-    socketcurl="`curl --max-time 2 --unix-socket \"$s\" http:/index 2>/dev/null`"
+    socketcurl="$(curl --max-time 2 --unix-socket \"$s\" http:/index 2>/dev/null)"
     if [ $? -eq 0 ]; then
-      owner="`ls -l \"$s\" | cut -d ' ' -f 3`"
+      owner="$(ls -l \"$s\" | cut -d ' ' -f 3)"
       echo "Socket $s owned by $owner uses HTTP. Response to /index:" | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed -${E} "s,$idB,${SED_RED},g"
       echo "$socketcurl"
     fi
@@ -1730,16 +1738,16 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
           echo "Writable $f" | sed -${E} "s,.*,${SED_RED},g"
         fi
 
-        genpol=`grep "<policy>" "$f" 2>/dev/null`
+        genpol=$(grep "<policy>" "$f" 2>/dev/null)
         if [ "$genpol" ]; then printf "Weak general policy found on $f ($genpol)\n" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_RED},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$mygroups,${SED_RED},g"; fi
         #if [ "`grep \"<policy user=\\\"$USER\\\">\" \"$f\" 2>/dev/null`" ]; then printf "Possible weak user policy found on $f () \n" | sed "s,$USER,${SED_RED},g"; fi
 
-        userpol=`grep "<policy user=" "$f" 2>/dev/null | grep -v "root"`
+        userpol=$(grep "<policy user=" "$f" 2>/dev/null | grep -v "root")
         if [ "$userpol" ]; then printf "Possible weak user policy found on $f ($userpol)\n" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_RED},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$mygroups,${SED_RED},g"; fi
         #for g in `groups`; do
         #  if [ "`grep \"<policy group=\\\"$g\\\">\" \"$f\" 2>/dev/null`" ]; then printf "Possible weak group ($g) policy found on $f\n" | sed "s,$g,${SED_RED},g"; fi
         #done
-        grppol=`grep "<policy group=" "$f" 2>/dev/null | grep -v "root"`
+        grppol=$(grep "<policy group=" "$f" 2>/dev/null | grep -v "root")
         if [ "$grppol" ]; then printf "Possible weak user policy found on $f ($grppol)\n" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_RED},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$mygroups,${SED_RED},g"; fi
 
         #TODO: identify allows in context="default"
@@ -1754,9 +1762,9 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   if [ "$dbuslist" ]; then
     busctl list | while read line; do
       echo "$line" | sed -${E} "s,$dbuslistG,${SED_GREEN},g";
-      if [ ! "`echo \"$line\" | grep -E \"$dbuslistG\"`" ]; then
-        srvc_object=`echo $line | cut -d " " -f1`
-        srvc_object_info=`busctl status "$srvc_object" 2>/dev/null | grep -E "^UID|^EUID|^OwnerUID" | tr '\n' ' '`
+      if ! echo "$line" | grep -qE "$dbuslistG"; then
+        srvc_object=$(echo $line | cut -d " " -f1)
+        srvc_object_info=$(busctl status "$srvc_object" 2>/dev/null | grep -E "^UID|^EUID|^OwnerUID" | tr '\n' ' ')
         if [ "$srvc_object_info" ]; then
           echo " -- $srvc_object_info" | sed "s,UID=0,${SED_RED},"
         fi
@@ -1772,7 +1780,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
 fi
 
 
-if [ "`echo $CHECKS | grep Net`" ]; then
+if echo $CHECKS | grep -q Net; then
   ###########################################
   #---------) Network Information (---------#
   ###########################################
@@ -1813,7 +1821,7 @@ if [ "`echo $CHECKS | grep Net`" ]; then
   #-- NI) Ports
   print_2title "Active Ports"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-ports"
-  ((netstat -punta || ss -ntpu || netstat -an) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+,${SED_RED},"
+  ( (netstat -punta || ss -ntpu || netstat -an) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+,${SED_RED},"
   echo ""
 
   #-- NI) MacOS hardware ports
@@ -1868,7 +1876,7 @@ if [ "`echo $CHECKS | grep Net`" ]; then
 fi
 
 
-if [ "`echo $CHECKS | grep UsrI`" ]; then
+if echo $CHECKS | grep -q UsrI; then
   ###########################################
   #----------) Users Information (----------#
   ###########################################
@@ -1900,12 +1908,12 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
 
   #-- UI) Clipboard and highlighted text
   print_2title "Clipboard or highlighted text?"
-  if [ `command -v xclip 2>/dev/null` ]; then
-    echo "Clipboard: "`xclip -o -selection clipboard 2>/dev/null` | sed -${E} "s,$pwd_inside_history,${SED_RED},"
-    echo "Highlighted text: "`xclip -o 2>/dev/null` | sed -${E} "s,$pwd_inside_history,${SED_RED},"
-  elif [ `command -v xsel 2>/dev/null` ]; then
-    echo "Clipboard: "`xsel -ob 2>/dev/null` | sed -${E} "s,$pwd_inside_history,${SED_RED},"
-    echo "Highlighted text: "`xsel -o 2>/dev/null` | sed -${E} "s,$pwd_inside_history,${SED_RED},"
+  if [ "$(command -v xclip 2>/dev/null)" ]; then
+    echo "Clipboard: "$(xclip -o -selection clipboard 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
+    echo "Highlighted text: "$(xclip -o 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
+  elif [ "$(command -v xsel 2>/dev/null)" ]; then
+    echo "Clipboard: "$(xsel -ob 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
+    echo "Highlighted text: "$(xsel -o 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
   else echo_not_found "xsel and xclip"
   fi
   echo ""
@@ -1917,14 +1925,14 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   if [ "$PASSWORD" ]; then
     (echo "$PASSWORD" | sudo -S -l | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoB,${SED_RED},g" | sed -${E} "s,$sudoVB,${SED_RED_YELLOW},") 2>/dev/null  || echo_not_found "sudo"
   fi
-  (cat /etc/sudoers | grep -Iv "^$" | grep -v "#" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,pwfeedback,${SED_RED},g" | sed -${E} "s,$sudoVB,${SED_RED_YELLOW},") 2>/dev/null  || echo_not_found "/etc/sudoers"
+  ( grep -Iv "^$" cat /etc/sudoers | grep -v "#" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,pwfeedback,${SED_RED},g" | sed -${E} "s,$sudoVB,${SED_RED_YELLOW},") 2>/dev/null  || echo_not_found "/etc/sudoers"
   if ! [ "$IAMROOT" ] && [ -w '/etc/sudoers.d/' ]; then
     echo "You can create a file in /etc/sudoers.d/ and escalate privileges" | sed -${E} "s,.*,${SED_RED_YELLOW},"
   fi
   for filename in '/etc/sudoers.d/*'; do
     if [ -r "$filename" ]; then
       echo "Sudoers file: $filename is readable" | sed -${E} "s,.*,${SED_RED},g"
-      cat "$filename" | grep -Iv "^$" | grep -v "#" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,pwfeedback,${SED_RED},g" | sed -${E} "s,$sudoVB,${SED_RED_YELLOW},"
+      grep -Iv "^$" "$filename" | grep -v "#" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,pwfeedback,${SED_RED},g" | sed -${E} "s,$sudoVB,${SED_RED_YELLOW},"
     fi
   done
   echo ""
@@ -1932,11 +1940,11 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   #-- UI) Sudo tokens
   print_2title "Checking sudo tokens"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#reusing-sudo-tokens"
-  ptrace_scope="`cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null`"
+  ptrace_scope="$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null)"
   if [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ]; then echo "/proc/sys/kernel/yama/ptrace_scope is enabled (0)" | sed "s,0,${SED_RED},g";
   else echo "/proc/sys/kernel/yama/ptrace_scope is not enabled ($ptrace_scope)" | sed "s,is not enabled,${SED_GREEN},g";
   fi
-  is_gdb="`command -v gdb 2>/dev/null`"
+  is_gdb="$(command -v gdb 2>/dev/null)"
   if [ "$is_gdb" ]; then echo "gdb was found in PATH" | sed -${E} "s,.*,${SED_RED},g";
   else echo "gdb wasn't found in PATH" | sed "s,gdb,${SED_GREEN},g";
   fi
@@ -1956,7 +1964,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
 
   #-- UI) Doas
   print_2title "Checking doas.conf"
-  if [ "`cat /etc/doas.conf "$(dirname $(command -v doas) 2>/dev/null)/doas.conf" "$(dirname $(command -v doas) 2>/dev/null)/../etc/doas.conf" "$(dirname $(command -v doas) 2>/dev/null)/etc/doas.conf" 2>/dev/null`" ]; then cat /etc/doas.conf "$(dirname $(command -v doas))/doas.conf" "$(dirname $(command -v doas))/../etc/doas.conf" "$(dirname $(command -v doas))/etc/doas.conf" 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_RED}," | sed "s,root,${SED_RED}," | sed "s,nopass,${SED_RED}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,$USER,${SED_RED_YELLOW},"
+  if [ "$(cat /etc/doas.conf "$(dirname $(command -v doas) 2>/dev/null)/doas.conf" "$(dirname $(command -v doas) 2>/dev/null)/../etc/doas.conf" "$(dirname $(command -v doas) 2>/dev/null)/etc/doas.conf" 2>/dev/null)" ]; then cat /etc/doas.conf "$(dirname $(command -v doas))/doas.conf" "$(dirname $(command -v doas))/../etc/doas.conf" "$(dirname $(command -v doas))/etc/doas.conf" 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_RED}," | sed "s,root,${SED_RED}," | sed "s,nopass,${SED_RED}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,$USER,${SED_RED_YELLOW},"
   else echo_not_found "/etc/doas.conf"
   fi
   echo ""
@@ -1976,23 +1984,23 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   print_2title "Users with console"
   if [ "$MACPEAS" ]; then
     dscl . list /Users | while read uname; do
-      ushell=`dscl . -read "/Users/$uname" UserShell | cut -d " " -f2`
-      if [ "`grep \"$ushell\" /etc/shells`" ]; then #Shell user
+      ushell=$(dscl . -read "/Users/$uname" UserShell | cut -d " " -f2)
+      if grep -q "$ushell" /etc/shells; then #Shell user
         dscl . -read "/Users/$uname" UserShell RealName RecordName Password NFSHomeDirectory 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
         echo ""
       fi
     done
   else
-    no_shells="`cat /etc/passwd 2>/dev/null | grep -Ev "sh$" | cut -d ":" -f 7 | sort | uniq`"
+    no_shells="$(grep -Ev "sh$" /etc/passwd 2>/dev/null | cut -d ":" -f 7 | sort | uniq)"
     unexpected_shells=""
     printf "%s\n" "$no_shells" | while read f; do
-      if [ "`$f -c 'whoami' 2>/dev/null | grep \"$USER\"`" ]; then
+      if $f -c 'whoami' 2>/dev/null | grep -q "$USER"; then
         unexpected_shells="$f\n$unexpected_shells"
       fi
     done
-    cat /etc/passwd 2>/dev/null | grep "sh$" | sort | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
+    grep "sh$" /etc/passwd 2>/dev/null | sort | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
     if [ "$unexpected_shells" ]; then
-      echo "These unexpected binaries are acting like shells:\n$unexpected_shells" | sed -${E} "s,/.*,${SED_RED},g"
+      printf "%s" "These unexpected binaries are acting like shells:\n$unexpected_shells" | sed -${E} "s,/.*,${SED_RED},g"
       echo "Unexpected users with shells:"
       printf "%s\n" "$unexpected_shells" | while read f; do
         if [ "$f" ]; then
@@ -2026,11 +2034,11 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   print_2title "Last time logon each user"
   lastlog 2>/dev/null | grep -v "Never" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
   
-  EXISTS_FINGER="`command -v finger 2>/dev/null`"
+  EXISTS_FINGER="$(command -v finger 2>/dev/null)"
   if [ "$MACPEAS" ] && [ "$EXISTS_FINGER" ]; then
     dscl . list /Users | while read uname; do
-      ushell=`dscl . -read "/Users/$uname" UserShell | cut -d " " -f2`
-      if [ "`grep \"$ushell\" /etc/shells`" ]; then #Shell user
+      ushell=$(dscl . -read "/Users/$uname" UserShell | cut -d " " -f2)
+      if grep -q "$ushell" /etc/shells; then #Shell user
         finger "$uname"
         echo ""
       fi
@@ -2049,15 +2057,15 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
   fi
 
   #-- UI) Brute su
-  EXISTS_SUDO="`command -v sudo 2>/dev/null`"
+  EXISTS_SUDO="$(command -v sudo 2>/dev/null)"
   if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ] && ! [ "$IAMROOT" ] && [ "$EXISTS_SUDO" ]; then
     print_2title "Testing 'su' as other users with shell using as passwords: null pwd, the username and top2000pwds\n"$NC
-    POSSIBE_SU_BRUTE=`check_if_su_brute`;
+    POSSIBE_SU_BRUTE=$(check_if_su_brute);
     if [ "$POSSIBE_SU_BRUTE" ]; then
-      SHELLUSERS=`cat /etc/passwd 2>/dev/null | grep -i "sh$" | cut -d ":" -f 1`
+      SHELLUSERS=$(cat /etc/passwd 2>/dev/null | grep -i "sh$" | cut -d ":" -f 1)
       printf "%s\n" "$SHELLUSERS" | while read u; do
         echo "  Bruteforcing user $u..."
-        su_brute_user_num $u $PASSTRY
+        su_brute_user_num "$u" $PASSTRY
       done
     else
       printf $GREEN"It's not possible to brute-force su.\n\n"$NC
@@ -2072,7 +2080,7 @@ if [ "`echo $CHECKS | grep UsrI`" ]; then
 fi
 
 
-if [ "`echo $CHECKS | grep SofI`" ]; then
+if echo $CHECKS | grep -q SofI; then
   ###########################################
   #--------) Software Information (---------#
   ###########################################
@@ -2085,7 +2093,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Mysql connection root/root
   print_list "MySQL connection using default root/root ........... "
-  mysqlconnect=`mysqladmin -uroot -proot version 2>/dev/null`
+  mysqlconnect=$(mysqladmin -uroot -proot version 2>/dev/null)
   if [ "$mysqlconnect" ]; then
     echo "Yes" | sed -${E} "s,.*,${SED_RED},"
     mysql -u root --password=root -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
@@ -2094,7 +2102,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Mysql connection root/toor
   print_list "MySQL connection using root/toor ................... "
-  mysqlconnect=`mysqladmin -uroot -ptoor version 2>/dev/null`
+  mysqlconnect=$(mysqladmin -uroot -ptoor version 2>/dev/null)
   if [ "$mysqlconnect" ]; then
     echo "Yes" | sed -${E} "s,.*,${SED_RED},"
     mysql -u root --password=toor -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
@@ -2102,7 +2110,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   fi
 
   #-- SI) Mysql connection root/NOPASS
-  mysqlconnectnopass=`mysqladmin -uroot version 2>/dev/null`
+  mysqlconnectnopass=$(mysqladmin -uroot version 2>/dev/null)
   print_list "MySQL connection using root/NOPASS ................. "
   if [ "$mysqlconnectnopass" ]; then
     echo "Yes" | sed -${E} "s,.*,${SED_RED},"
@@ -2114,31 +2122,31 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   print_2title "Searching mysql credentials and exec"
   if [ "$PSTORAGE_MYSQL" ]; then
     printf "%s\n" "$PSTORAGE_MYSQL" | while read d; do
-      for f in `find $d -name debian.cnf 2>/dev/null`; do
-        if [ -r $f ]; then
+      for f in $(find $d -name debian.cnf 2>/dev/null); do
+        if [ -r "$f" ]; then
           echo "We can read the mysql debian.cnf. You can use this username/password to log in MySQL" | sed -${E} "s,.*,${SED_RED},"
           cat "$f"
         fi
       done
-      for f in `find $d -name user.MYD 2>/dev/null`; do
+      for f in $(find $d -name user.MYD 2>/dev/null); do
         if [ -r "$f" ]; then
           echo "We can read the Mysql Hashes from $f" | sed -${E} "s,.*,${SED_RED},"
           grep -oaE "[-_\.\*a-Z0-9]{3,}" $f | grep -v "mysql_native_password"
         fi
       done
-      for f in `grep -lr "user\s*=" $d 2>/dev/null | grep -v "debian.cnf"`; do
+      for f in $(grep -lr "user\s*=" $d 2>/dev/null | grep -v "debian.cnf"); do
         if [ -r "$f" ]; then
-          u=`cat "$f" | grep -v "#" | grep "user" | grep "=" 2>/dev/null`
+          u=$(cat "$f" | grep -v "#" | grep "user" | grep "=" 2>/dev/null)
           echo "From '$f' Mysql user: $u" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
         fi
       done
-      for f in `find $d -name my.cnf 2>/dev/null`; do
+      for f in $(find $d -name my.cnf 2>/dev/null); do
         if [ -r "$f" ]; then
           echo "Found readable $f"
-          cat "$f" | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -Iv "^$" | sed "s,password.*,${SED_RED},"
+          grep -v "^#" "$f" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -Iv "^$" | sed "s,password.*,${SED_RED},"
         fi
       done
-      mysqlexec=`whereis lib_mysqludf_sys.so 2>/dev/null | grep "lib_mysqludf_sys\.so"`
+      mysqlexec=$(whereis lib_mysqludf_sys.so 2>/dev/null | grep "lib_mysqludf_sys\.so")
       if [ "$mysqlexec" ]; then
         echo "Found $mysqlexec"
         echo "If you can login in MySQL you can execute commands doing: SELECT sys_eval('id');" | sed -${E} "s,.*,${SED_RED},"
@@ -2160,22 +2168,22 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   if [ "$TIMEOUT" ]; then  # In some OS (like OpenBSD) it will expect the password from console and will pause the script. Also, this OS doesn't have the "timeout" command so lets only use this checks in OS that has it.
   #checks to see if any postgres password exists and connects to DB 'template0' - following commands are a variant on this
     print_list "PostgreSQL connection to template0 using postgres/NOPASS ........ "
-    if [ "`timeout 1 psql -U postgres -d template0 -c 'select version()' 2>/dev/null`" ]; then echo "Yes" | sed -${E} "s,.*,${SED_RED},"
+    if [ "$(timeout 1 psql -U postgres -d template0 -c 'select version()' 2>/dev/null)" ]; then echo "Yes" | sed -${E} "s,.*,${SED_RED},"
     else echo_no
     fi
 
     print_list "PostgreSQL connection to template1 using postgres/NOPASS ........ "
-    if [ "`timeout 1 psql -U postgres -d template1 -c 'select version()' 2>/dev/null`" ]; then echo "Yes" | sed "s,.)*,${SED_RED},"
+    if [ "$(timeout 1 psql -U postgres -d template1 -c 'select version()' 2>/dev/null)" ]; then echo "Yes" | sed "s,.)*,${SED_RED},"
     else echo_no
     fi
 
     print_list "PostgreSQL connection to template0 using pgsql/NOPASS ........... "
-    if [ "`timeout 1 psql -U pgsql -d template0 -c 'select version()' 2>/dev/null`" ]; then echo "Yes" | sed -${E} "s,.*,${SED_RED},"
+    if [ "$(timeout 1 psql -U pgsql -d template0 -c 'select version()' 2>/dev/null)" ]; then echo "Yes" | sed -${E} "s,.*,${SED_RED},"
     else echo_no
     fi
 
     print_list "PostgreSQL connection to template1 using pgsql/NOPASS ........... "
-    if [ "`timeout 1 psql -U pgsql -d template1 -c 'select version()' 2> /dev/null`" ]; then echo "Yes" | sed -${E} "s,.*,${SED_RED},"
+    if [ "$(timeout 1 psql -U pgsql -d template1 -c 'select version()' 2> /dev/null)" ]; then echo "Yes" | sed -${E} "s,.*,${SED_RED},"
     else echo_no
     fi
     echo ""
@@ -2246,7 +2254,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) Wifi conns
   print_2title "Searching wifi conns file"
-  wifi=`find /etc/NetworkManager/system-connections/ -type f 2>/dev/null`
+  wifi=$(find /etc/NetworkManager/system-connections/ -type f 2>/dev/null)
   if [ "$wifi" ]; then
     printf "%s\n" "$wifi" | while read f; do echo "$f"; cat "$f" 2>/dev/null | grep "psk.*=" | sed "s,psk.*,${SED_RED},"; done
   else echo_not_found
@@ -2276,10 +2284,10 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) ssh files
   print_2title "Searching ssl/ssh files"
-  if [ "$PSTORAGE_CERTSB4" ]; then certsb4_grep=`grep -L "\"\|'\|(" $PSTORAGE_CERTSB4 2>/dev/null`; fi
-  sshconfig="`ls /etc/ssh/ssh_config 2>/dev/null`"
-  hostsdenied="`ls /etc/hosts.denied 2>/dev/null`"
-  hostsallow="`ls /etc/hosts.allow 2>/dev/null`"
+  if [ "$PSTORAGE_CERTSB4" ]; then certsb4_grep=$(grep -L "\"\|'\|(" $PSTORAGE_CERTSB4 2>/dev/null); fi
+  sshconfig="$(ls /etc/ssh/ssh_config 2>/dev/null)"
+  hostsdenied="$(ls /etc/hosts.denied 2>/dev/null)"
+  hostsallow="$(ls /etc/hosts.allow 2>/dev/null)"
 
     print_2title "Analyzing SSH Files (limit 70)"
     if ! [ "`echo \"$PSTORAGE_SSH\" | grep -E \"id_dsa.*$\"`" ]; then echo_not_found "id_dsa*"; fi; printf "%s" "$PSTORAGE_SSH" | grep -E "id_dsa.*$" | while read f; do ls -ld "$f" | sed -${E} "s,id_dsa.*$,${SED_RED},"; cat "$f" 2>/dev/null | grep -IEv "^$"; done; echo "";
@@ -2292,13 +2300,13 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   grep "PermitRootLogin \|ChallengeResponseAuthentication \|PasswordAuthentication \|UsePAM \|Port\|PermitEmptyPasswords\|PubkeyAuthentication\|ListenAddress\|ForwardAgent\|AllowAgentForwarding\|AuthorizedKeysFiles" /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | sed -${E} "s,PermitRootLogin.*es|PermitEmptyPasswords.*es|ChallengeResponseAuthentication.*es|FordwardAgent.*es,${SED_RED},"
 
   if [ "$TIMEOUT" ]; then
-    privatekeyfilesetc=`timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /etc 2>/dev/null`
-    privatekeyfileshome=`timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' $HOMESEARCH 2>/dev/null`
-    privatekeyfilesroot=`timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /root 2>/dev/null`
-    privatekeyfilesmnt=`timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /mnt 2>/dev/null`
+    privatekeyfilesetc=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /etc 2>/dev/null)
+    privatekeyfileshome=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' $HOMESEARCH 2>/dev/null)
+    privatekeyfilesroot=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /root 2>/dev/null)
+    privatekeyfilesmnt=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /mnt 2>/dev/null)
   else
-    privatekeyfilesetc=`grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /etc 2>/dev/null` #If there is tons of files linpeas gets frozen here without a timeout
-    privatekeyfileshome=`grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' $HOME/.ssh 2>/dev/null`
+    privatekeyfilesetc=$(grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /etc 2>/dev/null) #If there is tons of files linpeas gets frozen here without a timeout
+    privatekeyfileshome=$(grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' $HOME/.ssh 2>/dev/null)
   fi
 
   if [ "$privatekeyfilesetc" ] || [ "$privatekeyfileshome" ] || [ "$privatekeyfilesroot" ] || [ "$privatekeyfilesmnt" ] ; then
@@ -2310,7 +2318,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     if [ "$privatekeyfilesmnt" ]; then printf "$privatekeyfilesmnt\n" | sed -${E} "s,.*,${SED_RED},"; fi
     echo ""
   fi
-  if [ "$certsb4_grep" ] || [ "$$PSTORAGE_CERTSBIN" ]; then
+  if [ "$certsb4_grep" ] || [ "$PSTORAGE_CERTSBIN" ]; then
     print_3title "Some certificates were found (out limited):"
     printf "$certsb4_grep\n" | head -n 20
     printf "$$PSTORAGE_CERTSBIN\n" | head -n 20
@@ -2326,7 +2334,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
     printf "$PSTORAGE_SSH_AGENTS\n"
     echo ""
   fi
-  if [ "`ssh-add -l 2>/dev/null | grep -v 'no identities'`" ]; then
+  if ssh-add -l 2>/dev/null | grep -qv 'no identities'; then
     print_3title "Listing SSH Agents"
     ssh-add -l
     echo ""
@@ -2351,15 +2359,15 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   if [ "$sshconfig" ]; then
     echo ""
     echo "Searching inside /etc/ssh/ssh_config for interesting info"
-    cat /etc/ssh/ssh_config 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -Iv "^$" | sed -${E} "s,Host|ForwardAgent|User|ProxyCommand,${SED_RED},"
+    grep -v "^#" /etc/ssh/ssh_config 2>/dev/null | grep -Ev "\W+\#|^#" 2>/dev/null | grep -Iv "^$" | sed -${E} "s,Host|ForwardAgent|User|ProxyCommand,${SED_RED},"
   fi
   echo ""
 
   #-- SI) PAM auth
   print_2title "Searching unexpected auth lines in /etc/pam.d/sshd"
-  pamssh=`cat /etc/pam.d/sshd 2>/dev/null | grep -v "^#\|^@" | grep -i auth`
+  pamssh=$(grep -v "^#\|^@" /etc/pam.d/sshd 2>/dev/null | grep -i auth)
   if [ "$pamssh" ]; then
-    cat /etc/pam.d/sshd 2>/dev/null | grep -v "^#\|^@" | grep -i auth | sed -${E} "s,.*,${SED_RED},"
+    grep -v "^#\|^@" /etc/pam.d/sshd 2>/dev/null | grep -i auth | sed -${E} "s,.*,${SED_RED},"
   else echo_no
   fi
   echo ""
@@ -2367,7 +2375,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) NFS exports
   print_2title "NFS exports?"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/nfs-no_root_squash-misconfiguration-pe"
-  if [ "`cat /etc/exports 2>/dev/null`" ]; then cat /etc/exports 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | sed -${E} "s,no_root_squash|no_all_squash ,${SED_RED_YELLOW}," | sed -${E} "s,insecure,${SED_RED},"
+  if [ "$(cat /etc/exports 2>/dev/null)" ]; then grep -v "^#" /etc/exports 2>/dev/null | grep -Ev "\W+\#|^#" 2>/dev/null | sed -${E} "s,no_root_squash|no_all_squash ,${SED_RED_YELLOW}," | sed -${E} "s,insecure,${SED_RED},"
   else echo_not_found "/etc/exports"
   fi
   echo ""
@@ -2375,31 +2383,31 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) Kerberos
   print_2title "Searching kerberos conf files and tickets"
   print_info "https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88#pass-the-ticket-ptt"
-  kadmin_exists="`command -v kadmin`"
-  klist_exists="`command -v klist`"
+  kadmin_exists="$(command -v kadmin)"
+  klist_exists="$(command -v klist)"
   if [ "$kadmin_exists" ]; then echo "kadmin was found on $kadmin_exists" | sed "s,$kadmin_exists,${SED_RED},"; fi
   if [ "$klist_exists" ] && [ -x "$klist_exists" ]; then echo "klist execution"; klist; fi
 
   printf "%s\n" "$PSTORAGE_KERBEROS" | while read f; do
     if [ -r "$f" ]; then
-      if [ "`echo \"$f\" | grep .k5login`" ]; then
+      if echo "$f" | grep -q .k5login; then
         echo ".k5login file (users with access to the user who has this file in his home)"
         cat "$f" 2>/dev/null | sed -${E} "s,.*,${SED_RED},g"
-      elif [ "`echo \"$f\" | grep keytab`" ]; then
+      elif echo "$f" | grep -q keytab; then
         echo ""
         echo "keytab file found, you may be able to impersonate some kerberos principals and add users or modify passwords"
         klist -k "$f" 2>/dev/null | sed -${E} "s,.*,${SED_RED},g"
-        printf "`klist -k \"$f\" 2>/dev/null`\n" | awk '{print $2}' | while read l; do
-          if [ "$l" ] && [ "`echo \"$l\" | grep \"@\"`"  ]; then
+        printf "$(klist -k \"$f\" 2>/dev/null)\n" | awk '{print $2}' | while read l; do
+          if [ "$l" ] && echo "$l" | grep -q "@"; then
             printf "$ITALIC  --- Impersonation command: ${NC}kadmin -k -t /etc/krb5.keytab -p \"$l\"\n" | sed -${E} "s,$l,${SED_RED},g"
             #kadmin -k -t /etc/krb5.keytab -p "$l" -q getprivs 2>/dev/null #This should show the permissions of each impersoanted user, the thing is that in a test it showed that every user had the same permissions (even if they didn't). So this test isn't valid
             #We could also try to create a new user or modify a password, but I'm not user if linpeas should do that
           fi
         done
-      elif [ "`echo \"$f\" | grep krb5.conf`" ]; then
+      elif echo "$f" | grep -q krb5.conf; then
         ls -l "$f"
         cat "$f" 2>/dev/null | grep default_ccache_name | sed -${E} "s,default_ccache_name,${SED_RED},";
-      elif [ "`echo \"$f\" | grep kadm5.acl`" ]; then
+      elif echo "$f" | grep -q kadm5.acl; then
         ls -l "$f"
         cat "$f" 2>/dev/null
       fi
@@ -2451,7 +2459,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   echo ""
 
   #-- SI) Cached AD Hashes
-  adhashes=`ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null`
+  adhashes=$(ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null)
   print_2title "Searching AD cached hashes"
   if [ "$adhashes" ]; then
     ls -l "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null
@@ -2462,7 +2470,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   #-- SI) Screen sessions
   print_2title "Searching screen sessions"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-shell-sessions"
-  screensess=`screen -ls 2>/dev/null`
+  screensess=$(screen -ls 2>/dev/null)
   if [ "$screensess" ]; then
     printf "$screensess" | sed -${E} "s,.*,${SED_RED}," | sed -${E} "s,No Sockets found.*,${C}[32m&${C}[0m,"
   else echo_not_found "screen"
@@ -2470,8 +2478,8 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   echo ""
 
   #-- SI) Tmux sessions
-  tmuxdefsess=`tmux ls 2>/dev/null`
-  tmuxnondefsess=`ps auxwww | grep "tmux " | grep -v grep`
+  tmuxdefsess=$(tmux ls 2>/dev/null)
+  tmuxnondefsess=$(ps auxwww | grep "tmux " | grep -v grep)
   print_2title "Searching tmux sessions"$N
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-shell-sessions"
   if [ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ]; then
@@ -2570,7 +2578,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   ##-- SI) passwd files (splunk)
   print_2title "Searching uncommon passwd files (splunk)"
-  SPLUNK_BIN="`command -v splunk 2>/dev/null`"
+  SPLUNK_BIN="$(command -v splunk 2>/dev/null)"
   if [ "$SPLUNK_BIN" ]; then echo "splunk binary was found installed on $SPLUNK_BIN" | sed "s,.*,${SED_RED},"; fi
   printf "%s\n" "$PSTORAGE_SPLUNK" | sort | uniq | while read f; do
     if [ -f "$f" ] && ! [ -x "$f" ]; then
@@ -2580,30 +2588,38 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   done
   echo ""
 
+  print_2title "Analyzing kcpassword files"
+  print_info "TODO"
+  printf "%s\n" "$PSTORAGE_KCPASSWORD\n" | while read f; do
+    echo "$f" | sed -${E} "s,.*,${SED_RED},"
+    base64 "$f" 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
+  done
+  echo ""
+
   ##-- SI) Gitlab
   print_2title "Searching GitLab related files"
   #Check gitlab-rails
-  if [ "`command -v gitlab-rails`" ]; then
+  if [ "$(command -v gitlab-rails)" ]; then
     echo "gitlab-rails was found. Trying to dump users..."
     gitlab-rails runner 'User.where.not(username: "peasssssssss").each { |u| pp u.attributes }' | sed -${E} "s,email|password,${SED_RED},"
     echo "If you have enough privileges, you can make an account under your control administrator by running: gitlab-rails runner 'user = User.find_by(email: \"youruser@example.com\"); user.admin = TRUE; user.save!'"
     echo "Alternatively, you could change the password of any user by running: gitlab-rails runner 'user = User.find_by(email: \"admin@example.com\"); user.password = \"pass_peass_pass\"; user.password_confirmation = \"pass_peass_pass\"; user.save!'"
     echo ""
   fi
-  if [ "`command -v gitlab-backup`" ]; then
+  if [ "$(command -v gitlab-backup)" ]; then
     echo "If you have enough privileges, you can create a backup of all the repositories inside gitlab using 'gitlab-backup create'"
     echo "Then you can get the plain-text with something like 'git clone \@hashed/19/23/14348274[...]38749234.bundle'"
     echo ""
   fi
   #Check gitlab files
   printf "%s\n" "$PSTORAGE_GITLAB" | sort | uniq | while read f; do
-    if [ "`echo $f | grep secrets.yml`" ]; then
+    if echo $f | grep -q secrets.yml; then
       echo "Found $f" | sed "s,$f,${SED_RED},"
       cat "$f" 2>/dev/null | grep -Iv "^$" | grep -v "^#"
-    elif [ "`echo $f | grep gitlab.yml`" ]; then
+    elif echo $f | grep -q gitlab.yml; then
       echo "Found $f" | sed "s,$f,${SED_RED},"
       cat "$f" | grep -A 4 "repositories:"
-    elif [ "`echo $f | grep gitlab.rb`" ]; then
+    elif echo $f | grep -q gitlab.rb; then
       echo "Found $f" | sed "s,$f,${SED_RED},"
       cat "$f" | grep -Iv "^$" | grep -v "^#" | sed -${E} "s,email|user|password,${SED_RED},"
     fi
@@ -2639,7 +2655,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) containerd installed
   print_2title "Checking if containerd(ctr) is available"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/containerd-ctr-privilege-escalation"
-  containerd=`command -v ctr`
+  containerd=$(command -v ctr)
   if [ "$containerd" ]; then
     echo "ctr was found in $containerd, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"
     ctr image list
@@ -2649,7 +2665,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   ##-- SI) runc installed
   print_2title "Checking if runc is available"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/runc-privilege-escalation"
-  runc=`command -v runc`
+  runc=$(command -v runc)
   if [ "$runc" ]; then
     echo "runc was found in $runc, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"
   fi
@@ -2683,7 +2699,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) S/Key athentication
   print_2title "S/Key authentication"
-  if [ "`grep auth= /etc/login.conf 2>/dev/null | grep -v \"^#\" | grep skey`" ]; then
+  if grep auth= /etc/login.conf 2>/dev/null | grep -v \"^#\" | grep -q skey; then
     printf "System supports$RED S/Key$NC authentication\n"
     if ! [ -d /etc/skey/ ]; then
       echo "${GREEN}S/Key authentication enabled, but has not been initialized"
@@ -2698,7 +2714,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 
   #-- SI) YubiKey athentication
   print_2title "YubiKey authentication"
-  if [ "`grep auth= /etc/login.conf 2>/dev/null | grep -v \"^#\" | grep yubikey`" ]; then
+  if grep auth= /etc/login.conf 2>/dev/null | grep -v \"^#\" | grep -q yubikey; then
     printf "System supports$RED YubiKey$NC authentication\n"
     if ! [ "$IAMROOT" ] && [ -w /var/db/yubikey/ ]; then
       echo "${RED}/var/db/yubikey/ is writable by you"
@@ -2855,7 +2871,7 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
 fi
 
 
-if [ "`echo $CHECKS | grep IntFiles`" ]; then
+if echo $CHECKS | grep -q IntFiles; then
   ###########################################
   #----------) Interesting files (----------#
   ###########################################
@@ -2872,9 +2888,9 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   fi
   find / -perm -4000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
-    if [ "`echo \"$s\" | grep -E \"^total\"`" ]; then break; fi
+    if echo "$s" | grep -qE "^total"; then break; fi
 
-    sname="`echo \"$s\" | awk '{print $9}'`"
+    sname="$(echo \"$s\" | awk '{print $9}')"
     if [ "$sname" = "."  ] || [ "$sname" = ".."  ]; then
       true #Don't do nothing
     elif ! [ "$IAMROOT" ] && [ -O "$sname" ]; then
@@ -2884,28 +2900,28 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     else
       c="a"
       for b in $sidB; do
-        if [ "`echo $s | grep $(echo $b | cut -d % -f 1)`" ]; then
+        if echo $s | grep -q $(echo $b | cut -d % -f 1); then
           echo "$s" | sed -${E} "s,$(echo $b | cut -d % -f 1),${C}[1;31m&  --->  $(echo $b | cut -d % -f 2)${C}[0m,"
           c=""
           break;
         fi
       done;
       if [ "$c" ]; then
-        if [ "`echo \"$s\" | grep -E \"$sidG1\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG2\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG3\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG4\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB2\"`" ]; then
+        if echo \"$s\" | grep -qE "$sidG1" || echo "$s" | grep -qE "$sidG2" || echo "$s" | grep -qE "$sidG3" || echo "$s" | grep -qE "$sidG4" || echo "$s" | grep -qE "$sidVB" || echo "$s" | grep -qE "$sidVB2"; then
           echo "$s" | sed -${E} "s,$sidG1,${SED_GREEN}," | sed -${E} "s,$sidG2,${SED_GREEN}," | sed -${E} "s,$sidG3,${SED_GREEN}," | sed -${E} "s,$sidG4,${SED_GREEN}," | sed -${E} "s,$sidVB,${SED_RED_YELLOW}," | sed -${E} "s,$sidVB2,${SED_RED_YELLOW},"
         else
           echo "$s (Unknown SUID binary)" | sed -${E} "s,/.*,${SED_RED},"
           printf $ITALIC
           if [ "$STRINGS" ]; then
             $STRINGS "$sname" 2>/dev/null | sort | uniq | while read sline; do
-              sline_first="`echo \"$sline\" | cut -d ' ' -f1`"
-              if [ "`echo \"$sline_first\" | grep -Ev \"$cfuncs\"`" ]; then
-                if [ "`echo \"$sline_first\" | grep \"/\"`" ] && [ -f "$sline_first" ]; then #If a path
+              sline_first="$(echo \"$sline\" | cut -d ' ' -f1)"
+              if echo "$sline_first" | grep -qEv "$cfuncs"; then
+                if echo "$sline_first" | grep -q "/" && [ -f "$sline_first" ]; then #If a path
                   if [ -O "$sline_first" ] || [ -w "$sline_first" ]; then #And modifiable
                     printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is using $RED$sline_first$NC$ITALIC and you can modify it (strings line: $sline) (https://tinyurl.com/suidpath)\n"
                   fi
                 else #If not a path
-                  if [ ${#sline_first} -gt 2 ] && [ "`command -v \"$sline_first\" 2>/dev/null | grep '/' `" ] && [ "`echo \"$sline_first\" | grep -v \"..\" `" ]; then #Check if existing binary
+                  if [ ${#sline_first} -gt 2 ] && command -v "$sline_first" 2>/dev/null | grep -q '/' && echo "$sline_first" | grep -qv ".."; then #Check if existing binary
                     printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is executing $RED$sline_first$NC$ITALIC and you can impersonate it (strings line: $sline) (https://tinyurl.com/suidpath)\n"
                   fi
                 fi
@@ -2933,9 +2949,9 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid"
   find / -perm -2000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
-    if [ "`echo \"$s\" | grep -E \"^total\"`" ];then break; fi
+    if echo "$s" | grep -qE "^total";then break; fi
 
-    sname="`echo \"$s\" | awk '{print $9}'`"
+    sname="$(echo \"$s\" | awk '{print $9}')"
     if [ "$sname" = "."  ] || [ "$sname" = ".."  ]; then
       true #Don't do nothing
     elif ! [ "$IAMROOT" ] && [ -O "$sname" ]; then
@@ -2945,38 +2961,38 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     else
       c="a"
       for b in $sidB; do
-        if [ "`echo \"$s\" | grep $(echo \"$b\" | cut -d % -f 1)`" ]; then
+        if echo "$s" | grep -q $(echo \"$b\" | cut -d % -f 1); then
           echo "$s" | sed -${E} "s,$(echo \"$b\" | cut -d % -f 1),${C}[1;31m&  --->  $(echo $b | cut -d % -f 2)${C}[0m,"
           c=""
           break;
         fi
       done;
       if [ "$c" ]; then
-        if [ "`echo \"$s\" | grep -E \"$sidG1\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG2\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG3\"`" ] || [ "`echo \"$s\" | grep -E \"$sidG4\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB\"`" ] || [ "`echo \"$s\" | grep -E \"$sidVB2\"`" ]; then
+        if echo "$s" | grep -qE "$sidG1" || echo "$s" | grep -qE "$sidG2" || echo "$s" | grep -qE "$sidG3" || echo "$s" | grep -qE "$sidG4" || echo "$s" | grep -qE "$sidVB" || echo "$s" | grep -qE "$sidVB2"; then
           echo "$s" | sed -${E} "s,$sidG1,${SED_GREEN}," | sed -${E} "s,$sidG2,${SED_GREEN}," | sed -${E} "s,$sidG3,${SED_GREEN}," | sed -${E} "s,$sidG4,${SED_GREEN}," | sed -${E} "s,$sidVB,${SED_RED_YELLOW}," | sed -${E} "s,$sidVB2,${SED_RED_YELLOW},"
         else
           echo "$s (Unknown SGID binary)" | sed -${E} "s,/.*,${SED_RED},"
           printf $ITALIC
           if [ "$STRINGS" ]; then
             $STRINGS "$sname" | sort | uniq | while read sline; do
-              sline_first="`echo \"$sline\" | cut -d ' ' -f1`"
-              if [ "`echo \"$sline_first\" | grep -Ev \"$cfuncs\"`" ]; then
-                if [ "`echo \"$sline_first\" | grep \"/\"`" ] && [ -f "$sline_first" ]; then #If a path
+              sline_first="$(echo \"$sline\" | cut -d ' ' -f1)"
+              if echo "$sline_first" | grep -qEv "$cfuncs"; then
+                if echo "$sline_first" | grep -q "/" && [ -f "$sline_first" ]; then #If a path
                   if [ -O "$sline_first" ] || [ -w "$sline_first" ]; then #And modifiable
                     printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is using $RED$sline_first$NC$ITALIC and you can modify it (strings line: $sline)\n"
                   fi
                 else #If not a path
-                  if [ ${#sline_first} -gt 2 ] && [ "`command -v \"$sline_first\" 2>/dev/null | grep '/' `" ]; then #Check if existing binary
+                  if [ ${#sline_first} -gt 2 ] && command -v "$sline_first" 2>/dev/null | grep -q '/'; then #Check if existing binary
                     printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is executing $RED$sline_first$NC$ITALIC and you can impersonate it (strings line: $sline)\n"
                   fi
                 fi
               fi
             done
             if [ "$TIMEOUT" ] && [ "$STRACE" ] && [ ! "$SUPERFAST" ]; then
-              printf $ITALIC
+              printf "$ITALIC"
               echo "  --- Trying to execute $sname with strace in order to look for hijackable libraries..."
               timeout 2 "$STRACE" "$sname" 2>&1 | grep -i -E "open|access|no such file" | sed -${E} "s,open|access|No such file,${SED_RED}$ITALIC,g"
-              printf $NC
+              printf "$NC"
               echo ""
             fi
           fi
@@ -2992,10 +3008,10 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   printf $ITALIC"/etc/ld.so.conf\n"$NC;
   cat /etc/ld.so.conf 2>/dev/null | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
   cat /etc/ld.so.conf 2>/dev/null | while read l; do
-    if [ "`echo \"$l\" | grep include`" ]; then
-      ini_path="`echo \"$l\" | cut -d " " -f 2`"
-      fpath="`dirname \"$ini_path\"`"
-      if [ "`find \"$fpath\" -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find \"$fpath\" -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if echo "$l" | grep -q include; then
+      ini_path="$(echo \"$l\" | cut -d " " -f 2)"
+      fpath="$(dirname \"$ini_path\")"
+      if [ "$(find \"$fpath\" -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find \"$fpath\" -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
       printf $ITALIC"$fpath\n"$NC | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
       for f in $fpath/*; do
         printf $ITALIC"  $f\n"$NC | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
@@ -3013,13 +3029,13 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   (cat "/proc/$$/status" | grep Cap | sed -${E} "s,.*0000000000000000|CapBnd:	0000003fffffffff,${SED_GREEN},") 2>/dev/null || echo_not_found "/proc/$$/status"
   echo ""
   echo "Shell capabilities:"
-  (capsh --decode=0x"`cat \"/proc/$PPID/status\" 2>/dev/null | grep \"CapEff\" | awk '{print $2}'`" 2>/dev/null) || echo_not_found "capsh"
+  (capsh --decode=0x"$(cat \"/proc/$PPID/status\" 2>/dev/null | grep \"CapEff\" | awk '{print $2}')" 2>/dev/null) || echo_not_found "capsh"
   (cat "/proc/$PPID/status" | grep Cap | sed -${E} "s,.*0000000000000000|CapBnd:	0000003fffffffff,${SED_GREEN},") 2>/dev/null || echo_not_found "/proc/$PPID/status"
   echo ""
   echo "Files with capabilities (limited to 50):"
   getcap -r / 2>/dev/null | head -n 50 | while read cb; do
     echo "$cb" | sed -${E} "s,$sudocapsB,${SED_RED}," | sed -${E} "s,$capsB,${SED_RED},"
-    if ! [ "$IAMROOT" ] && [ -w "`echo \"$cb\" | cut -d \" \" -f1`" ]; then
+    if ! [ "$IAMROOT" ] && [ -w "$(echo \"$cb\" | cut -d \" \" -f1)" ]; then
       echo "$cb is writable" | sed -${E} "s,.*,${SED_RED},"
     fi
   done
@@ -3037,9 +3053,9 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) Files with ACLs
   print_2title "Files with ACLs (limited to 50)"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#acls"
-  ((getfacl -t -s -R -p /bin /etc $HOMESEARCH /opt /sbin /usr /tmp /root 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | head -n 70 | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED},"
+  ( (getfacl -t -s -R -p /bin /etc $HOMESEARCH /opt /sbin /usr /tmp /root 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | head -n 70 | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED},"
   
-  if [ "$MACPEAS" ] && ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && ! [ "`command -v getfacl`" ]; then  #Find ACL files in macos (veeeery slow)
+  if [ "$MACPEAS" ] && ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && ! [ "$(command -v getfacl)" ]; then  #Find ACL files in macos (veeeery slow)
     ls -RAle / 2>/dev/null | grep -v "group:everyone deny delete" | grep -E -B1 "\d: " | head -n 70 | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED},"
   fi
   echo ""
@@ -3056,7 +3072,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   print_2title ".sh files in path"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#script-binaries-in-path"
   echo $PATH | tr ":" "\n" | while read d; do
-    for f in `find "$d" -name "*.sh" 2>/dev/null`; do
+    for f in $(find "$d" -name "*.sh" 2>/dev/null); do
       if ! [ "$IAMROOT" ] && [ -O "$f" ]; then
         echo "You own the script: $f" | sed -${E} "s,.*,${SED_RED},"
       elif ! [ "$IAMROOT" ] && [ -w "$f" ]; then #If write permision, win found (no check exploits)
@@ -3089,7 +3105,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     (ls -la /etc/profile.d/ 2>/dev/null | sed -${E} "s,$profiledG,${SED_GREEN},") || echo_not_found "/etc/profile.d/"
     if ! [ "$IAMROOT" ] && [ -w "/etc/profile" ]; then echo "You can modify /etc/profile" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
     if ! [ "$IAMROOT" ] && [ -w "/etc/profile.d/" ]; then echo "You have write privileges over /etc/profile.d/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if ! [ "$IAMROOT" ] && [ "`find /etc/profile.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/profile.d/ '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "$(find /etc/profile.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /etc/profile.d/ '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
   fi
   echo ""
 
@@ -3098,25 +3114,25 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#init-init-d-systemd-and-rc-d"
   if [ ! "$MACPEAS" ]; then #Those folders don´t exist on a MacOS
     if ! [ "$IAMROOT" ] && [ -w "/etc/init/" ]; then echo "You have write privileges over /etc/init/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if ! [ "$IAMROOT" ] && [ "`find /etc/init/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/init/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "$(find /etc/init/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /etc/init/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
     if ! [ "$IAMROOT" ] && [ -w "/etc/init.d/" ]; then echo "You have write privileges over /etc/init.d/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if ! [ "$IAMROOT" ] && [ "`find /etc/init.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/init.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "$(find /etc/init.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /etc/init.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
     if ! [ "$IAMROOT" ] && [ -w "/etc/rc.d/init.d" ]; then echo "You have write privileges over /etc/rc.d/init.d" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if ! [ "$IAMROOT" ] && [ "`find /etc/rc.d/init.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d/init.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "$(find /etc/rc.d/init.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /etc/rc.d/init.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
     if ! [ "$IAMROOT" ] && [ -w "/usr/local/etc/rc.d" ]; then echo "You have write privileges over /usr/local/etc/rc.d" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if ! [ "$IAMROOT" ] && [ "`find /usr/local/etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /usr/local/etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "$(find /usr/local/etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /usr/local/etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
     if ! [ "$IAMROOT" ] && [ -w "/etc/rc.d" ]; then echo "You have write privileges over /etc/rc.d" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if ! [ "$IAMROOT" ] && [ "`find /etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "$(find /etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
     if ! [ "$IAMROOT" ] && [ -w "/etc/systemd/" ]; then echo "You have write privileges over /etc/systemd/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if ! [ "$IAMROOT" ] && [ "`find /etc/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /etc/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "$(find /etc/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /etc/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
     if ! [ "$IAMROOT" ] && [ -w "/lib/systemd/" ]; then echo "You have write privileges over /lib/systemd/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-    if ! [ "$IAMROOT" ] && [ "`find /lib/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges over `find /lib/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'`" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+    if ! [ "$IAMROOT" ] && [ "$(find /lib/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /lib/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
   fi
   echo ""
 
   ##-- IF) Hashes in passwd file
   print_list "Hashes inside passwd file? ........... "
-  if [ "`grep -v '^[^:]*:[x\*\!]\|^#\|^$' /etc/passwd /etc/master.passwd /etc/group 2>/dev/null`" ]; then grep -v '^[^:]*:[x\*]\|^#\|^$' /etc/passwd /etc/pwd.db /etc/master.passwd /etc/group 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
+  if grep -qv '^[^:]*:[x\*\!]\|^#\|^$' /etc/passwd /etc/master.passwd /etc/group; then grep -v '^[^:]*:[x\*]\|^#\|^$' /etc/passwd /etc/pwd.db /etc/master.passwd /etc/group 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
   else echo_no
   fi
 
@@ -3130,15 +3146,21 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Credentials in fstab
   print_list "Credentials in fstab/mtab? ........... "
-  if [ "`grep -E "(user|username|login|pass|password|pw|credentials)[=:]" /etc/fstab /etc/mtab 2>/dev/null`" ]; then grep -E "(user|username|login|pass|password|pw|credentials)[=:]" /etc/fstab /etc/mtab 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
+  if grep -qE "(user|username|login|pass|password|pw|credentials)[=:]" /etc/fstab /etc/mtab 2>/dev/null; then grep -E "(user|username|login|pass|password|pw|credentials)[=:]" /etc/fstab /etc/mtab 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
   else echo_no
   fi
 
   ##-- IF) Read shadow files
   print_list "Can I read shadow files? ............. "
-  if [ "`cat /etc/shadow /etc/shadow- /etc/shadow~ /etc/gshadow /etc/gshadow- /etc/master.passwd /etc/spwd.db 2>/dev/null`" ]; then cat /etc/shadow /etc/shadow- /etc/shadow~ /etc/gshadow /etc/gshadow- /etc/master.passwd /etc/spwd.db 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
+  if [ "$(cat /etc/shadow /etc/shadow- /etc/shadow~ /etc/gshadow /etc/gshadow- /etc/master.passwd /etc/spwd.db 2>/dev/null)" ]; then cat /etc/shadow /etc/shadow- /etc/shadow~ /etc/gshadow /etc/gshadow- /etc/master.passwd /etc/spwd.db 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
   else echo_no
   fi
+
+  print_list "Can I read shadow plists? ............ "
+  (for l in /var/db/dslocal/nodes/Default/users/*; do if [ -r "$l" ];then echo "$l"; defaults read "$l"; fi; done) 2>/dev/null || echo_no
+
+  print_list "Can I write shadow plists? ........... "
+  (for l in /var/db/dslocal/nodes/Default/users/*; do if [ -w "$l" ];then echo "$l"; fi; done) 2>/dev/null || echo_no
 
   ##-- IF) Read opasswd file
   print_list "Can I read opasswd file? ............. "
@@ -3149,7 +3171,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   ##-- IF) network-scripts
   print_list "Can I write in network-scripts? ...... "
   if ! [ "$IAMROOT" ] && [ -w "/etc/sysconfig/network-scripts/" ]; then echo "You have write privileges on /etc/sysconfig/network-scripts/" | sed -${E} "s,.*,${SED_RED_YELLOW},"
-  elif [ "`find /etc/sysconfig/network-scripts/ '(' -not -type l -and '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' ')' 2>/dev/null`" ]; then echo "You have write privileges on `find /etc/sysconfig/network-scripts/ '(' -not -type l -and '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' ')' 2>/dev/null`" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+  elif [ "$(find /etc/sysconfig/network-scripts/ '(' -not -type l -and '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges on $(find /etc/sysconfig/network-scripts/ '(' -not -type l -and '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' ')' 2>/dev/null)" | sed -${E} "s,.*,${SED_RED_YELLOW},"
   else echo_no
   fi
 
@@ -3187,13 +3209,13 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#logrotate-exploitation"
   logrotate --version 2>/dev/null || echo_not_found "logrotate"
   lastWlogFolder="ImPOsSiBleeElastWlogFolder"
-  logfind=`find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 3){ print line_init; }; if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; pre=act}' | head -n 100`
+  logfind=$(find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 3){ print line_init; }; if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; pre=act}' | head -n 100)
   printf "%s\n" "$logfind" | while read log; do
-    if ! [ "$IAMROOT" ] && [ "$log" ] && [ -w "$log" ] || ! [ "$IAMROOT" ] && [ "`echo \"$log\" | grep -E \"$Wfolders\"`" ]; then #Only print info if something interesting found
-      if [ "`echo \"$log\" | grep \"You_can_write_more_log_files_inside_last_directory\"`" ]; then printf $ITALIC"$log\n"$NC;
-      elif ! [ "$IAMROOT" ] && [ -w "$log" ] && [ "`command -v logrotate 2>/dev/null`" ] && [ "`logrotate --version 2>&1 | grep -E ' 1| 2| 3.1'`" ]; then printf "Writable:$RED $log\n"$NC; #Check vuln version of logrotate is used and print red in that case
+    if ! [ "$IAMROOT" ] && [ "$log" ] && [ -w "$log" ] || ! [ "$IAMROOT" ] && echo "$log" | grep -qE "$Wfolders"; then #Only print info if something interesting found
+      if echo "$log" | grep -q "You_can_write_more_log_files_inside_last_directory"; then printf $ITALIC"$log\n"$NC;
+      elif ! [ "$IAMROOT" ] && [ -w "$log" ] && [ "$(command -v logrotate 2>/dev/null)" ] && logrotate --version 2>&1 | grep -qE ' 1| 2| 3.1'; then printf "Writable:$RED $log\n"$NC; #Check vuln version of logrotate is used and print red in that case
       elif ! [ "$IAMROOT" ] && [ -w "$log" ]; then echo "Writable: $log";
-      elif ! [ "$IAMROOT" ] && [ "`echo \"$log\" | grep -E \"$Wfolders\"`" ] && [ "$log" ] && [ ! "$lastWlogFolder" == "$log" ]; then lastWlogFolder="$log"; echo "Writable folder: $log" | sed -${E} "s,$Wfolders,${SED_RED},g";
+      elif ! [ "$IAMROOT" ] && echo "$log" | grep -qE "$Wfolders" && [ "$log" ] && [ ! "$lastWlogFolder" == "$log" ]; then lastWlogFolder="$log"; echo "Writable folder: $log" | sed -${E} "s,$Wfolders,${SED_RED},g";
       fi
     fi
   done
@@ -3230,7 +3252,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Backup files
   print_2title "Backup files (limited 100)"
-  backs=`find / -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*\.bak\.*" -o -name "*\.bck" -o -name "*\.bck\.*" -o -name "*\.bk" -o -name "*\.bk\.*" -o -name "*\.old" -o -name "*\.old\.*" \) -not -path "/proc/*" 2>/dev/null`
+  backs=$(find / -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*\.bak\.*" -o -name "*\.bck" -o -name "*\.bck\.*" -o -name "*\.bk" -o -name "*\.bk\.*" -o -name "*\.old" -o -name "*\.old\.*" \) -not -path "/proc/*" 2>/dev/null)
   printf "%s\n" "$backs" | head -n 100 | while read b ; do
     if [ -r "$b" ]; then
       ls -l "$b" | grep -Ev "$notBackup" | grep -Ev "$notExtensions" | sed -${E} "s,backup|bck|\.bak|\.old,${SED_RED},g";
@@ -3240,25 +3262,25 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) DB files
   print_2title "Searching tables inside readable .db/.sql/.sqlite files (limit 100)"
-  FILECMD="`command -v file 2>/dev/null`"
+  FILECMD="$(command -v file 2>/dev/null)"
   if [ "$PSTORAGE_DATABASE" ]; then
     printf "%s\n" "$PSTORAGE_DATABASE" | while read f; do
       if [ "$FILECMD" ]; then
-        echo "Found: `file \"$f\"`" | sed -${E} "s,\.db|\.sql|\.sqlite|\.sqlite3,${SED_RED},g";
+        echo "Found: $(file \"$f\")" | sed -${E} "s,\.db|\.sql|\.sqlite|\.sqlite3,${SED_RED},g";
       else
         echo "Found: $f" | sed -${E} "s,\.db|\.sql|\.sqlite|\.sqlite3,${SED_RED},g";
       fi
     done
     SQLITEPYTHON=""
     printf "%s\n" "$PSTORAGE_DATABASE" | while read f; do
-      if ([ -r "$f" ] && [ "$FILECMD" ] && [ "`file \"$f\" | grep -i sqlite`" ]) || ([ -r "$f" ] && [ ! "$FILECMD" ]); then #If readable and filecmd and sqlite, or readable and not filecmd
+      if ([ -r "$f" ] && [ "$FILECMD" ] && file "$f" | grep -qi sqlite) || ([ -r "$f" ] && [ ! "$FILECMD" ]); then #If readable and filecmd and sqlite, or readable and not filecmd
         printf $GREEN" -> Extracting tables from$NC $f $DG(limit 20)\n"$NC
-        if [ "`command -v sqlite3 2>/dev/null`" ]; then
-          tables=`sqlite3 $f ".tables" 2>/dev/null`
+        if [ "$(command -v sqlite3 2>/dev/null)" ]; then
+          tables=$(sqlite3 $f ".tables" 2>/dev/null)
           #printf "$tables\n" | sed "s,user.*\|credential.*,${SED_RED},g"
-        elif [ "`command -v python 2>/dev/null`" ] || [ "`command -v python3 2>/dev/null`" ]; then
-          SQLITEPYTHON=`command -v python 2>/dev/null || command -v python3 2>/dev/null`
-          tables=`$SQLITEPYTHON -c "print('\n'.join([t[0] for t in __import__('sqlite3').connect('$f').cursor().execute('SELECT name FROM sqlite_master WHERE type=\'table\' and tbl_name NOT like \'sqlite_%\';').fetchall()]))" 2>/dev/null`
+        elif [ "$(command -v python 2>/dev/null)" ] || [ "$(command -v python3 2>/dev/null)" ]; then
+          SQLITEPYTHON=$(command -v python 2>/dev/null || command -v python3 2>/dev/null)
+          tables=$($SQLITEPYTHON -c "print('\n'.join([t[0] for t in __import__('sqlite3').connect('$f').cursor().execute('SELECT name FROM sqlite_master WHERE type=\'table\' and tbl_name NOT like \'sqlite_%\';').fetchall()]))" 2>/dev/null)
           #printf "$tables\n" | sed "s,user.*\|credential.*,${SED_RED},g"
         else
           tables=""
@@ -3268,13 +3290,13 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
             columns=""
             # Search for credentials inside the table using sqlite3
             if [ -z "$SQLITEPYTHON" ]; then
-              columns=`sqlite3 $f ".schema $t" 2>/dev/null | grep "CREATE TABLE"`
+              columns=$(sqlite3 $f ".schema $t" 2>/dev/null | grep "CREATE TABLE")
             # Search for credentials inside the table using python
             else
-              columns=`$SQLITEPYTHON -c "print(__import__('sqlite3').connect('$f').cursor().execute('SELECT sql FROM sqlite_master WHERE type!=\'meta\' AND sql NOT NULL AND name =\'$t\';').fetchall()[0][0])" 2>/dev/null`
+              columns=$($SQLITEPYTHON -c "print(__import__('sqlite3').connect('$f').cursor().execute('SELECT sql FROM sqlite_master WHERE type!=\'meta\' AND sql NOT NULL AND name =\'$t\';').fetchall()[0][0])" 2>/dev/null)
             fi
             #Check found columns for interesting fields
-            INTCOLUMN=`echo "$columns" | grep -i "username\|passw\|credential\|email\|hash\|salt"`
+            INTCOLUMN=$(echo "$columns" | grep -i "username\|passw\|credential\|email\|hash\|salt")
             if [ "$INTCOLUMN" ]; then
               printf ${BLUE}"  --> Found interesting column names in$NC $t $DG(output limit 10)\n"$NC | sed -${E} "s,user.*|credential.*,${SED_RED},g"
               printf "$columns\n" | sed -${E} "s,username|passw|credential|email|hash|salt|$t,${SED_RED},g"
@@ -3308,7 +3330,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Readable files in /tmp, /var/tmp, bachups
   print_2title "Readable files inside /tmp, /var/tmp, /private/tmp, /private/var/at/tmp, /private/var/tmp, and backup folders (limit 70)"
-  filstmpback=`find /tmp /var/tmp /private/tmp /private/var/at/tmp /private/var/tmp $backup_folders_row -type f 2>/dev/null | head -n 70`
+  filstmpback=$(find /tmp /var/tmp /private/tmp /private/var/at/tmp /private/var/tmp $backup_folders_row -type f 2>/dev/null | head -n 70)
   printf "%s\n" "$filstmpback" | while read f; do if [ -r "$f" ]; then ls -l "$f" 2>/dev/null; fi; done
   echo ""
 
@@ -3317,10 +3339,10 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     print_2title "Interesting writable files owned by me or writable by everyone (not in Home) (max 500)"
     print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files"
     #In the next file, you need to specify type "d" and "f" to avoid fake link files apparently writable by all
-    obmowbe=`find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | sort | uniq | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500`
+    obmowbe=$(find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | sort | uniq | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500)
     printf "%s\n" "$obmowbe" | while read entry; do
-      if [ "`echo \"$entry\" | grep \"You_can_write_even_more_files_inside_last_directory\"`" ]; then printf $ITALIC"$entry\n"$NC;
-      elif [ "`echo \"$entry\" | grep -E \"$writeVB\"`" ]; then
+      if echo \"$entry\" | grep -q \"You_can_write_even_more_files_inside_last_directory\"; then printf $ITALIC"$entry\n"$NC;
+      elif echo \"$entry\" | grep -qE \"$writeVB\"; then
         echo "$entry" | sed -${E} "s,$writeVB,${SED_RED_YELLOW},"
       else
         echo "$entry" | sed -${E} "s,$writeB,${SED_RED},"
@@ -3333,12 +3355,12 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   if ! [ "$IAMROOT" ]; then
     print_2title "Interesting GROUP writable files (not in Home) (max 500)"
     print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files"
-    for g in `groups`; do
-      printf "  Group "$GREEN"$g:\n"$NC;
-      iwfbg=`find / '(' -type f -or -type d ')' -group $g -perm -g=w ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500`
+    for g in $(groups); do
+      printf "  Group $GREEN$g:\n$NC";
+      iwfbg=$(find / '(' -type f -or -type d ')' -group $g -perm -g=w ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500)
       printf "%s\n" "$iwfbg" | while read entry; do
-        if [ "`echo \"$entry\" | grep \"You_can_write_even_more_files_inside_last_directory\"`" ]; then printf $ITALIC"$entry\n"$NC;
-        elif [ "`echo \"$entry\" | grep -E \"$writeVB\"`" ]; then
+        if echo \"$entry\" | grep -q \"You_can_write_even_more_files_inside_last_directory\"; then printf $ITALIC"$entry\n"$NC;
+        elif echo \"$entry\" | grep -Eq \"$writeVB\"; then
           echo "$entry" | sed -${E} "s,$writeVB,${SED_RED_YELLOW},"
         else
           echo "$entry" | sed -${E} "s,$writeB,${SED_RED},"
@@ -3350,7 +3372,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
   ##-- IF) Passwords in config PHP files
   print_2title "Searching passwords in config PHP files"
-  printf "%s\n" "$PSTORAGE_PHP_FILES" | while read c; do grep -EiI "(pwd|passwd|password|PASSWD|PASSWORD|dbuser|dbpass).*[=:].+|define ?\('(\w*passw|\w*user|\w*datab)" $c 2>/dev/null | grep -Ev "function|password.*= ?\"\"|password.*= ?''" | sed '/^.\{150\}./d' | sort | uniq | sed -${E} "s,[pP][aA][sS][sS][wW]|[dD][bB]_[pP][aA][sS][sS],${SED_RED},g"; done
+  printf "%s\n" "$PSTORAGE_PHP_FILES" | while read c; do grep -EiI "(pwd|passwd|password|PASSWD|PASSWORD|dbuser|dbpass).*[=:].+|define ?\('(\w*passw|\w*user|\w*datab)" "$c" 2>/dev/null | grep -Ev "function|password.*= ?\"\"|password.*= ?''" | sed '/^.\{150\}./d' | sort | uniq | sed -${E} "s,[pP][aA][sS][sS][wW]|[dD][bB]_[pP][aA][sS][sS],${SED_RED},g"; done
   echo ""
 
   ##-- IF) TTY passwords
@@ -3382,7 +3404,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   if ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
     ##-- IF) Find possible files with passwords
     print_2title "Finding passwords inside key folders (limit 70) - only PHP files"
-    intpwdfiles=`timeout 150 grep -RiIE "(pwd|passwd|password|PASSWD|PASSWORD|dbuser|dbpass).*[=:].+|define ?\('(\w*passw|\w*user|\w*datab)" $HOMESEARCH /var/www /usr/local/www/ $backup_folders_row /tmp /etc /root /mnt /Users /private 2>/dev/null`
+    intpwdfiles=$(timeout 150 grep -RiIE "(pwd|passwd|password|PASSWD|PASSWORD|dbuser|dbpass).*[=:].+|define ?\('(\w*passw|\w*user|\w*datab)" "$HOMESEARCH" /var/www /usr/local/www/ "$backup_folders_row" /tmp /etc /root /mnt /Users /private 2>/dev/null)
     printf "%s\n" "$intpwdfiles" | grep -I ".php:" | sed '/^.\{150\}./d' | sort | uniq | grep -iIv "linpeas" | head -n 70 | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[dD][eE][fF][iI][nN][eE],${SED_RED},g"
     echo ""
 
@@ -3398,10 +3420,10 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
     ##-- IF) Find possible conf files with passwords
     print_2title "Finding possible password in config files"
-    ppicf=`find $HOMESEARCH /etc /root /tmp /private /Applications -name "*.conf" -o -name "*.cnf" -o -name "*.config" -name "*.json" 2>/dev/null`
+    ppicf=$(find "$HOMESEARCH" /etc /root /tmp /private /Applications -name "*.conf" -o -name "*.cnf" -o -name "*.config" -name "*.json" 2>/dev/null)
     printf "%s\n" "$ppicf" | while read f; do
-      if [ "`grep -EiI 'passwd.*|creden.*' \"$f\" 2>/dev/null`" ]; then
-        echo $ITALIC" $f"$NC
+      if grep -qEiI 'passwd.*|creden.*' \"$f\" 2>/dev/null; then
+        echo "$ITALIC $f$NC"
         grep -EiIo 'passw.*|creden.*' "$f" 2>/dev/null | sed -${E} "s,[pP][aA][sS][sS][wW]|[cC][rR][eE][dD][eE][nN],${SED_RED},g"
       fi
     done
@@ -3409,8 +3431,8 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
 
     ##-- IF) Find possible files with usernames
     print_2title "Finding 'username' string inside key folders (limit 70)"
-    timeout 150 grep -RiIE "username.*[=:].+" $HOMESEARCH /Users 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | grep -v "/linpeas" | sort | uniq | head -n 70 | sed -${E} "s,[uU][sS][eE][rR][nN][aA][mM][eE],${SED_RED},g"
-    timeout 150 grep -RiIE "username.*[=:].+" /var/www $backup_folders_row /tmp /etc /root /mnt /private 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | grep -v "/linpeas" | sort | uniq | head -n 70 | sed -${E} "s,[uU][sS][eE][rR][nN][aA][mM][eE],${SED_RED},g"
+    timeout 150 grep -RiIE "username.*[=:].+" "$HOMESEARCH" /Users 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | grep -v "/linpeas" | sort | uniq | head -n 70 | sed -${E} "s,[uU][sS][eE][rR][nN][aA][mM][eE],${SED_RED},g"
+    timeout 150 grep -RiIE "username.*[=:].+" /var/www "$backup_folders_row" /tmp /etc /root /mnt /private 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | grep -v "/linpeas" | sort | uniq | head -n 70 | sed -${E} "s,[uU][sS][eE][rR][nN][aA][mM][eE],${SED_RED},g"
     echo ""
 
     ##-- IF) Specific hashes inside files
@@ -3424,7 +3446,7 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     regexapr1md5='\$apr1\$[a-zA-Z0-9_/\.]{8}\$[a-zA-Z0-9_/\.]{22}'
     regexsha512crypt='\$6\$[a-zA-Z0-9_/\.]{16}\$[a-zA-Z0-9_/\.]{86}'
     regexapachesha='\{SHA\}[0-9a-zA-Z/_=]{10,}'
-    timeout 150 grep -RIEHo "$regexblowfish|$regexjoomlavbulletin|$regexphpbb3|$regexwp|$regexdrupal|$regexlinuxmd5|$regexapr1md5|$regexsha512crypt|$regexapachesha" /etc $backup_folders_row /tmp /var/tmp /var/www /root $HOMESEARCH /mnt /Users /private /Applications 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -Ev "$notExtensions" | grep -Ev "0{20,}" | head -n 70 | sed "s,:.*,${SED_RED},"
+    timeout 150 grep -RIEHo "$regexblowfish|$regexjoomlavbulletin|$regexphpbb3|$regexwp|$regexdrupal|$regexlinuxmd5|$regexapr1md5|$regexsha512crypt|$regexapachesha" /etc "$backup_folders_row" /tmp /var/tmp /var/www /root "$HOMESEARCH" /mnt /Users /private /Applications 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -Ev "$notExtensions" | grep -Ev "0{20,}" | head -n 70 | sed "s,:.*,${SED_RED},"
     echo ""
   fi
 
@@ -3435,15 +3457,15 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
     regexsha1='(^|[^a-zA-Z0-9])[a-fA-F0-9]{40}([^a-zA-Z0-9]|$)'
     regexsha256='(^|[^a-zA-Z0-9])[a-fA-F0-9]{64}([^a-zA-Z0-9]|$)'
     regexsha512='(^|[^a-zA-Z0-9])[a-fA-F0-9]{128}([^a-zA-Z0-9]|$)'
-    timeout 150 grep -RIEHo "$regexmd5|$regexsha1|$regexsha256|$regexsha512" /etc $backup_folders_row /tmp /var/tmp /var/www /root $HOMESEARCH /mnt /Users /private /Applications 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -Ev "$notExtensions" | grep -Ev "0{20,}" | awk -F: '{if (pre != $1){ print $0; }; pre=$1}' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 2){ print line_init; } if (cont == "2"){print "  #)There are more hashes files in the previous parent folder\n"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 50 | sed "s,:.*,${SED_RED}," | sed "s,There are more hashes files in the previous parent folder,${C}[3m&${C}[0m,"
+    timeout 150 grep -RIEHo "$regexmd5|$regexsha1|$regexsha256|$regexsha512" /etc "$backup_folders_row" /tmp /var/tmp /var/www /root "$HOMESEARCH" /mnt /Users /private /Applications 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -Ev "$notExtensions" | grep -Ev "0{20,}" | awk -F: '{if (pre != $1){ print $0; }; pre=$1}' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 2){ print line_init; } if (cont == "2"){print "  #)There are more hashes files in the previous parent folder\n"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 50 | sed "s,:.*,${SED_RED}," | sed "s,There are more hashes files in the previous parent folder,${C}[3m&${C}[0m,"
     echo ""
   fi
 
   if ! [ "$SUPERFAST" ] && ! [ "$FAST" ]; then
     ##-- IF) Find URIs with user:password@hoststrings
     print_2title "Finding URIs with user:password@host inside key folders"
-    timeout 150 find /var/www $backup_folders_row /tmp /etc /var/log /private/var/log -type f -exec grep -RiIE "://(.+):(.+)@" "{}" \; 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -${E} "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,g"
-    timeout 150 grep -RiIE "://(.+):(.+)@" $HOMESEARCH 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -${E} "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,g"
+    timeout 150 find /var/www "$backup_folders_row" /tmp /etc /var/log /private/var/log -type f -exec grep -RiIE "://(.+):(.+)@" "{}" \; 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -${E} "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,g"
+    timeout 150 grep -RiIE "://(.+):(.+)@" "$HOMESEARCH" 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -${E} "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,g"
     timeout 150 grep -RiIE "://(.+):(.+)@" /mnt 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -${E} "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,g"
     timeout 150 grep -RiIE "://(.+):(.+)@" /root 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -${E} "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,g"
     timeout 150 grep -RiIE "://(.+):(.+)@" /Users 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -${E} "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,g"

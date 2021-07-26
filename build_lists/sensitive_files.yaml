@@ -90,7 +90,7 @@ variables_markup: "peass{VARIABLES}"
 
 variables:
    - name: pwd_inside_history
-     value: "7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|root|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|xfreerdp|^ssh|steghide|@"
+     value: "enable_autologin|7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|root|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|xfreerdp|^ssh|steghide|@"
 
 
 
@@ -2099,6 +2099,19 @@ search:
           - name: "ddclient.conf"
             value: 
                 bad_regex: ".*password.*"
+                type: f
+                search_in: 
+                  - common
+  
+  - name: kcpassword
+    value:
+        config:
+          auto_check: False
+
+        files:
+          - name: "kcpassword"
+            value: 
+                just_list_file: True
                 type: f
                 search_in: 
                   - common
