@@ -68,6 +68,9 @@ class LinpeasBuilder:
         #Check that there aren peass marks left in linpeas
         peass_marks = self.__get_peass_marks()
         assert len(peass_marks) == 0, f"There are peass marks left: {', '.join(peass_marks)}"
+        
+        #Check for empty seds
+        assert 'sed -${E} "s,,' not in self.linpeas_sh
 
     
     def __get_peass_marks(self):
@@ -186,7 +189,7 @@ class LinpeasBuilder:
         return sections
 
     def __construct_file_line(self, precord: PEASRecord, frecord: FileRecord, init: bool = True) -> str:
-        real_regex = frecord.regex[1:] if frecord.regex.startswith("*") else frecord.regex
+        real_regex = frecord.regex[1:] if frecord.regex.startswith("*") and len(frecord.regex) > 1 else frecord.regex
         real_regex = real_regex.replace(".","\\.").replace("*",".*")
         real_regex += "$"
         
@@ -239,7 +242,7 @@ class LinpeasBuilder:
         #In case file is type "d"
         if frecord.files:
             for ffrecord in frecord.files:
-                ff_real_regex = ffrecord.regex[1:] if ffrecord.regex.startswith("*") else ffrecord.regex
+                ff_real_regex = ffrecord.regex[1:] if ffrecord.regex.startswith("*") and ffrecord.regex != "*" else ffrecord.regex
                 ff_real_regex = ff_real_regex.replace("*",".*")
                 analise_line += 'for ff in $(find "$f" -name "'+ffrecord.regex+'"); do ls -ld "$ff" | sed -${E} "s,'+ff_real_regex+',${SED_RED},"; ' + self.__construct_file_line(precord, ffrecord, init=False)
         
