@@ -1211,7 +1211,7 @@ if echo $CHECKS | grep -q SysI; then
     (sysctl vm.swapusage | grep "encrypted" | sed "s,encrypted,${SED_GREEN},") || echo_no
 
     print_list "XProtect? ........ "$NC
-    (system_profiler SPInstallHistoryDataType 2>/dev/null | grep -A 4 "XProtectPlistConfigData" | tail -n 5) || echo_no
+    (system_profiler SPInstallHistoryDataType 2>/dev/null | grep -A 4 "XProtectPlistConfigData" | tail -n 5 | grep -Iv "^$") || echo_no
   fi
 
   #-- SY) ASLR
@@ -1916,7 +1916,7 @@ if echo $CHECKS | grep -q UsrI; then
     dscl . list /Users | while read uname; do
       ushell=$(dscl . -read "/Users/$uname" UserShell | cut -d " " -f2)
       if grep -q "$ushell" /etc/shells; then #Shell user
-        finger "$uname"
+        finger "$uname" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
         echo ""
       fi
     done
@@ -2513,7 +2513,8 @@ if echo $CHECKS | grep -q IntFiles; then
   if ! [ "$STRACE" ]; then
     echo_not_found "strace"
   fi
-  find / -perm -4000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
+  find / -perm -4000 -type f ! -path "/dev/*" 2>/dev/null | while read s; do
+    s=$(ls -lahtr "$s")
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
     if echo "$s" | grep -qE "^total"; then break; fi
 
@@ -2574,7 +2575,8 @@ if echo $CHECKS | grep -q IntFiles; then
   ##-- IF) SGID
   print_2title "SGID"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid"
-  find / -perm -2000 -type f 2>/dev/null | xargs ls -lahtr | while read s; do
+  find / -perm -2000 -type f ! -path "/dev/*" 2>/dev/null | while read s; do
+    s=$(ls -lahtr "$s")
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
     if echo "$s" | grep -qE "^total";then break; fi
 
@@ -2968,8 +2970,8 @@ if echo $CHECKS | grep -q IntFiles; then
     #In the next file, you need to specify type "d" and "f" to avoid fake link files apparently writable by all
     obmowbe=$(find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | sort | uniq | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500)
     printf "%s\n" "$obmowbe" | while read entry; do
-      if echo \"$entry\" | grep -q \"You_can_write_even_more_files_inside_last_directory\"; then printf $ITALIC"$entry\n"$NC;
-      elif echo \"$entry\" | grep -qE \"$writeVB\"; then
+      if echo "$entry" | grep -q "You_can_write_even_more_files_inside_last_directory"; then printf $ITALIC"$entry\n"$NC;
+      elif echo "$entry" | grep -qE "$writeVB"; then
         echo "$entry" | sed -${E} "s,$writeVB,${SED_RED_YELLOW},"
       else
         echo "$entry" | sed -${E} "s,$writeB,${SED_RED},"
@@ -2986,8 +2988,8 @@ if echo $CHECKS | grep -q IntFiles; then
       printf "  Group $GREEN$g:\n$NC";
       iwfbg=$(find / '(' -type f -or -type d ')' -group $g -perm -g=w ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500)
       printf "%s\n" "$iwfbg" | while read entry; do
-        if echo \"$entry\" | grep -q \"You_can_write_even_more_files_inside_last_directory\"; then printf $ITALIC"$entry\n"$NC;
-        elif echo \"$entry\" | grep -Eq \"$writeVB\"; then
+        if echo "$entry" | grep -q "You_can_write_even_more_files_inside_last_directory"; then printf $ITALIC"$entry\n"$NC;
+        elif echo "$entry" | grep -Eq "$writeVB"; then
           echo "$entry" | sed -${E} "s,$writeVB,${SED_RED_YELLOW},"
         else
           echo "$entry" | sed -${E} "s,$writeB,${SED_RED},"

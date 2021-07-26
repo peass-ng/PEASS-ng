@@ -574,6 +574,8 @@ search:
           - name:  "hostapd.conf"
             value: 
                 bad_regex: "passphrase.*"
+                remove_regex: '^#'
+                remove_empty_lines: True
                 type: f
                 search_in: 
                   - common
@@ -1266,8 +1268,8 @@ search:
         config:
           auto_check: True
           exec:
-            - '((command -v gpg && gpg --list-keys) || echo_not_found "gpg") 2>/dev/null'
-            - '((command -v netpgpkeys && netpgpkeys --list-keys) || echo_not_found "netpgpkeys") 2>/dev/null'
+            - '( (command -v gpg && gpg --list-keys) || echo_not_found "gpg") 2>/dev/null'
+            - '( (command -v netpgpkeys && netpgpkeys --list-keys) || echo_not_found "netpgpkeys") 2>/dev/null'
             - '(command -v netpgp || echo_not_found "netpgp") 2>/dev/null'
 
         files:
@@ -2533,13 +2535,6 @@ search:
                 search_in:
                   - common
 
-          - name: "system"
-            value:
-                just_list_file: True
-                type: f
-                search_in:
-                  - common
-
           - name: "system.sav"
             value:
                 just_list_file: True
@@ -2619,6 +2614,13 @@ search:
                   - common
 
           - name: "services.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+          
+          - name: "system"
             value:
                 just_list_file: True
                 type: f
