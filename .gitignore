@@ -17,3 +17,8 @@ packages
 launch.json
 *.pyc
 **/*.pyc
+__pycache__
+*/__pycache__
+**/__pycache__
+linPEAS/builder/__pycache__/*
+linPEAS/builder/src/__pycache__/*
