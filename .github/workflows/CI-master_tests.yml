@@ -141,10 +141,10 @@ jobs:
         run: linPEAS/linpeas.sh -h
         
       - name: Run linpeas
-        run: linPEAS/linpeas.sh
+        run: linPEAS/linpeas.sh -h
 
       - name: Create local changes
-        run: git add linPEAS/linpeas.sh -h
+        run: git add linPEAS/linpeas.sh
 
       - name: Commit results to Github
         run: |
