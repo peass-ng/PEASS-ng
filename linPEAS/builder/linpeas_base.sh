@@ -479,7 +479,7 @@ shscripsG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/crosh.sh|/dnsma
 
 notBackup="/tdbbackup$|/db_hotbackup$"
 
-cronjobsG=".placeholder|0anacron|0hourly|anacron|apache2|apport|apt|aptitude|apt-compat|bsdmainutils|certwatch|cracklib-runtime|debtags|dpkg|e2scrub_all|fake-hwclock|fstrim|john|locate|logrotate|man-db.cron|man-db|mdadm|mlocate|ntp|passwd|php|popularity-contest|raid-check|rwhod|samba|standard|sysstat|ubuntu-advantage-tools|update-notifier-common|upstart"
+cronjobsG=".placeholder|0anacron|0hourly|110.clean-tmps|130.clean-msgs|140.clean-rwho|199.clean-fax|199.rotate-fax|200.accounting|310.accounting|400.status-disks|420.status-network|430.status-rwho|999.local|anacron|apache2|apport|apt|aptitude|apt-compat|bsdmainutils|certwatch|cracklib-runtime|debtags|dpkg|e2scrub_all|fake-hwclock|fstrim|john|locate|logrotate|man-db.cron|man-db|mdadm|mlocate|ntp|passwd|php|popularity-contest|raid-check|rwhod|samba|standard|sysstat|ubuntu-advantage-tools|update-notifier-common|upstart|"
 cronjobsB="centreon"
 
 processesVB="jdwp|tmux |screen |--inspect|--remote-debugging-port"
@@ -1174,7 +1174,7 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   fi
 
   #-- SY) AppArmor
-  print_2title "Linux Protections"
+  print_2title "Protections"
   print_list "AppArmor enabled? .............. "$NC
   if [ `command -v aa-status 2>/dev/null` ]; then
     aa-status 2>&1 | sed "s,disabled,${SED_RED},"
@@ -1202,10 +1202,16 @@ if [ "`echo $CHECKS | grep SysI`" ]; then
   print_list "SELinux enabled? ............... "$NC
   (sestatus 2>/dev/null || echo_not_found "sestatus") | sed "s,disabled,${SED_RED},"
 
-  #-- SY) SElinux
+  #-- SY) Gatekeeper
   if [ "$MACPEAS" ]; then
     print_list "Gatekeeper enabled? .......... "$NC
     (spctl --status 2>/dev/null || echo_not_found "sestatus") | sed "s,disabled,${SED_RED},"
+    
+    print_list "sleepimage encrypted? ........ "$NC
+    (sysctl vm.swapusage | grep "encrypted" | sed "s,encrypted,${SED_GREEN},") || echo_no
+
+    print_list "XProtect? ........ "$NC
+    (system_profiler SPInstallHistoryDataType 2>/dev/null | grep -A 4 "XProtectPlistConfigData" | tail -n 5) || echo_no
   fi
 
   #-- SY) ASLR
@@ -1470,7 +1476,7 @@ if [ "`echo $CHECKS | grep ProCronSrvcsTmrsSocks`" ]; then
   ls -alR /etc/cron* /var/spool/cron/crontabs /var/spool/anacron 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g"
   cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/* /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
-  ls -l /usr/lib/cron/tabs/ /private/var/at/jobs 2>/dev/null #MacOS paths
+  ls -lR /usr/lib/cron/tabs/ /private/var/at/jobs /etc/periodic/ 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g" #MacOS paths
   atq 2>/dev/null
   echo ""
 
@@ -2347,6 +2353,14 @@ if [ "`echo $CHECKS | grep SofI`" ]; then
   done
   echo ""
 
+  print_2title "Analyzing kcpassword files"
+  print_info "TODO"
+  printf "%s\n" "$PSTORAGE_KCPASSWORD\n" | while read f; do
+    echo "$f" | sed -${E} "s,.*,${SED_RED},"
+    base64 "$f" 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
+  done
+  echo ""
+
   ##-- SI) Gitlab
   print_2title "Searching GitLab related files"
   #Check gitlab-rails
@@ -2767,6 +2781,12 @@ if [ "`echo $CHECKS | grep IntFiles`" ]; then
   if [ "`cat /etc/shadow /etc/shadow- /etc/shadow~ /etc/gshadow /etc/gshadow- /etc/master.passwd /etc/spwd.db 2>/dev/null`" ]; then cat /etc/shadow /etc/shadow- /etc/shadow~ /etc/gshadow /etc/gshadow- /etc/master.passwd /etc/spwd.db 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
   else echo_no
   fi
+
+  print_list "Can I read shadow plists? ............ "
+  (for l in /var/db/dslocal/nodes/Default/users/*; do if [ -r "$l" ];then echo "$l"; defaults read "$l"; fi; done) 2>/dev/null || echo_no
+
+  print_list "Can I write shadow plists? ........... "
+  (for l in /var/db/dslocal/nodes/Default/users/*; do if [ -w "$l" ];then echo "$l"; fi; done) 2>/dev/null || echo_no
 
   ##-- IF) Read opasswd file
   print_list "Can I read opasswd file? ............. "
