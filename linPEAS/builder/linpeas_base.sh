@@ -643,7 +643,7 @@ su_brute_user_num (){
     su_try_pwd "$BFUSER" "$PASSWORD" & #Try given password
   fi
   for i in $(seq "$TRIES"); do
-    su_try_pwd "$BFUSER" "$(echo "$top2000pwds" | cut -d " " -f "$i")" & #Try TOP TRIES of passwords (by default 2000)
+    su_try_pwd "$BFUSER" "$(echo \"$top2000pwds\" | cut -d ' ' -f \"$i\")" & #Try TOP TRIES of passwords (by default 2000)
     sleep 0.007 # To not overload the system
   done
   wait
@@ -1477,7 +1477,7 @@ if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks; then
   ls -alR /etc/cron* /var/spool/cron/crontabs /var/spool/anacron 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g"
   cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/* /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#\|test \-x /usr/sbin/anacron\|run\-parts \-\-report /etc/cron.hourly\| root run-parts /etc/cron." | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
-  ls -lR /usr/lib/cron/tabs/ /private/var/at/jobs /etc/periodic/ 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g" #MacOS paths
+  ls -lR /usr/lib/cron/tabs/ /private/var/at/jobs /var/at/tabs/ /etc/periodic/ 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g" #MacOS paths
   atq 2>/dev/null
   echo ""
 
@@ -1841,8 +1841,10 @@ if echo $CHECKS | grep -q UsrI; then
 
   #-- UI) Doas
   print_2title "Checking doas.conf"
-  if [ "$(cat /etc/doas.conf "$(dirname $(command -v doas) 2>/dev/null)/doas.conf" "$(dirname $(command -v doas) 2>/dev/null)/../etc/doas.conf" "$(dirname $(command -v doas) 2>/dev/null)/etc/doas.conf" 2>/dev/null)" ]; then cat /etc/doas.conf "$(dirname $(command -v doas))/doas.conf" "$(dirname $(command -v doas))/../etc/doas.conf" "$(dirname $(command -v doas))/etc/doas.conf" 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_RED}," | sed "s,root,${SED_RED}," | sed "s,nopass,${SED_RED}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,$USER,${SED_RED_YELLOW},"
-  else echo_not_found "/etc/doas.conf"
+  doas_dir_name=$(dirname "$(command -v doas)" 2>/dev/null)
+  if [ "$(cat /etc/doas.conf \"$doas_dir_name/doas.conf\" \"$doas_dir_name/../etc/doas.conf\" \"$doas_dir_name/etc/doas.conf\" 2>/dev/null)" ]; then 
+    cat /etc/doas.conf "$doas_dir_name/doas.conf" "$doas_dir_name/../etc/doas.conf" "$doas_dir_name/etc/doas.conf" 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_RED}," | sed "s,root,${SED_RED}," | sed "s,nopass,${SED_RED}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,$USER,${SED_RED_YELLOW},"
+  else echo_not_found "doas.conf"
   fi
   echo ""
 
@@ -1868,7 +1870,7 @@ if echo $CHECKS | grep -q UsrI; then
       fi
     done
   else
-    no_shells="$(grep -Ev "sh$" /etc/passwd 2>/dev/null | cut -d ":" -f 7 | sort | uniq)"
+    no_shells="$(grep -Ev \"sh$\" /etc/passwd 2>/dev/null | cut -d ':' -f 7 | sort | uniq)"
     unexpected_shells=""
     printf "%s\n" "$no_shells" | while read f; do
       if $f -c 'whoami' 2>/dev/null | grep -q "$USER"; then
