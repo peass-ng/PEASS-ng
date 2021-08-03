@@ -643,7 +643,7 @@ su_brute_user_num (){
     su_try_pwd "$BFUSER" "$PASSWORD" & #Try given password
   fi
   for i in $(seq "$TRIES"); do
-    su_try_pwd "$BFUSER" "$(echo \"$top2000pwds\" | cut -d ' ' -f \"$i\")" & #Try TOP TRIES of passwords (by default 2000)
+    su_try_pwd "$BFUSER" "$(echo \"$top2000pwds\" | cut -d ' ' -f $i)" & #Try TOP TRIES of passwords (by default 2000)
     sleep 0.007 # To not overload the system
   done
   wait
