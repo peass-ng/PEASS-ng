@@ -368,16 +368,14 @@ sudoVB2="peass{SUDOVB2_HERE}"
 sudoB="$(whoami)|ALL:ALL|ALL : ALL|ALL|NOPASSWD|SETENV|/apache2|/cryptsetup|/mount"
 sudoG="NOEXEC"
 
-capsVB="cap_sys_admin:mount|python\n\
-cap_sys_ptrace:python\n\
-cap_sys_module:kmod|python\n\
-cap_dac_override:python|vim\n\
-cap_chown:chown|python\n\
-cap_former:chown|python\n\
-cap_setuid:peass{CAP_SETUID_HERE}\n\
-cap_setgid:peass{CAP_SETGID_HERE}\n\
-cap_kill:kill|python\n\
-cap_net_bind_service:nc|ncat|python\n\
+capsVB="cap_sys_admin:mount|python \
+cap_sys_ptrace:python \
+cap_sys_module:kmod|python \
+cap_dac_override:python|vim \
+cap_chown:chown|python \
+cap_former:chown|python \
+cap_setuid:peass{CAP_SETUID_HERE} \
+cap_setgid:peass{CAP_SETGID_HERE} \
 cap_net_raw:python|tcpdump"
 
 
