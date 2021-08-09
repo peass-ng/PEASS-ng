@@ -617,14 +617,11 @@ search:
                 search_in: 
                   - common
           
-        files:
-          - name:  "racoon"
-            value: 
-                files:
-                  - name: "psk.txt"
-                    value:
-                        bad_regex: ".*"
-                type: d
+          - name: "psk.txt"
+            value:
+                remove_empty_lines: True
+                bad_regex: ".*"
+                type: f
                 search_in: 
                   - common
 
