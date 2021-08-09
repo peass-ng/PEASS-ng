@@ -169,6 +169,7 @@ jobs:
       - name: Build macpeas
         run: |
           python3 -m pip install PyYAML
+          python3 -m pip install requests
           cd linPEAS
           python3 -m builder.linpeas_builder
       
