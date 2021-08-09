@@ -2692,7 +2692,7 @@ if echo $CHECKS | grep -q IntFiles; then
       echo "$cb" | sed -${E} "s,$capsB,${SED_RED},"
     fi
 
-    if ! [ "$IAMROOT" ] && [ -w "$(echo \"$cb\" | cut -d \" \" -f1)" ]; then
+    if ! [ "$IAMROOT" ] && [ -w "$(echo \"$cb\" | cut -d" " -f1)" ]; then
       echo "$cb is writable" | sed -${E} "s,.*,${SED_RED},"
     fi
   done
