@@ -79,6 +79,13 @@ storage_template: >
 
 int_hidden_files_markup: "peass{INT_HIDDEN_FILES}"
 
+suidVB1_markup: "peass{SUIDVB1_HERE}"
+suidVB2_markup: "peass{SUIDVB2_HERE}"
+sudoVB1_markup: "peass{SUDOVB1_HERE}"
+sudoVB2_markup: "peass{SUDOVB2_HERE}"
+cap_setuid_markup: "peass{CAP_SETUID_HERE}"
+cap_setgid_markup: "peass{CAP_SETGID_HERE}"
+
 
 
 ##############################
@@ -571,7 +578,7 @@ search:
           auto_check: True
 
         files:
-          - name:  "hostapd.conf"
+          - name: "hostapd.conf"
             value: 
                 bad_regex: "passphrase.*"
                 remove_regex: '^#'
@@ -594,13 +601,40 @@ search:
                 search_in: 
                   - common
   
+
+  - name: Racoon
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "racoon.conf"
+            value:
+                remove_empty_lines: True
+                bad_regex: "pre_shared_key.*"
+                remove_regex: '^#'
+                type: f
+                search_in: 
+                  - common
+          
+        files:
+          - name:  "racoon"
+            value: 
+                files:
+                  - name: "psk.txt"
+                    value:
+                        bad_regex: ".*"
+                type: d
+                search_in: 
+                  - common
+
   - name: VNC
     value:
         config:
           auto_check: True
 
         files:
-          - name:  ".vnc"
+          - name: ".vnc"
             value: 
                 files:
                   - name: "passwd"

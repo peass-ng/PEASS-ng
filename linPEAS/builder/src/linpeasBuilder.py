@@ -1,4 +1,5 @@
 import re
+import requests
 
 from .peasLoaded import PEASLoaded
 from .peassRecord import PEASRecord
@@ -7,7 +8,7 @@ from .yamlGlobals import (
     LINPEAS_BASE_PATH,
     PEAS_FINDS_MARKUP,
     PEAS_STORAGES_MARKUP,
-    PEAS_STORAGES_MARKUP, 
+    PEAS_STORAGES_MARKUP,
     INT_HIDDEN_FILES_MARKUP,
     ROOT_FOLDER,
     STORAGE_TEMPLATE,
@@ -17,7 +18,13 @@ from .yamlGlobals import (
     STORAGE_LINE_EXTRA_MARKUP,
     EXTRASECTIONS_MARKUP,
     PEAS_VARIABLES_MARKUP,
-    YAML_VARIABLES
+    YAML_VARIABLES,
+    SUIDVB1_MARKUP,
+    SUIDVB2_MARKUP,
+    SUDOVB1_MARKUP,
+    SUDOVB2_MARKUP,
+    CAP_SETUID_MARKUP,
+    CAP_SETGID_MARKUP
 )
 
 
@@ -32,12 +39,15 @@ class LinpeasBuilder:
             self.linpeas_sh = file.read()
 
     def build(self):
+        print("[+] Building variables...")
         variables = self.__generate_variables()
         self.__replace_mark(PEAS_VARIABLES_MARKUP, variables, "")
 
+        print("[+] Building finds...")
         find_calls = self.__generate_finds()
         self.__replace_mark(PEAS_FINDS_MARKUP, find_calls, "  ")
 
+        print("[+] Building storages...")
         storage_vars = self.__generate_storages()
         self.__replace_mark(PEAS_STORAGES_MARKUP, storage_vars, "  ")
 
@@ -45,16 +55,16 @@ class LinpeasBuilder:
         for s in re.findall(r'PSTORAGE_[\w]*', self.linpeas_sh):
             assert s in self.bash_storages, f"{s} isn't created"
 
-        #Replace interesting hidden files markup for a list of all the serched hidden files
+        #Replace interesting hidden files markup for a list of all the searched hidden files
         self.__replace_mark(INT_HIDDEN_FILES_MARKUP, sorted(self.hidden_files), "|")
 
-        #Check if there are duplicate peass marks
+        print("[+] Checking duplicates...")
         peass_marks = self.__get_peass_marks()
         for i,mark in enumerate(peass_marks):
             for j in range(i+1,len(peass_marks)):
                 assert mark != peass_marks[j], f"Found repeated peass mark: {mark}"
 
-        #Generate autocheck sections
+        print("[+] Building autocheck sections...")
         sections = self.__generate_sections()
         for section_name, bash_lines in sections.items():
             mark = "peass{"+section_name+"}"
@@ -65,7 +75,17 @@ class LinpeasBuilder:
         
         self.__replace_mark(EXTRASECTIONS_MARKUP, list(""), "") #Delete extra markup
 
-        #Check that there aren peass marks left in linpeas
+        print("[+] Building GTFOBins lists...")
+        suidVB, sudoVB, capsVB = self.__get_gtfobins_lists()
+        self.__replace_mark(SUIDVB1_MARKUP, suidVB[:int(len(suidVB)/2)], "|")
+        self.__replace_mark(SUIDVB2_MARKUP, suidVB[int(len(suidVB)/2):], "|")
+        self.__replace_mark(SUDOVB1_MARKUP, sudoVB[:int(len(sudoVB)/2)], "|")
+        self.__replace_mark(SUDOVB2_MARKUP, sudoVB[int(len(sudoVB)/2):], "|")
+        self.__replace_mark(CAP_SETUID_MARKUP, capsVB, "|")
+        self.__replace_mark(CAP_SETGID_MARKUP, capsVB, "|")
+
+        print("[+] Final sanity checks...")
+        #Check that there arent peass marks left in linpeas
         peass_marks = self.__get_peass_marks()
         assert len(peass_marks) == 0, f"There are peass marks left: {', '.join(peass_marks)}"
         
@@ -167,8 +187,6 @@ class LinpeasBuilder:
         
         return storages
 
-        
-
     def __generate_sections(self) -> dict:
         """Generate sections for records with auto_check to True"""
         sections = {}
@@ -248,6 +266,25 @@ class LinpeasBuilder:
         
         analise_line += 'done; echo "";'
         return analise_line
+
+    def __get_gtfobins_lists(self) -> tuple:
+        r = requests.get("https://github.com/GTFOBins/GTFOBins.github.io/tree/master/_gtfobins")
+        bins = re.findall(r'/GTFOBins/GTFOBins.github.io/blob/master/_gtfobins/([\w_ \-]+).md', r.text)
+
+        sudoVB = []
+        suidVB = []
+        capsVB = []
+
+        for b in bins:
+            rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}.md")
+            if "sudo:" in rb.text:
+                sudoVB.append(b+"$")
+            if "suid:" in rb.text:
+                suidVB.append("/"+b+"$")
+            if "capabilities:" in rb.text:
+                capsVB.append(b)
+        
+        return (suidVB, sudoVB, capsVB)
 
 
     def __replace_mark(self, mark: str, find_calls: list, join_char: str):
