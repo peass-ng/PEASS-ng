@@ -1402,6 +1402,13 @@ if echo $CHECKS | grep -q AvaSof; then
   print_2title "Installed Compiler"
   (dpkg --list 2>/dev/null | grep "compiler" | grep -v "decompiler\|lib" 2>/dev/null || yum list installed 'gcc*' 2>/dev/null | grep gcc 2>/dev/null; command -v gcc g++ 2>/dev/null || locate -r "/gcc[0-9\.-]\+$" 2>/dev/null | grep -v "/doc/");
   echo ""
+
+  if [ "$(command -v pkg 2>/dev/null)" ]; then
+    print_2title "Vulnerable Packages"
+    pkg audit -F | sed -${E} "s,vulnerable,${SED_RED},g"
+    echo ""
+  fi
+
   echo ""
   if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi
 fi
