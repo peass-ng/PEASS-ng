@@ -1106,7 +1106,7 @@ if echo $CHECKS | grep -q SysI; then
   (cat /proc/version || uname -a ) 2>/dev/null | sed -${E} "s,$kernelDCW_Ubuntu_Precise_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_5,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_6,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Xenial,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel7,${SED_RED_YELLOW}," | sed -${E} "s,$kernelB,${SED_RED},"
   warn_exec lsb_release -a 2>/dev/null
   if [ "$MACPEAS" ]; then
-    warn_exec sw_vers
+    warn_exec system_profiler SPSoftwareDataType
   fi
   echo ""
 
@@ -1221,8 +1221,17 @@ if echo $CHECKS | grep -q SysI; then
     print_list "sleepimage encrypted? ........ "$NC
     (sysctl vm.swapusage | grep "encrypted" | sed "s,encrypted,${SED_GREEN},") || echo_no
 
-    print_list "XProtect? ........ "$NC
+    print_list "XProtect? .................... "$NC
     (system_profiler SPInstallHistoryDataType 2>/dev/null | grep -A 4 "XProtectPlistConfigData" | tail -n 5 | grep -Iv "^$") || echo_no
+
+    print_list "SIP enabled? ................. "$NC
+    csrutil status | sed "s,enabled,${SED_GREEN}," | sed "s,disabled,${SED_RED}," || echo_no
+
+    print_list "Connected to JAMF? ........... "$NC
+    warn_exec jamf checkJSSConnection
+
+    print_list "Connected to AD? ............. "$NC
+    dsconfigad -show && echo "" || echo_no
   fi
 
   #-- SY) ASLR
@@ -1237,7 +1246,7 @@ if echo $CHECKS | grep -q SysI; then
 
   #-- SY) Printer
   print_list "Printer? ....................... "$NC
-  warn_exec lpstat -a 2>/dev/null
+  (lpstat -a || system_profiler SPPrintersDataType || echo_no) 2>/dev/null
 
    #-- SY) Running in a virtual environment
   print_list "Is this a virtual machine? ..... "$NC
@@ -1409,6 +1418,33 @@ if echo $CHECKS | grep -q AvaSof; then
     echo ""
   fi
 
+  if [ "$(command -v brew 2>/dev/null)" ]; then
+    print_2title "Brew Installed Packages"
+    brew list
+    echo ""
+  fi
+
+  if [ "$MACPEAS" ]; then
+    print_2title "Writable Installed Applications"
+    system_profiler SPApplicationsDataType | grep "Location:" | cut -d ":" -f 2 | cut -c2- | while read f; do
+      if [ -w "$f" ]; then
+        echo "$f is writable" | sed -${E} "s,.*,${SED_RED},g"
+      fi
+    done
+
+    system_profiler SPFrameworksDataType | grep "Location:" | cut -d ":" -f 2 | cut -c2- | while read f; do
+      if [ -w "$f" ]; then
+        echo "$f is writable" | sed -${E} "s,.*,${SED_RED},g"
+      fi
+    done
+    echo ""
+
+    #Useless info
+    #print_2title "Developer Tools"
+    #system_profiler SPDeveloperToolsDataType
+    #echo ""
+  fi
+
   echo ""
   if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi
 fi
@@ -1503,14 +1539,21 @@ if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks; then
     print_2title "Third party LaunchAgents & LaunchDemons"
     print_info "TODO"
     ls -l /Library/LaunchAgents/ /Library/LaunchDaemons/ ~/Library/LaunchAgents/ 2>/dev/null
+    echo ""
 
     print_2title "Startup Folders"
     print_info "TODO"
     ls -l /Library/StartupItems/ /System/Library/StartupItems/ 2>/dev/null
+    echo ""
 
     print_2title "Login Items"
     print_info "TODO"
     osascript -e 'tell application "System Events" to get the name of every login item' 2>/dev/null
+    echo ""
+
+    print_2title "SPStartupItemDataType"
+    system_profiler SPStartupItemDataType
+    echo ""
   fi
 
   #-- PCS) Services
@@ -1681,6 +1724,12 @@ if echo $CHECKS | grep -q Net; then
   ###########################################
   print_title "Network Information"
 
+  if [ "$MACOS" ]; then
+    print_2title "Network Capabilities"
+    warn_exec system_profiler SPNetworkDataType
+    echo ""
+  fi
+
   #-- NI) Hostname, hosts and DNS
   print_2title "Hostname, hosts and DNS"
   cat /etc/hostname /etc/hosts /etc/resolv.conf 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null
@@ -1707,6 +1756,11 @@ if echo $CHECKS | grep -q Net; then
   fi
   (arp -e || arp -a || cat /proc/net/arp) 2>/dev/null
   echo ""
+
+  if [ "$MACPEAS" ]; then
+    print_2title "Firewall status"
+    warn_exec system_profiler SPFirewallDataType
+  fi
 
   #-- NI) Iptables
   print_2title "Iptables rules"
@@ -1766,6 +1820,30 @@ if echo $CHECKS | grep -q Net; then
     wait
     echo ""
   fi
+
+  if [ "$MACOS" ]; then
+    print_2title "VPN Creds"
+    system_profiler SPNetworkLocationDataType | grep -A 5 -B 7 ": Password"  | sed -${E} "s,Password|Authorization Name.*,${SED_RED},"
+    echo ""
+
+    print_2title "Bluetooth Info"
+    warn_exec system_profiler SPBluetoothDataType
+    echo ""
+
+    print_2title "Ethernet Info"
+    warn_exec system_profiler SPEthernetDataType
+    echo ""
+
+    print_2title "USB Info"
+    warn_exec system_profiler SPUSBDataType
+    echo ""
+
+    #Irrelevant to PE
+    #print_2title "Airport Info"
+    #warn_exec system_profiler SPAirPortDataType
+    #echo ""
+  fi
+
   echo ""
   if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi
 fi
@@ -1790,6 +1868,9 @@ if echo $CHECKS | grep -q UsrI; then
     print_2title "All Login and Logout hooks"
     defaults read /Users/*/Library/Preferences/com.apple.loginwindow.plist 2>/dev/null | grep -e "Hook"
     defaults read /private/var/root/Library/Preferences/com.apple.loginwindow.plist
+
+    print_2title "Keychains"
+    security list-keychains
   fi
 
   #-- UI) PGP keys?
@@ -1809,6 +1890,8 @@ if echo $CHECKS | grep -q UsrI; then
   elif [ "$(command -v xsel 2>/dev/null)" ]; then
     echo "Clipboard: "$(xsel -ob 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
     echo "Highlighted text: "$(xsel -o 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
+  elif [ "$(command -v pbpaste 2>/dev/null)" ]; then
+    echo "Clipboard: "$(pbpaste) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
   else echo_not_found "xsel and xclip"
   fi
   echo ""
