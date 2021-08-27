@@ -80,12 +80,15 @@ namespace winPEAS.Helpers.AppLocker
 
                 Beaprint.NoColorPrint($"   AppLockerPolicy version: {appLockerSettings.Version}\n   listing rules:\n\n");
 
-                foreach (var rule in appLockerSettings.RuleCollection)
+                if (appLockerSettings.RuleCollection != null)
                 {
-                    PrintFileHashRules(rule);
-                    PrintFilePathRules(rule);
-                    PrintFilePublisherRules(rule);
-                }
+                    foreach (var rule in appLockerSettings.RuleCollection)
+                    {
+                        PrintFileHashRules(rule);
+                        PrintFilePathRules(rule);
+                        PrintFilePublisherRules(rule);
+                    }
+                }                
             }
             catch (COMException)
             {

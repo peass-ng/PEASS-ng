@@ -139,7 +139,7 @@ namespace winPEAS.Checks
 
                     // get our properties
                     //  ref - https://docs.microsoft.com/en-us/windows/win32/api/wuapi/nn-wuapi-iupdatehistoryentry
-                    var title = searcherObj.GetType().InvokeMember("Title", BindingFlags.GetProperty, null, item, new object[] { }).ToString();
+                    var title = searcherObj.GetType().InvokeMember("Title", BindingFlags.GetProperty, null, item, new object[] { })?.ToString() ?? string.Empty;
                     var date = searcherObj.GetType().InvokeMember("Date", BindingFlags.GetProperty, null, item, new object[] { });
                     var description = searcherObj.GetType().InvokeMember("Description", BindingFlags.GetProperty, null, item, new object[] { });
                     var clientApplicationID = searcherObj.GetType().InvokeMember("ClientApplicationID", BindingFlags.GetProperty, null, item, new object[] { });

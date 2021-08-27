@@ -90,7 +90,10 @@ namespace winPEAS.Wifi.NativeWifiApi
 
         ~WlanClient()
         {
-            WlanApi.WlanCloseHandle(clientHandle, IntPtr.Zero);
+            if (clientHandle != IntPtr.Zero)
+            {
+                WlanApi.WlanCloseHandle(clientHandle, IntPtr.Zero);
+            }            
         }
             
         /// <summary>

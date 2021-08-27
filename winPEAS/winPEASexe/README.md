@@ -10,7 +10,7 @@ Check also the **Local Windows Privilege Escalation checklist** from **[book.hac
 
 ## Quick Start
 
-**.Net >= 4.5 is required**
+**.Net >= 4.5.2 is required**
 
 Precompiled binaries:
 - Download the **[latest obfuscated version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/binaries/Obfuscated%20Releases)** or **compile it yourself** (read instructions for compilation).
@@ -107,7 +107,7 @@ REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
 Below you have some indications about what does each color means exacty, but keep in mind that **Red** is for something interesting (from a pentester perspective) and **Green** is something well configured (from a defender perspective).
 
 
-## Instructions to compile
+## Instructions to compile you own obfuscated version
 
 In order to compile an **ofuscated version** of Winpeas and bypass some AVs you need to ** install dotfuscator ** in *VisualStudio*. 
 
@@ -263,11 +263,6 @@ Once you have installed and activated it you need to:
   - [x] run **[linpeas.sh](https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh)** in default WSL distribution
 
 </details>
-
-## Let's improve PEASS together
-
-If you want to **add something** and have **any cool idea** related to this project, please let me know it in the **telegram group https://t.me/peass** or using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)** and we will update the master version.
-
 
 ## TODO
 - Add more checks

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 using winPEAS.Helpers;
 using winPEAS.Native;
 
@@ -7,6 +8,7 @@ namespace winPEAS.KnownFileCreds.Kerberos
 {
     static class Helpers
     {
+        [HandleProcessCorruptedStateExceptions]
         public static IntPtr LsaRegisterLogonProcessHelper()
         {
             // helper that establishes a connection to the LSA server and verifies that the caller is a logon application
@@ -21,7 +23,13 @@ namespace winPEAS.KnownFileCreds.Kerberos
             LSAString.MaximumLength = (ushort)(logonProcessName.Length + 1);
             LSAString.Buffer = logonProcessName;
 
-            int ret = Secur32.LsaRegisterLogonProcess(LSAString, out lsaHandle, out securityMode);
+            try
+            {
+                int ret = Secur32.LsaRegisterLogonProcess(LSAString, out lsaHandle, out securityMode);
+            }
+            catch (Exception e)
+            {
+            }            
 
             return lsaHandle;
         }
