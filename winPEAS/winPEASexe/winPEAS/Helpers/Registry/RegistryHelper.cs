@@ -143,6 +143,12 @@ namespace winPEAS.Helpers.Registry
                 {
                     myKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(path);
                 }
+
+                if (myKey == null)
+                {
+                    return new string[0];
+                }
+
                 String[] subkeyNames = myKey.GetSubKeyNames();
                 return myKey.GetSubKeyNames();
             }
