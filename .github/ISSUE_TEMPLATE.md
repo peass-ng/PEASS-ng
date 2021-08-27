@@ -1,3 +1,5 @@
+If you are going to suggest something, please remove the following template. 
+
 #### Issue description
 
 
@@ -7,16 +9,22 @@
 2. 
 3.
 
-#### clean / obfuscated winpeas?
+#### Which parameters did you use for executing the script and how did you execute it?
 
 
-#### AV / Threat protection used
+#### If winpeas, did you use a clean or obfuscated winpeas, and for which architecture?
 
 
-#### Windows version / build
+#### Is there any AV / Threat protection in the system?
 
 
-#### Failing Winpeas check
+#### Please, indicate the OS, the OS version, and the kernel version (build number in case of Windows)
+
+
+#### Please, indicate the check that is failing and add a screenshot showing the problem
+
+
+#### How did you expect it to work?
 
 
 #### Additional details / screenshot
