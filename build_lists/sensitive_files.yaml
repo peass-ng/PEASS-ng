@@ -381,7 +381,7 @@ search:
                         bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
                         only_bad_lines: True
                         remove_empty_lines: True
-                        remove_regex: '^#'
+                        remove_regex: '#'
                 search_in: 
                     - common
       
@@ -2104,7 +2104,9 @@ search:
                         remove_regex: '^#'
                 type: d
                 search_in: 
-                  - common
+                  - /etc #False possitives in home
+                  - /var
+                  - /usr
 
   - name: SeedDMS
     value:
