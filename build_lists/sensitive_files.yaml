@@ -80,6 +80,13 @@ storage_template: >
 
 int_hidden_files_markup: "peass{INT_HIDDEN_FILES}"
 
+suidVB1_markup: "peass{SUIDVB1_HERE}"
+suidVB2_markup: "peass{SUIDVB2_HERE}"
+sudoVB1_markup: "peass{SUDOVB1_HERE}"
+sudoVB2_markup: "peass{SUDOVB2_HERE}"
+cap_setuid_markup: "peass{CAP_SETUID_HERE}"
+cap_setgid_markup: "peass{CAP_SETGID_HERE}"
+
 
 
 ##############################
@@ -90,8 +97,8 @@ int_hidden_files_markup: "peass{INT_HIDDEN_FILES}"
 variables_markup: "peass{VARIABLES}"
 
 variables:
-   - name: pwd_inside_history
-     value: "7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|root|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|xfreerdp|^ssh|steghide|@"
+  - name: pwd_inside_history
+    value: "enable_autologin|7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|root|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|xfreerdp|^ssh|steghide|@|KEY=|TOKEN=|BEARER=|Authorization:"
 
 
 
@@ -375,7 +382,7 @@ search:
                         bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
                         only_bad_lines: True
                         remove_empty_lines: True
-                        remove_regex: '^#'
+                        remove_regex: '#'
                 search_in: 
                     - common
       
@@ -402,6 +409,7 @@ search:
                   - /tmp
                   - /var
                   - /mnt
+                  - /private
   
   - name: PHP_files
     value:
@@ -571,9 +579,11 @@ search:
           auto_check: True
 
         files:
-          - name:  "hostapd.conf"
+          - name: "hostapd.conf"
             value: 
                 bad_regex: "passphrase.*"
+                remove_regex: '^#'
+                remove_empty_lines: True
                 type: f
                 search_in: 
                   - common
@@ -592,13 +602,37 @@ search:
                 search_in: 
                   - common
   
+
+  - name: Racoon
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "racoon.conf"
+            value:
+                remove_empty_lines: True
+                bad_regex: "pre_shared_key.*"
+                remove_regex: '^#'
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "psk.txt"
+            value:
+                remove_empty_lines: True
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+
   - name: VNC
     value:
         config:
           auto_check: True
 
         files:
-          - name:  ".vnc"
+          - name: ".vnc"
             value: 
                 files:
                   - name: "passwd"
@@ -785,6 +819,7 @@ search:
                 type: f
                 search_in: 
                   - /tmp
+                  - /private
       
   - name: SSH_CONFIG
     value:
@@ -1265,8 +1300,8 @@ search:
         config:
           auto_check: True
           exec:
-            - '((command -v gpg && gpg --list-keys) || echo_not_found "gpg") 2>/dev/null'
-            - '((command -v netpgpkeys && netpgpkeys --list-keys) || echo_not_found "netpgpkeys") 2>/dev/null'
+            - '( (command -v gpg && gpg --list-keys) || echo_not_found "gpg") 2>/dev/null'
+            - '( (command -v netpgpkeys && netpgpkeys --list-keys) || echo_not_found "netpgpkeys") 2>/dev/null'
             - '(command -v netpgp || echo_not_found "netpgp") 2>/dev/null'
 
         files:
@@ -1354,7 +1389,78 @@ search:
           - name: ".mozilla"
             value: 
                 files:
-                  - name:  "places.sqlite"
+                  - name: "places.sqlite"
+                    value:
+                        just_list_file: True
+            
+                  - name: "bookmarkbackups"
+                    value:
+                        just_list_file: True
+          
+                  - name: "formhistory.sqlite"
+                    value:
+                        just_list_file: True
+            
+                  - name: "handlers.json"
+                    value:
+                        just_list_file: True
+
+                  - name: "persdict.dat"
+                    value:
+                        just_list_file: True
+
+                  - name:  "addons.json"
+                    value:
+                        just_list_file: True
+
+                  - name: "cookies.sqlite"
+                    value:
+                        just_list_file: True
+          
+                  - name: "cache2"
+                    value:
+                        just_list_file: True
+
+                  - name: "startupCache"
+                    value:
+                        just_list_file: True
+
+                  - name: "favicons.sqlite"
+                    value:
+                        just_list_file: True
+
+                  - name: "prefs.js"
+                    value:
+                        just_list_file: True
+
+                  - name: "downloads.sqlite"
+                    value:
+                        just_list_file: True
+          
+                  - name: "thumbnails"
+                    value:
+                        just_list_file: True
+
+                  - name: "logins.json"
+                    value:
+                        just_list_file: True
+
+                  - name: "key4.db"
+                    value:
+                        just_list_file: True
+
+                  - name: "key3.db"
+                    value:
+                        just_list_file: True
+
+            type: d
+            search_in: 
+              - $HOMESEARCH
+          
+          - name: "Firefox"
+            value: 
+                files:
+                  - name: "places.sqlite"
                     value:
                         just_list_file: True
             
@@ -1434,6 +1540,10 @@ search:
           - name: "google-chrome"
             value: 
                 files:
+                  - name: "History"
+                    value:
+                        just_list_file: True
+
                   - name: "Cookies"
                     value:
                         just_list_file: True
@@ -1479,6 +1589,185 @@ search:
                         just_list_file: True
 
                   - name: "Thumbnails"
+                    value:
+                        just_list_file: True
+
+                  - name: "Preferences"
+                    value:
+                        just_list_file: True
+            
+            type: d
+            search_in: 
+              - $HOMESEARCH
+
+          - name: "Chrome"
+            value: 
+                files:
+                  - name: "History"
+                    value:
+                        just_list_file: True
+
+                  - name: "Cookies"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Cache"
+                    value:
+                        just_list_file: True
+
+                  - name: "Bookmarks"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Web Data"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Favicons"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Login Data"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Current Session"
+                    value:
+                        just_list_file: True
+
+                  - name: "Current Tabs"
+                    value:
+                        just_list_file: True
+
+                  - name: "Last Session"
+                    value:
+                        just_list_file: True
+
+                  - name: "Last Tabs"
+                    value: 
+                        just_list_file: True
+
+                  - name: "Extensions"
+                    value:
+                        just_list_file: True
+
+                  - name: "Thumbnails"
+                    value:
+                        just_list_file: True
+
+                  - name: "Preferences"
+                    value:
+                        just_list_file: True
+            
+            type: d
+            search_in: 
+              - $HOMESEARCH          
+
+  - name: Opera
+    value:
+        disable:
+          - winpeas
+    
+        config:
+          auto_check: True
+
+        files:
+          - name: "com.operasoftware.Opera"
+            value: 
+                files:
+                  - name: "History"
+                    value:
+                        just_list_file: True
+
+                  - name: "Cookies"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Cache"
+                    value:
+                        just_list_file: True
+
+                  - name: "Bookmarks"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Web Data"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Favicons"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Login Data"
+                    value:
+                        just_list_file: True
+          
+                  - name: "Current Session"
+                    value:
+                        just_list_file: True
+
+                  - name: "Current Tabs"
+                    value:
+                        just_list_file: True
+
+                  - name: "Last Session"
+                    value:
+                        just_list_file: True
+
+                  - name: "Last Tabs"
+                    value: 
+                        just_list_file: True
+
+                  - name: "Extensions"
+                    value:
+                        just_list_file: True
+
+                  - name: "Thumbnails"
+                    value:
+                        just_list_file: True
+
+                  - name: "Preferences"
+                    value:
+                        just_list_file: True
+
+            type: d
+            search_in: 
+              - $HOMESEARCH
+  
+  - name: Safari
+    value:
+        disable:
+          - winpeas
+    
+        config:
+          auto_check: True
+
+        files:
+          - name: "Safari"
+            value: 
+                files:
+                  - name:  "History.db"
+                    value:
+                        just_list_file: True
+                  
+                  - name:  "Downloads.plist"
+                    value:
+                        just_list_file: True
+                  
+                  - name:  "Book-marks.plist"
+                    value:
+                        just_list_file: True
+                  
+                  - name:  "TopSites.plist"
+                    value:
+                        just_list_file: True
+
+                  - name:  "UserNotificationPermissions.plist"
+                    value:
+                        just_list_file: True
+
+                  - name:  "LastSession.plist"
                     value:
                         just_list_file: True
             
@@ -1816,7 +2105,9 @@ search:
                         remove_regex: '^#'
                 type: d
                 search_in: 
-                  - common
+                  - /etc #False possitives in home
+                  - /var
+                  - /usr
 
   - name: SeedDMS
     value:
@@ -1844,6 +2135,19 @@ search:
           - name: "ddclient.conf"
             value: 
                 bad_regex: ".*password.*"
+                type: f
+                search_in: 
+                  - common
+  
+  - name: kcpassword
+    value:
+        config:
+          auto_check: False
+
+        files:
+          - name: "kcpassword"
+            value: 
+                just_list_file: True
                 type: f
                 search_in: 
                   - common
@@ -2265,13 +2569,6 @@ search:
                 search_in:
                   - common
 
-          - name: "system"
-            value:
-                just_list_file: True
-                type: f
-                search_in:
-                  - common
-
           - name: "system.sav"
             value:
                 just_list_file: True
@@ -2351,6 +2648,13 @@ search:
                   - common
 
           - name: "services.xml"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+          
+          - name: "system"
             value:
                 just_list_file: True
                 type: f

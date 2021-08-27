@@ -1,10 +1,12 @@
-# PEASS - Privilege Escalation Awesome Scripts SUITE
+# PEASS-ng - Privilege Escalation Awesome Scripts SUITE new generation
 
 ![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/peass.png)
 
-![](https://img.shields.io/badge/Black-Arch-black) ![](https://img.shields.io/badge/Arch-AUR-brightgreen) ![](https://img.shields.io/badge/Black%20Hat%20Arsenal-Asia%202020-red)
+![](https://img.shields.io/badge/Black-Arch-black) ![](https://img.shields.io/badge/Arch-AUR-brightgreen) ![](https://img.shields.io/badge/Black%20Hat%20Arsenal-Asia%202020-red) [![CI-master_test](https://github.com/carlospolop/PEASS-ng/actions/workflows/CI-master_tests.yml/badge.svg)](https://github.com/carlospolop/PEASS-ng/actions/workflows/CI-master_tests.yml)
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/peass.svg)](https://repology.org/project/peass/versions)
+# Basic Tutorial
+[![Tutorial](https://img.youtube.com/vi/2Ey1WQXNp3w/0.jpg)](https://www.youtube.com/watch?v=9_fJv_weLU0&list=PL9fPq3eQfaaDxjpXaDYApfVA_IB8T14w7)
+
 
 Here you will find **privilege escalation tools for Windows and Linux/Unix\* and MacOS**.
 
@@ -18,7 +20,7 @@ These tools search for possible **local privilege escalation paths** that you co
 
 ## Let's improve PEASS together
 
-If you want to **add something** and have **any cool idea** related to this project, please let me know it in the **telegram group https://t.me/peass** or using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)** and we will update the master version.
+If you want to **add something** and have **any cool idea** related to this project, please let me know it in the **telegram group https://t.me/peass** or contribute reading the **[CONTRIBUTING.md](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/CONTRIBUTING.md)** file.
 
 ## Please, if this tool has been useful for you consider to donate
 

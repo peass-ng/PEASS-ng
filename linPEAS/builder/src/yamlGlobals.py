@@ -33,3 +33,10 @@ YAML_VARIABLES = YAML_LOADED["variables"]
 INT_HIDDEN_FILES_MARKUP = YAML_LOADED["int_hidden_files_markup"]
 
 EXTRASECTIONS_MARKUP = YAML_LOADED["peas_extrasections_markup"]
+
+SUIDVB1_MARKUP = YAML_LOADED["suidVB1_markup"]
+SUIDVB2_MARKUP = YAML_LOADED["suidVB2_markup"]
+SUDOVB1_MARKUP = YAML_LOADED["sudoVB1_markup"]
+SUDOVB2_MARKUP = YAML_LOADED["sudoVB2_markup"]
+CAP_SETUID_MARKUP = YAML_LOADED["cap_setuid_markup"]
+CAP_SETGID_MARKUP = YAML_LOADED["cap_setgid_markup"]

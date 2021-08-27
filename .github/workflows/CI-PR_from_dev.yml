@@ -1,0 +1,26 @@
+name: CI-PR_from_dev
+
+on:
+  push:
+    branches:
+      - winpeas_dev
+      - linpeas_dev
+
+  workflow_dispatch:
+
+jobs:     
+  create_pull_request:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # checkout
+      - name: Checkout
+        uses: actions/checkout@v2
+    
+      # PR     
+      - name: Pull Request
+        uses: repo-sync/pull-request@v2
+        with:
+          destination_branch: "master"
+          github_token: ${{ secrets.PULL_REQUEST_TOKEN }}
+      

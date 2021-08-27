@@ -1,4 +1,4 @@
-name: CI-winpeas_master_test
+name: CI-master_test
 
 on:
   pull_request:
@@ -11,6 +11,7 @@ jobs:
 
   Build_and_test_winpeas_master:
     runs-on: windows-latest
+    needs: Build_and_test_linpeas_master
     
     # environment variables
     env:
@@ -21,7 +22,12 @@ jobs:
     steps:
       # checkout
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@master
+        with:
+          persist-credentials: false
+          # Otherwise, you will failed to push refs to dest repo.
+          fetch-depth: 0
+          ref: refs/heads/${{ github.head_ref }}
             
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild.exe
@@ -74,22 +80,18 @@ jobs:
             whoami
             mkdir -p $env:USERPROFILE\AppData\Local\"PreEmptive Solutions"\"Dotfuscator Community Edition"\6.0 -erroraction 'silentlycontinue'
             cp DotfuscatorCE\license\* $env:USERPROFILE\AppData\Local\"PreEmptive Solutions"\"Dotfuscator Community Edition"\6.0\
-
       # build obfuscated versions
       - name: Build obfuscated versions
         run: |
             DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\x64.xml"
             DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\x86.xml"
             DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\any.xml" 
-
-
       # copy the files
       - name: Copy Dotfuscator generated files
         run: |
             cp $env:DotFuscatorGeneratedPath\x64\winPEASx64.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64.exe"            
             cp $env:DotFuscatorGeneratedPath\x86\winPEASx86.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86.exe"
             cp $env:DotFuscatorGeneratedPath\any\winPEASany.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany.exe"
-
       # Git add
       - name: Create local changes
         run: |
@@ -97,17 +99,77 @@ jobs:
             git add winPEAS\winPEASexe\binaries\x64\*
             git add winPEAS\winPEASexe\binaries\x86\*
             git add "winPEAS\winPEASexe\binaries\Obfuscated Releases\*.exe"
-
       # Git commit
       - name: Commit results to Github
         run: |
           git config --local user.email "ci@winpeas.com"
           git config --global user.name "CI-winpeas"
+          git pull origin "${{ github.ref }}" --autostash --rebase -Xours
           git commit -m "winpeas binaries auto update" -a --allow-empty
       
       # Git push
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-           github_token: ${{ secrets.GITHUB_TOKEN }}
-           branch: master
+          branch: refs/heads/${{ github.head_ref }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
+
+  Build_and_test_linpeas_master:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+          # Otherwise, you will failed to push refs to dest repo.
+          fetch-depth: 0
+          ref: refs/heads/${{ github.head_ref }}
+
+      - name: Build linpeas
+        run: |
+          python3 -m pip install PyYAML
+          cd linPEAS
+          python3 -m builder.linpeas_builder
+          
+      - name: Run linpeas help
+        run: linPEAS/linpeas.sh -h
+        
+      - name: Run linpeas
+        run: linPEAS/linpeas.sh
+
+      - name: Create local changes
+        run: git add linPEAS/linpeas.sh
+
+      - name: Commit results to Github
+        run: |
+          git config --local user.email ""
+          git config --global user.name "CI-linpeas-ubuntu"
+          git pull origin "${{ github.ref }}" --autostash --rebase -Xours
+          git commit -m "linpeas.sh auto update" -a --allow-empty
+      
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: refs/heads/${{ github.head_ref }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
+
+  Build_and_test_macpeas_master:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build macpeas
+        run: |
+          python3 -m pip install PyYAML
+          python3 -m pip install requests
+          cd linPEAS
+          python3 -m builder.linpeas_builder
+      
+      - name: Run macpeas help
+        run: linPEAS/linpeas.sh -h
+      
+      - name: Run macpeas
+        run: linPEAS/linpeas.sh -o SysI,Container,Devs,AvaSof,ProCronSrvcsTmrsSocks,Net,UsrI,SofI
