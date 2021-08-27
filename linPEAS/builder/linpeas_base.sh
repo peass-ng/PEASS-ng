@@ -420,7 +420,7 @@ else
   sh_usrs=$(cat /etc/passwd 2>/dev/null | grep -v "^root:" | grep -i "sh$" | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|bin|/|bin[\\\s:]|^bin$|/' | sed 's/|sys|/|sys[\\\s:]|^sys$|/' | sed 's/|daemon|/|daemon[\\\s:]|^daemon$|/')"ImPoSSssSiBlEee" #Modified bin, sys and daemon so they are not colored everywhere
   nosh_usrs=$(cat /etc/passwd 2>/dev/null | grep -i -v "sh$" | sort | cut -d ":" -f 1 | tr '\n' '|' | sed 's/|bin|/|bin[\\\s:]|^bin$|/')"ImPoSSssSiBlEee"
 fi
-knw_usrs='daemon\W|^daemon$|message\+|syslog|www|www-data|mail|noboby|Debian\-\+|rtkit|systemd\+'
+knw_usrs='_amavisd|_analyticsd|_appinstalld|_appleevents|_applepay|_appowner|_appserver|_appstore|_ard|_assetcache|_astris|_atsserver|_avbdeviced|_calendar|_captiveagent|_ces|_clamav|_cmiodalassistants|_coreaudiod|_coremediaiod|_coreml|_ctkd|_cvmsroot|_cvs|_cyrus|_datadetectors|_demod|_devdocs|_devicemgr|_diskimagesiod|_displaypolicyd|_distnote|_dovecot|_dovenull|_dpaudio|_driverkit|_eppc|_findmydevice|_fpsd|_ftp|_fud|_gamecontrollerd|_geod|_hidd|_iconservices|_installassistant|_installcoordinationd|_installer|_jabber|_kadmin_admin|_kadmin_changepw|_knowledgegraphd|_krb_anonymous|_krb_changepw|_krb_kadmin|_krb_kerberos|_krb_krbtgt|_krbfast|_krbtgt|_launchservicesd|_lda|_locationd|_logd|_lp|_mailman|_mbsetupuser|_mcxalr|_mdnsresponder|_mobileasset|_mysql|_nearbyd|_netbios|_netstatistics|_networkd|_nsurlsessiond|_nsurlstoraged|_oahd|_ondemand|_postfix|_postgres|_qtss|_reportmemoryexception|_rmd|_sandbox|_screensaver|_scsd|_securityagent|_softwareupdate|_spotlight|_sshd|_svn|_taskgated|_teamsserver|_timed|_timezone|_tokend|_trustd|_trustevaluationagent|_unknown|_update_sharing|_usbmuxd|_uucp|_warmd|_webauthserver|_windowserver|_www|_wwwproxy|_xserverdocs|daemon\W|^daemon$|message\+|syslog|www|www-data|mail|noboby|Debian\-\+|rtkit|systemd\+'
 USER=$(whoami 2>/dev/null || echo "UserUnknown")
 if [ ! "$HOME" ]; then
   if [ -d "/Users/$USER" ]; then HOME="/Users/$USER"; #Mac home
@@ -1404,7 +1404,7 @@ if echo $CHECKS | grep -q AvaSof; then
 
   #-- 1AS) Useful software
   print_2title "Useful software"
-  command -v "$CONTAINER_CMDS" nmap aws nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch ctr 2>/dev/null
+  command -v "$CONTAINER_CMDS" nmap aws nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch ctr authbind 2>/dev/null
   echo ""
 
   #-- 2AS) Search for compilers
@@ -1537,22 +1537,40 @@ if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks; then
 
   if [ "$MACPEAS" ]; then
     print_2title "Third party LaunchAgents & LaunchDemons"
-    print_info "TODO"
-    ls -l /Library/LaunchAgents/ /Library/LaunchDaemons/ ~/Library/LaunchAgents/ 2>/dev/null
+    print_info "https://book.hacktricks.xyz/macos/macos-security-and-privilege-escalation#launchd"
+    ls -l /Library/LaunchAgents/ /Library/LaunchDaemons/ ~/Library/LaunchAgents/ ~/Library/LaunchDaemons/ 2>/dev/null
     echo ""
 
-    print_2title "Startup Folders"
-    print_info "TODO"
+    print_2title "Writable System LaunchAgents & LaunchDemons"
+    find /System/Library/LaunchAgents/ /System/Library/LaunchDaemons/ /Library/LaunchAgents/ /Library/LaunchDaemons/ | grep ".plist" | while read f; do
+      program=""
+      program=$(defaults read "$f" Program 2>/dev/null)
+      if ! [ "$program" ]; then
+        program=$(defaults read /Library/LaunchDaemons/MonitorHelper.plist ProgramArguments | grep -Ev "^\(|^\)" | cut -d '"' -f 2)
+      fi
+      if [ -w "$program" ]; then
+        echo "$program" is writable | sed -${E} "s,.*,${SED_RED_YELLOW},";
+      fi
+    done
+    echo ""
+
+    print_2title "StartupItems"
+    print_info "https://book.hacktricks.xyz/macos/macos-security-and-privilege-escalation#startup-items"
     ls -l /Library/StartupItems/ /System/Library/StartupItems/ 2>/dev/null
     echo ""
 
     print_2title "Login Items"
-    print_info "TODO"
+    print_info "https://book.hacktricks.xyz/macos/macos-security-and-privilege-escalation#login-items"
     osascript -e 'tell application "System Events" to get the name of every login item' 2>/dev/null
     echo ""
 
     print_2title "SPStartupItemDataType"
     system_profiler SPStartupItemDataType
+    echo ""
+
+    print_2title "Emond scripts"
+    print_info "https://book.hacktricks.xyz/macos/macos-security-and-privilege-escalation#emond"
+    ls -l /private/var/db/emondClients
     echo ""
   fi
 
@@ -1787,6 +1805,10 @@ if echo $CHECKS | grep -q Net; then
     networksetup -getinfo Wi-Fi
     echo ""
 
+    print_2title "Check Enabled Proxies"
+    scutil --proxy
+    echo ""
+
     print_2title "Wifi Proxy URL"
     networksetup -getautoproxyurl Wi-Fi
     echo ""
@@ -1822,6 +1844,15 @@ if echo $CHECKS | grep -q Net; then
   fi
 
   if [ "$MACOS" ]; then
+    print_2title "Any MacOS Sharing Service Enabled?"
+    rmMgmt=$(netstat -na | grep LISTEN | grep tcp46 | grep "*.3283" | wc -l);
+    scrShrng=$(netstat -na | grep LISTEN | egrep 'tcp4|tcp6' | grep "*.5900" | wc -l);
+    flShrng=$(netstat -na | grep LISTEN | egrep 'tcp4|tcp6' | egrep "\*.88|\*.445|\*.548" | wc -l);
+    rLgn=$(netstat -na | grep LISTEN | egrep 'tcp4|tcp6' | grep "*.22" | wc -l);
+    rAE=$(netstat -na | grep LISTEN | egrep 'tcp4|tcp6' | grep "*.3031" | wc -l);
+    bmM=$(netstat -na | grep LISTEN | egrep 'tcp4|tcp6' | grep "*.4488" | wc -l);
+    printf "\nThe following services are OFF if '0', or ON otherwise:\nScreen Sharing: %s\nFile Sharing: %s\nRemote Login: %s\nRemote Mgmt: %s\nRemote Apple Events: %s\nBack to My Mac: %s\n\n" "$scrShrng" "$flShrng" "$rLgn" "$rmMgmt" "$rAE" "$bmM";
+    echo ""
     print_2title "VPN Creds"
     system_profiler SPNetworkLocationDataType | grep -A 5 -B 7 ": Password"  | sed -${E} "s,Password|Authorization Name.*,${SED_RED},"
     echo ""
@@ -1864,13 +1895,25 @@ if echo $CHECKS | grep -q UsrI; then
   if [ "$MACPEAS" ];then
     print_2title "Current user Login and Logout hooks"
     defaults read $HOME/Library/Preferences/com.apple.loginwindow.plist 2>/dev/null | grep -e "Hook"
+    echo ""
 
     print_2title "All Login and Logout hooks"
     defaults read /Users/*/Library/Preferences/com.apple.loginwindow.plist 2>/dev/null | grep -e "Hook"
     defaults read /private/var/root/Library/Preferences/com.apple.loginwindow.plist
+    echo ""
 
     print_2title "Keychains"
+    print_info "https://book.hacktricks.xyz/macos/macos-security-and-privilege-escalation#chainbreaker"
     security list-keychains
+    echo ""
+
+    print_2title "SystemKey"
+    ls -l /var/db/SystemKey
+    if [ -r "/var/db/SystemKey" ]; then 
+      echo "You can read /var/db/SystemKey" | sed -${E} "s,.*,${SED_RED_YELLOW},";
+      hexdump -s 8 -n 24 -e '1/1 "%.2x"' /var/db/SystemKey | sed -${E} "s,.*,${SED_RED_YELLOW},";
+    fi
+    echo ""
   fi
 
   #-- UI) PGP keys?
@@ -2031,9 +2074,16 @@ if echo $CHECKS | grep -q UsrI; then
   grep "^PASS_MAX_DAYS\|^PASS_MIN_DAYS\|^PASS_WARN_AGE\|^ENCRYPT_METHOD" /etc/login.defs 2>/dev/null || echo_not_found "/etc/login.defs"
   echo ""
 
-  if [ "$MACPEASS" ]; then
+  if [ "$MACPEAS" ]; then
     print_2title "Relevant last user info and user configs"
     defaults read /Library/Preferences/com.apple.loginwindow.plist 2>/dev/null
+    echo ""
+
+    print_2title "Guest user status"
+    sysadminctl -afpGuestAccess status | sed -${E} "s,enabled,${SED_RED}," | sed -${E} "s,disabled,${SED_GREEN},"
+    sysadminctl -guestAccount status | sed -${E} "s,enabled,${SED_RED}," | sed -${E} "s,disabled,${SED_GREEN},"
+    sysadminctl -smbGuestAccess status | sed -${E} "s,enabled,${SED_RED}," | sed -${E} "s,disabled,${SED_GREEN},"
+    echo ""
   fi
 
   #-- UI) Brute su
@@ -2458,7 +2508,7 @@ if echo $CHECKS | grep -q SofI; then
   echo ""
 
   print_2title "Analyzing kcpassword files"
-  print_info "TODO"
+  print_info "https://book.hacktricks.xyz/macos/macos-security-and-privilege-escalation#kcpassword"
   printf "%s\n" "$PSTORAGE_KCPASSWORD\n" | while read f; do
     echo "$f" | sed -${E} "s,.*,${SED_RED},"
     base64 "$f" 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
@@ -2621,7 +2671,7 @@ if echo $CHECKS | grep -q IntFiles; then
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
     if echo "$s" | grep -qE "^total"; then break; fi
 
-    sname="$(echo \"$s\" | awk '{print $9}')"
+    sname="$(echo $s | awk '{print $9}')"
     if [ "$sname" = "."  ] || [ "$sname" = ".."  ]; then
       true #Don't do nothing
     elif ! [ "$IAMROOT" ] && [ -O "$sname" ]; then
@@ -2683,7 +2733,7 @@ if echo $CHECKS | grep -q IntFiles; then
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
     if echo "$s" | grep -qE "^total";then break; fi
 
-    sname="$(echo \"$s\" | awk '{print $9}')"
+    sname="$(echo $s | awk '{print $9}')"
     if [ "$sname" = "."  ] || [ "$sname" = ".."  ]; then
       true #Don't do nothing
     elif ! [ "$IAMROOT" ] && [ -O "$sname" ]; then
@@ -3010,6 +3060,13 @@ if echo $CHECKS | grep -q IntFiles; then
   echo ""
 
   ##-- IF) DB files
+  if [ "$MACPEAS" ]; then
+    print_2title "Reading messages database"
+    sqlite3 $HOME/Library/Messages/chat.db 'select * from message' 2>/dev/null
+    sqlite3 $HOME/Library/Messages/chat.db 'select * from attachment' 2>/dev/null
+    sqlite3 $HOME/Library/Messages/chat.db 'select * from deleted_messages' 2>/dev/null
+
+  fi
   print_2title "Searching tables inside readable .db/.sql/.sqlite files (limit 100)"
   FILECMD="$(command -v file 2>/dev/null)"
   if [ "$PSTORAGE_DATABASE" ]; then
@@ -3061,7 +3118,7 @@ if echo $CHECKS | grep -q IntFiles; then
 
   if [ "$MACPEAS" ]; then
     print_2title "Downloaded Files"
-    sqlite3 "$HOME/Library/Preferences/com.apple.LaunchServices.QuarantineEventsV2"  "select * from LSQuarantineEvent;" 2>/dev/null | grep "http"
+    sqlite3 ~/Library/Preferences/com.apple.LaunchServices.QuarantineEventsV2 'select LSQuarantineAgentName, LSQuarantineDataURLString, LSQuarantineOriginURLString, date(LSQuarantineTimeStamp + 978307200, "unixepoch") as downloadedDate from LSQuarantineEvent order by LSQuarantineTimeStamp' | sort | grep -Ev "\|\|\|"
   fi
 
   ##-- IF) Web files
