@@ -92,6 +92,12 @@ namespace winPEAS.Info.SystemInfo.SysMon
             try
             {
                 var key = registryKey.OpenSubKey(paramsKey);
+
+                if (key == null)
+                {
+                    return null;
+                }
+
                 byte[] result = (byte[])key.GetValue(val);
 
                 return result;

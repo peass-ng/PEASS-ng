@@ -80,22 +80,18 @@ jobs:
             whoami
             mkdir -p $env:USERPROFILE\AppData\Local\"PreEmptive Solutions"\"Dotfuscator Community Edition"\6.0 -erroraction 'silentlycontinue'
             cp DotfuscatorCE\license\* $env:USERPROFILE\AppData\Local\"PreEmptive Solutions"\"Dotfuscator Community Edition"\6.0\
-
       # build obfuscated versions
       - name: Build obfuscated versions
         run: |
             DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\x64.xml"
             DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\x86.xml"
             DotfuscatorCE\dotfuscator.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\any.xml" 
-
-
       # copy the files
       - name: Copy Dotfuscator generated files
         run: |
             cp $env:DotFuscatorGeneratedPath\x64\winPEASx64.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64.exe"            
             cp $env:DotFuscatorGeneratedPath\x86\winPEASx86.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86.exe"
             cp $env:DotFuscatorGeneratedPath\any\winPEASany.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany.exe"
-
       # Git add
       - name: Create local changes
         run: |
@@ -103,7 +99,6 @@ jobs:
             git add winPEAS\winPEASexe\binaries\x64\*
             git add winPEAS\winPEASexe\binaries\x86\*
             git add "winPEAS\winPEASexe\binaries\Obfuscated Releases\*.exe"
-
       # Git commit
       - name: Commit results to Github
         run: |
