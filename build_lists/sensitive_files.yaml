@@ -2179,6 +2179,43 @@ search:
                 search_in: 
                   - common
 
+  - name: Strapi
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "environments"
+            value: 
+                files:
+                  - name: "custom.json"
+                    value:
+                        bad_regex: "username.*|[pP][aA][sS][sS].*|secret.*"
+                        remove_empty_lines: True
+                  - name: "database.json"
+                    value:
+                        bad_regex: "username.*|[pP][aA][sS][sS].*|secret.*"
+                        remove_empty_lines: True
+                  - name: "request.json"
+                    value:
+                        bad_regex: "username.*|[pP][aA][sS][sS].*|secret.*"
+                        remove_empty_lines: True
+                  - name: "response.json"
+                    value:
+                        bad_regex: "username.*|[pP][aA][sS][sS].*|secret.*"
+                        remove_empty_lines: True
+                  - name: "security.json"
+                    value:
+                        bad_regex: "username.*|[pP][aA][sS][sS].*|secret.*"
+                        remove_empty_lines: True
+                  - name: "server.json"
+                    value:
+                        bad_regex: "username.*|[pP][aA][sS][sS].*|secret.*"
+                        remove_empty_lines: True
+                type: d
+                search_in: 
+                  - common
+
   - name: Cacti
     value:
         config:
