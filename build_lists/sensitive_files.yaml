@@ -2152,6 +2152,33 @@ search:
                 search_in: 
                   - common
 
+  - name: Sentry
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "sentry"
+            value: 
+                files:
+                  - name: "config.yml"
+                    value:
+                        bad_regex: "*key*"
+                        remove_empty_lines: True
+                        remove_regex: '^#'
+                type: d
+                search_in: 
+                  - common
+          
+          - name: "sentry.conf.py"
+            value: 
+                bad_regex: "[pP][aA][sS][sS].*|[uU][sS][eE][rR].*"
+                remove_empty_lines: True
+                remove_regex: '^#'
+                type: f
+                search_in: 
+                  - common
+
   - name: Cacti
     value:
         config:
