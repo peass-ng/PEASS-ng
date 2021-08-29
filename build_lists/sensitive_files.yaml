@@ -315,7 +315,8 @@ search:
     value:
         config:
           auto_check: True
-    
+        
+        files:
           - name: "mariadb.cnf"
             value: 
                 bad_regex: "user.*|password.*"
