@@ -310,7 +310,22 @@ search:
                 remove_path: "mysql/mysql"
                 search_in: 
                   - common
-    
+
+  - name: MariaDB
+    value:
+        config:
+          auto_check: True
+        
+        files:
+          - name: "mariadb.cnf"
+            value: 
+                bad_regex: "user.*|password.*"
+                type: f
+                remove_regex: '^#'
+                remove_empty_lines: True
+                search_in: 
+                  - common
+          
           - name: "debian.cnf"
             value: 
                 bad_regex: "user.*|password.*"
@@ -318,7 +333,6 @@ search:
                 only_bad_lines: True
                 search_in: 
                   - common
-
 
   
   - name: PostgreSQL
@@ -1836,6 +1850,24 @@ search:
             value: 
                 bad_regex: "username|password"
                 type: f
+                search_in: 
+                  - common
+  
+  - name: Postfix
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "postfix"
+            value: 
+                files:
+                  - name: "master.cf"
+                    value:
+                        bad_regex: "user=|argv="
+                        remove_empty_lines: True
+                        line_grep: '"user="'
+                type: d
                 search_in: 
                   - common
 
