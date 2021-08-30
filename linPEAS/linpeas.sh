@@ -1124,6 +1124,11 @@ if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks || echo $CHECKS | grep -q IntFil
   wait # Always wait at the end
   CONT_THREADS=0 #Reset the threads counter
 
+  # findings can be grouped in 3 groups
+  FIND_1ST_GROUP="$FIND_CACHE\n$FIND_RUN\n$FIND_SYSTEM\n$FIND_MEDIA\n$FIND_USR\n$FIND_SRV\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_LIB64\n$FIND_CDROM\n$FIND_SBIN\n$FIND_BIN\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_OPT\n$FIND_LIB32\n$FIND_LIB\n$FIND_SYS\n$FIND_MNT\n$FIND_ETC\n$FIND_SNAP\n$FIND_TMP\n$FIND_VAR"
+  FIND_2ND_GROUP="$FIND_DIR_MEDIA\n$FIND_DIR_CDROM\n$FIND_DIR_USR\n$FIND_DIR_PRIVATE\n$FIND_DIR_VAR\n$FIND_DIR_APPLICATIONS\n$FIND_DIR_SRV\n$FIND_DIR_OPT\n$FIND_DIR_HOMESEARCH\n$FIND_DIR_SBIN\n$FIND_DIR_CACHE\n$FIND_DIR_BIN\n$FIND_DIR_TMP\n$FIND_DIR_ETC\n$FIND_DIR_SNAP\n$FIND_DIR_MNT"
+  FIND_3RD_GROUP="$FIND_1ST_GROUP\n$FIND_2ND_GROUP"
+
   #GENERATE THE STORAGES OF THE FOUND FILES
   PSTORAGE_SYSTEMD=$(echo -e "$FIND_CACHE\n$FIND_RUN\n$FIND_SYSTEM\n$FIND_MEDIA\n$FIND_USR\n$FIND_SRV\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_LIB64\n$FIND_CDROM\n$FIND_SBIN\n$FIND_BIN\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_OPT\n$FIND_LIB32\n$FIND_LIB\n$FIND_SYS\n$FIND_MNT\n$FIND_ETC\n$FIND_SNAP\n$FIND_TMP\n$FIND_VAR"  | grep -E "^/sbin|^/media|^/.cache|^/run|^/bin|^/etc|^/srv|^/applications|^/mnt|^/sys|^/opt|^/lib32|^$GREPHOMESEARCH|^/private|^/snap|^/tmp|^/usr|^/system|^/systemd|^/var|^/lib64|^/lib|^/cdrom" | grep -E ".*\.service$" | sort | uniq | head -n 70)
   PSTORAGE_TIMER=$(echo -e "$FIND_CACHE\n$FIND_RUN\n$FIND_SYSTEM\n$FIND_MEDIA\n$FIND_USR\n$FIND_SRV\n$FIND_HOMESEARCH\n$FIND_SYSTEMD\n$FIND_LIB64\n$FIND_CDROM\n$FIND_SBIN\n$FIND_BIN\n$FIND_PRIVATE\n$FIND_APPLICATIONS\n$FIND_OPT\n$FIND_LIB32\n$FIND_LIB\n$FIND_SYS\n$FIND_MNT\n$FIND_ETC\n$FIND_SNAP\n$FIND_TMP\n$FIND_VAR"  | grep -E "^/sbin|^/media|^/.cache|^/run|^/bin|^/etc|^/srv|^/applications|^/mnt|^/sys|^/opt|^/lib32|^$GREPHOMESEARCH|^/private|^/snap|^/tmp|^/usr|^/system|^/systemd|^/var|^/lib64|^/lib|^/cdrom" | grep -E ".*\.timer$" | sort | uniq | head -n 70)
