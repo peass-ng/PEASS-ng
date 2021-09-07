@@ -2283,6 +2283,21 @@ search:
                   - common
 
 
+  - name: Wget
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: ".wgetrc"
+            value: 
+                bad_regex: "[pP][aA][sS][sS].*|[uU][sS][eE][rR].*"
+                remove_empty_lines: True
+                remove_regex: '^#'
+                type: f
+                search_in: 
+                  - common
+
   - name: Interesting logs
     value:
         config:

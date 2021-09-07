@@ -881,7 +881,7 @@ containerCheck() {
     [ "$(find / -maxdepth 3 -name \"*dockerenv*\" -exec ls -la {} \; 2>/dev/null)" ] ; then
 
     inContainer="1"
-    containerType="docker"
+    containerType="docker\n"
   fi
 
   # Are we inside kubenetes?
@@ -889,8 +889,8 @@ containerCheck() {
     grep -qai kubepods /proc/self/cgroup 2>/dev/null; then
 
     inContainer="1"
-    if [ "$containerType" ]; then containerType="$containerType (kubernetes)"
-    else containerType="kubernetes"
+    if [ "$containerType" ]; then containerType="$containerType (kubernetes)\n"
+    else containerType="kubernetes\n"
     fi
   fi
 
@@ -899,7 +899,7 @@ containerCheck() {
       grep "/lxc/" /proc/1/cgroup -qa 2>/dev/null; then
 
     inContainer="1"
-    containerType="lxc"
+    containerType="lxc\n"
   fi
 
   # Are we inside podman?
@@ -907,14 +907,14 @@ containerCheck() {
       grep -qa "container=podman" /proc/1/environ 2>/dev/null; then
 
     inContainer="1"
-    containerType="podman"
+    containerType="podman\n"
   fi
 
   # Check for other container platforms that report themselves in PID 1 env
   if [ -z "$inContainer" ]; then
     if grep -a 'container=' /proc/1/environ 2>/dev/null; then
       inContainer="1"
-      containerType="$(grep -a 'container=' /proc/1/environ | cut -d= -f2)"
+      containerType="$(grep -a 'container=' /proc/1/environ | cut -d= -f2)\n"
     fi
   fi
 }
@@ -964,7 +964,7 @@ enumerateDockerSockets() {
 }
 
 checkDockerVersionExploits() {
-  if echo \"$dockerVersion\" | grep -iq \"not found\"; then
+  if echo "$dockerVersion" | grep -iq "not found"; then
     VULN_CVE_2019_13139="$(echo_not_found)"
     VULN_CVE_2019_5736="$(echo_not_found)"
     return
@@ -1313,13 +1313,17 @@ if echo $CHECKS | grep -q Container; then
       checkDockerRootless
       print_list "Rootless Docker? ................ $DOCKER_ROOTLESS\n"$NC | sed -${E} "s,No,${SED_RED}," | sed -${E} "s,Yes,${SED_GREEN},"
     fi
+    if df -h | grep docker; then
+      print_2title "Docker Overlays"
+      df -h | grep docker
+    fi
   fi
 
   if [ "$inContainer" ]; then
     echo ""
     print_2title "Container & breakout enumeration"
     print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout"
-    print_list "Container ID ...................$NC" $(cat /etc/hostname)
+    print_list "Container ID ...................$NC $(cat /etc/hostname)"
     if echo "$containerType" | grep -qi "docker"; then
       print_list "Container Full ID ..............$NC $(basename \"$(cat /proc/1/cpuset)\")\n"
     fi
@@ -2555,6 +2559,8 @@ if echo $CHECKS | grep -q SofI; then
   peass{PGP-GPG}
 
   peass{Cache Vi}
+
+  peass{Wget}
 
   ##-- SI) containerd installed
   print_2title "Checking if containerd(ctr) is available"
