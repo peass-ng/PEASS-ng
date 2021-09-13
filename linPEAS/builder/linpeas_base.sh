@@ -2714,7 +2714,7 @@ if echo $CHECKS | grep -q IntFiles; then
                     printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is using $RED$sline_first$NC$ITALIC and you can modify it (strings line: $sline) (https://tinyurl.com/suidpath)\n"
                   fi
                 else #If not a path
-                  if [ ${#sline_first} -gt 2 ] && command -v "$sline_first" 2>/dev/null | grep -q '/' && echo "$sline_first" | grep -qv ".."; then #Check if existing binary
+                  if [ ${#sline_first} -gt 2 ] && command -v "$sline_first" 2>/dev/null | grep -q '/' && echo "$sline_first" | grep -Eqv "\.\."; then #Check if existing binary
                     printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is executing $RED$sline_first$NC$ITALIC and you can impersonate it (strings line: $sline) (https://tinyurl.com/suidpath)\n"
                   fi
                 fi
@@ -2769,7 +2769,7 @@ if echo $CHECKS | grep -q IntFiles; then
           printf $ITALIC
           if [ "$STRINGS" ]; then
             $STRINGS "$sname" | sort | uniq | while read sline; do
-              sline_first="$(echo \"$sline\" | cut -d ' ' -f1)"
+              sline_first="$(echo $sline | cut -d ' ' -f1)"
               if echo "$sline_first" | grep -qEv "$cfuncs"; then
                 if echo "$sline_first" | grep -q "/" && [ -f "$sline_first" ]; then #If a path
                   if [ -O "$sline_first" ] || [ -w "$sline_first" ]; then #And modifiable
