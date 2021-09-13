@@ -136,7 +136,7 @@ jobs:
         run: linPEAS/linpeas.sh -h
         
       - name: Run linpeas
-        run: linPEAS/linpeas.sh
+        run: linPEAS/linpeas.sh -t
 
       - name: Create local changes
         run: git add linPEAS/linpeas.sh
