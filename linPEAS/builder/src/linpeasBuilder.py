@@ -77,8 +77,8 @@ class LinpeasBuilder:
 
         print("[+] Building GTFOBins lists...")
         suidVB, sudoVB, capsVB = self.__get_gtfobins_lists()
-        assert len(suidVB) > 200, f"Len suidVB is {len(suidVB)}"
-        assert len(suidVB) > 250, f"Len sudo is {len(sudoVB)}"
+        assert len(suidVB) > 185, f"Len suidVB is {len(suidVB)}"
+        assert len(sudoVB) > 250, f"Len sudo is {len(sudoVB)}"
         assert len(capsVB) > 10, f"Len suidVB is {len(capsVB)}"
 
         self.__replace_mark(SUIDVB1_MARKUP, suidVB[:int(len(suidVB)/2)], "|")
