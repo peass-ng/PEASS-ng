@@ -2740,7 +2740,7 @@ if echo $CHECKS | grep -q IntFiles; then
           printf $ITALIC
           if [ "$STRINGS" ]; then
             $STRINGS "$sname" 2>/dev/null | sort | uniq | while read sline; do
-              sline_first="$(echo \"$sline\" | cut -d ' ' -f1)"
+              sline_first="$(echo "$sline" | cut -d ' ' -f1)"
               if echo "$sline_first" | grep -qEv "$cfuncs"; then
                 if echo "$sline_first" | grep -q "/" && [ -f "$sline_first" ]; then #If a path
                   if [ -O "$sline_first" ] || [ -w "$sline_first" ]; then #And modifiable
