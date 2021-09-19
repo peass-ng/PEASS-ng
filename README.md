@@ -2,7 +2,7 @@
 
 ![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/peass.png)
 
-![](https://img.shields.io/badge/Black-Arch-black) ![](https://img.shields.io/badge/Arch-AUR-brightgreen) ![](https://img.shields.io/badge/Black%20Hat%20Arsenal-Asia%202020-red) [![CI-master_test](https://github.com/carlospolop/PEASS-ng/actions/workflows/CI-master_tests.yml/badge.svg)](https://github.com/carlospolop/PEASS-ng/actions/workflows/CI-master_tests.yml)
+![](https://img.shields.io/badge/Black-Arch-black) ![](https://img.shields.io/badge/Arch-AUR-brightgreen) ![](https://img.shields.io/badge/Black%20Hat%20Arsenal-Asia%202020-red)
 
 # Basic Tutorial
 [![Tutorial](https://img.youtube.com/vi/2Ey1WQXNp3w/0.jpg)](https://www.youtube.com/watch?v=9_fJv_weLU0&list=PL9fPq3eQfaaDxjpXaDYApfVA_IB8T14w7)
