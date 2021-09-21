@@ -44,11 +44,11 @@ namespace winPEAS.Checks
         // github url for Linpeas.sh
         public static string LinpeasUrl = "https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh";
 
-        public const string LogFile = "out.txt";
+        public const string DefaultLogFile = "out.txt";
 
 
         class SystemCheck
-        {           
+        {
             public string Key { get; }
             public ISystemCheck Check { get; }
 
@@ -96,20 +96,34 @@ namespace winPEAS.Checks
                     return;
                 }
 
-                if (string.Equals(arg, "log", StringComparison.CurrentCultureIgnoreCase))
+                if (arg.StartsWith("log", StringComparison.CurrentCultureIgnoreCase))
                 {
+                    // get logfile argument if present
+                    string logFile = DefaultLogFile;
+                    var parts = arg.Split('=');
+                    if (parts.Length == 2)
+                    {
+                        logFile = parts[1];
+
+                        if (string.IsNullOrWhiteSpace(logFile))
+                        {
+                            Beaprint.PrintException("Please specify a valid log file.");
+                            return;
+                        }
+                    }
+
                     try
                     {
-                        fileStream = new FileStream(LogFile, FileMode.OpenOrCreate, FileAccess.Write);
+                        fileStream = new FileStream(logFile, FileMode.OpenOrCreate, FileAccess.Write);
                         fileWriter = new StreamWriter(fileStream);
                     }
                     catch (Exception ex)
                     {
-                        Beaprint.PrintException($"Cannot open \"{LogFile}\" for writing:\n {ex.Message}");
+                        Beaprint.PrintException($"Cannot open \"{logFile}\" for writing:\n {ex.Message}");
                         return;
                     }
 
-                    Beaprint.ColorPrint($"\"log\" argument present, redirecting output to file \"{LogFile}\"", Beaprint.ansi_color_good);
+                    Beaprint.ColorPrint($"\"log\" argument present, redirecting output to file \"{logFile}\"", Beaprint.ansi_color_good);
                     Console.SetOut(fileWriter);
                 }
 
@@ -257,7 +271,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.GrayPrint("   - Getting Win32_UserAccount info...");
-                
+
                 // by default only enumerate local users
                 SelectQuery query = new SelectQuery("Win32_UserAccount", "LocalAccount=true");
                 if (IsDomainEnumeration)

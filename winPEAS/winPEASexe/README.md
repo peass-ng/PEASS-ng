@@ -81,7 +81,7 @@ filesinfo            Search files that can contains credentials
 eventsinfo           Display interesting events information
 wait                 Wait for user input between checks
 debug                Display debugging information - memory usage, method execution time
-log                  Log all output to file "out.txt"
+log=[logfile]        Log all output to file defined as logfile, or to "out.txt" if not specified
 
 Additional checks (slower):
 -lolbas              Run additional LOLBAS check
