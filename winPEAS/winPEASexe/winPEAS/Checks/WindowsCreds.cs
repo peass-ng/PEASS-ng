@@ -22,7 +22,7 @@ namespace winPEAS.Checks
         public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("Windows Credentials");
-            
+
             new List<Action>
             {
                 PrintVaultCreds,
@@ -184,7 +184,7 @@ namespace winPEAS.Checks
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#dpapi");
                 var credFiles = KnownFileCredsInfo.GetCredFiles();
                 Beaprint.DictPrint(credFiles, false);
-                
+
                 if (credFiles.Count != 0)
                 {
                     Beaprint.InfoPrint("Follow the provided link for further instructions in how to decrypt the creds file");
@@ -201,11 +201,11 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Checking for RDCMan Settings Files");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#remote-desktop-credential-manager", 
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#remote-desktop-credential-manager",
                     "Dump credentials from Remote Desktop Connection Manager");
                 var rdcFiles = RemoteDesktop.GetRDCManFiles();
                 Beaprint.DictPrint(rdcFiles, false);
-                
+
                 if (rdcFiles.Count != 0)
                 {
                     Beaprint.InfoPrint("Follow the provided link for further instructions in how to decrypt the .rdg file");
@@ -252,6 +252,9 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Looking for saved Wifi credentials");
+
+                WlanClient wlanClient = new WlanClient();
+
                 foreach (var @interface in new WlanClient().Interfaces)
                 {
                     foreach (var profile in @interface.GetProfiles())
@@ -276,6 +279,26 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
+
+                // revert to old way
+                Beaprint.NoColorPrint("Enumerating WLAN using wlanapi.dll failed, trying to enumerate using 'netsh'");
+
+                Dictionary<string, string> networkConnections = Wifi.Wifi.Retrieve();
+                Dictionary<string, string> ansi_colors_regexp = new Dictionary<string, string>();
+
+                if (networkConnections.Count > 0)
+                {
+                    //Make sure the passwords are all flagged as ansi_color_bad.
+                    foreach (var connection in networkConnections)
+                    {
+                        ansi_colors_regexp.Add(connection.Value, Beaprint.ansi_color_bad);
+                    }
+                    Beaprint.DictPrint(networkConnections, ansi_colors_regexp, false);
+                }
+                else
+                {
+                    Beaprint.NoColorPrint("No saved Wifi credentials found");
+                }
             }
         }
 
@@ -302,7 +325,7 @@ namespace winPEAS.Checks
                     Beaprint.NoColorPrint("      You must be an administrator to run this check");
                     return;
                 }
-                
+
                 var script = AppCmd.GetExtractAppCmdCredsPowerShellScript();
 
                 string args = @$" {script}";
@@ -346,7 +369,7 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Looking SSClient.exe");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#scclient-sccm");
-                
+
                 if (File.Exists(Environment.ExpandEnvironmentVariables(@"%systemroot%\Windows\CCM\SCClient.exe")))
                 {
                     Beaprint.BadPrint("    SCClient.exe was found in " + Environment.ExpandEnvironmentVariables(@"%systemroot%\Windows\CCM\SCClient.exe DLL Side loading?"));
@@ -470,7 +493,7 @@ namespace winPEAS.Checks
                     { 2, "Require Remote Credential Guard" },
                     { 3, "Require Restricted Admin or Remote Credential Guard" },
                 };
-            
+
             var str = $"{type} - Unknown";
 
             if (types.ContainsKey(type.Value))

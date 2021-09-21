@@ -31,7 +31,7 @@ namespace winPEAS.Helpers
         public static string ansi_users_disabled = BLUE;
         public static string ansi_current_user = MAGENTA;
 
-        private static string Advisory = 
+        private static string Advisory =
             "winpeas should be used for authorized penetration testing and/or educational purposes only." +
             "Any misuse of this software will not be the responsibility of the author or of any other collaborator. " +
             "Use it at your own networks and/or with the network owner's permission.";
@@ -43,7 +43,7 @@ namespace winPEAS.Helpers
         /////////////////////////////////
         public static void PrintBanner()
         {
-                Console.WriteLine(BLUE + string.Format(@"     
+            Console.WriteLine(BLUE + string.Format(@"     
              {0}*((,.,/((((((((((((((((((((/,  */               
       {0},/*,..*((((((((((((((((((((((((((((((((((,           
     {0},*/((((((((((((((((((/,  .*//((//**, .*(((((((*       
@@ -71,9 +71,9 @@ namespace winPEAS.Helpers
               {0}(((((((((/,.  ,*//////*,. ./(((((((((((((((.
                  {0}(((((((((((((((((((((((((((((/", LGREEN, GREEN, BLUE, NOCOLOR) + NOCOLOR);
 
-                Console.WriteLine();
-                Console.WriteLine(LYELLOW + "ADVISORY: " + BLUE + Advisory);
-                Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine(LYELLOW + "ADVISORY: " + BLUE + Advisory);
+            Console.WriteLine();
         }
 
         public static void PrintMarketingBanner()
@@ -140,13 +140,13 @@ namespace winPEAS.Helpers
             Console.WriteLine(LBLUE + "        eventsinfo" + GRAY + "           Display interesting events information" + NOCOLOR);
             Console.WriteLine(LBLUE + "        wait" + GRAY + "                 Wait for user input between checks" + NOCOLOR);
             Console.WriteLine(LBLUE + "        debug" + GRAY + "                Display debugging information - memory usage, method execution time" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        log" + GRAY +$"                  Log all output to file \"{Checks.Checks.LogFile}\"" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        log[=logfile]" + GRAY + $"        Log all output to file defined as logfile, or to \"{Checks.Checks.DefaultLogFile}\" if not specified" + NOCOLOR);
             Console.WriteLine();
             Console.WriteLine(LCYAN + "        Additional checks (slower):");
             Console.WriteLine(LBLUE + "        -lolbas" + GRAY + $"              Run additional LOLBAS check" + NOCOLOR);
             Console.WriteLine(LBLUE + "        -linpeas=[url]" + GRAY + $"       Run additional linpeas.sh check for default WSL distribution, optionally provide custom linpeas.sh URL\n" +
                                      $"                             (default: {Checks.Checks.LinpeasUrl})" + NOCOLOR);
-            
+
         }
 
 
@@ -215,7 +215,7 @@ namespace winPEAS.Helpers
 
         internal static void PrintDebugLine(string log)
         {
-            Console.WriteLine(YELLOW + "  [Debug]  " + log  + NOCOLOR);
+            Console.WriteLine(YELLOW + "  [Debug]  " + log + NOCOLOR);
             Console.WriteLine();
         }
 
@@ -228,7 +228,7 @@ namespace winPEAS.Helpers
         public static void PrintException(string message)
         {
             GrayPrint($"  [X] Exception: {message}");
-        }        
+        }
 
         public static void AnsiPrint(string to_print, Dictionary<string, string> ansi_colors_regexp)
         {

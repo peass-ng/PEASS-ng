@@ -84,7 +84,7 @@ namespace winPEAS.Helpers
             return results;
         }
 
-        public static List<string> GetMyPermissionsF(FileSecurity fSecurity, Dictionary<string, string> SIDs, PermissionType permissionType  = PermissionType.DEFAULT)
+        public static List<string> GetMyPermissionsF(FileSecurity fSecurity, Dictionary<string, string> SIDs, PermissionType permissionType = PermissionType.DEFAULT)
         {
             // Get interesting permissions in fSecurity (Only files and folders)
             List<string> results = new List<string>();
@@ -271,11 +271,15 @@ namespace winPEAS.Helpers
 
             else if (permissionType == PermissionType.WRITEABLE_OR_EQUIVALENT_SVC)
             {
+                // docs:
+                // https://docs.microsoft.com/en-us/windows/win32/services/service-security-and-access-rights
+                // https://docs.microsoft.com/en-us/troubleshoot/windows-server/windows-security/grant-users-rights-manage-services
+
                 interesting_perms = new Dictionary<string, int>()
                 {
-                    { "AllAccess", 0xf01ff},
+                    { "AllAccess", 0xf01ff}, // full control
                     //{"QueryConfig" , 1},  //Grants permission to query the service's configuration.
-                    //{"ChangeConfig" , 2}, //Grants permission to change the service's permission.
+                    {"ChangeConfig" , 2}, //Grants permission to change the service's permission.
                     //{"QueryStatus" , 4},  //Grants permission to query the service's status.
                     //{"EnumerateDependents" , 8}, //Grants permissionto enumerate the service's dependent services.
                     //{"PauseContinue" , 64}, //Grants permission to pause/continue the service.
@@ -283,15 +287,17 @@ namespace winPEAS.Helpers
                     //{"UserDefinedControl" , 256}, //Grants permission to run the service's user-defined control.
                     //{"Delete" , 65536},  //Grants permission to delete the service.
                     //{"ReadControl" , 131072}, //Grants permission to query the service's security descriptor.
-                    {"WriteDac" , 262144},  //Grants permission to set the service's discretionary access list.
-                    {"WriteOwner" , 524288},  //Grants permission to modify the group and owner of a service.
+                    {"WriteDac" , 0x40000},  //Grants permission to set the service's discretionary access list.
+                    {"WriteOwner" , 0x80000},  //Grants permission to modify the group and owner of a service.
                     //{"Synchronize" , 1048576},
                     {"AccessSystemSecurity" , 16777216}, //The right to get or set the SACL in the object security descriptor.
-                    {"GenericAll" , 268435456},
-                    {"GenericWrite" , 1073741824},
-                    {"GenericExecute" , 536870912},
-                    {"Start" , 16}, //Grants permission to start the service.
-                    {"Stop" , 32},  //Grants permission to stop the service.
+                    {"GenericAll" , 0x1000_0000},
+                    //{"GenericWrite" , 0x4000_0000},
+                    //{"GenericExecute" , 0x2000_0000},
+                    {"GenericWrite (ChangeConfig)" , 0x2_0002},
+                    {"GenericExecute (Start/Stop)" , 0x2_01F0},
+                    {"Start" , 0x0010}, //Grants permission to start the service.
+                    {"Stop" , 0x0020},  //Grants permission to stop the service.
                     //{"GenericRead" , 2147483648}
                 };
             }
@@ -302,8 +308,8 @@ namespace winPEAS.Helpers
                 foreach (KeyValuePair<string, int> entry in interesting_perms)
                 {
                     if ((entry.Value & current_perm) == entry.Value)
-                    { 
-                        return entry.Key; 
+                    {
+                        return entry.Key;
                     }
                 }
             }
