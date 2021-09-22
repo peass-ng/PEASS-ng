@@ -15,13 +15,13 @@ namespace winPEAS.Checks
             Beaprint.GreatPrint("Services Information");
 
             /// Start finding Modifiable services so any function could use them
-           
+
             try
             {
                 CheckRunner.Run(() =>
                 {
                     modifiableServices = ServicesInfoHelper.GetModifiableServices(winPEAS.Checks.Checks.CurrentUserSiDs);
-                }, isDebug);                
+                }, isDebug);
             }
             catch (Exception ex)
             {
@@ -34,7 +34,7 @@ namespace winPEAS.Checks
                 PrintModifiableServices,
                 PrintWritableRegServices,
                 PrintPathDllHijacking,
-            }.ForEach(action => CheckRunner.Run(action, isDebug));            
+            }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
         void PrintInterestingServices()
@@ -124,10 +124,22 @@ namespace winPEAS.Checks
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#services", "Check if you can modify any service");
                 if (modifiableServices.Count > 0)
                 {
-                    Beaprint.BadPrint("    LOOKS LIKE YOU CAN MODIFY SOME SERVICE/s:");
+                    Beaprint.BadPrint("    LOOKS LIKE YOU CAN MODIFY OR START/STOP SOME SERVICE/s:");
                     Dictionary<string, string> colorsMS = new Dictionary<string, string>()
                         {
-                            { ".*", Beaprint.ansi_color_bad },
+                            // modify
+                            { "AllAccess", Beaprint.ansi_color_bad },
+                            { "ChangeConfig", Beaprint.ansi_color_bad },
+                            { "WriteDac", Beaprint.ansi_color_bad },
+                            { "WriteOwner", Beaprint.ansi_color_bad },
+                            { "AccessSystemSecurity", Beaprint.ansi_color_bad },
+                            { "GenericAll", Beaprint.ansi_color_bad },
+                            { "GenericWrite (ChangeConfig)", Beaprint.ansi_color_bad },
+
+                            // start/stop
+                            { "GenericExecute (Start/Stop)", Beaprint.ansi_color_yellow },
+                            { "Start", Beaprint.ansi_color_yellow },
+                            { "Stop", Beaprint.ansi_color_yellow },
                         };
                     Beaprint.DictPrint(modifiableServices, colorsMS, false, true);
                 }
