@@ -2757,8 +2757,11 @@ if echo $CHECKS | grep -q IntFiles; then
               printf $ITALIC
               echo "----------------------------------------------------------------------------------------"
               echo "  --- Trying to execute $sname with strace in order to look for hijackable libraries..."
+              OLD_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+              export LD_LIBRARY_PATH=""
               timeout 2 "$STRACE" "$sname" 2>&1 | grep -i -E "open|access|no such file" | sed -${E} "s,open|access|No such file,${SED_RED}$ITALIC,g"
               printf $NC
+              export LD_LIBRARY_PATH=$OLD_LD_LIBRARY_PATH
               echo "----------------------------------------------------------------------------------------"
               echo ""
             fi
