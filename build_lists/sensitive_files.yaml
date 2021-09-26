@@ -2277,11 +2277,43 @@ search:
                         bad_regex: "database_pw.*|database_user.*|database_pass.*"
                         line_grep: '"database_pw|database_user|database_pass|database_type|database_default|detabase_hostname|database_port|database_ssl"'
 
+                type: d
+                search_in: 
+                  - common
+  
+  - name: Roundcube
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "roundcube"
+            value:
+                files:
+                  - name: "config.inc.php"
+                    value:
+                        bad_regex: "db_dsnw"
+                        line_grep: '"config\["'
 
                 type: d
                 search_in: 
                   - common
+  
+  - name: Passbolt
+    value:
+        config:
+          auto_check: True
 
+        files:
+          - name: "passbolt.php"
+            value: 
+                bad_regex: "[pP][aA][sS][sS].*|[uU][sS][eE][rR].*"
+                line_grep: '"host|port|username|password|database"'
+                remove_empty_lines: True
+                remove_regex: '^#'
+                type: f
+                search_in: 
+                  - common
 
   - name: Wget
     value:
