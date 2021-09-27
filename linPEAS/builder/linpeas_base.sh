@@ -1795,7 +1795,7 @@ if echo $CHECKS | grep -q Net; then
   #-- NI) Ports
   print_2title "Active Ports"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-ports"
-  ( (netstat -punta || ss -ntpu || netstat -anv) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+|:::|::1:|0.0.0.0,${SED_RED},"
+  ( (netstat -punta || ss -ntpu || netstat -anv) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+|:::|::1:|0\.0\.0\.0,${SED_RED},"
   echo ""
 
   #-- NI) MacOS hardware ports
@@ -3126,6 +3126,7 @@ if echo $CHECKS | grep -q IntFiles; then
       fi
     done
     SQLITEPYTHON=""
+    echo ""
     printf "%s\n" "$PSTORAGE_DATABASE" | while read f; do
       if ([ -r "$f" ] && [ "$FILECMD" ] && file "$f" | grep -qi sqlite) || ([ -r "$f" ] && [ ! "$FILECMD" ]); then #If readable and filecmd and sqlite, or readable and not filecmd
         printf $GREEN" -> Extracting tables from$NC $f $DG(limit 20)\n"$NC
