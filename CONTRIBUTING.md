@@ -1,7 +1,10 @@
 # Contributing to this repository
 
 ## Making Suggestions 
-If you wan tto make a suggestion for linpeas or winpeas please use **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)**
+If you want to make a suggestion for linpeas or winpeas please use **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)**
+
+## Do don't know how to help?
+Check out the **[TODO](https://github.com/carlospolop/PEASS-ng/blob/master/TODO.md) page**
 
 ## Searching for files with sensitive information
 From the PEASS-ng release **winpeas and linpeas are auto-built** and will search for files containing sensitive information specified in the **[sesitive_files.yaml](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/build_lists/sensitive_files.yaml)** file.
