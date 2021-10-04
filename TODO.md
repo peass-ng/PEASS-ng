@@ -22,3 +22,7 @@
 
 ### Create a PEASS-ng Web Page were the project is properly presented
 - [ ] Let me know in Telegram or github issues if you are interested in helping with this
+
+### Relate LinPEAS and WinPEAS with the Att&ck matrix
+- [ ] In the title of each check of LinPEAS and WinPEAS indicate between parenthesis and in grey the Tactic used. Example: **Enumerating something** (*T1234*)
+- [ ] Once the previous task is done, modify LinPEAS and WinPEAS to be able to indicate just the Tactic(s) that want to be executed so the scripts only execute the checks related to those tactics. Example: `linpeas.sh -T T1590,T1591`
