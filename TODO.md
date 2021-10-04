@@ -18,7 +18,7 @@
 - [ ] Add more checks in WinPEAS
 
 ### Find a way to minify and/or obfuscate LinPEAS automatically
-- [ ] Find a way to minify and/or obfuscate LinPEAS automatically. If you know a way contact me in Telegra or via github issues
+- [ ] Find a way to minify and/or obfuscate linpeas.sh automatically. If you know a way contact me in Telegram or via github issues
 
 ### Create a PEASS-ng Web Page were the project is properly presented
 - [ ] Let me know in Telegram or github issues if you are interested in helping with this
