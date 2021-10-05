@@ -213,7 +213,7 @@ class MetasploitModule < Msf::Post
 
   def on_request_uri(cli, request)
     print_status("HTTP request received")
-    send_response(cli, File.open(@temp_file_path).read, {'Content-Type'=>'text/plain'})
+    send_response(cli, File.read(@temp_file_path), {'Content-Type'=>'text/plain'})
     print_good("PEASS script sent")
   end
 
