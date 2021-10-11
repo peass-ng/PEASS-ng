@@ -140,7 +140,7 @@ class MetasploitModule < Msf::Post
       #Start the cmd, prepare to read from the uploaded file
       if session.platform.include?("win")
         cmd = "$ProgressPreference = 'SilentlyContinue'; $#{ps_var1} = Get-Content -Path #{temp_path};"
-        last_cmd += "del #{temp_path};"
+        last_cmd = "del #{temp_path};"
       else
         cmd = "cat #{temp_path}"
         last_cmd = "rm #{temp_path}"
