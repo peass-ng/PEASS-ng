@@ -10,7 +10,7 @@ In Kali:
 sudo cp ./peass.rb /usr/share/metasploit-framework/modules/post/multi/gather/
 # or
 sudo wget https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/metasploit/peass.rb -O /usr/share/metasploit-framework/modules/post/multi/gather/peass.rb
-`
+```
 
 Now you can do `reload_all` inside a running msfconsole or the next time you launch a new msfconsole the peass module will be **automatically loaded**.
 
