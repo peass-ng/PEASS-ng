@@ -2735,7 +2735,7 @@ if echo $CHECKS | grep -q IntFiles; then
   if ! [ "$STRACE" ]; then
     echo_not_found "strace"
   fi
-  find / -perm -4000 -type f ! -path "/dev/*" 2>/dev/null | while read s; do
+  for s in $(find / -perm -4000 -type f ! -path "/dev/*" 2>/dev/null); do
     s=$(ls -lahtr "$s")
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
     if echo "$s" | grep -qE "^total"; then break; fi
