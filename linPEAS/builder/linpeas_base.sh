@@ -1187,6 +1187,21 @@ if echo $CHECKS | grep -q SysI; then
     macosNotSigned /System/Library/Extensions
   fi
 
+  if [ "$(command -v bash 2>/dev/null)" ]; then
+    print_2title "Executing Linux Exploit Suggester"
+    les_b64="peass{LES}"
+    echo $les_b64 | base64 -d | bash
+    echo ""
+  fi
+
+  if [ "$(command -v perl 2>/dev/null)" ]; then
+    print_2title "Executing Linux Exploit Suggester 2"
+    les2_b64="peass{LES2}"
+    echo $les2_b64 | base64 -d | perl
+    echo ""
+  fi
+
+
   #-- SY) AppArmor
   print_2title "Protections"
   print_list "AppArmor enabled? .............. "$NC

@@ -86,6 +86,8 @@ sudoVB1_markup: "peass{SUDOVB1_HERE}"
 sudoVB2_markup: "peass{SUDOVB2_HERE}"
 cap_setuid_markup: "peass{CAP_SETUID_HERE}"
 cap_setgid_markup: "peass{CAP_SETGID_HERE}"
+les_markup: "peass{LES}"
+les2_markup: "peass{LES2}"
 
 
 
