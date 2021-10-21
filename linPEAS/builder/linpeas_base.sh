@@ -1187,6 +1187,21 @@ if echo $CHECKS | grep -q SysI; then
     macosNotSigned /System/Library/Extensions
   fi
 
+  if [ "$(command -v bash 2>/dev/null)" ]; then
+    print_2title "Executing Linux Exploit Suggester"
+    les_b64="peass{LES}"
+    echo $les_b64 | base64 -d | bash
+    echo ""
+  fi
+
+  if [ "$(command -v perl 2>/dev/null)" ]; then
+    print_2title "Executing Linux Exploit Suggester 2"
+    les2_b64="peass{LES2}"
+    echo $les2_b64 | base64 -d | perl
+    echo ""
+  fi
+
+
   #-- SY) AppArmor
   print_2title "Protections"
   print_list "AppArmor enabled? .............. "$NC
@@ -1678,36 +1693,48 @@ if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks; then
   fi
   echo ""
 
+  print_2title "Writable Sockets"
+  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
+  find / -type s 2>/dev/null | while read l; do
+  if [ -w "$l" ]; then
+    echo "Socket '$l' is writable" | sed "s,.*,${SED_RED},";
+  fi
+  done
+
   print_2title "Unix Sockets Listening"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
-  unix_scks_list=$(netstat -a -p --unix 2>/dev/null | grep -Ei "listen|PID")
+  # Search sockets using netstat and ss
+  unix_scks_list=$(ss -xlp -H state listening 2>/dev/null | grep -Eo "/.* " | cut -d " " -f1)
   if ! [ "$unix_scks_list" ];then
-    unix_scks_list=$(ss -l -p -A 'unix' 2>/dev/null | grep -Ei "listen|Proc")
+    unix_scks_list=$(ss -l -p -A 'unix' 2>/dev/null | grep -Ei "listen|Proc" | grep -Eo "/[a-zA-Z0-9\._/\-]+")
   fi
-  printf "%s\n" "$unix_scks_list" | while read l; do
-    sckt_path=$(echo $l | grep -Eo "/[a-zA-Z0-9\._/\-]+" | tail -n 1)
+  if ! [ "$unix_scks_list" ];then
+    unix_scks_list=$(netstat -a -p --unix 2>/dev/null | grep -Ei "listen|PID" | grep -Eo "/[a-zA-Z0-9\._/\-]+" | tail -n +2)
+  fi
+  
+  # But also search socket files
+  unix_scks_list2=$(find / -type s 2>/dev/null)
+
+  # Detele repeated dockets and check permissions
+  (printf "%s\n" "$unix_scks_list" && printf "%s\n" "$unix_scks_list2") | sort | uniq | while read l; do
     perms=""
-    if [ -r "$sckt_path" ]; then
+    if [ -r "$l" ]; then
       perms="Read "
     fi
-    if [ -w "$sckt_path" ];then
+    if [ -w "$l" ];then
       perms="${perms}Write"
     fi
-    if ! [ "$perms" ]; then echo "$l" | sed -${E} "s,$sckt_path,${SED_GREEN},g";
-    else echo "$l" | sed -${E} "s,$sckt_path,${SED_RED},g"; echo "  └─(${RED}${perms}${NC})"
-    fi
-  done
-  echo ""
-
-  #-- PSC) Search HTTP sockets
-  print_2title "HTTP sockets"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
-  ss -xlp -H state listening 2>/dev/null | grep -Eo "/.* " | cut -d " " -f1 | while read s; do
-    socketcurl=$(curl --max-time 2 --unix-socket "$s" http:/index 2>/dev/null)
-    if [ $? -eq 0 ]; then
-      owner=$(ls -l "$s" | cut -d ' ' -f 3)
-      echo "Socket $s owned by $owner uses HTTP. Response to /index: (limt 30)" | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed -${E} "s,$idB,${SED_RED},g"
-      echo "$socketcurl" | head -n 30
+    if ! [ "$perms" ]; then echo "$l" | sed -${E} "s,$l,${SED_GREEN},g";
+    else 
+      echo "$l" | sed -${E} "s,$l,${SED_RED},g"
+      echo "  └─(${RED}${perms}${NC})"
+      # Try to contact the socket
+      socketcurl=$(curl --max-time 2 --unix-socket "$s" http:/index 2>/dev/null)
+      if [ $? -eq 0 ]; then
+        owner=$(ls -l "$s" | cut -d ' ' -f 3)
+        echo "Socket $s owned by $owner uses HTTP. Response to /index: (limt 30)" | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed -${E} "s,$idB,${SED_RED},g"
+        echo "$socketcurl" | head -n 30
+      fi
     fi
   done
   echo ""
@@ -1871,7 +1898,7 @@ if echo $CHECKS | grep -q Net; then
     echo ""
   fi
 
-  if [ "$AUTO_NETWORK_SCAN" ]; then
+  if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] || [ "$AUTO_NETWORK_SCAN" ]; then
     print_2title "Scanning local networks (using /24)"
     select_nc
     local_ips=$(ip a | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\.")
@@ -2735,7 +2762,8 @@ if echo $CHECKS | grep -q IntFiles; then
   if ! [ "$STRACE" ]; then
     echo_not_found "strace"
   fi
-  find / -perm -4000 -type f ! -path "/dev/*" 2>/dev/null | while read s; do
+  suids_files=$(find / -perm -4000 -type f ! -path "/dev/*" 2>/dev/null)
+  for s in $suids_files; do
     s=$(ls -lahtr "$s")
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
     if echo "$s" | grep -qE "^total"; then break; fi
@@ -2757,12 +2785,12 @@ if echo $CHECKS | grep -q IntFiles; then
         fi
       done;
       if [ "$c" ]; then
-        if echo \"$s\" | grep -qE "$sidG1" || echo "$s" | grep -qE "$sidG2" || echo "$s" | grep -qE "$sidG3" || echo "$s" | grep -qE "$sidG4" || echo "$s" | grep -qE "$sidVB" || echo "$s" | grep -qE "$sidVB2"; then
+        if echo "$s" | grep -qE "$sidG1" || echo "$s" | grep -qE "$sidG2" || echo "$s" | grep -qE "$sidG3" || echo "$s" | grep -qE "$sidG4" || echo "$s" | grep -qE "$sidVB" || echo "$s" | grep -qE "$sidVB2"; then
           echo "$s" | sed -${E} "s,$sidG1,${SED_GREEN}," | sed -${E} "s,$sidG2,${SED_GREEN}," | sed -${E} "s,$sidG3,${SED_GREEN}," | sed -${E} "s,$sidG4,${SED_GREEN}," | sed -${E} "s,$sidVB,${SED_RED_YELLOW}," | sed -${E} "s,$sidVB2,${SED_RED_YELLOW},"
         else
           echo "$s (Unknown SUID binary)" | sed -${E} "s,/.*,${SED_RED},"
           printf $ITALIC
-          if [ "$STRINGS" ]; then
+          if ! [ "$FAST" ] && [ "$STRINGS" ]; then
             $STRINGS "$sname" 2>/dev/null | sort | uniq | while read sline; do
               sline_first="$(echo "$sline" | cut -d ' ' -f1)"
               if echo "$sline_first" | grep -qEv "$cfuncs"; then
@@ -2777,7 +2805,7 @@ if echo $CHECKS | grep -q IntFiles; then
                 fi
               fi
             done
-            if [ "$TIMEOUT" ] && [ "$STRACE" ] && ! [ "$NOTEXPORT" ] && [ -x "$sname" ]; then
+            if ! [ "$FAST" ] && [ "$TIMEOUT" ] && [ "$STRACE" ] && ! [ "$NOTEXPORT" ] && [ -x "$sname" ]; then
               printf $ITALIC
               echo "----------------------------------------------------------------------------------------"
               echo "  --- Trying to execute $sname with strace in order to look for hijackable libraries..."
@@ -2800,7 +2828,8 @@ if echo $CHECKS | grep -q IntFiles; then
   ##-- IF) SGID
   print_2title "SGID"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid"
-  find / -perm -2000 -type f ! -path "/dev/*" 2>/dev/null | while read s; do
+  sgids_files=$(find / -perm -2000 -type f ! -path "/dev/*" 2>/dev/null)
+  for s in $sgids_files; do
     s=$(ls -lahtr "$s")
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
     if echo "$s" | grep -qE "^total";then break; fi
@@ -2827,7 +2856,7 @@ if echo $CHECKS | grep -q IntFiles; then
         else
           echo "$s (Unknown SGID binary)" | sed -${E} "s,/.*,${SED_RED},"
           printf $ITALIC
-          if [ "$STRINGS" ]; then
+          if ! [ "$FAST" ] && [ "$STRINGS" ]; then
             $STRINGS "$sname" | sort | uniq | while read sline; do
               sline_first="$(echo $sline | cut -d ' ' -f1)"
               if echo "$sline_first" | grep -qEv "$cfuncs"; then
@@ -2842,7 +2871,7 @@ if echo $CHECKS | grep -q IntFiles; then
                 fi
               fi
             done
-            if [ "$TIMEOUT" ] && [ "$STRACE" ] && [ ! "$SUPERFAST" ]; then
+            if ! [ "$FAST" ] && [ "$TIMEOUT" ] && [ "$STRACE" ] && [ ! "$SUPERFAST" ]; then
               printf "$ITALIC"
               echo "  --- Trying to execute $sname with strace in order to look for hijackable libraries..."
               timeout 2 "$STRACE" "$sname" 2>&1 | grep -i -E "open|access|no such file" | sed -${E} "s,open|access|No such file,${SED_RED}$ITALIC,g"

@@ -1,5 +1,6 @@
 import re
 import requests
+import base64
 
 from .peasLoaded import PEASLoaded
 from .peassRecord import PEASRecord
@@ -24,7 +25,9 @@ from .yamlGlobals import (
     SUDOVB1_MARKUP,
     SUDOVB2_MARKUP,
     CAP_SETUID_MARKUP,
-    CAP_SETGID_MARKUP
+    CAP_SETGID_MARKUP,
+    LES_MARKUP,
+    LES2_MARKUP
 )
 
 
@@ -74,6 +77,13 @@ class LinpeasBuilder:
                 self.__replace_mark(EXTRASECTIONS_MARKUP, [bash_lines, EXTRASECTIONS_MARKUP], "\n\n")
         
         self.__replace_mark(EXTRASECTIONS_MARKUP, list(""), "") #Delete extra markup
+
+        print("[+] Building linux exploit suggesters...")
+        les_b64, les2_b64 = self.__get_linux_exploit_suggesters()
+        assert len(les_b64) > 100
+        assert len(les2_b64) > 100
+        self.__replace_mark(LES_MARKUP, list(les_b64), "")
+        self.__replace_mark(LES2_MARKUP, list(les2_b64), "")
 
         print("[+] Building GTFOBins lists...")
         suidVB, sudoVB, capsVB = self.__get_gtfobins_lists()
@@ -271,6 +281,12 @@ class LinpeasBuilder:
         analise_line += 'done; echo "";'
         return analise_line
 
+    
+    def __get_linux_exploit_suggesters(self) -> tuple:
+        r1 = requests.get("https://raw.githubusercontent.com/mzet-/linux-exploit-suggester/master/linux-exploit-suggester.sh")
+        r2 = requests.get("https://raw.githubusercontent.com/jondonas/linux-exploit-suggester-2/master/linux-exploit-suggester-2.pl")
+        return(base64.b64encode(bytes(r1.text, 'utf-8')).decode("utf-8"), base64.b64encode(bytes(r2.text, 'utf-8')).decode("utf-8"))
+    
     def __get_gtfobins_lists(self) -> tuple:
         r = requests.get("https://github.com/GTFOBins/GTFOBins.github.io/tree/master/_gtfobins")
         bins = re.findall(r'/GTFOBins/GTFOBins.github.io/blob/master/_gtfobins/([\w_ \-]+).md', r.text)
