@@ -40,3 +40,6 @@ SUDOVB1_MARKUP = YAML_LOADED["sudoVB1_markup"]
 SUDOVB2_MARKUP = YAML_LOADED["sudoVB2_markup"]
 CAP_SETUID_MARKUP = YAML_LOADED["cap_setuid_markup"]
 CAP_SETGID_MARKUP = YAML_LOADED["cap_setgid_markup"]
+
+LES_MARKUP = YAML_LOADED["les_markup"]
+LES2_MARKUP = YAML_LOADED["les2_markup"]
