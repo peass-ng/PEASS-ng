@@ -2748,7 +2748,7 @@ if echo $CHECKS | grep -q IntFiles; then
     echo_not_found "strace"
   fi
   suids_files=$(find / -perm -4000 -type f ! -path "/dev/*" 2>/dev/null)
-  printf "%s\n" "$suids_files" | while read s; do
+  for s in $suids_files; do
     s=$(ls -lahtr "$s")
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
     if echo "$s" | grep -qE "^total"; then break; fi
@@ -2814,7 +2814,7 @@ if echo $CHECKS | grep -q IntFiles; then
   print_2title "SGID"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid"
   sgids_files=$(find / -perm -2000 -type f ! -path "/dev/*" 2>/dev/null)
-  printf "%s\n" "$sgids_files" | while read s; do
+  for s in $sgids_files; do
     s=$(ls -lahtr "$s")
     #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
     if echo "$s" | grep -qE "^total";then break; fi
