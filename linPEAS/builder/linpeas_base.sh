@@ -6,7 +6,7 @@ ADVISORY="This script should be used for authorized penetration testing and/or e
 ###########################################
 #-------) Checks pre-everything (---------#
 ###########################################
-if [ "$(/usr/bin/id -u)" -eq "0" ]; then
+if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "`whoami 2>/dev/null`" = "root" ]; then
   IAMROOT="1"
   MAXPATH_FIND_W="3"
 else
@@ -1189,6 +1189,7 @@ if echo $CHECKS | grep -q SysI; then
 
   if [ "$(command -v bash 2>/dev/null)" ]; then
     print_2title "Executing Linux Exploit Suggester"
+    print_info "https://github.com/mzet-/linux-exploit-suggester"
     les_b64="peass{LES}"
     echo $les_b64 | base64 -d | bash
     echo ""
@@ -1196,10 +1197,18 @@ if echo $CHECKS | grep -q SysI; then
 
   if [ "$(command -v perl 2>/dev/null)" ]; then
     print_2title "Executing Linux Exploit Suggester 2"
+    print_info "https://github.com/jondonas/linux-exploit-suggester-2"
     les2_b64="peass{LES2}"
     echo $les2_b64 | base64 -d | perl
     echo ""
   fi
+
+  if [ "$(command -v brew 2>/dev/null)" ]; then
+    print_2title "Brew Doctor Suggestions"
+    brew doctor
+    echo ""
+  fi
+
 
 
   #-- SY) AppArmor
@@ -2981,6 +2990,13 @@ if echo $CHECKS | grep -q IntFiles; then
     done
   done
   echo ""
+
+  print_2title "Broken links in path"
+  echo $PATH | tr ":" "\n" | while read d; do
+    find "$d" -type l 2>/dev/null | xargs file 2>/dev/null | grep broken | sed -${E} "s,broken,${SED_RED},";
+  done
+  echo ""
+
 
   if [ "$MACPEAS" ]; then
     print_2title "Unsigned Applications"
