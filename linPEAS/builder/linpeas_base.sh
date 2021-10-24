@@ -6,7 +6,7 @@ ADVISORY="This script should be used for authorized penetration testing and/or e
 ###########################################
 #-------) Checks pre-everything (---------#
 ###########################################
-if [ "$(/usr/bin/id -u)" -eq "0" ]; then
+if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "`whoami 2>/dev/null`" = "root" ]; then
   IAMROOT="1"
   MAXPATH_FIND_W="3"
 else
