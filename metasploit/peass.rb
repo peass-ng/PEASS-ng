@@ -143,7 +143,7 @@ class MetasploitModule < Msf::Post
         last_cmd = "del #{temp_path};"
       else
         cmd = "cat #{temp_path}"
-        last_cmd = "rm #{temp_path}"
+        last_cmd = " ; rm #{temp_path}"
       end
 
     # Instead of writting the file to disk, download it from HTTP
