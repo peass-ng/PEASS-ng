@@ -958,6 +958,24 @@ search:
                 type: f
                 search_in: 
                   - common
+          
+          - name: "secrets.ldb"
+            value: 
+                type: f
+                search_in: 
+                  - common
+          
+          - name: ".secrets.mkey"
+            value: 
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "sssd.conf"
+            value: 
+                type: f
+                search_in: 
+                  - common
 
   - name: Kibana
     value:

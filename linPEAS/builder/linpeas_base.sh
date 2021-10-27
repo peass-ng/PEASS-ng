@@ -1168,7 +1168,7 @@ if echo $CHECKS | grep -q SysI; then
   #-- SY) Environment vars
   print_2title "Environment"
   print_info "Any private information inside environment variables?"
-  (env || printenv || set) 2>/dev/null | grep -v "RELEVANT*|FIND*|^VERSION=|dbuslistG|mygroups|ldsoconfdG|pwd_inside_history|kernelDCW_Ubuntu_Precise|kernelDCW_Ubuntu_Trusty|kernelDCW_Ubuntu_Xenial|kernelDCW_Rhel|^sudovB=|^rootcommon=|^mounted=|^mountG=|^notmounted=|^mountpermsB=|^mountpermsG=|^kernelB=|^C=|^RED=|^GREEN=|^Y=|^B=|^NC=|TIMEOUT=|groupsB=|groupsVB=|knw_grps=|sidG|sidB=|sidVB=|sidVB2=|sudoB=|sudoG=|sudoVB=|timersG=|capsB=|notExtensions=|Wfolders=|writeB=|writeVB=|_usrs=|compiler=|PWD=|LS_COLORS=|pathshG=|notBackup=|processesDump|processesB|commonrootdirs" | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[aA][pP][iI][kK][eE][yY]|[aA][pP][iI][_][kK][eE][yY],${SED_RED},g" || echo_not_found "env || set"
+  (env || printenv || set) 2>/dev/null | grep -v "RELEVANT*|FIND*|^VERSION=|dbuslistG|mygroups|ldsoconfdG|pwd_inside_history|kernelDCW_Ubuntu_Precise|kernelDCW_Ubuntu_Trusty|kernelDCW_Ubuntu_Xenial|kernelDCW_Rhel|^sudovB=|^rootcommon=|^mounted=|^mountG=|^notmounted=|^mountpermsB=|^mountpermsG=|^kernelB=|^C=|^RED=|^GREEN=|^Y=|^B=|^NC=|TIMEOUT=|groupsB=|groupsVB=|knw_grps=|sidG|sidB=|sidVB=|sidVB2=|sudoB=|sudoG=|sudoVB=|timersG=|capsB=|notExtensions=|Wfolders=|writeB=|writeVB=|_usrs=|compiler=|PWD=|LS_COLORS=|pathshG=|notBackup=|processesDump|processesB|commonrootdirs" | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[aA][pP][iI][kK][eE][yY]|[aA][pP][iI][_][kK][eE][yY]|KRB5CCNAME,${SED_RED},g" || echo_not_found "env || set"
   echo ""
 
   #-- SY) Dmesg
@@ -2056,12 +2056,12 @@ if echo $CHECKS | grep -q UsrI; then
   print_2title "Checking sudo tokens"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#reusing-sudo-tokens"
   ptrace_scope="$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null)"
-  if [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ]; then echo "/proc/sys/kernel/yama/ptrace_scope is enabled (0)" | sed "s,0,${SED_RED},g";
-  else echo "/proc/sys/kernel/yama/ptrace_scope is not enabled ($ptrace_scope)" | sed "s,is not enabled,${SED_GREEN},g";
+  if [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ]; then echo "ptrace protection is disabled (0)" | sed "s,is disabled,${SED_RED},g";
+  else echo "ptrace protection is enabled ($ptrace_scope)" | sed "s,is enabled,${SED_GREEN},g";
   fi
   is_gdb="$(command -v gdb 2>/dev/null)"
   if [ "$is_gdb" ]; then echo "gdb was found in PATH" | sed -${E} "s,.*,${SED_RED},g";
-  else echo "gdb wasn't found in PATH" | sed "s,gdb,${SED_GREEN},g";
+  else echo "gdb wasn't found in PATH, this might still be vulnerable but linpeas won't be able to check it" | sed "s,gdb,${SED_GREEN},g";
   fi
   if [ ! "$SUPERFAST" ] && [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ] && [ "$is_gdb" ]; then
     echo "Checking for sudo tokens in other shells owned by current user"
@@ -2451,11 +2451,15 @@ if echo $CHECKS | grep -q SofI; then
 
   #-- SI) Kerberos
   print_2title "Searching kerberos conf files and tickets"
-  print_info "https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88#pass-the-ticket-ptt"
+  print_info "http://book.hacktricks.xyz/linux-unix/privilege-escalation/linux-active-directory"
   kadmin_exists="$(command -v kadmin)"
   klist_exists="$(command -v klist)"
   if [ "$kadmin_exists" ]; then echo "kadmin was found on $kadmin_exists" | sed "s,$kadmin_exists,${SED_RED},"; fi
   if [ "$klist_exists" ] && [ -x "$klist_exists" ]; then echo "klist execution"; klist; fi
+  ptrace_scope="$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null)"
+  if [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ]; then echo "ptrace protection is disabled (0), you might find tickets inside processes memory" | sed "s,is disabled,${SED_RED},g";
+  else echo "ptrace protection is enabled ($ptrace_scope), you need to disable it to search for tickets inside processes memory" | sed "s,is enabled,${SED_GREEN},g";
+  
 
   printf "%s\n" "$PSTORAGE_KERBEROS" | while read f; do
     if [ -r "$f" ]; then
@@ -2475,10 +2479,19 @@ if echo $CHECKS | grep -q SofI; then
         done
       elif echo "$f" | grep -q krb5.conf; then
         ls -l "$f"
-        cat "$f" 2>/dev/null | grep default_ccache_name | sed -${E} "s,default_ccache_name,${SED_RED},";
+        cat "$f" 2>/dev/null | sed -${E} "s,default_ccache_name,${SED_RED},";
       elif echo "$f" | grep -q kadm5.acl; then
-        ls -l "$f"
+        ls -l "$f" 
         cat "$f" 2>/dev/null
+      elif echo "$f" | grep -q sssd.conf; then
+        ls -l "$f"
+        cat "$f" 2>/dev/null | sed -${E} "s,cache_credentials ?= ?[tT][rR][uU][eE],${SED_RED},";
+      elif echo "$f" | grep -q secrets.ldb; then
+        echo "You could use SSSDKCMExtractor to extract the tickets stored here" | sed -${E} "s,SSSDKCMExtractor,${SED_RED},";
+        ls -l "$f"
+      elif echo "$f" | grep -q .secrets.mkey; then
+        echo "This is the secrets file to use with SSSDKCMExtractor" | sed -${E} "s,SSSDKCMExtractor,${SED_RED},";
+        ls -l "$f"
       fi
     fi
   done
