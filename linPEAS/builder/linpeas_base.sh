@@ -1675,78 +1675,72 @@ if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks; then
 
   #-- PSC) .socket files
   #TODO: .socket files in MACOS are folders
-  print_2title "Analyzing .socket files"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
-  printf "%s\n" "$PSTORAGE_SOCKET" | while read s; do
-    if ! [ "$IAMROOT" ] && [ -w "$s" ] && [ -f "$s" ]; then
-      echo "Writable .socket file: $s" | sed "s,/.*,${SED_RED},g"
+  if ! [ "$IAMROOT" ]; then
+    print_2title "Analyzing .socket files"
+    print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
+    printf "%s\n" "$PSTORAGE_SOCKET" | while read s; do
+      if ! [ "$IAMROOT" ] && [ -w "$s" ] && [ -f "$s" ]; then
+        echo "Writable .socket file: $s" | sed "s,/.*,${SED_RED},g"
+      fi
+      socketsbinpaths=$(grep -Eo '^(Exec).*?=[!@+-]*/[a-zA-Z0-9_/\-]+' "$s" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,')
+      printf "%s\n" "$socketsbinpaths" | while read sb; do
+        if [ -w "$sb" ]; then
+          echo "$s is calling this writable executable: $sb" | sed "s,writable.*,${SED_RED},g"
+        fi
+      done
+      socketslistpaths=$(grep -Eo '^(Listen).*?=[!@+-]*/[a-zA-Z0-9_/\-]+' "$s" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,')
+      printf "%s\n" "$socketslistpaths" | while read sl; do
+        if [ -w "$sl" ]; then
+          echo "$s is calling this writable listener: $sl" | sed "s,writable.*,${SED_RED},g";
+        fi
+      done
+    done
+    if ! [ "$IAMROOT" ] && [ -w "/var/run/docker.sock" ]; then
+      echo "Docker socket /var/run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${SED_RED_YELLOW},g"
     fi
-    socketsbinpaths=$(grep -Eo '^(Exec).*?=[!@+-]*/[a-zA-Z0-9_/\-]+' "$s" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,')
-    printf "%s\n" "$socketsbinpaths" | while read sb; do
-      if [ -w "$sb" ]; then
-        echo "$s is calling this writable executable: $sb" | sed "s,writable.*,${SED_RED},g"
+    if ! [ "$IAMROOT" ] && [ -w "/run/docker.sock" ]; then
+      echo "Docker socket /run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${SED_RED_YELLOW},g"
+    fi
+    echo ""
+
+    print_2title "Unix Sockets Listening"
+    print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
+    # Search sockets using netstat and ss
+    unix_scks_list=$(ss -xlp -H state listening 2>/dev/null | grep -Eo "/.* " | cut -d " " -f1)
+    if ! [ "$unix_scks_list" ];then
+      unix_scks_list=$(ss -l -p -A 'unix' 2>/dev/null | grep -Ei "listen|Proc" | grep -Eo "/[a-zA-Z0-9\._/\-]+")
+    fi
+    if ! [ "$unix_scks_list" ];then
+      unix_scks_list=$(netstat -a -p --unix 2>/dev/null | grep -Ei "listen|PID" | grep -Eo "/[a-zA-Z0-9\._/\-]+" | tail -n +2)
+    fi
+    
+    # But also search socket files
+    unix_scks_list2=$(find / -type s 2>/dev/null)
+
+    # Detele repeated dockets and check permissions
+    (printf "%s\n" "$unix_scks_list" && printf "%s\n" "$unix_scks_list2") | sort | uniq | while read l; do
+      perms=""
+      if [ -r "$l" ]; then
+        perms="Read "
+      fi
+      if [ -w "$l" ];then
+        perms="${perms}Write"
+      fi
+      if ! [ "$perms" ]; then echo "$l" | sed -${E} "s,$l,${SED_GREEN},g";
+      else 
+        echo "$l" | sed -${E} "s,$l,${SED_RED},g"
+        echo "  └─(${RED}${perms}${NC})"
+        # Try to contact the socket
+        socketcurl=$(curl --max-time 2 --unix-socket "$s" http:/index 2>/dev/null)
+        if [ $? -eq 0 ]; then
+          owner=$(ls -l "$s" | cut -d ' ' -f 3)
+          echo "Socket $s owned by $owner uses HTTP. Response to /index: (limt 30)" | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed -${E} "s,$idB,${SED_RED},g"
+          echo "$socketcurl" | head -n 30
+        fi
       fi
     done
-    socketslistpaths=$(grep -Eo '^(Listen).*?=[!@+-]*/[a-zA-Z0-9_/\-]+' "$s" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,')
-    printf "%s\n" "$socketslistpaths" | while read sl; do
-      if [ -w "$sl" ]; then
-        echo "$s is calling this writable listener: $sl" | sed "s,writable.*,${SED_RED},g";
-      fi
-    done
-  done
-  if ! [ "$IAMROOT" ] && [ -w "/var/run/docker.sock" ]; then
-    echo "Docker socket /var/run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${SED_RED_YELLOW},g"
+    echo ""
   fi
-  if ! [ "$IAMROOT" ] && [ -w "/run/docker.sock" ]; then
-    echo "Docker socket /run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${SED_RED_YELLOW},g"
-  fi
-  echo ""
-
-  print_2title "Writable Sockets"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
-  find / -type s 2>/dev/null | while read l; do
-  if [ -w "$l" ]; then
-    echo "Socket '$l' is writable" | sed "s,.*,${SED_RED},";
-  fi
-  done
-
-  print_2title "Unix Sockets Listening"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
-  # Search sockets using netstat and ss
-  unix_scks_list=$(ss -xlp -H state listening 2>/dev/null | grep -Eo "/.* " | cut -d " " -f1)
-  if ! [ "$unix_scks_list" ];then
-    unix_scks_list=$(ss -l -p -A 'unix' 2>/dev/null | grep -Ei "listen|Proc" | grep -Eo "/[a-zA-Z0-9\._/\-]+")
-  fi
-  if ! [ "$unix_scks_list" ];then
-    unix_scks_list=$(netstat -a -p --unix 2>/dev/null | grep -Ei "listen|PID" | grep -Eo "/[a-zA-Z0-9\._/\-]+" | tail -n +2)
-  fi
-  
-  # But also search socket files
-  unix_scks_list2=$(find / -type s 2>/dev/null)
-
-  # Detele repeated dockets and check permissions
-  (printf "%s\n" "$unix_scks_list" && printf "%s\n" "$unix_scks_list2") | sort | uniq | while read l; do
-    perms=""
-    if [ -r "$l" ]; then
-      perms="Read "
-    fi
-    if [ -w "$l" ];then
-      perms="${perms}Write"
-    fi
-    if ! [ "$perms" ]; then echo "$l" | sed -${E} "s,$l,${SED_GREEN},g";
-    else 
-      echo "$l" | sed -${E} "s,$l,${SED_RED},g"
-      echo "  └─(${RED}${perms}${NC})"
-      # Try to contact the socket
-      socketcurl=$(curl --max-time 2 --unix-socket "$s" http:/index 2>/dev/null)
-      if [ $? -eq 0 ]; then
-        owner=$(ls -l "$s" | cut -d ' ' -f 3)
-        echo "Socket $s owned by $owner uses HTTP. Response to /index: (limt 30)" | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed -${E} "s,$idB,${SED_RED},g"
-        echo "$socketcurl" | head -n 30
-      fi
-    fi
-  done
-  echo ""
 
   #-- PSC) Writable and weak policies in D-Bus config files
   print_2title "D-Bus config files"
