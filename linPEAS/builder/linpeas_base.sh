@@ -2453,7 +2453,7 @@ if echo $CHECKS | grep -q SofI; then
   ptrace_scope="$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null)"
   if [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ]; then echo "ptrace protection is disabled (0), you might find tickets inside processes memory" | sed "s,is disabled,${SED_RED},g";
   else echo "ptrace protection is enabled ($ptrace_scope), you need to disable it to search for tickets inside processes memory" | sed "s,is enabled,${SED_GREEN},g";
-  
+  fi
 
   printf "%s\n" "$PSTORAGE_KERBEROS" | while read f; do
     if [ -r "$f" ]; then
