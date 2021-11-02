@@ -490,7 +490,7 @@ TIMEOUT="$(command -v timeout 2>/dev/null)"
 STRACE="$(command -v strace 2>/dev/null)"
 STRINGS="$(command -v strings 2>/dev/null)"
 
-shscripsG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/crosh.sh|/dnsmap-bulk.sh|/get_bluetooth_device_class.sh|/gettext.sh|/go-rhn.sh|/gvmap.sh|/kernel_log_collector.sh|/lesspipe.sh|/lprsetup.sh|/mksmbpasswd.sh|/power_report.sh|/setuporamysql.sh|/setup-nsssysinit.sh|/readlink_f.sh|/rescan-scsi-bus.sh|/start_bluetoothd.sh|/start_bluetoothlog.sh|/testacg.sh|/testlahf.sh|/unix-lpr.sh|/url_handler.sh|/write_gpt.sh"
+shscripsG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/crosh.sh|/dnsmap-bulk.sh|/dockerd-rootless.sh|/dockerd-rootless-setuptool.sh|/get_bluetooth_device_class.sh|/gettext.sh|/go-rhn.sh|/gvmap.sh|/kernel_log_collector.sh|/lesspipe.sh|/lprsetup.sh|/mksmbpasswd.sh|/power_report.sh|/setuporamysql.sh|/setup-nsssysinit.sh|/readlink_f.sh|/rescan-scsi-bus.sh|/start_bluetoothd.sh|/start_bluetoothlog.sh|/testacg.sh|/testlahf.sh|/unix-lpr.sh|/url_handler.sh|/write_gpt.sh"
 
 notBackup="/tdbbackup$|/db_hotbackup$"
 
@@ -1902,33 +1902,48 @@ if echo $CHECKS | grep -q Net; then
   fi
 
   if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] || [ "$AUTO_NETWORK_SCAN" ]; then
-    print_2title "Scanning local networks (using /24)"
-    select_nc
-    local_ips=$(ip a | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\.")
-    printf "%s\n" "$local_ips" | while read local_ip; do
-      if ! [ -z "$local_ip" ]; then
-        print_3title "Discovering hosts in $local_ip/24"
-        discover_network "$local_ip/24" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | grep -A 256 "Network Discovery" | grep -v "Network Discovery" | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' > $Wfolder/.ips.tmp
-        discovery_port_scan "$local_ip/24" 22 | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | grep -A 256 "Ports going to be scanned" | grep -v "Ports going to be scanned" | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' >> $Wfolder/.ips.tmp
-        
-        sort $Wfolder/.ips.tmp | uniq > $Wfolder/.ips
-        rm $Wfolder/.ips.tmp 2>/dev/null
-        
-        while read disc_ip; do
-          me=""
-          if [ "$disc_ip" = "$local_ip" ]; then
-            me=" (local)"
+    if ! [ "$FOUND_NC" ]; then
+      printf $RED"[-] $SCAN_BAN_BAD\n$NC"
+      echo "The network is not going to be scanned..."
+    
+    else
+      print_2title "Scanning local networks (using /24)"
+
+      if ! [ "$PING" ] && ![ "$FPING" ]; then
+        printf $RED"[-] $DISCOVER_BAN_BAD\n$NC"
+      fi
+
+      select_nc
+      local_ips=$(ip a | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\.")
+      printf "%s\n" "$local_ips" | while read local_ip; do
+        if ! [ -z "$local_ip" ]; then
+          print_3title "Discovering hosts in $local_ip/24"
+          
+          if [ "$PING" ] || [ "$FPING" ]; then
+            discover_network "$local_ip/24" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | grep -A 256 "Network Discovery" | grep -v "Network Discovery" | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' > $Wfolder/.ips.tmp
           fi
           
-          echo "Scanning top ports of ${disc_ip}${me}"
-          (tcp_port_scan "$disc_ip" "" | grep -A 1000 "Ports going to be scanned" | grep -v "Ports going to be scanned" | sort | uniq) 2>/dev/null
+          discovery_port_scan "$local_ip/24" 22 | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | grep -A 256 "Ports going to be scanned" | grep -v "Ports going to be scanned" | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' >> $Wfolder/.ips.tmp
+          
+          sort $Wfolder/.ips.tmp | uniq > $Wfolder/.ips
+          rm $Wfolder/.ips.tmp 2>/dev/null
+          
+          while read disc_ip; do
+            me=""
+            if [ "$disc_ip" = "$local_ip" ]; then
+              me=" (local)"
+            fi
+            
+            echo "Scanning top ports of ${disc_ip}${me}"
+            (tcp_port_scan "$disc_ip" "" | grep -A 1000 "Ports going to be scanned" | grep -v "Ports going to be scanned" | sort | uniq) 2>/dev/null
+            echo ""
+          done < $Wfolder/.ips
+          
+          rm $Wfolder/.ips 2>/dev/null
           echo ""
-        done < $Wfolder/.ips
-        
-        rm $Wfolder/.ips 2>/dev/null
-        echo ""
-      fi
-    done
+        fi
+      done
+    fi
   fi
 
   if [ "$MACOS" ]; then

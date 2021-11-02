@@ -1994,6 +1994,21 @@ search:
                 search_in: 
                   - common
   
+  - name: InfluxDB
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "influxdb.conf"
+            value: 
+                bad_regex: "auth-enabled.*=.*false|token|https-private-key"
+                remove_regex: '^#'
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
+  
   - name: Github
     value:
         config:
