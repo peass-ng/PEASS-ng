@@ -1972,7 +1972,7 @@ search:
         files:
           - name: ".env"
             value: 
-                bad_regex: "[pP][aA][sS][sS].*"
+                bad_regex: "[pP][aA][sS][sS].*|[tT][oO][kK][eE][N]|[dD][bB]"
                 remove_regex: '^#'
                 remove_empty_lines: True
                 type: f
