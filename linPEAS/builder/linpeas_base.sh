@@ -1846,7 +1846,7 @@ if echo $CHECKS | grep -q Net; then
   #-- NI) Ports
   print_2title "Active Ports"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-ports"
-  ( (netstat -punta || ss -ntpu || netstat -anv) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+|:::|::1:|0\.0\.0\.0,${SED_RED},"
+  ( (netstat -punta || ss -nltpu || netstat -anv) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+|:::|::1:|0\.0\.0\.0,${SED_RED},"
   echo ""
 
   #-- NI) MacOS hardware ports
