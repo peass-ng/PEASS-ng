@@ -820,7 +820,7 @@ discovery_port_scan (){
   basic_net_info
 
   #Check if IP and Netmask are correct and the use nc to find hosts. By default check ports: 22 80 443 445 3389
-  print_title "Network Discovery (scanning ports)"
+  print_title "Internal Network Discovery - Finding hosts and scanning ports"
   DISCOVERY=$1
   MYPORTS=$2
 
