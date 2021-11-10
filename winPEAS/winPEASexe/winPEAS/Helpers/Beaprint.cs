@@ -17,7 +17,7 @@ namespace winPEAS.Helpers
         static string LYELLOW = "\x1b[1;33m";
         static string BLUE = "\x1b[34m";
         public static string LBLUE = "\x1b[1;34m";
-        static string MAGENTA = "\x1b[1:35m";
+        static string MAGENTA = "\x1b[1;35m";
         //static string LMAGENTA = "\x1b[1;35m";
         static string CYAN = "\x1b[36m";
         static string LCYAN = "\x1b[1;36m";
