@@ -47,7 +47,7 @@ ITALIC="${C}[3m"
 #---------) Parsing parameters (----------#
 ###########################################
 # --) FAST - Do not check 1min of procceses and su brute
-# --) SUPERFAST - FAST & do not search for special filaes in all the folders
+# --) SUPERFAST - FAST & do not search for special files in all the folders
 
 if uname 2>/dev/null | grep -q 'Darwin' || /usr/bin/uname 2>/dev/null | grep -q 'Darwin'; then MACPEAS="1"; else MACPEAS=""; fi
 FAST="1" #By default stealth/fast mode
