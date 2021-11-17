@@ -287,7 +287,10 @@ if [ $myuid -gt 2147483646 ]; then baduid="|$myuid"; fi
 idB="euid|egid$baduid"
 sudovB="[01].[012345678].[0-9]+|1.9.[01234]|1.9.5p1"
 
-mounted=$( (mount -l || cat /proc/mounts || cat /proc/self/mounts) 2>/dev/null | grep "^/" | cut -d " " -f1 | tr '\n' '|')$(cat /etc/fstab 2>/dev/null | grep -v "#" | grep -E '\W/\W' | awk '{print $1}')
+mounted=$( (cat /proc/self/mountinfo || cat /proc/1/mountinfo) 2>/dev/null | cut -d " " -f5 | grep "^/" | tr '\n' '|')$(cat /etc/fstab 2>/dev/null | grep -v "#" | grep -E '\W/\W' | awk '{print $1}')
+if ! [ "$mounted" ]; then 
+  mounted=$( (mount -l || cat /proc/mounts || cat /proc/self/mounts || cat /proc/1/mounts) 2>/dev/null | grep "^/" | cut -d " " -f1 | tr '\n' '|')$(cat /etc/fstab 2>/dev/null | grep -v "#" | grep -E '\W/\W' | awk '{print $1}')
+fi
 if ! [ "$mounted" ]; then mounted="ImPoSSssSiBlEee"; fi #Don't let any blacklist to be empty
 mountG="swap|/cdrom|/floppy|/dev/shm"
 notmounted=$(cat /etc/fstab 2>/dev/null | grep "^/" | grep -Ev "$mountG" | awk '{print $1}' | grep -Ev "$mounted" | tr '\n' '|')"ImPoSSssSiBlEee"
@@ -520,7 +523,7 @@ CONTAINER_CMDS="docker lxc rkt kubectl podman runc"
 TIP_DOCKER_ROOTLESS="In rootless mode privilege escalation to root will not be possible."
 GREP_DOCKER_SOCK_INFOS="Architecture|OSType|Name|DockerRootDir|NCPU|OperatingSystem|KernelVersion|ServerVersion"
 GREP_DOCKER_SOCK_INFOS_IGNORE="IndexConfig"
-GREP_IGNORE_MOUNTS="/ /|/cgroup|/var/lib/docker/|/null | proc proc |/dev/console|docker.sock"
+GREP_IGNORE_MOUNTS="/ /|/null | proc proc |/dev/console"
 
 INT_HIDDEN_FILES="peass{INT_HIDDEN_FILES}"
 
@@ -1380,7 +1383,7 @@ if echo $CHECKS | grep -q Container; then
     echo ""
 
     print_2title "Interesting Files Mounted"
-    grep -Ev "$GREP_IGNORE_MOUNTS" /proc/self/mountinfo | cut -d' ' -f 4-
+    (mount -l || cat /proc/self/mountinfo || cat /proc/1/mountinfo || cat /proc/mounts || cat /proc/self/mounts || cat /proc/1/mounts )2>/dev/null | grep -Ev "$GREP_IGNORE_MOUNTS"
     echo ""
 
     print_2title "Possible Entrypoints"
