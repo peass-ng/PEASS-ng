@@ -408,6 +408,15 @@ search:
                 type: f
                 search_in: 
                     - common
+            
+            - name: "php.ini"
+              value: 
+                bad_regex: "On"
+                remove_regex: "^;"
+                line_grep: "allow_"
+                type: f
+                search_in: 
+                    - common
 
   - name: PHP Sessions
     value:
@@ -2636,13 +2645,6 @@ search:
                   - common
 
           - name: "pagefile.sys"
-            value:
-                just_list_file: True
-                type: f
-                search_in:
-                  - common
-
-          - name: "php.ini"
             value:
                 just_list_file: True
                 type: f
