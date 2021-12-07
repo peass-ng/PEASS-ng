@@ -1,7 +1,7 @@
 #!/bin/sh
 
 VERSION="ng"
-ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission."
+ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission."
 
 ###########################################
 #-------) Checks pre-everything (---------#
@@ -215,15 +215,15 @@ print_banner(){
 
 print_support (){
   printf """
-      ${GREEN}/---------------------------------------------------------------------------\\
-      |                             ${BLUE}Do you like PEASS?${GREEN}                            |
-      |---------------------------------------------------------------------------| 
-      |         ${YELLOW}Become a Patreon${GREEN}    :     ${RED}https://www.patreon.com/peass${GREEN}           |
-      |         ${YELLOW}Follow on Twitter${GREEN}   :     ${RED}@carlospolopm${GREEN}                           |
-      |         ${YELLOW}Respect on HTB${GREEN}      :     ${RED}SirBroccoli & makikvues${GREEN}                 |
-      |---------------------------------------------------------------------------|
-      |                                 ${BLUE}Thank you! ${GREEN}                               |
-      \---------------------------------------------------------------------------/
+    ${GREEN}/---------------------------------------------------------------------------\\
+    |                             ${BLUE}Do you like PEASS?${GREEN}                            |
+    |---------------------------------------------------------------------------| 
+    |         ${YELLOW}Become a Patreon${GREEN}    :     ${RED}https://www.patreon.com/peass${GREEN}           |
+    |         ${YELLOW}Follow on Twitter${GREEN}   :     ${RED}@carlospolopm${GREEN}                           |
+    |         ${YELLOW}Respect on HTB${GREEN}      :     ${RED}SirBroccoli & makikvues${GREEN}                 |
+    |---------------------------------------------------------------------------|
+    |                                 ${BLUE}Thank you! ${GREEN}                               |
+    \---------------------------------------------------------------------------/
 """
 }
 
@@ -233,7 +233,7 @@ print_support (){
 
 echo ""
 if [ ! "$QUIET" ]; then print_banner; print_support; fi
-printf ${BLUE}"        $SCRIPTNAME-$VERSION ${YELLOW}by carlospolop\n"$NC;
+printf ${BLUE}"          $SCRIPTNAME-$VERSION ${YELLOW}by carlospolop\n"$NC;
 echo ""
 printf ${YELLOW}"ADVISORY: ${BLUE}$ADVISORY\n$NC"
 echo ""
@@ -510,7 +510,7 @@ profiledG="01-locale-fix.sh|256term.csh|256term.sh|abrt-console-notification.sh|
 
 knw_emails=".*@aivazian.fsnet.co.uk|.*@angband.pl|.*@canonical.com|.*centos.org|.*debian.net|.*debian.org|.*@jff.email|.*kali.org|.*linux.it|.*@linuxia.de|.*@lists.debian-maintainers.org|.*@mit.edu|.*@oss.sgi.com|.*@qualcomm.com|.*redhat.com|.*ubuntu.com|.*@vger.kernel.org|rogershimizu@gmail.com|thmarques@gmail.com"
 
-timersG="anacron.timer|apt-daily.timer|apt-daily-upgrade.timer|e2scrub_all.timer|fstrim.timer|fwupd-refresh.timer|geoipupdate.timer|io.netplan.Netplan|logrotate.timer|man-db.timer|mlocate.timer|motd-news.timer|phpsessionclean.timer|snapd.refresh.timer|snapd.snap-repair.timer|systemd-tmpfiles-clean.timer|systemd-readahead-done.timer|ua-messaging.timer|ureadahead-stop.timer"
+timersG="anacron.timer|apt-daily.timer|apt-daily-upgrade.timer|e2scrub_all.timer|fstrim.timer|fwupd-refresh.timer|geoipupdate.timer|io.netplan.Netplan|logrotate.timer|man-db.timer|mlocate.timer|motd-news.timer|phpsessionclean.timer|snapd.refresh.timer|snapd.snap-repair.timer|systemd-tmpfiles-clean.timer|systemd-readahead-done.timer|ua-license-check.timer|ua-messaging.timer|ua-timer.timer|ureadahead-stop.timer"
 
 commonrootdirsG="^/$|/bin$|/boot$|/.cache$|/cdrom|/dev$|/etc$|/home$|/lost+found$|/lib$|/lib32$|libx32$|/lib64$|lost\+found|/media$|/mnt$|/opt$|/proc$|/root$|/run$|/sbin$|/snap$|/srv$|/sys$|/tmp$|/usr$|/var$"
 commonrootdirsMacG="^/$|/.DocumentRevisions-V100|/.fseventsd|/.PKInstallSandboxManager-SystemSoftware|/.Spotlight-V100|/.Trashes|/.vol|/Applications|/bin|/cores|/dev|/home|/Library|/macOS Install Data|/net|/Network|/opt|/private|/sbin|/System|/Users|/usr|/Volumes"
@@ -3369,7 +3369,7 @@ if echo $CHECKS | grep -q IntFiles; then
 
     ##-- IF) Find possible conf files with passwords
     print_2title "Finding possible password in config files"
-    ppicf=$(find "$HOMESEARCH" /etc /root /tmp /private /Applications -name "*.conf" -o -name "*.cnf" -o -name "*.config" -name "*.json" 2>/dev/null)
+    ppicf=$(find "$HOMESEARCH" /etc /root /tmp /private /Applications -name "*.conf" -o -name "*.cnf" -o -name "*.config" -name "*.json" -name "*.yml" -name "*.yaml" 2>/dev/null)
     printf "%s\n" "$ppicf" | while read f; do
       if grep -qEiI 'passwd.*|creden.*' \"$f\" 2>/dev/null; then
         echo "$ITALIC $f$NC"
