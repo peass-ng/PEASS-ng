@@ -1890,15 +1890,15 @@ search:
         files:
           - name: "postfix"
             value: 
-                files:
-                  - name: "master.cf"
-                    value:
-                        bad_regex: "user=|argv="
-                        remove_empty_lines: True
-                        line_grep: '"user="'
-                type: d
-                search_in: 
-                  - common
+              files:
+                - name: "master.cf"
+                  value:
+                      bad_regex: "user=|argv="
+                      remove_empty_lines: True
+                      line_grep: '"user="'
+              type: d
+              search_in: 
+                - common
 
   - name: CloudFlare
     value:
@@ -2017,6 +2017,42 @@ search:
                 type: f
                 search_in: 
                   - common
+  
+  - name: Zabbix
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "zabbix_server.conf"
+            value: 
+                bad_regex: "DBName|DBUser|DBPassword"
+                remove_regex: '^#'
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "zabbix_agentd.conf"
+            value: 
+                bad_regex: "TLSPSKFile|psk"
+                remove_regex: '^#'
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "zabbix"
+            value: 
+              files:
+                - name: "*.psk"
+                  value:
+                      bad_regex: ".*"
+                      remove_empty_lines: True
+              type: d
+              search_in: 
+                - common
+
   
   - name: Github
     value:
