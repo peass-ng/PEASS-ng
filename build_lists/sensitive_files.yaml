@@ -65,6 +65,8 @@ common_directory_folders:
   - /usr
   - /var
 
+peas_checks: "peass{CHECKS}"
+
 peas_extrasections_markup: "peass{EXTRA_SECTIONS}"
 
 peas_finds_markup: "peass{FINDS_HERE}"
@@ -2395,6 +2397,21 @@ search:
                 search_in: 
                   - common
 
+  - name: Jetty
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "jetty-realm.properties"
+            value: 
+                bad_regex: ".*"
+                remove_empty_lines: True
+                remove_regex: '^#'
+                type: f
+                search_in: 
+                  - common
+  
   - name: Wget
     value:
         config:
