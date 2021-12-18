@@ -1,12 +1,13 @@
 import re
 import requests
 import base64
+import os
 
 from .peasLoaded import PEASLoaded
 from .peassRecord import PEASRecord
 from .fileRecord import FileRecord
 from .yamlGlobals import (
-    LINPEAS_BASE_PATH,
+    TEMPORARY_LINPEAS_BASE_PATH,
     PEAS_FINDS_MARKUP,
     PEAS_STORAGES_MARKUP,
     PEAS_STORAGES_MARKUP,
@@ -38,7 +39,7 @@ class LinpeasBuilder:
         self.bash_find_f_vars, self.bash_find_d_vars = set(), set()
         self.bash_storages = set()
         self.__get_files_to_search()
-        with open(LINPEAS_BASE_PATH, 'r') as file:
+        with open(TEMPORARY_LINPEAS_BASE_PATH, 'r') as file:
             self.linpeas_sh = file.read()
 
     def build(self):
@@ -309,9 +310,13 @@ class LinpeasBuilder:
 
     def __replace_mark(self, mark: str, find_calls: list, join_char: str):
         """Substitude the markup with the actual code"""
+        
         self.linpeas_sh = self.linpeas_sh.replace(mark, join_char.join(find_calls)) #New line char is't needed
     
     def write_linpeas(self, path):
         """Write on disk the final linpeas"""
+        
         with open(path, "w") as f:
             f.write(self.linpeas_sh)
+        
+        os.remove(TEMPORARY_LINPEAS_BASE_PATH) #Remove the built linpeas_base.sh file
