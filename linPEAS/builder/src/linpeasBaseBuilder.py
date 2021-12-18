@@ -25,7 +25,7 @@ class LinpeasBaseBuilder:
                 linpeas_part = file.read()
 
             checks.append(name_check)
-            self.linpeas_base += f"\nif echo $CHECKS | grep -q {name_check};\n"
+            self.linpeas_base += f"\nif echo $CHECKS | grep -q {name_check}; then\n"
             self.linpeas_base += f'print_title "{name}"\n'
             self.linpeas_base += linpeas_part
             self.linpeas_base += f"\nfi\necho ''\necho ''\n"

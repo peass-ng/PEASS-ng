@@ -13,15 +13,15 @@ print_2title "Installed Compiler"
 echo ""
 
 if [ "$(command -v pkg 2>/dev/null)" ]; then
-print_2title "Vulnerable Packages"
-pkg audit -F | sed -${E} "s,vulnerable,${SED_RED},g"
-echo ""
+    print_2title "Vulnerable Packages"
+    pkg audit -F | sed -${E} "s,vulnerable,${SED_RED},g"
+    echo ""
 fi
 
 if [ "$(command -v brew 2>/dev/null)" ]; then
-print_2title "Brew Installed Packages"
-brew list
-echo ""
+    print_2title "Brew Installed Packages"
+    brew list
+    echo ""
 fi
 
 if [ "$MACPEAS" ]; then
@@ -37,3 +37,4 @@ system_profiler SPFrameworksDataType | grep "Location:" | cut -d ":" -f 2 | cut 
     echo "$f is writable" | sed -${E} "s,.*,${SED_RED},g"
     fi
 done
+fi
