@@ -22,7 +22,7 @@ fi
 echo ""
 
 #--SY) USBCreator
-if (busctl list 2>/dev/null | grep -q com.ubuntu.USBCreator) || [ "$VERBOSE" ]; then
+if (busctl list 2>/dev/null | grep -q com.ubuntu.USBCreator) || [ "$DEBUG" ]; then
     print_2title "USBCreator"
     print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/d-bus-enumeration-and-command-injection-privilege-escalation"
 
@@ -76,7 +76,7 @@ print_info "Any private information inside environment variables?"
 echo ""
 
 #-- SY) Dmesg
-if [ "$(command -v dmesg 2>/dev/null)" ] || [ "$VERBOSE" ]; then
+if [ "$(command -v dmesg 2>/dev/null)" ] || [ "$DEBUG" ]; then
     print_2title "Searching Signature verification failed in dmesg"
     print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#dmesg-signature-verification-failed"
     (dmesg 2>/dev/null | grep "signature") || echo_not_found "dmesg"

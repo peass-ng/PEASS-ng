@@ -203,7 +203,7 @@ done
 echo ""
 
 ##-- IF) Users with capabilities
-if [ -f "/etc/security/capability.conf" ] || [ "$VERBOSE" ]; then
+if [ -f "/etc/security/capability.conf" ] || [ "$DEBUG" ]; then
   print_2title "Users with capabilities"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#capabilities"
   if [ -f "/etc/security/capability.conf" ]; then
@@ -249,7 +249,7 @@ echo ""
 
 
 broken_links=$(find "$d" -type l 2>/dev/null | xargs file 2>/dev/null | grep broken)
-if [ "$broken_links" ] || [ "$VERBOSE" ]; then 
+if [ "$broken_links" ] || [ "$DEBUG" ]; then 
   print_2title "Broken links in path"
   echo $PATH | tr ":" "\n" | while read d; do
     find "$d" -type l 2>/dev/null | xargs file 2>/dev/null | grep broken | sed -${E} "s,broken,${SED_RED},";
@@ -534,7 +534,7 @@ if ! [ "$IAMROOT" ]; then
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files"
   for g in $(groups); do
     iwfbg=$(find / '(' -type f -or -type d ')' -group $g -perm -g=w ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500)
-    if [ "$iwfbg" ] || [ "$VERBOSE" ]; then
+    if [ "$iwfbg" ] || [ "$DEBUG" ]; then
       printf "  Group $GREEN$g:\n$NC";
       printf "%s\n" "$iwfbg" | while read entry; do
         if echo "$entry" | grep -q "You_can_write_even_more_files_inside_last_directory"; then printf $ITALIC"$entry\n"$NC;
@@ -550,14 +550,14 @@ if ! [ "$IAMROOT" ]; then
 fi
 
 ##-- IF) Passwords in history files
-if [ "$PSTORAGE_HISTORY" ] || [ "$VERBOSE" ]; then
+if [ "$PSTORAGE_HISTORY" ] || [ "$DEBUG" ]; then
   print_2title "Searching passwords in history files"
   printf "%s\n" "$PSTORAGE_HISTORY" | while read f; do grep -Ei "$pwd_inside_history" "$f" 2>/dev/null | sed -${E} "s,$pwd_inside_history,${SED_RED},"; done
   echo ""
 fi
 
 ##-- IF) Passwords in config PHP files
-if [ "$PSTORAGE_PHP_FILES" ] || [ "$VERBOSE" ]; then
+if [ "$PSTORAGE_PHP_FILES" ] || [ "$DEBUG" ]; then
   print_2title "Searching passwords in config PHP files"
   printf "%s\n" "$PSTORAGE_PHP_FILES" | while read c; do grep -EiI "(pwd|passwd|password|PASSWD|PASSWORD|dbuser|dbpass).*[=:].+|define ?\('(\w*passw|\w*user|\w*datab)" "$c" 2>/dev/null | grep -Ev "function|password.*= ?\"\"|password.*= ?''" | sed '/^.\{150\}./d' | sort | uniq | sed -${E} "s,[pP][aA][sS][sS][wW]|[dD][bB]_[pP][aA][sS][sS],${SED_RED},g"; done
   echo ""

@@ -42,7 +42,7 @@ command -v netpgp 2>/dev/null || echo_not_found "netpgp"
 echo ""
 
 #-- UI) Clipboard and highlighted text
-if [ "$(command -v xclip 2>/dev/null)" ] || [ "$(command -v xsel 2>/dev/null)" ] || [ "$(command -v pbpaste 2>/dev/null)" ] || [ "$VERBOSE" ]; then
+if [ "$(command -v xclip 2>/dev/null)" ] || [ "$(command -v xsel 2>/dev/null)" ] || [ "$(command -v pbpaste 2>/dev/null)" ] || [ "$DEBUG" ]; then
   print_2title "Clipboard or highlighted text?"
   if [ "$(command -v xclip 2>/dev/null)" ]; then
     echo "Clipboard: "$(xclip -o -selection clipboard 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
@@ -105,7 +105,7 @@ fi
 echo ""
 
 #-- UI) Doas
-if [ -f "/etc/doas.conf" ] || [ "$VERBOSE" ]; then
+if [ -f "/etc/doas.conf" ] || [ "$DEBUG" ]; then
   print_2title "Checking doas.conf"
   doas_dir_name=$(dirname "$(command -v doas)" 2>/dev/null)
   if [ "$(cat /etc/doas.conf $doas_dir_name/doas.conf $doas_dir_name/../etc/doas.conf $doas_dir_name/etc/doas.conf 2>/dev/null)" ]; then 

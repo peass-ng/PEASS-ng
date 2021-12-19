@@ -40,7 +40,7 @@ if [ "$MACPEAS" ]; then
 fi
 
 #-- SI) Mysql version
-if [ "$(command -v mysql)" ] || [ "$(command -v mysqladmin)" ] || [ "$VERBOSE" ]; then
+if [ "$(command -v mysql)" ] || [ "$(command -v mysqladmin)" ] || [ "$DEBUG" ]; then
   print_2title "MySQL version"
   mysql --version 2>/dev/null || echo_not_found "mysql"
   echo ""
@@ -71,11 +71,12 @@ if [ "$(command -v mysql)" ] || [ "$(command -v mysqladmin)" ] || [ "$VERBOSE" ]
     mysql -u root -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
   else echo_no
   fi
-elif [ "$VERBOSE" ]; then echo_not_found
+  echo ""
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 #-- SI) Mysql credentials
-if [ "$PSTORAGE_MYSQL" ] || [ "$VERBOSE" ]; then
+if [ "$PSTORAGE_MYSQL" ] || [ "$DEBUG" ]; then
   print_2title "Searching mysql credentials and exec"
   printf "%s\n" "$PSTORAGE_MYSQL" | while read d; do
     for f in $(find $d -name debian.cnf 2>/dev/null); do
@@ -108,7 +109,7 @@ if [ "$PSTORAGE_MYSQL" ] || [ "$VERBOSE" ]; then
       echo "If you can login in MySQL you can execute commands doing: SELECT sys_eval('id');" | sed -${E} "s,.*,${SED_RED},"
     fi
   done
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 echo ""
 
@@ -117,7 +118,7 @@ peass{MariaDB}
 peass{PostgreSQL}
 
 #-- SI) PostgreSQL brute
-if [ "$TIMEOUT" ] && [ "$(command -v psql)" ] || [ "$VERBOSE" ]; then  # In some OS (like OpenBSD) it will expect the password from console and will pause the script. Also, this OS doesn't have the "timeout" command so lets only use this checks in OS that has it.
+if [ "$TIMEOUT" ] && [ "$(command -v psql)" ] || [ "$DEBUG" ]; then  # In some OS (like OpenBSD) it will expect the password from console and will pause the script. Also, this OS doesn't have the "timeout" command so lets only use this checks in OS that has it.
 #checks to see if any postgres password exists and connects to DB 'template0' - following commands are a variant on this
   print_list "PostgreSQL connection to template0 using postgres/NOPASS ........ "
   if [ "$(timeout 1 psql -U postgres -d template0 -c 'select version()' 2>/dev/null)" ]; then echo "Yes" | sed -${E} "s,.*,${SED_RED},"
@@ -139,7 +140,7 @@ if [ "$TIMEOUT" ] && [ "$(command -v psql)" ] || [ "$VERBOSE" ]; then  # In some
   else echo_no
   fi
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{Mongo}
@@ -269,11 +270,11 @@ peass{PAM Auth}
 
 #-- SI) Passwords inside pam.d
 pamdpass=$(grep -Ri "passwd" /etc/pam.d/ 2>/dev/null | grep -v ":#")
-if [ "$pamdpass" ] || [ "$VERBOSE" ]; then
+if [ "$pamdpass" ] || [ "$DEBUG" ]; then
   print_2title "Passwords inside pam.d"
   grep -Ri "passwd" /etc/pam.d/ 2>/dev/null | grep -v ":#" | sed "s,passwd,${SED_RED},"
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{NFS Exports}
@@ -281,7 +282,7 @@ peass{NFS Exports}
 #-- SI) Kerberos
 kadmin_exists="$(command -v kadmin)"
 klist_exists="$(command -v klist)"
-if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$PSTORAGE_KERBEROS" ] || [ "$VERBOSE" ]; then
+if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$PSTORAGE_KERBEROS" ] || [ "$DEBUG" ]; then
   print_2title "Searching kerberos conf files and tickets"
   print_info "http://book.hacktricks.xyz/linux-unix/privilege-escalation/linux-active-directory"
 
@@ -330,7 +331,7 @@ if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$PSTORAGE_KERBEROS" ] || [ 
   klist 2>/dev/null || echo_not_found "klist"
   echo ""
 
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{Knockd}
@@ -341,7 +342,7 @@ peass{Elasticsearch}
 
 ##-- SI) Logstash
 print_2title "Searching logstash files"
-if [ "$PSTORAGE_LOGSTASH" ] || [ "$VERBOSE" ]; then
+if [ "$PSTORAGE_LOGSTASH" ] || [ "$DEBUG" ]; then
   printf "$PSTORAGE_LOGSTASH"
   printf "%s\n" "$PSTORAGE_LOGSTASH" | while read d; do
     if [ -r "$d/startup.options" ]; then
@@ -351,33 +352,33 @@ if [ "$PSTORAGE_LOGSTASH" ] || [ "$VERBOSE" ]; then
     cat "$d/conf.d/out*" | grep "exec\s*{\|command\s*=>" | sed -${E} "s,exec\W*\{|command\W*=>,${SED_RED},"
     cat "$d/conf.d/filt*" | grep "path\s*=>\|code\s*=>\|ruby\s*{" | sed -${E} "s,path\W*=>|code\W*=>|ruby\W*\{,${SED_RED},"
   done
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 echo ""
 
 #-- SI) Vault-ssh
-if [ "$PSTORAGE_VAULT_SSH_HELPER" ] || [ "$VERBOSE" ]; then
+if [ "$PSTORAGE_VAULT_SSH_HELPER" ] || [ "$DEBUG" ]; then
   print_2title "Searching Vault-ssh files"
   printf "$PSTORAGE_VAULT_SSH_HELPER\n"
   printf "%s\n" "$PSTORAGE_VAULT_SSH_HELPER" | while read f; do cat "$f" 2>/dev/null; vault-ssh-helper -verify-only -config "$f" 2>/dev/null; done
   echo ""
   vault secrets list 2>/dev/null
   printf "%s\n" "$PSTORAGE_VAULT_SSH_TOKEN" | sed -${E} "s,.*,${SED_RED}," 2>/dev/null
-elif [ "$VERBOSE" ]; then echo_not_found "vault-ssh-helper.hcl"
+elif [ "$DEBUG" ]; then echo_not_found "vault-ssh-helper.hcl"
 fi
 echo ""
 
 #-- SI) Cached AD Hashes
 adhashes=$(ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null)
-if [ "$adhashes" ] || [ "$VERBOSE" ]; then
+if [ "$adhashes" ] || [ "$DEBUG" ]; then
   print_2title "Searching AD cached hashes"
   ls -l "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 #-- SI) Screen sessions
-if [ "$screensess" ] || [ "$screensess2" ] || [ "$VERBOSE" ]; then
+if [ "$screensess" ] || [ "$screensess2" ] || [ "$DEBUG" ]; then
   print_2title "Searching screen sessions"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-shell-sessions"
   screensess=$(screen -ls 2>/dev/null)
@@ -390,14 +391,14 @@ if [ "$screensess" ] || [ "$screensess2" ] || [ "$VERBOSE" ]; then
     echo "Other user screen socket is writable: $f" | sed "s,$f,${SED_RED_YELLOW},"
   done
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 #-- SI) Tmux sessions
 tmuxdefsess=$(tmux ls 2>/dev/null)
 tmuxnondefsess=$(ps auxwww | grep "tmux " | grep -v grep)
 tmuxsess2=$(find /tmp -type d -path "/tmp/tmux-*" 2>/dev/null)
-if [ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ] || [ "$tmuxsess2" ] || [ "$VERBOSE" ]; then
+if [ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ] || [ "$tmuxsess2" ] || [ "$DEBUG" ]; then
   print_2title "Searching tmux sessions"$N
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-shell-sessions"
   tmux -V
@@ -407,7 +408,7 @@ if [ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ] || [ "$tmuxsess2" ] || [ "$VERBOS
     echo "Other user tmux socket is writable: $f" | sed "s,$f,${SED_RED_YELLOW},"
   done
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{CouchDB}
@@ -417,7 +418,7 @@ peass{Redis}
 #-- SI) Dovecot
 # Needs testing
 dovecotpass=$(grep -r "PLAIN" /etc/dovecot 2>/dev/null)
-if [ "$dovecotpass" ] || [ "$VERBOSE" ]; then
+if [ "$dovecotpass" ] || [ "$DEBUG" ]; then
   print_2title "Searching dovecot files"
   if [ -z "$dovecotpass" ]; then
     echo_not_found "dovecot credentials"
@@ -430,7 +431,7 @@ if [ "$dovecotpass" ] || [ "$VERBOSE" ]; then
     done
   fi
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{Mosquitto}
@@ -459,7 +460,7 @@ peass{Backup Manager}
 
 ##-- SI) passwd files (splunk)
 SPLUNK_BIN="$(command -v splunk 2>/dev/null)"
-if [ "$PSTORAGE_SPLUNK" ] || [ "$SPLUNK_BIN" ] || [ "$VERBOSE" ]; then
+if [ "$PSTORAGE_SPLUNK" ] || [ "$SPLUNK_BIN" ] || [ "$DEBUG" ]; then
   print_2title "Searching uncommon passwd files (splunk)"
   if [ "$SPLUNK_BIN" ]; then echo "splunk binary was found installed on $SPLUNK_BIN" | sed "s,.*,${SED_RED},"; fi
   printf "%s\n" "$PSTORAGE_SPLUNK" | sort | uniq | while read f; do
@@ -469,10 +470,10 @@ if [ "$PSTORAGE_SPLUNK" ] || [ "$SPLUNK_BIN" ] || [ "$VERBOSE" ]; then
     fi
   done
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
-if [ "$PSTORAGE_KCPASSWORD" ] || [ "$VERBOSE" ]; then
+if [ "$PSTORAGE_KCPASSWORD" ] || [ "$DEBUG" ]; then
   print_2title "Analyzing kcpassword files"
   print_info "https://book.hacktricks.xyz/macos/macos-security-and-privilege-escalation#kcpassword"
   printf "%s\n" "$PSTORAGE_KCPASSWORD" | while read f; do
@@ -480,11 +481,11 @@ if [ "$PSTORAGE_KCPASSWORD" ] || [ "$VERBOSE" ]; then
     base64 "$f" 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
   done
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 ##-- SI) Gitlab
-if [ "$(command -v gitlab-rails)" ] || [ "$(command -v gitlab-backup)" ] || [ "$PSTORAGE_GITLAB" ] || [ "$VERBOSE" ]; then
+if [ "$(command -v gitlab-rails)" ] || [ "$(command -v gitlab-backup)" ] || [ "$PSTORAGE_GITLAB" ] || [ "$DEBUG" ]; then
   print_2title "Searching GitLab related files"
   #Check gitlab-rails
   if [ "$(command -v gitlab-rails)" ]; then
@@ -514,7 +515,7 @@ if [ "$(command -v gitlab-rails)" ] || [ "$(command -v gitlab-backup)" ] || [ "$
     echo ""
   done
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{Github}
@@ -529,7 +530,7 @@ peass{Wget}
 
 ##-- SI) containerd installed
 containerd=$(command -v ctr)
-if [ "$containerd" ] || [ "$VERBOSE" ]; then
+if [ "$containerd" ] || [ "$DEBUG" ]; then
   print_2title "Checking if containerd(ctr) is available"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/containerd-ctr-privilege-escalation"
   if [ "$containerd" ]; then
@@ -537,23 +538,23 @@ if [ "$containerd" ] || [ "$VERBOSE" ]; then
     ctr image list
   fi
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 ##-- SI) runc installed
 runc=$(command -v runc)
-if [ "$runc" ] || [ "$VERBOSE" ]; then
+if [ "$runc" ] || [ "$DEBUG" ]; then
   print_2title "Checking if runc is available"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/runc-privilege-escalation"
   if [ "$runc" ]; then
     echo "runc was found in $runc, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"
   fi
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 #-- SI) Docker
-if [ "$PSTORAGE_DOCKER" ] || [ "$VERBOSE" ]; then
+if [ "$PSTORAGE_DOCKER" ] || [ "$DEBUG" ]; then
   print_2title "Searching docker files (limit 70)"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket"
   printf "%s\n" "$PSTORAGE_DOCKER" | head -n 70 | while read f; do
@@ -563,7 +564,7 @@ if [ "$PSTORAGE_DOCKER" ] || [ "$VERBOSE" ]; then
     fi
   done
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{Firefox}
@@ -573,7 +574,7 @@ peass{Chrome}
 peass{Autologin}
 
 #-- SI) S/Key athentication
-if (grep auth= /etc/login.conf 2>/dev/null | grep -v "^#" | grep -q skey) || [ "$VERBOSE" ] ; then
+if (grep auth= /etc/login.conf 2>/dev/null | grep -v "^#" | grep -q skey) || [ "$DEBUG" ] ; then
   print_2title "S/Key authentication"
   printf "System supports$RED S/Key$NC authentication\n"
   if ! [ -d /etc/skey/ ]; then
@@ -584,12 +585,12 @@ if (grep auth= /etc/login.conf 2>/dev/null | grep -v "^#" | grep -q skey) || [ "
   else
     ls -ld /etc/skey/ 2>/dev/null
   fi
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 echo ""
 
 #-- SI) YubiKey athentication
-if (grep "auth=" /etc/login.conf 2>/dev/null | grep -v "^#" | grep -q yubikey) || [ "$VERBOSE" ]; then
+if (grep "auth=" /etc/login.conf 2>/dev/null | grep -v "^#" | grep -q yubikey) || [ "$DEBUG" ]; then
   print_2title "YubiKey authentication"
   printf "System supports$RED YubiKey$NC authentication\n"
   if ! [ "$IAMROOT" ] && [ -w /var/db/yubikey/ ]; then
@@ -599,7 +600,7 @@ if (grep "auth=" /etc/login.conf 2>/dev/null | grep -v "^#" | grep -q yubikey) |
     ls -ld /var/db/yubikey/ 2>/dev/null
   fi
   echo ""
-elif [ "$VERBOSE" ]; then echo_not_found
+elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{SNMP}
