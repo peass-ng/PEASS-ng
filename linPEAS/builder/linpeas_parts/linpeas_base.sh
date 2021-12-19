@@ -213,7 +213,7 @@ print_banner(){
 }
 
 
-print_support (){
+print_support () {
   printf """
     ${GREEN}/---------------------------------------------------------------------------\\
     |                             ${BLUE}Do you like PEASS?${GREEN}                            |
@@ -609,7 +609,7 @@ print_title(){
   printf ${BLUE}
   for i in $(seq 1 $rest_len); do printf " "; done
   printf "╔"
-  for i in $(seq 1 $title_len); do printf "═"; done; printf "══";
+  for i in $(seq 1 $title_len); do printf "═"; done; printf "═";
   printf "╗"
 
   echo ""
@@ -623,7 +623,7 @@ print_title(){
   printf ${BLUE}
   for i in $(seq 1 $rest_len); do printf " "; done
   printf "╚"
-  for i in $(seq 1 $title_len); do printf "═"; done; printf "══";
+  for i in $(seq 1 $title_len); do printf "═"; done; printf "═";
   printf "╝"
   
   printf $NC

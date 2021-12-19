@@ -28,7 +28,9 @@ from .yamlGlobals import (
     CAP_SETUID_MARKUP,
     CAP_SETGID_MARKUP,
     LES_MARKUP,
-    LES2_MARKUP
+    LES2_MARKUP,
+    REGEXES_LOADED,
+    REGEXES_MARKUP
 )
 
 
@@ -78,6 +80,11 @@ class LinpeasBuilder:
                 self.__replace_mark(EXTRASECTIONS_MARKUP, [bash_lines, EXTRASECTIONS_MARKUP], "\n\n")
         
         self.__replace_mark(EXTRASECTIONS_MARKUP, list(""), "") #Delete extra markup
+
+        print("[+] Building regexes searches...")
+        section = self.__generate_regexes_search()
+        self.__replace_mark(REGEXES_MARKUP, list(section), "")
+
 
         print("[+] Building linux exploit suggesters...")
         les_b64, les2_b64 = self.__get_linux_exploit_suggesters()
@@ -314,6 +321,33 @@ class LinpeasBuilder:
                 capsVB.append(b)
         
         return (suidVB, sudoVB, capsVB)
+    
+    def __generate_regexes_search(self) -> str:
+        paths_to_search = REGEXES_LOADED["paths"]
+        regexes = REGEXES_LOADED["regular_expresions"]
+
+        regexes_search_section = ""
+
+        for values in regexes:
+            section_name = values["name"]
+            regexes_search_section += f'print_2title "Searching {section_name}"\n'
+
+            for entry in values["regexes"]:
+                name = entry["name"]
+                regex = entry["regex"]
+                regex = regex.replace('"', '\\"').strip()
+                extra_grep = entry.get("extra_grep")
+                extra_grep = f" | grep {extra_grep} | " if extra_grep else ""
+                
+                regexes_search_section += f'print_3title "Searching {name} (limited to 50)"\n'
+                for path in paths_to_search:
+                    regexes_search_section += "timeout 120 find "+path+" -type f -exec grep -HnRiIE \""+regex+"\" '{}' \; 2>/dev/null "+extra_grep+" | sed '/^.\{150\}./d' | sort | uniq | head -n 50 | sed -${E} \"s~"+regex+"~${SED_RED}~\" &\n"
+                
+                regexes_search_section += "wait\n"
+
+        return regexes_search_section
+
+                        
 
 
     def __replace_mark(self, mark: str, find_calls: list, join_char: str):

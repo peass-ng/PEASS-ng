@@ -47,10 +47,16 @@ LINPEAS_BASE_PATH = LINPEAS_BASE_PARTS + "/linpeas_base.sh"
 TEMPORARY_LINPEAS_BASE_PATH = CURRENT_DIR + "/../linpeas_base.sh"
 FINAL_LINPEAS_PATH = CURRENT_DIR + "/../../" + "linpeas.sh"
 YAML_NAME = "sensitive_files.yaml"
+YAML_REGEXES = "regexes.yaml"
 FILES_YAML = CURRENT_DIR + "/../../../build_lists/" + YAML_NAME
+REGEXES_YAML = CURRENT_DIR + "/../../../build_lists/" + YAML_REGEXES
+
 
 with open(FILES_YAML, 'r') as file:
     YAML_LOADED = yaml.load(file, Loader=yaml.FullLoader)
+
+with open(REGEXES_YAML, 'r') as file:
+    REGEXES_LOADED = yaml.load(file, Loader=yaml.FullLoader)
 
 ROOT_FOLDER = YAML_LOADED["root_folders"]
 DEFAULTS = YAML_LOADED["defaults"]
@@ -65,6 +71,7 @@ PEAS_FINDS_MARKUP = YAML_LOADED["peas_finds_markup"]
 FIND_LINE_MARKUP = YAML_LOADED["find_line_markup"]
 FIND_TEMPLATE = YAML_LOADED["find_template"]
 
+REGEXES_MARKUP = YAML_LOADED["peas_regexes_markup"]
 PEAS_STORAGES_MARKUP = YAML_LOADED["peas_storages_markup"]
 STORAGE_LINE_MARKUP = YAML_LOADED["storage_line_markup"]
 STORAGE_LINE_EXTRA_MARKUP = YAML_LOADED["storage_line_extra_markup"]

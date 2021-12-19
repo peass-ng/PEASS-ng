@@ -451,7 +451,6 @@ if [ "$PSTORAGE_DATABASE" ]; then
   echo ""
   printf "%s\n" "$PSTORAGE_DATABASE" | while read f; do
     if ([ -r "$f" ] && [ "$FILECMD" ] && file "$f" | grep -qi sqlite) || ([ -r "$f" ] && [ ! "$FILECMD" ]); then #If readable and filecmd and sqlite, or readable and not filecmd
-      printf $GREEN" -> Extracting tables from$NC $f $DG(limit 20)\n"$NC
       if [ "$(command -v sqlite3 2>/dev/null)" ]; then
         tables=$(sqlite3 $f ".tables" 2>/dev/null)
         #printf "$tables\n" | sed "s,user.*\|credential.*,${SED_RED},g"
@@ -462,7 +461,8 @@ if [ "$PSTORAGE_DATABASE" ]; then
       else
         tables=""
       fi
-      if [ "$tables" ]; then
+      if [ "$tables" ] || [ "$DEBUG" ]; then
+          printf $GREEN" -> Extracting tables from$NC $f $DG(limit 20)\n"$NC
           printf "%s\n" "$tables" | while read t; do
           columns=""
           # Search for credentials inside the table using sqlite3
@@ -479,8 +479,8 @@ if [ "$PSTORAGE_DATABASE" ]; then
             printf "$columns\n" | sed -${E} "s,username|passw|credential|email|hash|salt|$t,${SED_RED},g"
             (sqlite3 $f "select * from $t" || $SQLITEPYTHON -c "print(', '.join([str(x) for x in __import__('sqlite3').connect('$f').cursor().execute('SELECT * FROM \'$t\';').fetchall()[0]]))") 2>/dev/null | head
           fi
+          echo ""
         done
-        echo ""
       fi
     fi
   done
@@ -563,6 +563,13 @@ if [ "$PSTORAGE_PHP_FILES" ] || [ "$DEBUG" ]; then
   echo ""
 fi
 
+##-- IF) Passwords files in home
+if [ "$PSTORAGE_PASSWORD_FILES" ] || [ "$DEBUG" ]; then
+  print_2title "Finding *password* or *credential* files in home (limit 70)"
+  (printf "%s\n" "$PSTORAGE_PASSWORD_FILES" | grep -v "/snap/" | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 3){ print line_init; } if (cont == "3"){print "  #)There are more creds/passwds files in the previous parent folder\n"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 70 | sed -${E} "s,password|credential,${SED_RED}," | sed "s,There are more creds/passwds files in the previous parent folder,${C}[3m&${C}[0m,") || echo_not_found
+  echo ""
+fi
+
 ##-- IF) TTY passwords
 print_2title "Checking for TTY (sudo/su) passwords in audit logs"
 aureport --tty 2>/dev/null | grep -E "su |sudo " | sed -${E} "s,su|sudo,${SED_RED},g"
@@ -570,29 +577,31 @@ find /var/log/ -type f -exec grep -RE 'comm="su"|comm="sudo"' '{}' \; 2>/dev/nul
 echo ""
 
 ##-- IF) IPs inside logs
-print_2title "Finding IPs inside logs (limit 70)"
-(find /var/log/ /private/var/log -type f -exec grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" "{}" \;) 2>/dev/null | grep -v "\.0\.\|:0\|\.0$" | sort | uniq -c | sort -r -n | head -n 70
-echo ""
+if [ "$DEBUG" ]; then
+  print_2title "Finding IPs inside logs (limit 70)"
+  (find /var/log/ /private/var/log -type f -exec grep -R -a -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" "{}" \;) 2>/dev/null | grep -v "\.0\.\|:0\|\.0$" | sort | uniq -c | sort -r -n | head -n 70
+  echo ""
+fi
 
 ##-- IF) Passwords inside logs
 print_2title "Finding passwords inside logs (limit 70)"
 (find /var/log/ /private/var/log -type f -exec grep -R -i "pwd\|passw" "{}" \;) 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | grep -v "File does not exist:\|script not found or unable to stat:\|\"GET /.*\" 404" | head -n 70 | sed -${E} "s,pwd|passw,${SED_RED},"
 echo ""
 
-##-- IF) Emails inside logs
-print_2title "Finding emails inside logs (limit 70)"
-(find /var/log/ /private/var/log -type f -exec grep -I -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" "{}" \;) 2>/dev/null | sort | uniq -c | sort -r -n | head -n 70 | sed -${E} "s,$knw_emails,${SED_GREEN},g"
-echo ""
+if [ "$DEBUG" ]; then
+  ##-- IF) Emails inside logs
+  print_2title "Finding emails inside logs (limit 70)"
+  (find /var/log/ /private/var/log -type f -exec grep -I -R -E -o "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" "{}" \;) 2>/dev/null | sort | uniq -c | sort -r -n | head -n 70 | sed -${E} "s,$knw_emails,${SED_GREEN},g"
+  echo ""
+fi
 
-##-- IF) Passwords files in home
-print_2title "Finding *password* or *credential* files in home (limit 70)"
-(printf "%s\n" "$PSTORAGE_PASSWORD_FILES" | grep -v "/snap/" | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 3){ print line_init; } if (cont == "3"){print "  #)There are more creds/passwds files in the previous parent folder\n"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 70 | sed -${E} "s,password|credential,${SED_RED}," | sed "s,There are more creds/passwds files in the previous parent folder,${C}[3m&${C}[0m,") || echo_not_found
-echo ""
 
-if ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
+
+
+if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
   ##-- IF) Find possible files with passwords
   print_2title "Finding passwords inside key folders (limit 70) - only PHP files"
-  intpwdfiles=$(timeout 150 grep -RiIE "(pwd|passwd|password|PASSWD|PASSWORD|dbuser|dbpass).*[=:].+|define ?\('(\w*passw|\w*user|\w*datab)" $HOMESEARCH /var/www /usr/local/www/ $backup_folders_row /tmp /etc /mnt /private 2>/dev/null)
+  intpwdfiles=$(timeout 150 find $HOMESEARCH /var/www /usr/local/www/ $backup_folders_row /tmp /etc /mnt /private -type f -exec grep -RiIE "(pwd|passwd|password|PASSWD|PASSWORD|dbuser|dbpass).*[=:].+|define ?\('(\w*passw|\w*user|\w*datab)" '{}' \; 2>/dev/null)
   printf "%s\n" "$intpwdfiles" | grep -I ".php:" | sed '/^.\{150\}./d' | sort | uniq | grep -iIv "linpeas" | head -n 70 | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[dD][eE][fF][iI][nN][eE],${SED_RED},g"
   echo ""
 
@@ -602,8 +611,9 @@ if ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
 
   ##-- IF) Find possible files with passwords
   print_2title "Finding possible password variables inside key folders (limit 140)"
-  timeout 150 grep -RiIE "($pwd_in_variables1|$pwd_in_variables2|$pwd_in_variables3|$pwd_in_variables4|$pwd_in_variables5|$pwd_in_variables6|$pwd_in_variables7|$pwd_in_variables8|$pwd_in_variables9|$pwd_in_variables10|$pwd_in_variables11).*[=:].+" $HOMESEARCH 2>/dev/null | sed '/^.\{150\}./d' | grep -Ev "^#" | grep -iv "linpeas" | sort | uniq | head -n 70 | sed -${E} "s,$pwd_in_variables1,${SED_RED},g" | sed -${E} "s,$pwd_in_variables2,${SED_RED},g" | sed -${E} "s,$pwd_in_variables3,${SED_RED},g" | sed -${E} "s,$pwd_in_variables4,${SED_RED},g" | sed -${E} "s,$pwd_in_variables5,${SED_RED},g" | sed -${E} "s,$pwd_in_variables6,${SED_RED},g" | sed -${E} "s,$pwd_in_variables7,${SED_RED},g" | sed -${E} "s,$pwd_in_variables8,${SED_RED},g" | sed -${E} "s,$pwd_in_variables9,${SED_RED},g" | sed -${E} "s,$pwd_in_variables10,${SED_RED},g" | sed -${E} "s,$pwd_in_variables11,${SED_RED},g"
-  timeout 150 grep -RiIE "($pwd_in_variables1|$pwd_in_variables2|$pwd_in_variables3|$pwd_in_variables4|$pwd_in_variables5|$pwd_in_variables6|$pwd_in_variables7|$pwd_in_variables8|$pwd_in_variables9|$pwd_in_variables10|$pwd_in_variables11).*[=:].+" /var/www $backup_folders_row /tmp /etc /root /mnt /private 2>/dev/null | sed '/^.\{150\}./d' | grep -Ev "^#" | grep -iv "linpeas" | sort | uniq | head -n 70 | sed -${E} "s,$pwd_in_variables1,${SED_RED},g" | sed -${E} "s,$pwd_in_variables2,${SED_RED},g" | sed -${E} "s,$pwd_in_variables3,${SED_RED},g" | sed -${E} "s,$pwd_in_variables4,${SED_RED},g" | sed -${E} "s,$pwd_in_variables5,${SED_RED},g" | sed -${E} "s,$pwd_in_variables6,${SED_RED},g" | sed -${E} "s,$pwd_in_variables7,${SED_RED},g" | sed -${E} "s,$pwd_in_variables8,${SED_RED},g" | sed -${E} "s,$pwd_in_variables9,${SED_RED},g" | sed -${E} "s,$pwd_in_variables10,${SED_RED},g" | sed -${E} "s,$pwd_in_variables11,${SED_RED},g"
+  timeout 150 find $HOMESEARCH -exec grep -HnRiIE "($pwd_in_variables1|$pwd_in_variables2|$pwd_in_variables3|$pwd_in_variables4|$pwd_in_variables5|$pwd_in_variables6|$pwd_in_variables7|$pwd_in_variables8|$pwd_in_variables9|$pwd_in_variables10|$pwd_in_variables11).*[=:].+" '{}' \; 2>/dev/null | sed '/^.\{150\}./d' | grep -Ev "^#" | grep -iv "linpeas" | sort | uniq | head -n 70 | sed -${E} "s,$pwd_in_variables1,${SED_RED},g" | sed -${E} "s,$pwd_in_variables2,${SED_RED},g" | sed -${E} "s,$pwd_in_variables3,${SED_RED},g" | sed -${E} "s,$pwd_in_variables4,${SED_RED},g" | sed -${E} "s,$pwd_in_variables5,${SED_RED},g" | sed -${E} "s,$pwd_in_variables6,${SED_RED},g" | sed -${E} "s,$pwd_in_variables7,${SED_RED},g" | sed -${E} "s,$pwd_in_variables8,${SED_RED},g" | sed -${E} "s,$pwd_in_variables9,${SED_RED},g" | sed -${E} "s,$pwd_in_variables10,${SED_RED},g" | sed -${E} "s,$pwd_in_variables11,${SED_RED},g" &
+  timeout 150 find /var/www $backup_folders_row /tmp /etc /mnt /private grep -HnRiIE "($pwd_in_variables1|$pwd_in_variables2|$pwd_in_variables3|$pwd_in_variables4|$pwd_in_variables5|$pwd_in_variables6|$pwd_in_variables7|$pwd_in_variables8|$pwd_in_variables9|$pwd_in_variables10|$pwd_in_variables11).*[=:].+" '{}' \; 2>/dev/null | sed '/^.\{150\}./d' | grep -Ev "^#" | grep -iv "linpeas" | sort | uniq | head -n 70 | sed -${E} "s,$pwd_in_variables1,${SED_RED},g" | sed -${E} "s,$pwd_in_variables2,${SED_RED},g" | sed -${E} "s,$pwd_in_variables3,${SED_RED},g" | sed -${E} "s,$pwd_in_variables4,${SED_RED},g" | sed -${E} "s,$pwd_in_variables5,${SED_RED},g" | sed -${E} "s,$pwd_in_variables6,${SED_RED},g" | sed -${E} "s,$pwd_in_variables7,${SED_RED},g" | sed -${E} "s,$pwd_in_variables8,${SED_RED},g" | sed -${E} "s,$pwd_in_variables9,${SED_RED},g" | sed -${E} "s,$pwd_in_variables10,${SED_RED},g" | sed -${E} "s,$pwd_in_variables11,${SED_RED},g" &
+  wait
   echo ""
 
   ##-- IF) Find possible conf files with passwords
@@ -617,46 +627,6 @@ if ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
   done
   echo ""
 
-  ##-- IF) Find possible files with usernames
-  print_2title "Finding 'username' string inside key folders (limit 70)"
-  timeout 150 grep -RiIE "username.*[=:].+" $HOMESEARCH 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | grep -v "/linpeas" | sort | uniq | head -n 70 | sed -${E} "s,[uU][sS][eE][rR][nN][aA][mM][eE],${SED_RED},g" &
-  timeout 150 grep -RiIE "username.*[=:].+" /var/www $backup_folders_row /tmp /etc /root /mnt /private 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | grep -v "/linpeas" | sort | uniq | head -n 70 | sed -${E} "s,[uU][sS][eE][rR][nN][aA][mM][eE],${SED_RED},g" &
-  wait
-  echo ""
-
-  ##-- IF) Specific hashes inside files
-  print_2title "Searching specific hashes inside files - less false positives (limit 70)"
-  regexblowfish='\$2[abxyz]?\$[0-9]{2}\$[a-zA-Z0-9_/\.]*'
-  regexjoomlavbulletin='[0-9a-zA-Z]{32}:[a-zA-Z0-9_]{16,32}'
-  regexphpbb3='\$H\$[a-zA-Z0-9_/\.]{31}'
-  regexwp='\$P\$[a-zA-Z0-9_/\.]{31}'
-  regexdrupal='\$S\$[a-zA-Z0-9_/\.]{52}'
-  regexlinuxmd5='\$1\$[a-zA-Z0-9_/\.]{8}\$[a-zA-Z0-9_/\.]{22}'
-  regexapr1md5='\$apr1\$[a-zA-Z0-9_/\.]{8}\$[a-zA-Z0-9_/\.]{22}'
-  regexsha512crypt='\$6\$[a-zA-Z0-9_/\.]{16}\$[a-zA-Z0-9_/\.]{86}'
-  regexapachesha='\{SHA\}[0-9a-zA-Z/_=]{10,}'
-  timeout 150 grep -RIEHo "$regexblowfish|$regexjoomlavbulletin|$regexphpbb3|$regexwp|$regexdrupal|$regexlinuxmd5|$regexapr1md5|$regexsha512crypt|$regexapachesha" /etc $backup_folders_row /tmp /var/tmp /var/www $HOMESEARCH /mnt /private /Applications 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -Ev "$notExtensions" | grep -Ev "0{20,}" | head -n 70 | sed "s,:.*,${SED_RED},"
-  echo ""
-fi
-
-if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
-  ##-- IF) Specific hashes inside files
-  print_2title "Searching md5/sha1/sha256/sha512 hashes inside files (limit 50 - only 1 per file)"
-  regexmd5='(^|[^a-zA-Z0-9])[a-fA-F0-9]{32}([^a-zA-Z0-9]|$)'
-  regexsha1='(^|[^a-zA-Z0-9])[a-fA-F0-9]{40}([^a-zA-Z0-9]|$)'
-  regexsha256='(^|[^a-zA-Z0-9])[a-fA-F0-9]{64}([^a-zA-Z0-9]|$)'
-  regexsha512='(^|[^a-zA-Z0-9])[a-fA-F0-9]{128}([^a-zA-Z0-9]|$)'
-  timeout 150 grep -RIEHo "$regexmd5|$regexsha1|$regexsha256|$regexsha512" /etc $backup_folders_row /tmp /var/tmp /var/www $HOMESEARCH /mnt /private /Applications 2>/dev/null | grep -v "/.git/\|/sources/authors/" | grep -Ev "$notExtensions" | grep -Ev "0{20,}" | awk -F: '{if (pre != $1){ print $0; }; pre=$1}' | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (cont < 2){ print line_init; } if (cont == "2"){print "  #)There are more hashes files in the previous parent folder\n"}; if (act == pre){(cont += 1)} else {cont=0}; pre=act }' | head -n 50 | sed "s,:.*,${SED_RED}," | sed "s,There are more hashes files in the previous parent folder,${C}[3m&${C}[0m,"
-  echo ""
-fi
-
-if ! [ "$SUPERFAST" ] && ! [ "$FAST" ]; then
-  ##-- IF) Find URIs with user:password@hoststrings
-  print_2title "Finding URIs with user:password@host inside key folders"
-  timeout 150 find /var/www $backup_folders_row /tmp /etc /var/log /private/var/log -type f -exec grep -RiIE "://(.+):(.+)@" "{}" \; 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -${E} "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,g"
-  timeout 150 grep -RiIE "://(.+):(.+)@" $HOMESEARCH 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -${E} "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,g"
-  timeout 150 grep -RiIE "://(.+):(.+)@" /mnt 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -${E} "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,g"
-  timeout 150 grep -RiIE "://(.+):(.+)@" /private 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -${E} "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,g"
-  timeout 150 grep -RiIE "://(.+):(.+)@" /Applications 2>/dev/null | sed '/^.\{150\}./d' | grep -v "#" | sort | uniq | sed -${E} "s,:\/\/(.+):(.+)@,://${C}[1;31m\1:\2${C}[0m@,g"
-  echo  ""
+  ##-- IF) Find possible regexes
+  peass{REGEXES}
 fi
