@@ -337,7 +337,7 @@ class LinpeasBuilder:
                 regex = entry["regex"]
                 regex = regex.replace('"', '\\"').strip()
                 extra_grep = entry.get("extra_grep")
-                extra_grep = f" | grep {extra_grep} | " if extra_grep else ""
+                extra_grep = f"| grep {extra_grep}" if extra_grep else ""
                 
                 regexes_search_section += f'print_3title "Searching {name} (limited to 50)"\n'
                 for path in paths_to_search:
