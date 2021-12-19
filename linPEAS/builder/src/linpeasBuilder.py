@@ -344,6 +344,8 @@ class LinpeasBuilder:
                     regexes_search_section += "timeout 120 find "+path+" -type f -exec grep -HnRiIE \""+regex+"\" '{}' \; 2>/dev/null "+extra_grep+" | sed '/^.\{150\}./d' | sort | uniq | head -n 50 | sed -${E} \"s~"+regex+"~${SED_RED}~\" &\n"
                 
                 regexes_search_section += "wait\n"
+            
+            regexes_search_section += "echo ''\n"
 
         return regexes_search_section
 
