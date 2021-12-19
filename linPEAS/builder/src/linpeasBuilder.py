@@ -1,12 +1,13 @@
 import re
 import requests
 import base64
+import os
 
 from .peasLoaded import PEASLoaded
 from .peassRecord import PEASRecord
 from .fileRecord import FileRecord
 from .yamlGlobals import (
-    LINPEAS_BASE_PATH,
+    TEMPORARY_LINPEAS_BASE_PATH,
     PEAS_FINDS_MARKUP,
     PEAS_STORAGES_MARKUP,
     PEAS_STORAGES_MARKUP,
@@ -38,7 +39,7 @@ class LinpeasBuilder:
         self.bash_find_f_vars, self.bash_find_d_vars = set(), set()
         self.bash_storages = set()
         self.__get_files_to_search()
-        with open(LINPEAS_BASE_PATH, 'r') as file:
+        with open(TEMPORARY_LINPEAS_BASE_PATH, 'r') as file:
             self.linpeas_sh = file.read()
 
     def build(self):
@@ -207,7 +208,8 @@ class LinpeasBuilder:
 
         for precord in self.ploaded.peasrecords:
             if precord.auto_check:
-                section = f'  print_2title "Analyzing {precord.name.replace("_"," ")} Files (limit 70)"\n'
+                section = f'if [ "$PSTORAGE_{precord.bash_name}" ] || [ "$DEBUG" ]; then\n'
+                section += f'  print_2title "Analyzing {precord.name.replace("_"," ")} Files (limit 70)"\n'
 
                 for exec_line in precord.exec:
                     if exec_line:
@@ -215,6 +217,8 @@ class LinpeasBuilder:
 
                 for frecord in precord.filerecords:
                     section += "    " + self.__construct_file_line(precord, frecord) + "\n"
+                
+                section += "fi\n"
                 
                 sections[precord.name] = section
 
@@ -227,7 +231,7 @@ class LinpeasBuilder:
         
         analise_line = ""
         if init:
-            analise_line = 'if ! [ "`echo \\\"$PSTORAGE_'+precord.bash_name+'\\\" | grep -E \\\"'+real_regex+'\\\"`" ]; then echo_not_found "'+frecord.regex+'"; fi; '
+            analise_line = 'if ! [ "`echo \\\"$PSTORAGE_'+precord.bash_name+'\\\" | grep -E \\\"'+real_regex+'\\\"`" ]; then if [ "$DEBUG" ]; then echo_not_found "'+frecord.regex+'"; fi; fi; '
             analise_line += 'printf "%s" "$PSTORAGE_'+precord.bash_name+'" | grep -E "'+real_regex+'" | while read f; do ls -ld "$f" | sed -${E} "s,'+real_regex+',${SED_RED},"; '
 
         #If just list, just list the file/directory
@@ -243,6 +247,7 @@ class LinpeasBuilder:
             grep_only_bad_lines = f' | grep -E "{frecord.bad_regex}"' if frecord.bad_regex else ""
             grep_remove_regex = f' | grep -Ev "{frecord.remove_regex}"' if frecord.remove_regex else ""
             sed_bad_regex = ' | sed -${E} "s,'+frecord.bad_regex+',${SED_RED},g"' if frecord.bad_regex else ""
+            sed_very_bad_regex = ' | sed -${E} "s,'+frecord.very_bad_regex+',${SED_RED_YELLOW},g"' if frecord.very_bad_regex else ""
             sed_good_regex = ' | sed -${E} "s,'+frecord.good_regex+',${SED_GOOD},g"' if frecord.good_regex else ""
 
             if init:
@@ -264,6 +269,9 @@ class LinpeasBuilder:
             
             if sed_bad_regex:
                 analise_line += sed_bad_regex
+            
+            if sed_very_bad_regex:
+                analise_line += sed_very_bad_regex
 
             if sed_good_regex:
                 analise_line += sed_good_regex
@@ -276,8 +284,9 @@ class LinpeasBuilder:
             for ffrecord in frecord.files:
                 ff_real_regex = ffrecord.regex[1:] if ffrecord.regex.startswith("*") and ffrecord.regex != "*" else ffrecord.regex
                 ff_real_regex = ff_real_regex.replace("*",".*")
-                analise_line += 'for ff in $(find "$f" -name "'+ffrecord.regex+'"); do ls -ld "$ff" | sed -${E} "s,'+ff_real_regex+',${SED_RED},"; ' + self.__construct_file_line(precord, ffrecord, init=False)
-        
+                #analise_line += 'for ff in $(find "$f" -name "'+ffrecord.regex+'"); do ls -ld "$ff" | sed -${E} "s,'+ff_real_regex+',${SED_RED},"; ' + self.__construct_file_line(precord, ffrecord, init=False)
+                analise_line += 'find "$f" -name "'+ffrecord.regex+'" | while read ff; do ls -ld "$ff" | sed -${E} "s,'+ff_real_regex+',${SED_RED},"; ' + self.__construct_file_line(precord, ffrecord, init=False)
+
         analise_line += 'done; echo "";'
         return analise_line
 
@@ -309,9 +318,13 @@ class LinpeasBuilder:
 
     def __replace_mark(self, mark: str, find_calls: list, join_char: str):
         """Substitude the markup with the actual code"""
+        
         self.linpeas_sh = self.linpeas_sh.replace(mark, join_char.join(find_calls)) #New line char is't needed
     
     def write_linpeas(self, path):
         """Write on disk the final linpeas"""
+        
         with open(path, "w") as f:
             f.write(self.linpeas_sh)
+        
+        os.remove(TEMPORARY_LINPEAS_BASE_PATH) #Remove the built linpeas_base.sh file
