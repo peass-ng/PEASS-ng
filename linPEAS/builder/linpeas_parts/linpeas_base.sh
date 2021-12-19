@@ -951,7 +951,7 @@ elif [ "$IP" ]; then
 fi
 
 
-if echo $CHECKS | grep -q ProCronSrvcsTmrsSocks || echo $CHECKS | grep -q IntFiles || echo $CHECKS | grep -q SofI; then
+if echo $CHECKS | grep -q procs_crons_timers_srvcs_sockets || echo $CHECKS | grep -q software_information || echo $CHECKS | grep -q interesting_files; then
   ###########################################
   #----------) Caching Finds (--------------#
   ###########################################

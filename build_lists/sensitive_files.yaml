@@ -2188,6 +2188,19 @@ search:
                 type: f
                 search_in: 
                   - common
+        
+  - name: Pre-Shared Keys
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "*.psk"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
   
   - name: Pass Store Directories
     value:
