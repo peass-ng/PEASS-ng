@@ -1,7 +1,6 @@
 ###########################################
 #----------) Users Information (----------#
 ###########################################
-print_title "Users Information"
 
 #-- UI) My user
 print_2title "My user"
@@ -190,20 +189,22 @@ fi
 echo ""
 
 #-- UI) Password policy
-print_2title "Password policy"
-grep "^PASS_MAX_DAYS\|^PASS_MIN_DAYS\|^PASS_WARN_AGE\|^ENCRYPT_METHOD" /etc/login.defs 2>/dev/null || echo_not_found "/etc/login.defs"
-echo ""
-
-if [ "$MACPEAS" ]; then
-  print_2title "Relevant last user info and user configs"
-  defaults read /Library/Preferences/com.apple.loginwindow.plist 2>/dev/null
+if [ "$EXTRA_CHECKS" ]; then
+  print_2title "Password policy"
+  grep "^PASS_MAX_DAYS\|^PASS_MIN_DAYS\|^PASS_WARN_AGE\|^ENCRYPT_METHOD" /etc/login.defs 2>/dev/null || echo_not_found "/etc/login.defs"
   echo ""
 
-  print_2title "Guest user status"
-  sysadminctl -afpGuestAccess status | sed -${E} "s,enabled,${SED_RED}," | sed -${E} "s,disabled,${SED_GREEN},"
-  sysadminctl -guestAccount status | sed -${E} "s,enabled,${SED_RED}," | sed -${E} "s,disabled,${SED_GREEN},"
-  sysadminctl -smbGuestAccess status | sed -${E} "s,enabled,${SED_RED}," | sed -${E} "s,disabled,${SED_GREEN},"
-  echo ""
+  if [ "$MACPEAS" ]; then
+    print_2title "Relevant last user info and user configs"
+    defaults read /Library/Preferences/com.apple.loginwindow.plist 2>/dev/null
+    echo ""
+
+    print_2title "Guest user status"
+    sysadminctl -afpGuestAccess status | sed -${E} "s,enabled,${SED_RED}," | sed -${E} "s,disabled,${SED_GREEN},"
+    sysadminctl -guestAccount status | sed -${E} "s,enabled,${SED_RED}," | sed -${E} "s,disabled,${SED_GREEN},"
+    sysadminctl -smbGuestAccess status | sed -${E} "s,enabled,${SED_RED}," | sed -${E} "s,disabled,${SED_GREEN},"
+    echo ""
+  fi
 fi
 
 #-- UI) Brute su

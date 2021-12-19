@@ -113,6 +113,7 @@ variables:
 defaults:
   auto_check: False           #The builder will generate a check for the file (only linpeas)
   bad_regex: ""               #The regex used to color red. If only_bad_lines and no line_grep, then only lines containing this regex will be printed
+  very_bad_regex: ""          #The regex used to color yellow/red
   check_extra_path: ""        #Check if the found files are in a specific path (only linpeas)
   good_regex: ""              #The regex to color green
   just_list_file: False       #Just mention the path to the file, do not cat it
@@ -543,11 +544,11 @@ search:
         files:
           - name: "mongod*.conf"
             value: 
-                type: f
-                remove_empty_lines: True
-                remove_regex: '\W+\#|^#'
-                search_in: 
-                  - common
+              type: f
+              remove_empty_lines: True
+              remove_regex: '\W+\#|^#'
+              search_in: 
+                - common
   
   
   - name: Supervisord
@@ -558,11 +559,11 @@ search:
         files:
           - name:  "supervisord.conf"
             value: 
-                bad_regex: "port.*=|username.*=|password.*="
-                only_bad_lines: True
-                type: f
-                search_in: 
-                  - common
+              bad_regex: "port.*=|username.*=|password.*="
+              only_bad_lines: True
+              type: f
+              search_in: 
+                - common
 
   - name: Cesi
     value:
@@ -586,19 +587,19 @@ search:
         files:
           - name: "rsyncd.conf"
             value: 
-                bad_regex: "secrets.*|auth.*users.*="
-                type: f
-                remove_empty_lines: True
-                remove_regex: '\W+\#|^#'
-                search_in: 
-                  - common
+              bad_regex: "secrets.*|auth.*users.*="
+              type: f
+              remove_empty_lines: True
+              remove_regex: '\W+\#|^#'
+              search_in: 
+                - common
       
           - name: "rsyncd.secrets"
             value: 
-                bad_regex: ".*"
-                type: f
-                search_in: 
-                  - common
+              bad_regex: ".*"
+              type: f
+              search_in: 
+                - common
 
   - name: Hostapd
     value:
@@ -608,12 +609,64 @@ search:
         files:
           - name: "hostapd.conf"
             value: 
-                bad_regex: "passphrase.*"
-                remove_regex: '^#'
-                remove_empty_lines: True
+              bad_regex: "passphrase.*"
+              remove_regex: '^#'
+              remove_empty_lines: True
+              type: f
+              search_in: 
+                - common
+  
+  - name: Wifi Connections
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "system-connections"
+            value:         
+              files:
+                - name: "*"
+                  value:
+                      bad_regex: "psk.*"
+                      only_bad_lines:  True
+                      type: f
+              type: d
+              search_in: 
+                - /etc
+  
+  - name: PAM Auth
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "pam.d"
+            value:         
+              files:
+                - name: "sshd"
+                  value:
+                      bad_regex: ".*"
+                      line_grep: '-i "auth"'
+                      remove_regex:  "^#|^@"
+                      type: f
+              type: d
+              search_in: 
+                - /etc
+  
+  - name: NFS Exports
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: exports
+            value: 
+                very_bad_regex: "no_root_squash|no_all_squash"
+                bad_regex: "insecure"
+                remove_regex: '\W+\#|^#'
                 type: f
                 search_in: 
-                  - common
+                  - /etc
   
   - name: Anaconda ks
     value:
@@ -629,7 +682,6 @@ search:
                 search_in: 
                   - common
   
-
   - name: Racoon
     value:
         config:
@@ -1921,7 +1973,7 @@ search:
           auto_check: False
 
         files:
-          - name: ".*_history.*"
+          - name: '*_history*'
             value: 
                 bad_regex: "$pwd_inside_history"
                 line_grep: '-a "$pwd_inside_history"'
@@ -2134,6 +2186,19 @@ search:
             value: 
                 just_list_file: True
                 type: f
+                search_in: 
+                  - common
+  
+  - name: Pass Store Directories
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: ".password-store"
+            value: 
+                just_list_file: True
+                type: d
                 search_in: 
                   - common
 

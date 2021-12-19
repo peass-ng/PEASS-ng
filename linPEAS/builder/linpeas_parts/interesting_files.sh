@@ -2,6 +2,20 @@
 #----------) Interesting files (----------#
 ###########################################
 
+check_critial_root_path(){
+  folder_path="$1"
+  if [ -w "$folder_path" ]; then echo "You have write privileges over $folder_path" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+  if [ "$(find $folder_path -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find $folder_path -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+  if [ "$(find $folder_path -type f -not -user root 2>/dev/null)" ]; then echo "The following files aren't owned by root: $(find $folder_path -type f -not -user root 2>/dev/null)"; fi
+}
+
+
+
+
+
+
+
+
 ##-- IF) SUID
 print_2title "SUID - Check easy privesc, exploits and write perms"
 print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid"
@@ -255,33 +269,26 @@ echo ""
 ##-- IF) Files (scripts) in /etc/profile.d/
 print_2title "Files (scripts) in /etc/profile.d/"
 print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#profiles-files"
-if [ ! "$MACPEAS" ]; then #Those folders don´t exist on a MacOS
+if [ ! "$MACPEAS" ] && ! [ "$IAMROOT" ]; then #Those folders don´t exist on a MacOS
   (ls -la /etc/profile.d/ 2>/dev/null | sed -${E} "s,$profiledG,${SED_GREEN},") || echo_not_found "/etc/profile.d/"
-  if ! [ "$IAMROOT" ] && [ -w "/etc/profile" ]; then echo "You can modify /etc/profile" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ -w "/etc/profile.d/" ]; then echo "You have write privileges over /etc/profile.d/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ "$(find /etc/profile.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /etc/profile.d/ '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+  check_critial_root_path "/etc/profile"
+  check_critial_root_path "/etc/profile.d/"
 fi
 echo ""
 
   ##-- IF) Files (scripts) in /etc/init.d/
 print_2title "Permissions in init, init.d, systemd, and rc.d"
 print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#init-init-d-systemd-and-rc-d"
-if [ ! "$MACPEAS" ]; then #Those folders don´t exist on a MacOS
-  if ! [ "$IAMROOT" ] && [ -w "/etc/init/" ]; then echo "You have write privileges over /etc/init/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ "$(find /etc/init/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /etc/init/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ -w "/etc/init.d/" ]; then echo "You have write privileges over /etc/init.d/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ "$(find /etc/init.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /etc/init.d/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ -w "/etc/rc.d/init.d" ]; then echo "You have write privileges over /etc/rc.d/init.d" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ "$(find /etc/rc.d/init.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /etc/rc.d/init.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ -w "/usr/local/etc/rc.d" ]; then echo "You have write privileges over /usr/local/etc/rc.d" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ "$(find /usr/local/etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /usr/local/etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ -w "/etc/rc.d" ]; then echo "You have write privileges over /etc/rc.d" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ "$(find /etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /etc/rc.d -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ -w "/etc/systemd/" ]; then echo "You have write privileges over /etc/systemd/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ "$(find /etc/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /etc/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ -w "/lib/systemd/" ]; then echo "You have write privileges over /lib/systemd/" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
-  if ! [ "$IAMROOT" ] && [ "$(find /lib/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then echo "You have write privileges over $(find /lib/systemd/ -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')" | sed -${E} "s,.*,${SED_RED_YELLOW},"; fi
+if [ ! "$MACPEAS" ] && ! [ "$IAMROOT" ]; then #Those folders don´t exist on a MacOS
+  check_critial_root_path "/etc/init/"
+  check_critial_root_path "/etc/init.d/"
+  check_critial_root_path "/etc/rc.d/init.d"
+  check_critial_root_path "/usr/local/etc/rc.d"
+  check_critial_root_path "/etc/rc.d"
+  check_critial_root_path "/etc/systemd/"
+  check_critial_root_path "/lib/systemd/"
 fi
+
 echo ""
 
 ##-- IF) Hashes in passwd file
@@ -533,6 +540,11 @@ if ! [ "$IAMROOT" ]; then
   done
   echo ""
 fi
+
+##-- IF) Passwords in history files
+print_2title "Searching passwords in history files"
+printf "%s\n" "$PSTORAGE_HISTORY" | while read f; do grep -Ei "$pwd_inside_history" "$f" | sed -${E} "s,$pwd_inside_history,${SED_RED},"; done
+echo ""
 
 ##-- IF) Passwords in config PHP files
 print_2title "Searching passwords in config PHP files"

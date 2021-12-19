@@ -52,7 +52,6 @@ ITALIC="${C}[3m"
 if uname 2>/dev/null | grep -q 'Darwin' || /usr/bin/uname 2>/dev/null | grep -q 'Darwin'; then MACPEAS="1"; else MACPEAS=""; fi
 FAST="1" #By default stealth/fast mode
 SUPERFAST=""
-NOTEXPORT=""
 DISCOVERY=""
 PORTS=""
 QUIET=""
@@ -60,8 +59,9 @@ CHECKS="peass{CHECKS}"
 WAIT=""
 PASSWORD=""
 NOCOLOR=""
-VERBOSE=""
+DEBUG=""
 AUTO_NETWORK_SCAN=""
+EXTRA_CHECKS=""
 THREADS="$( ( (grep -c processor /proc/cpuinfo 2>/dev/null) || ( (command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n")"
 [ -z "$THREADS" ] && THREADS="2" #If THREADS is empty, put number 2
 [ -n "$THREADS" ] && THREADS="2" #If THREADS is null, put number 2
@@ -70,12 +70,12 @@ HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
 ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user, processes and file permissions, special file permissions, readable/writable files, bruteforce other users(top1000pwds), passwords...)$NC inside the host and highlight possible misconfigurations with colors.
       ${YELLOW}-h${BLUE} To show this message
       ${YELLOW}-q${BLUE} Do not show banner
-      ${YELLOW}-a${BLUE} All checks (1min of processes and su brute) - Noisy mode, for CTFs mainly
+      ${YELLOW}-e${BLUE} Perform extra enumeration
       ${YELLOW}-s${BLUE} SuperFast (don't check some time consuming checks) - Stealth mode
-      ${YELLOW}-w${BLUE} Wait execution between big blocks
-      ${YELLOW}-n${BLUE} Do not export env variables related with history and do not check Internet connectivity
+      ${YELLOW}-a${BLUE} All checks (1min of processes and su brute) - Noisy mode, for CTFs mainly
+      ${YELLOW}-w${BLUE} Wait execution between big blocks of checks
       ${YELLOW}-N${BLUE} Do not use colours
-      ${YELLOW}-v${BLUE} Verbose execution
+      ${YELLOW}-D${BLUE} Debug mode
       ${YELLOW}-P${BLUE} Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
       ${YELLOW}-o${BLUE} Only execute selected checks (peass{CHECKS}). Select a comma separated list.
       ${YELLOW}-L${BLUE} Force linpeas execution.
@@ -86,12 +86,11 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
       ${YELLOW}-t${BLUE} Automatic network scan (host discovery and port scanning) - This option writes to files
       $GREEN Notice${BLUE} that if you select some network action, no PE check will be performed$NC"
 
-while getopts "h?asnd:p:i:P:qo:LMwNvt" opt; do
+while getopts "h?asd:p:i:P:qo:LMwNDte" opt; do
   case "$opt" in
     h|\?) printf "%s\n\n" "$HELP$NC"; exit 0;;
-    a)  FAST="";;
+    a)  FAST="";EXTRA_CHECKS="1";;
     s)  SUPERFAST=1;;
-    n)  NOTEXPORT=1;;
     d)  DISCOVERY=$OPTARG;;
     p)  PORTS=$OPTARG;;
     i)  IP=$OPTARG;;
@@ -102,8 +101,9 @@ while getopts "h?asnd:p:i:P:qo:LMwNvt" opt; do
     M)  MACPEAS="1";;
     w)  WAIT=1;;
     N)  NOCOLOR="1";;
-    v)  VERBOSE="1";;
+    D)  DEBUG="1";;
     t)  AUTO_NETWORK_SCAN="1";;
+    e)  EXTRA_CHECKS="1";;
     esac
 done
 
@@ -510,7 +510,7 @@ profiledG="01-locale-fix.sh|256term.csh|256term.sh|abrt-console-notification.sh|
 
 knw_emails=".*@aivazian.fsnet.co.uk|.*@angband.pl|.*@canonical.com|.*centos.org|.*debian.net|.*debian.org|.*@jff.email|.*kali.org|.*linux.it|.*@linuxia.de|.*@lists.debian-maintainers.org|.*@mit.edu|.*@oss.sgi.com|.*@qualcomm.com|.*redhat.com|.*ubuntu.com|.*@vger.kernel.org|rogershimizu@gmail.com|thmarques@gmail.com"
 
-timersG="anacron.timer|apt-daily.timer|apt-daily-upgrade.timer|e2scrub_all.timer|fstrim.timer|fwupd-refresh.timer|geoipupdate.timer|io.netplan.Netplan|logrotate.timer|man-db.timer|mlocate.timer|motd-news.timer|phpsessionclean.timer|snapd.refresh.timer|snapd.snap-repair.timer|systemd-tmpfiles-clean.timer|systemd-readahead-done.timer|ua-license-check.timer|ua-messaging.timer|ua-timer.timer|ureadahead-stop.timer"
+timersG="anacron.timer|apt-daily.timer|apt-daily-upgrade.timer|e2scrub_all.timer|fstrim.timer|fwupd-refresh.timer|geoipupdate.timer|io.netplan.Netplan|logrotate.timer|man-db.timer|mlocate.timer|motd-news.timer|phpsessionclean.timer|plocate-updatedb.timer|snapd.refresh.timer|snapd.snap-repair.timer|systemd-tmpfiles-clean.timer|systemd-readahead-done.timer|ua-license-check.timer|ua-messaging.timer|ua-timer.timer|ureadahead-stop.timer"
 
 commonrootdirsG="^/$|/bin$|/boot$|/.cache$|/cdrom|/dev$|/etc$|/home$|/lost+found$|/lib$|/lib32$|libx32$|/lib64$|lost\+found|/media$|/mnt$|/opt$|/proc$|/root$|/run$|/sbin$|/snap$|/srv$|/sys$|/tmp$|/usr$|/var$"
 commonrootdirsMacG="^/$|/.DocumentRevisions-V100|/.fseventsd|/.PKInstallSandboxManager-SystemSoftware|/.Spotlight-V100|/.Trashes|/.vol|/Applications|/bin|/cores|/dev|/home|/Library|/macOS Install Data|/net|/Network|/opt|/private|/sbin|/System|/Users|/usr|/Volumes"
@@ -584,7 +584,7 @@ echo_no (){
 }
 
 print_title(){
-  if [ "$VERBOSE" ]; then
+  if [ "$DEBUG" ]; then
     END_T2_TIME=$(date +%s 2>/dev/null)
     if [ "$START_T2_TIME" ]; then
       TOTAL_T2_TIME=$(($END_T2_TIME - $START_T2_TIME))
@@ -605,7 +605,7 @@ print_title(){
 }
 
 print_2title(){
-  if [ "$VERBOSE" ]; then
+  if [ "$DEBUG" ]; then
     END_T2_TIME=$(date +%s 2>/dev/null)
     if [ "$START_T2_TIME" ]; then
       TOTAL_T2_TIME=$(($END_T2_TIME - $START_T2_TIME))
@@ -864,138 +864,11 @@ discovery_port_scan (){
 #---) Exporting history env variables (---#
 ###########################################
 
-if ! [ "$NOTEXPORT" ]; then
-  unset HISTORY HISTFILE HISTSAVE HISTZONE HISTORY HISTLOG WATCH
-  export HISTFILE=/dev/null
-  export HISTSIZE=0
-  export HISTFILESIZE=0
-fi
+unset HISTORY HISTFILE HISTSAVE HISTZONE HISTORY HISTLOG WATCH
+export HISTFILE=/dev/null
+export HISTSIZE=0
+export HISTFILESIZE=0
 
-
-###########################################
-#---------) Container functions (---------#
-###########################################
-
-containerCheck() {
-  inContainer=""
-  containerType="$(echo_no)"
-
-  # Are we inside docker?
-  if [ -f "/.dockerenv" ] ||
-    grep "/docker/" /proc/1/cgroup -qa 2>/dev/null ||
-    grep -qai docker /proc/self/cgroup  2>/dev/null ||
-    [ "$(find / -maxdepth 3 -name '*dockerenv*' -exec ls -la {} \; 2>/dev/null)" ] ; then
-
-    inContainer="1"
-    containerType="docker\n"
-  fi
-
-  # Are we inside kubenetes?
-  if grep "/kubepod" /proc/1/cgroup -qa 2>/dev/null ||
-    grep -qai kubepods /proc/self/cgroup 2>/dev/null; then
-
-    inContainer="1"
-    if [ "$containerType" ]; then containerType="$containerType (kubernetes)\n"
-    else containerType="kubernetes\n"
-    fi
-  fi
-
-  # Are we inside LXC?
-  if env | grep "container=lxc" -qa 2>/dev/null ||
-      grep "/lxc/" /proc/1/cgroup -qa 2>/dev/null; then
-
-    inContainer="1"
-    containerType="lxc\n"
-  fi
-
-  # Are we inside podman?
-  if env | grep -qa "container=podman" 2>/dev/null ||
-      grep -qa "container=podman" /proc/1/environ 2>/dev/null; then
-
-    inContainer="1"
-    containerType="podman\n"
-  fi
-
-  # Check for other container platforms that report themselves in PID 1 env
-  if [ -z "$inContainer" ]; then
-    if grep -a 'container=' /proc/1/environ 2>/dev/null; then
-      inContainer="1"
-      containerType="$(grep -a 'container=' /proc/1/environ | cut -d= -f2)\n"
-    fi
-  fi
-}
-
-inDockerGroup() {
-  DOCKER_GROUP="No"
-  if groups 2>/dev/null | grep -q '\bdocker\b'; then
-    DOCKER_GROUP="Yes"
-  fi
-}
-
-checkDockerRootless() {
-  DOCKER_ROOTLESS="No"
-  if docker info 2>/dev/null|grep -q rootless; then
-    DOCKER_ROOTLESS="Yes ($TIP_DOCKER_ROOTLESS)"
-  fi
-}
-
-enumerateDockerSockets() {
-  dockerVersion="$(echo_not_found)"
-  if ! [ "$SEARCHED_DOCKER_SOCKETS" ]; then
-    SEARCHED_DOCKER_SOCKETS="1"
-    for dock_sock in $(find / ! -path "/sys/*" -type s -name "docker.sock" -o -name "docker.socket" 2>/dev/null); do
-      if ! [ "$IAMROOT" ] && [ -w "$dock_sock" ]; then
-        echo "You have write permissions over Docker socket $dock_sock" | sed -${E} "s,$dock_sock,${SED_RED_YELLOW},g"
-        echo "Docker enummeration:"
-        docker_enumerated=""
-
-        if [ "$(command -v curl)" ]; then
-          sockInfoResponse="$(curl -s --unix-socket $dock_sock http://localhost/info)"
-          dockerVersion=$(echo "$sockInfoResponse" | tr ',' '\n' | grep 'ServerVersion' | cut -d'"' -f 4)
-          echo $sockInfoResponse | tr ',' '\n' | grep -E "$GREP_DOCKER_SOCK_INFOS" | grep -v "$GREP_DOCKER_SOCK_INFOS_IGNORE" | tr -d '"'
-          if [ "$sockInfoResponse" ]; then docker_enumerated="1"; fi
-        fi
-
-        if [ "$(command -v docker)" ] && ! [ "$docker_enumerated" ]; then
-          sockInfoResponse="$(docker info)"
-          dockerVersion=$(echo "$sockInfoResponse" | tr ',' '\n' | grep 'Server Version' | cut -d' ' -f 4)
-          printf "$sockInfoResponse" | tr ',' '\n' | grep -E "$GREP_DOCKER_SOCK_INFOS" | grep -v "$GREP_DOCKER_SOCK_INFOS_IGNORE" | tr -d '"'
-        fi
-
-      else
-        echo "You don't have write permissions over Docker socket $dock_sock" | sed -${E} "s,$dock_sock,${SED_GREEN},g"
-      fi
-    done
-  fi
-}
-
-checkDockerVersionExploits() {
-  if echo "$dockerVersion" | grep -iq "not found"; then
-    VULN_CVE_2019_13139="$(echo_not_found)"
-    VULN_CVE_2019_5736="$(echo_not_found)"
-    return
-  fi
-
-  VULN_CVE_2019_13139="$(echo_no)"
-  if [ "$(echo $dockerVersion | sed 's,\.,,g')" -lt "1895" ]; then
-    VULN_CVE_2019_13139="Yes"
-  fi
-
-  VULN_CVE_2019_5736="$(echo_no)"
-  if [ "$(echo $dockerVersion | sed 's,\.,,g')" -lt "1893" ]; then
-    VULN_CVE_2019_5736="Yes"
-  fi
-}
-
-checkContainerExploits() {
-  VULN_CVE_2019_5021="$(echo_no)"
-  if [ -f "/etc/alpine-release" ]; then
-    alpineVersion=$(cat /etc/alpine-release)
-    if [ "$(echo $alpineVersion | sed 's,\.,,g')" -ge "330" ] && [ "$(echo $alpineVersion | sed 's,\.,,g')" -le "360" ]; then
-      VULN_CVE_2019_5021="Yes"
-    fi
-  fi
-}
 
 
 ###########################################

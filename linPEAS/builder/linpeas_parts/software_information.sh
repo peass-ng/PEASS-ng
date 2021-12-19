@@ -129,14 +129,7 @@ peass{Rsync}
 
 peass{Hostapd}
 
-#-- SI) Wifi conns
-print_2title "Searching wifi conns file"
-wifi=$(find /etc/NetworkManager/system-connections/ -type f 2>/dev/null)
-if [ "$wifi" ]; then
-  printf "%s\n" "$wifi" | while read f; do echo "$f"; cat "$f" 2>/dev/null | grep "psk.*=" | sed "s,psk.*,${SED_RED},"; done
-else echo_not_found
-fi
-echo ""
+peass{Wifi Connections}
 
 peass{Anaconda ks}
 
@@ -152,6 +145,7 @@ if [ "$PSTORAGE_CERTSB4" ]; then certsb4_grep=$(grep -L "\"\|'\|(" $PSTORAGE_CER
 sshconfig="$(ls /etc/ssh/ssh_config 2>/dev/null)"
 hostsdenied="$(ls /etc/hosts.denied 2>/dev/null)"
 hostsallow="$(ls /etc/hosts.allow 2>/dev/null)"
+writable_agents=$(find $folder_path -type s -name "agent.*" -or -name "*gpg-agent*" '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')
 
 peass{SSH}
 
@@ -197,6 +191,15 @@ if ssh-add -l 2>/dev/null | grep -qv 'no identities'; then
   ssh-add -l
   echo ""
 fi
+if gpg-connect-agent "keyinfo --list" /bye | grep "D - - 1"; then
+  print_3title "Listing gpg keys cached in gpg-agent"
+  gpg-connect-agent "keyinfo --list" /bye
+  echo ""
+fi
+if [ "$writable_agents" ]; then
+  print_3title "Writable ssh and gpg agents"
+  printf "%s\n" "$writable_agents"
+fi
 if [ "$PSTORAGE_SSH_CONFIG" ]; then
   print_3title "Some home ssh config file was found"
   printf "%s\n" "$PSTORAGE_SSH_CONFIG" | while read f; do ls "$f" | sed -${E} "s,$f,${SED_RED},"; cat "$f" 2>/dev/null | grep -Iv "^$" | grep -v "^#" | sed -${E} "s,User|ProxyCommand,${SED_RED},"; done
@@ -221,22 +224,14 @@ if [ "$sshconfig" ]; then
 fi
 echo ""
 
-#-- SI) PAM auth
-print_2title "Searching unexpected auth lines in /etc/pam.d/sshd"
-pamssh=$(grep -v "^#\|^@" /etc/pam.d/sshd 2>/dev/null | grep -i auth)
-if [ "$pamssh" ]; then
-  grep -v "^#\|^@" /etc/pam.d/sshd 2>/dev/null | grep -i auth | sed -${E} "s,.*,${SED_RED},"
-else echo_no
-fi
+peass{PAM Auth}
+
+#-- SI) Passwords inside pam.d
+print_2title "Passwords inside pam.d"
+grep -Ri "passwd" /etc/pam.d/ 2>/dev/null | grep -v ":#" | sed "s,passwd,${SED_RED},"
 echo ""
 
-#-- SI) NFS exports
-print_2title "NFS exports?"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/nfs-no_root_squash-misconfiguration-pe"
-if [ "$(cat /etc/exports 2>/dev/null)" ]; then grep -v "^#" /etc/exports 2>/dev/null | grep -Ev "\W+\#|^#" 2>/dev/null | sed -${E} "s,no_root_squash|no_all_squash ,${SED_RED_YELLOW}," | sed -${E} "s,insecure,${SED_RED},"
-else echo_not_found "/etc/exports"
-fi
-echo ""
+peass{NFS Exports}
 
 #-- SI) Kerberos
 print_2title "Searching kerberos conf files and tickets"
@@ -335,21 +330,34 @@ echo ""
 print_2title "Searching screen sessions"
 print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-shell-sessions"
 screensess=$(screen -ls 2>/dev/null)
-if [ "$screensess" ]; then
-  printf "$screensess" | sed -${E} "s,.*,${SED_RED}," | sed -${E} "s,No Sockets found.*,${C}[32m&${C}[0m,"
-else echo_not_found "screen"
+screensess2=$(find /run/screen -type d -path "/run/screen/S-*" 2>/dev/null)
+if [ "$screensess" ] || [ "$screensess2" ]; then
+  screen -v
+  printf "$screensess\n$screensess2" | sed -${E} "s,.*,${SED_RED}," | sed -${E} "s,No Sockets found.*,${C}[32m&${C}[0m,"
+else
+  echo_not_found "screen"
 fi
+find /run/screen -type s -path "/run/screen/S-*" -not -user $USER '(' '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null | while read f; do
+  echo "Other user screen socket is writable: $f" | sed "s,$f,${SED_RED_YELLOW},"
+done
 echo ""
 
 #-- SI) Tmux sessions
 tmuxdefsess=$(tmux ls 2>/dev/null)
 tmuxnondefsess=$(ps auxwww | grep "tmux " | grep -v grep)
+tmuxsess2=$(find /tmp -type d -path "/tmp/tmux-*" 2>/dev/null)
 print_2title "Searching tmux sessions"$N
 print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-shell-sessions"
-if [ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ]; then
-  printf "$tmuxdefsess\n$tmuxnondefsess\n" | sed -${E} "s,.*,${SED_RED}," | sed -${E} "s,no server running on.*,${C}[32m&${C}[0m,"
-else echo_not_found "tmux"
+if [ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ] || [ "$tmuxsess2" ]; then
+  tmux -V
+  printf "$tmuxdefsess\n$tmuxnondefsess\n$tmuxsess2" | sed -${E} "s,.*,${SED_RED}," | sed -${E} "s,no server running on.*,${C}[32m&${C}[0m,"
+else 
+  echo_not_found "tmux"
 fi
+
+find /tmp -type s -path "/tmp/tmux*" -not -user $USER '(' '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null | while read f; do
+  echo "Other user tmux socket is writable: $f" | sed "s,$f,${SED_RED_YELLOW},"
+done
 echo ""
 
 peass{CouchDB}
@@ -410,7 +418,7 @@ echo ""
 
 print_2title "Analyzing kcpassword files"
 print_info "https://book.hacktricks.xyz/macos/macos-security-and-privilege-escalation#kcpassword"
-printf "%s\n" "$PSTORAGE_KCPASSWORD\n" | while read f; do
+printf "%s\n" "$PSTORAGE_KCPASSWORD" | while read f; do
   echo "$f" | sed -${E} "s,.*,${SED_RED},"
   base64 "$f" 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
 done
@@ -520,12 +528,6 @@ if grep auth= /etc/login.conf 2>/dev/null | grep -v \"^#\" | grep -q yubikey; th
   fi
 fi
 echo ""
-
-#-- SI) Passwords inside pam.d
-print_2title "Passwords inside pam.d"
-grep -Ri "passwd" /etc/pam.d/ 2>/dev/null | grep -v ":#" | sed "s,passwd,${SED_RED},"
-echo ""
-
 
 
 peass{SNMP}

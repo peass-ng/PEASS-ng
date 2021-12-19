@@ -1,3 +1,129 @@
+###########################################
+#---------) Container functions (---------#
+###########################################
+
+containerCheck() {
+  inContainer=""
+  containerType="$(echo_no)"
+
+  # Are we inside docker?
+  if [ -f "/.dockerenv" ] ||
+    grep "/docker/" /proc/1/cgroup -qa 2>/dev/null ||
+    grep -qai docker /proc/self/cgroup  2>/dev/null ||
+    [ "$(find / -maxdepth 3 -name '*dockerenv*' -exec ls -la {} \; 2>/dev/null)" ] ; then
+
+    inContainer="1"
+    containerType="docker\n"
+  fi
+
+  # Are we inside kubenetes?
+  if grep "/kubepod" /proc/1/cgroup -qa 2>/dev/null ||
+    grep -qai kubepods /proc/self/cgroup 2>/dev/null; then
+
+    inContainer="1"
+    if [ "$containerType" ]; then containerType="$containerType (kubernetes)\n"
+    else containerType="kubernetes\n"
+    fi
+  fi
+
+  # Are we inside LXC?
+  if env | grep "container=lxc" -qa 2>/dev/null ||
+      grep "/lxc/" /proc/1/cgroup -qa 2>/dev/null; then
+
+    inContainer="1"
+    containerType="lxc\n"
+  fi
+
+  # Are we inside podman?
+  if env | grep -qa "container=podman" 2>/dev/null ||
+      grep -qa "container=podman" /proc/1/environ 2>/dev/null; then
+
+    inContainer="1"
+    containerType="podman\n"
+  fi
+
+  # Check for other container platforms that report themselves in PID 1 env
+  if [ -z "$inContainer" ]; then
+    if grep -a 'container=' /proc/1/environ 2>/dev/null; then
+      inContainer="1"
+      containerType="$(grep -a 'container=' /proc/1/environ | cut -d= -f2)\n"
+    fi
+  fi
+}
+
+inDockerGroup() {
+  DOCKER_GROUP="No"
+  if groups 2>/dev/null | grep -q '\bdocker\b'; then
+    DOCKER_GROUP="Yes"
+  fi
+}
+
+checkDockerRootless() {
+  DOCKER_ROOTLESS="No"
+  if docker info 2>/dev/null|grep -q rootless; then
+    DOCKER_ROOTLESS="Yes ($TIP_DOCKER_ROOTLESS)"
+  fi
+}
+
+enumerateDockerSockets() {
+  dockerVersion="$(echo_not_found)"
+  if ! [ "$SEARCHED_DOCKER_SOCKETS" ]; then
+    SEARCHED_DOCKER_SOCKETS="1"
+    for dock_sock in $(find / ! -path "/sys/*" -type s -name "docker.sock" -o -name "docker.socket" 2>/dev/null); do
+      if ! [ "$IAMROOT" ] && [ -w "$dock_sock" ]; then
+        echo "You have write permissions over Docker socket $dock_sock" | sed -${E} "s,$dock_sock,${SED_RED_YELLOW},g"
+        echo "Docker enummeration:"
+        docker_enumerated=""
+
+        if [ "$(command -v curl)" ]; then
+          sockInfoResponse="$(curl -s --unix-socket $dock_sock http://localhost/info)"
+          dockerVersion=$(echo "$sockInfoResponse" | tr ',' '\n' | grep 'ServerVersion' | cut -d'"' -f 4)
+          echo $sockInfoResponse | tr ',' '\n' | grep -E "$GREP_DOCKER_SOCK_INFOS" | grep -v "$GREP_DOCKER_SOCK_INFOS_IGNORE" | tr -d '"'
+          if [ "$sockInfoResponse" ]; then docker_enumerated="1"; fi
+        fi
+
+        if [ "$(command -v docker)" ] && ! [ "$docker_enumerated" ]; then
+          sockInfoResponse="$(docker info)"
+          dockerVersion=$(echo "$sockInfoResponse" | tr ',' '\n' | grep 'Server Version' | cut -d' ' -f 4)
+          printf "$sockInfoResponse" | tr ',' '\n' | grep -E "$GREP_DOCKER_SOCK_INFOS" | grep -v "$GREP_DOCKER_SOCK_INFOS_IGNORE" | tr -d '"'
+        fi
+
+      else
+        echo "You don't have write permissions over Docker socket $dock_sock" | sed -${E} "s,$dock_sock,${SED_GREEN},g"
+      fi
+    done
+  fi
+}
+
+checkDockerVersionExploits() {
+  if echo "$dockerVersion" | grep -iq "not found"; then
+    VULN_CVE_2019_13139="$(echo_not_found)"
+    VULN_CVE_2019_5736="$(echo_not_found)"
+    return
+  fi
+
+  VULN_CVE_2019_13139="$(echo_no)"
+  if [ "$(echo $dockerVersion | sed 's,\.,,g')" -lt "1895" ]; then
+    VULN_CVE_2019_13139="Yes"
+  fi
+
+  VULN_CVE_2019_5736="$(echo_no)"
+  if [ "$(echo $dockerVersion | sed 's,\.,,g')" -lt "1893" ]; then
+    VULN_CVE_2019_5736="Yes"
+  fi
+}
+
+checkContainerExploits() {
+  VULN_CVE_2019_5021="$(echo_no)"
+  if [ -f "/etc/alpine-release" ]; then
+    alpineVersion=$(cat /etc/alpine-release)
+    if [ "$(echo $alpineVersion | sed 's,\.,,g')" -ge "330" ] && [ "$(echo $alpineVersion | sed 's,\.,,g')" -le "360" ]; then
+      VULN_CVE_2019_5021="Yes"
+    fi
+  fi
+}
+
+
 ##############################################
 #---------------) Containers (---------------#
 ##############################################
@@ -57,7 +183,7 @@ if [ "$inContainer" ]; then
     echo ""
     print_2title "Container & breakout enumeration"
     print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout"
-    print_list "Container ID ...................$NC $(cat /etc/hostname)"
+    print_list "Container ID ...................$NC $(cat /etc/hostname && echo '')"
     if echo "$containerType" | grep -qi "docker"; then
         print_list "Container Full ID ..............$NC $(basename $(cat /proc/1/cpuset))\n"
     fi

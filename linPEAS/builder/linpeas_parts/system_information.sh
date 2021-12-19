@@ -54,15 +54,19 @@ warn_exec uptime 2>/dev/null
 echo ""
 
 #-- SY) System stats
-print_2title "System stats"
-(df -h || lsblk) 2>/dev/null || echo_not_found "df and lsblk"
-warn_exec free 2>/dev/null
-echo ""
+if [ "$EXTRA_CHECKS" ]; then
+    print_2title "System stats"
+    (df -h || lsblk) 2>/dev/null || echo_not_found "df and lsblk"
+    warn_exec free 2>/dev/null
+    echo ""
+fi
 
 #-- SY) CPU info
-print_2title "CPU info"
-warn_exec lscpu 2>/dev/null
-echo ""
+if [ "$EXTRA_CHECKS" ]; then
+    print_2title "CPU info"
+    warn_exec lscpu 2>/dev/null
+    echo ""
+fi
 
 #-- SY) Environment vars
 print_2title "Environment"
@@ -91,6 +95,9 @@ if [ "$(command -v bash 2>/dev/null)" ]; then
     print_info "https://github.com/mzet-/linux-exploit-suggester"
     les_b64="peass{LES}"
     echo $les_b64 | base64 -d | bash
+    if [ "$EXTRA_CHECKS" ]; then
+        echo $les_b64 | base64 -d | bash -s -- --checksec
+    fi
     echo ""
 fi
 

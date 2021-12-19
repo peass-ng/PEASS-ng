@@ -15,9 +15,11 @@ warn_exec dnsdomainname 2>/dev/null
 echo ""
 
 #-- NI) /etc/inetd.conf
-print_2title "Content of /etc/inetd.conf & /etc/xinetd.conf"
-(cat /etc/inetd.conf /etc/xinetd.conf 2>/dev/null | grep -v "^$" | grep -Ev "\W+\#|^#" 2>/dev/null) || echo_not_found "/etc/inetd.conf"
-echo ""
+if [ "$EXTRA_CHECKS" ]; then
+  print_2title "Content of /etc/inetd.conf & /etc/xinetd.conf"
+  (cat /etc/inetd.conf /etc/xinetd.conf 2>/dev/null | grep -v "^$" | grep -Ev "\W+\#|^#" 2>/dev/null) || echo_not_found "/etc/inetd.conf"
+  echo ""
+fi
 
 #-- NI) Interfaces
 print_2title "Interfaces"
@@ -26,14 +28,16 @@ cat /etc/networks 2>/dev/null
 echo ""
 
 #-- NI) Neighbours
-print_2title "Networks and neighbours"
-if [ "$MACOS" ]; then
-  netstat -rn 2>/dev/null
-else
-  (route || ip n || cat /proc/net/route) 2>/dev/null
+if [ "$EXTRA_CHECKS" ]; then
+  print_2title "Networks and neighbours"
+  if [ "$MACOS" ]; then
+    netstat -rn 2>/dev/null
+  else
+    (route || ip n || cat /proc/net/route) 2>/dev/null
+  fi
+  (arp -e || arp -a || cat /proc/net/arp) 2>/dev/null
+  echo ""
 fi
-(arp -e || arp -a || cat /proc/net/arp) 2>/dev/null
-echo ""
 
 if [ "$MACPEAS" ]; then
   print_2title "Firewall status"
@@ -41,9 +45,11 @@ if [ "$MACPEAS" ]; then
 fi
 
 #-- NI) Iptables
-print_2title "Iptables rules"
-(timeout 1 iptables -L 2>/dev/null; cat /etc/iptables/* | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null) 2>/dev/null || echo_not_found "iptables rules"
-echo ""
+if [ "$EXTRA_CHECKS" ]; then
+  print_2title "Iptables rules"
+  (timeout 1 iptables -L 2>/dev/null; cat /etc/iptables/* | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null) 2>/dev/null || echo_not_found "iptables rules"
+  echo ""
+fi
 
 #-- NI) Ports
 print_2title "Active Ports"
@@ -52,7 +58,7 @@ print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-por
 echo ""
 
 #-- NI) MacOS hardware ports
-if [ "$MACPEAS" ]; then
+if [ "$MACPEAS" ] && [ "$EXTRA_CHECKS" ]; then
   print_2title "Hardware Ports"
   networksetup -listallhardwareports
   echo ""
@@ -93,7 +99,7 @@ fi
 echo ""
 
 #-- NI) Internet access
-if ! [ "$SUPERFAST" ] && ! [ "$FAST" ] && ! [ "$NOTEXPORT" ] && [ "$TIMEOUT" ] && [ -f "/bin/bash" ]; then
+if ! [ "$SUPERFAST" ] && [ "$EXTRA_CHECKS" ] && ! [ "$FAST" ] && [ "$TIMEOUT" ] && [ -f "/bin/bash" ]; then
   print_2title "Internet Access?"
   check_tcp_80 2>/dev/null &
   check_tcp_443 2>/dev/null &
@@ -111,7 +117,7 @@ if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] || [ "$AUTO_NETWORK_SCAN" ]; then
   else
     print_2title "Scanning local networks (using /24)"
 
-    if ! [ "$PING" ] && ![ "$FPING" ]; then
+    if ! [ "$PING" ] && ! [ "$FPING" ]; then
       printf $RED"[-] $DISCOVER_BAN_BAD\n$NC"
     fi
 
@@ -162,15 +168,17 @@ if [ "$MACOS" ]; then
   system_profiler SPNetworkLocationDataType | grep -A 5 -B 7 ": Password"  | sed -${E} "s,Password|Authorization Name.*,${SED_RED},"
   echo ""
 
-  print_2title "Bluetooth Info"
-  warn_exec system_profiler SPBluetoothDataType
-  echo ""
+  if [ "$EXTRA_CHECKS" ]; then
+    print_2title "Bluetooth Info"
+    warn_exec system_profiler SPBluetoothDataType
+    echo ""
 
-  print_2title "Ethernet Info"
-  warn_exec system_profiler SPEthernetDataType
-  echo ""
+    print_2title "Ethernet Info"
+    warn_exec system_profiler SPEthernetDataType
+    echo ""
 
-  print_2title "USB Info"
-  warn_exec system_profiler SPUSBDataType
-  echo ""
+    print_2title "USB Info"
+    warn_exec system_profiler SPUSBDataType
+    echo ""
+  fi
 fi

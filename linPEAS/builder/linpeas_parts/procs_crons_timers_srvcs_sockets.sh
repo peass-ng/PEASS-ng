@@ -122,10 +122,12 @@ if [ "$MACPEAS" ]; then
 fi
 
 #-- PCS) Services
-print_2title "Services"
-print_info "Search for outdated versions"
-(service --status-all || service -e || chkconfig --list || rc-status || launchctl list) 2>/dev/null || echo_not_found "service|chkconfig|rc-status|launchctl"
-echo ""
+if [ "$EXTRA_CHECKS" ]; then
+  print_2title "Services"
+  print_info "Search for outdated versions"
+  (service --status-all || service -e || chkconfig --list || rc-status || launchctl list) 2>/dev/null || echo_not_found "service|chkconfig|rc-status|launchctl"
+  echo ""
+fi
 
 #-- PSC) systemd PATH
 print_2title "Systemd PATH"
@@ -138,13 +140,13 @@ echo ""
 #TODO: .service files in MACOS are folders
 print_2title "Analyzing .service files"
 print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#services"
-printf "%s\n" "$PSTORAGE_SYSTEMD\n" | while read s; do
+printf "%s\n" "$PSTORAGE_SYSTEMD" | while read s; do
   if [ ! -O "$s" ]; then #Remove services that belongs to the current user
     if ! [ "$IAMROOT" ] && [ -w "$s" ] && [ -f "$s" ]; then
       echo "$s" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
     fi
     servicebinpaths=$(grep -Eo '^Exec.*?=[!@+-]*[a-zA-Z0-9_/\-]+' "$s" 2>/dev/null | cut -d '=' -f2 | sed 's,^[@\+!-]*,,') #Get invoked paths
-    printf "%s\n" "$servicebinpaths\n" | while read sp; do
+    printf "%s\n" "$servicebinpaths" | while read sp; do
       if [ -w "$sp" ]; then
         echo "$s is calling this writable executable: $sp" | sed "s,writable.*,${SED_RED_YELLOW},g"
       fi
@@ -172,7 +174,7 @@ echo ""
 #-- PSC) .timer files
 print_2title "Analyzing .timer files"
 print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#timers"
-printf "%s\n" "$PSTORAGE_TIMER\n" | while read t; do
+printf "%s\n" "$PSTORAGE_TIMER" | while read t; do
   if ! [ "$IAMROOT" ] && [ -w "$t" ]; then
     echo "$t" | sed -${E} "s,.*,${SED_RED},g"
   fi
