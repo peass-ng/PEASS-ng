@@ -519,7 +519,7 @@ ldsoconfdG="/lib32|/lib/x86_64-linux-gnu|/usr/lib32|/usr/lib/oracle/19.6/client6
 
 dbuslistG="^:1\.[0-9\.]+|com.hp.hplip|com.redhat.ifcfgrh1|com.redhat.NewPrinterNotification|com.redhat.PrinterDriversInstaller|com.redhat.RHSM1|com.redhat.RHSM1.Facts|com.redhat.tuned|com.ubuntu.LanguageSelector|com.ubuntu.SoftwareProperties|com.ubuntu.SystemService|com.ubuntu.USBCreator|com.ubuntu.WhoopsiePreferences|io.netplan.Netplan|io.snapcraft.SnapdLoginService|fi.epitest.hostap.WPASupplicant|fi.w1.wpa_supplicant1|NAME|org.blueman.Mechanism|org.bluez|org.debian.apt|org.fedoraproject.FirewallD1|org.fedoraproject.Setroubleshootd|org.fedoraproject.SetroubleshootFixit|org.fedoraproject.SetroubleshootPrivileged|org.freedesktop.Accounts|org.freedesktop.Avahi|org.freedesktop.bolt|org.freedesktop.ColorManager|org.freedesktop.DBus|org.freedesktop.DisplayManager|org.freedesktop.fwupd|org.freedesktop.GeoClue2|org.freedesktop.hostname1|org.freedesktop.import1|org.freedesktop.locale1|org.freedesktop.login1|org.freedesktop.machine1|org.freedesktop.ModemManager1|org.freedesktop.NetworkManager|org.freedesktop.network1|org.freedesktop.nm_dispatcher|org.freedesktop.PackageKit|org.freedesktop.PolicyKit1|org.freedesktop.portable1|org.freedesktop.realmd|org.freedesktop.RealtimeKit1|org.freedesktop.resolve1|org.freedesktop.systemd1|org.freedesktop.thermald|org.freedesktop.timedate1|org.freedesktop.timesync1|org.freedesktop.UDisks2|org.freedesktop.UPower|org.opensuse.CupsPkHelper.Mechanism"
 
-CONTAINER_CMDS="docker lxc rkt kubectl podman runc"
+USEFUL_SOFTWARE="authbind aws base64 ctr curl doas docker fetch g++ gcc gdb kubectl lxc make nc nc.traditional ncat netcat nmap perl php ping podman python python2 python2.6 python2.7 python3 python3.6 python3.7 rkt ruby runc socat sudo wget xterm"
 TIP_DOCKER_ROOTLESS="In rootless mode privilege escalation to root will not be possible."
 GREP_DOCKER_SOCK_INFOS="Architecture|OSType|Name|DockerRootDir|NCPU|OperatingSystem|KernelVersion|ServerVersion"
 GREP_DOCKER_SOCK_INFOS_IGNORE="IndexConfig"
@@ -601,7 +601,17 @@ print_title(){
     START_T1_TIME=$(date +%s 2>/dev/null)
   fi
 
-  printf ${BLUE}"════════════════════════════════════╣ $GREEN$1${BLUE} ╠════════════════════════════════════\n"$NC
+  title=$1
+  title_len=$(echo $title | wc -c)
+  max_title_len=100
+  rest_len=$((($max_title_len - $title_len) / 2))
+
+  printf ${BLUE}
+  for i in $(seq 1 $rest_len); do printf "═"; done
+  printf "╣ $GREEN${title}${BLUE} ╠"
+  for i in $(seq 1 $rest_len); do printf "═"; done
+  printf $NC
+  echo ""
 }
 
 print_2title(){

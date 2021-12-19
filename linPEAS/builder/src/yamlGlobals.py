@@ -8,42 +8,42 @@ LINPEAS_PARTS = [
     {
         "name": "System Information",
         "name_check": "system_information",
-        "file_path": LINPEAS_BASE_PARTS + "/system_information.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/1_system_information.sh"
     },
     {
         "name": "Container",
         "name_check": "container",
-        "file_path": LINPEAS_BASE_PARTS + "/container.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/2_container.sh"
     },
     {
         "name": "Available Software",
         "name_check": "available_software",
-        "file_path": LINPEAS_BASE_PARTS + "/available_software.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/3_available_software.sh"
     },
     {
         "name": "Processes, Crons, Timers, Services and Sockets",
         "name_check": "procs_crons_timers_srvcs_sockets",
-        "file_path": LINPEAS_BASE_PARTS + "/procs_crons_timers_srvcs_sockets.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/4_procs_crons_timers_srvcs_sockets.sh"
     },
     {
         "name": "Network Information",
         "name_check": "network_information",
-        "file_path": LINPEAS_BASE_PARTS + "/network_information.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/5_network_information.sh"
     },
     {
         "name": "Users Information",
         "name_check": "users_information",
-        "file_path": LINPEAS_BASE_PARTS + "/users_information.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/6_users_information.sh"
     },
     {
         "name": "Software Information",
         "name_check": "software_information",
-        "file_path": LINPEAS_BASE_PARTS + "/software_information.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/7_software_information.sh"
     },
     {
         "name": "Interesting Files",
         "name_check": "interesting_files",
-        "file_path": LINPEAS_BASE_PARTS + "/interesting_files.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/8_interesting_files.sh"
     }
 ]
 

@@ -42,18 +42,20 @@ command -v netpgp 2>/dev/null || echo_not_found "netpgp"
 echo ""
 
 #-- UI) Clipboard and highlighted text
-print_2title "Clipboard or highlighted text?"
-if [ "$(command -v xclip 2>/dev/null)" ]; then
-  echo "Clipboard: "$(xclip -o -selection clipboard 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
-  echo "Highlighted text: "$(xclip -o 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
-elif [ "$(command -v xsel 2>/dev/null)" ]; then
-  echo "Clipboard: "$(xsel -ob 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
-  echo "Highlighted text: "$(xsel -o 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
-elif [ "$(command -v pbpaste 2>/dev/null)" ]; then
-  echo "Clipboard: "$(pbpaste) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
-else echo_not_found "xsel and xclip"
+if [ "$(command -v xclip 2>/dev/null)" ] || [ "$(command -v xsel 2>/dev/null)" ] || [ "$(command -v pbpaste 2>/dev/null)" ] || [ "$VERBOSE" ]; then
+  print_2title "Clipboard or highlighted text?"
+  if [ "$(command -v xclip 2>/dev/null)" ]; then
+    echo "Clipboard: "$(xclip -o -selection clipboard 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
+    echo "Highlighted text: "$(xclip -o 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
+  elif [ "$(command -v xsel 2>/dev/null)" ]; then
+    echo "Clipboard: "$(xsel -ob 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
+    echo "Highlighted text: "$(xsel -o 2>/dev/null) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
+  elif [ "$(command -v pbpaste 2>/dev/null)" ]; then
+    echo "Clipboard: "$(pbpaste) | sed -${E} "s,$pwd_inside_history,${SED_RED},"
+  else echo_not_found "xsel and xclip"
+  fi
+  echo ""
 fi
-echo ""
 
 #-- UI) Sudo -l
 print_2title "Checking 'sudo -l', /etc/sudoers, and /etc/sudoers.d"
@@ -103,13 +105,15 @@ fi
 echo ""
 
 #-- UI) Doas
-print_2title "Checking doas.conf"
-doas_dir_name=$(dirname "$(command -v doas)" 2>/dev/null)
-if [ "$(cat /etc/doas.conf $doas_dir_name/doas.conf $doas_dir_name/../etc/doas.conf $doas_dir_name/etc/doas.conf 2>/dev/null)" ]; then 
-  cat /etc/doas.conf "$doas_dir_name/doas.conf" "$doas_dir_name/../etc/doas.conf" "$doas_dir_name/etc/doas.conf" 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_RED}," | sed "s,root,${SED_RED}," | sed "s,nopass,${SED_RED}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,$USER,${SED_RED_YELLOW},"
-else echo_not_found "doas.conf"
+if [ -f "/etc/doas.conf" ] || [ "$VERBOSE" ]; then
+  print_2title "Checking doas.conf"
+  doas_dir_name=$(dirname "$(command -v doas)" 2>/dev/null)
+  if [ "$(cat /etc/doas.conf $doas_dir_name/doas.conf $doas_dir_name/../etc/doas.conf $doas_dir_name/etc/doas.conf 2>/dev/null)" ]; then 
+    cat /etc/doas.conf "$doas_dir_name/doas.conf" "$doas_dir_name/../etc/doas.conf" "$doas_dir_name/etc/doas.conf" 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_RED}," | sed "s,root,${SED_RED}," | sed "s,nopass,${SED_RED}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,$USER,${SED_RED_YELLOW},"
+  else echo_not_found "doas.conf"
+  fi
+  echo ""
 fi
-echo ""
 
 #-- UI) Pkexec policy
 print_2title "Checking Pkexec policy"

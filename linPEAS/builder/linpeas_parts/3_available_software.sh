@@ -4,7 +4,7 @@
 
 #-- 1AS) Useful software
 print_2title "Useful software"
-command -v "$CONTAINER_CMDS" nmap aws nc ncat netcat nc.traditional wget curl ping gcc g++ make gdb base64 socat python python2 python3 python2.7 python2.6 python3.6 python3.7 perl php ruby xterm doas sudo fetch ctr authbind
+for tool in $USEFUL_SOFTWARE; do command -v "$tool"; done
 echo ""
 
 #-- 2AS) Search for compilers

@@ -208,7 +208,8 @@ class LinpeasBuilder:
 
         for precord in self.ploaded.peasrecords:
             if precord.auto_check:
-                section = f'  print_2title "Analyzing {precord.name.replace("_"," ")} Files (limit 70)"\n'
+                section = f'if [ "$PSTORAGE_{precord.bash_name}" ] || [ "$VERBOSE" ]; then\n'
+                section += f'  print_2title "Analyzing {precord.name.replace("_"," ")} Files (limit 70)"\n'
 
                 for exec_line in precord.exec:
                     if exec_line:
@@ -216,6 +217,9 @@ class LinpeasBuilder:
 
                 for frecord in precord.filerecords:
                     section += "    " + self.__construct_file_line(precord, frecord) + "\n"
+                
+                section += 'elif [ "$VERBOSE" ]; then echo_not_found\n'
+                section += "fi\n"
                 
                 sections[precord.name] = section
 

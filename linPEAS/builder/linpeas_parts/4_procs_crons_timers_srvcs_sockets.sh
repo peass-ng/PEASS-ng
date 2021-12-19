@@ -28,7 +28,7 @@ else
   echo ""
 
   #-- PCS) Binary processes permissions
-  print_2title "Binary processes permissions"
+  print_2title "Binary processes permissions (non 'root root' and not beloging to current user)"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes"
   binW="IniTialiZZinnggg"
   ps auxwww 2>/dev/null | awk '{print $11}' | while read bpath; do
@@ -36,7 +36,7 @@ else
       binW="$binW|$bpath"
     fi
   done
-  ps auxwww 2>/dev/null | awk '{print $11}' | xargs ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | grep -v "$USER " | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$binW,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_RED}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED}," | sed "s,root,${SED_GREEN},"
+  ps auxwww 2>/dev/null | awk '{print $11}' | xargs ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | grep -v " root root " | grep -v " $USER " | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$binW,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_RED}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED}," | sed "s,root,${SED_GREEN},"
 fi
 echo ""
 

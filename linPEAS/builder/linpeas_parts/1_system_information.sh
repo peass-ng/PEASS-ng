@@ -8,7 +8,7 @@ print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#kernel-e
 (cat /proc/version || uname -a ) 2>/dev/null | sed -${E} "s,$kernelDCW_Ubuntu_Precise_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_5,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_6,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Xenial,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel7,${SED_RED_YELLOW}," | sed -${E} "s,$kernelB,${SED_RED},"
 warn_exec lsb_release -a 2>/dev/null
 if [ "$MACPEAS" ]; then
-warn_exec system_profiler SPSoftwareDataType
+    warn_exec system_profiler SPSoftwareDataType
 fi
 echo ""
 
@@ -22,21 +22,22 @@ fi
 echo ""
 
 #--SY) USBCreator
-print_2title "USBCreator"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/d-bus-enumeration-and-command-injection-privilege-escalation"
-if busctl list 2>/dev/null | grep -q com.ubuntu.USBCreator; then
-pc_version=$(dpkg -l 2>/dev/null | grep policykit-desktop-privileges | grep -oP "[0-9][0-9a-zA-Z\.]+")
-if [ -z "$pc_version" ]; then
-    pc_version=$(apt-cache policy policykit-desktop-privileges 2>/dev/null | grep -oP "\*\*\*.*" | cut -d" " -f2)
-fi
-if [ -n "$pc_version" ]; then
-    pc_length=${#pc_version}
-    pc_major=$(echo "$pc_version" | cut -d. -f1)
-    pc_minor=$(echo "$pc_version" | cut -d. -f2)
-    if [ "$pc_length" -eq 4 ] && [ "$pc_major" -eq 0 ] && [ "$pc_minor"  -lt 21 ]; then
-        echo "Vulnerable!!" | sed -${E} "s,.*,${SED_RED},"
+if (busctl list 2>/dev/null | grep -q com.ubuntu.USBCreator) || [ "$VERBOSE" ]; then
+    print_2title "USBCreator"
+    print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/d-bus-enumeration-and-command-injection-privilege-escalation"
+
+    pc_version=$(dpkg -l 2>/dev/null | grep policykit-desktop-privileges | grep -oP "[0-9][0-9a-zA-Z\.]+")
+    if [ -z "$pc_version" ]; then
+        pc_version=$(apt-cache policy policykit-desktop-privileges 2>/dev/null | grep -oP "\*\*\*.*" | cut -d" " -f2)
     fi
-fi
+    if [ -n "$pc_version" ]; then
+        pc_length=${#pc_version}
+        pc_major=$(echo "$pc_version" | cut -d. -f1)
+        pc_minor=$(echo "$pc_version" | cut -d. -f2)
+        if [ "$pc_length" -eq 4 ] && [ "$pc_major" -eq 0 ] && [ "$pc_minor"  -lt 21 ]; then
+            echo "Vulnerable!!" | sed -${E} "s,.*,${SED_RED},"
+        fi
+    fi
 fi
 echo ""
 
@@ -75,10 +76,12 @@ print_info "Any private information inside environment variables?"
 echo ""
 
 #-- SY) Dmesg
-print_2title "Searching Signature verification failed in dmseg"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#dmesg-signature-verification-failed"
-(dmesg 2>/dev/null | grep "signature") || echo_not_found "dmesg"
-echo ""
+if [ "$(command -v dmesg 2>/dev/null)" ] || [ "$VERBOSE" ]; then
+    print_2title "Searching Signature verification failed in dmesg"
+    print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#dmesg-signature-verification-failed"
+    (dmesg 2>/dev/null | grep "signature") || echo_not_found "dmesg"
+    echo ""
+fi
 
 #-- SY) Kernel extensions
 if [ "$MACPEAS" ]; then

@@ -130,7 +130,12 @@ checkContainerExploits() {
 containerCheck
 
 print_2title "Container related tools present"
-command -v "$CONTAINER_CMDS"
+command -v docker 
+command -v lxc 
+command -v rkt 
+command -v kubectl
+command -v podman
+command -v runc
 
 print_2title "Container details"
 print_list "Is this a container? ...........$NC $containerType"
