@@ -4,6 +4,7 @@ class FileRecord:
     def __init__(self,
                 regex: str,
                 bad_regex: str=DEFAULTS["bad_regex"],
+                very_bad_regex: str=DEFAULTS["very_bad_regex"],
                 check_extra_path: str =DEFAULTS["check_extra_path"],
                 files: dict={},
                 good_regex: str=DEFAULTS["good_regex"],
@@ -19,6 +20,7 @@ class FileRecord:
 
         self.regex = regex
         self.bad_regex = bad_regex
+        self.very_bad_regex = very_bad_regex
         self.check_extra_path = check_extra_path
         self.files = [FileRecord(regex=fr["name"],**fr["value"]) for fr in files]
         self.good_regex = good_regex
