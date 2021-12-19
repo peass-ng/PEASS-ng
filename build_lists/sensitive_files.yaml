@@ -66,6 +66,7 @@ common_directory_folders:
   - /var
 
 peas_checks: "peass{CHECKS}"
+peas_regexes_markup: "peass{REGEXES}"
 
 peas_extrasections_markup: "peass{EXTRA_SECTIONS}"
 
