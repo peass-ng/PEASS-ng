@@ -112,7 +112,7 @@ if [ "$(command -v perl 2>/dev/null)" ]; then
     echo ""
 fi
 
-if [ "$(command -v brew 2>/dev/null)" ]; then
+if [ "$MACPEAS" ] && [ "$(command -v brew 2>/dev/null)" ]; then
     print_2title "Brew Doctor Suggestions"
     brew doctor
     echo ""
