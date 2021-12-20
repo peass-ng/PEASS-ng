@@ -1,0 +1,204 @@
+paths:
+  - $HOMESEARCH 
+  - /etc 
+  - /opt 
+  - /tmp 
+  - /private
+  - /Applications
+  - /var/www
+  - /var/log
+  - /private/var/log
+  - /usr/local/www/ 
+  - $backup_folders_row
+
+
+regular_expresions:
+  # Hashes passwords
+  - name: Hashed Passwords
+    regexes:
+    - name: Apr1 MD5
+      regex: '\$apr1\$[a-zA-Z0-9_/\.]{8}\$[a-zA-Z0-9_/\.]{22}'
+    
+    - name: Apache SHA
+      regex: '\{SHA\}[0-9a-zA-Z/_=]{10,}'
+
+    - name: Blowfish
+      regex: '\$2[abxyz]?\$[0-9]{2}\$[a-zA-Z0-9_/\.]*'
+
+    - name: Drupal
+      regex: '\$S\$[a-zA-Z0-9_/\.]{52}'
+    
+    - name: Joomlavbulletin
+      regex: '[0-9a-zA-Z]{32}:[a-zA-Z0-9_]{16,32}'
+
+    - name: Linux MD5
+      regex: '\$1\$[a-zA-Z0-9_/\.]{8}\$[a-zA-Z0-9_/\.]{22}'
+    
+    - name: phpbb3
+      regex: '\$H\$[a-zA-Z0-9_/\.]{31}'
+
+    - name: sha512crypt
+      regex: '\$6\$[a-zA-Z0-9_/\.]{16}\$[a-zA-Z0-9_/\.]{86}'
+    
+    - name: Wordpress
+      regex: '\$P\$[a-zA-Z0-9_/\.]{31}'
+  
+
+  # Raw Hashes
+  - name: Raw Hashes
+    regexes:
+    #- name: md5 #Too many false positives
+    #  regex: '(^|[^a-zA-Z0-9])[a-fA-F0-9]{32}([^a-zA-Z0-9]|$)'
+    
+    #- name: sha1 #Too many false positives
+    #  regex: '(^|[^a-zA-Z0-9])[a-fA-F0-9]{40}([^a-zA-Z0-9]|$)'
+
+    #- name: sha256 #Too many false positives
+    #  regex: '(^|[^a-zA-Z0-9])[a-fA-F0-9]{64}([^a-zA-Z0-9]|$)'
+    
+    - name: sha512
+      regex: '(^|[^a-zA-Z0-9])[a-fA-F0-9]{128}([^a-zA-Z0-9]|$)'
+
+  # APIs
+  # https://github.com/l4yton/RegHex/blob/master/README.md
+  - name: APIs
+    regexes:
+    #- name: Artifactory API Token # False +
+    #  regex: 'AKC[a-zA-Z0-9]{10,}' # False +
+    
+    #- name: Artifactory Password
+    #  regex: 'AP[\dABCDEF][a-zA-Z0-9]{8,}'
+    
+    #- name: Authorization Basic # Too many false positives
+    #  regex: 'basic [a-zA-Z0-9_:\.=\-]+'
+    
+    #- name: Authorization Bearer # Too many false positives
+    #  regex: 'bearer [a-zA-Z0-9_\.=\-]+'
+    
+    - name: AWS Client ID
+      regex: '(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'
+      extra_grep: '-Ev ":#|:<\!\-\-"'
+    
+    - name: AWS MWS Key
+      regex: 'amzn\.mws\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+
+    - name: AWS Secret Key
+      regex: aws(.{0,20})?['"][0-9a-zA-Z\/+]{40}['"]
+    
+    #- name: Base32 #Too many false positives
+    #  regex: '(?:[A-Z2-7]{8})*(?:[A-Z2-7]{2}={6}|[A-Z2-7]{4}={4}|[A-Z2-7]{5}={3}|[A-Z2-7]{7}=)?'
+    
+    #- name: Base64 #Too many false positives
+    #  regex: '(eyJ|YTo|Tzo|PD[89]|aHR0cHM6L|aHR0cDo|rO0)[a-zA-Z0-9+/]+={0,2}'
+    
+    - name: Basic Auth Credentials
+      regex: '://[a-zA-Z0-9]+:[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+'
+    
+    - name: Cloudinary Basic Auth
+      regex: 'cloudinary://[0-9]{15}:[0-9A-Za-z]+@[a-z]+'
+
+    - name: Facebook Access Token
+      regex: 'EAACEdEose0cBA[0-9A-Za-z]+'
+
+    - name: Facebook Client ID
+      regex: ([fF][aA][cC][eE][bB][oO][oO][kK]|[fF][bB])(.{0,20})?['"][0-9]{13,17}
+    
+    - name: Facebook Oauth
+      regex: >
+        [fF][aA][cC][eE][bB][oO][oO][kK].*['|"][0-9a-f]{32}['|"]
+    
+    - name: Facebook Secret Key
+      regex: > 
+        ([fF][aA][cC][eE][bB][oO][oO][kK]|[fF][bB])(.{0,20})?['"][0-9a-f]{32}
+
+    - name: Github
+      regex: >
+        github(.{0,20})?['"][0-9a-zA-Z]{35,40}
+
+    - name: Google API Key
+      regex: 'AIza[0-9A-Za-z_\-]{35}'
+    
+    - name: Google Cloud Platform API Key
+      regex: >
+        (google|gcp|youtube|drive|yt)(.{0,20})?['"][AIza[0-9a-z_\-]{35}]['"]
+    
+    - name: Google Drive Oauth
+      regex: '[0-9]+-[0-9A-Za-z_]{32}\.apps\.googleusercontent\.com'
+    
+    - name: Google Oauth Access Token
+      regex: 'ya29\.[0-9A-Za-z_\-]+'
+    
+    - name: Heroku API Key
+      regex: '[hH][eE][rR][oO][kK][uU].{0,30}[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}'
+
+    - name: LinkedIn Client ID
+      regex: >
+        linkedin(.{0,20})?['"][0-9a-z]{12}['"]
+
+    - name: LinkedIn Secret Key
+      regex: >
+        linkedin(.{0,20})?['"][0-9a-z]{16}['"]
+    
+    - name: Mailchamp API Key
+      regex: '[0-9a-f]{32}-us[0-9]{1,2}'
+    
+    - name: Mailgun API Key
+      regex: 'key-[0-9a-zA-Z]{32}'
+
+    - name: Picatic API Key
+      regex: 'sk_live_[0-9a-z]{32}'
+
+    - name: Slack Token
+      regex: 'xox[baprs]-([0-9a-zA-Z]{10,48})?'
+
+    #- name: Slack Webhook #Not interesting
+    #  regex: 'https://hooks.slack.com/services/T[a-zA-Z0-9_]{10}/B[a-zA-Z0-9_]{10}/[a-zA-Z0-9_]{24}'
+
+    - name: Stripe API Key
+      regex: 'k_live_[0-9a-zA-Z]{24}'
+
+    - name: Square Access Token
+      regex: 'sqOatp-[0-9A-Za-z_\-]{22}'
+
+    - name: Square Oauth Secret
+      regex: 'sq0csp-[ 0-9A-Za-z_\-]{43}'
+
+    - name: Twilio API Key
+      regex: 'SK[0-9a-fA-F]{32}'
+
+    - name: Twitter Client ID
+      regex: >
+        [tT][wW][iI][tT][tT][eE][rR](.{0,20})?['"][0-9a-z]{18,25}
+
+    - name: Twitter Oauth
+      regex: >
+        [tT][wW][iI][tT][tT][eE][rR].{0,30}['"\\s][0-9a-zA-Z]{35,44}['"\\s]
+
+    - name: Twitter Secret Key
+      regex: >
+        [tT][wW][iI][tT][tT][eE][rR](.{0,20})?['"][0-9a-z]{35,44}
+
+    #- name: Vault Token #False +
+    #  regex: '[sb]\.[a-zA-Z0-9]{24}'
+
+  
+  # Misc
+  - name: Misc
+    regexes:
+    - name: Basic Auth
+      regex: '//(.+):(.+)@'
+
+    - name: Passwords1
+      regex: (pwd|passwd|password|PASSWD|PASSWORD|dbuser|dbpass).*[=:].+|define ?\('(\w*passw|\w*user|\w*datab)
+    
+    #- name: Passwords2
+    #  regex: 'passwd|creden|pwd'
+    
+    - name: Usernames
+      regex: 'username.*[=:].+'
+
+    #- name: IPs
+    #  regex: '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
+    
+    #- name: Emails # Too many false positives
+    #  regex: '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}'
