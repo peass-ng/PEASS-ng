@@ -172,4 +172,4 @@ jobs:
         run: linPEAS/linpeas.sh -h
       
       - name: Run macpeas
-        run: linPEAS/linpeas.sh -o SysI,Container,Devs,AvaSof,ProCronSrvcsTmrsSocks,Net,UsrI,SofI
+        run: linPEAS/linpeas.sh -o system_information,container,procs_crons_timers_srvcs_sockets,network_information,users_information,software_information

@@ -69,13 +69,12 @@ By default linpeas takes around **4 mins** to complete, but It could take from *
 
 **Other parameters:**
 - **-a** (all checks) - This will **execute also the check of processes during 1 min, will search more possible hashes inside files, and brute-force each user using `su` with the top2000 passwords.**
+- **-e** (extra enumeration) - This will execute **enumeration checkes that are avoided by default**
 - **-s** (superfast & stealth) - This will bypass some time consuming checks - **Stealth mode** (Nothing will be written to disk)
 - **-P** (Password) - Pass a password that will be used with `sudo -l` and bruteforcing other users
-- **-v** (verbose) - Print information about the checks that haven't discovered anything and about the time each check took
+- **-d** (Debug) - Print information about the checks that haven't discovered anything and about the time each check took
 
 This script has **several lists** included inside of it to be able to **color the results** in order to highlight PE vector.
-
-LinPEAS also **exports a new PATH** variable during the execution if common folders aren't present in the original PATH variable.
 
 ![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/help.png)
 
