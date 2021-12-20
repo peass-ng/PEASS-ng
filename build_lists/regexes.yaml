@@ -63,13 +63,11 @@ regular_expresions:
   # https://github.com/l4yton/RegHex/blob/master/README.md
   - name: APIs
     regexes:
-    - name: Artifactory API Token
-      regex: 'AKC[a-zA-Z0-9]{10,}'
-      extra_grep: '-i "arti"'
+    #- name: Artifactory API Token # False +
+    #  regex: 'AKC[a-zA-Z0-9]{10,}' # False +
     
-    - name: Artifactory Password
-      regex: 'AP[\dABCDEF][a-zA-Z0-9]{8,}'
-      extra_grep: '-i "arti"'
+    #- name: Artifactory Password
+    #  regex: 'AP[\dABCDEF][a-zA-Z0-9]{8,}'
     
     #- name: Authorization Basic # Too many false positives
     #  regex: 'basic [a-zA-Z0-9_:\.=\-]+'
@@ -103,15 +101,15 @@ regular_expresions:
       regex: 'EAACEdEose0cBA[0-9A-Za-z]+'
 
     - name: Facebook Client ID
-      regex: (facebook|fb)(.{0,20})?['"][0-9]{13,17}
+      regex: ([fF][aA][cC][eE][bB][oO][oO][kK]|[fF][bB])(.{0,20})?['"][0-9]{13,17}
     
     - name: Facebook Oauth
       regex: >
-        [f|F][a|A][c|C][e|E][b|B][o|O][o|O][k|K].*['|"][0-9a-f]{32}['|"]
+        [fF][aA][cC][eE][bB][oO][oO][kK].*['|"][0-9a-f]{32}['|"]
     
     - name: Facebook Secret Key
       regex: > 
-        (facebook|fb)(.{0,20})?['"][0-9a-f]{32}
+        ([fF][aA][cC][eE][bB][oO][oO][kK]|[fF][bB])(.{0,20})?['"][0-9a-f]{32}
 
     - name: Github
       regex: >
@@ -131,7 +129,7 @@ regular_expresions:
       regex: 'ya29\.[0-9A-Za-z_\-]+'
     
     - name: Heroku API Key
-      regex: '[h|H][e|E][r|R][o|O][k|K][u|U].{0,30}[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}'
+      regex: '[hH][eE][rR][oO][kK][uU].{0,30}[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}'
 
     - name: LinkedIn Client ID
       regex: >
@@ -153,8 +151,8 @@ regular_expresions:
     - name: Slack Token
       regex: 'xox[baprs]-([0-9a-zA-Z]{10,48})?'
 
-    - name: Slack Webhook
-      regex: 'https://hooks.slack.com/services/T[a-zA-Z0-9_]{10}/B[a-zA-Z0-9_]{10}/[a-zA-Z0-9_]{24}'
+    #- name: Slack Webhook #Not interesting
+    #  regex: 'https://hooks.slack.com/services/T[a-zA-Z0-9_]{10}/B[a-zA-Z0-9_]{10}/[a-zA-Z0-9_]{24}'
 
     - name: Stripe API Key
       regex: 'k_live_[0-9a-zA-Z]{24}'
@@ -169,19 +167,19 @@ regular_expresions:
       regex: 'SK[0-9a-fA-F]{32}'
 
     - name: Twitter Client ID
-      regex: twitter(.{0,20})?['"][0-9a-z]{18,25}
+      regex: >
+        [tT][wW][iI][tT][tT][eE][rR](.{0,20})?['"][0-9a-z]{18,25}
 
     - name: Twitter Oauth
       regex: >
-        [t|T][w|W][i|I][t|T][t|T][e|E][r|R].{0,30}['"\\s][0-9a-zA-Z]{35,44}['"\\s]
+        [tT][wW][iI][tT][tT][eE][rR].{0,30}['"\\s][0-9a-zA-Z]{35,44}['"\\s]
 
     - name: Twitter Secret Key
       regex: >
-        twitter(.{0,20})?['"][0-9a-z]{35,44}
+        [tT][wW][iI][tT][tT][eE][rR](.{0,20})?['"][0-9a-z]{35,44}
 
-    - name: Vault Token
-      regex: '[sb]\.[a-zA-Z0-9]{24}'
-      extra_grep: '-i "vault"'
+    #- name: Vault Token #False +
+    #  regex: '[sb]\.[a-zA-Z0-9]{24}'
 
   
   # Misc
