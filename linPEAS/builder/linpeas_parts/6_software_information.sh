@@ -567,6 +567,14 @@ if [ "$PSTORAGE_DOCKER" ] || [ "$DEBUG" ]; then
 elif [ "$DEBUG" ]; then echo_not_found
 fi
 
+if [ -d "$HOME/.kube" ] || [ -d "/etc/kubernetes" ] || [ -d "/var/lib/localkube" ] || [ "`(env | set) | grep -Ei 'kubernetes|kube'`" ] || [ "$DEBUG" ]; then
+  print_2title "Kubernetes information" | sed -${E} "s,config,${SED_RED},"
+  ls -l "$HOME/.kube" 2>/dev/null
+  grep -ERH "client-secret:|id-token:|refresh-token:" "$HOME/.kube" | sed -${E} "s,client-secret:.*|id-token:.*|refresh-token:.*,${SED_RED},"
+  (env | set) | grep -Ei "kubernetes|kube" | sed -${E} "s,kubernetes|kube,${SED_RED},"
+  ls -Rl /etc/kubernetes /var/lib/localkube 2>/dev/null
+fi
+
 peass{Firefox}
 
 peass{Chrome}
