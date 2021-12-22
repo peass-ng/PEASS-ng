@@ -192,13 +192,23 @@ if [ "$inContainer" ]; then
     if echo "$containerType" | grep -qi "docker"; then
         print_list "Container Full ID ..............$NC $(basename $(cat /proc/1/cpuset))\n"
     fi
-    if echo "$containerType" | grep -qi "kubernetes"; then
-        print_list "Kubernetes namespace ...........$NC $(cat /run/secrets/kubernetes.io/serviceaccount/namespace /secrets/kubernetes.io/serviceaccount/namespace 2>/dev/null)\n"
-        print_list "Kubernetes token ...............$NC $(cat /run/secrets/kubernetes.io/serviceaccount/token /secrets/kubernetes.io/serviceaccount/token 2>/dev/null)\n"
-    fi
 
     checkContainerExploits
     print_list "Vulnerable to CVE-2019-5021 .. $VULN_CVE_2019_5021\n"$NC | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+
+    if echo "$containerType" | grep -qi "kubernetes"; then
+        print_list "Kubernetes namespace ...........$NC $(cat /run/secrets/kubernetes.io/serviceaccount/namespace /var/run/secrets/kubernetes.io/serviceaccount/namespace /secrets/kubernetes.io/serviceaccount/namespace 2>/dev/null)\n"
+        print_list "Kubernetes token ...............$NC $(cat /run/secrets/kubernetes.io/serviceaccount/token /var/run/secrets/kubernetes.io/serviceaccount/token /secrets/kubernetes.io/serviceaccount/token 2>/dev/null)\n"
+        print_2title "Kubernetes Information"
+        echo ""
+        
+        print_3title "Kubernetes service account folder"
+        ls -lR /run/secrets/kubernetes.io/ /var/run/secrets/kubernetes.io/ /secrets/kubernetes.io/ 2>/dev/null
+        echo ""
+        
+        print_3title "Kubernetes env vars"
+        (env | set) | grep -Ei "kubernetes|kube"
+    fi
     echo ""
 
     print_2title "Container Capabilities"
