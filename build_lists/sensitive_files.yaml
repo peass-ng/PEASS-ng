@@ -706,6 +706,32 @@ search:
                 search_in: 
                   - common
 
+  - name: Kubelet
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "kubelet"
+            value: 
+                files:
+                  - name: "kubeconfig"
+                    value:
+                        bad_regex: "server:|cluster:|namespace:|user:|exec:"
+                type: d
+                search_in: 
+                  - /var
+          
+          - name: "kube-proxy"
+            value: 
+                files:
+                  - name: "kubeconfig"
+                    value:
+                        bad_regex: "cluster:|certificate-authority-data:|namespace:|user:|token:"
+                type: d
+                search_in: 
+                  - /var
+  
   - name: VNC
     value:
         config:

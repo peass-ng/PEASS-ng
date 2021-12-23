@@ -575,6 +575,8 @@ if [ -d "$HOME/.kube" ] || [ -d "/etc/kubernetes" ] || [ -d "/var/lib/localkube"
   ls -Rl /etc/kubernetes /var/lib/localkube 2>/dev/null
 fi
 
+peass{Kubelet}
+
 peass{Firefox}
 
 peass{Chrome}
