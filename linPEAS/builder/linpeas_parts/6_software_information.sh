@@ -72,7 +72,6 @@ if [ "$(command -v mysql)" ] || [ "$(command -v mysqladmin)" ] || [ "$DEBUG" ]; 
   else echo_no
   fi
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 #-- SI) Mysql credentials
@@ -109,7 +108,6 @@ if [ "$PSTORAGE_MYSQL" ] || [ "$DEBUG" ]; then
       echo "If you can login in MySQL you can execute commands doing: SELECT sys_eval('id');" | sed -${E} "s,.*,${SED_RED},"
     fi
   done
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 echo ""
 
@@ -140,7 +138,6 @@ if [ "$TIMEOUT" ] && [ "$(command -v psql)" ] || [ "$DEBUG" ]; then  # In some O
   else echo_no
   fi
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{Mongo}
@@ -177,9 +174,17 @@ peass{Anaconda ks}
 
 peass{VNC}
 
+peass{OpenVPN}
+
 peass{Ldap}
 
-peass{OpenVPN}
+if [ "$PSTORAGE_LOG4SHELL" ] || [ "$DEBUG" ]; then
+  print_2title "Searching Log4Shell vulnerable libraries"
+  printf "%s\n" "$PSTORAGE_LOG4SHELL" | while read f; do
+    echo "$f" | grep -E "log4j\-core\-(1\.|2\.[0-9][^0-9]|2\.1[0-6])" | sed -${E} "s,log4j\-core\-(1\.|2\.[0-9][^0-9]|2\.1[0-6]),${SED_RED},";
+  done
+  echo ""
+fi
 
 #-- SI) ssh files
 print_2title "Searching ssl/ssh files"
@@ -274,7 +279,6 @@ if [ "$pamdpass" ] || [ "$DEBUG" ]; then
   print_2title "Passwords inside pam.d"
   grep -Ri "passwd" /etc/pam.d/ 2>/dev/null | grep -v ":#" | sed "s,passwd,${SED_RED},"
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{NFS Exports}
@@ -331,7 +335,6 @@ if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$PSTORAGE_KERBEROS" ] || [ 
   klist 2>/dev/null || echo_not_found "klist"
   echo ""
 
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{Knockd}
@@ -341,8 +344,8 @@ peass{Kibana}
 peass{Elasticsearch}
 
 ##-- SI) Logstash
-print_2title "Searching logstash files"
 if [ "$PSTORAGE_LOGSTASH" ] || [ "$DEBUG" ]; then
+  print_2title "Searching logstash files"
   printf "$PSTORAGE_LOGSTASH"
   printf "%s\n" "$PSTORAGE_LOGSTASH" | while read d; do
     if [ -r "$d/startup.options" ]; then
@@ -352,7 +355,6 @@ if [ "$PSTORAGE_LOGSTASH" ] || [ "$DEBUG" ]; then
     cat "$d/conf.d/out*" | grep "exec\s*{\|command\s*=>" | sed -${E} "s,exec\W*\{|command\W*=>,${SED_RED},"
     cat "$d/conf.d/filt*" | grep "path\s*=>\|code\s*=>\|ruby\s*{" | sed -${E} "s,path\W*=>|code\W*=>|ruby\W*\{,${SED_RED},"
   done
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 echo ""
 
@@ -364,7 +366,6 @@ if [ "$PSTORAGE_VAULT_SSH_HELPER" ] || [ "$DEBUG" ]; then
   echo ""
   vault secrets list 2>/dev/null
   printf "%s\n" "$PSTORAGE_VAULT_SSH_TOKEN" | sed -${E} "s,.*,${SED_RED}," 2>/dev/null
-elif [ "$DEBUG" ]; then echo_not_found "vault-ssh-helper.hcl"
 fi
 echo ""
 
@@ -374,7 +375,6 @@ if [ "$adhashes" ] || [ "$DEBUG" ]; then
   print_2title "Searching AD cached hashes"
   ls -l "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 #-- SI) Screen sessions
@@ -391,7 +391,6 @@ if [ "$screensess" ] || [ "$screensess2" ] || [ "$DEBUG" ]; then
     echo "Other user screen socket is writable: $f" | sed "s,$f,${SED_RED_YELLOW},"
   done
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 #-- SI) Tmux sessions
@@ -408,7 +407,6 @@ if [ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ] || [ "$tmuxsess2" ] || [ "$DEBUG"
     echo "Other user tmux socket is writable: $f" | sed "s,$f,${SED_RED_YELLOW},"
   done
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{CouchDB}
@@ -431,7 +429,6 @@ if [ "$dovecotpass" ] || [ "$DEBUG" ]; then
     done
   fi
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{Mosquitto}
@@ -470,7 +467,6 @@ if [ "$PSTORAGE_SPLUNK" ] || [ "$SPLUNK_BIN" ] || [ "$DEBUG" ]; then
     fi
   done
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 if [ "$PSTORAGE_KCPASSWORD" ] || [ "$DEBUG" ]; then
@@ -481,7 +477,6 @@ if [ "$PSTORAGE_KCPASSWORD" ] || [ "$DEBUG" ]; then
     base64 "$f" 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
   done
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 ##-- SI) Gitlab
@@ -515,7 +510,6 @@ if [ "$(command -v gitlab-rails)" ] || [ "$(command -v gitlab-backup)" ] || [ "$
     echo ""
   done
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{Github}
@@ -538,7 +532,6 @@ if [ "$containerd" ] || [ "$DEBUG" ]; then
     ctr image list
   fi
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 ##-- SI) runc installed
@@ -550,7 +543,6 @@ if [ "$runc" ] || [ "$DEBUG" ]; then
     echo "runc was found in $runc, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"
   fi
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 #-- SI) Docker
@@ -564,7 +556,6 @@ if [ "$PSTORAGE_DOCKER" ] || [ "$DEBUG" ]; then
     fi
   done
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 if [ -d "$HOME/.kube" ] || [ -d "/etc/kubernetes" ] || [ -d "/var/lib/localkube" ] || [ "`(env | set) | grep -Ei 'kubernetes|kube' | grep -v "PSTORAGE_KUBELET|USEFUL_SOFTWARE"`" ] || [ "$DEBUG" ]; then
@@ -595,7 +586,6 @@ if (grep auth= /etc/login.conf 2>/dev/null | grep -v "^#" | grep -q skey) || [ "
   else
     ls -ld /etc/skey/ 2>/dev/null
   fi
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 echo ""
 
@@ -610,7 +600,6 @@ if (grep "auth=" /etc/login.conf 2>/dev/null | grep -v "^#" | grep -q yubikey) |
     ls -ld /var/db/yubikey/ 2>/dev/null
   fi
   echo ""
-elif [ "$DEBUG" ]; then echo_not_found
 fi
 
 peass{SNMP}
