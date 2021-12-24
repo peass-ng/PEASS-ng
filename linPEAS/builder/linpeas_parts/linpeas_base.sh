@@ -84,7 +84,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
       ${YELLOW}-p <PORT(s)> -d <IP/NETMASK>${BLUE} Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
       ${YELLOW}-i <IP> [-p <PORT(s)>]${BLUE} Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
       ${YELLOW}-t${BLUE} Automatic network scan (host discovery and port scanning) - This option writes to files
-      $GREEN Notice${BLUE} that if you select some network action, no PE check will be performed$NC"
+      $GREEN Notice${BLUE} that if you specify some network scan (options -d/-p/-i but NOT -t), no PE check will be performed$NC"
 
 while getopts "h?asd:p:i:P:qo:LMwNDte" opt; do
   case "$opt" in

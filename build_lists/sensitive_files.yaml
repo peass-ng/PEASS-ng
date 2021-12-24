@@ -795,6 +795,21 @@ search:
                 type: d
                 search_in: 
                   - common
+  
+  - name: Log4Shell
+    value:
+        config:
+          auto_check: False
+    
+        files:
+          - name: "log4j-core*.jar"
+            value: 
+                type: f
+                search_in: 
+                  - common
+                  - /lib
+                  - /lib32
+                  - /lib64
 
   - name: OpenVPN
     value:
