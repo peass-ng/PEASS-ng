@@ -118,15 +118,6 @@ jobs:
   Build_test_and_release_linpeas_master:
     runs-on: ubuntu-latest
 
-    name: Publish for ${{ matrix.peas }}
-    strategy:
-      matrix:
-        include:
-          - arch: any
-            peas: linpeas
-            artifact_name: linpeas.sh
-            asset_name: linpeas.sh
-
     steps:
       - uses: actions/checkout@v2
         with:
@@ -161,13 +152,11 @@ jobs:
       #- name: Run linpeas
       #  run: linPEAS/linpeas.sh -t
       
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
+      - name: Upload linpeas.sh
+        uses: actions/upload-artifact@v2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: linPEAS/${{ matrix.artifact_name }}
-          asset_name: ${{ matrix.asset_name }}
-          tag: ${{ github.ref }}
+          name: linpeas.sh
+          path: linpeas.sh
 
       - name: Create local changes
         run: git add linPEAS/.
