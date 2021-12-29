@@ -141,10 +141,6 @@ jobs:
           git clone https://github.com/carlospolop/sh2bin
           cd sh2bin
           bash build.sh ../linPEAS/linpeas.sh
-          mv builds/sh2bin_386 ../linPEAS/binaries/linpeas_386
-          mv builds/sh2bin_amd64 ../linPEAS/binaries/sh2bin_amd64
-          mv builds/sh2bin_arm ../linPEAS/binaries/linpeas_arm
-          mv builds/sh2bin_arm64 ../linPEAS/binaries/linpeas_arm64
           cd ..
           rm -rf sh2bin
           
