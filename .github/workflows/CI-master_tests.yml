@@ -11,7 +11,7 @@ jobs:
 
   Build_and_test_winpeas_master:
     runs-on: windows-latest
-    needs: Build_and_test_linpeas_master
+    needs: Build_test_and_release_linpeas_master
     
     # environment variables
     env:
