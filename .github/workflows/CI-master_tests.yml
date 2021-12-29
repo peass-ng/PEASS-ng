@@ -121,7 +121,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: refs/heads/${{ github.head_ref }}
+          ref: ${{ github.head_ref }}
 
       
       - uses: actions/setup-go@v2
