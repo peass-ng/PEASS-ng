@@ -126,7 +126,7 @@ jobs:
       
       - uses: actions/setup-go@v2
         with:
-           go-version: "^go1.17"
+           go-version: "^go1.16.0"
       - run: go version
 
       - name: Build linpeas
