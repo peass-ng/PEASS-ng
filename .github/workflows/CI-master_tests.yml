@@ -115,8 +115,18 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           force: true
 
-  Build_and_test_linpeas_master:
+  Build_test_and_release_linpeas_master:
     runs-on: ubuntu-latest
+
+    name: Publish for ${{ matrix.peas }}
+    runs-on: ${{ matrix.arch }}
+    strategy:
+      matrix:
+        include:
+          - arch: any
+            peas: linpeas
+            artifact_name: linpeas.sh
+            asset_name: linpeas.sh
 
     steps:
       - uses: actions/checkout@v2
@@ -125,6 +135,8 @@ jobs:
           # Otherwise, you will failed to push refs to dest repo.
           fetch-depth: 0
           ref: refs/heads/${{ github.head_ref }}
+      
+      - uses: actions/setup-go@v2
 
       - name: Build linpeas
         run: |
@@ -132,23 +144,31 @@ jobs:
           cd linPEAS
           python3 -m builder.linpeas_builder
       
-      - name: Build linpeas binaries 
-        run: |
-          git clone https://github.com/carlospolop/sh2bin
-          cd sh2bin
-          bash build.sh ../linPEAS/linpeas.sh
-          mv builds/sh2bin_386 ../linPEAS/binaries/linpeas_386
-          mv builds/sh2bin_amd64 ../linPEAS/binaries/sh2bin_amd64
-          mv builds/sh2bin_arm ../linPEAS/binaries/linpeas_arm
-          mv builds/sh2bin_arm64 ../linPEAS/binaries/linpeas_arm64
-          cd ..
-          rm -rf sh2bin
+      #- name: Build linpeas binaries 
+      #  run: |
+      #    git clone https://github.com/carlospolop/sh2bin
+      #    cd sh2bin
+      #    bash build.sh ../linPEAS/linpeas.sh
+      #    mv builds/sh2bin_386 ../linPEAS/binaries/linpeas_386
+      #    mv builds/sh2bin_amd64 ../linPEAS/binaries/sh2bin_amd64
+      #    mv builds/sh2bin_arm ../linPEAS/binaries/linpeas_arm
+      #    mv builds/sh2bin_arm64 ../linPEAS/binaries/linpeas_arm64
+      #    cd ..
+      #    rm -rf sh2bin
           
       - name: Run linpeas help
         run: linPEAS/linpeas.sh -h
         
-      - name: Run linpeas
-        run: linPEAS/linpeas.sh -t
+      #- name: Run linpeas
+      #  run: linPEAS/linpeas.sh -t
+      
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: linPEAS/${{ matrix.artifact_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.ref }}
 
       - name: Create local changes
         run: git add linPEAS/.
