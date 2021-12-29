@@ -92,37 +92,37 @@ jobs:
       - name: Upload winpeasx64
         uses: actions/upload-artifact@v2
         with:
-          name: winpeasx64
+          name: winPEASx64.exe
           path: winPEAS\winPEASexe\binaries\x64\Release\winPEASx64.exe
       
       - name: Upload winpeasx86
         uses: actions/upload-artifact@v2
         with:
-          name: winpeasx86
+          name: winPEASx86.exe
           path: winPEAS\winPEASexe\binaries\x86\Release\winPEASx86.exe
       
       - name: Upload winpeasany
         uses: actions/upload-artifact@v2
         with:
-          name: winpeasany
+          name: winPEASany.exe
           path: winPEAS\winPEASexe\binaries\Release\winPEASany.exe
       
       - name: Upload winpeasx64ofs
         uses: actions/upload-artifact@v2
         with:
-          name: winpeasx64ofs
+          name: winPEASx64_ofs.exe
           path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64.exe
       
       - name: Upload winpeasx86ofs
         uses: actions/upload-artifact@v2
         with:
-          name: winpeasx86ofs
+          name: winPEASx86_ofs.exe
           path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86.exe
           
       - name: Upload winpeasanyofs
         uses: actions/upload-artifact@v2
         with:
-          name: winpeasanyofs
+          name: winPEASany_ofs.exe
           path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany.exe
           
       # Git add
@@ -164,18 +164,20 @@ jobs:
       - run: go version
       
       # Build linpeas
-      - name: Build linpeas
-        run: |
-          python3 -m pip install PyYAML
-          cd linPEAS
-          python3 -m builder.linpeas_builder
+      #- name: Build linpeas
+      #  run: |
+      #    python3 -m pip install PyYAML
+      #    cd linPEAS
+      #    python3 -m builder.linpeas_builder
       
       # Build linpeas binaries
       - name: Build linpeas binaries 
         run: |
           git clone https://github.com/carlospolop/sh2bin
           cd sh2bin
-          bash build.sh ../linPEAS/linpeas.sh          
+          bash build.sh ../linPEAS/linpeas.sh
+      
+      - run: ls -lR
       
       # Run linpeas help as quick test
       - name: Run linpeas help
@@ -218,23 +220,11 @@ jobs:
           path: sh2bin/builds/sh2bin_linux_arm64
       
       ## Darwin bins
-      - name: Upload linpeas_darwin_386
-        uses: actions/upload-artifact@v2
-        with:
-          name: linpeas_darwin_386
-          path: sh2bin/builds/sh2bin_darwin_386
-      
       - name: Upload linpeas_darwin_amd64
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_darwin_amd64
           path: sh2bin/builds/sh2bin_darwin_amd64
-      
-      - name: Upload linpeas_darwin_arm
-        uses: actions/upload-artifact@v2
-        with:
-          name: linpeas_darwin_arm
-          path: sh2bin/builds/sh2bin_darwin_arm
           
       - name: Upload linpeas_darwin_arm64
         uses: actions/upload-artifact@v2
@@ -322,20 +312,10 @@ jobs:
       with:
         name: linpeas_linux_arm64
 
-    - name: Download linpeas_darwin_386
-      uses: actions/download-artifact@v2
-      with:
-        name: linpeas_darwin_386
-
     - name: Download linpeas_darwin_amd64
       uses: actions/download-artifact@v2
       with:
         name: linpeas_darwin_amd64
-
-    - name: Download linpeas_darwin_arm
-      uses: actions/download-artifact@v2
-      with:
-        name: linpeas_darwin_arm
 
     - name: Download linpeas_darwin_arm64
       uses: actions/download-artifact@v2
