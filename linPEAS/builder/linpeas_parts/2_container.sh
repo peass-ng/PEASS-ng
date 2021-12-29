@@ -228,7 +228,7 @@ if [ "$inContainer" ]; then
     echo ""
 
     print_2title "Interesting Files Mounted"
-    (mount -l || cat /proc/self/mountinfo || cat /proc/1/mountinfo || cat /proc/mounts || cat /proc/self/mounts || cat /proc/1/mounts )2>/dev/null | grep -Ev "$GREP_IGNORE_MOUNTS"
+    (mount -l || cat /proc/self/mountinfo || cat /proc/1/mountinfo || cat /proc/mounts || cat /proc/self/mounts || cat /proc/1/mounts )2>/dev/null | grep -Ev "$GREP_IGNORE_MOUNTS" | sed -${E} "s,docker.sock,${SED_RED_YELLOW},"
     echo ""
 
     print_2title "Possible Entrypoints"

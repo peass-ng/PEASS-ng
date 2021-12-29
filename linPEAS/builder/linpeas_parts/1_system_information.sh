@@ -69,6 +69,31 @@ if [ "$EXTRA_CHECKS" ]; then
     echo ""
 fi
 
+if [ -d "/dev" ] || [ "$DEBUG" ] ; then
+    print_2title "Any sd*/disk* disk in /dev? (limit 20)"
+    ls /dev 2>/dev/null | grep -Ei "^sd|^disk" | sed "s,crypt,${SED_RED}," | head -n 20
+    echo ""
+fi
+
+if [ -f "/etc/fstab" ] || [ "$DEBUG" ]; then
+    print_2title "Unmounted file-system?"
+    print_info "Check if you can mount umounted devices"
+    grep -v "^#" /etc/fstab 2>/dev/null | grep -Ev "\W+\#|^#" | sed -${E} "s,$mountG,${SED_GREEN},g" | sed -${E} "s,$notmounted,${SED_RED}," | sed -${E} "s,$mounted,${SED_BLUE}," | sed -${E} "s,$Wfolders,${SED_RED}," | sed -${E} "s,$mountpermsB,${SED_RED},g" | sed -${E} "s,$mountpermsG,${SED_GREEN},g"
+    echo ""
+fi
+
+if ([ "$(command -v diskutil)" ] || [ "$DEBUG" ]) && [ "$EXTRA_CHECKS" ]; then
+    print_2title "Mounted disks information"
+    warn_exec diskutil list
+    echo ""
+fi
+
+if [ "$(command -v smbutil)" ] || [ "$DEBUG" ]; then
+    print_2title "Mounted SMB Shares"
+    warn_exec smbutil statshares -a
+    echo ""
+fi
+
 #-- SY) Environment vars
 print_2title "Environment"
 print_info "Any private information inside environment variables?"
