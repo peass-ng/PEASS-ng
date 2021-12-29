@@ -26,8 +26,4 @@ Are you a PEASS fan? Get now our merch at **[PEASS Shop](https://teespring.com/s
 
 All the scripts/binaries of the PEAS Suite should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
 
-## License
-
-MIT License
-
 By Polop<sup>(TM)</sup>
