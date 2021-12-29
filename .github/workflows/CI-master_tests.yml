@@ -41,8 +41,8 @@ jobs:
         run: msbuild $env:Solution_Path
         
       # Execute all unit tests in the solution
-      #- name: Execute unit tests
-      #  run: dotnet test $env:Solution_Path
+      - name: Execute unit tests
+        run: dotnet test $env:Solution_Path
         
       # Build & update all versions
       - name: Build all versions
@@ -183,8 +183,8 @@ jobs:
         run: linPEAS/linpeas.sh -h
       
       # Run linpeas as a test
-      #- name: Run linpeas
-      #  run: linPEAS/linpeas.sh -t
+      - name: Run linpeas
+        run: linPEAS/linpeas.sh -t -e
       
       # Upload files for release
       - name: Upload linpeas.sh
@@ -249,10 +249,34 @@ jobs:
      #     branch: ${{ github.head_ref }}
      #     github_token: ${{ secrets.GITHUB_TOKEN }}
      #     force: true
+  
+  Build_and_test_macpeas_master:
+    runs-on: macos-latest
+
+    steps:
+      # Download repo
+      - uses: actions/checkout@v2
+      
+      # Build linpeas
+      - name: Build macpeas
+        run: |
+          python3 -m pip install PyYAML
+          python3 -m pip install requests
+          cd linPEAS
+          python3 -m builder.linpeas_builder
+      
+      # Run linpeas help as quick test
+      - name: Run macpeas help
+        run: linPEAS/linpeas.sh -h
+      
+      # Run macpeas parts to test it
+      - name: Run macpeas
+        run: linPEAS/linpeas.sh -o system_information,container,procs_crons_timers_srvcs_sockets,network_information,users_information,software_information
+
      
   Publish_release:
     runs-on: ubuntu-latest
-    needs: [Build_and_test_winpeas_master,Build_and_test_linpeas_master]
+    needs: [Build_and_test_winpeas_master, Build_and_test_linpeas_master, Build_and_test_macpeas_master]
 
     steps:
     # Download files to release
@@ -340,27 +364,4 @@ jobs:
         assets_path: .
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-  Build_and_test_macpeas_master:
-    runs-on: macos-latest
-
-    steps:
-      # Download repo
-      - uses: actions/checkout@v2
-      
-      # Build linpeas
-      - name: Build macpeas
-        run: |
-          python3 -m pip install PyYAML
-          python3 -m pip install requests
-          cd linPEAS
-          python3 -m builder.linpeas_builder
-      
-      # Run linpeas help as quick test
-      - name: Run macpeas help
-        run: linPEAS/linpeas.sh -h
-      
-      # Run macpeas parts to test it
-      - name: Run macpeas
-        run: linPEAS/linpeas.sh -o system_information,container,procs_crons_timers_srvcs_sockets,network_information,users_information,software_information
+  
