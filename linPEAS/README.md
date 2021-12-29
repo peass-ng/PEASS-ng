@@ -13,7 +13,7 @@ Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks
 Just execute `linpeas.sh` in a MacOS system and the **MacPEAS version will be automatically executed**
 
 ## Quick Start
-Find the **latest versions of all the scripts and binaries in [the releases page](https://github.com/carlospolop/PEASS-ng/releases/tag/refs%2Fheads%2Fmaster)**.
+Find the **latest versions of all the scripts and binaries in [the releases page](https://github.com/carlospolop/PEASS-ng/releases/latest)**.
 
 ```bash
 # From github
