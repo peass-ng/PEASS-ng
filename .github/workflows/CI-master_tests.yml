@@ -196,7 +196,7 @@ jobs:
       
       # Run linpeas as a test
       - name: Run linpeas
-        run: linPEAS/linpeas.sh -t -e
+        run: linPEAS/linpeas.sh -a
       
       # Upload files for release
       - name: Upload linpeas.sh
