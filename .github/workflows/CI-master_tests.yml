@@ -132,17 +132,17 @@ jobs:
           cd linPEAS
           python3 -m builder.linpeas_builder
       
-      #- name: Build linpeas binaries 
-      #  run: |
-      #    git clone https://github.com/carlospolop/sh2bin
-      #    cd sh2bin
-      #    bash build.sh ../linPEAS/linpeas.sh
-      #    mv builds/sh2bin_386 ../linPEAS/binaries/linpeas_386
-      #    mv builds/sh2bin_amd64 ../linPEAS/binaries/sh2bin_amd64
-      #    mv builds/sh2bin_arm ../linPEAS/binaries/linpeas_arm
-      #    mv builds/sh2bin_arm64 ../linPEAS/binaries/linpeas_arm64
-      #    cd ..
-      #    rm -rf sh2bin
+      - name: Build linpeas binaries 
+        run: |
+          git clone https://github.com/carlospolop/sh2bin
+          cd sh2bin
+          bash build.sh ../linPEAS/linpeas.sh
+          mv builds/sh2bin_386 ../linPEAS/binaries/linpeas_386
+          mv builds/sh2bin_amd64 ../linPEAS/binaries/sh2bin_amd64
+          mv builds/sh2bin_arm ../linPEAS/binaries/linpeas_arm
+          mv builds/sh2bin_arm64 ../linPEAS/binaries/linpeas_arm64
+          cd ..
+          rm -rf sh2bin
           
       - name: Run linpeas help
         run: linPEAS/linpeas.sh -h
@@ -155,6 +155,30 @@ jobs:
         with:
           name: linpeas.sh
           path: linPEAS/linpeas.sh
+      
+      - name: Upload linpeas_386
+        uses: actions/upload-artifact@v2
+        with:
+          name: linpeas_386
+          path: sh2bin/builds/sh2bin_386
+      
+      - name: Upload linpeas_amd64
+        uses: actions/upload-artifact@v2
+        with:
+          name: linpeas_amd64
+          path: sh2bin/builds/sh2bin_amd64
+      
+      - name: Upload linpeas_arm
+        uses: actions/upload-artifact@v2
+        with:
+          name: linpeas_arm
+          path: sh2bin/builds/sh2bin_arm
+          
+      - name: Upload linpeas_arm64
+        uses: actions/upload-artifact@v2
+        with:
+          name: linpeas_arm64
+          path: sh2bin/builds/sh2bin_arm64
 
       - name: Create local changes
         run: git add linPEAS/.
@@ -169,7 +193,7 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-          branch: refs/heads/${{ github.head_ref }}
+          branch: ${{ github.head_ref }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           force: true
 
