@@ -196,7 +196,7 @@ jobs:
       
       # Run linpeas as a test
       - name: Run linpeas
-        run: linPEAS/linpeas.sh -a -v
+        run: linPEAS/linpeas.sh -a -d
       
       # Upload files for release
       - name: Upload linpeas.sh
@@ -283,7 +283,7 @@ jobs:
       
       # Run macpeas parts to test it
       - name: Run macpeas
-        run: linPEAS/linpeas.sh -v -o system_information,container,procs_crons_timers_srvcs_sockets,network_information,users_information,software_information
+        run: linPEAS/linpeas.sh -d -o system_information,container,procs_crons_timers_srvcs_sockets,network_information,users_information,software_information
 
      
   Publish_release:
