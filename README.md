@@ -19,7 +19,7 @@ These tools search for possible **local privilege escalation paths** that you co
 - **[LinPEAS](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/linPEAS) - Linux local Privilege Escalation Awesome Script (.sh)**
 
 ## Quick Start
-Find the **latest versions of all the scripts and binaries in [the releases page](https://github.com/carlospolop/PEASS-ng/releases/tag/refs%2Fheads%2Fmaster)**.
+Find the **latest versions of all the scripts and binaries in [the releases page](https://github.com/carlospolop/PEASS-ng/releases/latest)**.
 
 ## Let's improve PEASS together
 
