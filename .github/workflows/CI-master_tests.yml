@@ -119,12 +119,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
-        with:
-          persist-credentials: false
-          # Otherwise, you will failed to push refs to dest repo.
-          fetch-depth: 0
-          ref: refs/heads/${{ github.head_ref }}
+      - uses: actions/checkout@v2
       
       - uses: actions/setup-go@v2
 
