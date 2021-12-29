@@ -131,6 +131,18 @@ jobs:
           python3 -m pip install PyYAML
           cd linPEAS
           python3 -m builder.linpeas_builder
+      
+      - name: Build linpeas binaries 
+        run: |
+          git clone https://github.com/carlospolop/sh2bin
+          cd sh2bin
+          bash build.sh ../linPEAS/linpeas.sh
+          mv builds/sh2bin_386 ../linPEAS/binaries/linpeas_386
+          mv builds/sh2bin_amd64 ../linPEAS/binaries/sh2bin_amd64
+          mv builds/sh2bin_arm ../linPEAS/binaries/linpeas_arm
+          mv builds/sh2bin_arm64 ../linPEAS/binaries/linpeas_arm64
+          cd ..
+          rm -rf sh2bin
           
       - name: Run linpeas help
         run: linPEAS/linpeas.sh -h
@@ -139,7 +151,7 @@ jobs:
         run: linPEAS/linpeas.sh -t
 
       - name: Create local changes
-        run: git add linPEAS/linpeas.sh
+        run: git add linPEAS/.
 
       - name: Commit results to Github
         run: |
