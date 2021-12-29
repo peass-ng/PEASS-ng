@@ -119,7 +119,6 @@ jobs:
     runs-on: ubuntu-latest
 
     name: Publish for ${{ matrix.peas }}
-    runs-on: ${{ matrix.arch }}
     strategy:
       matrix:
         include:
