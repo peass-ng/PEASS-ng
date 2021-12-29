@@ -120,6 +120,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: refs/heads/${{ github.head_ref }}
+
       
       - uses: actions/setup-go@v2
 
@@ -151,7 +154,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: linpeas.sh
-          path: linpeas.sh
+          path: linPEAS/linpeas.sh
 
       - name: Create local changes
         run: git add linPEAS/.
