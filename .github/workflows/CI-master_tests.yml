@@ -150,35 +150,65 @@ jobs:
       #- name: Run linpeas
       #  run: linPEAS/linpeas.sh -t
       
+      # Upload files
+      
       - name: Upload linpeas.sh
         uses: actions/upload-artifact@v2
         with:
           name: linpeas.sh
           path: linPEAS/linpeas.sh
       
-      - name: Upload linpeas_386
-        uses: actions/upload-artifact@v2
-        with:
-          name: linpeas_386
-          path: sh2bin/builds/sh2bin_386
+      # Linux bins
       
-      - name: Upload linpeas_amd64
+      - name: Upload sh2bin_linux_386
         uses: actions/upload-artifact@v2
         with:
-          name: linpeas_amd64
-          path: sh2bin/builds/sh2bin_amd64
+          name: linpeas_linux_386
+          path: sh2bin/builds/sh2bin_linux_386
       
-      - name: Upload linpeas_arm
+      - name: Upload sh2bin_linux_amd64
         uses: actions/upload-artifact@v2
         with:
-          name: linpeas_arm
-          path: sh2bin/builds/sh2bin_arm
+          name: linpeas_linux_amd64
+          path: sh2bin/builds/sh2bin_linux_amd64
+      
+      - name: Upload sh2bin_linux_arm
+        uses: actions/upload-artifact@v2
+        with:
+          name: linpeas_linux_arm
+          path: sh2bin/builds/sh2bin_linux_arm
           
-      - name: Upload linpeas_arm64
+      - name: Upload sh2bin_linux_arm64
         uses: actions/upload-artifact@v2
         with:
-          name: linpeas_arm64
-          path: sh2bin/builds/sh2bin_arm64
+          name: linpeas_linux_arm64
+          path: sh2bin/builds/sh2bin_linux_arm64
+      
+      # Darwin bins
+      
+      - name: Upload sh2bin_darwin_386
+        uses: actions/upload-artifact@v2
+        with:
+          name: linpeas_darwin_386
+          path: sh2bin/builds/sh2bin_darwin_386
+      
+      - name: Upload sh2bin_darwin_amd64
+        uses: actions/upload-artifact@v2
+        with:
+          name: linpeas_darwin_amd64
+          path: sh2bin/builds/sh2bin_darwin_amd64
+      
+      - name: Upload sh2bin_darwin_arm
+        uses: actions/upload-artifact@v2
+        with:
+          name: linpeas_darwin_arm
+          path: sh2bin/builds/sh2bin_darwin_arm
+          
+      - name: Upload sh2bin_darwin_arm64
+        uses: actions/upload-artifact@v2
+        with:
+          name: linpeas_darwin_arm64
+          path: sh2bin/builds/sh2bin_darwin_arm64
 
       - name: Create local changes
         run: git add linPEAS/.
