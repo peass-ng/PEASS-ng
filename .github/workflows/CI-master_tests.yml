@@ -8,10 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-
   Build_and_test_winpeas_master:
     runs-on: windows-latest
-    needs: Build_test_and_release_linpeas_master
     
     # environment variables
     env:
@@ -46,8 +44,8 @@ jobs:
         run: msbuild $env:Solution_Path
         
       # Execute all unit tests in the solution
-      - name: Execute unit tests
-        run: dotnet test $env:Solution_Path
+      #- name: Execute unit tests
+      #  run: dotnet test $env:Solution_Path
         
       # Build & update all versions
       - name: Build all versions
@@ -92,147 +90,290 @@ jobs:
             cp $env:DotFuscatorGeneratedPath\x64\winPEASx64.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64.exe"            
             cp $env:DotFuscatorGeneratedPath\x86\winPEASx86.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86.exe"
             cp $env:DotFuscatorGeneratedPath\any\winPEASany.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany.exe"
-      # Git add
-      - name: Create local changes
-        run: |
-            git add winPEAS\winPEASexe\binaries\Release\*
-            git add winPEAS\winPEASexe\binaries\x64\*
-            git add winPEAS\winPEASexe\binaries\x86\*
-            git add "winPEAS\winPEASexe\binaries\Obfuscated Releases\*.exe"
-      # Git commit
-      - name: Commit results to Github
-        run: |
-          git config --local user.email "ci@winpeas.com"
-          git config --global user.name "CI-winpeas"
-          git pull origin "${{ github.ref }}" --autostash --rebase -Xours
-          git commit -m "winpeas binaries auto update" -a --allow-empty
       
-      # Git push
-      - name: Push changes
-        uses: ad-m/github-push-action@master
+      # Upload all the versions for the release
+      - name: Upload winpeasx64
+        uses: actions/upload-artifact@v2
         with:
-          branch: refs/heads/${{ github.head_ref }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          force: true
+          name: winpeasx64
+          path: winPEAS\winPEASexe\binaries\x64\Release\winPEASx64.exe
+      
+      - name: Upload winpeasx86
+        uses: actions/upload-artifact@v2
+        with:
+          name: winpeasx86
+          path: winPEAS\winPEASexe\binaries\x86\Release\winPEASx86.exe
+      
+      - name: Upload winpeasany
+        uses: actions/upload-artifact@v2
+        with:
+          name: winpeasany
+          path: winPEAS\winPEASexe\binaries\Release\winPEASany.exe
+      
+      - name: Upload winpeasx64ofs
+        uses: actions/upload-artifact@v2
+        with:
+          name: winpeasx64ofs
+          path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64.exe
+      
+      - name: Upload winpeasx86ofs
+        uses: actions/upload-artifact@v2
+        with:
+          name: winpeasx86ofs
+          path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86.exe
+          
+      - name: Upload winpeasanyofs
+        uses: actions/upload-artifact@v2
+        with:
+          name: winpeasanyofs
+          path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany.exe
+          
+      # Git add
+      #- name: Create local changes
+      #  run: |
+      #      git add winPEAS\winPEASexe\binaries\Release\*
+      #      git add winPEAS\winPEASexe\binaries\x64\*
+      #      git add winPEAS\winPEASexe\binaries\x86\*
+      #      git add "winPEAS\winPEASexe\binaries\Obfuscated Releases\*.exe"
+      # Git commit
+      #- name: Commit results to Github
+      #  run: |
+      #    git config --local user.email "ci@winpeas.com"
+      #    git config --global user.name "CI-winpeas"
+      #    git pull origin "${{ github.ref }}" --autostash --rebase -Xours
+      #    git commit -m "winpeas binaries auto update" -a --allow-empty
+      # Git push
+      #- name: Push changes
+      #  uses: ad-m/github-push-action@master
+      #  with:
+      #    branch: refs/heads/${{ github.head_ref }}
+      #    github_token: ${{ secrets.GITHUB_TOKEN }}
+      #    force: true
 
-  Build_test_and_release_linpeas_master:
+  Build_and_test_linpeas_master:
     runs-on: ubuntu-latest
 
     steps:
+      # Download repo
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
-
       
+      # Setup go
       - uses: actions/setup-go@v2
         with:
           go-version: 1.17.0-rc1
           stable: false
       - run: go version
-
+      
+      # Build linpeas
       - name: Build linpeas
         run: |
           python3 -m pip install PyYAML
           cd linPEAS
           python3 -m builder.linpeas_builder
       
+      # Build linpeas binaries
       - name: Build linpeas binaries 
         run: |
           git clone https://github.com/carlospolop/sh2bin
           cd sh2bin
-          bash build.sh ../linPEAS/linpeas.sh
-          cd ..
-          rm -rf sh2bin
-          
+          bash build.sh ../linPEAS/linpeas.sh          
+      
+      # Run linpeas help as quick test
       - name: Run linpeas help
         run: linPEAS/linpeas.sh -h
-        
+      
+      # Run linpeas as a test
       #- name: Run linpeas
       #  run: linPEAS/linpeas.sh -t
       
-      # Upload files
-      
+      # Upload files for release
       - name: Upload linpeas.sh
         uses: actions/upload-artifact@v2
         with:
           name: linpeas.sh
           path: linPEAS/linpeas.sh
       
-      # Linux bins
-      
-      - name: Upload sh2bin_linux_386
+      ## Linux bins
+      - name: Upload linpeas_linux_386
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_linux_386
           path: sh2bin/builds/sh2bin_linux_386
       
-      - name: Upload sh2bin_linux_amd64
+      - name: Upload linpeas_linux_amd64
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_linux_amd64
           path: sh2bin/builds/sh2bin_linux_amd64
       
-      - name: Upload sh2bin_linux_arm
+      - name: Upload linpeas_linux_arm
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_linux_arm
           path: sh2bin/builds/sh2bin_linux_arm
           
-      - name: Upload sh2bin_linux_arm64
+      - name: Upload linpeas_linux_arm64
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_linux_arm64
           path: sh2bin/builds/sh2bin_linux_arm64
       
-      # Darwin bins
-      
-      - name: Upload sh2bin_darwin_386
+      ## Darwin bins
+      - name: Upload linpeas_darwin_386
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_darwin_386
           path: sh2bin/builds/sh2bin_darwin_386
       
-      - name: Upload sh2bin_darwin_amd64
+      - name: Upload linpeas_darwin_amd64
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_darwin_amd64
           path: sh2bin/builds/sh2bin_darwin_amd64
       
-      - name: Upload sh2bin_darwin_arm
+      - name: Upload linpeas_darwin_arm
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_darwin_arm
           path: sh2bin/builds/sh2bin_darwin_arm
           
-      - name: Upload sh2bin_darwin_arm64
+      - name: Upload linpeas_darwin_arm64
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_darwin_arm64
           path: sh2bin/builds/sh2bin_darwin_arm64
-
-      - name: Create local changes
-        run: git add linPEAS/.
-
-      - name: Commit results to Github
-        run: |
-          git config --local user.email ""
-          git config --global user.name "CI-linpeas-ubuntu"
-          git pull origin "${{ github.ref }}" --autostash --rebase -Xours
-          git commit -m "linpeas.sh auto update" -a --allow-empty
       
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          branch: ${{ github.head_ref }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          force: true
+      # Clean sh2bin repo
+      - name: Cleaning sh2bin
+        run: rm -rf sh2bin
+
+     # - name: Create local changes
+     #   run: git add linPEAS/linpeas.sh
+     # - name: Commit results to Github
+     #   run: |
+     #     git config --local user.email ""
+     #     git config --global user.name "CI-linpeas-ubuntu"
+     #     git pull origin "${{ github.ref }}" --autostash --rebase -Xours
+     #     git commit -m "linpeas.sh auto update" -a --allow-empty
+     # - name: Push changes
+     #   uses: ad-m/github-push-action@master
+     #   with:
+     #     branch: ${{ github.head_ref }}
+     #     github_token: ${{ secrets.GITHUB_TOKEN }}
+     #     force: true
+     
+  Publish_release:
+    runs-on: ubuntu-latest
+    needs: [Build_and_test_winpeas_master,Build_and_test_linpeas_master]
+
+    steps:
+    # Download files to release
+    - name: Download winpeasx64
+      uses: actions/download-artifact@v2
+      with:
+        name: winpeasx64
+    
+    - name: Download winpeasx86
+      uses: actions/download-artifact@v2
+      with:
+        name: winpeasx86
+
+    - name: Download winpeasany
+      uses: actions/download-artifact@v2
+      with:
+        name: winpeasany
+
+    - name: Download winpeasx64ofs
+      uses: actions/download-artifact@v2
+      with:
+        name: winpeasx64ofs
+
+    - name: Download winpeasx86ofs
+      uses: actions/download-artifact@v2
+      with:
+        name: winpeasx86ofs
+
+    - name: Download winpeasanyofs
+      uses: actions/download-artifact@v2
+      with:
+        name: winpeasanyofs
+
+    - name: Download linpeas.sh
+      uses: actions/download-artifact@v2
+      with:
+        name: linpeas.sh
+
+    - name: Download linpeas_linux_386
+      uses: actions/download-artifact@v2
+      with:
+        name: linpeas_linux_386
+
+    - name: Download linpeas_linux_amd64
+      uses: actions/download-artifact@v2
+      with:
+        name: linpeas_linux_amd64
+
+    - name: Download linpeas_linux_arm
+      uses: actions/download-artifact@v2
+      with:
+        name: linpeas_linux_arm
+
+    - name: Download linpeas_linux_arm64
+      uses: actions/download-artifact@v2
+      with:
+        name: linpeas_linux_arm64
+
+    - name: Download linpeas_darwin_386
+      uses: actions/download-artifact@v2
+      with:
+        name: linpeas_darwin_386
+
+    - name: Download linpeas_darwin_amd64
+      uses: actions/download-artifact@v2
+      with:
+        name: linpeas_darwin_amd64
+
+    - name: Download linpeas_darwin_arm
+      uses: actions/download-artifact@v2
+      with:
+        name: linpeas_darwin_arm
+
+    - name: Download linpeas_darwin_arm64
+      uses: actions/download-artifact@v2
+      with:
+        name: linpeas_darwin_arm64
+    
+    # Create the release
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+        
+    - id: upload_release_assets
+      uses: dwenegar/upload-release-assets@v1
+      with:
+        release_id: ${{ steps.create_release.outputs.id }}
+        assets_path: .
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
   Build_and_test_macpeas_master:
     runs-on: macos-latest
 
     steps:
+      # Download repo
       - uses: actions/checkout@v2
-
+      
+      # Build linpeas
       - name: Build macpeas
         run: |
           python3 -m pip install PyYAML
@@ -240,8 +381,10 @@ jobs:
           cd linPEAS
           python3 -m builder.linpeas_builder
       
+      # Run linpeas help as quick test
       - name: Run macpeas help
         run: linPEAS/linpeas.sh -h
       
+      # Run macpeas parts to test it
       - name: Run macpeas
         run: linPEAS/linpeas.sh -o system_information,container,procs_crons_timers_srvcs_sockets,network_information,users_information,software_information
