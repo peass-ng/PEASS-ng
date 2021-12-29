@@ -164,11 +164,11 @@ jobs:
       - run: go version
       
       # Build linpeas
-      #- name: Build linpeas
-      #  run: |
-      #    python3 -m pip install PyYAML
-      #    cd linPEAS
-      #    python3 -m builder.linpeas_builder
+      - name: Build linpeas
+        run: |
+          python3 -m pip install PyYAML
+          cd linPEAS
+          python3 -m builder.linpeas_builder
       
       # Build linpeas binaries
       - name: Build linpeas binaries 
@@ -176,9 +176,8 @@ jobs:
           git clone https://github.com/carlospolop/sh2bin
           cd sh2bin
           bash build.sh ../linPEAS/linpeas.sh
-      
-      - run: ls -lR
-      
+          ls -lR ./ 
+            
       # Run linpeas help as quick test
       - name: Run linpeas help
         run: linPEAS/linpeas.sh -h
