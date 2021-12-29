@@ -124,6 +124,12 @@ jobs:
         with:
           name: winPEASany_ofs.exe
           path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany.exe
+      
+      - name: Upload winpeas.bat
+        uses: actions/upload-artifact@v2
+        with:
+          name: winPEAS.bat
+          path: winPEAS\winPEASbat\winPEAS.bat
           
       # Git add
       #- name: Create local changes
@@ -176,6 +182,12 @@ jobs:
           git clone https://github.com/carlospolop/sh2bin
           cd sh2bin
           bash build.sh ../linPEAS/linpeas.sh
+          mv builds/sh2bin_linux_386 builds/linpeas_linux_386
+          mv builds/sh2bin_linux_amd64 builds/linpeas_linux_amd64
+          mv builds/sh2bin_linux_arm builds/linpeas_linux_arm
+          mv builds/sh2bin_linux_arm64 builds/linpeas_linux_arm64
+          mv builds/sh2bin_darwin_amd64 builds/linpeas_darwin_amd64
+          mv builds/sh2bin_darwin_arm64 builds/linpeas_darwin_arm64
           ls -lR ./ 
             
       # Run linpeas help as quick test
@@ -198,38 +210,38 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_linux_386
-          path: sh2bin/builds/sh2bin_linux_386
+          path: sh2bin/builds/linpeas_linux_386
       
       - name: Upload linpeas_linux_amd64
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_linux_amd64
-          path: sh2bin/builds/sh2bin_linux_amd64
+          path: sh2bin/builds/linpeas_linux_amd64
       
       - name: Upload linpeas_linux_arm
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_linux_arm
-          path: sh2bin/builds/sh2bin_linux_arm
+          path: sh2bin/builds/linpeas_linux_arm
           
       - name: Upload linpeas_linux_arm64
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_linux_arm64
-          path: sh2bin/builds/sh2bin_linux_arm64
+          path: sh2bin/builds/linpeas_linux_arm64
       
       ## Darwin bins
       - name: Upload linpeas_darwin_amd64
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_darwin_amd64
-          path: sh2bin/builds/sh2bin_darwin_amd64
+          path: sh2bin/builds/linpeas_darwin_amd64
           
       - name: Upload linpeas_darwin_arm64
         uses: actions/upload-artifact@v2
         with:
           name: linpeas_darwin_arm64
-          path: sh2bin/builds/sh2bin_darwin_arm64
+          path: sh2bin/builds/linpeas_darwin_arm64
       
       # Clean sh2bin repo
       - name: Cleaning sh2bin
@@ -309,6 +321,11 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: winPEASany_ofs.exe
+    
+    - name: Download winpeas.bat
+      uses: actions/download-artifact@v2
+      with:
+        name: winPEAS.bat
 
     - name: Download linpeas.sh
       uses: actions/download-artifact@v2
