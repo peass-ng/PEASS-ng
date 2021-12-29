@@ -17,7 +17,9 @@ Find the **latest versions of all the scripts and binaries in [the releases page
 
 ```bash
 # From github
-curl -L https://github.com/carlospolop/PEASS-ng/releases/download/refs%2Fheads%2Fmaster/linpeas.sh | sh
+LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/carlospolop/PEASS-ng/releases/latest)
+LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
+curl -L https://github.com/carlospolop/PEASS-ng/releases/download/$LATEST_VERSION/linpeas.sh | sh
 ```
 
 ```bash
