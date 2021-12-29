@@ -22,10 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@master
         with:
-          persist-credentials: false
-          # Otherwise, you will failed to push refs to dest repo.
-          fetch-depth: 0
-          ref: refs/heads/${{ github.head_ref }}
+          ref: ${{ github.head_ref }}
             
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild.exe
@@ -146,7 +143,7 @@ jobs:
       #- name: Push changes
       #  uses: ad-m/github-push-action@master
       #  with:
-      #    branch: refs/heads/${{ github.head_ref }}
+      #    branch: ${{ github.head_ref }}
       #    github_token: ${{ secrets.GITHUB_TOKEN }}
       #    force: true
 
