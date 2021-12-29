@@ -292,21 +292,6 @@ jobs:
 
     steps:
     # Download files to release
-    - name: Download winpeasx64
-      uses: actions/download-artifact@v2
-      with:
-        name: winPEASx64.exe
-    
-    - name: Download winpeasx86
-      uses: actions/download-artifact@v2
-      with:
-        name: winPEASx86.exe
-
-    - name: Download winpeasany
-      uses: actions/download-artifact@v2
-      with:
-        name: winPEASany.exe
-
     - name: Download winpeasx64ofs
       uses: actions/download-artifact@v2
       with:
@@ -321,6 +306,21 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: winPEASany_ofs.exe
+
+    - name: Download winpeasx64
+      uses: actions/download-artifact@v2
+      with:
+        name: winPEASx64.exe
+    
+    - name: Download winpeasx86
+      uses: actions/download-artifact@v2
+      with:
+        name: winPEASx86.exe
+
+    - name: Download winpeasany
+      uses: actions/download-artifact@v2
+      with:
+        name: winPEASany.exe
     
     - name: Download winpeas.bat
       uses: actions/download-artifact@v2
