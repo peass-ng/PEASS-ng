@@ -20,7 +20,7 @@ Precompiled binaries:
 $latestRelease = Invoke-WebRequest https://github.com/carlospolop/PEASS-ng/releases/latest -Headers @{"Accept"="application/json"}
 $json = $latestRelease.Content | ConvertFrom-Json
 $latestVersion = $json.tag_name
-$url = "https://github.com/carlospolop/PEASS-ng/releases/download/$latestVersion/winPEASany.exe"
+$url = "https://github.com/carlospolop/PEASS-ng/releases/download/$latestVersion/winPEASany_ofs.exe"
 
 # One liner to download and execute winPEASany from memory in a PS shell
 $wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "$url" -UseBasicParsing | Select-Object -ExpandProperty Content)); [winPEAS.Program]::Main("")
