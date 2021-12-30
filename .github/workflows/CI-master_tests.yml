@@ -84,9 +84,9 @@ jobs:
       # copy the files
       - name: Copy Dotfuscator generated files
         run: |
-            cp $env:DotFuscatorGeneratedPath\x64\winPEASx64.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64.exe"            
-            cp $env:DotFuscatorGeneratedPath\x86\winPEASx86.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86.exe"
-            cp $env:DotFuscatorGeneratedPath\any\winPEASany.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany.exe"
+            cp $env:DotFuscatorGeneratedPath\x64\winPEASx64.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64_ofs.exe"            
+            cp $env:DotFuscatorGeneratedPath\x86\winPEASx86.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86_ofs.exe"
+            cp $env:DotFuscatorGeneratedPath\any\winPEASany.exe "winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany_ofs.exe"
       
       # Upload all the versions for the release
       - name: Upload winpeasx64
@@ -111,19 +111,19 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: winPEASx64_ofs.exe
-          path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64.exe
+          path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64_ofs.exe
       
       - name: Upload winpeasx86ofs
         uses: actions/upload-artifact@v2
         with:
           name: winPEASx86_ofs.exe
-          path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86.exe
+          path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86_ofs.exe
           
       - name: Upload winpeasanyofs
         uses: actions/upload-artifact@v2
         with:
           name: winPEASany_ofs.exe
-          path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany.exe
+          path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany_ofs.exe
       
       - name: Upload winpeas.bat
         uses: actions/upload-artifact@v2
