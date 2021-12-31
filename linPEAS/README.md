@@ -1,4 +1,4 @@
-# LinPEAS - Linux Privilege Escalation Awesome Script 
+# LinPEAS - Linux Privilege Escalation Awesome Script
 
 ![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/linpeas.png)
 
