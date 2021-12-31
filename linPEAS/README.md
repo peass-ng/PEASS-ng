@@ -17,9 +17,7 @@ Find the **latest versions of all the scripts and binaries in [the releases page
 
 ```bash
 # From github
-LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/carlospolop/PEASS-ng/releases/latest)
-LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
-curl -L https://github.com/carlospolop/PEASS-ng/releases/download/$LATEST_VERSION/linpeas.sh | sh
+curl -L https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh | sh
 ```
 
 ```bash
@@ -44,7 +42,7 @@ less -r /dev/shm/linpeas.txt #Read with colors
 
 ```bash
 # Use a linpeas binary
-wget https://github.com/carlospolop/PEASS-ng/releases/download/refs%2Fheads%2Fmaster/linpeas_linux_amd64
+wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas_linux_amd64
 chmod +x linpeas_linux_amd64
 ./linpeas_linux_amd64
 ```
