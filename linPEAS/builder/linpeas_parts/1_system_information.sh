@@ -122,9 +122,10 @@ if [ "$(command -v bash 2>/dev/null)" ]; then
     print_2title "Executing Linux Exploit Suggester"
     print_info "https://github.com/mzet-/linux-exploit-suggester"
     les_b64="peass{LES}"
-    echo $les_b64 | base64 -d | bash
     if [ "$EXTRA_CHECKS" ]; then
-        echo $les_b64 | base64 -d | bash -s -- --checksec
+        echo $les_b64 | base64 -d | bash -s -- --checksec | sed "s,$(printf '\033')\\[[0-9;]*[a-zA-Z],,g" | sed -E "s,\[CVE-[0-9]+-[0-9]+\].*,${SED_RED},g"
+    else
+        echo $les_b64 | base64 -d | bash | sed "s,$(printf '\033')\\[0-9;]*[a-zA-Z],,g" | grep -i "\[CVE" -A 10 | grep -Ev "^\-\-$" | sed -${E} "s,\[CVE-[0-9]+-[0-9]+\],*,${SED_RED},g"
     fi
     echo ""
 fi
@@ -133,7 +134,7 @@ if [ "$(command -v perl 2>/dev/null)" ]; then
     print_2title "Executing Linux Exploit Suggester 2"
     print_info "https://github.com/jondonas/linux-exploit-suggester-2"
     les2_b64="peass{LES2}"
-    echo $les2_b64 | base64 -d | perl
+    echo $les2_b64 | base64 -d | perl | sed "s,$(printf '\033')\\[0-9;]*[a-zA-Z],,g" | grep -i "CVE" -B 1 -A 10 | grep -Ev "^\-\-$" | sed -${E} "s,CVE-[0-9]+-[0-9]+,${SED_RED},g"
     echo ""
 fi
 
