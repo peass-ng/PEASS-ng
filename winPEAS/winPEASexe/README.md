@@ -17,10 +17,7 @@ Precompiled binaries:
 
 ```bash
 # Get latest release
-$latestRelease = Invoke-WebRequest https://github.com/carlospolop/PEASS-ng/releases/latest -Headers @{"Accept"="application/json"}
-$json = $latestRelease.Content | ConvertFrom-Json
-$latestVersion = $json.tag_name
-$url = "https://github.com/carlospolop/PEASS-ng/releases/download/$latestVersion/winPEASany_ofs.exe"
+$url = "https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEASany_ofs.exe"
 
 # One liner to download and execute winPEASany from memory in a PS shell
 $wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "$url" -UseBasicParsing | Select-Object -ExpandProperty Content)); [winPEAS.Program]::Main("")
@@ -111,7 +108,7 @@ Below you have some indications about what does each color means exacty, but kee
 
 ## Instructions to compile you own obfuscated version
 
-In order to compile an **ofuscated version** of Winpeas and bypass some AVs you need to ** install dotfuscator ** in *VisualStudio*. 
+In order to compile an **ofuscated version** of Winpeas and bypass some AVs you need to ** install dotfuscator ** in *VisualStudio*.
 
 To install it *open VisualStudio --> Go to Search (CTRL+Q) --> Write "dotfuscator"* and just follow the instructions to install it.
 
@@ -137,7 +134,7 @@ Once you have installed and activated it you need to:
 
 <details>
   <summary>Details</summary>
-    
+
 - **System Information**
   - [x] Basic System info information
   - [x] Use Watson to search for vulnerabilities
@@ -161,7 +158,7 @@ Once you have installed and activated it you need to:
   - [x] AMSI Providers
   - [x] SysMon
   - [x] .NET Versions
-  
+
 - **Users Information**
   - [x] Users information
   - [x] Current token privileges
@@ -218,7 +215,7 @@ Once you have installed and activated it you need to:
   - [x] Security Package Credentials
   - [x] AlwaysInstallElevated
   - [x] WSUS
-  
+
 - **Browser Information**
   - [x] Firefox DBs
   - [x] Credentials in firefox history
@@ -251,15 +248,15 @@ Once you have installed and activated it you need to:
   - [x] Machine and user certificate files
   - [x] Office most recent documents
   - [x] Hidden files and folders
-  - [x] Executable files in non-default folders with write permissions  
-  - [x] WSL check 
+  - [x] Executable files in non-default folders with write permissions
+  - [x] WSL check
 
 - **Events Information**
   - [x] Logon + Explicit Logon Events
   - [x] Process Creation Events
   - [x] PowerShell Events
   - [x] Power On/Off Events
-  
+
 - **Additional (slower) checks**
   - [x] LOLBAS search
   - [x] run **[linpeas.sh](https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh)** in default WSL distribution
