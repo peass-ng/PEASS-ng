@@ -28,7 +28,7 @@ else
   echo ""
 
   #-- PCS) Binary processes permissions
-  print_2title "Binary processes permissions (non 'root root' and not beloging to current user)"
+  print_2title "Binary processes permissions (non 'root root' and not belonging to current user)"
   print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes"
   binW="IniTialiZZinnggg"
   ps auxwww 2>/dev/null | awk '{print $11}' | while read bpath; do
