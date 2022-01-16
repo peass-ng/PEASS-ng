@@ -105,8 +105,12 @@ REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
 
 Below you have some indications about what does each color means exacty, but keep in mind that **Red** is for something interesting (from a pentester perspective) and **Green** is something well configured (from a defender perspective).
 
+![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/colors.png)
 
 ## Instructions to compile you own obfuscated version
+
+<details>
+  <summary>Details</summary>
 
 In order to compile an **ofuscated version** of Winpeas and bypass some AVs you need to ** install dotfuscator ** in *VisualStudio*.
 
@@ -125,10 +129,9 @@ Once you have installed and activated it you need to:
 
 ![](https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/winPEAS/winPEASexe/images/dotfuscator.PNG)
 
-
-## Colors
-
-![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/colors.png)
+**IMPORTANT**: Note that Defender will higly probable delete the winpeas iintial unobfuscated version, so you need to set as expections the origin folder of Winpeas and the folder were the obfuscated version will be saved:
+![](https://user-images.githubusercontent.com/1741662/148418852-e7ffee6a-c270-4e26-bf38-bb8977b3ad9c.png)
+</details>
 
 ## Checks
 
