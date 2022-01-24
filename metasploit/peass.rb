@@ -37,7 +37,7 @@ class MetasploitModule < Msf::Post
     ))
     register_options(
       [
-        OptString.new('PEASS_URL', [true, 'Path to the PEASS script. Accepted: http(s):// URL or absolute local path. Linpeas: https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/linPEAS/linpeas.sh', "https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/winPEAS/winPEASexe/binaries/Obfuscated%20Releases/winPEASany.exe"]),
+        OptString.new('PEASS_URL', [true, 'Path to the PEASS script. Accepted: http(s):// URL or absolute local path. Linpeas: https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh', "https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEASany_ofs.exe"]),
         OptString.new('PASSWORD', [false, 'Password to encrypt and obfuscate the script (randomly generated). The length must be 32B. If no password is set, only base64 will be used.', rand(36**32).to_s(36)]),
         OptString.new('TEMP_DIR', [false, 'Path to upload the obfuscated PEASS script inside the compromised machine. By default "C:\Windows\System32\spool\drivers\color" is used in Windows and "/tmp" in Unix.', '']),
         OptString.new('PARAMETERS', [false, 'Parameters to pass to the script', nil]),
