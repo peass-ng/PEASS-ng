@@ -365,6 +365,10 @@ jobs:
       with:
         name: linpeas_darwin_arm64
     
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+    
     # Create the release
     - name: Create Release
       id: create_release
@@ -373,7 +377,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        release_name: Release ${{ github.ref }} ${{steps.date.outputs.date}}
         draft: false
         prerelease: false
         
