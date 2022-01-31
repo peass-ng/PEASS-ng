@@ -6,7 +6,7 @@ on:
       - master
   
   schedule:
-    - cron: "5 4 * * *"
+    - cron: "5 4 * * SUN"
 
   workflow_dispatch:
 
