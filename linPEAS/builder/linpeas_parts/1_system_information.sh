@@ -21,6 +21,11 @@ else echo_not_found "sudo"
 fi
 echo ""
 
+#-- SY) CVE-2021-4021
+if [ `command -v pkexec` ] && stat -c '%a' $(which pkexec) | grep -q 4755 && (stat -c '%y' $(which pkexec) | grep -qvE "2[0-9][2-9][3-9]-|2022-[0-1][2-9]-0[0-9]|2022-01-[2-3][0-9]|2022-01-1[2-9]" ) ; then 
+    echo "Vulnerable to CVE-2021-4021" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+fi
+
 #--SY) USBCreator
 if (busctl list 2>/dev/null | grep -q com.ubuntu.USBCreator) || [ "$DEBUG" ]; then
     print_2title "USBCreator"
