@@ -21,9 +21,9 @@ else echo_not_found "sudo"
 fi
 echo ""
 
-#-- SY) CVE-2021-4024
+#-- SY) CVE-2021-4034
 if [ `command -v pkexec` ] && stat -c '%a' $(which pkexec) | grep -q 4755 && [ "$(stat -c '%Y' $(which pkexec))" -lt "1642035600" ]; then 
-    echo "Vulnerable to CVE-2021-4024 (polkit privesc)" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+    echo "Vulnerable to CVE-2021-4034 (polkit privesc)" | sed -${E} "s,.*,${SED_RED_YELLOW},"
 fi
 
 #--SY) USBCreator
