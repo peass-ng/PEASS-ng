@@ -22,7 +22,7 @@ fi
 echo ""
 
 #-- SY) CVE-2021-4024
-if [ `command -v pkexec` ] && stat -c '%a' $(which pkexec) | grep -q 4755 && (stat -c '%y' $(which pkexec) | grep -qvE "2[0-9][2-9][3-9]-|2022-[0-1][2-9]-0[0-9]|2022-01-[2-3][0-9]|2022-01-1[2-9]" ) ; then 
+if [ `command -v pkexec` ] && stat -c '%a' $(which pkexec) | grep -q 4755 && [ "$(stat -c '%Y' $(which pkexec))" -lt "1642035600" ]; then 
     echo "Vulnerable to CVE-2021-4024 (polkit privesc)" | sed -${E} "s,.*,${SED_RED_YELLOW},"
 fi
 
