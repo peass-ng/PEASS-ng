@@ -7,7 +7,7 @@ import json
 # Pattern to identify main section titles
 TITLE1_PATTERN = r"════════════════════════════════════╣"
 TITLE2_PATTERN = r"╔══════════╣"
-TITLE3_PATTERN = r"══╣"
+TITLE3_PATTERN = r"╔═╣"
 INFO_PATTERN = r"╚ "
 TITLE_CHARS = ['═', '╔', '╣', '╚']
 
