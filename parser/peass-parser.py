@@ -5,9 +5,9 @@ import re
 import json
 
 # Pattern to identify main section titles
-TITLE1_PATTERN = r"════════════════════════════════════╣"
+TITLE1_PATTERN = r"══════════════╣" # The size of the first pattern varies, but at least should be that large
 TITLE2_PATTERN = r"╔══════════╣"
-TITLE3_PATTERN = r"╔═╣"
+TITLE3_PATTERN = r"══╣"
 INFO_PATTERN = r"╚ "
 TITLE_CHARS = ['═', '╔', '╣', '╚']
 
@@ -75,10 +75,10 @@ def clean_title(line: str) -> str:
 def clean_colors(line: str) -> str:
     """Given a line clean the colors inside of it"""
 
-    for reg in re.findall(r'\x1b[^ ]+\dm', line):
+    for reg in re.findall(r'\x1b\[[^a-zA-Z]+\dm', line):
         line = line.replace(reg,"")
     
-    line = line.replace('\x1b',"") #Sometimes that byte stays
+    line = line.replace('\x1b',"").replace("[0m", "") #Sometimes that byte stays
     line = line.strip()
     return line
 
@@ -124,8 +124,8 @@ def parse_line(line: str):
 
         C_SECTION["lines"].append({
             "raw_text": line,
-            "clean_text": clean_colors(line),
-            "colors": get_colors(line)
+            "colors": get_colors(line),
+            "clean_text": clean_title(clean_colors(line))
         })
 
 
