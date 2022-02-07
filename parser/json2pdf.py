@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import json
+import html
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import Frame, Paragraph, Spacer, PageBreak,PageTemplate, BaseDocTemplate
 from reportlab.platypus.tableofcontents import TableOfContents
@@ -8,6 +9,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 
 styles = getSampleStyleSheet()
+text_colors = { "GREEN": "#00DB00", "RED": "#FF0000", "REDYELLOW": "#FFA500", "BLUE": "#0000FF",
+    "DARKGREY": "#5C5C5C", "YELLOW": "#ebeb21", "MAGENTA": "#FF00FF", "CYAN": "#00FFFF", "LIGHT_GREY": "#A6A6A6"}
 
 # Required to automatically set Page Numbers
 class PageTemplateWithCount(PageTemplate):
@@ -59,6 +62,12 @@ def get_level_styles(level):
     }
     return level_styles
 
+def get_colors_by_text(colors):
+    new_colors = {}
+    for (color, words) in colors.items():
+        for word in words:
+            new_colors[html.escape(word)] = color
+    return new_colors
 
 def build_main_section(section, title, level=1):
     styles = get_level_styles(level)
@@ -85,7 +94,18 @@ def build_main_section(section, title, level=1):
 
   # Print lines if any
     if "lines" in section.keys() and len(section["lines"]) > 1:
-        lines = list(map(lambda x: x["clean_text"], section["lines"]))
+        colors_by_line = list(map(lambda x: x["colors"], section["lines"]))
+        lines = list(map(lambda x: html.escape(x["clean_text"]), section["lines"]))
+        for (idx, line) in enumerate(lines):
+            colors = colors_by_line[idx]
+            colored_text = get_colors_by_text(colors)
+            colored_line = line
+            for (text, color) in colored_text.items():
+                if color == "REDYELLOW":
+                    colored_line = colored_line.replace(text, f'<font color="{text_colors[color]}"><b>{text}</b></font>')
+                else:
+                    colored_line = colored_line.replace(text, f'<font color="{text_colors[color]}">{text}</font>')
+            lines[idx] = colored_line
         elements.append(Spacer(0, 10))
         line = "<br/>".join(lines)
 
