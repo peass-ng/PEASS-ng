@@ -90,7 +90,7 @@ def clean_colors(line: str) -> str:
     for reg in re.findall(r'\x1b\[[^a-zA-Z]+\dm', line):
         line = line.replace(reg,"")
     
-    line = line.replace('\x1b',"").replace("[0m", "") #Sometimes that byte stays
+    line = line.replace('\x1b',"").replace("[0m", "").replace("[3m", "") #Sometimes that byte stays
     line = line.strip()
     return line
 
@@ -162,7 +162,7 @@ if __name__ == "__main__":
         OUTPUT_PATH = sys.argv[1]
         JSON_PATH = sys.argv[2]
     except IndexError as err:
-        print("Error: Please pass the peas.out file and the path to save the json\n./peas-parser.py <output_file> <json_file.json>")
+        print("Error: Please pass the peas.out file and the path to save the json\npeas2json.py <output_file> <json_file.json>")
         sys.exit(1)
     
     main()
