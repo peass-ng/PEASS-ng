@@ -156,7 +156,7 @@ if __name__ == "__main__":
         JSON_PATH = sys.argv[1]
         PDF_PATH = sys.argv[2]
     except IndexError as err:
-        print("Error: Please pass the peas.json file and the path to save the pdf\n./json2pdf.py <json_file> <pdf_file.pdf>")
+        print("Error: Please pass the peas.json file and the path to save the pdf\njson2pdf.py <json_file> <pdf_file.pdf>")
         sys.exit(1)
     
     main()

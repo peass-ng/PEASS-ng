@@ -21,6 +21,9 @@ These tools search for possible **local privilege escalation paths** that you co
 ## Quick Start
 Find the **latest versions of all the scripts and binaries in [the releases page](https://github.com/carlospolop/PEASS-ng/releases/latest)**.
 
+## JSON, HTML & PDF output
+Check the **[parsers](./parsers/)** directory to **transform PEASS outputs to JSON, HTML and PDF**
+
 ## Let's improve PEASS together
 
 If you want to **add something** and have **any cool idea** related to this project, please let me know it in the **telegram group https://t.me/peass** or contribute reading the **[CONTRIBUTING.md](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/CONTRIBUTING.md)** file.
