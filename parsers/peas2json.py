@@ -145,7 +145,7 @@ def parse_line(line: str):
 
 
 def main():
-    for line in open(OUTPUT_PATH, 'r').readlines():
+    for line in open(OUTPUT_PATH, 'r', encoding="utf8").readlines():
         line = line.strip()
         if not line or not clean_colors(line): #Remove empty lines or lines just with colors hex
             continue
