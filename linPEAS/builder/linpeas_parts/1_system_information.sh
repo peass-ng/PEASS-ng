@@ -24,12 +24,14 @@ echo ""
 #-- SY) CVE-2021-4034
 if [ `command -v pkexec` ] && stat -c '%a' $(which pkexec) | grep -q 4755 && [ "$(stat -c '%Y' $(which pkexec))" -lt "1642035600" ]; then 
     echo "Vulnerable to CVE-2021-4034" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+    echo ""
 fi
 
 #-- SY) CVE-2021-3560
 polkitVersion=$(systemctl status polkit.service | grep version | cut -d " " -f 9)
-if [[ "$(apt list --installed 2>/dev/null | grep polkit | grep -c 0.105-26)" -ge 1 || "$(yum list installed | grep polkit | grep -c 0.117-2)" ]]; then
+if [[ "$(apt list --installed 2>/dev/null | grep polkit | grep -c 0.105-26)" -ge 1 || "$(yum list installed | grep polkit | grep -c 0.117-2)" -ge 1 ]]; then
     echo "Vulnerable to CVE-2021-3560" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+    echo ""
 fi
 
 #--SY) USBCreator
