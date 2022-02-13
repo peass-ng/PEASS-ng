@@ -220,7 +220,7 @@ print_support () {
     |---------------------------------------------------------------------------| 
     |         ${YELLOW}Become a Patreon${GREEN}    :     ${RED}https://www.patreon.com/peass${GREEN}           |
     |         ${YELLOW}Follow on Twitter${GREEN}   :     ${RED}@carlospolopm${GREEN}                           |
-    |         ${YELLOW}Respect on HTB${GREEN}      :     ${RED}SirBroccoli & makikvues${GREEN}                 |
+    |         ${YELLOW}Respect on HTB${GREEN}      :     ${RED}SirBroccoli            ${GREEN}                 |
     |---------------------------------------------------------------------------|
     |                                 ${BLUE}Thank you! ${GREEN}                               |
     \---------------------------------------------------------------------------/
