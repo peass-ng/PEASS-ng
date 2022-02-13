@@ -551,6 +551,21 @@ search:
               search_in: 
                 - common
   
+  - name: Rocketchat
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "rocketchat.service"
+            value: 
+                bad_regex: "mongodb://.*"
+                line_grep: '-i "Environment"'
+                type: f
+                search_in: 
+                  - common
+                  - /lib
+                  - /systemd
   
   - name: Supervisord
     value:
