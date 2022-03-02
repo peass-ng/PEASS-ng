@@ -138,7 +138,7 @@ if [ "$(command -v bash 2>/dev/null)" ]; then
     if [ "$EXTRA_CHECKS" ]; then
         echo $les_b64 | base64 -d | bash -s -- --checksec | sed "s,$(printf '\033')\\[[0-9;]*[a-zA-Z],,g" | sed -E "s,\[CVE-[0-9]+-[0-9]+\].*,${SED_RED},g"
     else
-        echo $les_b64 | base64 -d | bash | sed "s,$(printf '\033')\\[[0-9;]*[a-zA-Z],,g" | grep -i "\[CVE" -A 10 | grep -Ev "^\-\-$" | sed -${E} "s,\[CVE-[0-9]+-[0-9]+\],*,${SED_RED},g"
+        echo $les_b64 | base64 -d | bash | sed "s,$(printf '\033')\\[[0-9;]*[a-zA-Z],,g" | grep -i "\[CVE" -A 10 | grep -Ev "^\-\-$" | sed -${E} "s,\[CVE-[0-9]+-[0-9]+\].*,${SED_RED},g"
     fi
     echo ""
 fi
