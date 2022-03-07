@@ -68,7 +68,7 @@ fi
 if ! [ "$IAMROOT" ] && [ -w '/etc/sudoers.d/' ]; then
   echo "You can create a file in /etc/sudoers.d/ and escalate privileges" | sed -${E} "s,.*,${SED_RED_YELLOW},"
 fi
-for filename in '/etc/sudoers.d/*'; do
+for filename in /etc/sudoers.d/*; do
   if [ -r "$filename" ]; then
     echo "Sudoers file: $filename is readable" | sed -${E} "s,.*,${SED_RED},g"
     grep -Iv "^$" "$filename" | grep -v "#" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,pwfeedback,${SED_RED},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW},"
