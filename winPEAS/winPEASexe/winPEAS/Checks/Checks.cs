@@ -42,7 +42,7 @@ namespace winPEAS.Checks
         private static readonly HashSet<string> _systemCheckSelectedKeysHashSet = new HashSet<string>();
 
         // github url for Linpeas.sh
-        public static string LinpeasUrl = "https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh";
+        public static string LinpeasUrl = "https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh";
 
         public const string DefaultLogFile = "out.txt";
 
@@ -80,7 +80,7 @@ namespace winPEAS.Checks
                 new SystemCheck("windowscreds", new WindowsCreds()),
                 new SystemCheck("browserinfo", new BrowserInfo()),
                 new SystemCheck("filesinfo", new FilesInfo()),
-                new SystemCheck("fileAnalysis", new FileAnalysis())
+                new SystemCheck("fileanalysis", new FileAnalysis())
             };
 
             var systemCheckAllKeys = new HashSet<string>(_systemChecks.Select(i => i.Key));

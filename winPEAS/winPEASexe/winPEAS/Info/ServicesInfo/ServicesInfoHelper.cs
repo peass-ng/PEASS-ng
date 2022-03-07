@@ -217,11 +217,15 @@ namespace winPEAS.Info.ServicesInfo
                     {
                         if (SIDs.ContainsKey(ace.SecurityIdentifier.ToString()))
                         {
-                            int serviceRights = ace.AccessMask;
-
-                            string current_perm_str = PermissionsHelper.PermInt2Str(serviceRights, PermissionType.WRITEABLE_OR_EQUIVALENT_SVC);
-                            if (!string.IsNullOrEmpty(current_perm_str) && !permissions.Contains(current_perm_str))
-                                permissions.Add(current_perm_str);
+                            string aceType = ace.AceType.ToString();
+                            if (!(aceType.Contains("Denied")))
+                            { //https://docs.microsoft.com/en-us/dotnet/api/system.security.accesscontrol.commonace?view=net-6.0
+                                int serviceRights = ace.AccessMask;
+                                string current_perm_str = PermissionsHelper.PermInt2Str(serviceRights, PermissionType.WRITEABLE_OR_EQUIVALENT_SVC);
+                                
+                                if (!string.IsNullOrEmpty(current_perm_str) && !permissions.Contains(current_perm_str))
+                                    permissions.Add(current_perm_str);
+                            }
                         }
                     }
 

@@ -92,7 +92,9 @@ cap_setgid_markup: "peass{CAP_SETGID_HERE}"
 les_markup: "peass{LES}"
 les2_markup: "peass{LES2}"
 
-
+fat_linpeas_amicontained_markup: "peass{AMICONTAINED}"
+fat_linpeas_gitleaks_linux_markup: "peass{GITLEAKS_LINUX}"
+fat_linpeas_gitleaks_macos_markup: "peass{GITLEAKS_MACOS}"
 
 ##############################
 ## AUTO GENERATED VARIABLES ##
@@ -118,7 +120,7 @@ defaults:
   check_extra_path: ""        #Check if the found files are in a specific path (only linpeas)
   good_regex: ""              #The regex to color green
   just_list_file: False       #Just mention the path to the file, do not cat it
-  line_grep: ""               #The regex to grep lines in a file. IMPORTANT: This is the argument for "grep" command so you need to specify the single and double quotes (see examples)
+  line_grep: ""               #The regex to grep lines in a file. IMPORTANT: This is the argument for "grep" command so you need to specify the single and double quotes (see examples). USE douable quotes for the final regex and single quotes for everything, winpeas search things inside the double quotes only!
   only_bad_lines: False       #Only print lines containing something red (cnotaining bad_regex)
   remove_empty_lines: False   #Remove empty lines, use only for text files (-I param in grep)
   remove_path: ""             #Not interested in files containing this path (only linpeas)
@@ -316,6 +318,24 @@ search:
                 remove_path: "mysql/mysql"
                 search_in: 
                   - common
+          
+          - name: "passwd.ibd"
+            value: 
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "password*.ibd"
+            value: 
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "pwd.ibd"
+            value: 
+                type: f
+                search_in: 
+                  - common
 
   - name: MariaDB
     value:
@@ -383,15 +403,17 @@ search:
                 search_in: 
                   - common
     
-  - name: Apache
+  - name: Apache-Nginx
     value:
         config:
             auto_check: True
             exec:
-            - 'echo "Version: $(warn_exec apache2 -v 2>/dev/null; warn_exec httpd -v 2>/dev/null)"'
+            - 'echo "Apache version: $(warn_exec apache2 -v 2>/dev/null; warn_exec httpd -v 2>/dev/null)"'
+            - 'echo "Nginx version: $(warn_exec nginx -v 2>/dev/null)"'
+            - if [ -d "/etc/apache2" ] && [ -r "/etc/apache2" ]; then 'grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null'; fi
+            - if [ -d "/usr/share/nginx/modules" ] && [ -r "/usr/share/nginx/modules" ]; then print_3title 'Nginx modules'; ls /usr/share/nginx/modules | sed -${E} "s,$NGINX_KNOWN_MODULES,${SED_GREEN},g"; fi
             - "print_3title 'PHP exec extensions'"
-            - 'grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null'
-    
+            
         files:
             - name: "sites-enabled"
               value: 
@@ -399,8 +421,7 @@ search:
                 files:
                     - name: "*"
                       value:
-                        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
-                        only_bad_lines: True
+                        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|command on"
                         remove_empty_lines: True
                         remove_regex: '#'
                 search_in: 
@@ -409,6 +430,7 @@ search:
             - name: "000-default.conf"
               value: 
                 bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
+                remove_regex: '#'
                 type: f
                 search_in: 
                     - common
@@ -417,7 +439,7 @@ search:
               value: 
                 bad_regex: "On"
                 remove_regex: "^;"
-                line_grep: "allow_"
+                line_grep: '"allow_"'
                 type: f
                 search_in: 
                     - common
@@ -541,6 +563,7 @@ search:
           auto_check: True
           exec:
             - 'echo "Version: $(warn_exec mongo --version 2>/dev/null; warn_exec mongod --version 2>/dev/null)"'
+            - if [ "$(command -v mongo)" ]; then echo "show dbs" | mongo 127.0.0.1 > /dev/null 2>&1;[ "$?" == "0" ] && echo "Possible mongo anonymous authentication" | sed -${E} "s,.*|kube,${SED_RED},"; fi
 
         files:
           - name: "mongod*.conf"
@@ -684,6 +707,34 @@ search:
                 search_in: 
                   - /etc
   
+  - name: GlusterFS
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "glusterfs.pem"
+            value: 
+                type: f
+                just_list_file: True
+                search_in: 
+                  - common
+          
+          - name: "glusterfs.ca"
+            value: 
+                type: f
+                just_list_file: True
+                search_in: 
+                  - common
+          
+          - name: "glusterfs.key"
+            value: 
+                type: f
+                just_list_file: True
+                search_in: 
+                  - common
+  
+  
   - name: Anaconda ks
     value:
         config:
@@ -721,31 +772,73 @@ search:
                 search_in: 
                   - common
 
-  - name: Kubelet
+  - name: Kubernetes
     value:
         config:
           auto_check: True
+          exec:
+          - (env || set) | grep -Ei "kubernetes|kube" | grep -v "PSTORAGE_KUBERNETES|USEFUL_SOFTWARE" | sed -${E} "s,kubernetes|kube,${SED_RED},"
 
         files:
+          - name: "kubeconfig"
+            value:
+                bad_regex: "server:|cluster:|namespace:|user:|exec:"
+            type: d
+            search_in: 
+              - common
+          
+          - name: "kubelet-kubeconfig"
+            value:
+                bad_regex: "server:|cluster:|namespace:|user:|exec:"
+            type: d
+            search_in: 
+              - common
+            
+          - name: "psk.txt"
+            value:
+                remove_empty_lines: True
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+
+          - name: ".kube*"
+            value: 
+                files:
+                  - name: "config"
+                    value:
+                        bad_regex: "server:|cluster:|namespace:|user:|exec:"
+                type: d
+                search_in: 
+                  - common
+
           - name: "kubelet"
             value: 
                 files:
-                  - name: "kubeconfig"
+                  - name: "kubelet.conf"
                     value:
                         bad_regex: "server:|cluster:|namespace:|user:|exec:"
+                  - name: "config.yaml"
+                    value:
+                        bad_regex: "server:|cluster:|namespace:|user:|exec:"
+                  - name: "kubeadm-flags.env"
+                    value:
+                        remove_empty_lines: True
                 type: d
                 search_in: 
                   - /var
           
           - name: "kube-proxy"
             value: 
-                files:
-                  - name: "kubeconfig"
-                    value:
-                        bad_regex: "cluster:|certificate-authority-data:|namespace:|user:|token:"
                 type: d
                 search_in: 
                   - /var
+          
+          - name: "kubernetes"
+            value: 
+                type: d
+                search_in: 
+                  - /etc
   
   - name: VNC
     value:
@@ -766,6 +859,7 @@ search:
           - name: "*vnc*.c*nf*"
             value: 
                 bad_regex: ".*"
+                remove_regex: '^#'
                 type: f
                 search_in: 
                   - common
@@ -976,12 +1070,12 @@ search:
           auto_check: True
 
         files:
-          - name: "credentials"
-            value: 
-                bad_regex: ".*"
-                type: f
-                search_in: 
-                  - common
+          #- name: "credentials"
+          #  value: 
+          #      bad_regex: ".*"
+          #      type: f
+          #      search_in: 
+          #        - common
       
           - name: "credentials.db"
             value: 
@@ -1530,6 +1624,37 @@ search:
                 type: f
                 search_in: 
                   - common
+          
+          - name: "dockershim.sock"
+            value: 
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "containerd.sock"
+            value: 
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "crio.sock"
+            value: 
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "frakti.sock"
+            value: 
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "rktlet.sock"
+            value: 
+                type: f
+                search_in: 
+                  - common
+
 
   - name: Firefox
     value:
@@ -2582,7 +2707,7 @@ search:
                 search_in: 
                   - common
 
-  - name: Other Interesting Files
+  - name: Other Interesting
     value:
         config:
           auto_check: True
@@ -2651,7 +2776,7 @@ search:
                 search_in: 
                   - common
 
-  - name: Windows Files
+  - name: Windows
     value:
         config:
           auto_check: True
@@ -3000,7 +3125,7 @@ search:
                 search_in:
                   - common
 
-  - name: Other Windows Files
+  - name: Other Windows
     value:
         config:
           auto_check: True

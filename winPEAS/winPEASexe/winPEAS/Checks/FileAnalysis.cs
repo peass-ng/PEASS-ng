@@ -53,7 +53,7 @@ namespace winPEAS.Checks
             }
 
             files.AddRange(SearchHelper.RootDirUsers);
-          //  files.AddRange(SearchHelper.RootDirCurrentUser); // not needed, it's contained within RootDirUsers
+            // files.AddRange(SearchHelper.RootDirCurrentUser); // not needed, it's contained within RootDirUsers
             files.AddRange(SearchHelper.DocumentsAndSettings);
             files.AddRange(SearchHelper.GroupPolicyHistory);    // TODO maybe not needed here
             files.AddRange(SearchHelper.ProgramFiles);
@@ -62,7 +62,7 @@ namespace winPEAS.Checks
             return files;
         }
 
-        private static bool Search(List<CustomFileInfo> files, string fileName, FileSettings fileSettings, ref int resultsCount)
+        private static bool[] Search(List<CustomFileInfo> files, string fileName, FileSettings fileSettings, ref int resultsCount, string searchName, bool somethingFound)
         {
             bool isRegexSearch = fileName.Contains("*");
             string pattern = string.Empty;
@@ -86,13 +86,18 @@ namespace winPEAS.Checks
 
                 if (isFileFound)
                 {
+                    if (!somethingFound) {
+                        Beaprint.MainPrint($"Found {searchName} Files");
+                        somethingFound = true;
+                    }
+
                     // there are no inner sections
                     if (fileSettings.files == null)
                     {
                         var isProcessed = ProcessResult(file, fileSettings, ref resultsCount);
                         if (!isProcessed)
                         {
-                            return true;
+                            return new bool[] { true, somethingFound };
                         }
                     }
                     // there are inner sections
@@ -109,7 +114,7 @@ namespace winPEAS.Checks
                                 var isProcessed = ProcessResult(innerFile, innerFileToSearch.value, ref resultsCount);
                                 if (!isProcessed)
                                 {
-                                    return true;
+                                    return new bool[] { true, somethingFound };
                                 }
                             }
                         }
@@ -117,7 +122,7 @@ namespace winPEAS.Checks
                 }
             }
 
-            return false;
+            return new bool[] { false, somethingFound };
         }
        
         private static void PrintYAMLSearchFiles()
@@ -133,15 +138,17 @@ namespace winPEAS.Checks
 
                 foreach (var searchItem in searchItems)
                 {
+                    if (searchItem.name != "Wifi Connections")
+                        continue;
                     var searchName = searchItem.name;
                     var value = searchItem.value;
                     var searchConfig = value.config;
+                    bool somethingFound = false;
 
                     CheckRunner.Run(() =>
                     {
-                        Beaprint.MainPrint($"Analyzing {searchName} Files (limit {ListFileLimit})");
-
                         int resultsCount = 0;
+                        bool[] results;
                         bool isSearchFinished = false;
 
                         foreach (var file in value.files)
@@ -150,7 +157,10 @@ namespace winPEAS.Checks
                             var fileSettings = file.value;
                             var itemsToSearch = fileSettings.type == "f" ? files : folders;
 
-                            isSearchFinished = Search(itemsToSearch, fileName, fileSettings, ref resultsCount);
+                            results = Search(itemsToSearch, fileName, fileSettings, ref resultsCount, searchName, somethingFound);
+
+                            isSearchFinished = results[0];
+                            somethingFound = results[1];
 
                             if (isSearchFinished)
                             {
@@ -193,18 +203,22 @@ namespace winPEAS.Checks
 
             if (fileSettings.type == "f")
             {
-                if ((bool)fileSettings.just_list_file)
-                {
-                    Beaprint.BadPrint($"    {fileInfo.FullPath}");
-                }
-                else
+                var colors = new Dictionary<string, string>();
+                colors.Add(fileInfo.Filename, Beaprint.ansi_color_bad);
+                Beaprint.AnsiPrint($"File: {fileInfo.FullPath}", colors);
+
+                if   (!(bool)fileSettings.just_list_file)
                 {
                     GrepResult(fileInfo, fileSettings);
                 }
             }
             else if (fileSettings.type == "d")
             {
-                // just list the directory 
+                var colors = new Dictionary<string, string>();
+                colors.Add(fileInfo.Filename, Beaprint.ansi_color_bad);
+                Beaprint.AnsiPrint($"Folder: {fileInfo.FullPath}", colors);
+
+                // just list the directory
                 if ((bool)fileSettings.just_list_file)
                 {
                     string[] files = Directory.GetFiles(fileInfo.FullPath, "*", SearchOption.TopDirectoryOnly);
@@ -225,8 +239,6 @@ namespace winPEAS.Checks
 
         private static void GrepResult(CustomFileInfo fileInfo, FileSettings fileSettings)
         {
-            Beaprint.NoColorPrint($"    '{fileInfo.FullPath}' - content:");
-
             var fileContent = File.ReadLines(fileInfo.FullPath);
             var colors = new Dictionary<string, string>();
 
@@ -272,7 +284,8 @@ namespace winPEAS.Checks
 
             Beaprint.AnsiPrint(content, colors);
 
-            Console.WriteLine();
+            if (content.Length > 0)
+                Console.WriteLine();
         }
 
         private static string SanitizeLineGrep(string lineGrep)
@@ -281,7 +294,16 @@ namespace winPEAS.Checks
             // '-i -a -o "description.*" | sort | uniq'
             // - remove everything except from "description.*"
 
-            Regex regex = new Regex("\"([^\"]+)\"");
+            Regex regex;
+            if (lineGrep.Contains("-i"))
+            {
+                regex = new Regex("\"([^\"]+)\"", RegexOptions.IgnoreCase);
+            }
+            else
+            {
+                regex = new Regex("\"([^\"]+)\"");
+            }
+
             Match match = regex.Match(lineGrep);
 
             if (match.Success)
