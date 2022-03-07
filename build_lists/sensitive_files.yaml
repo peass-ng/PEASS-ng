@@ -120,7 +120,7 @@ defaults:
   check_extra_path: ""        #Check if the found files are in a specific path (only linpeas)
   good_regex: ""              #The regex to color green
   just_list_file: False       #Just mention the path to the file, do not cat it
-  line_grep: ""               #The regex to grep lines in a file. IMPORTANT: This is the argument for "grep" command so you need to specify the single and double quotes (see examples). USE douable quotes for the final regex and single quotes for everything, winpeas search things inside the double quotes only!
+  line_grep: ""               #The regex to grep lines in a file. IMPORTANT: This is the argument for "grep" command so you need to specify the single and double quotes (see examples). Use double quotes to indicate the interesting things to grep as winpeas greps the things inside th double qoutes.
   only_bad_lines: False       #Only print lines containing something red (cnotaining bad_regex)
   remove_empty_lines: False   #Remove empty lines, use only for text files (-I param in grep)
   remove_path: ""             #Not interested in files containing this path (only linpeas)
@@ -1049,7 +1049,6 @@ search:
                 type: f
                 search_in: 
                   - /tmp
-                  - /private
       
   - name: SSH_CONFIG
     value:
