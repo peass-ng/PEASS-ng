@@ -2,6 +2,8 @@
 #--------) Software Information (---------#
 ###########################################
 
+NGINX_KNOWN_MODULES="ngx_http_geoip_module.so|ngx_http_xslt_filter_module.so|ngx_stream_geoip_module.so|ngx_http_image_filter_module.so|ngx_mail_module.so|ngx_stream_module.so"
+
 #-- SI) Useful software
 print_2title "Useful software"
 for tool in $USEFUL_SOFTWARE; do command -v "$tool"; done
@@ -78,30 +80,46 @@ fi
 if [ "$PSTORAGE_MYSQL" ] || [ "$DEBUG" ]; then
   print_2title "Searching mysql credentials and exec"
   printf "%s\n" "$PSTORAGE_MYSQL" | while read d; do
-    for f in $(find $d -name debian.cnf 2>/dev/null); do
-      if [ -r "$f" ]; then
-        echo "We can read the mysql debian.cnf. You can use this username/password to log in MySQL" | sed -${E} "s,.*,${SED_RED},"
-        cat "$f"
+    if [ -f "$d" ]; then
+      STRINGS="`command -v strings`"
+      echo "Potential file containing credentials:"
+      ls -l "$d"
+      if [ "$STRINGS" ]; then
+        strings "$d"
+      else
+        echo "Strings not found, cat the file and check it to get the creds"
       fi
-    done
-    for f in $(find $d -name user.MYD 2>/dev/null); do
-      if [ -r "$f" ]; then
-        echo "We can read the Mysql Hashes from $f" | sed -${E} "s,.*,${SED_RED},"
-        grep -oaE "[-_\.\*a-Z0-9]{3,}" $f | grep -v "mysql_native_password"
-      fi
-    done
-    for f in $(grep -lr "user\s*=" $d 2>/dev/null | grep -v "debian.cnf"); do
-      if [ -r "$f" ]; then
-        u=$(cat "$f" | grep -v "#" | grep "user" | grep "=" 2>/dev/null)
-        echo "From '$f' Mysql user: $u" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
-      fi
-    done
-    for f in $(find $d -name my.cnf 2>/dev/null); do
-      if [ -r "$f" ]; then
-        echo "Found readable $f"
-        grep -v "^#" "$f" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -Iv "^$" | sed "s,password.*,${SED_RED},"
-      fi
-    done
+
+    else
+      for f in $(find $d -name debian.cnf 2>/dev/null); do
+        if [ -r "$f" ]; then
+          echo "We can read the mysql debian.cnf. You can use this username/password to log in MySQL" | sed -${E} "s,.*,${SED_RED},"
+          cat "$f"
+        fi
+      done
+      
+      for f in $(find $d -name user.MYD 2>/dev/null); do
+        if [ -r "$f" ]; then
+          echo "We can read the Mysql Hashes from $f" | sed -${E} "s,.*,${SED_RED},"
+          grep -oaE "[-_\.\*a-Z0-9]{3,}" "$f" | grep -v "mysql_native_password"
+        fi
+      done
+      
+      for f in $(grep -lr "user\s*=" $d 2>/dev/null | grep -v "debian.cnf"); do
+        if [ -r "$f" ]; then
+          u=$(cat "$f" | grep -v "#" | grep "user" | grep "=" 2>/dev/null)
+          echo "From '$f' Mysql user: $u" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
+        fi
+      done
+      
+      for f in $(find $d -name my.cnf 2>/dev/null); do
+        if [ -r "$f" ]; then
+          echo "Found readable $f"
+          grep -v "^#" "$f" | grep -Ev "\W+\#|^#" 2>/dev/null | grep -Iv "^$" | sed "s,password.*,${SED_RED},"
+        fi
+      done
+    fi
+    
     mysqlexec=$(whereis lib_mysqludf_sys.so 2>/dev/null | grep "lib_mysqludf_sys\.so")
     if [ "$mysqlexec" ]; then
       echo "Found $mysqlexec"
@@ -142,7 +160,7 @@ fi
 
 peass{Mongo}
 
-peass{Apache}
+peass{Apache-Nginx}
 
 peass{Tomcat}
 
@@ -192,7 +210,7 @@ if [ "$PSTORAGE_CERTSB4" ]; then certsb4_grep=$(grep -L "\"\|'\|(" $PSTORAGE_CER
 sshconfig="$(ls /etc/ssh/ssh_config 2>/dev/null)"
 hostsdenied="$(ls /etc/hosts.denied 2>/dev/null)"
 hostsallow="$(ls /etc/hosts.allow 2>/dev/null)"
-writable_agents=$(find $folder_path -type s -name "agent.*" -or -name "*gpg-agent*" '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')')
+writable_agents=$(find /tmp /etc /home -type s -name "agent.*" -or -name "*gpg-agent*" '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)
 
 peass{SSH}
 
@@ -548,25 +566,17 @@ fi
 #-- SI) Docker
 if [ "$PSTORAGE_DOCKER" ] || [ "$DEBUG" ]; then
   print_2title "Searching docker files (limit 70)"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket"
+  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout/docker-breakout-privilege-escalation"
   printf "%s\n" "$PSTORAGE_DOCKER" | head -n 70 | while read f; do
     ls -l "$f" 2>/dev/null
     if ! [ "$IAMROOT" ] && [ -S "$f" ] && [ -w "$f" ]; then
-      echo "Docker socket file ($f) is writable" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+      echo "Docker related socket ($f) is writable" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     fi
   done
   echo ""
 fi
 
-if [ -d "$HOME/.kube" ] || [ -d "/etc/kubernetes" ] || [ -d "/var/lib/localkube" ] || [ "`(env | set) | grep -Ei 'kubernetes|kube' | grep -v "PSTORAGE_KUBELET|USEFUL_SOFTWARE"`" ] || [ "$DEBUG" ]; then
-  print_2title "Kubernetes information" | sed -${E} "s,config,${SED_RED},"
-  ls -l "$HOME/.kube" 2>/dev/null
-  grep -ERH "client-secret:|id-token:|refresh-token:" "$HOME/.kube" 2>/dev/null | sed -${E} "s,client-secret:.*|id-token:.*|refresh-token:.*,${SED_RED},"
-  (env || set) | grep -Ei "kubernetes|kube" | grep -v "PSTORAGE_KUBELET|USEFUL_SOFTWARE" | sed -${E} "s,kubernetes|kube,${SED_RED},"
-  ls -Rl /etc/kubernetes /var/lib/localkube 2>/dev/null
-fi
-
-peass{Kubelet}
+peass{Kubernetes}
 
 peass{Firefox}
 
@@ -622,6 +632,20 @@ peass{EXTRA_SECTIONS}
 
 peass{Interesting logs}
 
-peass{Windows Files}
+peass{Windows}
 
-peass{Other Interesting Files}
+peass{Other Interesting}
+
+if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
+  print_2title "Checking leaks in git repositories"
+  printf "%s\n" "$PSTORAGE_GITHUB" | while read f; do
+    if echo "$f" | grep -Eq ".git$"; then
+      git_dirname=$(dirname "$f")
+      if [ "$MACPEAS" ]; then
+        execBin "GitLeaks (checking $git_dirname)" "https://github.com/zricethezav/gitleaks" "$FAT_LINPEAS_GITLEAKS_MACOS" "detect -s '$git_dirname' -v | grep -E 'Description|Match|Secret|Message|Date'"
+      else
+        execBin "GitLeaks (checking $git_dirname)" "https://github.com/zricethezav/gitleaks" "$FAT_LINPEAS_GITLEAKS_LINUX" "detect -s '$git_dirname' -v | grep -E 'Description|Match|Secret|Message|Date'"
+      fi
+    fi
+  done
+fi
