@@ -34,6 +34,15 @@ if [[ "$(apt list --installed 2>/dev/null | grep polkit | grep -c 0.105-26)" -ge
     echo ""
 fi
 
+#-- SY) CVE-2022-0847
+#-- https://dirtypipe.cm4all.com/
+#-- https://stackoverflow.com/a/37939589
+kernelversion=$(uname -r | awk -F"-" '{print $1}')
+if [[ $(echo $kernelversion | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';) -lt $(echo "5.17" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';) ]]; then
+    echo "Vulnerable to CVE-2022-0847" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+    echo ""
+fi
+
 #--SY) USBCreator
 if (busctl list 2>/dev/null | grep -q com.ubuntu.USBCreator) || [ "$DEBUG" ]; then
     print_2title "USBCreator"
