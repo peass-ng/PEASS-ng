@@ -38,7 +38,8 @@ fi
 #-- https://dirtypipe.cm4all.com/
 #-- https://stackoverflow.com/a/37939589
 kernelversion=$(uname -r | awk -F"-" '{print $1}')
-if [[ $(echo $kernelversion | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';) -lt $(echo "5.17" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';) ]]; then
+kernelnumber=$(echo $kernelversion | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }')
+if [[ $kernelnumber -ge 5008000000 && $kernelnumber -lt 5017000000 ]]; then # if kernel version beteen 5.8 and 5.17
     echo "Vulnerable to CVE-2022-0847" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     echo ""
 fi
