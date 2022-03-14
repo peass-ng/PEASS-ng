@@ -257,10 +257,16 @@ if [ "$broken_links" ] || [ "$DEBUG" ]; then
   echo ""
 fi
 
-
 if [ "$MACPEAS" ]; then
   print_2title "Unsigned Applications"
   macosNotSigned /System/Applications
+fi
+
+##-- IF) Unexpected in /opt
+if [ "$(ls /opt 2>/dev/null)" ]; then
+  print_2title "Unexpected in /opt (usually empty)"
+  ls -la /opt
+  echo ""
 fi
 
 ##-- IF) Unexpected folders in /
