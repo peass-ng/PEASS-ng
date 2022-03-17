@@ -285,8 +285,8 @@ jobs:
         run: linPEAS/linpeas.sh -h
       
       # Run macpeas parts to test it
-      - name: Run macpeas
-        run: linPEAS/linpeas.sh -D -o system_information,container,procs_crons_timers_srvcs_sockets,network_information,users_information,software_information
+      #- name: Run macpeas
+      #  run: linPEAS/linpeas.sh -D -o system_information,container,procs_crons_timers_srvcs_sockets,network_information,users_information,software_information
 
      
   Publish_release:
