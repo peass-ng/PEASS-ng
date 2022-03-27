@@ -24,13 +24,17 @@ Find the **latest versions of all the scripts and binaries in [the releases page
 ## JSON, HTML & PDF output
 Check the **[parsers](./parsers/)** directory to **transform PEASS outputs to JSON, HTML and PDF**
 
+## Support PEASS-ng and HackTricks and get benefits
+
+Do you want to have **access the latest version of Hacktricks and PEASS**, obtain a **PDF copy of Hacktricks**, and more? Discover the **brand new [SUBSCRIPTION PLANS](https://github.com/sponsors/carlospolop?frequency=one-time) for individuals and companies**.
+
+**LinPEAS, WinPEAS and MacPEAS** aren’t enough for you? Welcome **The PEASS Family**, a limited collection of **exclusive NFTs** of our favourite PEASS in disguise, designed by my team. Go **get your favourite and make it yours!** And if you are a **PEASS & Hacktricks enthusiast**, you can get your hands now on **our [custom swag](https://peass.creator-spring.com/) and show how much you like our projects!**
+
+You can also, join the 💬 [Discord group](https://discord.gg/hRep4RUj7f) or the [telegram group](https://t.me/peass) to learn about latest news in cybersecurity and meet other cybersecurity enthusiasts, or follow me on Twitter 🐦 [@carlospolopm](https://twitter.com/carlospolopm).
+
 ## Let's improve PEASS together
 
 If you want to **add something** and have **any cool idea** related to this project, please let me know it in the **telegram group https://t.me/peass** or contribute reading the **[CONTRIBUTING.md](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/blob/master/CONTRIBUTING.md)** file.
-
-## PEASS Style
-
-Are you a PEASS fan? Get now our merch at **[PEASS Shop](https://teespring.com/stores/peass)** and show your love for our favorite peas
 
 ## Advisory
 
