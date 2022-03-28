@@ -21,6 +21,9 @@ else echo_not_found "sudo"
 fi
 echo ""
 
+#-- SY) CVEs
+print_2title "CVEs Check"
+
 #-- SY) CVE-2021-4034
 if [ `command -v pkexec` ] && stat -c '%a' $(which pkexec) | grep -q 4755 && [ "$(stat -c '%Y' $(which pkexec))" -lt "1642035600" ]; then 
     echo "Vulnerable to CVE-2021-4034" | sed -${E} "s,.*,${SED_RED_YELLOW},"
@@ -43,6 +46,7 @@ if [[ $kernelnumber -ge 5008000000 && $kernelnumber -lt 5017000000 ]]; then # if
     echo "Vulnerable to CVE-2022-0847" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     echo ""
 fi
+echo ""
 
 #--SY) USBCreator
 if (busctl list 2>/dev/null | grep -q com.ubuntu.USBCreator) || [ "$DEBUG" ]; then
