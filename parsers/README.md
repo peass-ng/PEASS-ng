@@ -74,6 +74,8 @@ There is a **maximun of 3 levels of sections**.
 
 There can also be a `<Third level Section Name>`
 
+If you need to transform several outputs check out https://github.com/mnemonic-re/parsePEASS
+
 # TODO:
 
 - **PRs improving the code and the aspect of the final PDFs and HTMLs are always welcome!**
