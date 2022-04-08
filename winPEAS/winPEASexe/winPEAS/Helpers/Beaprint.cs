@@ -84,7 +84,7 @@ namespace winPEAS.Helpers
        /---------------------------------------------------------------------------\
        |                             {1}Do you like PEASS?{0}                            |
        |---------------------------------------------------------------------------| 
-       |         {3}Become a Patreon{0}    :     {2}https://www.patreon.com/peass{0}           |
+       |         {3}Get latest WinPEAS{0}  :     {2}https://github.com/sponsors/carlospolop{0} |
        |         {3}Follow on Twitter{0}   :     {2}@carlospolopm{0}                           |
        |         {3}Respect on HTB{0}      :     {2}SirBroccoli & makikvues{0}                 |
        |---------------------------------------------------------------------------|
