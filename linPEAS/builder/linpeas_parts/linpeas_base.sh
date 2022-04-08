@@ -218,7 +218,7 @@ print_support () {
     ${GREEN}/---------------------------------------------------------------------------\\
     |                             ${BLUE}Do you like PEASS?${GREEN}                            |
     |---------------------------------------------------------------------------| 
-    |         ${YELLOW}Become a Patreon${GREEN}    :     ${RED}https://www.patreon.com/peass${GREEN}           |
+    |         ${YELLOW}Get latest LinPEAS${GREEN}  :     ${RED}https://github.com/sponsors/carlospolop${GREEN} |
     |         ${YELLOW}Follow on Twitter${GREEN}   :     ${RED}@carlospolopm${GREEN}                           |
     |         ${YELLOW}Respect on HTB${GREEN}      :     ${RED}SirBroccoli            ${GREEN}                 |
     |---------------------------------------------------------------------------|
