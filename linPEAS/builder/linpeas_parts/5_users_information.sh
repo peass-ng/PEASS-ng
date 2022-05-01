@@ -4,7 +4,7 @@
 
 #-- UI) My user
 print_2title "My user"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#users"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#users"
 (id || (whoami && groups)) 2>/dev/null | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed -${E} "s,$idB,${SED_RED},g"
 echo ""
 
@@ -59,7 +59,7 @@ fi
 
 #-- UI) Sudo -l
 print_2title "Checking 'sudo -l', /etc/sudoers, and /etc/sudoers.d"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sudo-and-suid"
 (echo '' | timeout 1 sudo -S -l | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoB,${SED_RED},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed "s,\!root,${SED_RED},") 2>/dev/null || echo_not_found "sudo"
 if [ "$PASSWORD" ]; then
   (echo "$PASSWORD" | timeout 1 sudo -S -l | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoB,${SED_RED},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW},") 2>/dev/null  || echo_not_found "sudo"
@@ -78,7 +78,7 @@ echo ""
 
 #-- UI) Sudo tokens
 print_2title "Checking sudo tokens"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#reusing-sudo-tokens"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#reusing-sudo-tokens"
 ptrace_scope="$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null)"
 if [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ]; then echo "ptrace protection is disabled (0)" | sed "s,is disabled,${SED_RED},g";
 else echo "ptrace protection is enabled ($ptrace_scope)" | sed "s,is enabled,${SED_GREEN},g";
@@ -117,7 +117,7 @@ fi
 
 #-- UI) Pkexec policy
 print_2title "Checking Pkexec policy"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/interesting-groups-linux-pe#pe-method-2"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/interesting-groups-linux-pe#pe-method-2"
 (cat /etc/polkit-1/localauthority.conf.d/* 2>/dev/null | grep -v "^#" | grep -Ev "\W+\#|^#" 2>/dev/null | sed -${E} "s,$groupsB,${SED_RED}," | sed -${E} "s,$groupsVB,${SED_RED}," | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,$USER,${SED_RED_YELLOW}," | sed -${E} "s,$Groups,${SED_RED_YELLOW},") || echo_not_found "/etc/polkit-1/localauthority.conf.d"
 echo ""
 

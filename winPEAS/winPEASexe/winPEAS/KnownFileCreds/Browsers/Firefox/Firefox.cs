@@ -28,7 +28,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
             try
             {
                 Beaprint.MainPrint("Looking for Firefox DBs");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#browsers-history");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#browsers-history");
                 List<string> firefoxDBs = Firefox.GetFirefoxDbs();
                 if (firefoxDBs.Count > 0)
                 {
@@ -55,7 +55,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
             try
             {
                 Beaprint.MainPrint("Looking for GET credentials in Firefox history");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#browsers-history");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#browsers-history");
                 List<string> firefoxHist = Firefox.GetFirefoxHistory();
                 if (firefoxHist.Count > 0)
                 {

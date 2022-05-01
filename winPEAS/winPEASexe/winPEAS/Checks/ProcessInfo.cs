@@ -23,7 +23,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Interesting Processes -non Microsoft-");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#running-processes", "Check if any interesting processes for memory dump or if you could overwrite some binary running");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#running-processes", "Check if any interesting processes for memory dump or if you could overwrite some binary running");
                 List<Dictionary<string, string>> processesInfo = ProcessesInfo.GetProcInfo();
 
                 foreach (Dictionary<string, string> procInfo in processesInfo)

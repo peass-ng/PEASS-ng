@@ -187,7 +187,7 @@ fi
 if [ "$inContainer" ]; then
     echo ""
     print_2title "Container & breakout enumeration"
-    print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout"
+    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/docker-breakout"
     print_list "Container ID ...................$NC $(cat /etc/hostname && echo '')"
     if echo "$containerType" | grep -qi "docker"; then
         print_list "Container Full ID ..............$NC $(basename $(cat /proc/1/cpuset))\n"

@@ -151,7 +151,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Cloud Credentials");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#credentials-inside-files");
                 List<Dictionary<string, string>> could_creds = KnownFileCredsInfo.ListCloudCreds();
                 if (could_creds.Count != 0)
                 {
@@ -382,7 +382,7 @@ namespace winPEAS.Checks
                 string[] passRegHklm = new string[] { @"SYSTEM\CurrentControlSet\Services\SNMP" };
 
                 Beaprint.MainPrint("Looking for possible regs with creds");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#inside-the-registry");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#inside-the-registry");
 
                 string winVnc4 = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\RealVNC\WinVNC4", "password");
                 if (!string.IsNullOrEmpty(winVnc4.Trim()))
@@ -431,7 +431,7 @@ namespace winPEAS.Checks
                 };
 
                 Beaprint.MainPrint("Looking for possible password files in users homes");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files");               
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#credentials-inside-files");               
                 var fileInfos = SearchHelper.SearchUserCredsFiles();
 
                 foreach (var fileInfo in fileInfos)
@@ -470,7 +470,7 @@ namespace winPEAS.Checks
                 };
 
                 Beaprint.MainPrint("Looking inside the Recycle Bin for creds files");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#credentials-inside-files");
                 List<Dictionary<string, string>> recy_files = InterestingFiles.InterestingFiles.GetRecycleBin();
                 
                 foreach (Dictionary<string, string> rec_file in recy_files)
@@ -506,7 +506,7 @@ namespace winPEAS.Checks
                 };
 
                 Beaprint.MainPrint("Searching known files that can contain creds in home");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#credentials-inside-files");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#credentials-inside-files");
                
                 var files = SearchHelper.SearchUsersInterestingFiles();
 

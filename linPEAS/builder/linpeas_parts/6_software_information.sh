@@ -306,7 +306,7 @@ kadmin_exists="$(command -v kadmin)"
 klist_exists="$(command -v klist)"
 if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$PSTORAGE_KERBEROS" ] || [ "$DEBUG" ]; then
   print_2title "Searching kerberos conf files and tickets"
-  print_info "http://book.hacktricks.xyz/linux-unix/privilege-escalation/linux-active-directory"
+  print_info "http://book.hacktricks.xyz/linux-hardening/privilege-escalation/linux-active-directory"
 
   if [ "$kadmin_exists" ]; then echo "kadmin was found on $kadmin_exists" | sed "s,$kadmin_exists,${SED_RED},"; fi
   if [ "$klist_exists" ] && [ -x "$klist_exists" ]; then echo "klist execution"; klist; fi
@@ -398,7 +398,7 @@ fi
 #-- SI) Screen sessions
 if [ "$screensess" ] || [ "$screensess2" ] || [ "$DEBUG" ]; then
   print_2title "Searching screen sessions"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-shell-sessions"
+  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#open-shell-sessions"
   screensess=$(screen -ls 2>/dev/null)
   screensess2=$(find /run/screen -type d -path "/run/screen/S-*" 2>/dev/null)
   
@@ -417,7 +417,7 @@ tmuxnondefsess=$(ps auxwww | grep "tmux " | grep -v grep)
 tmuxsess2=$(find /tmp -type d -path "/tmp/tmux-*" 2>/dev/null)
 if [ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ] || [ "$tmuxsess2" ] || [ "$DEBUG" ]; then
   print_2title "Searching tmux sessions"$N
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-shell-sessions"
+  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#open-shell-sessions"
   tmux -V
   printf "$tmuxdefsess\n$tmuxnondefsess\n$tmuxsess2" | sed -${E} "s,.*,${SED_RED}," | sed -${E} "s,no server running on.*,${C}[32m&${C}[0m,"
 
@@ -544,7 +544,7 @@ peass{Wget}
 containerd=$(command -v ctr)
 if [ "$containerd" ] || [ "$DEBUG" ]; then
   print_2title "Checking if containerd(ctr) is available"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/containerd-ctr-privilege-escalation"
+  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/containerd-ctr-privilege-escalation"
   if [ "$containerd" ]; then
     echo "ctr was found in $containerd, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"
     ctr image list
@@ -556,7 +556,7 @@ fi
 runc=$(command -v runc)
 if [ "$runc" ] || [ "$DEBUG" ]; then
   print_2title "Checking if runc is available"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/runc-privilege-escalation"
+  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/runc-privilege-escalation"
   if [ "$runc" ]; then
     echo "runc was found in $runc, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"
   fi
@@ -566,7 +566,7 @@ fi
 #-- SI) Docker
 if [ "$PSTORAGE_DOCKER" ] || [ "$DEBUG" ]; then
   print_2title "Searching docker files (limit 70)"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout/docker-breakout-privilege-escalation"
+  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/docker-breakout/docker-breakout-privilege-escalation"
   printf "%s\n" "$PSTORAGE_DOCKER" | head -n 70 | while read f; do
     ls -l "$f" 2>/dev/null
     if ! [ "$IAMROOT" ] && [ -S "$f" ] && [ -w "$f" ]; then

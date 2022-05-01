@@ -8,7 +8,7 @@ print_2title "Cleaned processes"
 if [ "$NOUSEPS" ]; then
   printf ${BLUE}"[i]$GREEN Looks like ps is not finding processes, going to read from /proc/ and not going to monitor 1min of processes\n"$NC
 fi
-print_info "Check weird & unexpected proceses run by root: https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes"
+print_info "Check weird & unexpected proceses run by root: https://book.hacktricks.xyz/linux-hardening/privilege-escalation#processes"
 
 if [ "$NOUSEPS" ]; then
   print_ps | sed -${E} "s,$Wfolders,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$rootcommon,${SED_GREEN}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED}," | sed -${E} "s,$processesVB,${SED_RED_YELLOW},g" | sed "s,$processesB,${SED_RED}," | sed -${E} "s,$processesDump,${SED_RED},"
@@ -29,7 +29,7 @@ else
 
   #-- PCS) Binary processes permissions
   print_2title "Binary processes permissions (non 'root root' and not belonging to current user)"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#processes"
+  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#processes"
   binW="IniTialiZZinnggg"
   ps auxwww 2>/dev/null | awk '{print $11}' | while read bpath; do
     if [ -w "$bpath" ]; then
@@ -50,7 +50,7 @@ fi
 
 #-- PCS) Processes with credentials inside memory
 print_2title "Processes with credentials in memory (root req)"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#credentials-from-process-memory"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#credentials-from-process-memory"
 if echo "$pslist" | grep -q "gdm-password"; then echo "gdm-password process found (dump creds from memory as root)" | sed "s,gdm-password process,${SED_RED},"; else echo_not_found "gdm-password"; fi
 if echo "$pslist" | grep -q "gnome-keyring-daemon"; then echo "gnome-keyring-daemon process found (dump creds from memory as root)" | sed "s,gnome-keyring-daemon,${SED_RED},"; else echo_not_found "gnome-keyring-daemon"; fi
 if echo "$pslist" | grep -q "lightdm"; then echo "lightdm process found (dump creds from memory as root)" | sed "s,lightdm,${SED_RED},"; else echo_not_found "lightdm"; fi
@@ -62,7 +62,7 @@ echo ""
 #-- PCS) Different processes 1 min
 if ! [ "$FAST" ] && ! [ "$SUPERFAST" ]; then
   print_2title "Different processes executed during 1 min (interesting is low number of repetitions)"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#frequent-cron-jobs"
+  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#frequent-cron-jobs"
   temp_file=$(mktemp)
   if [ "$(ps -e -o command 2>/dev/null)" ]; then for i in $(seq 1 1250); do ps -e -o command >> "$temp_file" 2>/dev/null; sleep 0.05; done; sort "$temp_file" 2>/dev/null | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort -r -n | grep -E -v "\s*[1-9][0-9][0-9][0-9]"; rm "$temp_file"; fi
   echo ""
@@ -70,7 +70,7 @@ fi
 
 #-- PCS) Cron
 print_2title "Cron jobs"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#scheduled-cron-jobs"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#scheduled-cron-jobs"
 command -v crontab 2>/dev/null || echo_not_found "crontab"
 crontab -l 2>/dev/null | tr -d "\r" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,root,${SED_RED},"
 command -v incrontab 2>/dev/null || echo_not_found "incrontab"
@@ -131,7 +131,7 @@ fi
 
 #-- PSC) systemd PATH
 print_2title "Systemd PATH"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#systemd-path-relative-paths"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#systemd-path-relative-paths"
 systemctl show-environment 2>/dev/null | grep "PATH" | sed -${E} "s,$Wfolders\|\./\|\.:\|:\.,${SED_RED_YELLOW},g"
 WRITABLESYSTEMDPATH=$(systemctl show-environment 2>/dev/null | grep "PATH" | grep -E "$Wfolders")
 echo ""
@@ -139,7 +139,7 @@ echo ""
 #-- PSC) .service files
 #TODO: .service files in MACOS are folders
 print_2title "Analyzing .service files"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#services"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#services"
 printf "%s\n" "$PSTORAGE_SYSTEMD" | while read s; do
   if [ ! -O "$s" ]; then #Remove services that belongs to the current user
     if ! [ "$IAMROOT" ] && [ -w "$s" ] && [ -f "$s" ]; then
@@ -167,13 +167,13 @@ echo ""
 
 #-- PSC) Timers
 print_2title "System timers"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#timers"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#timers"
 (systemctl list-timers --all 2>/dev/null | grep -Ev "(^$|timers listed)" | sed -${E} "s,$timersG,${SED_GREEN},") || echo_not_found
 echo ""
 
 #-- PSC) .timer files
 print_2title "Analyzing .timer files"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#timers"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#timers"
 printf "%s\n" "$PSTORAGE_TIMER" | while read t; do
   if ! [ "$IAMROOT" ] && [ -w "$t" ]; then
     echo "$t" | sed -${E} "s,.*,${SED_RED},g"
@@ -195,7 +195,7 @@ echo ""
 #TODO: .socket files in MACOS are folders
 if ! [ "$IAMROOT" ]; then
   print_2title "Analyzing .socket files"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
+  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sockets"
   printf "%s\n" "$PSTORAGE_SOCKET" | while read s; do
     if ! [ "$IAMROOT" ] && [ -w "$s" ] && [ -f "$s" ]; then
       echo "Writable .socket file: $s" | sed "s,/.*,${SED_RED},g"
@@ -214,15 +214,15 @@ if ! [ "$IAMROOT" ]; then
     done
   done
   if ! [ "$IAMROOT" ] && [ -w "/var/run/docker.sock" ]; then
-    echo "Docker socket /var/run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${SED_RED_YELLOW},g"
+    echo "Docker socket /var/run/docker.sock is writable (https://book.hacktricks.xyz/linux-hardening/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${SED_RED_YELLOW},g"
   fi
   if ! [ "$IAMROOT" ] && [ -w "/run/docker.sock" ]; then
-    echo "Docker socket /run/docker.sock is writable (https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${SED_RED_YELLOW},g"
+    echo "Docker socket /run/docker.sock is writable (https://book.hacktricks.xyz/linux-hardening/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${SED_RED_YELLOW},g"
   fi
   echo ""
 
   print_2title "Unix Sockets Listening"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sockets"
+  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sockets"
   # Search sockets using netstat and ss
   unix_scks_list=$(ss -xlp -H state listening 2>/dev/null | grep -Eo "/.* " | cut -d " " -f1)
   if ! [ "$unix_scks_list" ];then
@@ -262,7 +262,7 @@ fi
 
 #-- PSC) Writable and weak policies in D-Bus config files
 print_2title "D-Bus config files"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#d-bus"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#d-bus"
 if [ "$PSTORAGE_DBUS" ]; then
   printf "%s\n" "$PSTORAGE_DBUS" | while read d; do
     for f in $d/*; do
@@ -289,7 +289,7 @@ fi
 echo ""
 
 print_2title "D-Bus Service Objects list"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#d-bus"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#d-bus"
 dbuslist=$(busctl list 2>/dev/null)
 if [ "$dbuslist" ]; then
   busctl list | while read line; do

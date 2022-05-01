@@ -18,7 +18,7 @@ check_critial_root_path(){
 
 ##-- IF) SUID
 print_2title "SUID - Check easy privesc, exploits and write perms"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sudo-and-suid"
 if ! [ "$STRINGS" ]; then
   echo_not_found "strings"
 fi
@@ -90,7 +90,7 @@ echo ""
 
 ##-- IF) SGID
 print_2title "SGID"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-and-suid"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sudo-and-suid"
 sgids_files=$(find / -perm -2000 -type f ! -path "/dev/*" 2>/dev/null)
 for s in $sgids_files; do
   s=$(ls -lahtr "$s")
@@ -150,7 +150,7 @@ echo ""
 
 ##-- IF) Misconfigured ld.so
 print_2title "Checking misconfigurations of ld.so"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#ld-so"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#ld-so"
 printf $ITALIC"/etc/ld.so.conf\n"$NC;
 cat /etc/ld.so.conf 2>/dev/null | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
 cat /etc/ld.so.conf 2>/dev/null | while read l; do
@@ -169,7 +169,7 @@ echo ""
 
 ##-- IF) Capabilities
 print_2title "Capabilities"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#capabilities"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#capabilities"
 echo "Current capabilities:"
 (capsh --print 2>/dev/null | grep "Current:" | sed -${E} "s,$capsB,${SED_RED_YELLOW}," ) || echo_not_found "capsh"
 (cat "/proc/$$/status" | grep Cap | sed -${E} "s,.*0000000000000000|CapBnd:	0000003fffffffff,${SED_GREEN},") 2>/dev/null || echo_not_found "/proc/$$/status"
@@ -205,7 +205,7 @@ echo ""
 ##-- IF) Users with capabilities
 if [ -f "/etc/security/capability.conf" ] || [ "$DEBUG" ]; then
   print_2title "Users with capabilities"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#capabilities"
+  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#capabilities"
   if [ -f "/etc/security/capability.conf" ]; then
     grep -v '^#\|none\|^$' /etc/security/capability.conf 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED},"
   else echo_not_found "/etc/security/capability.conf"
@@ -215,7 +215,7 @@ fi
 
 ##-- IF) Files with ACLs
 print_2title "Files with ACLs (limited to 50)"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#acls"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#acls"
 ( (getfacl -t -s -R -p /bin /etc $HOMESEARCH /opt /sbin /usr /tmp /root 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | head -n 70 | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED},"
 
 if [ "$MACPEAS" ] && ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && ! [ "$(command -v getfacl)" ]; then  #Find ACL files in macos (veeeery slow)
@@ -233,7 +233,7 @@ echo ""
 
 ##-- IF) .sh files in PATH
 print_2title ".sh files in path"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#script-binaries-in-path"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#script-binaries-in-path"
 echo $PATH | tr ":" "\n" | while read d; do
   for f in $(find "$d" -name "*.sh" 2>/dev/null); do
     if ! [ "$IAMROOT" ] && [ -O "$f" ]; then
@@ -280,7 +280,7 @@ echo ""
 
 ##-- IF) Files (scripts) in /etc/profile.d/
 print_2title "Files (scripts) in /etc/profile.d/"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#profiles-files"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#profiles-files"
 if [ ! "$MACPEAS" ] && ! [ "$IAMROOT" ]; then #Those folders don´t exist on a MacOS
   (ls -la /etc/profile.d/ 2>/dev/null | sed -${E} "s,$profiledG,${SED_GREEN},") || echo_not_found "/etc/profile.d/"
   check_critial_root_path "/etc/profile"
@@ -290,7 +290,7 @@ echo ""
 
   ##-- IF) Files (scripts) in /etc/init.d/
 print_2title "Permissions in init, init.d, systemd, and rc.d"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#init-init-d-systemd-and-rc-d"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#init-init-d-systemd-and-rc-d"
 if [ ! "$MACPEAS" ] && ! [ "$IAMROOT" ]; then #Those folders don´t exist on a MacOS
   check_critial_root_path "/etc/init/"
   check_critial_root_path "/etc/init.d/"
@@ -381,7 +381,7 @@ echo ""
 
 ##-- IF) Writable log files
 print_2title "Writable log files (logrotten) (limit 100)"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#logrotate-exploitation"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#logrotate-exploitation"
 logrotate --version 2>/dev/null || echo_not_found "logrotate"
 lastWlogFolder="ImPOsSiBleeElastWlogFolder"
 logfind=$(find / -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 3){ print line_init; }; if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; pre=act}' | head -n 100)
@@ -520,7 +520,7 @@ echo ""
 ##-- IF) Interesting writable files by ownership or all
 if ! [ "$IAMROOT" ]; then
   print_2title "Interesting writable files owned by me or writable by everyone (not in Home) (max 500)"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files"
+  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#writable-files"
   #In the next file, you need to specify type "d" and "f" to avoid fake link files apparently writable by all
   obmowbe=$(find / '(' -type f -or -type d ')' '(' '(' -user $USER ')' -or '(' -perm -o=w ')' ')' ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | sort | uniq | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500)
   printf "%s\n" "$obmowbe" | while read entry; do
@@ -537,7 +537,7 @@ fi
 ##-- IF) Interesting writable files by group
 if ! [ "$IAMROOT" ]; then
   print_2title "Interesting GROUP writable files (not in Home) (max 500)"
-  print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-files"
+  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#writable-files"
   for g in $(groups); do
     iwfbg=$(find / '(' -type f -or -type d ')' -group $g -perm -g=w ! -path "/proc/*" ! -path "/sys/*" ! -path "$HOME/*" 2>/dev/null | grep -Ev "$notExtensions" | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 5){ print line_init; } if (cont == "5"){print "#)You_can_write_even_more_files_inside_last_directory\n"}; pre=act }' | head -n500)
     if [ "$iwfbg" ] || [ "$DEBUG" ]; then

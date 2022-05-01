@@ -107,7 +107,7 @@ namespace winPEAS.Helpers
 
             PrintLegend();
             Console.WriteLine();
-            LinkPrint("https://book.hacktricks.xyz/windows/checklist-windows-privilege-escalation", "You can find a Windows local PE Checklist here:");
+            LinkPrint("https://book.hacktricks.xyz/windows-hardening/checklist-windows-privilege-escalation", "You can find a Windows local PE Checklist here:");
         }
 
         static void PrintLegend()

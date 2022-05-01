@@ -4,7 +4,7 @@
 
 #-- SY) OS
 print_2title "Operative system"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#kernel-exploits"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#kernel-exploits"
 (cat /proc/version || uname -a ) 2>/dev/null | sed -${E} "s,$kernelDCW_Ubuntu_Precise_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_5,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Precise_6,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Trusty_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Ubuntu_Xenial,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel5_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_1,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_2,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_3,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel6_4,${SED_RED_YELLOW}," | sed -${E} "s,$kernelDCW_Rhel7,${SED_RED_YELLOW}," | sed -${E} "s,$kernelB,${SED_RED},"
 warn_exec lsb_release -a 2>/dev/null
 if [ "$MACPEAS" ]; then
@@ -15,7 +15,7 @@ echo ""
 #-- SY) Sudo
 print_2title "Sudo version"
 if [ "$(command -v sudo 2>/dev/null)" ]; then
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sudo-version"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sudo-version"
 sudo -V 2>/dev/null | grep "Sudo ver" | sed -${E} "s,$sudovB,${SED_RED},"
 else echo_not_found "sudo"
 fi
@@ -51,7 +51,7 @@ echo ""
 #--SY) USBCreator
 if (busctl list 2>/dev/null | grep -q com.ubuntu.USBCreator) || [ "$DEBUG" ]; then
     print_2title "USBCreator"
-    print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation/d-bus-enumeration-and-command-injection-privilege-escalation"
+    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/d-bus-enumeration-and-command-injection-privilege-escalation"
 
     pc_version=$(dpkg -l 2>/dev/null | grep policykit-desktop-privileges | grep -oP "[0-9][0-9a-zA-Z\.]+")
     if [ -z "$pc_version" ]; then
@@ -70,7 +70,7 @@ echo ""
 
 #-- SY) PATH
 print_2title "PATH"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#writable-path-abuses"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#writable-path-abuses"
 echo "$OLDPATH" 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\.,${SED_RED_YELLOW},g"
 echo "New path exported: $PATH" 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\. ,${SED_RED_YELLOW},g"
 echo ""
@@ -130,7 +130,7 @@ echo ""
 #-- SY) Dmesg
 if [ "$(command -v dmesg 2>/dev/null)" ] || [ "$DEBUG" ]; then
     print_2title "Searching Signature verification failed in dmesg"
-    print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#dmesg-signature-verification-failed"
+    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#dmesg-signature-verification-failed"
     (dmesg 2>/dev/null | grep "signature") || echo_not_found "dmesg"
     echo ""
 fi

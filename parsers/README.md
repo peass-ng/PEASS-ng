@@ -38,7 +38,7 @@ There is a **maximun of 3 levels of sections**.
           }
         ],
         "infos": [
-          "https://book.hacktricks.xyz/linux-unix/privilege-escalation#kernel-exploits"
+          "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#kernel-exploits"
         ]
       },
       "infos": []
@@ -65,7 +65,7 @@ There is a **maximun of 3 levels of sections**.
           }
         ],
         "infos": [
-          "https://book.hacktricks.xyz/linux-unix/privilege-escalation#kernel-exploits"
+          "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#kernel-exploits"
         ]
       },
       "infos": []

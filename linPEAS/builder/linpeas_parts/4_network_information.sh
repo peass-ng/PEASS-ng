@@ -53,7 +53,7 @@ fi
 
 #-- NI) Ports
 print_2title "Active Ports"
-print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#open-ports"
+print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#open-ports"
 ( (netstat -punta || ss -nltpu || netstat -anv) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+|:::|::1:|0\.0\.0\.0,${SED_RED},"
 echo ""
 
@@ -92,7 +92,7 @@ fi
 print_2title "Can I sniff with tcpdump?"
 timeout 1 tcpdump >/dev/null 2>&1
 if [ $? -eq 124 ]; then #If 124, then timed out == It worked
-    print_info "https://book.hacktricks.xyz/linux-unix/privilege-escalation#sniffing"
+    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sniffing"
     echo "You can sniff with tcpdump!" | sed -${E} "s,.*,${SED_RED},"
 else echo_no
 fi

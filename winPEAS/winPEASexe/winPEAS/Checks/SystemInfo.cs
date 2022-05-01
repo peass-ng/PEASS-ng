@@ -97,7 +97,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Basic System Information");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#kernel-exploits", "Check if the Windows versions is vulnerable to some known exploit");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#kernel-exploits", "Check if the Windows versions is vulnerable to some known exploit");
                 Dictionary<string, string> basicDictSystem = Info.SystemInfo.SystemInfo.GetBasicOSInfo();
                 basicDictSystem["Hotfixes"] = Beaprint.ansi_color_good + basicDictSystem["Hotfixes"] + Beaprint.NOCOLOR;
                 Dictionary<string, string> colorsSI = new Dictionary<string, string>
@@ -340,7 +340,7 @@ namespace winPEAS.Checks
         static void PrintWdigest()
         {
             Beaprint.MainPrint("Wdigest");
-            Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#wdigest", "If enabled, plain-text crds could be stored in LSASS");
+            Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/stealing-credentials/credentials-protections#wdigest", "If enabled, plain-text crds could be stored in LSASS");
             string useLogonCredential = RegistryHelper.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest", "UseLogonCredential");
             if (useLogonCredential == "1")
                 Beaprint.BadPrint("    Wdigest is active");
@@ -351,7 +351,7 @@ namespace winPEAS.Checks
         static void PrintLSAProtection()
         {
             Beaprint.MainPrint("LSA Protection");
-            Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#lsa-protection", "If enabled, a driver is needed to read LSASS memory (If Secure Boot or UEFI, RunAsPPL cannot be disabled by deleting the registry key)");
+            Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/stealing-credentials/credentials-protections#lsa-protection", "If enabled, a driver is needed to read LSASS memory (If Secure Boot or UEFI, RunAsPPL cannot be disabled by deleting the registry key)");
             string useLogonCredential = RegistryHelper.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\LSA", "RunAsPPL");
             if (useLogonCredential == "1")
                 Beaprint.GoodPrint("    LSA Protection is active");
@@ -362,7 +362,7 @@ namespace winPEAS.Checks
         static void PrintCredentialGuard()
         {
             Beaprint.MainPrint("Credentials Guard");
-            Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#credential-guard", "If enabled, a driver is needed to read LSASS memory");
+            Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/stealing-credentials/credentials-protections#credential-guard", "If enabled, a driver is needed to read LSASS memory");
             string lsaCfgFlags = RegistryHelper.GetRegValue("HKLM", @"System\CurrentControlSet\Control\LSA", "LsaCfgFlags");
             
             if (lsaCfgFlags == "1")
@@ -386,7 +386,7 @@ namespace winPEAS.Checks
         static void PrintCachedCreds()
         {
             Beaprint.MainPrint("Cached Creds");
-            Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/stealing-credentials/credentials-protections#cached-credentials", "If > 0, credentials will be cached in the registry and accessible by SYSTEM user");
+            Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/stealing-credentials/credentials-protections#cached-credentials", "If > 0, credentials will be cached in the registry and accessible by SYSTEM user");
             string cachedlogonscount = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "CACHEDLOGONSCOUNT");
             if (!string.IsNullOrEmpty(cachedlogonscount))
             {
@@ -523,7 +523,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("UAC Status");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#basic-uac-bypass-full-file-system-access", "If you are in the Administrators group check how to bypass the UAC");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#basic-uac-bypass-full-file-system-access", "If you are in the Administrators group check how to bypass the UAC");
                 Dictionary<string, string> uacDict = Info.SystemInfo.SystemInfo.GetUACSystemPolicies();
 
                 Dictionary<string, string> colorsSI = new Dictionary<string, string>()
@@ -556,7 +556,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Checking WSUS");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#wsus");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#wsus");
                 string path = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate";
                 string path2 = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU";
                 string HKLM_WSUS = RegistryHelper.GetRegValue("HKLM", path, "WUServer");
@@ -591,7 +591,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Checking AlwaysInstallElevated");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows/windows-local-privilege-escalation#alwaysinstallelevated");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#alwaysinstallelevated");
                 string path = "Software\\Policies\\Microsoft\\Windows\\Installer";
                 string HKLM_AIE = RegistryHelper.GetRegValue("HKLM", path, "AlwaysInstallElevated");
                 string HKCU_AIE = RegistryHelper.GetRegValue("HKCU", path, "AlwaysInstallElevated");
