@@ -43,8 +43,12 @@ fi
 
 #-- SI) Mysql version
 if [ "$(command -v mysql)" ] || [ "$(command -v mysqladmin)" ] || [ "$DEBUG" ]; then
-  print_2title "MySQL version"
+  print_2title "MySQL"
   mysql --version 2>/dev/null || echo_not_found "mysql"
+  mysqluser=$(systemctl status mysql 2>/dev/null | grep -o ".\{0,0\}user.\{0,50\}" | cut -d '=' -f2 | cut -d ' ' -f1)
+  if [ "$mysqluser" ]; then
+    echo "MySQL user: $mysqluser" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
+  fi
   echo ""
 
   #-- SI) Mysql connection root/root
