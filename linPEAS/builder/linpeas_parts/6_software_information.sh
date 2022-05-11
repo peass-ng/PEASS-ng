@@ -84,7 +84,7 @@ fi
 if [ "$PSTORAGE_MYSQL" ] || [ "$DEBUG" ]; then
   print_2title "Searching mysql credentials and exec"
   printf "%s\n" "$PSTORAGE_MYSQL" | while read d; do
-    if [ -f "$d" ]; then
+    if [ -f "$d" ] && ! [ "$(basename $d)" = "mysql" ]; then
       STRINGS="`command -v strings`"
       echo "Potential file containing credentials:"
       ls -l "$d"
