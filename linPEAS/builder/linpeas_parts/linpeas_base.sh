@@ -69,21 +69,21 @@ THREADS="$( ( (grep -c processor /proc/cpuinfo 2>/dev/null) || ( (command -v lsc
 HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
 ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user, processes and file permissions, special file permissions, readable/writable files, bruteforce other users(top1000pwds), passwords...)$NC inside the host and highlight possible misconfigurations with colors.
       ${YELLOW}-h${BLUE} To show this message
-      ${YELLOW}-q${BLUE} Do not show banner
       ${YELLOW}-e${BLUE} Perform extra enumeration
-      ${YELLOW}-s${BLUE} SuperFast (don't check some time consuming checks) - Stealth mode
-      ${YELLOW}-a${BLUE} All checks (1min of processes and su brute) - Noisy mode, for CTFs mainly
-      ${YELLOW}-w${BLUE} Wait execution between big blocks of checks
-      ${YELLOW}-N${BLUE} Do not use colours
-      ${YELLOW}-D${BLUE} Debug mode
-      ${YELLOW}-P${BLUE} Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
+      ${YELLOW}-s${BLUE} Stealth & faster (don't check some time consuming checks)
+      ${YELLOW}-a${BLUE} All checks except Internet connectivity checks and automatic network recon (use -t to enable them)
+      ${YELLOW}-t${BLUE} Automatic network scan & Internet conectivity checks - This option writes to files
       ${YELLOW}-o${BLUE} Only execute selected checks (peass{CHECKS}). Select a comma separated list.
+      ${YELLOW}-P${BLUE} Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
+      ${YELLOW}-w${BLUE} Wait execution between big blocks of checks
       ${YELLOW}-L${BLUE} Force linpeas execution.
       ${YELLOW}-M${BLUE} Force macpeas execution.
+      ${YELLOW}-N${BLUE} Do not use colours
+      ${YELLOW}-D${BLUE} Debug mode
+      ${YELLOW}-q${BLUE} Do not show banner
       ${YELLOW}-d <IP/NETMASK>${BLUE} Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
       ${YELLOW}-p <PORT(s)> -d <IP/NETMASK>${BLUE} Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
       ${YELLOW}-i <IP> [-p <PORT(s)>]${BLUE} Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
-      ${YELLOW}-t${BLUE} Automatic network scan (host discovery and port scanning) - This option writes to files
       $GREEN Notice${BLUE} that if you specify some network scan (options -d/-p/-i but NOT -t), no PE check will be performed$NC"
 
 while getopts "h?asd:p:i:P:qo:LMwNDte" opt; do
@@ -910,6 +910,11 @@ printf $LG"Hostname: "$NC
 hostname 2>/dev/null
 printf $LG"Writable folder: "$NC;
 echo $Wfolder
+
+if ! [ "$FAST" ] && ! [ "$AUTO_NETWORK_SCAN" ]; then
+	printf $LG"Remember that you can use the '-t' option to call the Internet connectivity checks and automatic network recon!\n"$NC;
+fi
+
 if [ "$DISCOVER_BAN_GOOD" ]; then
   printf $YELLOW"[+] $DISCOVER_BAN_GOOD\n$NC"
 else
