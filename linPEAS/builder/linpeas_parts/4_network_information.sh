@@ -99,7 +99,7 @@ fi
 echo ""
 
 #-- NI) Internet access
-if ! [ "$SUPERFAST" ] && [ "$EXTRA_CHECKS" ] && ! [ "$FAST" ] && [ "$TIMEOUT" ] && [ -f "/bin/bash" ]; then
+if [ "$AUTO_NETWORK_SCAN" ] && [ "$TIMEOUT" ] && [ -f "/bin/bash" ]; then
   print_2title "Internet Access?"
   check_tcp_80 2>/dev/null &
   check_tcp_443 2>/dev/null &
@@ -109,7 +109,7 @@ if ! [ "$SUPERFAST" ] && [ "$EXTRA_CHECKS" ] && ! [ "$FAST" ] && [ "$TIMEOUT" ] 
   echo ""
 fi
 
-if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] || [ "$AUTO_NETWORK_SCAN" ]; then
+if [ "$AUTO_NETWORK_SCAN" ]; then
   if ! [ "$FOUND_NC" ]; then
     printf $RED"[-] $SCAN_BAN_BAD\n$NC"
     echo "The network is not going to be scanned..."
