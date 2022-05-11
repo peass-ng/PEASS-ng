@@ -448,9 +448,9 @@ FILECMD="$(command -v file 2>/dev/null)"
 if [ "$PSTORAGE_DATABASE" ]; then
   printf "%s\n" "$PSTORAGE_DATABASE" | while read f; do
     if [ "$FILECMD" ]; then
-      echo "Found: $(file $f)" | sed -${E} "s,\.db|\.sql|\.sqlite|\.sqlite3,${SED_RED},g";
+      echo "Found "$(file "$f") | sed -${E} "s,\.db|\.sql|\.sqlite|\.sqlite3,${SED_RED},g";
     else
-      echo "Found: $f" | sed -${E} "s,\.db|\.sql|\.sqlite|\.sqlite3,${SED_RED},g";
+      echo "Found $f" | sed -${E} "s,\.db|\.sql|\.sqlite|\.sqlite3,${SED_RED},g";
     fi
   done
   SQLITEPYTHON=""
