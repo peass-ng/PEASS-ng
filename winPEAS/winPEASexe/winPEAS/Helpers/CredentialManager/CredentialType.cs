@@ -1,4 +1,0 @@
-﻿namespace winPEAS.Helpers.CredentialManager
-{
-    
-}
