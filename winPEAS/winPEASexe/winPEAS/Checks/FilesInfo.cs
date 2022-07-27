@@ -747,7 +747,8 @@ namespace winPEAS.Checks
             {
                 ".bat",
                 ".exe",
-                ".ps1"
+                ".ps1",
+                ".cmd"
             };
 
             var files = SearchHelper.GetFilesFast(systemDrive, "*", excludedDirs);            
