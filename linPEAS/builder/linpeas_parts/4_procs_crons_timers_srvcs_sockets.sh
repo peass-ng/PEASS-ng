@@ -213,12 +213,6 @@ if ! [ "$IAMROOT" ]; then
       fi
     done
   done
-  if ! [ "$IAMROOT" ] && [ -w "/var/run/docker.sock" ]; then
-    echo "Docker socket /var/run/docker.sock is writable (https://book.hacktricks.xyz/linux-hardening/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${SED_RED_YELLOW},g"
-  fi
-  if ! [ "$IAMROOT" ] && [ -w "/run/docker.sock" ]; then
-    echo "Docker socket /run/docker.sock is writable (https://book.hacktricks.xyz/linux-hardening/privilege-escalation#writable-docker-socket)" | sed "s,/var/run/docker.sock is writable,${SED_RED_YELLOW},g"
-  fi
   echo ""
 
   print_2title "Unix Sockets Listening"

@@ -110,8 +110,12 @@ if [ "$AUTO_NETWORK_SCAN" ] && [ "$TIMEOUT" ] && [ -f "/bin/bash" ]; then
 fi
 
 if [ "$AUTO_NETWORK_SCAN" ]; then
-  if ! [ "$FOUND_NC" ]; then
+  if ! [ "$FOUND_NC" ] && ! [ "$FOUND_BASH" ]; then
     printf $RED"[-] $SCAN_BAN_BAD\n$NC"
+    echo "The network is not going to be scanned..."
+  
+  elif ! [ "$(command -v ifconfig)" ] && ! [ "$(command -v ip a)" ]; then
+    printf $RED"[-] No ifconfig or ip commands, cannot find local ips\n$NC"
     echo "The network is not going to be scanned..."
   
   else
@@ -122,7 +126,7 @@ if [ "$AUTO_NETWORK_SCAN" ]; then
     fi
 
     select_nc
-    local_ips=$(ip a | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\.")
+    local_ips=$( (ip a 2>/dev/null || ifconfig) | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\.")
     printf "%s\n" "$local_ips" | while read local_ip; do
       if ! [ -z "$local_ip" ]; then
         print_3title "Discovering hosts in $local_ip/24"

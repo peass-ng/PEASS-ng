@@ -1,0 +1,8 @@
+- Add more checks
+- Add more potential files with passwords to sensitive_files.yaml
+- Add more regex of interesting APIs to regexes.yaml
+- Mantain updated the list of vulnerable SUID binaries
+- Mantain updated all the blacklists used to color the output
+- Improve the speed
+- Reduce the size of the script
+- Generate automatically an obfuscated version

@@ -56,37 +56,49 @@ DISCOVERY=""
 PORTS=""
 QUIET=""
 CHECKS="peass{CHECKS}"
+SEARCH_IN_FOLDER=""
+ROOT_FOLDER="/"
 WAIT=""
 PASSWORD=""
 NOCOLOR=""
 DEBUG=""
 AUTO_NETWORK_SCAN=""
 EXTRA_CHECKS=""
+REGEXES=""
 THREADS="$( ( (grep -c processor /proc/cpuinfo 2>/dev/null) || ( (command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n")"
 [ -z "$THREADS" ] && THREADS="2" #If THREADS is empty, put number 2
 [ -n "$THREADS" ] && THREADS="2" #If THREADS is null, put number 2
 [ "$THREADS" -eq "$THREADS" ] 2>/dev/null && : || THREADS="2" #It THREADS is not a number, put number 2
 HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
 ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user, processes and file permissions, special file permissions, readable/writable files, bruteforce other users(top1000pwds), passwords...)$NC inside the host and highlight possible misconfigurations with colors.
-      ${YELLOW}-h${BLUE} To show this message
-      ${YELLOW}-e${BLUE} Perform extra enumeration
-      ${YELLOW}-s${BLUE} Stealth & faster (don't check some time consuming checks)
-      ${YELLOW}-a${BLUE} All checks except Internet connectivity checks and automatic network recon (use -t to enable them)
-      ${YELLOW}-t${BLUE} Automatic network scan & Internet conectivity checks - This option writes to files
-      ${YELLOW}-o${BLUE} Only execute selected checks (peass{CHECKS}). Select a comma separated list.
-      ${YELLOW}-P${BLUE} Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
-      ${YELLOW}-w${BLUE} Wait execution between big blocks of checks
-      ${YELLOW}-L${BLUE} Force linpeas execution.
-      ${YELLOW}-M${BLUE} Force macpeas execution.
-      ${YELLOW}-N${BLUE} Do not use colours
-      ${YELLOW}-D${BLUE} Debug mode
-      ${YELLOW}-q${BLUE} Do not show banner
-      ${YELLOW}-d <IP/NETMASK>${BLUE} Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
-      ${YELLOW}-p <PORT(s)> -d <IP/NETMASK>${BLUE} Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
-      ${YELLOW}-i <IP> [-p <PORT(s)>]${BLUE} Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
-      $GREEN Notice${BLUE} that if you specify some network scan (options -d/-p/-i but NOT -t), no PE check will be performed$NC"
+      ${GREEN}  Checks:
+        ${YELLOW}    -o${BLUE} Only execute selected checks (peass{CHECKS}). Select a comma separated list.
+        ${YELLOW}    -s${BLUE} Stealth & faster (don't check some time consuming checks)
+        ${YELLOW}    -e${BLUE} Perform extra enumeration
+        ${YELLOW}    -t${BLUE} Automatic network scan & Internet conectivity checks - This option writes to files
+        ${YELLOW}    -r${BLUE} Enable Regexes (this can take from some mins to hours)
+        ${YELLOW}    -P${BLUE} Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
+	${YELLOW}    -D${BLUE} Debug mode
+	
+      ${GREEN}  Network recon:
+        ${YELLOW}    -t${BLUE} Automatic network scan & Internet conectivity checks - This option writes to files
+	${YELLOW}    -d <IP/NETMASK>${BLUE} Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
+        ${YELLOW}    -p <PORT(s)> -d <IP/NETMASK>${BLUE} Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
+        ${YELLOW}    -i <IP> [-p <PORT(s)>]${BLUE} Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
+        $GREEN     Notice${BLUE} that if you specify some network scan (options -d/-p/-i but NOT -t), no PE check will be performed
+      
+      ${GREEN}  Firmware recon:
+        ${YELLOW}    -f </FOLDER/PATH>${BLUE} Execute linpeas to search passwords/file permissions misconfigs inside a folder
+	
+      ${GREEN}  Misc:
+        ${YELLOW}    -h${BLUE} To show this message
+	${YELLOW}    -w${BLUE} Wait execution between big blocks of checks
+        ${YELLOW}    -L${BLUE} Force linpeas execution
+        ${YELLOW}    -M${BLUE} Force macpeas execution
+	${YELLOW}    -q${BLUE} Do not show banner
+        ${YELLOW}    -N${BLUE} Do not use colours$NC"
 
-while getopts "h?asd:p:i:P:qo:LMwNDte" opt; do
+while getopts "h?asd:p:i:P:qo:LMwNDterf:" opt; do
   case "$opt" in
     h|\?) printf "%s\n\n" "$HELP$NC"; exit 0;;
     a)  FAST="";EXTRA_CHECKS="1";;
@@ -104,6 +116,8 @@ while getopts "h?asd:p:i:P:qo:LMwNDte" opt; do
     D)  DEBUG="1";;
     t)  AUTO_NETWORK_SCAN="1";;
     e)  EXTRA_CHECKS="1";;
+    r)  REGEXES="1";;
+    f)  SEARCH_IN_FOLDER=$OPTARG; ROOT_FOLDER=$OPTARG; REGEXES="1"; CHECKS="software_information,interesting_files,api_keys_regex";;
     esac
 done
 
@@ -215,15 +229,15 @@ print_banner(){
 
 print_support () {
   printf """
-    ${GREEN}/---------------------------------------------------------------------------\\
-    |                             ${BLUE}Do you like PEASS?${GREEN}                            |
-    |---------------------------------------------------------------------------| 
-    |         ${YELLOW}Get latest LinPEAS${GREEN}  :     ${RED}https://github.com/sponsors/carlospolop${GREEN} |
-    |         ${YELLOW}Follow on Twitter${GREEN}   :     ${RED}@carlospolopm${GREEN}                           |
-    |         ${YELLOW}Respect on HTB${GREEN}      :     ${RED}SirBroccoli            ${GREEN}                 |
-    |---------------------------------------------------------------------------|
-    |                                 ${BLUE}Thank you! ${GREEN}                               |
-    \---------------------------------------------------------------------------/
+    ${GREEN}/---------------------------------------------------------------------------------\\
+    |                             ${BLUE}Do you like PEASS?${GREEN}                                  |
+    |---------------------------------------------------------------------------------| 
+    |         ${YELLOW}Get the latest version${GREEN}    :     ${RED}https://github.com/sponsors/carlospolop${GREEN} |
+    |         ${YELLOW}Follow on Twitter${GREEN}         :     ${RED}@carlospolopm${GREEN}                           |
+    |         ${YELLOW}Respect on HTB${GREEN}            :     ${RED}SirBroccoli            ${GREEN}                 |
+    |---------------------------------------------------------------------------------|
+    |                                 ${BLUE}Thank you! ${GREEN}                                     |
+    \---------------------------------------------------------------------------------/
 """
 }
 
@@ -369,9 +383,9 @@ sidVB='peass{SUIDVB1_HERE}'
 sidVB2='peass{SUIDVB2_HERE}'
 cfuncs='file|free|main|more|read|split|write'
 
-sudoVB1=" \*|env_keep\+=LD_PRELOAD|peass{SUDOVB1_HERE}"
+sudoVB1=" \*|env_keep\W*\+=.*LD_PRELOAD|env_keep\W*\+=.*LD_LIBRARY_PATH|peass{SUDOVB1_HERE}"
 sudoVB2="peass{SUDOVB2_HERE}"
-sudoB="$(whoami)|ALL:ALL|ALL : ALL|ALL|NOPASSWD|SETENV|/apache2|/cryptsetup|/mount"
+sudoB="$(whoami)|ALL:ALL|ALL : ALL|ALL|env_keep|NOPASSWD|SETENV|/apache2|/cryptsetup|/mount"
 sudoG="NOEXEC"
 
 capsVB="cap_sys_admin:mount|python \
@@ -386,7 +400,7 @@ cap_net_raw:python|tcpdump"
 
 
 capsB="=ep|cap_chown|cap_former|cap_setfcap|cap_dac_override|cap_dac_read_search|cap_setuid|cap_setgid|cap_kill|cap_net_bind_service|cap_net_raw|cap_net_admin|cap_sys_admin|cap_sys_ptrace|cap_sys_module"
-containercapsB="sys_admin|sys_ptrace|sys_module|dac_read_search|dac_override"
+containercapsB="sys_admin|sys_ptrace|sys_module|dac_read_search|dac_override|sys_rawio|syslog|net_raw|net_admin"
 
 OLDPATH=$PATH
 ADDPATH=":/usr/local/sbin\
@@ -474,7 +488,10 @@ while $SEDOVERFLOW; do
   #  WF=`find / -maxdepth $MAXPATH_FIND_W -type d ! -path "/proc/*" -and '(' -writable -or -user $USER ')' 2>/dev/null | sort`
   #fi
   Wfolders=$(printf "%s" "$WF" | tr '\n' '|')"|[a-zA-Z]+[a-zA-Z0-9]* +\*"
-  Wfolder="$(printf "%s" "$WF" | grep "tmp\|shm\|home\|Users\|root\|etc\|var\|opt\|bin\|lib\|mnt\|private\|Applications" | head -n1)"
+  Wfolder="$(printf "%s" "$WF" | grep "/shm" | head -n1)"  # Try to get /dev/shm
+  if ! [ "$Wfolder" ]; then
+    Wfolder="$(printf "%s" "$WF" | grep "tmp\|shm\|home\|Users\|root\|etc\|var\|opt\|bin\|lib\|mnt\|private\|Applications" | head -n1)"
+  fi
   printf "test\ntest\ntest\ntest"| sed -${E} "s,$Wfolders|\./|\.:|:\.,${SED_RED_YELLOW},g" >/dev/null 2>&1
   if [ $? -eq 0 ]; then
       SEDOVERFLOW=false
@@ -497,11 +514,11 @@ shscripsG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/crosh.sh|/dnsma
 
 notBackup="/tdbbackup$|/db_hotbackup$"
 
-cronjobsG=".placeholder|0anacron|0hourly|110.clean-tmps|130.clean-msgs|140.clean-rwho|199.clean-fax|199.rotate-fax|200.accounting|310.accounting|400.status-disks|420.status-network|430.status-rwho|999.local|anacron|apache2|apport|apt|aptitude|apt-compat|bsdmainutils|certwatch|cracklib-runtime|debtags|dpkg|e2scrub_all|fake-hwclock|fstrim|john|locate|logrotate|man-db.cron|man-db|mdadm|mlocate|ntp|passwd|php|popularity-contest|raid-check|rwhod|samba|standard|sysstat|ubuntu-advantage-tools|update-notifier-common|upstart|"
+cronjobsG=".placeholder|0anacron|0hourly|110.clean-tmps|130.clean-msgs|140.clean-rwho|199.clean-fax|199.rotate-fax|200.accounting|310.accounting|400.status-disks|420.status-network|430.status-rwho|999.local|anacron|apache2|apport|apt|aptitude|apt-compat|bsdmainutils|certwatch|cracklib-runtime|debtags|dpkg|e2scrub_all|exim4-base|fake-hwclock|fstrim|john|locate|logrotate|man-db.cron|man-db|mdadm|mlocate|ntp|passwd|php|popularity-contest|raid-check|rwhod|samba|standard|sysstat|ubuntu-advantage-tools|update-notifier-common|upstart|"
 cronjobsB="centreon"
 
-processesVB="jdwp|tmux |screen |--inspect|--remote-debugging-port"
-processesB="knockd\|splunk"
+processesVB='jdwp|tmux |screen | inspect |--inspect[= ]|--inspect$|--inpect-brk|--remote-debugging-port'
+processesB="knockd|splunk"
 processesDump="gdm-password|gnome-keyring-daemon|lightdm|vsftpd|apache2|sshd:"
 
 mail_apps="Postfix|Dovecot|Exim|SquirrelMail|Cyrus|Sendmail|Courier"
@@ -527,6 +544,10 @@ GREP_IGNORE_MOUNTS="/ /|/null | proc proc |/dev/console"
 
 INT_HIDDEN_FILES="peass{INT_HIDDEN_FILES}"
 
+FAT_LINPEAS_AMICONTAINED="peass{AMICONTAINED}"
+FAT_LINPEAS_GITLEAKS_LINUX="peass{GITLEAKS_LINUX}"
+FAT_LINPEAS_GITLEAKS_MACOS="peass{GITLEAKS_MACOS}"
+
 ###########################################
 #---------) Checks before start (---------#
 ###########################################
@@ -548,7 +569,17 @@ else
   fi
 fi
 
-SCAN_BAN_BAD="No port scan capabilities (nc not found)"
+SCAN_BAN_BAD="No port scan capabilities (nc and bash not found)"
+
+if [ "$(command -v bash)" ] && ! [ -L "$(command -v bash)" ]; then
+  FOUND_BASH=$(command -v bash);
+elif [ -f "/bin/bash" ] && ! [ -L "/bin/bash" ]; then
+  FOUND_BASH="/bin/bash";
+fi
+if [ "$FOUND_BASH" ]; then
+  SCAN_BAN_GOOD="$YELLOW[+] $GREEN$FOUND_BASH${BLUE} is available for network discovery & port scanning$LG ($SCRIPTNAME can discover hosts and scan ports, learn more with -h)\n"
+fi
+
 FOUND_NC=$(command -v nc 2>/dev/null)
 if [ -z "$FOUND_NC" ]; then
 	FOUND_NC=$(command -v netcat 2>/dev/null);
@@ -563,7 +594,7 @@ if [ -z "$FOUND_NC" ]; then
 	FOUND_NC=$(command -v nc.openbsd 2>/dev/null);
 fi
 if [ "$FOUND_NC" ]; then
-  SCAN_BAN_GOOD="$GREEN$FOUND_NC${BLUE} is available for network discover & port scanning$LG ($SCRIPTNAME can discover hosts and scan ports, learn more with -h)"
+  SCAN_BAN_GOOD="$SCAN_BAN_GOOD$YELLOW[+] $GREEN$FOUND_NC${BLUE} is available for network discovery & port scanning$LG ($SCRIPTNAME can discover hosts and scan ports, learn more with -h)\n"
 fi
 
 
@@ -603,7 +634,7 @@ print_title(){
 
   title=$1
   title_len=$(echo $title | wc -c)
-  max_title_len=100
+  max_title_len=80
   rest_len=$((($max_title_len - $title_len) / 2))
 
   printf ${BLUE}
@@ -647,6 +678,10 @@ print_2title(){
 
 print_3title(){
   printf ${BLUE}"══╣ $GREEN$1\n"$NC #There are 2 "═"
+}
+
+print_3title_no_nl(){
+  printf ${BLUE}"\r══╣ $GREEN${1}..."$NC #There are 2 "═"
 }
 
 print_list(){
@@ -712,6 +747,23 @@ macosNotSigned(){
   done
 }
 
+execBin(){
+  TOOL_NAME=$1
+  TOOL_LINK=$2
+  B64_BIN=$3
+  PARAMS=$4
+  if [ "$B64_BIN" ]; then
+    echo ""
+    print_3title "Running $TOOL_NAME"
+    print_info "$TOOL_LINK"
+    echo "$B64_BIN" | base64 -d > $Wfolder/bin
+    chmod +x $Wfolder/bin
+    eval "$Wfolder/bin $PARAMS"
+    rm -f $Wfolder/bin
+    echo ""
+  fi
+}
+
 ###########################################
 #---------) Internet functions (----------#
 ###########################################
@@ -774,7 +826,11 @@ tcp_recon (){
   for port in $PORTS; do
     for j in $(seq 1 254)
     do
-      ($NC_SCAN "$IP3"."$j" "$port" 2>&1 | grep -iv "Connection refused\|No route\|Version\|bytes\| out" | sed -${E} "s,[0-9\.],${SED_RED},g") &
+      if [ "$FOUND_BASH" ]; then
+        $FOUND_BASH -c "(echo </dev/tcp/$IP3.$j/$port) 2>/dev/null && echo -e \"\n[+] Open port at: $IP3.$j:$port\"" &
+      elif [ "$NC_SCAN" ]; then
+        ($NC_SCAN "$IP3"."$j" "$port" 2>&1 | grep -iv "Connection refused\|No route\|Version\|bytes\| out" | sed -${E} "s,[0-9\.],${SED_RED},g") &
+      fi
     done
     wait
   done
@@ -799,7 +855,11 @@ tcp_port_scan (){
   fi
 
   for port in $PORTS; do
-    ($NC_SCAN "$IP" "$port" 2>&1 | grep -iv "Connection refused\|No route\|Version\|bytes\| out" | sed -${E} "s,[0-9\.],${SED_RED},g") &
+    if [ "$FOUND_BASH" ]; then
+      $FOUND_BASH -c "(echo </dev/tcp/$IP/$port) 2>/dev/null && echo -e \"\n[+] Open port at: $IP:$port\"" &
+    elif [ "$NC_SCAN" ]; then
+      ($NC_SCAN "$IP" "$port" 2>&1 | grep -iv "Connection refused\|No route\|Version\|bytes\| out" | sed -${E} "s,[0-9\.],${SED_RED},g") &
+    fi
   done
   wait
 }
@@ -912,7 +972,7 @@ printf $LG"Writable folder: "$NC;
 echo $Wfolder
 
 if ! [ "$FAST" ] && ! [ "$AUTO_NETWORK_SCAN" ]; then
-	printf $LG"Remember that you can use the '-t' option to call the Internet connectivity checks and automatic network recon!\n"$NC;
+  printf $LG"Remember that you can use the '-t' option to call the Internet connectivity checks and automatic network recon!\n"$NC;
 fi
 
 if [ "$DISCOVER_BAN_GOOD" ]; then
@@ -922,12 +982,12 @@ else
 fi
 
 if [ "$SCAN_BAN_GOOD" ]; then
-  printf $YELLOW"[+] $SCAN_BAN_GOOD\n$NC"
+  printf "$SCAN_BAN_GOOD\n$NC"
 else
   printf $RED"[-] $SCAN_BAN_BAD\n$NC"
 fi
 if [ "$(command -v nmap 2>/dev/null)" ];then
-  NMAP_GOOD=$GREEN"nmap${BLUE} is available for network discover & port scanning, you should use it yourself"
+  NMAP_GOOD=$GREEN"nmap${BLUE} is available for network discovery & port scanning, you should use it yourself"
   printf $YELLOW"[+] $NMAP_GOOD\n$NC"
 fi
 echo ""
@@ -972,20 +1032,32 @@ elif [ "$IP" ]; then
 fi
 
 
-if echo $CHECKS | grep -q procs_crons_timers_srvcs_sockets || echo $CHECKS | grep -q software_information || echo $CHECKS | grep -q interesting_files; then
-  ###########################################
-  #----------) Caching Finds (--------------#
-  ###########################################
+#Get HOMESEARCH
+HOMESEARCH="/home/ /Users/ /root/ $(cat /etc/passwd 2>/dev/null | grep "sh$" | cut -d ":" -f 6 | grep -Ev "^/root|^/home|^/Users" | tr "\n" " ")"
+if ! echo "$HOMESEARCH" | grep -q "$HOME" && ! echo "$HOMESEARCH" | grep -qE "^/root|^/home|^/Users"; then #If not listed and not in /home, /Users/ or /root, add current home folder
+  HOMESEARCH="$HOME $HOMESEARCH"
+fi
+GREPHOMESEARCH=$(echo "$HOMESEARCH" | sed 's/ *$//g' | tr " " "|") #Remove ending spaces before putting "|"
 
+
+
+
+###########################################
+#----------) Caching Finds (--------------#
+###########################################
+if [ "$SEARCH_IN_FOLDER" ]; then
   printf $GREEN"Caching directories "$NC
 
+  CONT_THREADS=0
+  # FIND ALL KNOWN INTERESTING SOFTWARE FILES
+  peass{FINDS_CUSTOM}
 
-  #Get home
-  HOMESEARCH="/home/ /Users/ /root/ $(cat /etc/passwd 2>/dev/null | grep "sh$" | cut -d ":" -f 6 | grep -Ev "^/root|^/home|^/Users" | tr "\n" " ")"
-  if ! echo "$HOMESEARCH" | grep -q "$HOME" && ! echo "$HOMESEARCH" | grep -qE "^/root|^/home|^/Users"; then #If not listed and not in /home, /Users/ or /root, add current home folder
-    HOMESEARCH="$HOME $HOMESEARCH"
-  fi
-  GREPHOMESEARCH=$(echo "$HOMESEARCH" | sed 's/ *$//g' | tr " " "|") #Remove ending spaces before putting "|"
+  wait # Always wait at the end
+  CONT_THREADS=0 #Reset the threads counter
+
+elif echo $CHECKS | grep -q procs_crons_timers_srvcs_sockets || echo $CHECKS | grep -q software_information || echo $CHECKS | grep -q interesting_files; then
+
+  printf $GREEN"Caching directories "$NC
 
   CONT_THREADS=0
   # FIND ALL KNOWN INTERESTING SOFTWARE FILES
@@ -993,7 +1065,9 @@ if echo $CHECKS | grep -q procs_crons_timers_srvcs_sockets || echo $CHECKS | gre
 
   wait # Always wait at the end
   CONT_THREADS=0 #Reset the threads counter
+fi 
 
+if [ "$SEARCH_IN_FOLDER" ] || echo $CHECKS | grep -q procs_crons_timers_srvcs_sockets || echo $CHECKS | grep -q software_information || echo $CHECKS | grep -q interesting_files; then
   #GENERATE THE STORAGES OF THE FOUND FILES
   peass{STORAGES_HERE}
 

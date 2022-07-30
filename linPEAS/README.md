@@ -47,6 +47,22 @@ chmod +x linpeas_linux_amd64
 ./linpeas_linux_amd64
 ```
 
+## Firmware Analysis
+If you have a **firmware** and you want to **analyze it with linpeas** to **search for passwords or bad configured permissions** you have 2 main options.
+
+- If you **can emulate** the firmware, just run linpeas inside of it:
+```bash
+cp /path/to/linpeas.sh /mnt/linpeas.sh
+chroot /mnt #Supposing you have mounted the firmware FS in /mnt
+bash /linpeas.sh -o software_information,interesting_files,api_keys_regex
+```
+
+- If you **cannot emulate** the firmware, use the `-f </path/to/folder` param:
+```bash
+# Point to the folder containing the files you want to analyze
+bash /path/to/linpeas.sh -f /path/to/folder
+```
+
 ## AV bypass
 ```bash
 #open-ssl encryption
@@ -77,8 +93,9 @@ By default linpeas takes around **4 mins** to complete, but It could take from *
 - 1 min to monitor the processes in order to find very frequent cron jobs *(need `-a`)* - Notice that this check will need to **write** some info inside a file that will be deleted
 
 **Interesting parameters:**
-- **-a** (all checks) - This will **execute also the check of processes during 1 min, will search more possible hashes inside files, and brute-force each user using `su` with the top2000 passwords.**
+- **-a** (all checks except regex) - This will **execute also the check of processes during 1 min, will search more possible hashes inside files, and brute-force each user using `su` with the top2000 passwords.**
 - **-e** (extra enumeration) - This will execute **enumeration checkes that are avoided by default**
+- **-r** (regex checks) - This will search for **hundreds of API keys of different platforms in the silesystem**
 - **-s** (superfast & stealth) - This will bypass some time consuming checks - **Stealth mode** (Nothing will be written to disk)
 - **-P** (Password) - Pass a password that will be used with `sudo -l` and bruteforcing other users
 - **-D** (Debug) - Print information about the checks that haven't discovered anything and about the time each check took
@@ -93,19 +110,21 @@ This tool enum and search possible misconfigurations (known vulns, user, process
       -q Do not show banner
       -e Perform extra enumeration
       -s SuperFast (don't check some time consuming checks) - Stealth mode
-      -a All checks (1min of processes and su brute) - Noisy mode, for CTFs mainly
+      -a All checks except regexes - Noisy mode, for CTFs mainly
+      -r Activate Regexes (this can take from some mins to several hours)
+      -f </FOLDER/PATH> Execute linpeas to search passwords/file permissions misconfigs inside a folder
       -w Wait execution between big blocks of checks
       -N Do not use colours
       -D Debug mode
       -P Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
-      -o Only execute selected checks (system_information,container,procs_crons_timers_srvcs_sockets,network_information,users_information,software_information,interesting_files). Select a comma separated list.
+      -o Only execute selected checks (system_information,container,procs_crons_timers_srvcs_sockets,network_information,users_information,software_information,interesting_files,api_keys_regex). Select a comma separated list.
       -L Force linpeas execution.
       -M Force macpeas execution.
       -d <IP/NETMASK> Discover hosts using fping or ping. Ex: -d 192.168.0.1/24
       -p <PORT(s)> -d <IP/NETMASK> Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports. Ex: -d 192.168.0.1/24 -p 53,139
       -i <IP> [-p <PORT(s)>] Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead. Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
       -t Automatic network scan (host discovery and port scanning) - This option writes to files
-  Notice that if you specify some network scan (options -d/-p/-i but NOT -t), no PE check will be performed
+       Notice that if you specify some network scan (options -d/-p/-i but NOT -t), no PE check will be performed
 ```
 
 ## Hosts Discovery and Port Scanning
@@ -186,16 +205,11 @@ file="/tmp/linPE";RED='\033[0;31m';Y='\033[0;33m';B='\033[0;34m';NC='\033[0m';rm
 
 Are you a PEASS fan? Get now our merch at **[PEASS Shop](https://teespring.com/stores/peass)** and show your love for our favorite peas
 
-## TODO
+## Collaborate
 
-- Add more checks
-- Mantain updated the list of vulnerable SUID binaries
-- Mantain updated all the blacklists used to color the output
-
-If you want to help with any of this, you can do it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues) or you can submit a pull request**.
+If you want to help with the TODO tasks or with anything, you can do it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues) or you can submit a pull request**.
 
 If you find any issue, please report it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)**.
-
 
 **Linpeas** is being **updated** every time I find something that could be useful to escalate privileges.
 

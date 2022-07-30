@@ -16,35 +16,46 @@ LINPEAS_PARTS = [
         "file_path": LINPEAS_BASE_PARTS + "/2_container.sh"
     },
     {
+        "name": "Cloud",
+        "name_check": "cloud",
+        "file_path": LINPEAS_BASE_PARTS + "/3_cloud.sh"
+    },
+    {
         "name": "Processes, Crons, Timers, Services and Sockets",
         "name_check": "procs_crons_timers_srvcs_sockets",
-        "file_path": LINPEAS_BASE_PARTS + "/3_procs_crons_timers_srvcs_sockets.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/4_procs_crons_timers_srvcs_sockets.sh"
     },
     {
         "name": "Network Information",
         "name_check": "network_information",
-        "file_path": LINPEAS_BASE_PARTS + "/4_network_information.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/5_network_information.sh"
     },
     {
         "name": "Users Information",
         "name_check": "users_information",
-        "file_path": LINPEAS_BASE_PARTS + "/5_users_information.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/6_users_information.sh"
     },
     {
         "name": "Software Information",
         "name_check": "software_information",
-        "file_path": LINPEAS_BASE_PARTS + "/6_software_information.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/7_software_information.sh"
     },
     {
         "name": "Interesting Files",
         "name_check": "interesting_files",
-        "file_path": LINPEAS_BASE_PARTS + "/7_interesting_files.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/8_interesting_files.sh"
+    },
+    {
+        "name": "API Keys Regex",
+        "name_check": "api_keys_regex",
+        "file_path": LINPEAS_BASE_PARTS + "/9_api_keys_regex.sh"
     }
 ]
 
 
 LINPEAS_BASE_PATH = LINPEAS_BASE_PARTS + "/linpeas_base.sh"
 TEMPORARY_LINPEAS_BASE_PATH = CURRENT_DIR + "/../linpeas_base.sh"
+FINAL_FAT_LINPEAS_PATH = CURRENT_DIR + "/../../" + "linpeas_fat.sh"
 FINAL_LINPEAS_PATH = CURRENT_DIR + "/../../" + "linpeas.sh"
 YAML_NAME = "sensitive_files.yaml"
 YAML_REGEXES = "regexes.yaml"
@@ -68,6 +79,7 @@ assert all(f in ROOT_FOLDER for f in COMMON_DIR_FOLDERS)
 
 PEAS_CHECKS_MARKUP = YAML_LOADED["peas_checks"]
 PEAS_FINDS_MARKUP = YAML_LOADED["peas_finds_markup"]
+PEAS_FINDS_CUSTOM_MARKUP = YAML_LOADED["peas_finds_custom_markup"]
 FIND_LINE_MARKUP = YAML_LOADED["find_line_markup"]
 FIND_TEMPLATE = YAML_LOADED["find_template"]
 
@@ -93,3 +105,8 @@ CAP_SETGID_MARKUP = YAML_LOADED["cap_setgid_markup"]
 
 LES_MARKUP = YAML_LOADED["les_markup"]
 LES2_MARKUP = YAML_LOADED["les2_markup"]
+
+
+FAT_LINPEAS_AMICONTAINED_MARKUP = YAML_LOADED["fat_linpeas_amicontained_markup"]
+FAT_LINPEAS_GITLEAKS_LINUX_MARKUP = YAML_LOADED["fat_linpeas_gitleaks_linux_markup"]
+FAT_LINPEAS_GITLEAKS_MACOS_MARKUP = YAML_LOADED["fat_linpeas_gitleaks_macos_markup"]

@@ -9,6 +9,7 @@ from .fileRecord import FileRecord
 from .yamlGlobals import (
     TEMPORARY_LINPEAS_BASE_PATH,
     PEAS_FINDS_MARKUP,
+    PEAS_FINDS_CUSTOM_MARKUP,
     PEAS_STORAGES_MARKUP,
     PEAS_STORAGES_MARKUP,
     INT_HIDDEN_FILES_MARKUP,
@@ -30,7 +31,10 @@ from .yamlGlobals import (
     LES_MARKUP,
     LES2_MARKUP,
     REGEXES_LOADED,
-    REGEXES_MARKUP
+    REGEXES_MARKUP,
+    FAT_LINPEAS_AMICONTAINED_MARKUP,
+    FAT_LINPEAS_GITLEAKS_LINUX_MARKUP,
+    FAT_LINPEAS_GITLEAKS_MACOS_MARKUP
 )
 
 
@@ -50,8 +54,9 @@ class LinpeasBuilder:
         self.__replace_mark(PEAS_VARIABLES_MARKUP, variables, "")
 
         print("[+] Building finds...")
-        find_calls = self.__generate_finds()
+        find_calls, find_custom_calls = self.__generate_finds()
         self.__replace_mark(PEAS_FINDS_MARKUP, find_calls, "  ")
+        self.__replace_mark(PEAS_FINDS_CUSTOM_MARKUP, find_custom_calls, "  ")
 
         print("[+] Building storages...")
         storage_vars = self.__generate_storages()
@@ -92,6 +97,16 @@ class LinpeasBuilder:
         assert len(les2_b64) > 100
         self.__replace_mark(LES_MARKUP, list(les_b64), "")
         self.__replace_mark(LES2_MARKUP, list(les2_b64), "")
+
+        print("[+] Downloading Fat Linpeas binaries...")
+        aimcont_b64 = self.__get_bin("https://github.com/genuinetools/amicontained/releases/latest/download/amicontained-linux-amd64")
+        self.__replace_mark(FAT_LINPEAS_AMICONTAINED_MARKUP, list(aimcont_b64), "")
+        
+        gitleaks_b64 = self.__get_bin("https://github.com/zricethezav/gitleaks/releases/download/v8.8.7/gitleaks_8.8.7_linux_x64.tar.gz", tar_gz="gitleaks")
+        self.__replace_mark(FAT_LINPEAS_GITLEAKS_LINUX_MARKUP, list(gitleaks_b64), "")
+
+        gitleaks_b64_macos = self.__get_bin("https://github.com/zricethezav/gitleaks/releases/download/v8.8.7/gitleaks_8.8.7_darwin_x64.tar.gz", tar_gz="gitleaks")
+        self.__replace_mark(FAT_LINPEAS_GITLEAKS_MACOS_MARKUP, list(gitleaks_b64_macos), "")
 
         print("[+] Building GTFOBins lists...")
         suidVB, sudoVB, capsVB = self.__get_gtfobins_lists()
@@ -146,6 +161,11 @@ class LinpeasBuilder:
     def __generate_finds(self) -> list:
         """Given the regexes to search on each root folder, generate the find command"""
         finds = []
+        
+        finds_custom = []
+        all_folder_regexes = []
+        all_file_regexes = []
+        
         for type,searches in self.dict_to_search.items():
             for r,regexes in searches.items():
                 if regexes:
@@ -153,25 +173,41 @@ class LinpeasBuilder:
                     
                     if type == "d": 
                         find_line += "-type d "
-                        bash_find_var = f"FIND_DIR_{r[1:].replace('.','').upper()}"
+                        bash_find_var = f"FIND_DIR_{r[1:].replace('.','').replace('-','_').upper()}"
                         self.bash_find_d_vars.add(bash_find_var)
+                        all_folder_regexes += regexes
                     else:
-                        bash_find_var = f"FIND_{r[1:].replace('.','').upper()}"
+                        bash_find_var = f"FIND_{r[1:].replace('.','').replace('-','_').upper()}"
                         self.bash_find_f_vars.add(bash_find_var)
+                        all_file_regexes += regexes
 
                     find_line += '-name \\"' + '\\" -o -name \\"'.join(regexes) + '\\"'
                     find_line = FIND_TEMPLATE.replace(FIND_LINE_MARKUP, find_line)
                     find_line = f"{bash_find_var}={find_line}"
                     finds.append(find_line)
+        
+        # Buid folder and files finds when searching in a custom folder
+        all_folder_regexes = list(set(all_folder_regexes))
+        find_line = '$SEARCH_IN_FOLDER -type d -name \\"' + '\\" -o -name \\"'.join(all_folder_regexes) + '\\"'
+        find_line = FIND_TEMPLATE.replace(FIND_LINE_MARKUP, find_line)
+        find_line = f"FIND_DIR_CUSTOM={find_line}"
+        finds_custom.append(find_line)
+        
+        all_file_regexes = list(set(all_file_regexes))
+        find_line = '$SEARCH_IN_FOLDER -name \\"' + '\\" -o -name \\"'.join(all_file_regexes) + '\\"'
+        find_line = FIND_TEMPLATE.replace(FIND_LINE_MARKUP, find_line)
+        find_line = f"FIND_CUSTOM={find_line}"
+        finds_custom.append(find_line)
             
-        return finds
+        return finds, finds_custom
 
     def __generate_storages(self) -> list:
         """Generate the storages to save the results per entry"""
         storages = []
-        all_f_finds = "$" + "\\n$".join(self.bash_find_f_vars)
-        all_d_finds = "$" + "\\n$".join(self.bash_find_d_vars)
-        all_finds = "$" + "\\n$".join(list(self.bash_find_f_vars) + list(self.bash_find_d_vars))
+        custom_storages = ["FIND_CUSTOM", "FIND_DIR_CUSTOM"]
+        all_f_finds = "$" + "\\n$".join(list(self.bash_find_f_vars) + custom_storages)
+        all_d_finds = "$" + "\\n$".join(list(self.bash_find_d_vars) + custom_storages)
+        all_finds = "$" + "\\n$".join(list(self.bash_find_f_vars) + list(self.bash_find_d_vars) + custom_storages)
         
         for precord in self.ploaded.peasrecords:
             bash_storage_var = f"PSTORAGE_{precord.bash_name}"
@@ -239,7 +275,7 @@ class LinpeasBuilder:
         analise_line = ""
         if init:
             analise_line = 'if ! [ "`echo \\\"$PSTORAGE_'+precord.bash_name+'\\\" | grep -E \\\"'+real_regex+'\\\"`" ]; then if [ "$DEBUG" ]; then echo_not_found "'+frecord.regex+'"; fi; fi; '
-            analise_line += 'printf "%s" "$PSTORAGE_'+precord.bash_name+'" | grep -E "'+real_regex+'" | while read f; do ls -ld "$f" | sed -${E} "s,'+real_regex+',${SED_RED},"; '
+            analise_line += 'printf "%s" "$PSTORAGE_'+precord.bash_name+'" | grep -E "'+real_regex+'" | while read f; do if ! [ -d "$f" ]; then continue; fi; ls -ld "$f" | sed -${E} "s,'+real_regex+',${SED_RED},"; '
 
         #If just list, just list the file/directory
         if frecord.just_list_file:
@@ -303,6 +339,19 @@ class LinpeasBuilder:
         r2 = requests.get("https://raw.githubusercontent.com/jondonas/linux-exploit-suggester-2/master/linux-exploit-suggester-2.pl")
         return(base64.b64encode(bytes(r1.text, 'utf-8')).decode("utf-8"), base64.b64encode(bytes(r2.text, 'utf-8')).decode("utf-8"))
     
+    def __get_bin(self, url, tar_gz="") -> str:
+        os.system(f"wget -q '{url}' -O /tmp/bin_builder")
+        if tar_gz:
+            os.system(f"cd /tmp; tar -xvzf /tmp/bin_builder; rm /tmp/bin_builder; mv {tar_gz} /tmp/bin_builder")
+        os.system("base64 /tmp/bin_builder | tr -d '\n' > /tmp/binb64; rm /tmp/bin_builder")
+        
+        b64bin = ""
+        with open("/tmp/binb64", "r") as f:
+            b64bin = f.read()
+        
+        os.system("rm /tmp/binb64")
+        return b64bin
+    
     def __get_gtfobins_lists(self) -> tuple:
         r = requests.get("https://github.com/GTFOBins/GTFOBins.github.io/tree/master/_gtfobins")
         bins = re.findall(r'/GTFOBins/GTFOBins.github.io/blob/master/_gtfobins/([\w_ \-]+).md', r.text)
@@ -334,14 +383,24 @@ class LinpeasBuilder:
 
             for entry in values["regexes"]:
                 name = entry["name"]
+                caseinsensitive = entry.get("caseinsensitive", False)
                 regex = entry["regex"]
                 regex = regex.replace('"', '\\"').strip()
                 extra_grep = entry.get("extra_grep")
                 extra_grep = f"| grep {extra_grep}" if extra_grep else ""
                 
-                regexes_search_section += f'print_3title "Searching {name} (limited to 50)"\n'
+                regexes_search_section += f'print_3title_no_nl "Searching {name} (limited to 50)..."\n'
+
+                # If custom folder to search in
+                regexes_search_section += 'if [ "$SEARCH_IN_FOLDER" ]; then\n'
+                regexes_search_section += "  timeout 120 find $SEARCH_IN_FOLDER -type f -exec grep -HnRiIE \""+regex+"\" '{}' \; 2>/dev/null "+extra_grep+" | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &\n"
+                
+                # If search in all the file system
+                regexes_search_section += 'else\n'
                 for path in paths_to_search:
-                    regexes_search_section += "timeout 120 find "+path+" -type f -exec grep -HnRiIE \""+regex+"\" '{}' \; 2>/dev/null "+extra_grep+" | sed '/^.\{150\}./d' | sort | uniq | head -n 50 | sed -${E} \"s~"+regex+"~${SED_RED}~\" &\n"
+                    grep_flags = "-HnRiIE" if caseinsensitive else "-HnRIE"
+                    regexes_search_section += "  timeout 120 find "+path+" -type f -exec grep "+grep_flags+" \""+regex+"\" '{}' \; 2>/dev/null "+extra_grep+" | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &\n"
+                regexes_search_section += 'fi\n'
                 
                 regexes_search_section += "wait\n"
             
@@ -357,10 +416,16 @@ class LinpeasBuilder:
         
         self.linpeas_sh = self.linpeas_sh.replace(mark, join_char.join(find_calls)) #New line char is't needed
     
-    def write_linpeas(self, path):
+    def write_linpeas(self, path, rm_startswith=""):
         """Write on disk the final linpeas"""
         
         with open(path, "w") as f:
-            f.write(self.linpeas_sh)
-        
-        os.remove(TEMPORARY_LINPEAS_BASE_PATH) #Remove the built linpeas_base.sh file
+            if not rm_startswith:
+                f.write(self.linpeas_sh)
+            else:
+                tmp_linpeas = ""
+                for line in self.linpeas_sh.splitlines():
+                    if not line.startswith(rm_startswith):
+                        tmp_linpeas += line + "\n"
+                f.write(tmp_linpeas)
+    

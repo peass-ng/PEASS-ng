@@ -31,8 +31,8 @@ if [ `command -v pkexec` ] && stat -c '%a' $(which pkexec) | grep -q 4755 && [ "
 fi
 
 #-- SY) CVE-2021-3560
-polkitVersion=$(systemctl status polkit.service | grep version | cut -d " " -f 9)
-if [[ "$(apt list --installed 2>/dev/null | grep polkit | grep -c 0.105-26)" -ge 1 || "$(rpm -qa | grep polkit | grep -c '0.117-2\|0.115-6')" -ge 1 ]]; then
+polkitVersion=$(systemctl status polkit.service 2>/dev/null | grep version | cut -d " " -f 9)
+if [ "$(apt list --installed 2>/dev/null | grep polkit | grep -c 0.105-26)" -ge 1 ] || [ "$(yum list installed 2>/dev/null | grep polkit | grep -c 0.117-2)" ]; then
     echo "Vulnerable to CVE-2021-3560" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     echo ""
 fi
@@ -42,7 +42,7 @@ fi
 #-- https://stackoverflow.com/a/37939589
 kernelversion=$(uname -r | awk -F"-" '{print $1}')
 kernelnumber=$(echo $kernelversion | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }')
-if [[ $kernelnumber -ge 5008000000 && $kernelnumber -lt 5017000000 ]]; then # if kernel version beteen 5.8 and 5.17
+if [ $kernelnumber -ge 5008000000 ] && [ $kernelnumber -lt 5017000000 ]; then # if kernel version beteen 5.8 and 5.17
     echo "Vulnerable to CVE-2022-0847" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     echo ""
 fi
@@ -69,10 +69,15 @@ fi
 echo ""
 
 #-- SY) PATH
+
 print_2title "PATH"
 print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#writable-path-abuses"
-echo "$OLDPATH" 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\.,${SED_RED_YELLOW},g"
-echo "New path exported: $PATH" 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\. ,${SED_RED_YELLOW},g"
+if ! [ "$IAMROOT" ]; then
+    echo "$OLDPATH" 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\.,${SED_RED_YELLOW},g"
+    echo "New path exported: $PATH" 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\. ,${SED_RED_YELLOW},g"
+else
+    echo "New path exported: $PATH" 2>/dev/null
+fi
 echo ""
 
 #-- SY) Date
@@ -104,7 +109,7 @@ fi
 
 if [ -f "/etc/fstab" ] || [ "$DEBUG" ]; then
     print_2title "Unmounted file-system?"
-    print_info "Check if you can mount unmounted devices"
+    print_info "Check if you can mount umounted devices"
     grep -v "^#" /etc/fstab 2>/dev/null | grep -Ev "\W+\#|^#" | sed -${E} "s,$mountG,${SED_GREEN},g" | sed -${E} "s,$notmounted,${SED_RED},g" | sed -${E} "s%$mounted%${SED_BLUE}%g" | sed -${E} "s,$Wfolders,${SED_RED}," | sed -${E} "s,$mountpermsB,${SED_RED},g" | sed -${E} "s,$mountpermsG,${SED_GREEN},g"
     echo ""
 fi
@@ -124,7 +129,7 @@ fi
 #-- SY) Environment vars
 print_2title "Environment"
 print_info "Any private information inside environment variables?"
-(env || printenv || set) 2>/dev/null | grep -v "RELEVANT*|FIND*|^VERSION=|dbuslistG|mygroups|ldsoconfdG|pwd_inside_history|kernelDCW_Ubuntu_Precise|kernelDCW_Ubuntu_Trusty|kernelDCW_Ubuntu_Xenial|kernelDCW_Rhel|^sudovB=|^rootcommon=|^mounted=|^mountG=|^notmounted=|^mountpermsB=|^mountpermsG=|^kernelB=|^C=|^RED=|^GREEN=|^Y=|^B=|^NC=|TIMEOUT=|groupsB=|groupsVB=|knw_grps=|sidG|sidB=|sidVB=|sidVB2=|sudoB=|sudoG=|sudoVB=|timersG=|capsB=|notExtensions=|Wfolders=|writeB=|writeVB=|_usrs=|compiler=|PWD=|LS_COLORS=|pathshG=|notBackup=|processesDump|processesB|commonrootdirs|USEFUL_SOFTWARE" | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[aA][pP][iI][kK][eE][yY]|[aA][pP][iI][_][kK][eE][yY]|KRB5CCNAME,${SED_RED},g" || echo_not_found "env || set"
+(env || printenv || set) 2>/dev/null | grep -v "RELEVANT*|FIND*|^VERSION=|dbuslistG|mygroups|ldsoconfdG|pwd_inside_history|kernelDCW_Ubuntu_Precise|kernelDCW_Ubuntu_Trusty|kernelDCW_Ubuntu_Xenial|kernelDCW_Rhel|^sudovB=|^rootcommon=|^mounted=|^mountG=|^notmounted=|^mountpermsB=|^mountpermsG=|^kernelB=|^C=|^RED=|^GREEN=|^Y=|^B=|^NC=|TIMEOUT=|groupsB=|groupsVB=|knw_grps=|sidG|sidB=|sidVB=|sidVB2=|sudoB=|sudoG=|sudoVB=|timersG=|capsB=|notExtensions=|Wfolders=|writeB=|writeVB=|_usrs=|compiler=|PWD=|LS_COLORS=|pathshG=|notBackup=|processesDump|processesB|commonrootdirs|USEFUL_SOFTWARE|PSTORAGE_KUBERNETES" | sed -${E} "s,[pP][wW][dD]|[pP][aA][sS][sS][wW]|[aA][pP][iI][kK][eE][yY]|[aA][pP][iI][_][kK][eE][yY]|KRB5CCNAME,${SED_RED},g" || echo_not_found "env || set"
 echo ""
 
 #-- SY) Dmesg
@@ -197,6 +202,22 @@ print_list "Execshield enabled? ............ "$NC
 #-- SY) SElinux
 print_list "SELinux enabled? ............... "$NC
 (sestatus 2>/dev/null || echo_not_found "sestatus") | sed "s,disabled,${SED_RED},"
+
+#-- SY) Seccomp
+print_list "Seccomp enabled? ............... "$NC
+([ "$(grep Seccomp /proc/self/status | grep -v 0)" ] && echo "enabled" || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,enabled,${SED_GREEN},"
+
+#-- SY) AppArmor
+print_list "AppArmor profile? .............. "$NC
+(cat /proc/self/attr/current 2>/dev/null || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,kernel,${SED_GREEN},"
+
+#-- SY) AppArmor
+print_list "User namespace? ................ "$NC
+if [ "$(cat /proc/self/uid_map 2>/dev/null)" ]; then echo "enabled" | sed "s,enabled,${SED_GREEN},"; else echo "disabled" | sed "s,disabled,${SED_RED},"; fi
+
+#-- SY) cgroup2
+print_list "Cgroup2 enabled? ............... "$NC
+([ "$(grep cgroup2 /proc/filesystems)" ] && echo "enabled" || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,enabled,${SED_GREEN},"
 
 #-- SY) Gatekeeper
 if [ "$MACPEAS" ]; then

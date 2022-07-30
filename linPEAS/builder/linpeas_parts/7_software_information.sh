@@ -5,25 +5,29 @@
 NGINX_KNOWN_MODULES="ngx_http_geoip_module.so|ngx_http_xslt_filter_module.so|ngx_stream_geoip_module.so|ngx_http_image_filter_module.so|ngx_mail_module.so|ngx_stream_module.so"
 
 #-- SI) Useful software
-print_2title "Useful software"
-for tool in $USEFUL_SOFTWARE; do command -v "$tool"; done
-echo ""
-
-#-- SI) Search for compilers
-print_2title "Installed Compilers"
-(dpkg --list 2>/dev/null | grep "compiler" | grep -v "decompiler\|lib" 2>/dev/null || yum list installed 'gcc*' 2>/dev/null | grep gcc 2>/dev/null; command -v gcc g++ 2>/dev/null || locate -r "/gcc[0-9\.-]\+$" 2>/dev/null | grep -v "/doc/");
-echo ""
-
-if [ "$(command -v pkg 2>/dev/null)" ]; then
-    print_2title "Vulnerable Packages"
-    pkg audit -F | sed -${E} "s,vulnerable,${SED_RED},g"
-    echo ""
+if ! [ "SEARCH_IN_FOLDER" ]; then
+  print_2title "Useful software"
+  for tool in $USEFUL_SOFTWARE; do command -v "$tool"; done
+  echo ""
 fi
 
-if [ "$(command -v brew 2>/dev/null)" ]; then
-    print_2title "Brew Installed Packages"
-    brew list
-    echo ""
+#-- SI) Search for compilers
+if ! [ "SEARCH_IN_FOLDER" ]; then
+  print_2title "Installed Compilers"
+  (dpkg --list 2>/dev/null | grep "compiler" | grep -v "decompiler\|lib" 2>/dev/null || yum list installed 'gcc*' 2>/dev/null | grep gcc 2>/dev/null; command -v gcc g++ 2>/dev/null || locate -r "/gcc[0-9\.-]\+$" 2>/dev/null | grep -v "/doc/");
+  echo ""
+
+  if [ "$(command -v pkg 2>/dev/null)" ]; then
+      print_2title "Vulnerable Packages"
+      pkg audit -F | sed -${E} "s,vulnerable,${SED_RED},g"
+      echo ""
+  fi
+
+  if [ "$(command -v brew 2>/dev/null)" ]; then
+      print_2title "Brew Installed Packages"
+      brew list
+      echo ""
+  fi
 fi
 
 if [ "$MACPEAS" ]; then
@@ -43,12 +47,13 @@ fi
 
 #-- SI) Mysql version
 if [ "$(command -v mysql)" ] || [ "$(command -v mysqladmin)" ] || [ "$DEBUG" ]; then
-  print_2title "MySQL"
+  print_2title "MySQL version"
   mysql --version 2>/dev/null || echo_not_found "mysql"
   mysqluser=$(systemctl status mysql 2>/dev/null | grep -o ".\{0,0\}user.\{0,50\}" | cut -d '=' -f2 | cut -d ' ' -f1)
   if [ "$mysqluser" ]; then
     echo "MySQL user: $mysqluser" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
   fi
+  echo ""
   echo ""
 
   #-- SI) Mysql connection root/root
@@ -84,7 +89,7 @@ fi
 if [ "$PSTORAGE_MYSQL" ] || [ "$DEBUG" ]; then
   print_2title "Searching mysql credentials and exec"
   printf "%s\n" "$PSTORAGE_MYSQL" | while read d; do
-    if [ -f "$d" ] && ! [ "$(basename $d)" = "mysql" ]; then
+    if [ -f "$d" ] && ! [ "$(basename $d)" = "mysql" ]; then # Only interested in "mysql" that are folders (filesaren't the ones with creds)
       STRINGS="`command -v strings`"
       echo "Potential file containing credentials:"
       ls -l "$d"
@@ -146,7 +151,7 @@ if [ "$TIMEOUT" ] && [ "$(command -v psql)" ] || [ "$DEBUG" ]; then  # In some O
   fi
 
   print_list "PostgreSQL connection to template1 using postgres/NOPASS ........ "
-  if [ "$(timeout 1 psql -U postgres -d template1 -c 'select version()' 2>/dev/null)" ]; then echo "Yes" | sed "s,.)*,${SED_RED},"
+  if [ "$(timeout 1 psql -U postgres -d template1 -c 'select version()' 2>/dev/null)" ]; then echo "Yes" | sed "s,.*,${SED_RED},"
   else echo_no
   fi
 
@@ -211,10 +216,12 @@ fi
 #-- SI) ssh files
 print_2title "Searching ssl/ssh files"
 if [ "$PSTORAGE_CERTSB4" ]; then certsb4_grep=$(grep -L "\"\|'\|(" $PSTORAGE_CERTSB4 2>/dev/null); fi
-sshconfig="$(ls /etc/ssh/ssh_config 2>/dev/null)"
-hostsdenied="$(ls /etc/hosts.denied 2>/dev/null)"
-hostsallow="$(ls /etc/hosts.allow 2>/dev/null)"
-writable_agents=$(find /tmp /etc /home -type s -name "agent.*" -or -name "*gpg-agent*" '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)
+if ! [ "$SEARCH_IN_FOLDER" ]; then
+  sshconfig="$(ls /etc/ssh/ssh_config 2>/dev/null)"
+  hostsdenied="$(ls /etc/hosts.denied 2>/dev/null)"
+  hostsallow="$(ls /etc/hosts.allow 2>/dev/null)"
+  writable_agents=$(find /tmp /etc /home -type s -name "agent.*" -or -name "*gpg-agent*" '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)
+fi
 
 peass{SSH}
 
@@ -400,7 +407,7 @@ if [ "$adhashes" ] || [ "$DEBUG" ]; then
 fi
 
 #-- SI) Screen sessions
-if [ "$screensess" ] || [ "$screensess2" ] || [ "$DEBUG" ]; then
+if ([ "$screensess" ] || [ "$screensess2" ] || [ "$DEBUG" ]) && ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Searching screen sessions"
   print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#open-shell-sessions"
   screensess=$(screen -ls 2>/dev/null)
@@ -419,7 +426,7 @@ fi
 tmuxdefsess=$(tmux ls 2>/dev/null)
 tmuxnondefsess=$(ps auxwww | grep "tmux " | grep -v grep)
 tmuxsess2=$(find /tmp -type d -path "/tmp/tmux-*" 2>/dev/null)
-if [ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ] || [ "$tmuxsess2" ] || [ "$DEBUG" ]; then
+if ([ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ] || [ "$tmuxsess2" ] || [ "$DEBUG" ]) && ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Searching tmux sessions"$N
   print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#open-shell-sessions"
   tmux -V
@@ -456,6 +463,12 @@ fi
 peass{Mosquitto}
 
 peass{Neo4j}
+
+AWSVAULT="$(command -v aws-vault 2>/dev/null)"
+if [ "$AWSVAULT" ] || [ "$DEBUG" ]; then
+  print_2title "Check aws-vault"
+  aws-vault list
+fi
 
 peass{Cloud Credentials}
 
@@ -551,7 +564,7 @@ if [ "$containerd" ] || [ "$DEBUG" ]; then
   print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/containerd-ctr-privilege-escalation"
   if [ "$containerd" ]; then
     echo "ctr was found in $containerd, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"
-    ctr image list
+    ctr image list 2>&1
   fi
   echo ""
 fi
