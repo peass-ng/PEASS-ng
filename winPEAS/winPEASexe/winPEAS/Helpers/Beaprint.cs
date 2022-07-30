@@ -34,9 +34,7 @@ namespace winPEAS.Helpers
         private static string Advisory =
             "winpeas should be used for authorized penetration testing and/or educational purposes only." +
             "Any misuse of this software will not be the responsibility of the author or of any other collaborator. " +
-            "Use it at your own networks and/or with the network owner's permission.";
-
-        private static string Version = "ng";
+            "Use it at your own devices and/or with the device owner's permission.";
 
         /////////////////////////////////
         /////////  PRINT THINGS /////////
@@ -46,27 +44,27 @@ namespace winPEAS.Helpers
             Console.WriteLine(BLUE + string.Format(@"     
                {0}((((((((((((((((((((((((((((((((
         {0}(((((((((((((((((((((((((((((((((((((((((((
-      {0}(((((((((((((({2}**********/{1}##########{0}.((((((((((((   
-    {0}(((((((((((/{2}********************/{1}#######{0}.((((((((((
-    {0}(((((((.{2}******************{3}/@@@@@/{0}{2}****{1}######{0}.(((((((((
-    {0}(((((.{2}********************{3}@@@@@@@@@@/{0}{2}***,{1}####{0}.(((((((((
-    {0}((((.{2}********************{3}/@@@@@%@@@@{0}{2}/********{1}##{0}(((((((((
-    {0}.(({1}############{2}*********{3}/%@@@@@@@@@{0}{2}/************{0}.(((((((
-    {0}.({1}##################(/{2}******{3}/@@@@@{0}{2}/***************{0}.(((((
-    {0}.({1}#########################(/{2}**********************{0}.((((
-    {0}.({1}##############################(/{2}*****************{0}.((((
-    {0}.({1}###################################(/{2}************{0}.((((
-    {0}.({1}#######################################({2}*********{0}.((((
-    {0}.({1}#######(,.***.,(###################(..***.{2}*******{0}.((((
-    {0}.({1}#######*(#####((##################((######/({2}*****{0}.((((
-    {0}.({1}###################(/***********(##############({0}).((((
-    {0}.(({1}#####################/*******(################{0})((((((
-    {0}.((({1}############################################{0}).(((((
-    {0}..((({1}##########################################{0}).((((((
-    {0}....(({1}########################################{0}).((((((
-    {0}......(({1}####################################{0}).(((((((
-    {0}((((((((({1}#################################{0}).((((((((
-        {0}(((((((((/{1}##########################{0}).((((((((
+      {0}(((((((((((((({2}**********/{1}##########{0}(((((((((((((   
+    {0}(((((((((((({2}********************/{1}#######{0}(((((((((((
+    {0}(((((((({2}******************{3}/@@@@@/{0}{2}****{1}######{0}((((((((((
+    {0}(((((({2}********************{3}@@@@@@@@@@/{0}{2}***,{1}####{0}((((((((((
+    {0}((((({2}********************{3}/@@@@@%@@@@/{0}{2}********{1}##{0}(((((((((
+    {0}((({1}############{2}*********{3}/%@@@@@@@@@/{0}{2}************{0}((((((((
+    {0}(({1}##################(/{2}******{3}/@@@@@/{0}{2}***************{0}((((((
+    {0}(({1}#########################(/{2}**********************{0}(((((
+    {0}(({1}##############################(/{2}*****************{0}(((((
+    {0}(({1}###################################(/{2}************{0}(((((
+    {0}(({1}#######################################({2}*********{0}(((((
+    {0}(({1}#######(,.***.,(###################(..***.{2}*******{0}(((((
+    {0}(({1}#######*(#####((##################((######/({2}*****{0}(((((
+    {0}(({1}###################(/***********(##############({0})(((((
+    {0}((({1}#####################/*******(################{0})((((((
+    {0}(((({1}############################################{0})((((((
+    {0}((((({1}##########################################{0})(((((((
+    {0}(((((({1}########################################{0})(((((((
+    {0}(((((((({1}####################################{0})((((((((
+    {0}((((((((({1}#################################{0})(((((((((
+        {0}(((((((((({1}##########################{0})(((((((((
               {0}((((((((((((((((((((((((((((((((((((((
                  {0}((((((((((((((((((((((((((((((", LGREEN, GREEN, BLUE, NOCOLOR) + NOCOLOR);
 
@@ -81,15 +79,15 @@ namespace winPEAS.Helpers
 
             // Patreon link
             Console.WriteLine(GREEN + string.Format(@"
-       /---------------------------------------------------------------------------\
-       |                             {1}Do you like PEASS?{0}                            |
-       |---------------------------------------------------------------------------| 
-       |         {3}Get latest WinPEAS{0}  :     {2}https://github.com/sponsors/carlospolop{0} |
-       |         {3}Follow on Twitter{0}   :     {2}@carlospolopm{0}                           |
-       |         {3}Respect on HTB{0}      :     {2}SirBroccoli & makikvues{0}                 |
-       |---------------------------------------------------------------------------|
-       |                                 {1}Thank you!{0}                                |
-       \---------------------------------------------------------------------------/
+       /---------------------------------------------------------------------------------\
+       |                             {1}Do you like PEASS?{0}                                  |
+       |---------------------------------------------------------------------------------| 
+       |         {3}Get the latest version{0}    :     {2}https://github.com/sponsors/carlospolop{0} |
+       |         {3}Follow on Twitter{0}         :     {2}@carlospolopm{0}                           |
+       |         {3}Respect on HTB{0}            :     {2}SirBroccoli            {0}                 |
+       |---------------------------------------------------------------------------------|
+       |                                 {1}Thank you!{0}                                      |
+       \---------------------------------------------------------------------------------/
 ", GREEN, BLUE, RED, YELLOW) + NOCOLOR);
 
         }
@@ -101,7 +99,7 @@ namespace winPEAS.Helpers
                 PrintBanner();
             }
 
-            Console.WriteLine(YELLOW + "  WinPEAS" + GREEN + Version + NOCOLOR + YELLOW + " by @carlospolopm, makikvues(makikvues2[at]gmail[dot]com)" + NOCOLOR);
+            Console.WriteLine(YELLOW + "  WinPEAS-ng" + NOCOLOR + YELLOW + " by @carlospolopm" + NOCOLOR);
 
             PrintMarketingBanner();
 
@@ -124,8 +122,6 @@ namespace winPEAS.Helpers
         public static void PrintUsage()
         {
             Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        quiet" + GRAY + "                Do not print banner" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        notcolor" + GRAY + "             Don't use ansi colors (all white)" + NOCOLOR);
             Console.WriteLine(LBLUE + "        domain" + GRAY + "               Enumerate domain information" + NOCOLOR);
             Console.WriteLine(LBLUE + "        systeminfo" + GRAY + "           Search system information" + NOCOLOR);
             Console.WriteLine(LBLUE + "        userinfo" + GRAY + "             Search user information" + NOCOLOR);
@@ -136,8 +132,12 @@ namespace winPEAS.Helpers
             Console.WriteLine(LBLUE + "        windowscreds" + GRAY + "         Search windows credentials" + NOCOLOR);
             Console.WriteLine(LBLUE + "        browserinfo" + GRAY + "          Search browser information" + NOCOLOR);
             Console.WriteLine(LBLUE + "        filesinfo" + GRAY + "            Search generic files that can contains credentials" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        fileanalysis" + GRAY + "         Search specific files that can contains credentials" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        fileanalysis" + GRAY + "         Search specific files that can contains credentials and for regexes inside files" + NOCOLOR);
             Console.WriteLine(LBLUE + "        eventsinfo" + GRAY + "           Display interesting events information" + NOCOLOR);
+            Console.WriteLine();
+            Console.WriteLine(LBLUE + "        quiet" + GRAY + "                Do not print banner" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        notcolor" + GRAY + "             Don't use ansi colors (all white)" + NOCOLOR);
+            Console.WriteLine(LBLUE + "        searchpf" + GRAY + "             Search credentials via regex also in Program Files folders" + NOCOLOR);
             Console.WriteLine(LBLUE + "        wait" + GRAY + "                 Wait for user input between checks" + NOCOLOR);
             Console.WriteLine(LBLUE + "        debug" + GRAY + "                Display debugging information - memory usage, method execution time" + NOCOLOR);
             Console.WriteLine(LBLUE + "        log[=logfile]" + GRAY + $"        Log all output to file defined as logfile, or to \"{Checks.Checks.DefaultLogFile}\" if not specified" + NOCOLOR);
@@ -230,6 +230,11 @@ namespace winPEAS.Helpers
             GrayPrint($"  [X] Exception: {message}");
         }
 
+        public static void PrintNoNL(string message)
+        {
+            Console.Write(message);
+        }
+
         public static void AnsiPrint(string to_print, Dictionary<string, string> ansi_colors_regexp)
         {
             if (to_print.Trim().Length > 0)
@@ -269,7 +274,7 @@ namespace winPEAS.Helpers
         {
             foreach (KeyValuePair<string, string> entry in dicprint)
             {
-                if (delete_nulls && string.IsNullOrEmpty(entry.Value.Trim()))
+                if (delete_nulls && (entry.Value == null || string.IsNullOrEmpty(entry.Value.Trim())))
                 {
                     continue;
                 }
@@ -295,6 +300,7 @@ namespace winPEAS.Helpers
                 Console.WriteLine(line);
             }
         }
+
         public static void DictPrint(Dictionary<string, string> dicprint, bool delete_nulls)
         {
             if (dicprint.Count > 0)

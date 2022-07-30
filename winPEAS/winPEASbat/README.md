@@ -129,10 +129,6 @@ This is the kind of outpuf that you have to look for when usnig the winPEAS.bat 
 
 [More info about icacls here](https://ss64.com/nt/icacls.html)
 
-## Please, if this tool has been useful for you consider to donate
-
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.patreon.com/peass)
-
 ## Advisory
 
 All the scripts/binaries of the PEAS Suite should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.

@@ -20,6 +20,25 @@ namespace winPEAS.Helpers.Search
         public static string SystemDrive = Environment.GetEnvironmentVariable("SystemDrive");
         private static string GlobalPattern = "*";
 
+        public static List<string> StaticExtensions = new List<string>() {
+            // archives
+            ".7z", ".tar", ".zip", ".gz",
+
+            // audio/video
+            ".avi", ".mp3", ".mp4", ".wav", ".wmf", ".wmv", ".ts", ".pak",
+
+            // icons
+            ".ico",
+
+            // fonts
+            ".eot", ".fnt", ".fon", ".otf", ".odttf", ".ttc", ".ttf", ".woff", "woff2", "woff3",
+
+            // images
+            ".bmp", ".emf", ".gif", ".pm",
+            ".jif", ".jfi", ".jfif", ".jpe", ".jpeg", ".jpg",
+            ".png", ".psd", ".raw", ".svg", ".svgz", ".tif", ".tiff", ".webp",
+        };
+
         public static List<CustomFileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null, bool isFoldersIncluded = false)
         {
             ConcurrentBag<CustomFileInfo> files = new ConcurrentBag<CustomFileInfo>();
@@ -52,17 +71,25 @@ namespace winPEAS.Helpers.Search
                 Parallel.ForEach(GetStartDirectories(d.FullName, files, pattern, isFoldersIncluded), (dir) =>
                 {
                     GetFiles(dir.FullName, pattern).ForEach(
-                        (f) => {
-                            CustomFileInfo file_info = new CustomFileInfo(f.Name, f.Extension, f.FullName, false);
-                            files.Add(file_info);
-                            
-                            CustomFileInfo file_dir = new CustomFileInfo(f.Directory.Name, "", f.Directory.FullName, true);
-                            if (!known_dirs.Contains(file_dir.FullPath))
+                        (f) =>
+                        {
+                            if (!StaticExtensions.Contains(f.Extension.ToLower()))
                             {
-                                known_dirs.Add(file_dir.FullPath);
-                                files.Add(file_dir);
+                                // It should always be lesss than 260, but some times it isn't so this will bypass that file
+                                if (f.FullName.Length <= 260)
+                                {
+                                    CustomFileInfo file_info = new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false);
+                                    files.Add(file_info);
+
+                                    CustomFileInfo file_dir = new CustomFileInfo(f.Directory.Name, "", f.Directory.FullName, 0, true);
+                                    if (!known_dirs.Contains(file_dir.FullPath))
+                                    {
+                                        known_dirs.Add(file_dir.FullPath);
+                                        files.Add(file_dir);
+                                    }
+                                }
                             }
-                            }
+                        }
                         ) ;
                 });
             });
@@ -142,13 +169,14 @@ namespace winPEAS.Helpers.Search
                     {
                         foreach (var directory in directories)
                         {
-                            files.Add(new CustomFileInfo(directory.Name, null, directory.FullName, true));
+                            files.Add(new CustomFileInfo(directory.Name, null, directory.FullName, 0, true));
                         }
                     }
 
                     foreach (var f in dirInfo.GetFiles(pattern))
                     {
-                        files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName, false));
+                        if (!StaticExtensions.Contains(f.Extension.ToLower()))
+                            files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false));
                     }
 
                     if (directories.Length > 1) return new List<DirectoryInfo>(directories);

@@ -21,6 +21,7 @@ namespace winPEAS.Checks
         {
             { badIps, Beaprint.ansi_color_bad },
             { @"\[\:\:1\]", Beaprint.ansi_color_bad },
+            { @"\[\:\:\]", Beaprint.ansi_color_bad },
         };
 
         public void PrintInfo(bool isDebug)
@@ -223,6 +224,11 @@ namespace winPEAS.Checks
 
                 foreach (var udpConnectionInfo in NetworkInfoHelper.GetUdpConnections(IPVersion.IPv4, processesByPid))
                 {
+                    if (udpConnectionInfo.ProcessName == "dns") // Hundreds of them sometimes
+                    {
+                        continue;
+                    }
+
                     Beaprint.AnsiPrint(
                         string.Format(formatString,
                                        "  UDP",
@@ -254,6 +260,11 @@ namespace winPEAS.Checks
 
                 foreach (var udpConnectionInfo in NetworkInfoHelper.GetUdpConnections(IPVersion.IPv6, processesByPid))
                 {
+                    if (udpConnectionInfo.ProcessName == "dns") // Hundreds of them sometimes
+                    {
+                        continue;
+                    }
+
                     Beaprint.AnsiPrint(
                         string.Format(formatString,
                                        "  UDP",

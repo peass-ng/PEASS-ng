@@ -348,6 +348,12 @@ namespace winPEAS.Info.NetworkInfo
                         MIB_TCPROW_OWNER_PID tcpRow = (MIB_TCPROW_OWNER_PID)Marshal.PtrToStructure(tableRowPtr, typeof(MIB_TCPROW_OWNER_PID));
 
                         // Add row to list of TcpConnetions.
+                        string proc_name = GetProcessNameByPid(tcpRow.owningPid, processesByPid);
+                        if (proc_name == "Idle")
+                        { //Sometime too many Idle connections that doesn't provide sensitive info
+                            continue;
+                        }
+
                         tcpTableRecords.Add(new TcpConnectionInfo(
                                                 Protocol.TCP,
                                                 new IPAddress(tcpRow.localAddr),
@@ -360,7 +366,7 @@ namespace winPEAS.Info.NetworkInfo
                                                 tcpRow.remotePort[0] }, 0),
                                                 tcpRow.owningPid,
                                                 tcpRow.state,
-                                                GetProcessNameByPid(tcpRow.owningPid, processesByPid)));
+                                                proc_name));
 
                         tableRowPtr = (IntPtr)((long)tableRowPtr + Marshal.SizeOf(tcpRow));
                     }
@@ -377,6 +383,12 @@ namespace winPEAS.Info.NetworkInfo
                     {
                         MIB_TCP6ROW_OWNER_PID tcpRow = (MIB_TCP6ROW_OWNER_PID)Marshal.PtrToStructure(tableRowPtr, typeof(MIB_TCP6ROW_OWNER_PID));
 
+                        string proc_name = GetProcessNameByPid(tcpRow.owningPid, processesByPid);
+                        if (proc_name == "Idle")
+                        { //Sometime too many Idle connections that doesn't provide sensitive info
+                            continue;
+                        }
+
                         tcpTableRecords.Add(new TcpConnectionInfo(
                                                 Protocol.TCP,
                                                 new IPAddress(tcpRow.localAddr, tcpRow.localScopeId),
@@ -389,7 +401,7 @@ namespace winPEAS.Info.NetworkInfo
                                                 tcpRow.remotePort[0] }, 0),
                                                 tcpRow.owningPid,
                                                 tcpRow.state,
-                                                GetProcessNameByPid(tcpRow.owningPid, processesByPid)));
+                                                proc_name));
 
                         tableRowPtr = (IntPtr)((long)tableRowPtr + Marshal.SizeOf(tcpRow));
                     }

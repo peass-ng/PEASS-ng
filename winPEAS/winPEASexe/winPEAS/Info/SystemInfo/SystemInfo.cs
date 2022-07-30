@@ -160,9 +160,13 @@ namespace winPEAS.Info.SystemInfo
         {
             Dictionary<string, string> results = new Dictionary<string, string>();
             string whitelistpaths = "";
+            
             try
             {
-                whitelistpaths = String.Join("\n    ", RegistryHelper.GetRegValues("HKLM", @"SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths").Keys);
+                var keys = RegistryHelper.GetRegValues("HKLM", @"SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths");
+                if (keys != null)
+                    whitelistpaths = String.Join("\n    ", keys.Keys);
+
                 using (ManagementObjectSearcher wmiData = new ManagementObjectSearcher(@"root\SecurityCenter2", "SELECT * FROM AntiVirusProduct"))
                 {
                     using (var data = wmiData.Get())

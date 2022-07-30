@@ -79,6 +79,8 @@ namespace winPEAS.Checks
                 PrintInetInfo,
                 PrintDrivesInfo,
                 PrintWSUS,
+                PrintKrbRelayUp,
+                PrintInsideContainer,
                 PrintAlwaysInstallElevated,
                 PrintLSAInfo,
                 PrintNtlmSettings,
@@ -586,6 +588,52 @@ namespace winPEAS.Checks
             }
         }
 
+        static void PrintKrbRelayUp()
+        {
+            try
+            {
+                Beaprint.MainPrint("Checking KrbRelayUp");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#krbrelayup");
+
+                if (Checks.CurrentAdDomainName.Length > 0)
+                {
+                    Beaprint.BadPrint("  The system is inside a domain (" + Checks.CurrentAdDomainName + ") so it could be vulnerable.");
+                    Beaprint.InfoPrint("You can try https://github.com/DecOne/KrbRelayUp to escalate privileges");
+                }
+                else
+                {
+                    Beaprint.GoodPrint("  The system isn't inside a domain, so it isn't vulnerable");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        static void PrintInsideContainer()
+        {
+            try
+            {
+                Beaprint.MainPrint("Checking If Inside Container");
+                Beaprint.LinkPrint("", "If the binary cexecsvc.exe or associated service exists, you are inside Docker");
+                Dictionary<string, object> regVal = RegistryHelper.GetRegValues("HKLM", @"System\CurrentControlSet\Services\cexecsvc");
+                bool cexecsvcExist = File.Exists(Environment.SystemDirectory + @"\cexecsvc.exe");
+                if (regVal != null || cexecsvcExist)
+                {
+                    Beaprint.BadPrint("You are inside a container");
+                }
+                else
+                {
+                    Beaprint.GoodPrint("You are NOT inside a container");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
         static void PrintAlwaysInstallElevated()
         {
             try
@@ -721,13 +769,18 @@ namespace winPEAS.Checks
 
             try
             {
-                string formatString = "  {0,-100} {1}\n";
+                string formatString = "  {0,-100} {1,-70} {2}\n";
 
-                Beaprint.NoColorPrint(string.Format($"{formatString}", "Name", "Sddl"));
+                Beaprint.NoColorPrint(string.Format($"{formatString}", "Name", "CurrentUserPerms", "Sddl"));
 
                 foreach (var namedPipe in NamedPipes.GetNamedPipeInfos())
                 {
-                    Beaprint.BadPrint(string.Format(formatString, namedPipe.Name, namedPipe.Sddl));
+                    var colors = new Dictionary<string, string>
+                    {
+                        {namedPipe.CurrentUserPerms.Replace("[","\\[").Replace("]","\\]"), Beaprint.ansi_color_bad },
+                    };
+
+                    Beaprint.AnsiPrint(string.Format(formatString, namedPipe.Name, namedPipe.CurrentUserPerms, namedPipe.Sddl), colors);
                 }
             }
             catch (Exception ex) 

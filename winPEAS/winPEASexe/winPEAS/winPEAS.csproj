@@ -422,6 +422,8 @@
     <Compile Include="Helpers\AppLocker\AppLockerRules.cs" />
     <Compile Include="Helpers\AppLocker\IAppIdPolicyHandler.cs" />
     <Compile Include="Helpers\AppLocker\SharpAppLocker.cs" />
+    <Compile Include="Helpers\HandlesHelper.cs" />
+    <Compile Include="Helpers\ProgressBar.cs" />
     <Compile Include="Helpers\CredentialManager\Credential.cs" />
     <Compile Include="Helpers\CredentialManager\CredentialManager.cs" />
     <Compile Include="Helpers\CredentialManager\CredentialType.cs" />
@@ -591,6 +593,7 @@
     <Compile Include="Native\Enums\UserPrivType.cs" />
     <Compile Include="Native\Enums\WTS_INFO_CLASS.cs" />
     <Compile Include="Native\Iphlpapi.cs" />
+    <Compile Include="Native\Ntdll.cs" />
     <Compile Include="Native\Kernel32.cs" />
     <Compile Include="Native\Netapi32.cs" />
     <Compile Include="Native\Ntdsapi.cs" />
@@ -686,6 +689,12 @@
     <Compile Include="Wifi\NativeWifiApi\WlanClient.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="..\..\..\build_lists\regexes.yaml">
+      <Link>regexes.yaml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\build_lists\sensitive_files.yaml">
+      <Link>sensitive_files.yaml</Link>
+    </EmbeddedResource>
     <None Include="App.config" />
     <None Include="TaskScheduler\V1\TaskSchedulerV1Schema.xsd">
       <SubType>Designer</SubType>
@@ -695,7 +704,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\..\build_lists\sensitive_files.yaml" />
     <EmbeddedResource Include="Properties\Resources.de.resx" />
     <EmbeddedResource Include="Properties\Resources.es.resx" />
     <EmbeddedResource Include="Properties\Resources.fr.resx" />

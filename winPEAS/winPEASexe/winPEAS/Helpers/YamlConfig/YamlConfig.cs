@@ -2,6 +2,24 @@
 
 namespace winPEAS.Helpers.YamlConfig
 {
+    public class YamlRegexConfig
+    {
+        public class RegularExpressions
+        {
+            public string name { get; set; }
+            public RegularExpression[] regexes { get; set; }
+            public class RegularExpression {
+                public string name { get; set; }
+                public string regex { get; set; }
+
+                public bool caseinsensitive { get; set; }
+                
+                public string disable { get; set; }
+            }
+        }
+
+        public RegularExpressions[] regular_expresions { get; set; }
+    }
     public class YamlConfig
     {
 
@@ -24,6 +42,7 @@ namespace winPEAS.Helpers.YamlConfig
                 public bool? remove_empty_lines { get; set;  }
                 // public string remove_path { get; set;  }     // not used in Winpeas
                 public string remove_regex { get; set;  }
+                public string remove_path { get; set; }
                 // public string[] search_in { get; set;  }   // not used in Winpeas
                 public string type { get; set;  }                                
                 public FileParam[] files { get; set;  }

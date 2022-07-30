@@ -12,6 +12,18 @@ namespace winPEAS.Helpers.Registry
         ///////////////////////////////////////////
         /// Functions related to obtain keys and values from the registry
         /// Some parts adapted from Seatbelt
+        public static Microsoft.Win32.RegistryKey GetReg(string hive, string path)
+        {
+            if (hive == "HKCU")
+                return Microsoft.Win32.Registry.CurrentUser.OpenSubKey(path);
+
+            else if (hive == "HKU")
+                return Microsoft.Win32.Registry.Users.OpenSubKey(path);
+
+            else
+                return Microsoft.Win32.Registry.LocalMachine.OpenSubKey(path);
+        }
+
         public static string GetRegValue(string hive, string path, string value)
         {
             // returns a single registry value under the specified path in the specified hive (HKLM/HKCU)
@@ -173,6 +185,30 @@ namespace winPEAS.Helpers.Registry
             }
 
             return null;
+        }
+
+        public static string CheckIfExists(string path)
+        {
+            try
+            {
+                var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(path);
+                if (key != null)
+                    return "HKLM";
+
+                key = Microsoft.Win32.Registry.Users.OpenSubKey(path);
+                if (key != null)
+                    return "HKU";
+
+                key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(path);
+                if (key != null)
+                    return "HKCU";
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

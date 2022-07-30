@@ -21,6 +21,7 @@ namespace winPEAS.Checks
         public static bool IsDebug = false;
         public static bool IsLinpeas = false;
         public static bool IsLolbas = false;
+        public static bool SearchProgramFiles = false;
 
         // Create Dynamic blacklists
         public static readonly string CurrentUserName = Environment.UserName;
@@ -37,6 +38,7 @@ namespace winPEAS.Checks
         //static string paint_lockoutUsers = "";
         public static string PaintAdminUsers = "";
         public static YamlConfig YamlConfig;
+        public static YamlRegexConfig RegexesYamlConfig;
 
         private static List<SystemCheck> _systemChecks;
         private static readonly HashSet<string> _systemCheckSelectedKeysHashSet = new HashSet<string>();
@@ -152,6 +154,11 @@ namespace winPEAS.Checks
                     IsDomainEnumeration = true;
                 }
 
+                if (string.Equals(arg, "searchpf", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    SearchProgramFiles = true;
+                }
+
                 if (string.Equals(arg, "-lolbas", StringComparison.CurrentCultureIgnoreCase))
                 {
                     IsLolbas = true;
@@ -248,12 +255,22 @@ namespace winPEAS.Checks
 
             try
             {
-                Beaprint.GrayPrint("   - Loading YAML definitions file...");
+                Beaprint.GrayPrint("   - Loading sensitive_files yaml definitions file...");
                 YamlConfig = YamlConfigHelper.GetWindowsSearchConfig();
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint("Error while getting AD info: " + ex);
+                Beaprint.GrayPrint("Error while getting sensitive_files yaml info: " + ex);
+            }
+
+            try
+            {
+                Beaprint.GrayPrint("   - Loading regexes yaml definitions file...");
+                RegexesYamlConfig = YamlConfigHelper.GetRegexesSearchConfig();
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("Error while getting regexes yaml info: " + ex);
             }
 
             try

@@ -14,10 +14,6 @@ Find the **latest versions of all the scripts and binaries in [the releases page
 - [Link to WinPEAS C# project (.exe)](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe) (.Net >= 4.5.2 required)
     - **Please, read the Readme of that folder to learn how to execute winpeas from memory or how make colors work among other tricks**
 
-## Please, if this tool has been useful for you consider to donate
-
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.patreon.com/peass)
-
 ## PEASS Style
 
 Are you a PEASS fan? Get now our merch at **[PEASS Shop](https://teespring.com/stores/peass)** and show your love for our favorite peas

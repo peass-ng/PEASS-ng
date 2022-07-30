@@ -26,5 +26,12 @@ namespace winPEAS.Native
             StringBuilder name,
             UInt32 nameSize
         );
+
+        [DllImport("psapi.dll")]
+        internal static extern uint GetProcessImageFileName(
+            IntPtr hProcess,
+            [Out] StringBuilder lpImageFileName,
+            [In][MarshalAs(UnmanagedType.U4)] int nSize
+        );
     }
 }

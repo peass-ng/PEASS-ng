@@ -4,12 +4,48 @@ using System.IO;
 using System.Reflection;
 using System.Linq;
 using static winPEAS.Helpers.YamlConfig.YamlConfig;
+using static winPEAS.Helpers.YamlConfig.YamlRegexConfig;
+
 
 namespace winPEAS.Helpers.YamlConfig
 {
     internal class YamlConfigHelper
     {
+        const string REGEXES_FILES = "regexes.yaml";
         const string SENSITIVE_FILES = "sensitive_files.yaml";
+
+        public static YamlRegexConfig GetRegexesSearchConfig()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = assembly.GetManifestResourceNames().Where(i => i.EndsWith(REGEXES_FILES)).FirstOrDefault();
+
+            try
+            {
+                using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string configFileContent = reader.ReadToEnd();
+
+                    YamlSerializer yamlSerializer = new YamlSerializer();
+                    YamlRegexConfig yamlConfig = (YamlRegexConfig)yamlSerializer.Deserialize(configFileContent, typeof(YamlRegexConfig))[0];
+
+                    // check
+                   if (yamlConfig.regular_expresions == null || yamlConfig.regular_expresions.Length == 0)
+                    {
+                        throw new System.Exception("No configuration was read");
+                    }
+
+                    return yamlConfig;
+
+                }
+            }
+            catch (System.Exception e)
+            {
+                Beaprint.PrintException($"An exception occured while parsing regexes.yaml configuration file: {e.Message}");
+
+                throw;
+            }
+        }
 
         public static YamlConfig GetWindowsSearchConfig()
         {
@@ -52,7 +88,7 @@ namespace winPEAS.Helpers.YamlConfig
             }
             catch (System.Exception e)
             {
-                Beaprint.PrintException($"An exception occured while parsing YAML configuration file: {e.Message}");
+                Beaprint.PrintException($"An exception occured while parsing sensitive_files.yaml configuration file: {e.Message}");
 
                 throw;
             }                   
@@ -78,6 +114,7 @@ namespace winPEAS.Helpers.YamlConfig
                 value.only_bad_lines = GetValueOrDefault(value.only_bad_lines, defaults.only_bad_lines);
                 value.remove_empty_lines = GetValueOrDefault(value.remove_empty_lines, defaults.remove_empty_lines);
                 value.remove_regex = GetValueOrDefault(value.remove_regex, defaults.remove_regex);
+                value.remove_path = GetValueOrDefault(value.remove_path, defaults.remove_path);
                 value.type = GetValueOrDefault(value.type, defaults.type).ToLower();
 
                 if (value.files != null)
