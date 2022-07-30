@@ -826,8 +826,8 @@ tcp_recon (){
   for port in $PORTS; do
     for j in $(seq 1 254)
     do
-      if [ "$FOUND_BASH" ]; then
-        $FOUND_BASH -c "(echo </dev/tcp/$IP3.$j/$port) 2>/dev/null && echo -e \"\n[+] Open port at: $IP3.$j:$port\"" &
+      if [ "$FOUND_BASH" ] && [ "$$TIMEOUT" ]; then
+        $TIMEOUT 5 $FOUND_BASH -c "(echo </dev/tcp/$IP3.$j/$port) 2>/dev/null && echo -e \"\n[+] Open port at: $IP3.$j:$port\"" &
       elif [ "$NC_SCAN" ]; then
         ($NC_SCAN "$IP3"."$j" "$port" 2>&1 | grep -iv "Connection refused\|No route\|Version\|bytes\| out" | sed -${E} "s,[0-9\.],${SED_RED},g") &
       fi
