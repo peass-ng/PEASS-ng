@@ -1154,7 +1154,7 @@ search:
                 search_in: 
                   - common
 
-          - name: "krb5.keytab"
+          - name: "*.keytab"
             value: 
                 type: f
                 search_in: 
