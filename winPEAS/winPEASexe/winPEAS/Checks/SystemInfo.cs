@@ -598,7 +598,7 @@ namespace winPEAS.Checks
                 if (Checks.CurrentAdDomainName.Length > 0)
                 {
                     Beaprint.BadPrint("  The system is inside a domain (" + Checks.CurrentAdDomainName + ") so it could be vulnerable.");
-                    Beaprint.InfoPrint("You can try https://github.com/DecOne/KrbRelayUp to escalate privileges");
+                    Beaprint.InfoPrint("You can try https://github.com/Dec0ne/KrbRelayUp to escalate privileges");
                 }
                 else
                 {
