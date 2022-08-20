@@ -32,7 +32,7 @@ fi
 
 #-- SY) CVE-2021-3560
 polkitVersion=$(systemctl status polkit.service 2>/dev/null | grep version | cut -d " " -f 9)
-if [ "$(apt list --installed 2>/dev/null | grep polkit | grep -c 0.105-26)" -ge 1 ] || [ "$(yum list installed 2>/dev/null | grep polkit | grep -c 0.117-2)" ]; then
+if [ "$(apt list --installed 2>/dev/null | grep polkit | grep -c 0.105-26)" -ge 1 ] || [ "$(yum list installed 2>/dev/null | grep polkit | grep -c 0.117-2)" -ge 1 ]; then
     echo "Vulnerable to CVE-2021-3560" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     echo ""
 fi
