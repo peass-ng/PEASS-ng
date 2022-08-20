@@ -142,7 +142,7 @@ checkProcSysBreakouts(){
   
   mkdir /tmp/cgroup_3628d4
   mount -t cgroup -o memory cgroup /tmp/cgroup_3628d4 2>/dev/null
-  if [ $? -eq 0 ]; then release_agent_breakout12="Yes"; else release_agent_breakout2="No"; fi
+  if [ $? -eq 0 ]; then release_agent_breakout2="Yes"; else release_agent_breakout2="No"; fi
   rm -rf /tmp/cgroup_3628d4 2>/dev/null
   
   core_pattern_breakout="$( (echo -n '' > /proc/sys/kernel/core_pattern && echo Yes) 2>/dev/null || echo No)"
