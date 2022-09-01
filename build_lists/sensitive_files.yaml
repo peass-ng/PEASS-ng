@@ -413,7 +413,7 @@ search:
             exec:
             - 'echo "Apache version: $(warn_exec apache2 -v 2>/dev/null; warn_exec httpd -v 2>/dev/null)"'
             - 'echo "Nginx version: $(warn_exec nginx -v 2>/dev/null)"'
-            - if [ -d "/etc/apache2" ] && [ -r "/etc/apache2" ]; then 'grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null'; fi
+            - if [ -d "/etc/apache2" ] && [ -r "/etc/apache2" ]; then grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null; fi
             - if [ -d "/usr/share/nginx/modules" ] && [ -r "/usr/share/nginx/modules" ]; then print_3title 'Nginx modules'; ls /usr/share/nginx/modules | sed -${E} "s,$NGINX_KNOWN_MODULES,${SED_GREEN},g"; fi
             - "print_3title 'PHP exec extensions'"
             
@@ -442,11 +442,33 @@ search:
               value: 
                 bad_regex: "On"
                 remove_regex: "^;"
-                line_grep: '"allow_"'
+                line_grep: "allow_"
                 type: f
                 search_in: 
                     - common
-
+            
+            - name: "nginx.conf"
+              value: 
+                bad_regex: "location.*.php$|$uri|$document_uri|proxy_intercept_errors.*on|proxy_hide_header.*|merge_slashes.*on|resolver.*|proxy_pass|internal|location.+[a-zA-Z0-9][^/]\\s+\\{|map|proxy_set_header.*Upgrade.*http_upgrade|proxy_set_header.*Connection.*http_connection"
+                remove_regex: "#"
+                type: f
+                remove_empty_lines: True
+                search_in: 
+                    - common
+            
+            - name: "nginx"
+              value: 
+                type: d
+                files:
+                    - name: "*.conf"
+                      value:
+                        bad_regex: "location.*.php$|$uri|$document_uri|proxy_intercept_errors.*on|proxy_hide_header.*|merge_slashes.*on|resolver.*|proxy_pass|internal|location.+[a-zA-Z0-9][^/]\\s+\\{|map|proxy_set_header.*Upgrade.*http_upgrade|proxy_set_header.*Connection.*http_connection"
+                        remove_empty_lines: True
+                        remove_regex: '#'
+                        remove_path: "nginx.conf"
+                search_in: 
+                    - common
+  
   - name: PHP Sessions
     value:
         config:

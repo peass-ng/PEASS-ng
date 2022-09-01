@@ -279,13 +279,24 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   fi
 fi
 
-##-- IF) Executable files added by user
-print_2title "Executable files added by user (limit 70)"
-if ! [ "$SEARCH_IN_FOLDER" ]; then
-  find / -type f -executable -printf "%T+ %p\n" 2>/dev/null | grep -Ev "000|/site-packages|/python|/node_modules|\.sample|/gems" | sort | tail -n 70
-else
-  find "$SEARCH_IN_FOLDER" -type f -executable -printf "%T+ %p\n" 2>/dev/null | grep -Ev "000|/site-packages|/python|/node_modules|\.sample|/gems" | sort | tail -n 70
+##-- IF) Date times inside firmware
+if [ "$SEARCH_IN_FOLDER" ]; then
+  print_2title "FIles datetimes inside the firmware (limit 50)"
+  find "$SEARCH_IN_FOLDER" -type f -printf "%T+\n" 2>/dev/null | sort | uniq -c | sort | head -n 50
+  echo "To find a file with an specific date execute: find \"$SEARCH_IN_FOLDER\" -type f -printf \"%T+ %p\n\" 2>/dev/null | grep \"<date>\""
+  echo ""
 fi
+
+##-- IF) Executable files added by user
+print_2title "Executable files potentially added by user (limit 70)"
+if ! [ "$SEARCH_IN_FOLDER" ]; then
+  find / -type f -executable -printf "%T+ %p\n" 2>/dev/null | grep -Ev "000|/site-packages|/python|/node_modules|\.sample|/gems" | sort -r | head -n 70
+else
+  find "$SEARCH_IN_FOLDER" -type f -executable -printf "%T+ %p\n" 2>/dev/null | grep -Ev "/site-packages|/python|/node_modules|\.sample|/gems" | sort -r | head -n 70
+fi
+echo ""
+
+
 
 if [ "$MACPEAS" ]; then
   print_2title "Unsigned Applications"
@@ -454,7 +465,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
 
   ##-- IF) Mail applications
   print_2title "Searching installed mail applications"
-  ls /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin /etc 2>/dev/null | grep -Ewi "$mail_apps"
+  ls /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin /etc 2>/dev/null | grep -Ewi "$mail_apps" | sort | uniq
   echo ""
 
   ##-- IF) Mails

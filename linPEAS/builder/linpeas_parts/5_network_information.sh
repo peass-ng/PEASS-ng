@@ -155,6 +155,10 @@ if [ "$AUTO_NETWORK_SCAN" ]; then
         echo ""
       fi
     done
+    
+    print_3title "Scanning top ports of host.docker.internal"
+    (tcp_port_scan "host.docker.internal" "" | grep -A 1000 "Ports going to be scanned" | grep -v "Ports going to be scanned" | sort | uniq) 2>/dev/null
+    echo ""
   fi
 fi
 

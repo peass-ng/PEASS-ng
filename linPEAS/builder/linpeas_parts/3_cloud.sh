@@ -187,11 +187,11 @@ if [ "$is_aws_ecs" = "Yes" ]; then
 
     if [ "$aws_ecs_metadata_uri" ]; then
         print_3title "Container Info"
-        exec_with_jq $aws_ecs_req "$aws_ecs_metadata_uri"
+        exec_with_jq eval $aws_ecs_req "$aws_ecs_metadata_uri"
         echo ""
         
         print_3title "Task Info"
-        exec_with_jq $aws_ecs_req "$aws_ecs_metadata_uri/task"
+        exec_with_jq eval $aws_ecs_req "$aws_ecs_metadata_uri/task"
         echo ""
     else
         echo "I couldn't find ECS_CONTAINER_METADATA_URI env var to get container info"
@@ -199,7 +199,7 @@ if [ "$is_aws_ecs" = "Yes" ]; then
 
     if [ "$aws_ecs_service_account_uri" ]; then
         print_3title "IAM Role"
-        exec_with_jq $aws_ecs_req "$aws_ecs_service_account_uri"
+        exec_with_jq eval $aws_ecs_req "$aws_ecs_service_account_uri"
         echo ""
     else
         echo "I couldn't find AWS_CONTAINER_CREDENTIALS_RELATIVE_URI env var to get IAM role info (the task is running without a task role probably)"
@@ -214,52 +214,52 @@ if [ "$is_aws_ec2" = "Yes" ]; then
     
     aws_req=""
     if [ "$(command -v curl)" ]; then
-        aws_req='curl -s -f -H "$HEADER"'
+        aws_req="curl -s -f -H '$HEADER'"
     elif [ "$(command -v wget)" ]; then
-        aws_req='wget -q -O - -H "$HEADER"'
+        aws_req="wget -q -O - -H '$HEADER'"
     else 
         echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
     fi
   
     if [ "$aws_req" ]; then
-        printf "ami-id: "; $aws_req "$URL/ami-id"; echo ""
-        printf "instance-action: "; $aws_req "$URL/instance-action"; echo ""
-        printf "instance-id: "; $aws_req "$URL/instance-id"; echo ""
-        printf "instance-life-cycle: "; $aws_req "$URL/instance-life-cycle"; echo ""
-        printf "instance-type: "; $aws_req "$URL/instance-type"; echo ""
-        printf "region: "; $aws_req "$URL/placement/region"; echo ""
+        printf "ami-id: "; eval $aws_req "$URL/ami-id"; echo ""
+        printf "instance-action: "; eval $aws_req "$URL/instance-action"; echo ""
+        printf "instance-id: "; eval $aws_req "$URL/instance-id"; echo ""
+        printf "instance-life-cycle: "; eval $aws_req "$URL/instance-life-cycle"; echo ""
+        printf "instance-type: "; eval $aws_req "$URL/instance-type"; echo ""
+        printf "region: "; eval $aws_req "$URL/placement/region"; echo ""
 
         echo ""
         print_3title "Account Info"
-        exec_with_jq $aws_req "$URL/identity-credentials/ec2/info"; echo ""
+        exec_with_jq eval $aws_req "$URL/identity-credentials/ec2/info"; echo ""
 
         echo ""
         print_3title "Network Info"
-        for mac in $($aws_req "$URL/network/interfaces/macs/" 2>/dev/null); do 
+        for mac in $(eval $aws_req "$URL/network/interfaces/macs/" 2>/dev/null); do 
           echo "Mac: $mac"
-          printf "Owner ID: "; $aws_req "$URL/network/interfaces/macs/$mac/owner-id"; echo ""
-          printf "Public Hostname: "; $aws_req "$URL/network/interfaces/macs/$mac/public-hostname"; echo ""
-          printf "Security Groups: "; $aws_req "$URL/network/interfaces/macs/$mac/security-groups"; echo ""
-          echo "Private IPv4s:"; $aws_req "$URL/network/interfaces/macs/$mac/ipv4-associations/"; echo ""
-          printf "Subnet IPv4: "; $aws_req "$URL/network/interfaces/macs/$mac/subnet-ipv4-cidr-block"; echo ""
-          echo "PrivateIPv6s:"; $aws_req "$URL/network/interfaces/macs/$mac/ipv6s"; echo ""
-          printf "Subnet IPv6: "; $aws_req "$URL/network/interfaces/macs/$mac/subnet-ipv6-cidr-blocks"; echo ""
-          echo "Public IPv4s:"; $aws_req "$URL/network/interfaces/macs/$mac/public-ipv4s"; echo ""
+          printf "Owner ID: "; eval $aws_req "$URL/network/interfaces/macs/$mac/owner-id"; echo ""
+          printf "Public Hostname: "; eval $aws_req "$URL/network/interfaces/macs/$mac/public-hostname"; echo ""
+          printf "Security Groups: "; eval $aws_req "$URL/network/interfaces/macs/$mac/security-groups"; echo ""
+          echo "Private IPv4s:"; eval $aws_req "$URL/network/interfaces/macs/$mac/ipv4-associations/"; echo ""
+          printf "Subnet IPv4: "; eval $aws_req "$URL/network/interfaces/macs/$mac/subnet-ipv4-cidr-block"; echo ""
+          echo "PrivateIPv6s:"; eval $aws_req "$URL/network/interfaces/macs/$mac/ipv6s"; echo ""
+          printf "Subnet IPv6: "; eval $aws_req "$URL/network/interfaces/macs/$mac/subnet-ipv6-cidr-blocks"; echo ""
+          echo "Public IPv4s:"; eval $aws_req "$URL/network/interfaces/macs/$mac/public-ipv4s"; echo ""
           echo ""
         done
 
         echo ""
         print_3title "IAM Role"
-        exec_with_jq $aws_req "$URL/iam/info"; echo ""
-        for role in $($aws_req "$URL/iam/security-credentials/" 2>/dev/null); do 
+        exec_with_jq eval $aws_req "$URL/iam/info"; echo ""
+        for role in $(eval $aws_req "$URL/iam/security-credentials/" 2>/dev/null); do 
           echo "Role: $role"
-          exec_with_jq $aws_req "$URL/iam/security-credentials/$role"; echo ""
+          exec_with_jq eval $aws_req "$URL/iam/security-credentials/$role"; echo ""
           echo ""
         done
         
         echo ""
         print_3title "User Data"
-        $aws_req "http://169.254.169.254/latest/user-data"
+        eval $aws_req "http://169.254.169.254/latest/user-data"
     fi
 fi
 

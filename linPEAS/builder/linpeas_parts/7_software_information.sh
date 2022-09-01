@@ -5,14 +5,14 @@
 NGINX_KNOWN_MODULES="ngx_http_geoip_module.so|ngx_http_xslt_filter_module.so|ngx_stream_geoip_module.so|ngx_http_image_filter_module.so|ngx_mail_module.so|ngx_stream_module.so"
 
 #-- SI) Useful software
-if ! [ "SEARCH_IN_FOLDER" ]; then
+if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Useful software"
   for tool in $USEFUL_SOFTWARE; do command -v "$tool"; done
   echo ""
 fi
 
 #-- SI) Search for compilers
-if ! [ "SEARCH_IN_FOLDER" ]; then
+if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Installed Compilers"
   (dpkg --list 2>/dev/null | grep "compiler" | grep -v "decompiler\|lib" 2>/dev/null || yum list installed 'gcc*' 2>/dev/null | grep gcc 2>/dev/null; command -v gcc g++ 2>/dev/null || locate -r "/gcc[0-9\.-]\+$" 2>/dev/null | grep -v "/doc/");
   echo ""
@@ -221,20 +221,30 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   hostsdenied="$(ls /etc/hosts.denied 2>/dev/null)"
   hostsallow="$(ls /etc/hosts.allow 2>/dev/null)"
   writable_agents=$(find /tmp /etc /home -type s -name "agent.*" -or -name "*gpg-agent*" '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)
+else
+  sshconfig="$(ls ${ROOT_FOLDER}etc/ssh/ssh_config 2>/dev/null)"
+  hostsdenied="$(ls ${ROOT_FOLDER}etc/hosts.denied 2>/dev/null)"
+  hostsallow="$(ls ${ROOT_FOLDER}etc/hosts.allow 2>/dev/null)"
+  writable_agents=$(find  ${ROOT_FOLDER} -type s -name "agent.*" -or -name "*gpg-agent*" '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)
 fi
 
 peass{SSH}
 
 grep "PermitRootLogin \|ChallengeResponseAuthentication \|PasswordAuthentication \|UsePAM \|Port\|PermitEmptyPasswords\|PubkeyAuthentication\|ListenAddress\|ForwardAgent\|AllowAgentForwarding\|AuthorizedKeysFiles" /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | sed -${E} "s,PermitRootLogin.*es|PermitEmptyPasswords.*es|ChallengeResponseAuthentication.*es|FordwardAgent.*es,${SED_RED},"
 
-if [ "$TIMEOUT" ]; then
-  privatekeyfilesetc=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /etc 2>/dev/null)
-  privatekeyfileshome=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' $HOMESEARCH 2>/dev/null)
-  privatekeyfilesroot=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /root 2>/dev/null)
-  privatekeyfilesmnt=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /mnt 2>/dev/null)
+if ! [ "$SEARCH_IN_FOLDER" ]; then
+  if [ "$TIMEOUT" ]; then
+    privatekeyfilesetc=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /etc 2>/dev/null)
+    privatekeyfileshome=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' $HOMESEARCH 2>/dev/null)
+    privatekeyfilesroot=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /root 2>/dev/null)
+    privatekeyfilesmnt=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /mnt 2>/dev/null)
+  else
+    privatekeyfilesetc=$(grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /etc 2>/dev/null) #If there is tons of files linpeas gets frozen here without a timeout
+    privatekeyfileshome=$(grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' $HOME/.ssh 2>/dev/null)
+  fi
 else
-  privatekeyfilesetc=$(grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /etc 2>/dev/null) #If there is tons of files linpeas gets frozen here without a timeout
-  privatekeyfileshome=$(grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' $HOME/.ssh 2>/dev/null)
+  # If $SEARCH_IN_FOLDER lets just search for private keys in the whole firmware
+  privatekeyfilesetc=$(timeout 120 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' "$ROOT_FOLDER" 2>/dev/null)
 fi
 
 if [ "$privatekeyfilesetc" ] || [ "$privatekeyfileshome" ] || [ "$privatekeyfilesroot" ] || [ "$privatekeyfilesmnt" ] ; then
@@ -267,7 +277,7 @@ if ssh-add -l 2>/dev/null | grep -qv 'no identities'; then
   ssh-add -l
   echo ""
 fi
-if gpg-connect-agent "keyinfo --list" /bye | grep "D - - 1"; then
+if gpg-connect-agent "keyinfo --list" /bye 2>/dev/null | grep "D - - 1"; then
   print_3title "Listing gpg keys cached in gpg-agent"
   gpg-connect-agent "keyinfo --list" /bye
   echo ""
@@ -284,29 +294,29 @@ fi
 if [ "$hostsdenied" ]; then
   print_3title "/etc/hosts.denied file found, read the rules:"
   printf "$hostsdenied\n"
-  cat "/etc/hosts.denied" 2>/dev/null | grep -v "#" | grep -Iv "^$" | sed -${E} "s,.*,${SED_GREEN},"
+  cat " ${ROOT_FOLDER}etc/hosts.denied" 2>/dev/null | grep -v "#" | grep -Iv "^$" | sed -${E} "s,.*,${SED_GREEN},"
   echo ""
 fi
 if [ "$hostsallow" ]; then
   print_3title "/etc/hosts.allow file found, trying to read the rules:"
   printf "$hostsallow\n"
-  cat "/etc/hosts.allow" 2>/dev/null | grep -v "#" | grep -Iv "^$" | sed -${E} "s,.*,${SED_RED},"
+  cat " ${ROOT_FOLDER}etc/hosts.allow" 2>/dev/null | grep -v "#" | grep -Iv "^$" | sed -${E} "s,.*,${SED_RED},"
   echo ""
 fi
 if [ "$sshconfig" ]; then
   echo ""
   echo "Searching inside /etc/ssh/ssh_config for interesting info"
-  grep -v "^#" /etc/ssh/ssh_config 2>/dev/null | grep -Ev "\W+\#|^#" 2>/dev/null | grep -Iv "^$" | sed -${E} "s,Host|ForwardAgent|User|ProxyCommand,${SED_RED},"
+  grep -v "^#"  ${ROOT_FOLDER}etc/ssh/ssh_config 2>/dev/null | grep -Ev "\W+\#|^#" 2>/dev/null | grep -Iv "^$" | sed -${E} "s,Host|ForwardAgent|User|ProxyCommand,${SED_RED},"
 fi
 echo ""
 
 peass{PAM Auth}
 
 #-- SI) Passwords inside pam.d
-pamdpass=$(grep -Ri "passwd" /etc/pam.d/ 2>/dev/null | grep -v ":#")
+pamdpass=$(grep -Ri "passwd"  ${ROOT_FOLDER}etc/pam.d/ 2>/dev/null | grep -v ":#")
 if [ "$pamdpass" ] || [ "$DEBUG" ]; then
   print_2title "Passwords inside pam.d"
-  grep -Ri "passwd" /etc/pam.d/ 2>/dev/null | grep -v ":#" | sed "s,passwd,${SED_RED},"
+  grep -Ri "passwd"  ${ROOT_FOLDER}etc/pam.d/ 2>/dev/null | grep -v ":#" | sed "s,passwd,${SED_RED},"
   echo ""
 fi
 
@@ -558,26 +568,30 @@ peass{Cache Vi}
 peass{Wget}
 
 ##-- SI) containerd installed
-containerd=$(command -v ctr)
-if [ "$containerd" ] || [ "$DEBUG" ]; then
-  print_2title "Checking if containerd(ctr) is available"
-  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/containerd-ctr-privilege-escalation"
-  if [ "$containerd" ]; then
-    echo "ctr was found in $containerd, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"
-    ctr image list 2>&1
+if ! [ "$SEARCH_IN_FOLDER" ]; then
+  containerd=$(command -v ctr)
+  if [ "$containerd" ] || [ "$DEBUG" ]; then
+    print_2title "Checking if containerd(ctr) is available"
+    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/containerd-ctr-privilege-escalation"
+    if [ "$containerd" ]; then
+      echo "ctr was found in $containerd, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"
+      ctr image list 2>&1
+    fi
+    echo ""
   fi
-  echo ""
 fi
 
 ##-- SI) runc installed
-runc=$(command -v runc)
-if [ "$runc" ] || [ "$DEBUG" ]; then
-  print_2title "Checking if runc is available"
-  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/runc-privilege-escalation"
-  if [ "$runc" ]; then
-    echo "runc was found in $runc, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"
+if ! [ "$SEARCH_IN_FOLDER" ]; then
+  runc=$(command -v runc)
+  if [ "$runc" ] || [ "$DEBUG" ]; then
+    print_2title "Checking if runc is available"
+    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/runc-privilege-escalation"
+    if [ "$runc" ]; then
+      echo "runc was found in $runc, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"
+    fi
+    echo ""
   fi
-  echo ""
 fi
 
 #-- SI) Docker

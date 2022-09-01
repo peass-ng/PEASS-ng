@@ -173,11 +173,11 @@ class LinpeasBuilder:
                     
                     if type == "d": 
                         find_line += "-type d "
-                        bash_find_var = f"FIND_DIR_{r[1:].replace('.','').replace('-','_').upper()}"
+                        bash_find_var = f"FIND_DIR_{r[1:].replace('.','').replace('-','_').replace('{ROOT_FOLDER}','').upper()}"
                         self.bash_find_d_vars.add(bash_find_var)
                         all_folder_regexes += regexes
                     else:
-                        bash_find_var = f"FIND_{r[1:].replace('.','').replace('-','_').upper()}"
+                        bash_find_var = f"FIND_{r[1:].replace('.','').replace('-','_').replace('{ROOT_FOLDER}','').upper()}"
                         self.bash_find_f_vars.add(bash_find_var)
                         all_file_regexes += regexes
 
@@ -275,7 +275,7 @@ class LinpeasBuilder:
         analise_line = ""
         if init:
             analise_line = 'if ! [ "`echo \\\"$PSTORAGE_'+precord.bash_name+'\\\" | grep -E \\\"'+real_regex+'\\\"`" ]; then if [ "$DEBUG" ]; then echo_not_found "'+frecord.regex+'"; fi; fi; '
-            analise_line += 'printf "%s" "$PSTORAGE_'+precord.bash_name+'" | grep -E "'+real_regex+'" | while read f; do if ! [ -d "$f" ]; then continue; fi; ls -ld "$f" | sed -${E} "s,'+real_regex+',${SED_RED},"; '
+            analise_line += 'printf "%s" "$PSTORAGE_'+precord.bash_name+'" | grep -E "'+real_regex+'" | while read f; do ls -ld "$f" 2>/dev/null | sed -${E} "s,'+real_regex+',${SED_RED},"; '
 
         #If just list, just list the file/directory
         if frecord.just_list_file:
@@ -393,13 +393,13 @@ class LinpeasBuilder:
 
                 # If custom folder to search in
                 regexes_search_section += 'if [ "$SEARCH_IN_FOLDER" ]; then\n'
-                regexes_search_section += "  timeout 120 find $SEARCH_IN_FOLDER -type f -exec grep -HnRiIE \""+regex+"\" '{}' \; 2>/dev/null "+extra_grep+" | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &\n"
+                regexes_search_section += "  timeout 120 find \"$ROOT_FOLDER\" -type f -not -path \"*/node_modules/*\" -exec grep -HnRiIE \""+regex+"\" '{}' \; 2>/dev/null "+extra_grep+" | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &\n"
                 
                 # If search in all the file system
                 regexes_search_section += 'else\n'
                 for path in paths_to_search:
                     grep_flags = "-HnRiIE" if caseinsensitive else "-HnRIE"
-                    regexes_search_section += "  timeout 120 find "+path+" -type f -exec grep "+grep_flags+" \""+regex+"\" '{}' \; 2>/dev/null "+extra_grep+" | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &\n"
+                    regexes_search_section += "  timeout 120 find "+path+" -type f -not -path \"*/node_modules/*\" -exec grep "+grep_flags+" \""+regex+"\" '{}' \; 2>/dev/null "+extra_grep+" | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &\n"
                 regexes_search_section += 'fi\n'
                 
                 regexes_search_section += "wait\n"
