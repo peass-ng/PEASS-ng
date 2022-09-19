@@ -135,8 +135,9 @@ namespace winPEAS.Info.FilesInfo.McAfee
 
             SHA1 crypto = new SHA1CryptoServiceProvider();
 
-            var tDESKey = MyUtils.CombineArrays(crypto.ComputeHash(System.Text.Encoding.ASCII.GetBytes("<!@#$%^>")), new byte[] { 0x00, 0x00, 0x00, 0x00 });
-
+            //var tDESKey = MyUtils.CombineArrays(crypto.ComputeHash(System.Text.Encoding.ASCII.GetBytes("<!@#$%^>")), new byte[] { 0x00, 0x00, 0x00, 0x00 });
+            byte[] tDESKey = { 62, 241, 54, 184, 179, 59, 239, 188, 52, 38, 167, 181, 78, 196, 26, 55, 124, 211, 25, 155, 0, 0, 0, 0 };
+            
             // set the options we need
             var tDESalg = new TripleDESCryptoServiceProvider();
             tDESalg.Mode = CipherMode.ECB;
