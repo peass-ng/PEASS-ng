@@ -42,8 +42,17 @@ fi
 #-- https://stackoverflow.com/a/37939589
 kernelversion=$(uname -r | awk -F"-" '{print $1}')
 kernelnumber=$(echo $kernelversion | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }')
-if [ $kernelnumber -ge 5008000000 ] && [ $kernelnumber -lt 5017000000 ]; then # if kernel version beteen 5.8 and 5.17
-    echo "Vulnerable to CVE-2022-0847" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+if [ $kernelnumber -ge 5008000000 ] && [ $kernelnumber -lt 5017000000 ]; then # if kernel version between 5.8 and 5.17
+    echo "Potentially Vulnerable to CVE-2022-0847" | sed -${E} "s,.*,${SED_RED},"
+    echo ""
+fi
+
+#-- SY) CVE-2022-2588
+#-- https://github.com/Markakd/CVE-2022-2588
+kernelversion=$(uname -r | awk -F"-" '{print $1}')
+kernelnumber=$(echo $kernelversion | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }')
+if [ $kernelnumber -ge 3017000000 ] && [ $kernelnumber -lt 5019000000 ]; then # if kernel version between 3.17 and 5.19
+    echo "Potentially Vulnerable to CVE-2022-2588" | sed -${E} "s,.*,${SED_RED},"
     echo ""
 fi
 echo ""
