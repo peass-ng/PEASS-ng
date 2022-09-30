@@ -213,6 +213,15 @@ namespace winPEAS.Helpers
             Console.WriteLine(DGRAY + to_print + NOCOLOR);
         }
 
+        public static void LongPathWarning(string path)
+        {
+            if (!Checks.Checks.warning_is_long_path)
+            {
+                GrayPrint($"The path {path} is too large, try to enable LongPathsin th registry (no more warning about this will be shown)");
+                Checks.Checks.warning_is_long_path = true;
+            }
+        }
+
         internal static void PrintDebugLine(string log)
         {
             Console.WriteLine(YELLOW + "  [Debug]  " + log + NOCOLOR);

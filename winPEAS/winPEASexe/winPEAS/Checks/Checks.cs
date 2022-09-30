@@ -35,6 +35,8 @@ namespace winPEAS.Checks
         public static string PaintActiveUsersNoAdministrator = "";
         public static string PaintDisabledUsers = "";
         public static string PaintDisabledUsersNoAdministrator = "";
+        public static bool is_long_path = false;
+        public static bool warning_is_long_path = false;
         //static string paint_lockoutUsers = "";
         public static string PaintAdminUsers = "";
         public static YamlConfig YamlConfig;
@@ -205,6 +207,8 @@ namespace winPEAS.Checks
                     {
                         CheckRegANSI();
                     }
+
+                    CheckLongPath();
 
                     Beaprint.PrintInit();
 
@@ -401,6 +405,24 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.GrayPrint("Error while checking ansi color registry: " + ex);
+            }
+        }
+
+        private static void CheckLongPath()
+        {
+            try
+            {
+                if (RegistryHelper.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\FileSystem", "LongPathsEnabled") != "1")
+                {
+                    System.Console.WriteLine(@"Long paths are disabled, so the maximum length of a path supported is 260chars(this may cause false negatives when looking for files). If you are admin, you can enable it with 'REG ADD HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v VirtualTerminalLevel /t REG_DWORD /d 1' and then start a new CMD");
+                    is_long_path = false;
+                }
+                else
+                    is_long_path = true;
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("Error while checking LongPathsEnabled registry: " + ex);
             }
         }
 

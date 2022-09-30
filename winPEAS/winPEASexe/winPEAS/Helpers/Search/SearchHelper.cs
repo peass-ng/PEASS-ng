@@ -76,7 +76,7 @@ namespace winPEAS.Helpers.Search
                             if (!StaticExtensions.Contains(f.Extension.ToLower()))
                             {
                                 // It should always be lesss than 260, but some times it isn't so this will bypass that file
-                                if (f.FullName.Length <= 260)
+                                if (Checks.Checks.is_long_path || f.FullName.Length <= 260)
                                 {
                                     CustomFileInfo file_info = new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false);
                                     files.Add(file_info);
@@ -88,6 +88,8 @@ namespace winPEAS.Helpers.Search
                                         files.Add(file_dir);
                                     }
                                 }
+                                else if (f.FullName.Length > 260)
+                                    Beaprint.LongPathWarning(f.FullName);
                             }
                         }
                         ) ;
@@ -169,14 +171,24 @@ namespace winPEAS.Helpers.Search
                     {
                         foreach (var directory in directories)
                         {
-                            files.Add(new CustomFileInfo(directory.Name, null, directory.FullName, 0, true));
+                            if (Checks.Checks.is_long_path || directory.FullName.Length <= 260)
+                                files.Add(new CustomFileInfo(directory.Name, null, directory.FullName, 0, true));
+
+                            else if (directory.FullName.Length > 260)
+                                Beaprint.LongPathWarning(directory.FullName);
                         }
                     }
 
                     foreach (var f in dirInfo.GetFiles(pattern))
                     {
                         if (!StaticExtensions.Contains(f.Extension.ToLower()))
-                            files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false));
+                        {
+                            if (Checks.Checks.is_long_path || f.FullName.Length <= 260)
+                                files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false));
+
+                            else if (f.FullName.Length > 260)
+                                Beaprint.LongPathWarning(f.FullName);
+                        }
                     }
 
                     if (directories.Length > 1) return new List<DirectoryInfo>(directories);
