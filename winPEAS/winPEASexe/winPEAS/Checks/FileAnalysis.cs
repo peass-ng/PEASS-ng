@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -70,6 +71,9 @@ namespace winPEAS.Checks
 
         private static bool[] Search(List<CustomFileInfo> files, string fileName, FileSettings fileSettings, ref int resultsCount, string searchName, bool somethingFound)
         {
+            if (Checks.IsDebug)
+                Beaprint.PrintDebugLine($"Searching for {fileName}");
+
             bool isRegexSearch = fileName.Contains("*");
             bool isFolder = fileSettings.files != null;
             string pattern = string.Empty;
@@ -139,6 +143,7 @@ namespace winPEAS.Checks
                 }
             }
 
+           
             return new bool[] { false, somethingFound };
         }
 
@@ -232,7 +237,7 @@ namespace winPEAS.Checks
                     ".txt", ".text", ".md", ".markdown", ".toml", ".rtf",
 
                     // config
-                    ".conf", ".config", ".json", ".yml", ".yaml", ".xml", ".xaml", 
+                    ".cnf", ".conf", ".config", ".json", ".yml", ".yaml", ".xml", ".xaml", 
 
                     // dev
                     ".py", ".js", ".html", ".c", ".cpp", ".pl", ".rb", ".smali", ".java", ".php", ".bat", ".ps1",
@@ -246,10 +251,29 @@ namespace winPEAS.Checks
                     "eula.rtf", "changelog.md"
                 };
 
-                // No dirs, less thatn 1MB, only interesting extensions and not false positives files.
-                var files = InitializeFileSearch(Checks.SearchProgramFiles).Where(f => !f.IsDirectory && valid_extensions.Contains(f.Extension.ToLower()) && !invalid_names.Contains(f.Filename.ToLower()) && f.Size > 0 && f.Size < 1000000).ToList();
+                if (Checks.IsDebug)
+                    Beaprint.PrintDebugLine("Looking for secrets inside files via regexes");
+
+                // No dirs, less than 1MB, only interesting extensions and not false positives files.
+                var files = InitializeFileSearch(Checks.SearchProgramFiles).Where(f => !f.IsDirectory && valid_extensions.Contains(f.Extension.ToLower()) && !invalid_names.Contains(f.Filename.ToLower()) && f.Size > 0 && f.Size < Checks.MaxRegexFileSize).ToList();
                 var config = Checks.RegexesYamlConfig; // Get yaml info
                 Dictionary<string, Dictionary<string, Dictionary<string, List<string>>>> foundRegexes = new Dictionary<string, Dictionary<string, Dictionary<string, List<string>>>> { };
+
+                if (Checks.IsDebug)
+                {
+                    Beaprint.PrintDebugLine($"Searching regexes in {files.Count} files");
+                    valid_extensions.ForEach(ext =>
+                    {
+                        int cont = 0;
+                        files.ForEach(f =>
+                        {
+                            if (f.Extension.ToLower() == ext.ToLower())
+                                cont++;
+                        });
+                        Beaprint.PrintDebugLine($"Found {cont} files with ext {ext}");
+                    });
+
+                }
 
                 /*
                  * Useful for debbugging purposes to see the common file extensions found
@@ -283,8 +307,7 @@ namespace winPEAS.Checks
 
                         Parallel.ForEach(files, new ParallelOptions { MaxDegreeOfParallelism = num_threads }, f =>
                         {
-                        //foreach (var f in files)
-                        //{
+
                             foreach (var regex_obj in config.regular_expresions)
                             {
                                 foreach (var regex in regex_obj.regexes)
@@ -295,6 +318,13 @@ namespace winPEAS.Checks
                                     }
 
                                     List<string> results = new List<string> { };
+
+                                    var timer = new Stopwatch();
+                                    if (Checks.IsDebug)
+                                    {
+                                        timer.Start();
+                                    }
+                                    
 
                                     try
                                     {
@@ -313,12 +343,20 @@ namespace winPEAS.Checks
                                     {
                                         // Cannot read the file
                                     }
+
+                                    if (Checks.IsDebug)
+                                    {
+                                        timer.Stop();
+
+                                        TimeSpan timeTaken = timer.Elapsed;
+                                        if (timeTaken.TotalMilliseconds > 1000)
+                                            Beaprint.PrintDebugLine($"\nThe regex {regex.regex} took {timeTaken.TotalMilliseconds}s in {f.FullPath}");
+                                    }
                                 }
                             }
                             pb += (double)100 / files.Count;
                             progress.Report(pb / 100); //Value must be in [0..1] range
                         });
-                        //}
                     }, Checks.IsDebug);
                 }
 

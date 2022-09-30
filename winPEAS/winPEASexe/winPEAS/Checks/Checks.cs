@@ -35,8 +35,9 @@ namespace winPEAS.Checks
         public static string PaintActiveUsersNoAdministrator = "";
         public static string PaintDisabledUsers = "";
         public static string PaintDisabledUsersNoAdministrator = "";
-        public static bool is_long_path = false;
-        public static bool warning_is_long_path = false;
+        public static bool IsLongPath = false;
+        public static bool WarningIsLongPath = false;
+        public static int MaxRegexFileSize = 1000000;
         //static string paint_lockoutUsers = "";
         public static string PaintAdminUsers = "";
         public static YamlConfig YamlConfig;
@@ -159,6 +160,16 @@ namespace winPEAS.Checks
                 if (string.Equals(arg, "searchpf", StringComparison.CurrentCultureIgnoreCase))
                 {
                     SearchProgramFiles = true;
+                }
+
+                if (string.Equals(arg, "max-regex-file-size", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var parts = arg.Split('=');
+                    if (parts.Length >= 2 && !string.IsNullOrEmpty(parts[1]))
+                    {
+                        MaxRegexFileSize = Int32.Parse(parts[1]);
+                    }
+                        
                 }
 
                 if (string.Equals(arg, "-lolbas", StringComparison.CurrentCultureIgnoreCase))
@@ -414,11 +425,11 @@ namespace winPEAS.Checks
             {
                 if (RegistryHelper.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\FileSystem", "LongPathsEnabled") != "1")
                 {
-                    System.Console.WriteLine(@"Long paths are disabled, so the maximum length of a path supported is 260chars(this may cause false negatives when looking for files). If you are admin, you can enable it with 'REG ADD HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v VirtualTerminalLevel /t REG_DWORD /d 1' and then start a new CMD");
-                    is_long_path = false;
+                    System.Console.WriteLine(@"Long paths are disabled, so the maximum length of a path supported is 260chars (this may cause false negatives when looking for files). If you are admin, you can enable it with 'REG ADD HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v VirtualTerminalLevel /t REG_DWORD /d 1' and then start a new CMD");
+                    IsLongPath = false;
                 }
                 else
-                    is_long_path = true;
+                    IsLongPath = true;
             }
             catch (Exception ex)
             {

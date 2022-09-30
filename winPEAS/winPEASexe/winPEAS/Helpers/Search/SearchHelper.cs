@@ -76,7 +76,7 @@ namespace winPEAS.Helpers.Search
                             if (!StaticExtensions.Contains(f.Extension.ToLower()))
                             {
                                 // It should always be lesss than 260, but some times it isn't so this will bypass that file
-                                if (Checks.Checks.is_long_path || f.FullName.Length <= 260)
+                                if (Checks.Checks.IsLongPath || f.FullName.Length <= 260)
                                 {
                                     CustomFileInfo file_info = new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false);
                                     files.Add(file_info);
@@ -171,7 +171,7 @@ namespace winPEAS.Helpers.Search
                     {
                         foreach (var directory in directories)
                         {
-                            if (Checks.Checks.is_long_path || directory.FullName.Length <= 260)
+                            if (Checks.Checks.IsLongPath || directory.FullName.Length <= 260)
                                 files.Add(new CustomFileInfo(directory.Name, null, directory.FullName, 0, true));
 
                             else if (directory.FullName.Length > 260)
@@ -183,7 +183,7 @@ namespace winPEAS.Helpers.Search
                     {
                         if (!StaticExtensions.Contains(f.Extension.ToLower()))
                         {
-                            if (Checks.Checks.is_long_path || f.FullName.Length <= 260)
+                            if (Checks.Checks.IsLongPath || f.FullName.Length <= 260)
                                 files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false));
 
                             else if (f.FullName.Length > 260)

@@ -122,29 +122,31 @@ namespace winPEAS.Helpers
         public static void PrintUsage()
         {
             Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        domain" + GRAY + "               Enumerate domain information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        systeminfo" + GRAY + "           Search system information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        userinfo" + GRAY + "             Search user information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        processinfo" + GRAY + "          Search processes information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        servicesinfo" + GRAY + "         Search services information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        applicationsinfo" + GRAY + "     Search installed applications information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        networkinfo" + GRAY + "          Search network information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        windowscreds" + GRAY + "         Search windows credentials" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        browserinfo" + GRAY + "          Search browser information" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        filesinfo" + GRAY + "            Search generic files that can contains credentials" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        fileanalysis" + GRAY + "         Search specific files that can contains credentials and for regexes inside files" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        eventsinfo" + GRAY + "           Display interesting events information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        domain" + GRAY + "               Enumerate domain information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        systeminfo" + GRAY + "           Search system information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        userinfo" + GRAY + "             Search user information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        processinfo" + GRAY + "          Search processes information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        servicesinfo" + GRAY + "         Search services information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        applicationsinfo" + GRAY + "     Search installed applications information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        networkinfo" + GRAY + "          Search network information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        windowscreds" + GRAY + "         Search windows credentials" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        browserinfo" + GRAY + "          Search browser information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        filesinfo" + GRAY + "            Search generic files that can contains credentials" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        fileanalysis" + GRAY + "         Search specific files that can contains credentials and for regexes inside files" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        eventsinfo" + GRAY + "           Display interesting events information" + NOCOLOR);
             Console.WriteLine();
-            Console.WriteLine(LBLUE + "        quiet" + GRAY + "                Do not print banner" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        notcolor" + GRAY + "             Don't use ansi colors (all white)" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        searchpf" + GRAY + "             Search credentials via regex also in Program Files folders" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        wait" + GRAY + "                 Wait for user input between checks" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        debug" + GRAY + "                Display debugging information - memory usage, method execution time" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        log[=logfile]" + GRAY + $"        Log all output to file defined as logfile, or to \"{Checks.Checks.DefaultLogFile}\" if not specified" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        quiet" + GRAY + "                Do not print banner" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        notcolor" + GRAY + "             Don't use ansi colors (all white)" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        searchpf" + GRAY + "             Search credentials via regex also in Program Files folders" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        wait" + GRAY + "                 Wait for user input between checks" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        debug" + GRAY + "                Display debugging information - memory usage, method execution time" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        log[=logfile]" + GRAY + $"        Log all output to file defined as logfile, or to \"{Checks.Checks.DefaultLogFile}\" if not specified" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        max-regex-file-size=1000000" + GRAY + $"        Max file size (in Bytes) to search regex in. Default: {Checks.Checks.MaxRegexFileSize}B" + NOCOLOR);
+            
             Console.WriteLine();
-            Console.WriteLine(LCYAN + "        Additional checks (slower):");
-            Console.WriteLine(LBLUE + "        -lolbas" + GRAY + $"              Run additional LOLBAS check" + NOCOLOR);
-            Console.WriteLine(LBLUE + "        -linpeas=[url]" + GRAY + $"       Run additional linpeas.sh check for default WSL distribution, optionally provide custom linpeas.sh URL\n" +
+            Console.WriteLine(GREEN + "        Additional checks (slower):");
+            Console.WriteLine(LCYAN + "        -lolbas" + GRAY + $"              Run additional LOLBAS check" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        -linpeas=[url]" + GRAY + $"       Run additional linpeas.sh check for default WSL distribution, optionally provide custom linpeas.sh URL\n" +
                                      $"                             (default: {Checks.Checks.LinpeasUrl})" + NOCOLOR);
 
         }
@@ -215,16 +217,16 @@ namespace winPEAS.Helpers
 
         public static void LongPathWarning(string path)
         {
-            if (!Checks.Checks.warning_is_long_path)
+            if (!Checks.Checks.WarningIsLongPath)
             {
-                GrayPrint($"The path {path} is too large, try to enable LongPathsin th registry (no more warning about this will be shown)");
-                Checks.Checks.warning_is_long_path = true;
+                GrayPrint($"The path {path} is too large, try to enable LongPaths in the registry (no more warning about this will be shown)");
+                Checks.Checks.WarningIsLongPath = true;
             }
         }
 
         internal static void PrintDebugLine(string log)
         {
-            Console.WriteLine(YELLOW + "  [Debug]  " + log + NOCOLOR);
+            Console.WriteLine(DGRAY + "  [Debug]  " + log + NOCOLOR);
             Console.WriteLine();
         }
 

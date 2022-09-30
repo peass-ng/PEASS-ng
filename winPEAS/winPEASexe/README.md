@@ -85,6 +85,7 @@ searchpf             Search credentials via regex also in Program Files folders
 wait                 Wait for user input between checks
 debug                Display debugging information - memory usage, method execution time
 log[=logfile]        Log all output to file defined as logfile, or to "out.txt" if not specified
+MaxRegexFileSize=1000000        Max file size (in Bytes) to search regex in. Default: 1000000B
 
 Additional checks (slower):
 -lolbas              Run additional LOLBAS check
@@ -285,4 +286,4 @@ If you find any issue, please report it using **[github issues](https://github.c
 All the scripts/binaries of the PEAS Suite should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
 
 
-By Polop<sup>(TM)</sup>, makikvues (makikvues2[at]gmail[dot].com)
+By Polop
