@@ -77,7 +77,7 @@ enumerateDockerSockets() {
   dockerVersion="$(echo_not_found)"
   if ! [ "$SEARCHED_DOCKER_SOCKETS" ]; then
     SEARCHED_DOCKER_SOCKETS="1"
-    for int_sock in $(find / ! -path "/sys/*" -type s -name "docker.sock" -o -name "docker.socket" -o -name "dockershim.sock" -n -name "containerd.sock" -o -name "crio.sock" -o -name "frakti.sock" -o -name "rktlet.sock" 2>/dev/null); do
+    for int_sock in $(find / ! -path "/sys/*" -type s -name "docker.sock" -o -name "docker.socket" -o -name "dockershim.sock" -o -name "containerd.sock" -o -name "crio.sock" -o -name "frakti.sock" -o -name "rktlet.sock" 2>/dev/null); do
       if ! [ "$IAMROOT" ] && [ -w "$int_sock" ]; then
         if echo "$int_sock" | grep -Eq "docker"; then
           dock_sock="$int_sock"
