@@ -180,7 +180,7 @@ namespace winPEAS.Helpers
         {
             // print_info
             //Console.WriteLine(YELLOW + "   [?] " + LBLUE + comment + " " + LYELLOW + link + NOCOLOR);            
-            Console.WriteLine($"{LCYAN}╚ {LBLUE}{comment} {LYELLOW}{link}{NOCOLOR}");
+            Console.WriteLine($"{LCYAN}{LBLUE}{comment} {LYELLOW}{link}{NOCOLOR}");
         }
 
         public static void InfoPrint(string toPrint)
