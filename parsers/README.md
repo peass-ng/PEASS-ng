@@ -3,7 +3,7 @@
 These scripts allows you to transform the output of linpeas/macpeas/winpeas to JSON and then to PDF and HTML.
 
 ```python3
-python3 peass2json.py </path/to/executed_peass.out> </path/to/peass.json>
+python3 peas2json.py </path/to/executed_peass.out> </path/to/peass.json>
 python3 json2pdf.py </path/to/peass.json> </path/to/peass.pdf>
 python3 json2html.py </path/to/peass.json> </path/to/peass.html>
 ```
