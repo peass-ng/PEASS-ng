@@ -47,6 +47,12 @@ chmod +x linpeas_linux_amd64
 ./linpeas_linux_amd64
 ```
 
+```bash
+# Execute from memory in Penelope session
+# From: https://github.com/brightio/penelope
+> peass-ng
+```
+
 ## Firmware Analysis
 If you have a **firmware** and you want to **analyze it with linpeas** to **search for passwords or bad configured permissions** you have 2 main options.
 
