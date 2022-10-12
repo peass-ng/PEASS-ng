@@ -50,7 +50,7 @@ chmod +x linpeas_linux_amd64
 ```bash
 # Execute from memory in Penelope session
 # From: https://github.com/brightio/penelope
-> peass-ng
+> run peass-ng
 ```
 
 ## Firmware Analysis
