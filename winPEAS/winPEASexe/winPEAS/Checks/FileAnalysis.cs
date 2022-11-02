@@ -159,12 +159,12 @@ namespace winPEAS.Checks
                     // Use "IsMatch" because it supports timeout, if exception is thrown exit the func to avoid ReDoS in "rgx.Matches"
                     if (caseinsensitive)
                     {
-                        _ = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(5000));
+                        _ = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.IgnoreCase, TimeSpan.FromSeconds(60));
                         rgx = new Regex(regex_str.Trim(), RegexOptions.IgnoreCase);
                     }
                     else
                     {
-                        _ = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.None, TimeSpan.FromMilliseconds(5000));
+                        _ = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.None, TimeSpan.FromSeconds(60));
                         rgx = new Regex(regex_str.Trim());
                     }
                 }
@@ -367,7 +367,7 @@ namespace winPEAS.Checks
                                         timer.Stop();
 
                                         TimeSpan timeTaken = timer.Elapsed;
-                                        if (timeTaken.TotalMilliseconds > 5000)
+                                        if (timeTaken.TotalMilliseconds > 20000)
                                             Beaprint.PrintDebugLine($"\nThe regex {regex.regex} took {timeTaken.TotalMilliseconds}s in {f.FullPath}");
                                     }
                                 }
