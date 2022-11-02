@@ -160,12 +160,12 @@ namespace winPEAS.Checks
                     // Use "IsMatch" because it supports timeout, if exception is thrown exit the func to avoid ReDoS in "rgx.Matches"
                     if (caseinsensitive)
                     {
-                        is_re_match = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.IgnoreCase, TimeSpan.FromSeconds(60));
+                        is_re_match = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.IgnoreCase, TimeSpan.FromSeconds(120));
                         rgx = new Regex(regex_str.Trim(), RegexOptions.IgnoreCase);
                     }
                     else
                     {
-                        is_re_match = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.None, TimeSpan.FromSeconds(60));
+                        is_re_match = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.None, TimeSpan.FromSeconds(120));
                         rgx = new Regex(regex_str.Trim());
                     }
                 }
