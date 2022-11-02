@@ -367,7 +367,7 @@ namespace winPEAS.Checks
                                         timer.Stop();
 
                                         TimeSpan timeTaken = timer.Elapsed;
-                                        if (timeTaken.TotalMilliseconds > 1000)
+                                        if (timeTaken.TotalMilliseconds > 5000)
                                             Beaprint.PrintDebugLine($"\nThe regex {regex.regex} took {timeTaken.TotalMilliseconds}s in {f.FullPath}");
                                     }
                                 }
