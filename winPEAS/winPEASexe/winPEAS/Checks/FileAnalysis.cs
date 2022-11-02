@@ -154,15 +154,33 @@ namespace winPEAS.Checks
             try
             {
                 Regex rgx;
-                if (caseinsensitive)
-                    rgx = new Regex(regex_str.Trim(), RegexOptions.IgnoreCase);
-                else
-                    rgx = new Regex(regex_str.Trim());
+                try
+                {
+                    // Use "IsMatch" because it supports timeout, if exception is thrown exit the func to avoid ReDoS in "rgx.Matches"
+                    if (caseinsensitive)
+                    {
+                        _ = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(5000));
+                        rgx = new Regex(regex_str.Trim(), RegexOptions.IgnoreCase);
+                    }
+                    else
+                    {
+                        _ = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.None, TimeSpan.FromMilliseconds(5000));
+                        rgx = new Regex(regex_str.Trim());
+                    }
+                }
+                catch (RegexMatchTimeoutException e)
+                {
+                    if (Checks.IsDebug)
+                    {
+                        Beaprint.GrayPrint($"The regex {regex_str} had a timeout (ReDoS avoided but regex unchecked in a file)");
+                    }
+                    return foundMatches;
+                }
 
                 int cont = 0;
                 foreach (Match match in rgx.Matches(text))
                 {
-                    if (cont > 4) break;
+                    if (cont > 10) break;
                     
                     if (match.Value.Length < 400 && match.Value.Trim().Length > 2)
                         foundMatches.Add(match.Value);
