@@ -154,17 +154,18 @@ namespace winPEAS.Checks
             try
             {
                 Regex rgx;
+                bool is_re_match = false;
                 try
                 {
                     // Use "IsMatch" because it supports timeout, if exception is thrown exit the func to avoid ReDoS in "rgx.Matches"
                     if (caseinsensitive)
                     {
-                        _ = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.IgnoreCase, TimeSpan.FromSeconds(60));
+                        is_re_match = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.IgnoreCase, TimeSpan.FromSeconds(60));
                         rgx = new Regex(regex_str.Trim(), RegexOptions.IgnoreCase);
                     }
                     else
                     {
-                        _ = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.None, TimeSpan.FromSeconds(60));
+                        is_re_match = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.None, TimeSpan.FromSeconds(60));
                         rgx = new Regex(regex_str.Trim());
                     }
                 }
@@ -174,6 +175,11 @@ namespace winPEAS.Checks
                     {
                         Beaprint.GrayPrint($"The regex {regex_str} had a timeout (ReDoS avoided but regex unchecked in a file)");
                     }
+                    return foundMatches;
+                }
+                
+                if (!is_re_match)
+                {
                     return foundMatches;
                 }
 
