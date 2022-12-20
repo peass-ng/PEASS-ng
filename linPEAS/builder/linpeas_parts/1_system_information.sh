@@ -25,7 +25,7 @@ echo ""
 print_2title "CVEs Check"
 
 #-- SY) CVE-2021-4034
-if [ `command -v pkexec` ] && stat -c '%a' $(which pkexec) | grep -q 4755 && [ "$(stat -c '%Y' $(which pkexec))" -lt "1642035600" ]; then 
+if [ `command -v pkexec` ] && stat -c '%a' $(which pkexec) | grep -q 4755 && [ "$(stat -c '%Y' $(which pkexec))" -lt "1641942000" ]; then 
     echo "Vulnerable to CVE-2021-4034" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     echo ""
 fi
