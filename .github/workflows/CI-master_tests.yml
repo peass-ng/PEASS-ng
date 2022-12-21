@@ -1,10 +1,6 @@
 name: CI-master_test
 
-on:
-  pull_request:
-    branches:
-      - master
-  
+on:  
   schedule:
     - cron: "5 4 * * SUN"
 
