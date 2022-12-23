@@ -4,11 +4,11 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Web.Script.Serialization;
+using winPEAS._3rdParty.SQLite;
 using winPEAS.Checks;
 using winPEAS.Helpers;
 using winPEAS.KnownFileCreds.Browsers.Models;
-using winPEAS._3rdParty.SQLite;
-using System.Web.Script.Serialization;
 
 namespace winPEAS.KnownFileCreds.Browsers.Firefox
 {
@@ -29,7 +29,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
             {
                 Beaprint.MainPrint("Looking for Firefox DBs");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#browsers-history");
-                List<string> firefoxDBs = Firefox.GetFirefoxDbs();
+                List<string> firefoxDBs = GetFirefoxDbs();
                 if (firefoxDBs.Count > 0)
                 {
                     foreach (string firefoxDB in firefoxDBs) //No Beaprints because line needs red
@@ -56,21 +56,26 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
             {
                 Beaprint.MainPrint("Looking for GET credentials in Firefox history");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#browsers-history");
-                List<string> firefoxHist = Firefox.GetFirefoxHistory();
-                if (firefoxHist.Count > 0)
+                List<string> history = GetFirefoxHistory();
+                if (history.Count > 0)
                 {
                     Dictionary<string, string> colorsB = new Dictionary<string, string>()
                     {
                         { Globals.PrintCredStrings, Beaprint.ansi_color_bad },
                     };
 
-                    foreach (string url in firefoxHist)
+                    foreach (string url in history)
                     {
                         if (MyUtils.ContainsAnyRegex(url.ToUpper(), Browser.CredStringsRegex))
                         {
                             Beaprint.AnsiPrint("    " + url, colorsB);
                         }
                     }
+                    Console.WriteLine();
+
+                    int limit = 50;
+                    Beaprint.MainPrint($"Firefox history -- limit {limit}\n");
+                    Beaprint.ListPrint(history.Take(limit).ToList());
                 }
                 else
                 {
@@ -101,7 +106,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
                             string userFirefoxBasePath = $"{dir}\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\";
-                            if (System.IO.Directory.Exists(userFirefoxBasePath))
+                            if (Directory.Exists(userFirefoxBasePath))
                             {
                                 var directories = Directory.EnumerateDirectories(userFirefoxBasePath);
                                 foreach (string directory in directories)
@@ -249,25 +254,28 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
 
                 foreach (string dir in dirs)
                 {
-                    string[] files = Directory.EnumerateFiles(dir, "signons.sqlite").ToArray();
-                    if (files.Length > 0)
+                    if (Directory.Exists(dir))
                     {
-                        signonsFile = files[0];
-                        signonsFound = true;
-                    }
+                        string[] files = Directory.EnumerateFiles(dir, "signons.sqlite").ToArray();
+                        if (files.Length > 0)
+                        {
+                            signonsFile = files[0];
+                            signonsFound = true;
+                        }
 
-                    // find &quot;logins.json"file
-                    files = Directory.EnumerateFiles(dir, "logins.json").ToArray();
-                    if (files.Length > 0)
-                    {
-                        loginsFile = files[0];
-                        loginsFound = true;
-                    }
+                        // find &quot;logins.json"file
+                        files = Directory.EnumerateFiles(dir, "logins.json").ToArray();
+                        if (files.Length > 0)
+                        {
+                            loginsFile = files[0];
+                            loginsFound = true;
+                        }
 
-                    if (loginsFound || signonsFound)
-                    {
-                        FFDecryptor.NSS_Init(dir);
-                        break;
+                        if (loginsFound || signonsFound)
+                        {
+                            FFDecryptor.NSS_Init(dir);
+                            break;
+                        }
                     }
 
                 }
@@ -313,8 +321,8 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
 
                     foreach (Browsers.Firefox.LoginData loginData in ffLoginData.logins)
                     {
-                        string username = Browsers.Firefox.FFDecryptor.Decrypt(loginData.encryptedUsername);
-                        string password = Browsers.Firefox.FFDecryptor.Decrypt(loginData.encryptedPassword);
+                        string username = FFDecryptor.Decrypt(loginData.encryptedUsername);
+                        string password = FFDecryptor.Decrypt(loginData.encryptedPassword);
                         logins.Add(new CredentialModel
                         {
                             Username = username,
@@ -325,9 +333,9 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
                 }
             }
             catch (Exception e)
-            {                
+            {
             }
-            
+
             return logins;
         }
     }

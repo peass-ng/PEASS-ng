@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 using winPEAS.Checks;
@@ -27,7 +28,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
             {
                 Beaprint.MainPrint("Looking for Chrome DBs");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#browsers-history");
-                Dictionary<string, string> chromeDBs = Chrome.GetChromeDbs();
+                Dictionary<string, string> chromeDBs = GetChromeDbs();
 
                 if (chromeDBs.ContainsKey("userChromeCookiesPath"))
                 {
@@ -59,7 +60,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
             {
                 Beaprint.MainPrint("Looking for GET credentials in Chrome history");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#browsers-history");
-                Dictionary<string, List<string>> chromeHistBook = Chrome.GetChromeHistBook();
+                Dictionary<string, List<string>> chromeHistBook = GetChromeHistBook();
                 List<string> history = chromeHistBook["history"];
                 List<string> bookmarks = chromeHistBook["bookmarks"];
 
@@ -77,8 +78,11 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
                             Beaprint.AnsiPrint("    " + url, colorsB);
                         }
                     }
-
                     Console.WriteLine();
+
+                    int limit = 50;
+                    Beaprint.MainPrint($"Chrome history -- limit {limit}\n");
+                    Beaprint.ListPrint(history.Take(limit).ToList());
                 }
                 else
                 {
@@ -130,14 +134,14 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
                 else
                 {
                     string userChromeCookiesPath =
-                        $"{System.Environment.GetEnvironmentVariable("USERPROFILE")}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cookies";
+                        $"{Environment.GetEnvironmentVariable("USERPROFILE")}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cookies";
                     if (File.Exists(userChromeCookiesPath))
                     {
                         results["userChromeCookiesPath"] = userChromeCookiesPath;
                     }
 
                     string userChromeLoginDataPath =
-                        $"{System.Environment.GetEnvironmentVariable("USERPROFILE")}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Login Data";
+                        $"{Environment.GetEnvironmentVariable("USERPROFILE")}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Login Data";
                     if (File.Exists(userChromeLoginDataPath))
                     {
                         results["userChromeLoginDataPath"] = userChromeLoginDataPath;
@@ -156,7 +160,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
             List<string> results = new List<string>();
 
             // parses a Chrome history file via regex
-            if (System.IO.File.Exists(path))
+            if (File.Exists(path))
             {
                 Regex historyRegex = new Regex(@"(http|ftp|https|file)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?");
 
@@ -217,10 +221,10 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
                 }
                 else
                 {
-                    string userChromeHistoryPath = string.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string userChromeHistoryPath = string.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History", Environment.GetEnvironmentVariable("USERPROFILE"));
                     results["history"] = ParseChromeHistory(userChromeHistoryPath);
 
-                    string userChromeBookmarkPath = string.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Bookmarks", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string userChromeBookmarkPath = string.Format("{0}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Bookmarks", Environment.GetEnvironmentVariable("USERPROFILE"));
 
                     results["bookmarks"] = ParseChromeBookmarks(userChromeBookmarkPath);
                 }
@@ -241,7 +245,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
             {
                 try
                 {
-                    string contents = System.IO.File.ReadAllText(path);
+                    string contents = File.ReadAllText(path);
 
                     // reference: http://www.tomasvera.com/programming/using-javascriptserializer-to-parse-json-objects/
                     JavaScriptSerializer json = new JavaScriptSerializer();

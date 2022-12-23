@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using Microsoft.Win32;
 using winPEAS.Checks;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
@@ -30,7 +30,7 @@ namespace winPEAS.KnownFileCreds.Browsers
             {
                 Beaprint.MainPrint("Current IE tabs");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#browsers-history");
-                List<string> urls = InternetExplorer.GetCurrentIETabs();
+                List<string> urls = GetCurrentIETabs();
 
                 Dictionary<string, string> colorsB = new Dictionary<string, string>()
                 {
@@ -51,9 +51,9 @@ namespace winPEAS.KnownFileCreds.Browsers
             {
                 Beaprint.MainPrint("Looking for GET credentials in IE history");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#browsers-history");
-                Dictionary<string, List<string>> chromeHistBook = InternetExplorer.GetIEHistFav();
-                List<string> history = chromeHistBook["history"];
-                List<string> favorites = chromeHistBook["favorites"];
+                Dictionary<string, List<string>> ieHistoryBook = GetIEHistFav();
+                List<string> history = ieHistoryBook["history"];
+                List<string> favorites = ieHistoryBook["favorites"];
 
                 if (history.Count > 0)
                 {
@@ -69,8 +69,15 @@ namespace winPEAS.KnownFileCreds.Browsers
                             Beaprint.AnsiPrint("    " + url, colorsB);
                         }
                     }
-
                     Console.WriteLine();
+
+                    int limit = 50;
+                    Beaprint.MainPrint($"IE history -- limit {limit}\n");
+                    Beaprint.ListPrint(history.Take(limit).ToList());
+                }
+                else
+                {
+                    Beaprint.NotFoundPrint();
                 }
 
                 Beaprint.MainPrint("IE favorites");
@@ -91,7 +98,7 @@ namespace winPEAS.KnownFileCreds.Browsers
                 { "favorites", new List<string>() },
             };
 
-            DateTime startTime = System.DateTime.Now.AddDays(-lastDays);
+            DateTime startTime = DateTime.Now.AddDays(-lastDays);
 
             try
             {
@@ -167,39 +174,31 @@ namespace winPEAS.KnownFileCreds.Browsers
                     {
                         foreach (KeyValuePair<string, object> kvp in settings)
                         {
-                            byte[] timeBytes = RegistryHelper.GetRegValueBytes("HKCU", "SOFTWARE\\Microsoft\\Internet Explorer\\TypedURLsTime", kvp.Key.ToString().Trim());
-                            if (timeBytes != null)
-                            {
-                                long timeLong = (long)(BitConverter.ToInt64(timeBytes, 0));
-                                DateTime urlTime = DateTime.FromFileTime(timeLong);
-                                if (urlTime > startTime)
-                                {
-                                    results["history"].Add(kvp.Value.ToString().Trim());
-                                }
-                            }
+                            results["history"].Add(kvp.Value.ToString().Trim());
                         }
                     }
 
-                    string userIEBookmarkPath = string.Format("{0}\\Favorites\\", System.Environment.GetEnvironmentVariable("USERPROFILE"));
-
-                    string[] bookmarkPaths = Directory.EnumerateFiles(userIEBookmarkPath, "*.url", SearchOption.AllDirectories).ToArray();
-
-                    foreach (string bookmarkPath in bookmarkPaths)
+                    string userIEBookmarkPath = string.Format("{0}\\Favorites\\", Environment.GetEnvironmentVariable("USERPROFILE"));
+                    if (Directory.Exists(userIEBookmarkPath))
                     {
-                        using (StreamReader rdr = new StreamReader(bookmarkPath))
+                        string[] bookmarkPaths = Directory.EnumerateFiles(userIEBookmarkPath, "*.url", SearchOption.AllDirectories).ToArray();
+                        foreach (string bookmarkPath in bookmarkPaths)
                         {
-                            string line;
-                            string url = "";
-                            while ((line = rdr.ReadLine()) != null)
+                            using (StreamReader rdr = new StreamReader(bookmarkPath))
                             {
-                                if (line.StartsWith("URL=", StringComparison.InvariantCultureIgnoreCase))
+                                string line;
+                                string url = "";
+                                while ((line = rdr.ReadLine()) != null)
                                 {
-                                    if (line.Length > 4)
-                                        url = line.Substring(4);
-                                    break;
+                                    if (line.StartsWith("URL=", StringComparison.InvariantCultureIgnoreCase))
+                                    {
+                                        if (line.Length > 4)
+                                            url = line.Substring(4);
+                                        break;
+                                    }
                                 }
+                                results["favorites"].Add(url.ToString().Trim());
                             }
-                            results["favorites"].Add(url.ToString().Trim());
                         }
                     }
                 }
@@ -271,7 +270,7 @@ namespace winPEAS.KnownFileCreds.Browsers
         public override IEnumerable<CredentialModel> GetSavedCredentials()
         {
             // unsupported
-            var result = new List<CredentialModel>();           
+            var result = new List<CredentialModel>();
             return result;
         }
     }
