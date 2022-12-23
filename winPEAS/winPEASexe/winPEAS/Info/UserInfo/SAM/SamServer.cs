@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using winPEAS.Helpers;
 using winPEAS.Native;
 using winPEAS.Native.Classes;
 
@@ -99,9 +98,9 @@ namespace winPEAS.Info.UserInfo.SAM
                 yield return us.ToString();
                 us.Buffer = IntPtr.Zero; // we don't own this one
             }
-        }               
+        }
 
-       
+
 
         private static void Check(NTSTATUS err)
         {

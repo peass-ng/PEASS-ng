@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management;
 using System.Text.RegularExpressions;
-using Microsoft.Win32;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 
@@ -204,7 +204,7 @@ namespace winPEAS.Info.ApplicationInfo
                             {
                                 autorunLocationKey[0], autorunLocationKey[1] + "\\" + clsid_name, autorunLocationKey[2]
                             }
-                            : new List<string> {autorunLocationKey[0], autorunLocationKey[1] + "\\" + clsid_name});
+                            : new List<string> { autorunLocationKey[0], autorunLocationKey[1] + "\\" + clsid_name });
                     }
                 }
 
@@ -243,10 +243,10 @@ namespace winPEAS.Info.ApplicationInfo
                             string folder = Path.GetDirectoryName(filepath_cleaned);
 
                             try
-                            { 
+                            {
                                 //If the path doesn't exist, pass
                                 if (File.GetAttributes(filepath_cleaned).HasFlag(FileAttributes.Directory))
-                                { 
+                                {
                                     //If the path is already a folder, change the values of the params
                                     orig_filepath = "";
                                     folder = filepath_cleaned;
@@ -336,7 +336,7 @@ namespace winPEAS.Info.ApplicationInfo
             var systemDrive = Environment.GetEnvironmentVariable("SystemDrive");
             var autorunLocations = new List<string>
             {
-                Environment.ExpandEnvironmentVariables(@"%programdata%\Microsoft\Windows\Start Menu\Programs\Startup"),               
+                Environment.ExpandEnvironmentVariables(@"%programdata%\Microsoft\Windows\Start Menu\Programs\Startup"),
             };
 
             string usersPath = Path.Combine(Environment.GetEnvironmentVariable(@"USERPROFILE"));
@@ -344,15 +344,18 @@ namespace winPEAS.Info.ApplicationInfo
 
             try
             {
-                var userDirs = Directory.EnumerateDirectories(usersPath);
-
-                foreach (var userDir in userDirs)
+                if (Directory.Exists(usersPath))
                 {
-                    string startupPath = $@"{userDir}\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup";
+                    var userDirs = Directory.EnumerateDirectories(usersPath);
 
-                    if (Directory.Exists(startupPath))
+                    foreach (var userDir in userDirs)
                     {
-                        autorunLocations.Add(startupPath);
+                        string startupPath = $@"{userDir}\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup";
+
+                        if (Directory.Exists(startupPath))
+                        {
+                            autorunLocations.Add(startupPath);
+                        }
                     }
                 }
             }
@@ -364,22 +367,25 @@ namespace winPEAS.Info.ApplicationInfo
             {
                 try
                 {
-                    var files = Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly);
-
-                    foreach (string filepath in files)
+                    if (Directory.Exists(path))
                     {
-                        string folder = Path.GetDirectoryName(filepath);
-                        results.Add(new Dictionary<string, string>() {
-                            { "Reg", "" },
-                            { "RegKey", "" },
-                            { "RegPermissions", "" },
-                            { "Folder", folder },
-                            { "File", filepath },
-                            { "isWritableReg", ""},
-                            { "interestingFolderRights", string.Join(", ", PermissionsHelper.GetPermissionsFolder(folder, Checks.Checks.CurrentUserSiDs))},
-                            { "interestingFileRights", string.Join(", ", PermissionsHelper.GetPermissionsFile(filepath, Checks.Checks.CurrentUserSiDs))},
-                            { "isUnquotedSpaced", MyUtils.CheckQuoteAndSpace(path).ToString() }
-                        });
+                        var files = Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly);
+
+                        foreach (string filepath in files)
+                        {
+                            string folder = Path.GetDirectoryName(filepath);
+                            results.Add(new Dictionary<string, string>() {
+                                { "Reg", "" },
+                                { "RegKey", "" },
+                                { "RegPermissions", "" },
+                                { "Folder", folder },
+                                { "File", filepath },
+                                { "isWritableReg", ""},
+                                { "interestingFolderRights", string.Join(", ", PermissionsHelper.GetPermissionsFolder(folder, Checks.Checks.CurrentUserSiDs))},
+                                { "interestingFileRights", string.Join(", ", PermissionsHelper.GetPermissionsFile(filepath, Checks.Checks.CurrentUserSiDs))},
+                                { "isUnquotedSpaced", MyUtils.CheckQuoteAndSpace(path).ToString() }
+                            });
+                        }
                     }
                 }
                 catch (Exception)
@@ -477,7 +483,7 @@ namespace winPEAS.Info.ApplicationInfo
 
         private static IEnumerable<Dictionary<string, string>> GetAutoRunsFiles()
         {
-            var results = new List<Dictionary<string, string>>();            
+            var results = new List<Dictionary<string, string>>();
             var systemDrive = Environment.GetEnvironmentVariable("SystemDrive");
             var autostartFiles = new HashSet<string>
             {

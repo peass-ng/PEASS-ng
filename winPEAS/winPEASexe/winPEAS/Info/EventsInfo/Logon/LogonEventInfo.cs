@@ -40,6 +40,6 @@ namespace winPEAS.Info.EventsInfo.Logon
             LmPackage = lmPackage;
             TargetOutboundUserName = targetOutboundUserName;
             TargetOutboundDomainName = targetOutboundDomainName;
-        }        
+        }
     }
 }

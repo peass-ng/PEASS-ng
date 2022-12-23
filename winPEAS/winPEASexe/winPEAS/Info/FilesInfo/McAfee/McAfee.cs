@@ -127,7 +127,7 @@ namespace winPEAS.Info.FilesInfo.McAfee
             byte[] XORKey = { 0x12, 0x15, 0x0F, 0x10, 0x11, 0x1C, 0x1A, 0x06, 0x0A, 0x1F, 0x1B, 0x18, 0x17, 0x16, 0x05, 0x19 };
 
             // xor the input b64 string with the static XOR key
-            var passwordBytes = System.Convert.FromBase64String(base64password);
+            var passwordBytes = Convert.FromBase64String(base64password);
             for (var i = 0; i < passwordBytes.Length; i++)
             {
                 passwordBytes[i] = (byte)(passwordBytes[i] ^ XORKey[i % XORKey.Length]);
@@ -137,7 +137,7 @@ namespace winPEAS.Info.FilesInfo.McAfee
 
             //var tDESKey = MyUtils.CombineArrays(crypto.ComputeHash(System.Text.Encoding.ASCII.GetBytes("<!@#$%^>")), new byte[] { 0x00, 0x00, 0x00, 0x00 });
             byte[] tDESKey = { 62, 241, 54, 184, 179, 59, 239, 188, 52, 38, 167, 181, 78, 196, 26, 55, 124, 211, 25, 155, 0, 0, 0, 0 };
-            
+
             // set the options we need
             var tDESalg = new TripleDESCryptoServiceProvider();
             tDESalg.Mode = CipherMode.ECB;

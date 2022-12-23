@@ -3,7 +3,7 @@
 namespace winPEAS.Helpers.Search
 {
     static class Patterns
-    {        
+    {
         public static readonly HashSet<string> WhitelistExtensions = new HashSet<string>()
         {
             ".cer",
@@ -11,7 +11,7 @@ namespace winPEAS.Helpers.Search
             ".der",
             ".p12",
         };
-      
+
         public static readonly HashSet<string> WhiteListExactfilenamesWithExtensions = new HashSet<string>()
         {
             "docker-compose.yml",
@@ -21,6 +21,6 @@ namespace winPEAS.Helpers.Search
         public static readonly IList<string> WhiteListRegexp = new List<string>()
         {
             "config.*\\.php$",
-        };       
+        };
     }
 }

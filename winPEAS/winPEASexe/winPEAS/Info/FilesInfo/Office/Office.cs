@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.Win32;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 using winPEAS.Info.FilesInfo.Office.OneDrive;

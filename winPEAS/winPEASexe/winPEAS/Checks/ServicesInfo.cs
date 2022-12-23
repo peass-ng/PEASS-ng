@@ -20,7 +20,7 @@ namespace winPEAS.Checks
             {
                 CheckRunner.Run(() =>
                 {
-                    modifiableServices = ServicesInfoHelper.GetModifiableServices(winPEAS.Checks.Checks.CurrentUserSiDs);
+                    modifiableServices = ServicesInfoHelper.GetModifiableServices(Checks.CurrentUserSiDs);
                 }, isDebug);
             }
             catch (Exception ex)
@@ -53,12 +53,12 @@ namespace winPEAS.Checks
 
                 foreach (Dictionary<string, string> serviceInfo in services_info)
                 {
-                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(serviceInfo["FilteredPath"], winPEAS.Checks.Checks.CurrentUserSiDs);
+                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(serviceInfo["FilteredPath"], Checks.CurrentUserSiDs);
                     List<string> dirRights = new List<string>();
 
                     if (serviceInfo["FilteredPath"] != null && serviceInfo["FilteredPath"] != "")
                     {
-                        dirRights = PermissionsHelper.GetPermissionsFolder(Path.GetDirectoryName(serviceInfo["FilteredPath"]), winPEAS.Checks.Checks.CurrentUserSiDs);
+                        dirRights = PermissionsHelper.GetPermissionsFolder(Path.GetDirectoryName(serviceInfo["FilteredPath"]), Checks.CurrentUserSiDs);
                     }
 
                     bool noQuotesAndSpace = MyUtils.CheckQuoteAndSpace(serviceInfo["PathName"]);
@@ -159,7 +159,7 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Looking if you can modify any service registry");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#services-registry-permissions", "Check if you can modify the registry of a service");
-                List<Dictionary<string, string>> regPerms = ServicesInfoHelper.GetWriteServiceRegs(winPEAS.Checks.Checks.CurrentUserSiDs);
+                List<Dictionary<string, string>> regPerms = ServicesInfoHelper.GetWriteServiceRegs(Checks.CurrentUserSiDs);
 
                 Dictionary<string, string> colorsWR = new Dictionary<string, string>()
                             {

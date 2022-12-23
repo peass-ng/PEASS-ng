@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace winPEAS.Helpers
 {
@@ -244,7 +242,7 @@ namespace winPEAS.Helpers
             {
 
                 string perm = PermissionsHelper.PermInt2Str((int)h.GrantedAccess, PermissionType.WRITEABLE_OR_EQUIVALENT);
-                if (perm != null && perm.Length> 0)
+                if (perm != null && perm.Length > 0)
                 {
                     vulnHandler.isVuln = true;
                     vulnHandler.reason = perm;
@@ -438,9 +436,11 @@ namespace winPEAS.Helpers
         // Get the owner of a process given the PID
         public static Dictionary<string, string> GetProcU(Process p)
         {
-            Dictionary<string, string> data = new Dictionary<string, string>();
-            data["name"] = "";
-            data["sid"] = "";
+            Dictionary<string, string> data = new Dictionary<string, string>
+            {
+                ["name"] = "",
+                ["sid"] = ""
+            };
             IntPtr pHandle = IntPtr.Zero;
             try
             {
@@ -471,7 +471,7 @@ namespace winPEAS.Helpers
             PT_RELEVANT_INFO pri = new PT_RELEVANT_INFO();
 
             Process proc = Process.GetProcessById(pid);
-            Dictionary<string,string> user = GetProcU(proc);
+            Dictionary<string, string> user = GetProcU(proc);
 
             StringBuilder fileName = new StringBuilder(2000);
             Native.Psapi.GetProcessImageFileName(proc.Handle, fileName, 2000);
@@ -586,7 +586,7 @@ namespace winPEAS.Helpers
             { // This shouldn't be needed
                 if (path.StartsWith("\\"))
                     path = path.Substring(1);
-                hive = Helpers.Registry.RegistryHelper.CheckIfExists(path);
+                hive = Registry.RegistryHelper.CheckIfExists(path);
             }
 
             if (path.StartsWith("\\"))

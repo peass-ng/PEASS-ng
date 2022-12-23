@@ -5,7 +5,7 @@
         public uint? LanmanCompatibilityLevel { get; set; }
 
         public string LanmanCompatibilityLevelString
-        { 
+        {
             get
             {
                 switch (LanmanCompatibilityLevel)
@@ -25,11 +25,11 @@
         public bool ClientRequireSigning { get; set; }
         public bool ClientNegotiateSigning { get; set; }
         public bool ServerRequireSigning { get; set; }
-        public bool ServerNegotiateSigning { get; set; }        
+        public bool ServerNegotiateSigning { get; set; }
         public uint? LdapSigning { get; set; }
 
         public string LdapSigningString
-        { 
+        {
             get
             {
                 switch (LdapSigning)
@@ -44,7 +44,7 @@
         }
 
         public uint? NTLMMinClientSec { get; set; }
-        public uint? NTLMMinServerSec { get; set; }        
+        public uint? NTLMMinServerSec { get; set; }
         public uint? InboundRestrictions { get; internal set; }
 
         public string InboundRestrictionsString

@@ -6,7 +6,6 @@ using System.Windows.Forms;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 using winPEAS.Info.UserInfo.SAM;
-using winPEAS.KnownFileCreds;
 using winPEAS.Native;
 using winPEAS.Native.Enums;
 
@@ -14,12 +13,12 @@ using winPEAS.Native.Enums;
 //I have also created the folder Costura32 and Costura64 with the respective Dlls of Colorful.Console
 
 namespace winPEAS.Info.UserInfo
-{    
+{
     class UserInfoHelper
     {
         // https://stackoverflow.com/questions/5247798/get-list-of-local-computer-usernames-in-windows
-        
-  
+
+
         public static string SID2GroupName(string SID)
         {
             //Frist, look in well-known SIDs
@@ -84,13 +83,13 @@ namespace winPEAS.Info.UserInfo
                 Beaprint.PrintException(ex.Message);
             }
             return groupName;
-        }       
+        }
 
         public static PrincipalContext GetPrincipalContext()
         {
             PrincipalContext oPrincipalContext = new PrincipalContext(ContextType.Machine);
             return oPrincipalContext;
-        }       
+        }
 
         //From Seatbelt
         public enum WTS_CONNECTSTATE_CLASS
@@ -106,7 +105,7 @@ namespace winPEAS.Info.UserInfo
             Down,
             Init
         }
-       
+
         public static void CloseServer(IntPtr ServerHandle)
         {
             Wtsapi32.WTSCloseServer(ServerHandle);
@@ -145,7 +144,7 @@ namespace winPEAS.Info.UserInfo
             [MarshalAs(UnmanagedType.LPStr)]
             public String pFarmName;
         }
-       
+
         public static IntPtr OpenServer(String Name)
         {
             IntPtr server = Wtsapi32.WTSOpenServer(Name);
@@ -215,7 +214,7 @@ namespace winPEAS.Info.UserInfo
             }
             return results;
         }
-       
+
         // https://stackoverflow.com/questions/31464835/how-to-programmatically-check-the-password-must-meet-complexity-requirements-g
         public static List<Dictionary<string, string>> GetPasswordPolicy()
         {
@@ -247,18 +246,19 @@ namespace winPEAS.Info.UserInfo
                 Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
             }
             return results;
-        }                      
-                          
+        }
+
         public static Dictionary<string, string> GetAutoLogon()
         {
-            Dictionary<string, string> results = new Dictionary<string, string>();
-
-            results["DefaultDomainName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultDomainName");
-            results["DefaultUserName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultUserName");
-            results["DefaultPassword"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultPassword");
-            results["AltDefaultDomainName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultDomainName");
-            results["AltDefaultUserName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultUserName");
-            results["AltDefaultPassword"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultPassword");
+            Dictionary<string, string> results = new Dictionary<string, string>
+            {
+                ["DefaultDomainName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultDomainName"),
+                ["DefaultUserName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultUserName"),
+                ["DefaultPassword"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultPassword"),
+                ["AltDefaultDomainName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultDomainName"),
+                ["AltDefaultUserName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultUserName"),
+                ["AltDefaultPassword"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultPassword")
+            };
             return results;
         }
 
@@ -281,7 +281,7 @@ namespace winPEAS.Info.UserInfo
                     c = $"{Clipboard.GetFileDropList()}";
 
                 //else if (Clipboard.ContainsImage()) //No system.Drwing import
-                    //c = string.Format("{0}", Clipboard.GetImage());
+                //c = string.Format("{0}", Clipboard.GetImage());
             }
             catch (Exception ex)
             {

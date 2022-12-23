@@ -7,7 +7,6 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using winPEAS.Helpers;
-using winPEAS.KnownFileCreds;
 using winPEAS.Native;
 using winPEAS.Native.Structs;
 
@@ -18,7 +17,7 @@ namespace winPEAS.Info.UserInfo
         public static List<string> GetMachineUsers(bool onlyActive, bool onlyDisabled, bool onlyLockout, bool onlyAdmins, bool fullInfo)
         {
             List<string> retList = new List<string>();
-            
+
             try
             {
                 foreach (ManagementObject user in Checks.Checks.Win32Users)
@@ -107,7 +106,7 @@ namespace winPEAS.Info.UserInfo
                 }
             }
             catch
-            { 
+            {
                 //If error, then some error ocurred trying to find a user inside an unexistant domain, check if local user
                 user = GetUserLocal(sUserName);
             }

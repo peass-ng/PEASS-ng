@@ -27,5 +27,5 @@ namespace winPEAS.Native
 
         [DllImport("ntdsapi.dll", CharSet = CharSet.Auto)]
         internal static extern uint DsUnBind(ref IntPtr phDS);
-	}
+    }
 }

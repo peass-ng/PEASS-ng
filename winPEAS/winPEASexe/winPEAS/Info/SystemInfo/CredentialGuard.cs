@@ -35,7 +35,7 @@ namespace winPEAS.Info.SystemInfo
                         {
                             var configCheck = (int[])result.GetPropertyValue("SecurityServicesConfigured");
                             var serviceCheck = (int[])result.GetPropertyValue("SecurityServicesRunning");
-                            
+
                             var configured = false;
                             var running = false;
 
@@ -56,7 +56,7 @@ namespace winPEAS.Info.SystemInfo
                                                $"    Configured:                                {configured}\n" +
                                                $"    Running:                                   {running}",
                                                   colors);
-                            
+
                         }
                     }
                 }
@@ -68,7 +68,7 @@ namespace winPEAS.Info.SystemInfo
             catch (Exception ex)
             {
                 //Beaprint.PrintException(ex.Message);
-            }        
+            }
         }
 
         private static string GetVbsSettingString(uint? vbs)

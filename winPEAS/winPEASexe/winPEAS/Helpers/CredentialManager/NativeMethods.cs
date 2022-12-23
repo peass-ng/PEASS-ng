@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Microsoft.Win32.SafeHandles;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 using winPEAS.Native;
 
 namespace winPEAS.Helpers.CredentialManager
@@ -18,7 +18,7 @@ namespace winPEAS.Helpers.CredentialManager
     /// </summary>
     public class NativeMethods
     {
-        
+
         /// <summary>
         /// The CREDENTIAL structure contains an individual credential.
         /// 

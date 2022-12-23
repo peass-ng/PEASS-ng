@@ -38,7 +38,7 @@ namespace winPEAS.Info.SystemInfo.DotNet
 
         private static string GetOSVersion()
         {
-            
+
             try
             {
                 using (var wmiData = new ManagementObjectSearcher(@"root\cimv2", "SELECT Version FROM Win32_OperatingSystem"))

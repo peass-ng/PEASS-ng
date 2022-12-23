@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 namespace winPEAS.Helpers.AppLocker
 {
     internal static class AppLockerHelper
-    {        
+    {
         private static readonly HashSet<string> _appLockerByPassDirectoriesSet = new HashSet<string>
-        {            
+        {
             @"C:\Windows\Temp",
             @"C:\Windows\System32\spool\drivers\color",
             @"C:\Windows\Tasks",
@@ -88,7 +88,7 @@ namespace winPEAS.Helpers.AppLocker
                         PrintFilePathRules(rule);
                         PrintFilePublisherRules(rule);
                     }
-                }                
+                }
             }
             catch (COMException)
             {
@@ -116,7 +116,7 @@ namespace winPEAS.Helpers.AppLocker
 
                 var color = GetColorBySid(filePublisherRule.UserOrGroupSid);
 
-                Beaprint.ColorPrint(  $"   User Or Group Sid:       {filePublisherRule.UserOrGroupSid}\n", color);
+                Beaprint.ColorPrint($"   User Or Group Sid:       {filePublisherRule.UserOrGroupSid}\n", color);
 
                 Beaprint.GoodPrint($"   Conditions");
 
@@ -150,10 +150,10 @@ namespace winPEAS.Helpers.AppLocker
                                       $"   Translated Name:         {normalizedName}\n" +
                                       $"   Description:             {filePathRule.Description}\n" +
                                       $"   Action:                  {filePathRule.Action}");
-                
+
                 var color = GetColorBySid(filePathRule.UserOrGroupSid);
 
-                Beaprint.ColorPrint(  $"   User Or Group Sid:       {filePathRule.UserOrGroupSid}\n", color);
+                Beaprint.ColorPrint($"   User Or Group Sid:       {filePathRule.UserOrGroupSid}\n", color);
 
                 Beaprint.GoodPrint($"   Conditions");
 
@@ -241,7 +241,7 @@ namespace winPEAS.Helpers.AppLocker
                                         Beaprint.ColorPrint($"    No potential bypass found while recursively checking files/subfolders " +
                                                                     $"for write or equivalent permissions with depth: {FolderCheckMaxDepth}\n" +
                                                                     $"    Check permissions manually.", Beaprint.YELLOW);
-                                    }                                    
+                                    }
                                 }
                             }
                         }
@@ -328,39 +328,42 @@ namespace winPEAS.Helpers.AppLocker
 
             try
             {
-                var subfolders = Directory.EnumerateDirectories(path);
-                var files = Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly);
-
-                ruleType = ruleType.ToLower();
-
-                if (!_appLockerFileExtensionsByType.ContainsKey(ruleType))
+                if (Directory.Exists(path))
                 {
-                    throw new ArgumentException(nameof(ruleType));
-                }
-                
-                var filteredFiles =
-                    (from file in files
-                     let extension = Path.GetExtension(file)?.ToLower() ?? string.Empty
-                     where _appLockerFileExtensionsByType[ruleType].Contains(extension)
-                     select file).ToList();
+                    var subfolders = Directory.EnumerateDirectories(path);
+                    var files = Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly);
 
-                // first check write access for files
-                if (filteredFiles.Any(CheckFileWriteAccess))
-                {
-                    return true;
-                }
+                    ruleType = ruleType.ToLower();
 
-                // if we have not found any writable file, 
-                // check subfolders for write access
-                if (subfolders.Any(subfolder => CheckDirectoryWriteAccess(subfolder, out bool _, isGoodPrint: false)))
-                {
-                    return true;
-                }
+                    if (!_appLockerFileExtensionsByType.ContainsKey(ruleType))
+                    {
+                        throw new ArgumentException(nameof(ruleType));
+                    }
 
-                // check recursively all the subfolders for files/sub-subfolders                     
-                if (subfolders.Any(subfolder => CheckFilesAndSubfolders(subfolder, ruleType, depth + 1)))
-                {
-                    return true;
+                    var filteredFiles =
+                        (from file in files
+                         let extension = Path.GetExtension(file)?.ToLower() ?? string.Empty
+                         where _appLockerFileExtensionsByType[ruleType].Contains(extension)
+                         select file).ToList();
+
+                    // first check write access for files
+                    if (filteredFiles.Any(CheckFileWriteAccess))
+                    {
+                        return true;
+                    }
+
+                    // if we have not found any writable file, 
+                    // check subfolders for write access
+                    if (subfolders.Any(subfolder => CheckDirectoryWriteAccess(subfolder, out bool _, isGoodPrint: false)))
+                    {
+                        return true;
+                    }
+
+                    // check recursively all the subfolders for files/sub-subfolders                     
+                    if (subfolders.Any(subfolder => CheckFilesAndSubfolders(subfolder, ruleType, depth + 1)))
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception)

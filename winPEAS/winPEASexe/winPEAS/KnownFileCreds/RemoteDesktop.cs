@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-using Microsoft.Win32;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 
@@ -77,7 +77,7 @@ namespace winPEAS.KnownFileCreds
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
                             string userRDManFile = string.Format("{0}\\AppData\\Local\\Microsoft\\Remote Desktop Connection Manager\\RDCMan.settings", dir);
-                            if (System.IO.File.Exists(userRDManFile))
+                            if (File.Exists(userRDManFile))
                             {
                                 XmlDocument xmlDoc = new XmlDocument();
                                 xmlDoc.Load(userRDManFile);
@@ -87,8 +87,8 @@ namespace winPEAS.KnownFileCreds
                                 XmlNodeList items = filesToOpen[0].ChildNodes;
                                 XmlNode node = items[0];
 
-                                DateTime lastAccessed = System.IO.File.GetLastAccessTime(userRDManFile);
-                                DateTime lastModified = System.IO.File.GetLastWriteTime(userRDManFile);
+                                DateTime lastAccessed = File.GetLastAccessTime(userRDManFile);
+                                DateTime lastModified = File.GetLastWriteTime(userRDManFile);
                                 Dictionary<string, string> rdg = new Dictionary<string, string>(){
                                     { "RDCManFile", userRDManFile },
                                     { "Accessed", string.Format("{0}", lastAccessed) },
@@ -107,9 +107,9 @@ namespace winPEAS.KnownFileCreds
                 else
                 {
                     string userName = Environment.GetEnvironmentVariable("USERNAME");
-                    string userRDManFile = string.Format("{0}\\AppData\\Local\\Microsoft\\Remote Desktop Connection Manager\\RDCMan.settings", System.Environment.GetEnvironmentVariable("USERPROFILE"));
+                    string userRDManFile = string.Format("{0}\\AppData\\Local\\Microsoft\\Remote Desktop Connection Manager\\RDCMan.settings", Environment.GetEnvironmentVariable("USERPROFILE"));
 
-                    if (System.IO.File.Exists(userRDManFile))
+                    if (File.Exists(userRDManFile))
                     {
                         XmlDocument xmlDoc = new XmlDocument();
                         xmlDoc.Load(userRDManFile);
@@ -119,8 +119,8 @@ namespace winPEAS.KnownFileCreds
                         XmlNodeList items = filesToOpen[0].ChildNodes;
                         XmlNode node = items[0];
 
-                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(userRDManFile);
-                        DateTime lastModified = System.IO.File.GetLastWriteTime(userRDManFile);
+                        DateTime lastAccessed = File.GetLastAccessTime(userRDManFile);
+                        DateTime lastModified = File.GetLastWriteTime(userRDManFile);
                         Dictionary<string, string> rdg = new Dictionary<string, string>(){
                                     { "RDCManFile", userRDManFile },
                                     { "Accessed", string.Format("{0}", lastAccessed) },

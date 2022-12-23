@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using winPEAS.Helpers;
 using winPEAS.Native;
 using winPEAS.Native.Structs;
 

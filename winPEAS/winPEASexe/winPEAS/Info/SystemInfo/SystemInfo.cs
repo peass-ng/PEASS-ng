@@ -9,7 +9,6 @@ using System.Net.NetworkInformation;
 using System.Windows.Forms;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
-using winPEAS.KnownFileCreds;
 
 namespace winPEAS.Info.SystemInfo
 {
@@ -160,7 +159,7 @@ namespace winPEAS.Info.SystemInfo
         {
             Dictionary<string, string> results = new Dictionary<string, string>();
             string whitelistpaths = "";
-            
+
             try
             {
                 var keys = RegistryHelper.GetRegValues("HKLM", @"SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths");
@@ -188,7 +187,7 @@ namespace winPEAS.Info.SystemInfo
             {
                 results["whitelistpaths"] = "    " + whitelistpaths; //Add this info the last
             }
-            
+
             return results;
         }
 
@@ -342,7 +341,7 @@ namespace winPEAS.Info.SystemInfo
         {
             var keys = RegistryHelper.GetRegSubkeys("HKLM", @"SOFTWARE\Microsoft\PowerShellCore\InstalledVersions\") ?? new string[] { };
 
-            return keys.Select(key => 
+            return keys.Select(key =>
                 RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\PowerShellCore\InstalledVersions\" + key, "SemanticVersion"))
                               .Where(version => version != null).ToList();
         }
@@ -461,7 +460,7 @@ namespace winPEAS.Info.SystemInfo
                 if ((settings != null) && (settings.Count != 0))
                 {
                     foreach (KeyValuePair<string, object> kvp in settings)
-                    { 
+                    {
                         result[kvp.Key] = (string)kvp.Value;
                     }
                 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using winPEAS.Helpers;
 
@@ -25,7 +24,7 @@ namespace winPEAS.Info.NetworkInfo
                 Type firewall = Type.GetTypeFromCLSID(new Guid("E2B3C97F-6AE1-41AC-817A-F6F92166D7DD"));
                 object firewallObj = Activator.CreateInstance(firewall);
                 object types = ReflectionHelper.InvokeMemberProperty(firewallObj, "CurrentProfileTypes");
-                result = $"{(FirewallProfiles) int.Parse(types.ToString())}";
+                result = $"{(FirewallProfiles)int.Parse(types.ToString())}";
             }
             catch (Exception ex)
             {

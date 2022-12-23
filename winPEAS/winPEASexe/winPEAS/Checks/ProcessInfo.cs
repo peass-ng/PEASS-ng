@@ -10,7 +10,7 @@ namespace winPEAS.Checks
     {
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Processes Information");           
+            Beaprint.GreatPrint("Processes Information");
 
             new List<Action>
             {
@@ -101,7 +101,7 @@ namespace winPEAS.Checks
 
                 Beaprint.DictPrint(vulnHandlers, colors, true);
             }
-            
+
         }
     }
 }

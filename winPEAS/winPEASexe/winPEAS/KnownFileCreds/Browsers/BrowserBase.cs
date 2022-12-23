@@ -10,7 +10,7 @@ namespace winPEAS.KnownFileCreds.Browsers
         public abstract string Name { get; }
         public abstract IEnumerable<CredentialModel> GetSavedCredentials();
         public abstract void PrintInfo();
-       
+
 
         public virtual void PrintSavedCredentials()
         {

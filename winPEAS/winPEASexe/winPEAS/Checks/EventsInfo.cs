@@ -10,7 +10,7 @@ using winPEAS.Info.EventsInfo.ProcessCreation;
 namespace winPEAS.Checks
 {
     internal class EventsInfo : ISystemCheck
-    {       
+    {
         public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("Interesting Events information");
@@ -23,7 +23,7 @@ namespace winPEAS.Checks
                 PrintPowerShellEvents,
                 PowerOnEvents,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
-        }        
+        }
 
         private static void PrintPowerShellEvents()
         {
@@ -91,7 +91,7 @@ namespace winPEAS.Checks
                 }
 
                 var logonInfos = Logon.GetLogonInfos(lastDays);
-                
+
                 foreach (var info in logonInfos.LogonEventInfos)
                 {
                     Beaprint.BadPrint($"  Subject User Name            :       {info.SubjectUserName}\n" +
@@ -102,13 +102,13 @@ namespace winPEAS.Checks
                                       $"  Lm Package                   :       {info.LmPackage}\n" +
                                       $"  Logon Type                   :       {info.LogonType}\n" +
                                       $"  Target User Name             :       {info.TargetUserName}\n" +
-                                      $"  Target Domain Name           :       {info.TargetDomainName}\n" +                                      
+                                      $"  Target Domain Name           :       {info.TargetDomainName}\n" +
                                       $"  Target Outbound User Name    :       {info.TargetOutboundUserName}\n" +
                                       $"  Target Outbound Domain Name  :       {info.TargetOutboundDomainName}\n");
 
                     Beaprint.PrintLineSeparator();
                 }
-                
+
                 if (logonInfos.NTLMv1LoggedUsersSet.Count > 0 || logonInfos.NTLMv2LoggedUsersSet.Count > 0)
                 {
                     Beaprint.BadPrint("  NTLM relay might be possible - other users authenticate to this machine using NTLM!");
@@ -151,7 +151,7 @@ namespace winPEAS.Checks
             {
                 var lastDays = 30;
 
-                Beaprint.MainPrint($"Printing Explicit Credential Events (4648) for last {lastDays} days - A process logged on using plaintext credentials\n");                                
+                Beaprint.MainPrint($"Printing Explicit Credential Events (4648) for last {lastDays} days - A process logged on using plaintext credentials\n");
 
                 if (!MyUtils.IsHighIntegrity())
                 {

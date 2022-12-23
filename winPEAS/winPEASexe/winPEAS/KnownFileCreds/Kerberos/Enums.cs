@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace winPEAS.KnownFileCreds.Kerberos
-{ 
+{
     public enum KERB_ENCRYPTION_TYPE : UInt32
     {
         reserved0 = 0,

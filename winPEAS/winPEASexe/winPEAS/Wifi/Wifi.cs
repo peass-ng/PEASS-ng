@@ -39,7 +39,7 @@ namespace winPEAS.Wifi
 
         private static string GetPassword(string ssid)
         {
-            string  args = $@" wlan show profile name=""{ssid}"" key=""clear""";
+            string args = $@" wlan show profile name=""{ssid}"" key=""clear""";
             string result = MyUtils.ExecCMD(args, "netsh");
             Regex regex = new Regex(@"Key Content\s+:\s+([^\r\n]+)", RegexOptions.Multiline);
             MatchCollection matches = regex.Matches(result);

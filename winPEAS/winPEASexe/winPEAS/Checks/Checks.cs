@@ -169,7 +169,7 @@ namespace winPEAS.Checks
                     {
                         MaxRegexFileSize = Int32.Parse(parts[1]);
                     }
-                        
+
                 }
 
                 if (string.Equals(arg, "-lolbas", StringComparison.CurrentCultureIgnoreCase))
@@ -363,8 +363,8 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.GrayPrint("   - Creating disabled users list...");
-                Checks.PaintDisabledUsers = string.Join("|", User.GetMachineUsers(false, true, false, false, false));
-                PaintDisabledUsersNoAdministrator = Checks.PaintDisabledUsers.Replace("|Administrator", "").Replace("Administrator|", "").Replace("Administrator", "");
+                PaintDisabledUsers = string.Join("|", User.GetMachineUsers(false, true, false, false, false));
+                PaintDisabledUsersNoAdministrator = PaintDisabledUsers.Replace("|Administrator", "").Replace("Administrator|", "").Replace("Administrator", "");
             }
             catch (Exception ex)
             {
@@ -411,7 +411,7 @@ namespace winPEAS.Checks
             try
             {
                 if (RegistryHelper.GetRegValue("HKCU", "CONSOLE", "VirtualTerminalLevel") == "" && RegistryHelper.GetRegValue("HKCU", "CONSOLE", "VirtualTerminalLevel") == "")
-                    System.Console.WriteLine(@"ANSI color bit for Windows is not set. If you are execcuting this from a Windows terminal inside the host you should run 'REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1' and then start a new CMD");
+                    Console.WriteLine(@"ANSI color bit for Windows is not set. If you are executing this from a Windows terminal inside the host you should run 'REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1' and then start a new CMD");
             }
             catch (Exception ex)
             {
@@ -425,7 +425,7 @@ namespace winPEAS.Checks
             {
                 if (RegistryHelper.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\FileSystem", "LongPathsEnabled") != "1")
                 {
-                    System.Console.WriteLine(@"Long paths are disabled, so the maximum length of a path supported is 260chars (this may cause false negatives when looking for files). If you are admin, you can enable it with 'REG ADD HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v VirtualTerminalLevel /t REG_DWORD /d 1' and then start a new CMD");
+                    Console.WriteLine(@"Long paths are disabled, so the maximum length of a path supported is 260 chars (this may cause false negatives when looking for files). If you are admin, you can enable it with 'REG ADD HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v VirtualTerminalLevel /t REG_DWORD /d 1' and then start a new CMD");
                     IsLongPath = false;
                 }
                 else

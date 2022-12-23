@@ -11,8 +11,8 @@ namespace winPEAS.Tests
         {
             try
             {
-                string[] args = new string[] { 
-                    "systeminfo", "servicesinfo", "processinfo", "applicationsinfo", "browserinfo", "debug" 
+                string[] args = new string[] {
+                    "systeminfo", "servicesinfo", "processinfo", "applicationsinfo", "browserinfo", "debug"
                 };
                 Program.Main(args);
             }

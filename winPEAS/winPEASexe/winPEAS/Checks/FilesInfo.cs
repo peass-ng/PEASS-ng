@@ -21,7 +21,7 @@ namespace winPEAS.Checks
     internal class FilesInfo : ISystemCheck
     {
         static readonly string _patternsFileCredsColor = @"RDCMan.settings|.rdg|_history|httpd.conf|.htpasswd|.gitconfig|.git-credentials|Dockerfile|docker-compose.ymlaccess_tokens.db|accessTokens.json|azureProfile.json|appcmd.exe|scclient.exe|unattend.txt|access.log|error.log|credential|password|.gpg|.pgp|config.php|elasticsearch|kibana.|.p12|\.der|.csr|.crt|.cer|.pem|known_hosts|id_rsa|id_dsa|.ovpn|tomcat-users.xml|web.config|.kdbx|.key|KeePass.config|ntds.dir|Ntds.dit|sam|system|SAM|SYSTEM|security|software|SECURITY|SOFTWARE|FreeSSHDservice.ini|sysprep.inf|sysprep.xml|unattend.xml|unattended.xml|vnc|groups.xml|services.xml|scheduledtasks.xml|printers.xml|drives.xml|datasources.xml|php.ini|https.conf|https-xampp.conf|my.ini|my.cnf|access.log|error.log|server.xml|setupinfo|pagefile.sys|NetSetup.log|iis6.log|AppEvent.Evt|SecEvent.Evt|default.sav|security.sav|software.sav|system.sav|ntuser.dat|index.dat|bash.exe|wsl.exe";
-    //    static readonly string _patternsFileCreds = @"RDCMan.settings;*.rdg;*_history*;httpd.conf;.htpasswd;.gitconfig;.git-credentials;Dockerfile;docker-compose.yml;access_tokens.db;accessTokens.json;azureProfile.json;appcmd.exe;scclient.exe;*.gpg$;*.pgp$;*config*.php;elasticsearch.y*ml;kibana.y*ml;*.p12$;*.cer$;known_hosts;*id_rsa*;*id_dsa*;*.ovpn;tomcat-users.xml;web.config;*.kdbx;KeePass.config;Ntds.dit;SAM;SYSTEM;security;software;FreeSSHDservice.ini;sysprep.inf;sysprep.xml;*vnc*.ini;*vnc*.c*nf*;*vnc*.txt;*vnc*.xml;php.ini;https.conf;https-xampp.conf;my.ini;my.cnf;access.log;error.log;server.xml;ConsoleHost_history.txt;pagefile.sys;NetSetup.log;iis6.log;AppEvent.Evt;SecEvent.Evt;default.sav;security.sav;software.sav;system.sav;ntuser.dat;index.dat;bash.exe;wsl.exe;unattend.txt;*.der$;*.csr$;unattend.xml;unattended.xml;groups.xml;services.xml;scheduledtasks.xml;printers.xml;drives.xml;datasources.xml;setupinfo;setupinfo.bak";
+        //    static readonly string _patternsFileCreds = @"RDCMan.settings;*.rdg;*_history*;httpd.conf;.htpasswd;.gitconfig;.git-credentials;Dockerfile;docker-compose.yml;access_tokens.db;accessTokens.json;azureProfile.json;appcmd.exe;scclient.exe;*.gpg$;*.pgp$;*config*.php;elasticsearch.y*ml;kibana.y*ml;*.p12$;*.cer$;known_hosts;*id_rsa*;*id_dsa*;*.ovpn;tomcat-users.xml;web.config;*.kdbx;KeePass.config;Ntds.dit;SAM;SYSTEM;security;software;FreeSSHDservice.ini;sysprep.inf;sysprep.xml;*vnc*.ini;*vnc*.c*nf*;*vnc*.txt;*vnc*.xml;php.ini;https.conf;https-xampp.conf;my.ini;my.cnf;access.log;error.log;server.xml;ConsoleHost_history.txt;pagefile.sys;NetSetup.log;iis6.log;AppEvent.Evt;SecEvent.Evt;default.sav;security.sav;software.sav;system.sav;ntuser.dat;index.dat;bash.exe;wsl.exe;unattend.txt;*.der$;*.csr$;unattend.xml;unattended.xml;groups.xml;services.xml;scheduledtasks.xml;printers.xml;drives.xml;datasources.xml;setupinfo;setupinfo.bak";
 
         private static readonly IList<string> patternsFileCreds = new List<string>()
         {
@@ -159,7 +159,7 @@ namespace winPEAS.Checks
                     {
                         string formString = "    {0} ({1})\n    Accessed:{2} -- Size:{3}";
                         Beaprint.BadPrint(string.Format(formString, cc["file"], cc["Description"], cc["Accessed"], cc["Size"]));
-                        System.Console.WriteLine("");
+                        Console.WriteLine("");
                     }
                 }
                 else
@@ -182,7 +182,7 @@ namespace winPEAS.Checks
                 {
                     List<string> pwds = Unattended.ExtractUnattendedPwd(path);
                     Beaprint.BadPrint("    " + path);
-                    System.Console.WriteLine(string.Join("\n", pwds));
+                    Console.WriteLine(string.Join("\n", pwds));
                 }
             }
             catch (Exception ex)
@@ -233,11 +233,11 @@ namespace winPEAS.Checks
                     foreach (var site in sitelistFilesInfo.Sites)
                     {
                         Beaprint.NoColorPrint($"    Share Name            :       {site.ShareName}");
-                        PrintColored( $"    User Name             :       {site.UserName}", !string.IsNullOrWhiteSpace(site.UserName));
-                        PrintColored( $"    Server                :       {site.Server}", !string.IsNullOrWhiteSpace(site.Server));
-                        PrintColored( $"    Encrypted Password    :       {site.EncPassword}", !string.IsNullOrWhiteSpace(site.EncPassword));
-                        PrintColored( $"    Decrypted Password    :       {site.DecPassword}", !string.IsNullOrWhiteSpace(site.DecPassword));
-                        Beaprint.NoColorPrint( $"    Domain Name           :       {site.DomainName}\n" +
+                        PrintColored($"    User Name             :       {site.UserName}", !string.IsNullOrWhiteSpace(site.UserName));
+                        PrintColored($"    Server                :       {site.Server}", !string.IsNullOrWhiteSpace(site.Server));
+                        PrintColored($"    Encrypted Password    :       {site.EncPassword}", !string.IsNullOrWhiteSpace(site.EncPassword));
+                        PrintColored($"    Decrypted Password    :       {site.DecPassword}", !string.IsNullOrWhiteSpace(site.DecPassword));
+                        Beaprint.NoColorPrint($"    Domain Name           :       {site.DomainName}\n" +
                                                      $"    Name                  :       {site.Name}\n" +
                                                      $"    Type                  :       {site.Type}\n" +
                                                      $"    Relative Path         :       {site.RelativePath}\n");
@@ -291,7 +291,7 @@ namespace winPEAS.Checks
                         const string rootDirectory = "Root directory";
                         const string runWith = "Run command";
 
-                        var colors = new Dictionary<string, string>();                        
+                        var colors = new Dictionary<string, string>();
                         new List<string>
                         {
                             linpeas,
@@ -410,7 +410,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                string pattern_color = "[cC][rR][eE][dD][eE][nN][tT][iI][aA][lL]|[pP][aA][sS][sS][wW][oO][rR][dD]";                                
+                string pattern_color = "[cC][rR][eE][dD][eE][nN][tT][iI][aA][lL]|[pP][aA][sS][sS][wW][oO][rR][dD]";
                 var validExtensions = new HashSet<string>
                 {
                     ".cnf",
@@ -431,7 +431,7 @@ namespace winPEAS.Checks
                 };
 
                 Beaprint.MainPrint("Looking for possible password files in users homes");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#credentials-inside-files");               
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#credentials-inside-files");
                 var fileInfos = SearchHelper.SearchUserCredsFiles();
 
                 foreach (var fileInfo in fileInfos)
@@ -463,7 +463,7 @@ namespace winPEAS.Checks
             {
                 //string pattern_bin = _patternsFileCreds + ";*password*;*credential*";
                 string pattern_bin = string.Join(";", patternsFileCreds) + ";*password*;*credential*";
-                
+
                 Dictionary<string, string> colorF = new Dictionary<string, string>()
                 {
                     { _patternsFileCredsColor + "|.*password.*|.*credential.*", Beaprint.ansi_color_bad },
@@ -472,7 +472,7 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("Looking inside the Recycle Bin for creds files");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#credentials-inside-files");
                 List<Dictionary<string, string>> recy_files = InterestingFiles.InterestingFiles.GetRecycleBin();
-                
+
                 foreach (Dictionary<string, string> rec_file in recy_files)
                 {
                     foreach (string pattern in pattern_bin.Split(';'))
@@ -480,7 +480,7 @@ namespace winPEAS.Checks
                         if (Regex.Match(rec_file["Name"], pattern.Replace("*", ".*"), RegexOptions.IgnoreCase).Success)
                         {
                             Beaprint.DictPrint(rec_file, colorF, true);
-                            System.Console.WriteLine();
+                            Console.WriteLine();
                         }
                     }
                 }
@@ -507,7 +507,7 @@ namespace winPEAS.Checks
 
                 Beaprint.MainPrint("Searching known files that can contain creds in home");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#credentials-inside-files");
-               
+
                 var files = SearchHelper.SearchUsersInterestingFiles();
 
                 Beaprint.AnsiPrint("    " + string.Join("\n    ", files), colorF);
@@ -567,7 +567,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Searching interesting files in other users home directories (can be slow)\n");
-                
+
                 // check if admin already, if yes, print a message, if not, try to enumerate all files
                 if (MyUtils.IsHighIntegrity())
                 {
@@ -751,7 +751,7 @@ namespace winPEAS.Checks
                 ".cmd"
             };
 
-            var files = SearchHelper.GetFilesFast(systemDrive, "*", excludedDirs);            
+            var files = SearchHelper.GetFilesFast(systemDrive, "*", excludedDirs);
 
             foreach (var file in files)
             {
@@ -825,14 +825,14 @@ namespace winPEAS.Checks
 
                 foreach (var certificateInfo in certificateInfos)
                 {
-                    
+
                     Beaprint.NoColorPrint($"  Issuer             : {certificateInfo.Issuer}\n" +
                                                 $"  Subject            : {certificateInfo.Subject}\n" +
-                                                $"  ValidDate          : {certificateInfo.ValidDate}\n"  +
+                                                $"  ValidDate          : {certificateInfo.ValidDate}\n" +
                                                 $"  ExpiryDate         : {certificateInfo.ExpiryDate}\n" +
-                                                $"  HasPrivateKey      : {certificateInfo.HasPrivateKey}\n"  +
-                                                $"  StoreLocation      : {certificateInfo.StoreLocation}\n"  +
-                                                $"  KeyExportable      : {certificateInfo.KeyExportable}\n"  +
+                                                $"  HasPrivateKey      : {certificateInfo.HasPrivateKey}\n" +
+                                                $"  StoreLocation      : {certificateInfo.StoreLocation}\n" +
+                                                $"  KeyExportable      : {certificateInfo.KeyExportable}\n" +
                                                 $"  Thumbprint         : {certificateInfo.Thumbprint}\n");
 
                     if (!string.IsNullOrEmpty(certificateInfo.Template))
@@ -885,7 +885,7 @@ namespace winPEAS.Checks
                     }
                     catch (Exception e)
                     {
-                    }   
+                    }
                 }
             }
             catch (Exception ex)
@@ -1033,7 +1033,7 @@ namespace winPEAS.Checks
                     //@"c:\windows.old",
                     rootUsersSearchPath,
                     documentsAndSettings
-                };               
+                };
 
                 var files = SearchHelper.GetFilesFast(systemDrive, "*", excludedDirs);
 

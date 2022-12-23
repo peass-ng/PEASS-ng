@@ -33,7 +33,7 @@ namespace winPEAS.Info.NetworkInfo.InternetSettings
             string zoneMapKey = @"Software\Policies\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMapKey";
             AddSettings("HKCU", zoneMapKey, result.ZoneMaps, zoneMapKeys);
             AddSettings("HKLM", zoneMapKey, result.ZoneMaps, zoneMapKeys);
-            
+
             // List Zones settings with automatic logons
 
             /**
@@ -72,14 +72,14 @@ namespace winPEAS.Info.NetworkInfo.InternetSettings
                         authSetting.ToString(),
                         $"{zone} : {authSettingStr}"
                     ));
-                }                
+                }
             }
 
             return result;
         }
 
         private static void AddSettings(string hive, string keyPath, IList<InternetSettingsKey> internetSettingsList, IDictionary<string, string> zoneMapKeys = null)
-        {            
+        {
             var proxySettings = (RegistryHelper.GetRegValues(hive, keyPath) ?? new Dictionary<string, object>());
             if (proxySettings != null)
             {

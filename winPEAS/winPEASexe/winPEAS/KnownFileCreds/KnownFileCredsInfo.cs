@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,14 +7,13 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.Win32;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 
 namespace winPEAS.KnownFileCreds
 {
     static class KnownFileCredsInfo
-    {              
+    {
         public static Dictionary<string, object> GetRecentRunCommands()
         {
             Dictionary<string, object> results = new Dictionary<string, object>();
@@ -34,7 +34,7 @@ namespace winPEAS.KnownFileCreds
                 results = RegistryHelper.GetRegValues("HKCU", "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU");
             }
             return results;
-        }       
+        }
 
         public static List<Dictionary<string, string>> ListCloudCreds()
         {
@@ -76,7 +76,7 @@ namespace winPEAS.KnownFileCreds
                 else
                 {
                     var currentUserDir = Environment.GetEnvironmentVariable("USERPROFILE");
-                    userDirs = new List<string>{ currentUserDir };
+                    userDirs = new List<string> { currentUserDir };
                 }
 
                 foreach (var userDir in userDirs)
@@ -107,7 +107,7 @@ namespace winPEAS.KnownFileCreds
                 DateTime lastModified = File.GetLastWriteTime(filePath);
                 long size = new FileInfo(filePath).Length;
 
-                results?.Add(new Dictionary<string, string> 
+                results?.Add(new Dictionary<string, string>
                 {
                     { "file", filePath },
                     { "Description", description },
@@ -123,7 +123,7 @@ namespace winPEAS.KnownFileCreds
             // parses recent file shortcuts via COM
             List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
             int lastDays = 7;
-            DateTime startTime = System.DateTime.Now.AddDays(-lastDays);
+            DateTime startTime = DateTime.Now.AddDays(-lastDays);
 
             try
             {
@@ -145,31 +145,34 @@ namespace winPEAS.KnownFileCreds
                             string recentPath = string.Format("{0}\\AppData\\Roaming\\Microsoft\\Windows\\Recent\\", dir);
                             try
                             {
-                                string[] recentFiles = Directory.EnumerateFiles(recentPath, "*.lnk", SearchOption.AllDirectories).ToArray();
-
-                                if (recentFiles.Length != 0)
+                                if (Directory.Exists(recentPath))
                                 {
-                                    Console.WriteLine("   {0} :\r\n", userName);
-                                    foreach (string recentFile in recentFiles)
+                                    string[] recentFiles = Directory.EnumerateFiles(recentPath, "*.lnk", SearchOption.AllDirectories).ToArray();
+
+                                    if (recentFiles.Length != 0)
                                     {
-                                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(recentFile);
-
-                                        if (lastAccessed > startTime)
+                                        Console.WriteLine("   {0} :\r\n", userName);
+                                        foreach (string recentFile in recentFiles)
                                         {
-                                            // invoke the WshShell com object, creating a shortcut to then extract the TargetPath from
-                                            Object shortcut = shellObj.GetType().InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shellObj, new object[] { recentFile });
-                                            Object TargetPath = shortcut.GetType().InvokeMember("TargetPath", BindingFlags.GetProperty, null, shortcut, new object[] { });
+                                            DateTime lastAccessed = File.GetLastAccessTime(recentFile);
 
-                                            if (TargetPath.ToString().Trim() != "")
+                                            if (lastAccessed > startTime)
                                             {
-                                                results.Add(new Dictionary<string, string>()
+                                                // invoke the WshShell com object, creating a shortcut to then extract the TargetPath from
+                                                Object shortcut = shellObj.GetType().InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shellObj, new object[] { recentFile });
+                                                Object TargetPath = shortcut.GetType().InvokeMember("TargetPath", BindingFlags.GetProperty, null, shortcut, new object[] { });
+
+                                                if (TargetPath.ToString().Trim() != "")
+                                                {
+                                                    results.Add(new Dictionary<string, string>()
                                                 {
                                                     { "Target", TargetPath.ToString() },
                                                     { "Accessed", string.Format("{0}", lastAccessed) }
                                                 });
+                                                }
+                                                Marshal.ReleaseComObject(shortcut);
+                                                shortcut = null;
                                             }
-                                            Marshal.ReleaseComObject(shortcut);
-                                            shortcut = null;
                                         }
                                     }
                                 }
@@ -180,33 +183,35 @@ namespace winPEAS.KnownFileCreds
                 }
                 else
                 {
-                    string recentPath = string.Format("{0}\\Microsoft\\Windows\\Recent\\", System.Environment.GetEnvironmentVariable("APPDATA"));
-
-                    var recentFiles = Directory.EnumerateFiles(recentPath, "*.lnk", SearchOption.AllDirectories);
-
-                    foreach (string recentFile in recentFiles)
+                    string recentPath = string.Format("{0}\\Microsoft\\Windows\\Recent\\", Environment.GetEnvironmentVariable("APPDATA"));
+                    if (Directory.Exists(recentPath))
                     {
-                        // old method (needed interop dll)
-                        //WshShell shell = new WshShell();
-                        //IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(recentFile);
+                        var recentFiles = Directory.EnumerateFiles(recentPath, "*.lnk", SearchOption.AllDirectories);
 
-                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(recentFile);
-
-                        if (lastAccessed > startTime)
+                        foreach (string recentFile in recentFiles)
                         {
-                            // invoke the WshShell com object, creating a shortcut to then extract the TargetPath from
-                            Object shortcut = shellObj.GetType().InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shellObj, new object[] { recentFile });
-                            Object TargetPath = shortcut.GetType().InvokeMember("TargetPath", BindingFlags.GetProperty, null, shortcut, new object[] { });
-                            if (TargetPath.ToString().Trim() != "")
+                            // old method (needed interop dll)
+                            //WshShell shell = new WshShell();
+                            //IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(recentFile);
+
+                            DateTime lastAccessed = File.GetLastAccessTime(recentFile);
+
+                            if (lastAccessed > startTime)
                             {
-                                results.Add(new Dictionary<string, string>()
+                                // invoke the WshShell com object, creating a shortcut to then extract the TargetPath from
+                                Object shortcut = shellObj.GetType().InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shellObj, new object[] { recentFile });
+                                Object TargetPath = shortcut.GetType().InvokeMember("TargetPath", BindingFlags.GetProperty, null, shortcut, new object[] { });
+                                if (TargetPath.ToString().Trim() != "")
+                                {
+                                    results.Add(new Dictionary<string, string>()
                                 {
                                     { "Target", TargetPath.ToString() },
                                     { "Accessed", string.Format("{0}", lastAccessed) }
                                 });
+                                }
+                                Marshal.ReleaseComObject(shortcut);
+                                shortcut = null;
                             }
-                            Marshal.ReleaseComObject(shortcut);
-                            shortcut = null;
                         }
                     }
                 }
@@ -237,13 +242,15 @@ namespace winPEAS.KnownFileCreds
                         string userName = parts[parts.Length - 1];
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
-                            List<string> userDPAPIBasePaths = new List<string>();
-                            userDPAPIBasePaths.Add(string.Format("{0}\\AppData\\Roaming\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
-                            userDPAPIBasePaths.Add(string.Format("{0}\\AppData\\Local\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
+                            List<string> userDPAPIBasePaths = new List<string>
+                            {
+                                string.Format("{0}\\AppData\\Roaming\\Microsoft\\Protect\\", Environment.GetEnvironmentVariable("USERPROFILE")),
+                                string.Format("{0}\\AppData\\Local\\Microsoft\\Protect\\", Environment.GetEnvironmentVariable("USERPROFILE"))
+                            };
 
                             foreach (string userDPAPIBasePath in userDPAPIBasePaths)
                             {
-                                if (System.IO.Directory.Exists(userDPAPIBasePath))
+                                if (Directory.Exists(userDPAPIBasePath))
                                 {
                                     var directories = Directory.EnumerateDirectories(userDPAPIBasePath);
                                     foreach (string directory in directories)
@@ -254,9 +261,9 @@ namespace winPEAS.KnownFileCreds
                                         {
                                             if (Regex.IsMatch(file, @"[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}"))
                                             {
-                                                DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                                                DateTime lastModified = System.IO.File.GetLastWriteTime(file);
-                                                string fileName = System.IO.Path.GetFileName(file);
+                                                DateTime lastAccessed = File.GetLastAccessTime(file);
+                                                DateTime lastModified = File.GetLastWriteTime(file);
+                                                string fileName = Path.GetFileName(file);
                                                 results.Add(new Dictionary<string, string>()
                                                 {
                                                     { "MasterKey", file },
@@ -274,13 +281,15 @@ namespace winPEAS.KnownFileCreds
                 else
                 {
                     string userName = Environment.GetEnvironmentVariable("USERNAME");
-                    List<string> userDPAPIBasePaths = new List<string>();
-                    userDPAPIBasePaths.Add(string.Format("{0}\\AppData\\Roaming\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
-                    userDPAPIBasePaths.Add(string.Format("{0}\\AppData\\Local\\Microsoft\\Protect\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
-
-                    foreach (string userDPAPIBasePath in userDPAPIBasePaths) 
+                    List<string> userDPAPIBasePaths = new List<string>
                     {
-                        if (System.IO.Directory.Exists(userDPAPIBasePath))
+                        string.Format("{0}\\AppData\\Roaming\\Microsoft\\Protect\\", Environment.GetEnvironmentVariable("USERPROFILE")),
+                        string.Format("{0}\\AppData\\Local\\Microsoft\\Protect\\", Environment.GetEnvironmentVariable("USERPROFILE"))
+                    };
+
+                    foreach (string userDPAPIBasePath in userDPAPIBasePaths)
+                    {
+                        if (Directory.Exists(userDPAPIBasePath))
                         {
                             var directories = Directory.EnumerateDirectories(userDPAPIBasePath);
                             foreach (string directory in directories)
@@ -291,9 +300,9 @@ namespace winPEAS.KnownFileCreds
                                 {
                                     if (Regex.IsMatch(file, @"[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}"))
                                     {
-                                        DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                                        DateTime lastModified = System.IO.File.GetLastWriteTime(file);
-                                        string fileName = System.IO.Path.GetFileName(file);
+                                        DateTime lastAccessed = File.GetLastAccessTime(file);
+                                        DateTime lastModified = File.GetLastWriteTime(file);
+                                        string fileName = Path.GetFileName(file);
                                         results.Add(new Dictionary<string, string>()
                                     {
                                         { "MasterKey", file },
@@ -331,23 +340,25 @@ namespace winPEAS.KnownFileCreds
                         string userName = parts[parts.Length - 1];
                         if (!(dir.EndsWith("Public") || dir.EndsWith("Default") || dir.EndsWith("Default User") || dir.EndsWith("All Users")))
                         {
-                            List<string> userCredFilePaths = new List<string>();
-                            userCredFilePaths.Add(string.Format("{0}\\AppData\\Local\\Microsoft\\Credentials\\", dir));
-                            userCredFilePaths.Add(string.Format("{0}\\AppData\\Roaming\\Microsoft\\Credentials\\", dir));
+                            List<string> userCredFilePaths = new List<string>
+                            {
+                                string.Format("{0}\\AppData\\Local\\Microsoft\\Credentials\\", dir),
+                                string.Format("{0}\\AppData\\Roaming\\Microsoft\\Credentials\\", dir)
+                            };
 
                             foreach (string userCredFilePath in userCredFilePaths)
                             {
-                                if (System.IO.Directory.Exists(userCredFilePath))
+                                if (Directory.Exists(userCredFilePath))
                                 {
                                     var systemFiles = Directory.EnumerateFiles(userCredFilePath);
                                     if ((systemFiles != null))
                                     {
                                         foreach (string file in systemFiles)
                                         {
-                                            DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                                            DateTime lastModified = System.IO.File.GetLastWriteTime(file);
-                                            long size = new System.IO.FileInfo(file).Length;
-                                            string fileName = System.IO.Path.GetFileName(file);
+                                            DateTime lastAccessed = File.GetLastAccessTime(file);
+                                            DateTime lastModified = File.GetLastWriteTime(file);
+                                            long size = new FileInfo(file).Length;
+                                            string fileName = Path.GetFileName(file);
 
                                             // jankily parse the bytes to extract the credential type and master key GUID
                                             // reference- https://github.com/gentilkiwi/mimikatz/blob/3d8be22fff9f7222f9590aa007629e18300cf643/modules/kull_m_dpapi.h#L24-L54
@@ -381,49 +392,54 @@ namespace winPEAS.KnownFileCreds
                     }
 
                     string systemFolder = string.Format("{0}\\System32\\config\\systemprofile\\AppData\\Local\\Microsoft\\Credentials", Environment.GetEnvironmentVariable("SystemRoot"));
-                    var files = Directory.EnumerateFiles(systemFolder);
-                    if ((files != null))
+                    if (Directory.Exists(systemFolder))
                     {
-                        foreach (string file in files)
+                        var files = Directory.EnumerateFiles(systemFolder);
+                        if ((files != null))
                         {
-                            DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                            DateTime lastModified = System.IO.File.GetLastWriteTime(file);
-                            long size = new System.IO.FileInfo(file).Length;
-                            string fileName = System.IO.Path.GetFileName(file);
-
-                            // jankily parse the bytes to extract the credential type and master key GUID
-                            // reference- https://github.com/gentilkiwi/mimikatz/blob/3d8be22fff9f7222f9590aa007629e18300cf643/modules/kull_m_dpapi.h#L24-L54
-                            byte[] credentialArray = File.ReadAllBytes(file);
-                            byte[] guidMasterKeyArray = new byte[16];
-                            Array.Copy(credentialArray, 36, guidMasterKeyArray, 0, 16);
-                            Guid guidMasterKey = new Guid(guidMasterKeyArray);
-
-                            byte[] stringLenArray = new byte[16];
-                            Array.Copy(credentialArray, 56, stringLenArray, 0, 4);
-                            int descLen = BitConverter.ToInt32(stringLenArray, 0);
-
-                            byte[] descBytes = new byte[descLen];
-                            Array.Copy(credentialArray, 60, descBytes, 0, descLen - 4);
-
-                            string desc = Encoding.Unicode.GetString(descBytes);
-                            results.Add(new Dictionary<string, string>()
+                            foreach (string file in files)
                             {
-                                { "CredFile", file },
-                                { "Description", desc },
-                                { "MasterKey", string.Format("{0}", guidMasterKey) },
-                                { "Accessed", string.Format("{0}", lastAccessed) },
-                                { "Modified", string.Format("{0}", lastModified) },
-                                { "Size", string.Format("{0}", size) },
-                            });
+                                DateTime lastAccessed = File.GetLastAccessTime(file);
+                                DateTime lastModified = File.GetLastWriteTime(file);
+                                long size = new System.IO.FileInfo(file).Length;
+                                string fileName = Path.GetFileName(file);
+
+                                // jankily parse the bytes to extract the credential type and master key GUID
+                                // reference- https://github.com/gentilkiwi/mimikatz/blob/3d8be22fff9f7222f9590aa007629e18300cf643/modules/kull_m_dpapi.h#L24-L54
+                                byte[] credentialArray = File.ReadAllBytes(file);
+                                byte[] guidMasterKeyArray = new byte[16];
+                                Array.Copy(credentialArray, 36, guidMasterKeyArray, 0, 16);
+                                Guid guidMasterKey = new Guid(guidMasterKeyArray);
+
+                                byte[] stringLenArray = new byte[16];
+                                Array.Copy(credentialArray, 56, stringLenArray, 0, 4);
+                                int descLen = BitConverter.ToInt32(stringLenArray, 0);
+
+                                byte[] descBytes = new byte[descLen];
+                                Array.Copy(credentialArray, 60, descBytes, 0, descLen - 4);
+
+                                string desc = Encoding.Unicode.GetString(descBytes);
+                                results.Add(new Dictionary<string, string>()
+                                {
+                                    { "CredFile", file },
+                                    { "Description", desc },
+                                    { "MasterKey", string.Format("{0}", guidMasterKey) },
+                                    { "Accessed", string.Format("{0}", lastAccessed) },
+                                    { "Modified", string.Format("{0}", lastModified) },
+                                    { "Size", string.Format("{0}", size) },
+                                });
+                            }
                         }
                     }
                 }
                 else
                 {
                     string userName = Environment.GetEnvironmentVariable("USERNAME");
-                    List<string> userCredFilePaths = new List<string>();
-                    userCredFilePaths.Add(string.Format("{0}\\AppData\\Local\\Microsoft\\Credentials\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
-                    userCredFilePaths.Add(string.Format("{0}\\AppData\\Roaming\\Microsoft\\Credentials\\", System.Environment.GetEnvironmentVariable("USERPROFILE")));
+                    List<string> userCredFilePaths = new List<string>
+                    {
+                        string.Format("{0}\\AppData\\Local\\Microsoft\\Credentials\\", Environment.GetEnvironmentVariable("USERPROFILE")),
+                        string.Format("{0}\\AppData\\Roaming\\Microsoft\\Credentials\\", Environment.GetEnvironmentVariable("USERPROFILE"))
+                    };
 
                     foreach (string userCredFilePath in userCredFilePaths)
                     {
@@ -433,10 +449,10 @@ namespace winPEAS.KnownFileCreds
 
                             foreach (string file in files)
                             {
-                                DateTime lastAccessed = System.IO.File.GetLastAccessTime(file);
-                                DateTime lastModified = System.IO.File.GetLastWriteTime(file);
+                                DateTime lastAccessed = File.GetLastAccessTime(file);
+                                DateTime lastModified = File.GetLastWriteTime(file);
                                 long size = new System.IO.FileInfo(file).Length;
-                                string fileName = System.IO.Path.GetFileName(file);
+                                string fileName = Path.GetFileName(file);
 
                                 // jankily parse the bytes to extract the credential type and master key GUID
                                 // reference- https://github.com/gentilkiwi/mimikatz/blob/3d8be22fff9f7222f9590aa007629e18300cf643/modules/kull_m_dpapi.h#L24-L54
@@ -472,6 +488,6 @@ namespace winPEAS.KnownFileCreds
                 Beaprint.PrintException(ex.Message);
             }
             return results;
-        }              
+        }
     }
 }

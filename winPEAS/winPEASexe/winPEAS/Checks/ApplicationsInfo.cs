@@ -27,8 +27,8 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Current Active Window Application");
                 string title = ApplicationInfoHelper.GetActiveWindowTitle();
-                List<string> permsFile = PermissionsHelper.GetPermissionsFile(title, winPEAS.Checks.Checks.CurrentUserSiDs);
-                List<string> permsFolder = PermissionsHelper.GetPermissionsFolder(title, winPEAS.Checks.Checks.CurrentUserSiDs);
+                List<string> permsFile = PermissionsHelper.GetPermissionsFile(title, Checks.CurrentUserSiDs);
+                List<string> permsFolder = PermissionsHelper.GetPermissionsFolder(title, Checks.CurrentUserSiDs);
                 if (permsFile.Count > 0)
                 {
                     Beaprint.BadPrint("    " + title);
@@ -188,8 +188,8 @@ namespace winPEAS.Checks
 
                 foreach (Dictionary<string, string> sapp in scheduled_apps)
                 {
-                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(sapp["Action"], winPEAS.Checks.Checks.CurrentUserSiDs);
-                    List<string> dirRights = PermissionsHelper.GetPermissionsFolder(sapp["Action"], winPEAS.Checks.Checks.CurrentUserSiDs);
+                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(sapp["Action"], Checks.CurrentUserSiDs);
+                    List<string> dirRights = PermissionsHelper.GetPermissionsFolder(sapp["Action"], Checks.CurrentUserSiDs);
                     string formString = "    ({0}) {1}: {2}";
 
                     if (fileRights.Count > 0)
@@ -238,8 +238,8 @@ namespace winPEAS.Checks
                 foreach (var driver in DeviceDrivers.GetDeviceDriversNoMicrosoft())
                 {
                     string pathDriver = driver.Key;
-                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(pathDriver, winPEAS.Checks.Checks.CurrentUserSiDs);
-                    List<string> dirRights = PermissionsHelper.GetPermissionsFolder(pathDriver, winPEAS.Checks.Checks.CurrentUserSiDs);
+                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(pathDriver, Checks.CurrentUserSiDs);
+                    List<string> dirRights = PermissionsHelper.GetPermissionsFolder(pathDriver, Checks.CurrentUserSiDs);
 
                     Dictionary<string, string> colorsD = new Dictionary<string, string>()
                         {

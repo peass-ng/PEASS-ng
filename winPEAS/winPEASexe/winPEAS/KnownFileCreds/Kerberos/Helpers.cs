@@ -29,7 +29,7 @@ namespace winPEAS.KnownFileCreds.Kerberos
             }
             catch (Exception e)
             {
-            }            
+            }
 
             return lsaHandle;
         }

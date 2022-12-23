@@ -9,9 +9,9 @@ using winPEAS.Helpers.Search;
 namespace winPEAS.InterestingFiles
 {
     internal static class InterestingFiles
-    {              
+    {
         public static List<string> GetSAMBackups()
-        { 
+        {
             //From SharpUP
             var results = new List<string>();
 
@@ -28,7 +28,7 @@ namespace winPEAS.InterestingFiles
                     $@"{systemRoot}\System32\config\RegBack\SYSTEM",
                 };
 
-                results.AddRange(searchLocations.Where(searchLocation => System.IO.File.Exists(searchLocation)));
+                results.AddRange(searchLocations.Where(searchLocation => File.Exists(searchLocation)));
             }
             catch (Exception ex)
             {
@@ -40,7 +40,7 @@ namespace winPEAS.InterestingFiles
         public static List<string> GetLinuxShells()
         {
             var results = new List<string>();
-           
+
             try
             {
                 string drive = Environment.GetEnvironmentVariable("SystemDrive");
@@ -90,7 +90,7 @@ namespace winPEAS.InterestingFiles
                 Beaprint.GrayPrint("Error: " + ex);
             }
             return results;
-        }       
+        }
 
         public static List<Dictionary<string, string>> GetRecycleBin()
         {
@@ -102,7 +102,7 @@ namespace winPEAS.InterestingFiles
                 // Reference: https://stackoverflow.com/questions/18071412/list-filenames-in-the-recyclebin-with-c-sharp-without-using-any-external-files
                 int lastDays = 30;
 
-                var startTime = System.DateTime.Now.AddDays(-lastDays);
+                var startTime = DateTime.Now.AddDays(-lastDays);
 
                 // Shell COM object GUID
                 Type shell = Type.GetTypeFromCLSID(new Guid("13709620-C279-11CE-A49E-444553540000"));

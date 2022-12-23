@@ -184,5 +184,5 @@ namespace winPEAS.Info.UserInfo.LogonSessions
                 }
             }
         }
-    } 
+    }
 }

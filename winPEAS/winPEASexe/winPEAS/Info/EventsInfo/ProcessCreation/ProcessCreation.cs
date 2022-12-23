@@ -1,15 +1,14 @@
 ﻿using System.Collections.Generic;
 using winPEAS.Helpers;
-using winPEAS.Info.EventsInfo.PowerShell;
 
 namespace winPEAS.Info.EventsInfo.ProcessCreation
 {
     internal class ProcessCreation
     {
         public static IEnumerable<ProcessCreationEventInfo> GetProcessCreationEventInfos()
-        {                     
+        {
             // Get our "sensitive" cmdline regexes from a common helper function.
-            var processCmdLineRegex = Common.GetInterestingProcessArgsRegex();            
+            var processCmdLineRegex = Common.GetInterestingProcessArgsRegex();
 
             var query = $"*[System/EventID=4688]";
             var logReader = MyUtils.GetEventLogReader("Security", query);
@@ -33,6 +32,6 @@ namespace winPEAS.Info.EventsInfo.ProcessCreation
                     }
                 }
             }
-        }    
+        }
     }
 }

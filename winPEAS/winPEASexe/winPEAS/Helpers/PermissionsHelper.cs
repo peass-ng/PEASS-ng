@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
-using Microsoft.Win32;
 
 namespace winPEAS.Helpers
 {
@@ -354,14 +354,17 @@ namespace winPEAS.Helpers
                 results[path] = String.Join(", ", GetPermissionsFolder(path, Checks.Checks.CurrentUserSiDs));
                 if (string.IsNullOrEmpty(results[path]))
                 {
-                    foreach (string d in Directory.EnumerateDirectories(path))
+                    if (Directory.Exists(path))
                     {
-                        foreach (string f in Directory.EnumerateFiles(d))
+                        foreach (string d in Directory.EnumerateDirectories(path))
                         {
-                            results[f] = String.Join(", ", GetPermissionsFile(f, Checks.Checks.CurrentUserSiDs));
+                            foreach (string f in Directory.EnumerateFiles(d))
+                            {
+                                results[f] = String.Join(", ", GetPermissionsFile(f, Checks.Checks.CurrentUserSiDs));
+                            }
+                            cont += 1;
+                            results.Concat(GetRecursivePrivs(d, cont)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                         }
-                        cont += 1;
-                        results.Concat(GetRecursivePrivs(d, cont)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                     }
                 }
             }

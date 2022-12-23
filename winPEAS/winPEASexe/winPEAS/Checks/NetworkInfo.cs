@@ -27,7 +27,7 @@ namespace winPEAS.Checks
         public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("Network Information");
-           
+
             new List<Action>
             {
                 PrintNetShares,
@@ -81,7 +81,7 @@ namespace winPEAS.Checks
                 {
                     if (line.Length > 0 && line[0] != '#')
                     {
-                        System.Console.WriteLine("    " + line.Replace("\t", "    "));
+                        Console.WriteLine("    " + line.Replace("\t", "    "));
                     }
                 }
             }
@@ -304,8 +304,8 @@ namespace winPEAS.Checks
                 Beaprint.GrayPrint("    DENY rules:");
                 foreach (Dictionary<string, string> rule in Firewall.GetFirewallRules())
                 {
-                    string filePerms = string.Join(", ", PermissionsHelper.GetPermissionsFile(rule["AppName"], winPEAS.Checks.Checks.CurrentUserSiDs));
-                    string folderPerms = string.Join(", ", PermissionsHelper.GetPermissionsFolder(rule["AppName"], winPEAS.Checks.Checks.CurrentUserSiDs));
+                    string filePerms = string.Join(", ", PermissionsHelper.GetPermissionsFile(rule["AppName"], Checks.CurrentUserSiDs));
+                    string folderPerms = string.Join(", ", PermissionsHelper.GetPermissionsFolder(rule["AppName"], Checks.CurrentUserSiDs));
                     string formString = "    ({0}){1}[{2}]: {3} {4} {5} from {6} --> {7}";
                     if (filePerms.Length > 0)
                         formString += "\n    File Permissions: {8}";
@@ -390,7 +390,7 @@ namespace winPEAS.Checks
 
                 Beaprint.ColorPrint("  General Settings", Beaprint.LBLUE);
                 Beaprint.NoColorPrint($"  {"Hive",-10}  {"Key",-40}  {"Value"}");
-                
+
                 foreach (var i in info.GeneralSettings)
                 {
                     Beaprint.NoColorPrint($"  {i.Hive,-10}  {i.ValueName,-40}  {i.Value}");
@@ -410,9 +410,9 @@ namespace winPEAS.Checks
                     {
                         Beaprint.NoColorPrint($"  {i.Hive,-10}  {i.ValueName,-40}  {i.Interpretation}");
                     }
-                }                
+                }
 
-                Beaprint.ColorPrint("\n  Zone Auth Settings", Beaprint.LBLUE);                
+                Beaprint.ColorPrint("\n  Zone Auth Settings", Beaprint.LBLUE);
                 if (info.ZoneAuthSettings.Count == 0)
                 {
                     Beaprint.NoColorPrint("  No Zone Auth Settings");
@@ -423,7 +423,7 @@ namespace winPEAS.Checks
                     {
                         Beaprint.NoColorPrint($"  {i.Interpretation}");
                     }
-                }                
+                }
             }
             catch (Exception ex)
             {

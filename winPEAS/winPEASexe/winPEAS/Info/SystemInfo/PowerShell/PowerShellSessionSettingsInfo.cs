@@ -11,6 +11,6 @@ namespace winPEAS.Info.SystemInfo.PowerShell
         {
             Plugin = plugin;
             Permissions = permissions;
-        }        
+        }
     }
 }

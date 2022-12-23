@@ -8,7 +8,7 @@ using winPEAS.Helpers.Registry;
 namespace winPEAS.Info.ApplicationInfo
 {
     internal static class InstalledApps
-    {        
+    {
         public static SortedDictionary<string, Dictionary<string, string>> GetInstalledAppsPerms()
         {
             //Get from Program Files
@@ -71,16 +71,19 @@ namespace winPEAS.Info.ApplicationInfo
             var results = new SortedDictionary<string, Dictionary<string, string>>();
             try
             {
-                foreach (string f in Directory.EnumerateFiles(fpath))
+                if (Directory.Exists(fpath))
                 {
-                    results[f] = new Dictionary<string, string>
+                    foreach (string f in Directory.EnumerateFiles(fpath))
+                    {
+                        results[f] = new Dictionary<string, string>
                     {
                         { f, string.Join(", ", PermissionsHelper.GetPermissionsFile(f, Checks.Checks.CurrentUserSiDs)) }
                     };
-                }
-                foreach (string d in Directory.EnumerateDirectories(fpath))
-                {
-                    results[d] = PermissionsHelper.GetRecursivePrivs(d);
+                    }
+                    foreach (string d in Directory.EnumerateDirectories(fpath))
+                    {
+                        results[d] = PermissionsHelper.GetRecursivePrivs(d);
+                    }
                 }
             }
             catch (Exception ex)

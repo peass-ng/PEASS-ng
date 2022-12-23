@@ -1,6 +1,6 @@
 ﻿namespace winPEAS.Native.Enums
 {
-	public enum SECURITY_IMPERSONATION_LEVEL
+    public enum SECURITY_IMPERSONATION_LEVEL
     {
         Anonymous,
         Identification,

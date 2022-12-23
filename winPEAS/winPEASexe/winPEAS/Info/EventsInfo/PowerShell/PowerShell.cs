@@ -16,7 +16,7 @@ namespace winPEAS.Info.EventsInfo.PowerShell
             string[] powerShellLogs = { "Microsoft-Windows-PowerShell/Operational", "Windows PowerShell" };
 
             // Get our "sensitive" cmdline regexes from a common helper function.
-            var powerShellRegex = Common.GetInterestingProcessArgsRegex();           
+            var powerShellRegex = Common.GetInterestingProcessArgsRegex();
 
             foreach (var logName in powerShellLogs)
             {

@@ -8,7 +8,7 @@ namespace winPEAS.Info.SystemInfo.PowerShell
     internal class PowerShell
     {
         public static IEnumerable<PowerShellSessionSettingsInfo> GetPowerShellSessionSettingsInfos()
-        {           
+        {
             var plugins = new[] { "Microsoft.PowerShell", "Microsoft.PowerShell.Workflow", "Microsoft.PowerShell32" };
 
             foreach (var plugin in plugins)
@@ -49,6 +49,6 @@ namespace winPEAS.Info.SystemInfo.PowerShell
 
                 yield return new PowerShellSessionSettingsInfo(plugin, access);
             }
-        }    
+        }
     }
 }

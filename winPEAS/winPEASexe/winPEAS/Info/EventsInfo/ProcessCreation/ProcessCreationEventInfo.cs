@@ -19,6 +19,6 @@ namespace winPEAS.Info.EventsInfo.ProcessCreation
             EventId = eventId;
             User = user;
             Match = match;
-        }       
+        }
     }
 }

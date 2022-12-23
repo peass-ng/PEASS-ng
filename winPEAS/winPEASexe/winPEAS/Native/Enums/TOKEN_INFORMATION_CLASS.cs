@@ -1,6 +1,6 @@
 ﻿namespace winPEAS.Native.Enums
 {
-	public enum TOKEN_INFORMATION_CLASS
+    public enum TOKEN_INFORMATION_CLASS
     {
         TokenUser = 1,
         TokenGroups,

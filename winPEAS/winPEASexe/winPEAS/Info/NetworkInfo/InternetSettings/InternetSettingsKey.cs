@@ -19,7 +19,7 @@
             Value = value;
             Interpretation = interpretation;
             Hive = hive;
-            Path = path;            
+            Path = path;
         }
     }
 }

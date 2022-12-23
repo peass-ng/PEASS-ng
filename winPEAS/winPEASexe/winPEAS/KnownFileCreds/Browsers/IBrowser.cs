@@ -5,7 +5,7 @@ namespace winPEAS.KnownFileCreds.Browsers
 {
     internal interface IBrowser
     {
-        string Name { get;  }
+        string Name { get; }
         void PrintInfo();
         IEnumerable<CredentialModel> GetSavedCredentials();
     }
