@@ -808,7 +808,7 @@ basic_net_info(){
 select_nc (){
   #Select the correct configuration of the netcat found
   NC_SCAN="$FOUND_NC -v -n -z -w 1"
-  $($FOUND_NC 127.0.0.1 65321 > /dev/null 2>&1)
+  $($NC_SCAN 127.0.0.1 65321 > /dev/null 2>&1)
   if [ $? -eq 2 ]
   then
     NC_SCAN="timeout 1 $FOUND_NC -v -n"
