@@ -105,7 +105,7 @@ fi
 echo ""
 
 #-- UI) Doas
-if [ -f "/etc/doas.conf" ] || [ "$DEBUG" ]; then
+if [ "$(command -v doas 2>/dev/null)" ] || [ "$DEBUG" ]; then
   print_2title "Checking doas.conf"
   doas_dir_name=$(dirname "$(command -v doas)" 2>/dev/null)
   if [ "$(cat /etc/doas.conf $doas_dir_name/doas.conf $doas_dir_name/../etc/doas.conf $doas_dir_name/etc/doas.conf 2>/dev/null)" ]; then 
