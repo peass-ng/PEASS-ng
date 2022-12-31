@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
-using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 
@@ -14,7 +13,7 @@ namespace winPEAS.Info.SystemInfo.SysMon
 
         public static IEnumerable<SysmonInfo> GetSysMonInfos()
         {
-            var paramsKey = @"SYSTEM\CurrentControlSet\Services\SysmonDrv\Parameters";          
+            var paramsKey = @"SYSTEM\CurrentControlSet\Services\SysmonDrv\Parameters";
             uint? regHashAlg = GetUintNullableFromString(RegistryHelper.GetRegValue("HKLM", paramsKey, "HashingAlgorithm"));
             uint? regOptions = GetUintNullableFromString(RegistryHelper.GetRegValue("HKLM", paramsKey, "Options"));
             byte[] regSysmonRules = GetBinaryValueFromRegistry(Registry.LocalMachine, paramsKey, "Rules");

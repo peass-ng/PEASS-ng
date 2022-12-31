@@ -1,20 +1,18 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace winPEAS.Wifi.NativeWifiApi
 {
     public static class Wlan
     {
         #region P/Invoke API
- 
+
         public const uint WLAN_CLIENT_VERSION_XP_SP2 = 1;
         public const uint WLAN_CLIENT_VERSION_LONGHORN = 2;
         public const uint WLAN_MAX_NAME_LENGTH = 256;
 
-       
-  
+
+
         #endregion
 
         /// <summary>

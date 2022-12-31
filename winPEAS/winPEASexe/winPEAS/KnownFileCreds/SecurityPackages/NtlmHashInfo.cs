@@ -9,6 +9,6 @@
         {
             Version = version;
             Hash = hash;
-        }        
+        }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Win32;
-using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 
 namespace winPEAS.Info.SystemInfo.WindowsDefender
@@ -17,14 +15,14 @@ namespace winPEAS.Info.SystemInfo.WindowsDefender
         public WindowsDefenderSettings(string defenderBaseKeyPath)
         {
             PathExclusions = new List<string>();
-            var pathExclusionData = RegistryHelper.GetRegValues("HKLM", $"{ defenderBaseKeyPath}\\Exclusions\\Paths");            
+            var pathExclusionData = RegistryHelper.GetRegValues("HKLM", $"{defenderBaseKeyPath}\\Exclusions\\Paths");
             if (pathExclusionData != null)
             {
                 foreach (var kvp in pathExclusionData)
                 {
                     PathExclusions.Add(kvp.Key);
                 }
-            }            
+            }
 
             PolicyManagerPathExclusions = new List<string>();
             var excludedPaths = RegistryHelper.GetRegValue("HKLM", $"{defenderBaseKeyPath}\\Policy Manager", "ExcludedPaths");
@@ -54,7 +52,7 @@ namespace winPEAS.Info.SystemInfo.WindowsDefender
                 {
                     ExtensionExclusions.Add(kvp.Key);
                 }
-            }            
+            }
 
             var asrKeyPath = $"{defenderBaseKeyPath}\\Windows Defender Exploit Guard\\ASR";
             var asrEnabled = RegistryHelper.GetRegValue("HKLM", asrKeyPath, "ExploitGuard_ASR_Rules");
@@ -82,7 +80,7 @@ namespace winPEAS.Info.SystemInfo.WindowsDefender
                 {
                     AsrSettings.Exclusions.Add(value.Key);
                 }
-            }            
+            }
         }
     }
 }

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Permissions;
-using System.Text;
 using winPEAS.Native;
 using winPEAS.Native.Enums;
 
@@ -394,6 +393,6 @@ namespace winPEAS.Helpers.CredentialManager
             PersistenceType = (PersistenceType)credential.Persist;
             Description = credential.Comment;
             LastWriteTimeUtc = DateTime.FromFileTimeUtc(credential.LastWritten);
-        }       
+        }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
-using winPEAS.Info.SystemInfo.NamedPipes;
 
 namespace winPEAS.Native
 {

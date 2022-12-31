@@ -3,7 +3,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using winPEAS.Native;
-using System.Security.Principal;
 
 
 namespace winPEAS.Info.SystemInfo.NamedPipes
@@ -51,7 +50,7 @@ namespace winPEAS.Info.SystemInfo.NamedPipes
                 {
                     var security = File.GetAccessControl($"\\\\.\\pipe\\{namedPipe}");
                     sddl = security.GetSecurityDescriptorSddlForm(AccessControlSections.All);
-                    List<string> currentUserPermsList = winPEAS.Helpers.PermissionsHelper.GetMyPermissionsF(security, winPEAS.Checks.Checks.CurrentUserSiDs);
+                    List<string> currentUserPermsList = Helpers.PermissionsHelper.GetMyPermissionsF(security, Checks.Checks.CurrentUserSiDs);
                     currentUserPerms = string.Join(", ", currentUserPermsList);
                 }
                 catch

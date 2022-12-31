@@ -10,14 +10,14 @@ using winPEAS.Native.Enums;
 namespace winPEAS.Info.SystemInfo.Printers
 {
     internal class Printers
-    {       
+    {
         [StructLayout(LayoutKind.Sequential)]
         public struct SECURITY_INFOS
         {
             public string Owner;
             public RawSecurityDescriptor SecurityDescriptor;
             public string SDDL;
-        }       
+        }
 
         public static IEnumerable<PrinterInfo> GetPrinterWMIInfos()
         {

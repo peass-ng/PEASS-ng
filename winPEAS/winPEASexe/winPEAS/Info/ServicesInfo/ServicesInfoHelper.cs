@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -8,10 +9,8 @@ using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Text.RegularExpressions;
-using Microsoft.Win32;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
-using winPEAS.KnownFileCreds;
 using winPEAS.Native;
 
 namespace winPEAS.Info.ServicesInfo
@@ -51,17 +50,18 @@ namespace winPEAS.Info.ServicesInfo
 
                                 if (string.IsNullOrEmpty(companyName) || (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
                                 {
-                                    Dictionary<string, string> toadd = new Dictionary<string, string>();
-
-                                    toadd["Name"] = GetStringOrEmpty(result["Name"]);
-                                    toadd["DisplayName"] = GetStringOrEmpty(result["DisplayName"]);
-                                    toadd["CompanyName"] = companyName;
-                                    toadd["State"] = GetStringOrEmpty(result["State"]);
-                                    toadd["StartMode"] = GetStringOrEmpty(result["StartMode"]);
-                                    toadd["PathName"] = GetStringOrEmpty(result["PathName"]);
-                                    toadd["FilteredPath"] = binaryPath;
-                                    toadd["isDotNet"] = isDotNet;
-                                    toadd["Description"] = GetStringOrEmpty(result["Description"]);
+                                    Dictionary<string, string> toadd = new Dictionary<string, string>
+                                    {
+                                        ["Name"] = GetStringOrEmpty(result["Name"]),
+                                        ["DisplayName"] = GetStringOrEmpty(result["DisplayName"]),
+                                        ["CompanyName"] = companyName,
+                                        ["State"] = GetStringOrEmpty(result["State"]),
+                                        ["StartMode"] = GetStringOrEmpty(result["StartMode"]),
+                                        ["PathName"] = GetStringOrEmpty(result["PathName"]),
+                                        ["FilteredPath"] = binaryPath,
+                                        ["isDotNet"] = isDotNet,
+                                        ["Description"] = GetStringOrEmpty(result["Description"])
+                                    };
 
                                     results.Add(toadd);
                                 }
@@ -166,7 +166,7 @@ namespace winPEAS.Info.ServicesInfo
             }
             return results;
         }
-       
+
         public static Dictionary<string, string> GetModifiableServices(Dictionary<string, string> SIDs)
         {
             Dictionary<string, string> results = new Dictionary<string, string>();
@@ -222,7 +222,7 @@ namespace winPEAS.Info.ServicesInfo
                             { //https://docs.microsoft.com/en-us/dotnet/api/system.security.accesscontrol.commonace?view=net-6.0
                                 int serviceRights = ace.AccessMask;
                                 string current_perm_str = PermissionsHelper.PermInt2Str(serviceRights, PermissionType.WRITEABLE_OR_EQUIVALENT_SVC);
-                                
+
                                 if (!string.IsNullOrEmpty(current_perm_str) && !permissions.Contains(current_perm_str))
                                     permissions.Add(current_perm_str);
                             }
@@ -232,7 +232,7 @@ namespace winPEAS.Info.ServicesInfo
                     if (permissions.Count > 0)
                     {
                         string perms = String.Join(", ", permissions);
-                        if (perms.Replace("Start", "").Replace("Stop","").Length > 3) //Check if any other permissions appart from Start and Stop
+                        if (perms.Replace("Start", "").Replace("Stop", "").Length > 3) //Check if any other permissions appart from Start and Stop
                             results.Add(sc.ServiceName, perms);
                     }
 
@@ -249,9 +249,9 @@ namespace winPEAS.Info.ServicesInfo
         ///////  Find Write reg. Services ////////
         //////////////////////////////////////////
         /// Find Services which Reg you have write or equivalent access
-        public static List<Dictionary<string, string>> GetWriteServiceRegs(Dictionary<string,string> NtAccountNames)
+        public static List<Dictionary<string, string>> GetWriteServiceRegs(Dictionary<string, string> NtAccountNames)
         {
-            List<Dictionary<string,string>> results = new List<Dictionary<string, string>>();
+            List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
             try
             {
                 RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"system\currentcontrolset\services");
@@ -275,7 +275,7 @@ namespace winPEAS.Info.ServicesInfo
             return results;
         }
 
-        
+
         //////////////////////////////////////
         ////////  PATH DLL Hijacking /////////
         //////////////////////////////////////
@@ -294,7 +294,7 @@ namespace winPEAS.Info.ServicesInfo
 
                 foreach (string folder in folders)
                     results[folder] = String.Join(", ", PermissionsHelper.GetPermissionsFolder(folder, Checks.Checks.CurrentUserSiDs));
-                
+
             }
             catch (Exception ex)
             {

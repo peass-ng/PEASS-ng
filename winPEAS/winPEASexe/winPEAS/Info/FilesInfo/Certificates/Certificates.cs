@@ -34,19 +34,19 @@ namespace winPEAS.Info.FilesInfo.Certificates
                         switch (ext.Oid.FriendlyName)
                         {
                             case "Enhanced Key Usage":
-                            {
-                                var extUsages = ((X509EnhancedKeyUsageExtension)ext).EnhancedKeyUsages;
-
-                                if (extUsages.Count == 0)
-                                    continue;
-
-                                foreach (var extUsage in extUsages)
                                 {
-                                    enhancedKeyUsages.Add(extUsage.FriendlyName);
-                                }
+                                    var extUsages = ((X509EnhancedKeyUsageExtension)ext).EnhancedKeyUsages;
 
-                                break;
-                            }
+                                    if (extUsages.Count == 0)
+                                        continue;
+
+                                    foreach (var extUsage in extUsages)
+                                    {
+                                        enhancedKeyUsages.Add(extUsage.FriendlyName);
+                                    }
+
+                                    break;
+                                }
                             case "Certificate Template Name":
                             case "Certificate Template Information":
                                 template = ext.Format(false);

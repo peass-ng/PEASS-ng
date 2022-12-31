@@ -29,6 +29,6 @@
             AllowSmartCardRedirection = allowSmartCardRedirection;
             BlockPnPDeviceRedirection = blockPnPDeviceRedirection;
             BlockPrinterRedirection = blockPrinterRedirection;
-        }       
+        }
     }
 }

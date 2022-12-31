@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace winPEAS.KnownFileCreds.Browsers.Firefox
+﻿namespace winPEAS.KnownFileCreds.Browsers.Firefox
 {
     class FFLogins
     {

@@ -40,7 +40,7 @@ namespace winPEAS.InterestingFiles
 
             try
             {
-                var winDir = System.Environment.GetEnvironmentVariable("windir");
+                var winDir = Environment.GetEnvironmentVariable("windir");
                 string[] searchLocations =
                 {
                     $"{winDir}\\sysprep\\sysprep.xml",
@@ -56,7 +56,7 @@ namespace winPEAS.InterestingFiles
                     $"{winDir}\\..\\unattend.inf",
                 };
 
-                results.AddRange(searchLocations.Where(System.IO.File.Exists));
+                results.AddRange(searchLocations.Where(File.Exists));
             }
             catch (Exception ex)
             {

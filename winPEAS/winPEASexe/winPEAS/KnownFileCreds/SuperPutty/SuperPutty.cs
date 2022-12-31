@@ -15,7 +15,7 @@ namespace winPEAS.KnownFileCreds.SuperPutty
         private static void PrintConfigurationFiles()
         {
             Beaprint.MainPrint("SuperPutty configuration files");
-            
+
             var dirs = User.GetUsersFolders();
             var filter = "sessions*.xml";
 
@@ -24,11 +24,14 @@ namespace winPEAS.KnownFileCreds.SuperPutty
                 try
                 {
                     var path = $"{dir}\\Documents\\SuperPuTTY\\";
-                    var files = Directory.EnumerateFiles(path, filter, SearchOption.TopDirectoryOnly);
-
-                    foreach (var file in files)
+                    if (Directory.Exists(path))
                     {
-                        Beaprint.BadPrint($"     {file}");
+                        var files = Directory.EnumerateFiles(path, filter, SearchOption.TopDirectoryOnly);
+
+                        foreach (var file in files)
+                        {
+                            Beaprint.BadPrint($"     {file}");
+                        }
                     }
                 }
                 catch (Exception)

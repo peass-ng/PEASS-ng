@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace winPEAS.Info.FilesInfo.Certificates
 {
-    internal class CertificateInfo 
+    internal class CertificateInfo
     {
         public string StoreLocation { get; set; }
         public string Issuer { get; set; }

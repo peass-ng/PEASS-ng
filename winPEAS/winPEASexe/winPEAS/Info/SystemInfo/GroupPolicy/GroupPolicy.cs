@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
+using System.Collections.Generic;
 using winPEAS.Helpers.Registry;
 using winPEAS.Native.Enums;
 
@@ -14,7 +14,7 @@ namespace winPEAS.Info.SystemInfo.GroupPolicy
             // local machine GPOs
             var basePath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Group Policy\DataStore\Machine\0";
             var machineIDs = RegistryHelper.GetRegSubkeys("HKLM", basePath) ?? new string[] { };
-            
+
             foreach (var id in machineIDs)
             {
                 var settings = RegistryHelper.GetRegValues("HKLM", $"{basePath}\\{id}");

@@ -18,12 +18,12 @@ namespace winPEAS.Info.EventsInfo.Logon
             var kerberosLoggedUsersSet = new HashSet<string>();
 
             string userRegex = null;
-            
+
             var startTime = DateTime.Now.AddDays(-lastDays);
             var endTime = DateTime.Now;
 
             var query = $@"*[System/EventID=4624] and *[System[TimeCreated[@SystemTime >= '{startTime.ToUniversalTime():o}']]] and *[System[TimeCreated[@SystemTime <= '{endTime.ToUniversalTime():o}']]]";
-            var logReader = MyUtils.GetEventLogReader("Security", query);            
+            var logReader = MyUtils.GetEventLogReader("Security", query);
 
             // read the event log
             for (var eventDetail = logReader.ReadEvent(); eventDetail != null; eventDetail = logReader.ReadEvent())
@@ -127,14 +127,14 @@ namespace winPEAS.Info.EventsInfo.Logon
             result.NTLMv2LoggedUsersSet = NTLMv2LoggedUsersSet;
             result.LogonEventInfos = logonEventInfos;
 
-            return result;            
+            return result;
         }
 
         public static IEnumerable<ExplicitLogonEventInfo> GetExplicitLogonEventsInfos(int lastDays)
         {
             const string eventId = "4648";
             string userFilterRegex = null;
-            
+
             var startTime = DateTime.Now.AddDays(-lastDays);
             var endTime = DateTime.Now;
 
@@ -143,7 +143,7 @@ namespace winPEAS.Info.EventsInfo.Logon
             var logReader = MyUtils.GetEventLogReader("Security", query);
 
             for (var eventDetail = logReader.ReadEvent(); eventDetail != null; eventDetail = logReader.ReadEvent())
-            {                
+            {
                 //string subjectUserSid = eventDetail.GetPropertyValue(0);
                 var subjectUserName = eventDetail.GetPropertyValue(1);
                 var subjectDomainName = eventDetail.GetPropertyValue(2);

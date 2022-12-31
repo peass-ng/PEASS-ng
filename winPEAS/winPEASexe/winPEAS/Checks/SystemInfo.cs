@@ -5,21 +5,21 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using winPEAS._3rdParty.Watson;
 using winPEAS.Helpers;
 using winPEAS.Helpers.AppLocker;
-using winPEAS._3rdParty.Watson;
-using winPEAS.Info.SystemInfo.Printers;
-using winPEAS.Info.SystemInfo.NamedPipes;
-using winPEAS.Info.SystemInfo;
-using winPEAS.Info.SystemInfo.SysMon;
 using winPEAS.Helpers.Extensions;
 using winPEAS.Helpers.Registry;
+using winPEAS.Info.SystemInfo;
 using winPEAS.Info.SystemInfo.AuditPolicies;
 using winPEAS.Info.SystemInfo.DotNet;
 using winPEAS.Info.SystemInfo.GroupPolicy;
-using winPEAS.Info.SystemInfo.WindowsDefender;
-using winPEAS.Info.SystemInfo.PowerShell;
+using winPEAS.Info.SystemInfo.NamedPipes;
 using winPEAS.Info.SystemInfo.Ntlm;
+using winPEAS.Info.SystemInfo.PowerShell;
+using winPEAS.Info.SystemInfo.Printers;
+using winPEAS.Info.SystemInfo.SysMon;
+using winPEAS.Info.SystemInfo.WindowsDefender;
 using winPEAS.Native.Enums;
 
 namespace winPEAS.Checks
@@ -47,13 +47,13 @@ namespace winPEAS.Checks
             { "3b576869-a4ec-4529-8536-b80a7769e899" , "Block Office applications from creating executable content	"},
             { "75668c1f-73b5-4cf0-bb93-3ecf5cb7cc84" , "Block Office applications from injecting code into other processes"},
             { "d3e037e1-3eb8-44c8-a917-57927947596d" , "Block JavaScript or VBScript from launching downloaded executable content"},
-            { "be9ba2d9-53ea-4cdc-84e5-9b1eeee46550" , "Block executable content from email client and webmail"},           
+            { "be9ba2d9-53ea-4cdc-84e5-9b1eeee46550" , "Block executable content from email client and webmail"},
         };
 
         public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("System Information");
-            
+
             new List<Action>
             {
                 PrintBasicSystemInfo,
@@ -107,7 +107,7 @@ namespace winPEAS.Checks
                     { Globals.StrTrue, Beaprint.ansi_color_bad },
                 };
                 Beaprint.DictPrint(basicDictSystem, colorsSI, false);
-                System.Console.WriteLine();
+                Console.WriteLine();
                 Watson.FindVulns();
 
                 //To update Watson, update the CVEs and add the new ones and update the main function so it uses new CVEs (becausfull with the Beaprints inside the FindVulns function)
@@ -200,7 +200,7 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("PS default transcripts history");
                 Beaprint.InfoPrint("Read the PS history inside these files (if any)");
                 string drive = Path.GetPathRoot(Environment.SystemDirectory);
-				string transcriptsPath = drive + @"transcripts\";
+                string transcriptsPath = drive + @"transcripts\";
                 string usersPath = $"{drive}users";
 
                 var users = Directory.EnumerateDirectories(usersPath, "*", SearchOption.TopDirectoryOnly);
@@ -210,7 +210,7 @@ namespace winPEAS.Checks
                 {
                     { "^.*", Beaprint.ansi_color_bad },
                 };
-                
+
                 var results = new List<string>();
 
                 var dict = new Dictionary<string, string>()
@@ -218,7 +218,7 @@ namespace winPEAS.Checks
                     // check \\transcripts\ folder
                     {transcriptsPath, "*"},
                 };
-                    
+
                 foreach (var user in users)
                 {
                     // check the users directories
@@ -290,12 +290,12 @@ namespace winPEAS.Checks
                     Beaprint.NoColorPrint($"    Domain        :     {policy.Domain}\n" +
                                                 $"    GPO           :     {policy.GPO}\n" +
                                                 $"    Type          :     {policy.Type}\n");
-                        
+
                     foreach (var entry in policy.Settings)
                     {
                         Beaprint.NoColorPrint($"        {entry.Subcategory,50}   :   {entry.AuditType}");
                     }
-                    
+
                     Beaprint.PrintLineSeparator();
                 }
             }
@@ -366,15 +366,15 @@ namespace winPEAS.Checks
             Beaprint.MainPrint("Credentials Guard");
             Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/stealing-credentials/credentials-protections#credential-guard", "If enabled, a driver is needed to read LSASS memory");
             string lsaCfgFlags = RegistryHelper.GetRegValue("HKLM", @"System\CurrentControlSet\Control\LSA", "LsaCfgFlags");
-            
+
             if (lsaCfgFlags == "1")
             {
-                System.Console.WriteLine("    Please, note that this only checks the LsaCfgFlags key value. This is not enough to enable Credentials Guard (but it's a strong indicator).");
+                Console.WriteLine("    Please, note that this only checks the LsaCfgFlags key value. This is not enough to enable Credentials Guard (but it's a strong indicator).");
                 Beaprint.GoodPrint("    CredentialGuard is active with UEFI lock");
             }
             else if (lsaCfgFlags == "2")
             {
-                System.Console.WriteLine("    Please, note that this only checks the LsaCfgFlags key value. This is not enough to enable Credentials Guard (but it's a strong indicator).");
+                Console.WriteLine("    Please, note that this only checks the LsaCfgFlags key value. This is not enough to enable Credentials Guard (but it's a strong indicator).");
                 Beaprint.GoodPrint("    CredentialGuard is active without UEFI lock");
             }
             else
@@ -572,7 +572,7 @@ namespace winPEAS.Checks
                     else if (using_HKLM_WSUS == "0")
                         Beaprint.GoodPrint("    But UseWUServer is equals to 0, so it is not vulnerable!");
                     else
-                        System.Console.WriteLine("    But UseWUServer is equals to " + using_HKLM_WSUS + ", so it may work or not");
+                        Console.WriteLine("    But UseWUServer is equals to " + using_HKLM_WSUS + ", so it may work or not");
                 }
                 else
                 {
@@ -643,9 +643,9 @@ namespace winPEAS.Checks
                 string path = "Software\\Policies\\Microsoft\\Windows\\Installer";
                 string HKLM_AIE = RegistryHelper.GetRegValue("HKLM", path, "AlwaysInstallElevated");
                 string HKCU_AIE = RegistryHelper.GetRegValue("HKCU", path, "AlwaysInstallElevated");
-                
+
                 if (HKLM_AIE == "1")
-                { 
+                {
                     Beaprint.BadPrint("    AlwaysInstallElevated set to 1 in HKLM!");
                 }
 
@@ -672,7 +672,7 @@ namespace winPEAS.Checks
             try
             {
                 var info = Ntlm.GetNtlmSettingsInfo();
-                
+
                 string lmCompatibilityLevelColor = info.LanmanCompatibilityLevel >= 3 ? Beaprint.ansi_color_good : Beaprint.ansi_color_bad;
                 Beaprint.ColorPrint($"  LanmanCompatibilityLevel    : {info.LanmanCompatibilityLevel} ({info.LanmanCompatibilityLevelString})\n", lmCompatibilityLevelColor);
 
@@ -683,12 +683,12 @@ namespace winPEAS.Checks
                     { "No signing", Beaprint.ansi_color_bad},
                     { "null", Beaprint.ansi_color_bad},
                     { "Require Signing", Beaprint.ansi_color_good},
-                    { "Negotiate signing", Beaprint.ansi_color_yellow},                    
+                    { "Negotiate signing", Beaprint.ansi_color_yellow},
                     { "Unknown", Beaprint.ansi_color_bad},
                 };
 
                 Beaprint.ColorPrint("\n  NTLM Signing Settings", Beaprint.LBLUE);
-                Beaprint.AnsiPrint($"      ClientRequireSigning    : {info.ClientRequireSigning}\n" + 
+                Beaprint.AnsiPrint($"      ClientRequireSigning    : {info.ClientRequireSigning}\n" +
                                    $"      ClientNegotiateSigning  : {info.ClientNegotiateSigning}\n" +
                                    $"      ServerRequireSigning    : {info.ServerRequireSigning}\n" +
                                    $"      ServerNegotiateSigning  : {info.ServerNegotiateSigning}\n" +
@@ -727,13 +727,13 @@ namespace winPEAS.Checks
                     }
                 }
 
-                var ntlmOutboundRestrictionsColor = info.OutboundRestrictions == 2 ? Beaprint.ansi_color_good : Beaprint.ansi_color_bad;                
+                var ntlmOutboundRestrictionsColor = info.OutboundRestrictions == 2 ? Beaprint.ansi_color_good : Beaprint.ansi_color_bad;
 
                 Beaprint.ColorPrint("\n  NTLM Auditing and Restrictions", Beaprint.LBLUE);
                 Beaprint.NoColorPrint($"      InboundRestrictions     : {info.InboundRestrictions} ({info.InboundRestrictionsString})");
                 Beaprint.ColorPrint($"      OutboundRestrictions    : {info.OutboundRestrictions} ({info.OutboundRestrictionsString})", ntlmOutboundRestrictionsColor);
                 Beaprint.NoColorPrint($"      InboundAuditing         : {info.InboundAuditing} ({info.InboundRestrictionsString})");
-                Beaprint.NoColorPrint($"      OutboundExceptions      : {info.OutboundExceptions}");            
+                Beaprint.NoColorPrint($"      OutboundExceptions      : {info.OutboundExceptions}");
             }
             catch (Exception ex)
             {
@@ -783,7 +783,7 @@ namespace winPEAS.Checks
                     Beaprint.AnsiPrint(string.Format(formatString, namedPipe.Name, namedPipe.CurrentUserPerms, namedPipe.Sddl), colors);
                 }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 //Beaprint.PrintException(ex.Message);
             }
@@ -816,8 +816,8 @@ namespace winPEAS.Checks
         {
             PrintSysmonConfiguration();
             PrintSysmonEventLogs();
-        }        
-        
+        }
+
         private void PrintSysmonConfiguration()
         {
             Beaprint.MainPrint("Enumerating Sysmon configuration");
@@ -1070,7 +1070,7 @@ namespace winPEAS.Checks
                         }
                         else if (kvp.Value.GetType().IsArray && (kvp.Value.GetType().GetElementType().ToString() == "System.Byte"))
                         {
-                            val = System.BitConverter.ToString((byte[])kvp.Value);
+                            val = BitConverter.ToString((byte[])kvp.Value);
                         }
                         else
                         {
@@ -1086,12 +1086,12 @@ namespace winPEAS.Checks
                             Beaprint.BadPrint("    [!]      WDigest is enabled - plaintext password extraction is possible!");
                         }
 
-                        if (key.Equals("RunAsPPL", System.StringComparison.InvariantCultureIgnoreCase) && val == "1")
+                        if (key.Equals("RunAsPPL", StringComparison.InvariantCultureIgnoreCase) && val == "1")
                         {
                             Beaprint.BadPrint("    [!]      LSASS Protected Mode is enabled! You will not be able to access lsass.exe's memory easily.");
                         }
 
-                        if (key.Equals("DisableRestrictedAdmin", System.StringComparison.InvariantCultureIgnoreCase) && val == "0")
+                        if (key.Equals("DisableRestrictedAdmin", StringComparison.InvariantCultureIgnoreCase) && val == "0")
                         {
                             Beaprint.BadPrint("    [!]      RDP Restricted Admin Mode is enabled! You can use pass-the-hash to access RDP on this system.");
                         }
@@ -1107,7 +1107,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Display Local Group Policy settings - local users/machine" );
+                Beaprint.MainPrint("Display Local Group Policy settings - local users/machine");
 
                 var infos = GroupPolicy.GetLocalGroupPolicyInfos();
 

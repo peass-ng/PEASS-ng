@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Yaml.Serialization;
 using System.IO;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
+using System.Yaml.Serialization;
 using static winPEAS.Helpers.YamlConfig.YamlConfig;
-using static winPEAS.Helpers.YamlConfig.YamlRegexConfig;
 
 
 namespace winPEAS.Helpers.YamlConfig
@@ -30,7 +29,7 @@ namespace winPEAS.Helpers.YamlConfig
                     YamlRegexConfig yamlConfig = (YamlRegexConfig)yamlSerializer.Deserialize(configFileContent, typeof(YamlRegexConfig))[0];
 
                     // check
-                   if (yamlConfig.regular_expresions == null || yamlConfig.regular_expresions.Length == 0)
+                    if (yamlConfig.regular_expresions == null || yamlConfig.regular_expresions.Length == 0)
                     {
                         throw new System.Exception("No configuration was read");
                     }
@@ -79,7 +78,7 @@ namespace winPEAS.Helpers.YamlConfig
 
                     // apply the defaults e.g. for filesearch
                     foreach (var searchItem in yamlConfig.search)
-                    {                                                
+                    {
                         SetDefaultOptions(searchItem, yamlConfig.defaults);
                     }
 
@@ -91,7 +90,7 @@ namespace winPEAS.Helpers.YamlConfig
                 Beaprint.PrintException($"An exception occured while parsing sensitive_files.yaml configuration file: {e.Message}");
 
                 throw;
-            }                   
+            }
         }
 
         private static void SetDefaultOptions(SearchParams searchItem, Defaults defaults)
@@ -106,7 +105,7 @@ namespace winPEAS.Helpers.YamlConfig
             foreach (var fileParam in fileParams)
             {
                 var value = fileParam.value;
-                
+
                 value.bad_regex = GetValueOrDefault(value.bad_regex, defaults.bad_regex);
                 value.good_regex = GetValueOrDefault(value.good_regex, defaults.good_regex);
                 value.just_list_file = GetValueOrDefault(value.just_list_file, defaults.just_list_file);
@@ -135,7 +134,7 @@ namespace winPEAS.Helpers.YamlConfig
 
         private static T GetValueOrDefault<T>(T val, T defaultValue)
         {
-            return val == null ? defaultValue : val;           
+            return val == null ? defaultValue : val;
         }
 
         private static T GetValueOrDefault<T>(Dictionary<object, object> dict, string key, T defaultValue)

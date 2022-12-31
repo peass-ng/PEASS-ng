@@ -76,7 +76,7 @@ namespace winPEAS.Helpers
             }
 
             //Check if rundll32
-            string[] binaryPathdll32 = binaryPath.Split(new string[] {"Rundll32.exe"}, StringSplitOptions.None);
+            string[] binaryPathdll32 = binaryPath.Split(new string[] { "Rundll32.exe" }, StringSplitOptions.None);
 
             if (binaryPathdll32.Length > 1)
             {
@@ -224,7 +224,7 @@ namespace winPEAS.Helpers
             return strOutput;
         }
 
-        private static string[] suffixes = new[] {" B", " KB", " MB", " GB", " TB", " PB"};
+        private static string[] suffixes = new[] { " B", " KB", " MB", " GB", " TB", " PB" };
 
         public static string ConvertBytesToHumanReadable(double number, int precision = 2)
         {

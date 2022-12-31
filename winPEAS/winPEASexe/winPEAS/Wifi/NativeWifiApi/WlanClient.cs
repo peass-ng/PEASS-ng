@@ -13,12 +13,12 @@ namespace winPEAS.Wifi.NativeWifiApi
         public class WlanInterface
         {
             private WlanClient client;
-            private WlanInterfaceInfo info;         
+            private WlanInterfaceInfo info;
 
             internal WlanInterface(WlanClient client, WlanInterfaceInfo info)
             {
                 this.client = client;
-                this.info = info;               
+                this.info = info;
             }
 
             /// <summary>
@@ -33,7 +33,7 @@ namespace winPEAS.Wifi.NativeWifiApi
                 Wlan.ThrowIfError(
                     WlanApi.WlanGetProfile(
                         client.clientHandle, info.interfaceGuid, profileName, IntPtr.Zero, out var profileXmlPtr, out flags, out _));
-                
+
                 try
                 {
                     return Marshal.PtrToStringUni(profileXmlPtr);
@@ -54,7 +54,7 @@ namespace winPEAS.Wifi.NativeWifiApi
                     WlanApi.WlanGetProfileList(client.clientHandle, info.interfaceGuid, IntPtr.Zero, out var profileListPtr));
                 try
                 {
-                    var header = 
+                    var header =
                         (WlanProfileInfoListHeader)Marshal.PtrToStructure(profileListPtr, typeof(WlanProfileInfoListHeader));
                     WlanProfileInfo[] profileInfos = new WlanProfileInfo[header.numberOfItems];
                     long profileListIterator = profileListPtr.ToInt64() + Marshal.SizeOf(header);
@@ -73,7 +73,7 @@ namespace winPEAS.Wifi.NativeWifiApi
                 {
                     WlanApi.WlanFreeMemory(profileListPtr);
                 }
-            }                
+            }
         }
 
         private IntPtr clientHandle;
@@ -85,7 +85,7 @@ namespace winPEAS.Wifi.NativeWifiApi
         {
             Wlan.ThrowIfError(
                 WlanApi.WlanOpenHandle(
-                    Wlan.WLAN_CLIENT_VERSION_XP_SP2, IntPtr.Zero, out negotiatedVersion, out clientHandle));          
+                    Wlan.WLAN_CLIENT_VERSION_XP_SP2, IntPtr.Zero, out negotiatedVersion, out clientHandle));
         }
 
         ~WlanClient()
@@ -93,9 +93,9 @@ namespace winPEAS.Wifi.NativeWifiApi
             if (clientHandle != IntPtr.Zero)
             {
                 WlanApi.WlanCloseHandle(clientHandle, IntPtr.Zero);
-            }            
+            }
         }
-            
+
         /// <summary>
         /// Gets the WLAN interfaces.
         /// </summary>
@@ -117,12 +117,12 @@ namespace winPEAS.Wifi.NativeWifiApi
                     Int64 listIterator = ifaceList.ToInt64() + Marshal.SizeOf(header);
                     WlanInterface[] interfaces = new WlanInterface[header.numberOfItems];
                     List<Guid> currentIfaceGuids = new List<Guid>();
-                    
+
                     for (int i = 0; i < header.numberOfItems; ++i)
                     {
                         var info =
                             (WlanInterfaceInfo)Marshal.PtrToStructure(
-                                new IntPtr(listIterator), 
+                                new IntPtr(listIterator),
                                 typeof(WlanInterfaceInfo));
 
                         listIterator += Marshal.SizeOf(info);
@@ -138,13 +138,13 @@ namespace winPEAS.Wifi.NativeWifiApi
 
                     // Remove stale interfaces
                     var deadIfacesGuids = new Queue<Guid>();
-                    
+
                     foreach (Guid ifaceGuid in ifaces.Keys)
                     {
                         if (!currentIfaceGuids.Contains(ifaceGuid))
                             deadIfacesGuids.Enqueue(ifaceGuid);
                     }
-                    
+
                     while (deadIfacesGuids.Count != 0)
                     {
                         Guid deadIfaceGuid = deadIfacesGuids.Dequeue();

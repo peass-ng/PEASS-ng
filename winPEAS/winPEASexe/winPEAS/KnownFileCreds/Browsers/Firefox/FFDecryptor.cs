@@ -9,9 +9,9 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
     /// Firefox helper class
     /// </summary>
     static class FFDecryptor
-    {        
+    {
         static IntPtr NSS3;
-        
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate long DLLFunctionDelegate(string configdir);
 

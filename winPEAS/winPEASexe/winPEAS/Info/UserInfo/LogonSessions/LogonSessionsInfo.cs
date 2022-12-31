@@ -43,6 +43,6 @@ namespace winPEAS.Info.UserInfo.LogonSessions
             LogonServerDnsDomain = logonServerDnsDomain;
             UserPrincipalName = userPrincipalName;
             UserSID = userSid;
-        }        
+        }
     }
 }

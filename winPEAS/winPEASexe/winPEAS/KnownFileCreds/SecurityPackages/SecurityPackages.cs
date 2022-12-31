@@ -8,7 +8,7 @@ using winPEAS.Native;
 namespace winPEAS.KnownFileCreds.SecurityPackages
 {
     internal class SecurityPackages
-    {        
+    {
         [StructLayout(LayoutKind.Sequential)]
         public struct SECURITY_INTEGER
         {
@@ -30,7 +30,7 @@ namespace winPEAS.KnownFileCreds.SecurityPackages
             if (cred != null)
             {
                 yield return cred;
-            }            
+            }
         }
 
         private static NtlmHashInfo GetNtlmCredentialsInternal(string challenge, bool disableESS)
@@ -142,7 +142,7 @@ namespace winPEAS.KnownFileCreds.SecurityPackages
                     return ParseNTResponse(clientTokenBytes, challenge);
                 }
                 else if (result == SEC_E_NO_CREDENTIALS)
-                {                    
+                {
                     return null;
                 }
                 else if (disableESS)
@@ -209,7 +209,7 @@ namespace winPEAS.KnownFileCreds.SecurityPackages
             {
                 return new NtlmHashInfo(
                     "NetNTLMv2",
-                    FormatNetNtlmV2Hash(challenge, user, domain, SubArray(nt_resp, 0, 16), SubArray(nt_resp,16, nt_resp.Length - 16))
+                    FormatNetNtlmV2Hash(challenge, user, domain, SubArray(nt_resp, 0, 16), SubArray(nt_resp, 16, nt_resp.Length - 16))
                 );
             }
             else
@@ -253,7 +253,7 @@ namespace winPEAS.KnownFileCreds.SecurityPackages
         private static string ByteArrayToString(byte[] ba)
         {
             var hex = new StringBuilder(ba.Length * 2);
-            
+
             foreach (var b in ba)
             {
                 hex.AppendFormat("{0:x2}", b);

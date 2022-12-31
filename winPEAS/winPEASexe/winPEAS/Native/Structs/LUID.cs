@@ -2,7 +2,7 @@
 
 namespace winPEAS.Native.Structs
 {
-	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct LUID
     {
         public uint LowPart;

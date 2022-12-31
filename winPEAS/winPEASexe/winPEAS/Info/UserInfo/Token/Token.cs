@@ -10,7 +10,7 @@ using winPEAS.Native.Enums;
 namespace winPEAS.Info.UserInfo.Token
 {
     internal static class Token
-    {  
+    {
         public static Dictionary<string, string> GetTokenGroupPrivs()
         {
             // Returns all privileges that the current process/user possesses
@@ -36,7 +36,7 @@ namespace winPEAS.Info.UserInfo.Token
                         Advapi32.LookupPrivilegeName(null, luidPointer, null, ref luidNameLen);
                         strBuilder.EnsureCapacity(luidNameLen + 1);
                         if (Advapi32.LookupPrivilegeName(null, luidPointer, strBuilder, ref luidNameLen))
-                            results[strBuilder.ToString()] = $"{(LuidAttributes) laa.Attributes}";
+                            results[strBuilder.ToString()] = $"{(LuidAttributes)laa.Attributes}";
                         Marshal.FreeHGlobal(luidPointer);
                     }
                 }

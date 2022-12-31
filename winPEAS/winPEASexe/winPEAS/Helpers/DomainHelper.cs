@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using winPEAS.Native;
 using winPEAS.Native.Enums;
 
@@ -15,9 +14,9 @@ namespace winPEAS.Helpers
     {
         internal class Win32
         {
-            public const int ErrorSuccess = 0;           
+            public const int ErrorSuccess = 0;
 
-            
+
         }
 
         public static string IsDomainJoined()

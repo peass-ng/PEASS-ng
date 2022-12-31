@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace winPEAS.Helpers
 {
@@ -105,7 +104,7 @@ namespace winPEAS.Helpers
 
             PrintLegend();
             Console.WriteLine();
-            Console.WriteLine(BLUE + " You can find a Windows local PE Checklist here: "+YELLOW+"https://book.hacktricks.xyz/windows-hardening/checklist-windows-privilege-escalation");
+            Console.WriteLine(BLUE + " You can find a Windows local PE Checklist here: " + YELLOW + "https://book.hacktricks.xyz/windows-hardening/checklist-windows-privilege-escalation");
         }
 
         static void PrintLegend()
@@ -142,7 +141,7 @@ namespace winPEAS.Helpers
             Console.WriteLine(LCYAN + "        debug" + GRAY + "                Display debugging information - memory usage, method execution time" + NOCOLOR);
             Console.WriteLine(LCYAN + "        log[=logfile]" + GRAY + $"        Log all output to file defined as logfile, or to \"{Checks.Checks.DefaultLogFile}\" if not specified" + NOCOLOR);
             Console.WriteLine(LCYAN + "        max-regex-file-size=1000000" + GRAY + $"        Max file size (in Bytes) to search regex in. Default: {Checks.Checks.MaxRegexFileSize}B" + NOCOLOR);
-            
+
             Console.WriteLine();
             Console.WriteLine(GREEN + "        Additional checks (slower):");
             Console.WriteLine(LCYAN + "        -lolbas" + GRAY + $"              Run additional LOLBAS check" + NOCOLOR);

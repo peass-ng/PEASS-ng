@@ -17,7 +17,7 @@ namespace winPEAS.Info.NetworkInfo
     {
         // https://docs.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-socket
         private const int AF_INET = 2;
-        private const int AF_INET6 = 23;       
+        private const int AF_INET6 = 23;
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct MIB_IPNETROW
@@ -191,12 +191,12 @@ namespace winPEAS.Info.NetworkInfo
                 foreach (var listener in props.GetActiveTcpListeners())
                 {
                     bool repeated = false;
-                    foreach(List<string> inside_entry in results)
+                    foreach (List<string> inside_entry in results)
                     {
                         if (inside_entry.SequenceEqual(new List<string>() { "TCP", listener.ToString(), "", "Listening" }))
                             repeated = true;
                     }
-                    if (! repeated)
+                    if (!repeated)
                         results.Add(new List<string>() { "TCP", listener.ToString(), "", "Listening" });
                 }
 
@@ -220,7 +220,7 @@ namespace winPEAS.Info.NetworkInfo
             return results;
         }
 
-       
+
 
         // https://stackoverflow.com/questions/3567063/get-a-list-of-all-unc-shared-folders-on-a-local-network-server
         // v2: https://stackoverflow.com/questions/6227892/reading-share-permissions-in-c-sharp
@@ -297,7 +297,7 @@ namespace winPEAS.Info.NetworkInfo
                 Beaprint.PrintException(ex.Message);
             }
             return results;
-        }       
+        }
 
         public static List<TcpConnectionInfo> GetTcpConnections(IPVersion ipVersion, Dictionary<int, Process> processesByPid = null)
         {
@@ -325,8 +325,8 @@ namespace winPEAS.Info.NetworkInfo
 
                 // If not zero, the call failed.
                 if (result != 0)
-                { 
-                    return new List<TcpConnectionInfo>(); 
+                {
+                    return new List<TcpConnectionInfo>();
                 }
 
                 // Marshals data fron an unmanaged block of memory to the
@@ -337,7 +337,7 @@ namespace winPEAS.Info.NetworkInfo
                 // Determine if IPv4 or IPv6.
                 if (ipVersion == IPVersion.IPv4)
                 {
-                    MIB_TCPTABLE_OWNER_PID tcpRecordsTable = (MIB_TCPTABLE_OWNER_PID) Marshal.PtrToStructure(tcpTableRecordsPtr, typeof(MIB_TCPTABLE_OWNER_PID));
+                    MIB_TCPTABLE_OWNER_PID tcpRecordsTable = (MIB_TCPTABLE_OWNER_PID)Marshal.PtrToStructure(tcpTableRecordsPtr, typeof(MIB_TCPTABLE_OWNER_PID));
 
                     IntPtr tableRowPtr = (IntPtr)((long)tcpTableRecordsPtr + Marshal.SizeOf(tcpRecordsTable.dwNumEntries));
 
@@ -373,7 +373,7 @@ namespace winPEAS.Info.NetworkInfo
                 }
                 else if (ipVersion == IPVersion.IPv6)
                 {
-                    MIB_TCP6TABLE_OWNER_PID tcpRecordsTable = (MIB_TCP6TABLE_OWNER_PID) Marshal.PtrToStructure(tcpTableRecordsPtr, typeof(MIB_TCP6TABLE_OWNER_PID));
+                    MIB_TCP6TABLE_OWNER_PID tcpRecordsTable = (MIB_TCP6TABLE_OWNER_PID)Marshal.PtrToStructure(tcpTableRecordsPtr, typeof(MIB_TCP6TABLE_OWNER_PID));
 
                     IntPtr tableRowPtr = (IntPtr)((long)tcpTableRecordsPtr + Marshal.SizeOf(tcpRecordsTable.dwNumEntries));
 
@@ -461,14 +461,14 @@ namespace winPEAS.Info.NetworkInfo
                 // Determine if IPv4 or IPv6.
                 if (ipVersion == IPVersion.IPv4)
                 {
-                    MIB_UDPTABLE_OWNER_PID udpRecordsTable = (MIB_UDPTABLE_OWNER_PID) Marshal.PtrToStructure(udpTableRecordsPtr, typeof(MIB_UDPTABLE_OWNER_PID));
+                    MIB_UDPTABLE_OWNER_PID udpRecordsTable = (MIB_UDPTABLE_OWNER_PID)Marshal.PtrToStructure(udpTableRecordsPtr, typeof(MIB_UDPTABLE_OWNER_PID));
                     IntPtr tableRowPtr = (IntPtr)((long)udpTableRecordsPtr + Marshal.SizeOf(udpRecordsTable.dwNumEntries));
 
                     // Read and parse the UDP records from the table and store them in list 
                     // 'UdpConnection' structure type objects.
                     for (int i = 0; i < udpRecordsTable.dwNumEntries; i++)
                     {
-                        MIB_UDPROW_OWNER_PID udpRow = (MIB_UDPROW_OWNER_PID) Marshal.PtrToStructure(tableRowPtr, typeof(MIB_UDPROW_OWNER_PID));
+                        MIB_UDPROW_OWNER_PID udpRow = (MIB_UDPROW_OWNER_PID)Marshal.PtrToStructure(tableRowPtr, typeof(MIB_UDPROW_OWNER_PID));
                         udpTableRecords.Add(new UdpConnectionInfo(
                                                 Protocol.UDP,
                                                 new IPAddress(udpRow.localAddr),

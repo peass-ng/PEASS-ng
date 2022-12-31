@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Text;
 using winPEAS.Helpers;
 using winPEAS.Native;
@@ -10,7 +9,7 @@ namespace winPEAS.Info.ApplicationInfo
 {
     internal class ApplicationInfoHelper
     {
-        
+
         public static string GetActiveWindowTitle()
         {
             const int nChars = 256;
@@ -46,7 +45,7 @@ namespace winPEAS.Info.ApplicationInfo
             {
                 try
                 {
-                    if (t.Enabled && 
+                    if (t.Enabled &&
                         !string.IsNullOrEmpty(t.Path) && !t.Path.Contains("Microsoft") &&
                         !string.IsNullOrEmpty(t.Definition.RegistrationInfo.Author) &&
                         !t.Definition.RegistrationInfo.Author.Contains("Microsoft"))

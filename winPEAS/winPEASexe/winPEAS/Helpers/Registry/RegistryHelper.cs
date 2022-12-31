@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Win32;
 
 namespace winPEAS.Helpers.Registry
 {
@@ -177,7 +177,7 @@ namespace winPEAS.Helpers.Registry
 
         internal static uint? GetDwordValue(string hive, string key, string val)
         {
-            string strValue = RegistryHelper.GetRegValue(hive, key, val);
+            string strValue = GetRegValue(hive, key, val);
 
             if (uint.TryParse(strValue, out uint res))
             {

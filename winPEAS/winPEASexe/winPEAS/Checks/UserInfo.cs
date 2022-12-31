@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Security.Principal;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Extensions;
@@ -39,7 +37,7 @@ namespace winPEAS.Checks
         public void PrintInfo(bool isDebug)
         {
             Beaprint.GreatPrint("Users Information");
-            
+
             new List<Action>
             {
                 PrintCU,
@@ -158,7 +156,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("RDP Sessions");
-                List<Dictionary<string, string>> rdp_sessions = Info.UserInfo.UserInfoHelper.GetRDPSessions();
+                List<Dictionary<string, string>> rdp_sessions = UserInfoHelper.GetRDPSessions();
                 if (rdp_sessions.Count > 0)
                 {
                     string format = "    {0,-10}{1,-15}{2,-15}{3,-25}{4,-10}{5}";
@@ -263,7 +261,7 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Password Policies");
                 Beaprint.LinkPrint("", "Check for a possible brute-force");
-                List<Dictionary<string, string>> PPy = Info.UserInfo.UserInfoHelper.GetPasswordPolicy();
+                List<Dictionary<string, string>> PPy = UserInfoHelper.GetPasswordPolicy();
                 Beaprint.DictPrint(PPy, ColorsU(), false);
             }
             catch (Exception ex)
@@ -282,7 +280,7 @@ namespace winPEAS.Checks
 
                 foreach (var logonSession in logonSessions)
                 {
-                    Beaprint.NoColorPrint  ($"    Method:                       {logonSession.Method}\n" + 
+                    Beaprint.NoColorPrint($"    Method:                       {logonSession.Method}\n" +
                                             $"    Logon Server:                 {logonSession.LogonServer}\n" +
                                             $"    Logon Server Dns Domain:      {logonSession.LogonServerDnsDomain}\n" +
                                             $"    Logon Id:                     {logonSession.LogonId}\n" +
@@ -317,7 +315,7 @@ namespace winPEAS.Checks
                 if (User32.GetLastInputInfo(ref lastInputInfo))
                 {
                     var currentUser = WindowsIdentity.GetCurrent().Name;
-                    var idleTimeMiliSeconds = (uint) Environment.TickCount - lastInputInfo.Time;
+                    var idleTimeMiliSeconds = (uint)Environment.TickCount - lastInputInfo.Time;
                     var timeSpan = TimeSpan.FromMilliseconds(idleTimeMiliSeconds);
                     var idleTimeString = $"{timeSpan.Hours:D2}h:{timeSpan.Minutes:D2}m:{timeSpan.Seconds:D2}s:{timeSpan.Milliseconds:D3}ms";
 
@@ -364,7 +362,7 @@ namespace winPEAS.Checks
                         lastLogon = lastLogon.AddSeconds(localUser.last_logon).ToLocalTime();
                     }
 
-                    Beaprint.AnsiPrint( $"   Computer Name           :   {computerName}\n" +
+                    Beaprint.AnsiPrint($"   Computer Name           :   {computerName}\n" +
                                         $"   User Name               :   {localUser.name}\n" +
                                         $"   User Id                 :   {localUser.user_id}\n" +
                                         $"   Is Enabled              :   {enabled}\n" +

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using System.Security.Principal;
-using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 
 namespace winPEAS.Info.UserInfo

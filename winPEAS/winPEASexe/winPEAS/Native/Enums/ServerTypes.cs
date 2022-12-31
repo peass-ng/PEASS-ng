@@ -2,7 +2,7 @@
 
 namespace winPEAS.Native.Enums
 {
-	[Flags]
+    [Flags]
     public enum ServerTypes : uint
     {
         Workstation = 0x00000001,

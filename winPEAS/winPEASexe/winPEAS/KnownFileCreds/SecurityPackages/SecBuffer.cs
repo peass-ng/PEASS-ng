@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 namespace winPEAS.KnownFileCreds.SecurityPackages
-{    
+{
     [StructLayout(LayoutKind.Sequential)]
     public struct SecBuffer : IDisposable
     {

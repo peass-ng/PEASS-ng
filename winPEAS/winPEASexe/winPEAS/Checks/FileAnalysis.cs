@@ -27,7 +27,7 @@ namespace winPEAS.Checks
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
-        private static List<CustomFileInfo> InitializeFileSearch(bool useProgramFiles=true)
+        private static List<CustomFileInfo> InitializeFileSearch(bool useProgramFiles = true)
         {
             var files = new List<CustomFileInfo>();
             var systemDrive = $"{SearchHelper.SystemDrive}\\";
@@ -101,7 +101,7 @@ namespace winPEAS.Checks
                             isFileFound = Regex.IsMatch(fold, pattern, RegexOptions.IgnoreCase);
                             if (isFileFound) break;
                         }
-                    }   
+                    }
                 }
                 else
                 {
@@ -118,7 +118,8 @@ namespace winPEAS.Checks
 
                 if (isFileFound)
                 {
-                    if (!somethingFound) {
+                    if (!somethingFound)
+                    {
                         Beaprint.MainPrint($"Found {searchName} Files");
                         somethingFound = true;
                     }
@@ -132,7 +133,7 @@ namespace winPEAS.Checks
                         }
                     }
                     // there are inner sections
-                    else 
+                    else
                     {
                         foreach (var innerFileToSearch in fileSettings.files)
                         {
@@ -143,7 +144,7 @@ namespace winPEAS.Checks
                 }
             }
 
-           
+
             return new bool[] { false, somethingFound };
         }
 
@@ -177,7 +178,7 @@ namespace winPEAS.Checks
                     }
                     return foundMatches;
                 }
-                
+
                 if (!is_re_match)
                 {
                     return foundMatches;
@@ -187,10 +188,10 @@ namespace winPEAS.Checks
                 foreach (Match match in rgx.Matches(text))
                 {
                     if (cont > 10) break;
-                    
+
                     if (match.Value.Length < 400 && match.Value.Trim().Length > 2)
                         foundMatches.Add(match.Value);
-                    
+
                     cont++;
                 }
             }
@@ -348,12 +349,12 @@ namespace winPEAS.Checks
                                     {
                                         timer.Start();
                                     }
-                                    
+
 
                                     try
                                     {
-                                        string text = System.IO.File.ReadAllText(f.FullPath);
-                                        
+                                        string text = File.ReadAllText(f.FullPath);
+
                                         results = SearchContent(text, regex.regex, (bool)regex.caseinsensitive);
                                         if (results.Count > 0)
                                         {
@@ -429,7 +430,7 @@ namespace winPEAS.Checks
             // . -> \.
             // * -> .*
             // add $ at the end to avoid false positives
-            
+
             var pattern = str.Replace(".", @"\.")
                              .Replace("*", @".*");
 
@@ -447,11 +448,11 @@ namespace winPEAS.Checks
             resultsCount++;
 
             if (resultsCount > ListFileLimit) return false;
-            
+
             // If contains undesireable string, stop processing
             if (fileSettings.remove_path != null && fileSettings.remove_path.Length > 0)
             {
-                foreach(var rem_path in fileSettings.remove_path.Split('|'))
+                foreach (var rem_path in fileSettings.remove_path.Split('|'))
                 {
                     if (fileInfo.FullPath.ToLower().Contains(rem_path.ToLower()))
                         return false;
@@ -460,19 +461,23 @@ namespace winPEAS.Checks
 
             if (fileSettings.type == "f")
             {
-                var colors = new Dictionary<string, string>();
-                colors.Add(fileInfo.Filename, Beaprint.ansi_color_bad);
+                var colors = new Dictionary<string, string>
+                {
+                    { fileInfo.Filename, Beaprint.ansi_color_bad }
+                };
                 Beaprint.AnsiPrint($"File: {fileInfo.FullPath}", colors);
 
-                if   (!(bool)fileSettings.just_list_file)
+                if (!(bool)fileSettings.just_list_file)
                 {
                     GrepResult(fileInfo, fileSettings);
                 }
             }
             else if (fileSettings.type == "d")
             {
-                var colors = new Dictionary<string, string>();
-                colors.Add(fileInfo.Filename, Beaprint.ansi_color_bad);
+                var colors = new Dictionary<string, string>
+                {
+                    { fileInfo.Filename, Beaprint.ansi_color_bad }
+                };
                 Beaprint.AnsiPrint($"Folder: {fileInfo.FullPath}", colors);
 
                 // just list the directory
@@ -487,7 +492,7 @@ namespace winPEAS.Checks
                 }
                 else
                 {
-                   // should not happen
+                    // should not happen
                 }
             }
 
@@ -531,11 +536,11 @@ namespace winPEAS.Checks
                 {
                     lineGrep = SanitizeLineGrep(fileSettings.line_grep);
                 }
-                
+
                 fileContent = fileContent.Where(line => (!string.IsNullOrWhiteSpace(fileSettings.good_regex) && Regex.IsMatch(line, fileSettings.good_regex, RegexOptions.IgnoreCase)) ||
                                                        (!string.IsNullOrWhiteSpace(fileSettings.bad_regex) && Regex.IsMatch(line, fileSettings.bad_regex, RegexOptions.IgnoreCase)) ||
                                                        (!string.IsNullOrWhiteSpace(lineGrep) && Regex.IsMatch(line, lineGrep, RegexOptions.IgnoreCase)));
-            }    
+            }
 
             var content = string.Join(Environment.NewLine, fileContent);
 

@@ -13,6 +13,6 @@
             HashingAlgorithm = hashingAlgorithm;
             Options = options;
             Rules = rules;
-        } 
+        }
     }
 }

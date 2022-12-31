@@ -15,7 +15,7 @@ namespace winPEAS.InterestingFiles
 
             try
             {
-                string allUsers = System.Environment.GetEnvironmentVariable("ALLUSERSPROFILE");
+                string allUsers = Environment.GetEnvironmentVariable("ALLUSERSPROFILE");
 
                 if (!allUsers.Contains("ProgramData"))
                 {
@@ -225,11 +225,13 @@ namespace winPEAS.InterestingFiles
                         Changed = "[BLANK]";
                     }
 
-                    results[file] = new Dictionary<string, string>();
-                    results[file]["UserName"] = UserName;
-                    results[file]["NewName"] = NewName;
-                    results[file]["cPassword"] = cPassword;
-                    results[file]["Changed"] = Changed;
+                    results[file] = new Dictionary<string, string>
+                    {
+                        ["UserName"] = UserName,
+                        ["NewName"] = NewName,
+                        ["cPassword"] = cPassword,
+                        ["Changed"] = Changed
+                    };
                 }
             }
             catch (Exception ex)

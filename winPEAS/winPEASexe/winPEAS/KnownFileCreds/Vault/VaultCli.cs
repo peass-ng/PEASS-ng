@@ -45,16 +45,18 @@ namespace winPEAS.KnownFileCreds.Vault
 
                 // Create dictionary to translate Guids to human readable elements
                 IntPtr guidAddress = vaultGuidPtr;
-                Dictionary<Guid, string> vaultSchema = new Dictionary<Guid, string>();
-                vaultSchema.Add(new Guid("2F1A6504-0641-44CF-8BB5-3612D865F2E5"), "Windows Secure Note");
-                vaultSchema.Add(new Guid("3CCD5499-87A8-4B10-A215-608888DD3B55"), "Windows Web Password Credential");
-                vaultSchema.Add(new Guid("154E23D0-C644-4E6F-8CE6-5069272F999F"), "Windows Credential Picker Protector");
-                vaultSchema.Add(new Guid("4BF4C442-9B8A-41A0-B380-DD4A704DDB28"), "Web Credentials");
-                vaultSchema.Add(new Guid("77BC582B-F0A6-4E15-4E80-61736B6F3B29"), "Windows Credentials");
-                vaultSchema.Add(new Guid("E69D7838-91B5-4FC9-89D5-230D4D4CC2BC"), "Windows Domain Certificate Credential");
-                vaultSchema.Add(new Guid("3E0E35BE-1B77-43E7-B873-AED901B6275B"), "Windows Domain Password Credential");
-                vaultSchema.Add(new Guid("3C886FF3-2669-4AA2-A8FB-3F6759A77548"), "Windows Extended Credential");
-                vaultSchema.Add(new Guid("00000000-0000-0000-0000-000000000000"), null);
+                Dictionary<Guid, string> vaultSchema = new Dictionary<Guid, string>
+                {
+                    { new Guid("2F1A6504-0641-44CF-8BB5-3612D865F2E5"), "Windows Secure Note" },
+                    { new Guid("3CCD5499-87A8-4B10-A215-608888DD3B55"), "Windows Web Password Credential" },
+                    { new Guid("154E23D0-C644-4E6F-8CE6-5069272F999F"), "Windows Credential Picker Protector" },
+                    { new Guid("4BF4C442-9B8A-41A0-B380-DD4A704DDB28"), "Web Credentials" },
+                    { new Guid("77BC582B-F0A6-4E15-4E80-61736B6F3B29"), "Windows Credentials" },
+                    { new Guid("E69D7838-91B5-4FC9-89D5-230D4D4CC2BC"), "Windows Domain Certificate Credential" },
+                    { new Guid("3E0E35BE-1B77-43E7-B873-AED901B6275B"), "Windows Domain Password Credential" },
+                    { new Guid("3C886FF3-2669-4AA2-A8FB-3F6759A77548"), "Windows Extended Credential" },
+                    { new Guid("00000000-0000-0000-0000-000000000000"), null }
+                };
 
                 for (int i = 0; i < vaultCount; i++)
                 {
@@ -167,7 +169,7 @@ namespace winPEAS.KnownFileCreds.Vault
                                     vault_cred["PacakgeSid"] = string.Format("{0}", packageSid);
                                 }
                                 vault_cred["Credential"] = string.Format("{0}", cred);
-                                vault_cred["Last Modified"] = string.Format("{0}", System.DateTime.FromFileTimeUtc((long)lastModified));
+                                vault_cred["Last Modified"] = string.Format("{0}", DateTime.FromFileTimeUtc((long)lastModified));
                                 results.Add(vault_cred);
                             }
                         }

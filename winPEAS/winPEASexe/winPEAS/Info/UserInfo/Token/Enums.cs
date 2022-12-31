@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace winPEAS.Info.UserInfo.Token
-{  
+{
     [Flags]
     public enum LuidAttributes : uint
     {
