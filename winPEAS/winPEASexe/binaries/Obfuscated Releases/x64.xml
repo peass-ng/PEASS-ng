@@ -14,7 +14,7 @@
         <option>stripoa</option>
         <option>library</option>
         <option>transformxaml</option>
-        <file dir="winPEAS\winPEASexe\binaries\x64\Release" name="winPEASx64.exe" />
+        <file dir="binaries\x64\Release" name="winPEAS.exe" />
       </inputassembly>
     </asmlist>
   </input>

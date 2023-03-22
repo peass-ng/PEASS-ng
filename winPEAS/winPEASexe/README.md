@@ -121,14 +121,15 @@ In order to compile an **ofuscated version** of Winpeas and bypass some AVs you 
 
 To install it *open VisualStudio --> Go to Search (CTRL+Q) --> Write "dotfuscator"* and just follow the instructions to install it.
 
-To use **dotfuscator** you will need to **create an account** *(they will send you an email to the address you set during registration*).
+To use **dotfuscator** you can **create an account** *(they will send you an email to the address you set during registration*) to get access to updates and some additional features. It is also possible to skip that step and obfuscate winPEAS, just hit `cancel`.
 
 Once you have installed and activated it you need to:
-1. **Compile** winpeas in VisualStudio
+1. **Compile** winpeas in VisualStudio, for Release
 2. **Open dotfuscator** app
-3. **Open** in dotfuscator **winPEAS.exe compiled**
+3. **Open the dotfuscator config** from `binaries/Obfuscated Releases/<architecture>`
+    - replace `architecture` with the architecture, which you compiled (x86, x86, any)
 4. Click on **Build**
-5. The **single, minimized and obfuscated binary** will appear in a **folder called Dotfuscator inside the folder were winPEAS.exe** and the DLL were (this location will be saved by dotfuscator and by default all the following builds will appear in this folder).
+5. The **single, minimized and obfuscated binary** will appear in `binaries/Obfuscated Releases/Dotfuscated/<architectur>` and the DLL were (this location will be saved by dotfuscator and by default all the following builds will appear in this folder).
 
 **I'm sorry that all of this is necessary but is worth it. Dotfuscator minimizes a bit the size of the executable and obfuscates the code**.
 
