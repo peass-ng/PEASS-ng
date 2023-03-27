@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
+using DirectoryInfo = Alphaleonis.Win32.Filesystem.DirectoryInfo;
 
 namespace winPEAS.Helpers.Search
 {
@@ -39,12 +41,131 @@ namespace winPEAS.Helpers.Search
             ".png", ".psd", ".raw", ".svg", ".svgz", ".tif", ".tiff", ".webp",
         };
 
+        //public static List<CustomFileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null, bool isFoldersIncluded = false)
+        //{
+        //    ConcurrentBag<CustomFileInfo> files = new ConcurrentBag<CustomFileInfo>();
+        //    IEnumerable<DirectoryInfo> startDirs = GetStartDirectories(folder, files, pattern, isFoldersIncluded);
+        //    IList<DirectoryInfo> startDirsExcluded = new List<DirectoryInfo>();
+        //    IList<string> known_dirs = new List<string>();
+
+        //    if (excludedDirs != null)
+        //    {
+        //        foreach (var startDir in startDirs)
+        //        {
+        //            bool shouldAdd = true;
+        //            string startDirLower = startDir.FullName.ToLower();
+
+        //            shouldAdd = !excludedDirs.Contains(startDirLower);
+
+        //            if (shouldAdd)
+        //            {
+        //                startDirsExcluded.Add(startDir);
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        startDirsExcluded = startDirs.ToList();
+        //    }
+
+        //    Parallel.ForEach(startDirsExcluded, (d) =>
+        //    {
+        //        Parallel.ForEach(GetStartDirectories(d.FullName, files, pattern, isFoldersIncluded), (dir) =>
+        //        {
+        //            GetFiles(dir.FullName, pattern).ForEach(
+        //                (f) =>
+        //                {
+        //                    if (!StaticExtensions.Contains(f.Extension.ToLower()))
+        //                    {
+        //                        // It should always be lesss than 260, but some times it isn't so this will bypass that file
+        //                        //if (Checks.Checks.IsLongPath || f.FullName.Length <= 260)
+        //                        //{
+        //                        CustomFileInfo file_info = new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false);
+        //                        files.Add(file_info);
+
+        //                        CustomFileInfo file_dir = new CustomFileInfo(f.Directory.Name, "", f.Directory.FullName, 0, true);
+        //                        if (!known_dirs.Contains(file_dir.FullPath))
+        //                        {
+        //                            known_dirs.Add(file_dir.FullPath);
+        //                            files.Add(file_dir);
+        //                        }
+        //                        //}
+        //                        //else if (f.FullName.Length > 260)
+        //                        //Beaprint.LongPathWarning(f.FullName);
+        //                    }
+        //                }
+        //                );
+        //        });
+        //    });
+
+        //    return files.ToList();
+        //}
+
+        //private static List<FileInfo> GetFiles(string folder, string pattern = "*")
+        //{
+        //    DirectoryInfo dirInfo;
+        //    DirectoryInfo[] directories;
+        //    try
+        //    {
+        //        dirInfo = new DirectoryInfo(folder);
+        //        directories = dirInfo.GetDirectories();
+
+        //        if (directories.Length == 0)
+        //        {
+        //            return new List<FileInfo>(dirInfo.GetFiles(pattern));
+        //        }
+        //    }
+        //    catch (UnauthorizedAccessException)
+        //    {
+        //        return new List<FileInfo>();
+        //    }
+        //    catch (PathTooLongException)
+        //    {
+        //        return new List<FileInfo>();
+        //    }
+        //    catch (DirectoryNotFoundException)
+        //    {
+        //        return new List<FileInfo>();
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return new List<FileInfo>();
+        //    }
+
+        //    List<FileInfo> result = new List<FileInfo>();
+
+        //    foreach (var d in directories)
+        //    {
+        //        result.AddRange(GetFiles(d.FullName, pattern));
+        //    }
+
+        //    try
+        //    {
+        //        result.AddRange(dirInfo.GetFiles(pattern));
+        //    }
+        //    catch (UnauthorizedAccessException)
+        //    {
+        //    }
+        //    catch (PathTooLongException)
+        //    {
+        //    }
+        //    catch (DirectoryNotFoundException)
+        //    {
+        //    }
+        //    catch (Exception)
+        //    {
+        //    }
+
+        //    return result;
+        //}
+
+
         public static List<CustomFileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null, bool isFoldersIncluded = false)
         {
             ConcurrentBag<CustomFileInfo> files = new ConcurrentBag<CustomFileInfo>();
             IEnumerable<DirectoryInfo> startDirs = GetStartDirectories(folder, files, pattern, isFoldersIncluded);
             IList<DirectoryInfo> startDirsExcluded = new List<DirectoryInfo>();
-            IList<string> known_dirs = new List<string>();
+            ConcurrentDictionary<string, byte> known_dirs = new ConcurrentDictionary<string, byte>();
 
             if (excludedDirs != null)
             {
@@ -68,36 +189,26 @@ namespace winPEAS.Helpers.Search
 
             Parallel.ForEach(startDirsExcluded, (d) =>
             {
-                Parallel.ForEach(GetStartDirectories(d.FullName, files, pattern, isFoldersIncluded), (dir) =>
+                var foundFiles = GetFiles(d.FullName, pattern);
+                foreach (var f in foundFiles)
                 {
-                    GetFiles(dir.FullName, pattern).ForEach(
-                        (f) =>
-                        {
-                            if (!StaticExtensions.Contains(f.Extension.ToLower()))
-                            {
-                                // It should always be lesss than 260, but some times it isn't so this will bypass that file
-                                if (Checks.Checks.IsLongPath || f.FullName.Length <= 260)
-                                {
-                                    CustomFileInfo file_info = new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false);
-                                    files.Add(file_info);
+                    if (f != null && !StaticExtensions.Contains(f.Extension.ToLower()))
+                    {
+                        CustomFileInfo file_info = new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false);
+                        files.Add(file_info);
 
-                                    CustomFileInfo file_dir = new CustomFileInfo(f.Directory.Name, "", f.Directory.FullName, 0, true);
-                                    if (!known_dirs.Contains(file_dir.FullPath))
-                                    {
-                                        known_dirs.Add(file_dir.FullPath);
-                                        files.Add(file_dir);
-                                    }
-                                }
-                                else if (f.FullName.Length > 260)
-                                    Beaprint.LongPathWarning(f.FullName);
-                            }
+                        CustomFileInfo file_dir = new CustomFileInfo(f.Directory.Name, "", f.Directory.FullName, 0, true);
+                        if (known_dirs.TryAdd(file_dir.FullPath, 0))
+                        {
+                            files.Add(file_dir);
                         }
-                        );
-                });
+                    }
+                }
             });
 
             return files.ToList();
         }
+
 
         private static List<FileInfo> GetFiles(string folder, string pattern = "*")
         {
@@ -130,16 +241,22 @@ namespace winPEAS.Helpers.Search
                 return new List<FileInfo>();
             }
 
-            List<FileInfo> result = new List<FileInfo>();
+            ConcurrentBag<FileInfo> result = new ConcurrentBag<FileInfo>();
 
-            foreach (var d in directories)
+            Parallel.ForEach(directories, (d) =>
             {
-                result.AddRange(GetFiles(d.FullName, pattern));
-            }
+                foreach (var file in GetFiles(d.FullName, pattern))
+                {
+                    result.Add(file);
+                }
+            });
 
             try
             {
-                result.AddRange(dirInfo.GetFiles(pattern));
+                foreach (var file in dirInfo.GetFiles(pattern))
+                {
+                    result.Add(file);
+                }
             }
             catch (UnauthorizedAccessException)
             {
@@ -154,7 +271,7 @@ namespace winPEAS.Helpers.Search
             {
             }
 
-            return result;
+            return result.ToList();
         }
 
         private static IEnumerable<DirectoryInfo> GetStartDirectories(string folder, ConcurrentBag<CustomFileInfo> files, string pattern, bool isFoldersIncluded = false)
