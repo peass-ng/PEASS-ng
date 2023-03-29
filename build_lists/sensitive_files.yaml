@@ -2123,7 +2123,7 @@ search:
         files:
           - name: "snmpd.conf"
             value: 
-                bad_regex: "rocommunity|rwcommunity|extend.*"
+                bad_regex: "rocommunity|rwcommunity|extend.*|^createUser"
                 only_bad_lines: True
                 type: f
                 search_in: 
