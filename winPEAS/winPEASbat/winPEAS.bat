@@ -52,7 +52,7 @@ CALL :ColorLine "   %E%41mUse it at your own networks and/or with the network ow
 ECHO.
 
 :SystemInfo
-CALL :ColorLine "%E%32m[*]%E%97m BASIC SYSTEM INFO
+CALL :ColorLine "%E%32m[*]%E%97m BASIC SYSTEM INFO"
 CALL :ColorLine " %E%33m[+]%E%97m WINDOWS OS"
 ECHO.   [i] Check for vulnerabilities for the OS version with the applied patches
 ECHO.   [?] https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#kernel-exploits
@@ -404,7 +404,7 @@ CALL :T_Progress 1
 
 :CurrentClipboard
 CALL :ColorLine " %E%33m[+]%E%97m CURRENT CLIPBOARD"
-ECHO.   [i] Any password inside the clipboard?
+ECHO.   [i] Any passwords inside the clipboard?
 powershell -command "Get-Clipboard" 2>nul
 ECHO.
 CALL :T_Progress 1
