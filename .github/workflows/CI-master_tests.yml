@@ -414,7 +414,7 @@ jobs:
     
     - name: Generate random
       id: random_n
-      run: echo "::set-output name=tag_name::$(openssl rand -hex 4)"
+      run: echo "::set-output name=some_rand::$(openssl rand -hex 4)"
     
     # Create the release
     - name: Create Release
@@ -423,8 +423,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{steps.date.outputs.date}}-${{steps.date.outputs.random_n}}
-        release_name: Release ${{ github.ref }} ${{steps.date.outputs.date}}-${{steps.date.outputs.random_n}}
+        tag_name: ${{steps.date.outputs.date}}-${{steps.random_n.outputs.some_rand}}
+        release_name: Release ${{ github.ref }} ${{steps.date.outputs.date}}-${{steps.random_n.outputs.some_rand}}
         draft: false
         prerelease: false
         
