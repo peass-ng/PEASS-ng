@@ -536,7 +536,7 @@ regular_expresions:
     
     - name: GitLab Runner Registration Token
       regex: >
-        GR1348941[0-9a-zA-Z\_\-]{20}
+        GR1348941[0-9a-zA-Z_\-]{20}
       example: >
         GR1348941RzEF5zAQQ0ljjE72T-33
 
