@@ -389,7 +389,8 @@ if [ "$inContainer" ]; then
     if [ "$(command -v capsh)" ]; then 
       capsh --print 2>/dev/null | sed -${E} "s,$containercapsB,${SED_RED},g"
     else
-      cat /proc/self/status | grep Cap | sed -${E} "s, .*,${SED_RED},g" | sed -${E} "s,0000000000000000|00000000a80425fb,${SED_GREEN},g"
+      defautl_docker_caps="00000000a80425fb=cap_chown,cap_dac_override,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_net_bind_service,cap_net_raw,cap_sys_chroot,cap_mknod,cap_audit_write,cap_setfcap"
+      cat /proc/self/status | tr '\t' ' ' | grep Cap | sed -${E} "s, .*,${SED_RED},g" | sed -${E} "s/00000000a80425fb/$defautl_docker_caps/g" | sed -${E} "s,0000000000000000|00000000a80425fb,${SED_GREEN},g"
       echo $ITALIC"Run capsh --decode=<hex> to decode the capabilities"$NC
     fi
     echo ""
