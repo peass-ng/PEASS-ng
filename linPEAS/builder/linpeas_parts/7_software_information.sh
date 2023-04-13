@@ -129,9 +129,9 @@ if [ "$PSTORAGE_MYSQL" ] || [ "$DEBUG" ]; then
       done
     fi
     
-    mysqlexec=$(whereis lib_mysqludf_sys.so 2>/dev/null | grep "lib_mysqludf_sys\.so")
+    mysqlexec=$(whereis lib_mysqludf_sys.so 2>/dev/null | grep -Ev '^lib_mysqludf_sys.so:$' | grep "lib_mysqludf_sys\.so")
     if [ "$mysqlexec" ]; then
-      echo "Found $mysqlexec"
+      echo "Found $mysqlexec. $(whereis lib_mysqludf_sys.so)"
       echo "If you can login in MySQL you can execute commands doing: SELECT sys_eval('id');" | sed -${E} "s,.*,${SED_RED},"
     fi
   done
@@ -325,16 +325,20 @@ peass{NFS Exports}
 #-- SI) Kerberos
 kadmin_exists="$(command -v kadmin)"
 klist_exists="$(command -v klist)"
-if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$PSTORAGE_KERBEROS" ] || [ "$DEBUG" ]; then
+kinit_exists="$(command -v kinit)"
+if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$kinit_exists" ] || [ "$PSTORAGE_KERBEROS" ] || [ "$DEBUG" ]; then
   print_2title "Searching kerberos conf files and tickets"
   print_info "http://book.hacktricks.xyz/linux-hardening/privilege-escalation/linux-active-directory"
 
   if [ "$kadmin_exists" ]; then echo "kadmin was found on $kadmin_exists" | sed "s,$kadmin_exists,${SED_RED},"; fi
+  if [ "$kinit_exists" ]; then echo "kadmin was found on $kinit_exists" | sed "s,$kinit_exists,${SED_RED},"; fi
   if [ "$klist_exists" ] && [ -x "$klist_exists" ]; then echo "klist execution"; klist; fi
   ptrace_scope="$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null)"
   if [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ]; then echo "ptrace protection is disabled (0), you might find tickets inside processes memory" | sed "s,is disabled,${SED_RED},g";
   else echo "ptrace protection is enabled ($ptrace_scope), you need to disable it to search for tickets inside processes memory" | sed "s,is enabled,${SED_GREEN},g";
   fi
+  
+  (env || printenv) 2>/dev/null | grep -E "^KRB5" | sed -${E} "s,KRB5,${SED_RED},g"
 
   printf "%s\n" "$PSTORAGE_KERBEROS" | while read f; do
     if [ -r "$f" ]; then
@@ -375,6 +379,8 @@ if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$PSTORAGE_KERBEROS" ] || [ 
   echo ""
 
 fi
+
+peass{FreeIPA}
 
 peass{Knockd}
 
@@ -505,7 +511,7 @@ SPLUNK_BIN="$(command -v splunk 2>/dev/null)"
 if [ "$PSTORAGE_SPLUNK" ] || [ "$SPLUNK_BIN" ] || [ "$DEBUG" ]; then
   print_2title "Searching uncommon passwd files (splunk)"
   if [ "$SPLUNK_BIN" ]; then echo "splunk binary was found installed on $SPLUNK_BIN" | sed "s,.*,${SED_RED},"; fi
-  printf "%s\n" "$PSTORAGE_SPLUNK" | sort | uniq | while read f; do
+  printf "%s\n" "$PSTORAGE_SPLUNK" | grep -v ".htpasswd" | sort | uniq | while read f; do
     if [ -f "$f" ] && ! [ -x "$f" ]; then
       echo "passwd file: $f" | sed "s,$f,${SED_RED},"
       cat "$f" 2>/dev/null | grep "'pass'|'password'|'user'|'database'|'host'|\$" | sed -${E} "s,password|pass|user|database|host|\$,${SED_RED},"

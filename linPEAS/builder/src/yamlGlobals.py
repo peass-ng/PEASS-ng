@@ -1,5 +1,26 @@
 import os
 import yaml
+import requests
+from pathlib import Path
+
+
+def download_regexes():
+    print("[+] Downloading regexes...")
+    url = "https://raw.githubusercontent.com/JaimePolop/RExpository/main/regex.yaml"
+    response = requests.get(url)
+    if response.status_code == 200:
+        # Save the content of the response to a file
+        script_folder = Path(os.path.dirname(os.path.abspath(__file__)))
+        target_file = script_folder / '..' / '..' / '..' / 'build_lists' / 'regexes.yaml'
+
+        with open(target_file, "w") as file:
+            file.write(response.text)
+        print(f"Downloaded and saved in '{target_file}' successfully!")
+    else:
+        print("Error: Unable to download the regexes file.")
+        exit(1)
+
+download_regexes()
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -41,14 +62,19 @@ LINPEAS_PARTS = [
         "file_path": LINPEAS_BASE_PARTS + "/7_software_information.sh"
     },
     {
-        "name": "Interesting Files",
+        "name": "Files with Interesting Permissions",
+        "name_check": "interesting_perms_files",
+        "file_path": LINPEAS_BASE_PARTS + "/8_interesting_perms_files.sh"
+    },
+    {
+        "name": "Other Interesting Files",
         "name_check": "interesting_files",
-        "file_path": LINPEAS_BASE_PARTS + "/8_interesting_files.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/9_interesting_files.sh"
     },
     {
         "name": "API Keys Regex",
         "name_check": "api_keys_regex",
-        "file_path": LINPEAS_BASE_PARTS + "/9_api_keys_regex.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/10_api_keys_regex.sh"
     }
 ]
 

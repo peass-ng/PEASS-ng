@@ -137,16 +137,48 @@ checkContainerExploits() {
   fi
 }
 
+checkCreateReleaseAgent(){
+  cat /proc/$$/cgroup 2>/dev/null | grep -Eo '[0-9]+:[^:]+' | grep -Eo '[^:]+$' | while read -r subsys
+  do
+      if unshare -UrmC --propagation=unchanged bash -c "mount -t cgroup -o $subsys cgroup /tmp/cgroup_3628d4 2>&1 >/dev/null && test -w /tmp/cgroup_3628d4/release_agent" >/dev/null 2>&1 ; then
+          release_agent_breakout2="Yes (unshare with $subsys)";
+          rm -rf /tmp/cgroup_3628d4
+          break
+      fi
+  done
+}
+
 checkProcSysBreakouts(){
-  if [ "$(ls -l /sys/fs/cgroup/*/release_agent 2>/dev/null)" ]; then release_agent_breakout1="Yes"; else release_agent_breakout1="No"; fi
+  run_unshare=$(unshare -UrmC bash -c 'echo -n Yes' 2>/dev/null)
+  if ! [ "$run_unshare" = "Yes" ]; then
+    run_unshare="No"
+  fi
+
+  if [ "$(ls -l /sys/fs/cgroup/*/release_agent 2>/dev/null)" ]; then 
+    release_agent_breakout1="Yes"
+  else 
+    release_agent_breakout1="No"
+  fi
   
+  release_agent_breakout2="No"
   mkdir /tmp/cgroup_3628d4
   mount -t cgroup -o memory cgroup /tmp/cgroup_3628d4 2>/dev/null
-  if [ $? -eq 0 ]; then release_agent_breakout2="Yes"; else release_agent_breakout2="No"; fi
+  if [ $? -eq 0 ]; then 
+    release_agent_breakout2="Yes"; 
+    rm -rf /tmp/cgroup_3628d4
+  else 
+    mount -t cgroup -o rdma cgroup /tmp/cgroup_3628d4 2>/dev/null
+    if [ $? -eq 0 ]; then 
+      release_agent_breakout2="Yes"; 
+      rm -rf /tmp/cgroup_3628d4
+    else 
+      checkCreateReleaseAgent
+    fi
+  fi
   rm -rf /tmp/cgroup_3628d4 2>/dev/null
   
   core_pattern_breakout="$( (echo -n '' > /proc/sys/kernel/core_pattern && echo Yes) 2>/dev/null || echo No)"
-  modprobe_present="$(ls -l `cat /proc/sys/kernel/modprobe` || echo No)"
+  modprobe_present="$(ls -l `cat /proc/sys/kernel/modprobe` 2>/dev/null || echo No)"
   panic_on_oom_dos="$( (echo -n '' > /proc/sys/vm/panic_on_oom && echo Yes) 2>/dev/null || echo No)"
   panic_sys_fs_dos="$( (echo -n '' > /proc/sys/fs/suid_dumpable && echo Yes) 2>/dev/null || echo No)"
   binfmt_misc_breakout="$( (echo -n '' > /proc/sys/fs/binfmt_misc/register && echo Yes) 2>/dev/null || echo No)"
@@ -258,8 +290,8 @@ if [ "$inContainer" ]; then
     echo ""
     print_2title "Container & breakout enumeration"
     print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/docker-breakout"
-    print_list "Container ID ...................$NC $(cat /etc/hostname && echo '')"
-    if echo "$containerType" | grep -qi "docker"; then
+    print_list "Container ID ...................$NC $(cat /etc/hostname && echo -n '\n')"
+    if [ -f "/proc/1/cpuset" ] && echo "$containerType" | grep -qi "docker"; then
         print_list "Container Full ID ..............$NC $(basename $(cat /proc/1/cpuset))\n"
     fi
     print_list "Seccomp enabled? ............... "$NC
@@ -269,7 +301,7 @@ if [ "$inContainer" ]; then
     (cat /proc/self/attr/current 2>/dev/null || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,kernel,${SED_GREEN},"
 
     print_list "User proc namespace? ........... "$NC
-    if [ "$(cat /proc/self/uid_map 2>/dev/null)" ]; then echo "enabled" | sed "s,enabled,${SED_GREEN},"; else echo "disabled" | sed "s,disabled,${SED_RED},"; fi
+    if [ "$(cat /proc/self/uid_map 2>/dev/null)" ]; then (printf "enabled"; cat /proc/self/uid_map) | sed "s,enabled,${SED_GREEN},"; else echo "disabled" | sed "s,disabled,${SED_RED},"; fi
 
     checkContainerExploits
     print_list "Vulnerable to CVE-2019-5021 .... $VULN_CVE_2019_5021\n"$NC | sed -${E} "s,Yes,${SED_RED_YELLOW},"
@@ -278,7 +310,8 @@ if [ "$inContainer" ]; then
     print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/docker-breakout/docker-breakout-privilege-escalation/sensitive-mounts"
     
     checkProcSysBreakouts
-    print_list "release_agent breakout 1........ $release_agent_breakout1\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "Run ushare ..................... $run_unshare\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "release_agent breakout 1........ $release_agent_breakout1\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "release_agent breakout 2........ $release_agent_breakout2\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     print_list "core_pattern breakout .......... $core_pattern_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     print_list "binfmt_misc breakout ........... $binfmt_misc_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
@@ -345,6 +378,7 @@ if [ "$inContainer" ]; then
       capsh --print 2>/dev/null | sed -${E} "s,$containercapsB,${SED_RED},g"
     else
       cat /proc/self/status | grep Cap | sed -${E} "s, .*,${SED_RED},g" | sed -${E} "s,0000000000000000|00000000a80425fb,${SED_GREEN},g"
+      echo $ITALIC"Run capsh --decode=<hex> to decode the capabilities"$NC
     fi
     echo ""
 

@@ -2,6 +2,7 @@ import re
 import requests
 import base64
 import os
+from pathlib import Path
 
 from .peasLoaded import PEASLoaded
 from .peassRecord import PEASRecord
@@ -10,7 +11,6 @@ from .yamlGlobals import (
     TEMPORARY_LINPEAS_BASE_PATH,
     PEAS_FINDS_MARKUP,
     PEAS_FINDS_CUSTOM_MARKUP,
-    PEAS_STORAGES_MARKUP,
     PEAS_STORAGES_MARKUP,
     INT_HIDDEN_FILES_MARKUP,
     ROOT_FOLDER,
@@ -128,7 +128,6 @@ class LinpeasBuilder:
         
         #Check for empty seds
         assert 'sed -${E} "s,,' not in self.linpeas_sh
-
     
     def __get_peass_marks(self):
         return re.findall(r'peass\{[\w\-\._ ]*\}', self.linpeas_sh)
@@ -372,7 +371,6 @@ class LinpeasBuilder:
         return (suidVB, sudoVB, capsVB)
     
     def __generate_regexes_search(self) -> str:
-        paths_to_search = REGEXES_LOADED["paths"]
         regexes = REGEXES_LOADED["regular_expresions"]
 
         regexes_search_section = ""
@@ -386,29 +384,16 @@ class LinpeasBuilder:
                 caseinsensitive = entry.get("caseinsensitive", False)
                 regex = entry["regex"]
                 regex = regex.replace('"', '\\"').strip()
-                extra_grep = entry.get("extra_grep")
-                extra_grep = f"| grep {extra_grep}" if extra_grep else ""
-                
-                regexes_search_section += f'print_3title_no_nl "Searching {name} (limited to 50)..."\n'
+                falsePositives = entry.get("falsePositives", False)
 
-                # If custom folder to search in
-                regexes_search_section += 'if [ "$SEARCH_IN_FOLDER" ]; then\n'
-                regexes_search_section += "  timeout 120 find \"$ROOT_FOLDER\" -type f -not -path \"*/node_modules/*\" -exec grep -HnRiIE \""+regex+"\" '{}' \; 2>/dev/null "+extra_grep+" | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &\n"
+                if falsePositives:
+                    continue
                 
-                # If search in all the file system
-                regexes_search_section += 'else\n'
-                for path in paths_to_search:
-                    grep_flags = "-HnRiIE" if caseinsensitive else "-HnRIE"
-                    regexes_search_section += "  timeout 120 find "+path+" -type f -not -path \"*/node_modules/*\" -exec grep "+grep_flags+" \""+regex+"\" '{}' \; 2>/dev/null "+extra_grep+" | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &\n"
-                regexes_search_section += 'fi\n'
+                regexes_search_section += f"    search_for_regex \"{name}\" \"{regex}\" {'1' if caseinsensitive else ''}\n"
                 
-                regexes_search_section += "wait\n"
-            
-            regexes_search_section += "echo ''\n"
+            regexes_search_section += "    echo ''\n\n"
 
         return regexes_search_section
-
-                        
 
 
     def __replace_mark(self, mark: str, find_calls: list, join_char: str):
