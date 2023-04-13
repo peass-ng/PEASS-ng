@@ -4,68 +4,68 @@
 
 
 root_folders:
-  - /applications  #common
-  - /bin           #common
-  - /.cache        #common
-  - /cdrom         #common
-  - /etc           #common
+  - ${ROOT_FOLDER}applications  #common
+  - ${ROOT_FOLDER}bin           #common
+  - ${ROOT_FOLDER}.cache        #common
+  - ${ROOT_FOLDER}cdrom         #common
+  - ${ROOT_FOLDER}etc           #common
   - $HOMESEARCH    #common, use this instead of "/home"
-  - /lib
-  - /lib32
-  - /lib64
-  - /media         #common
-  - /mnt           #common
-  - /opt           #common
-  - /private       #common
-  - /run
-  - /sbin          #common
-  - /snap          #common
-  - /srv           #common
-  - /sys 
-  - /system
-  - /systemd
-  - /tmp           #common
-  - /usr           #common
-  - /var           #common
-  - /concourse-auth
-  - /concourse-keys
+  - ${ROOT_FOLDER}lib
+  - ${ROOT_FOLDER}lib32
+  - ${ROOT_FOLDER}lib64
+  - ${ROOT_FOLDER}media         #common
+  - ${ROOT_FOLDER}mnt           #common
+  - ${ROOT_FOLDER}opt           #common
+  - ${ROOT_FOLDER}private       #common
+  - ${ROOT_FOLDER}run
+  - ${ROOT_FOLDER}sbin          #common
+  - ${ROOT_FOLDER}snap          #common
+  - ${ROOT_FOLDER}srv           #common
+  - ${ROOT_FOLDER}sys 
+  - ${ROOT_FOLDER}system
+  - ${ROOT_FOLDER}systemd
+  - ${ROOT_FOLDER}tmp           #common
+  - ${ROOT_FOLDER}usr           #common
+  - ${ROOT_FOLDER}var           #common
+  - ${ROOT_FOLDER}concourse-auth
+  - ${ROOT_FOLDER}concourse-keys
 
 
 common_file_folders:
-  - /applications 
-  - /bin
-  - /.cache
-  - /cdrom
-  - /etc
+  - ${ROOT_FOLDER}applications 
+  - ${ROOT_FOLDER}bin
+  - ${ROOT_FOLDER}.cache
+  - ${ROOT_FOLDER}cdrom
+  - ${ROOT_FOLDER}etc
   - $HOMESEARCH
-  - /media
-  - /mnt
-  - /opt
-  - /private
-  - /sbin
-  - /snap
-  - /srv
-  - /tmp
-  - /usr
-  - /var
+  - ${ROOT_FOLDER}media
+  - ${ROOT_FOLDER}mnt
+  - ${ROOT_FOLDER}opt
+  - ${ROOT_FOLDER}private
+  - ${ROOT_FOLDER}sbin
+  - ${ROOT_FOLDER}snap
+  - ${ROOT_FOLDER}srv
+  - ${ROOT_FOLDER}tmp
+  - ${ROOT_FOLDER}usr
+  - ${ROOT_FOLDER}var
 
 common_directory_folders:
-  - /applications 
-  - /bin
-  - /.cache
-  - /cdrom
-  - /etc
+  - ${ROOT_FOLDER}applications 
+  - ${ROOT_FOLDER}bin
+  - ${ROOT_FOLDER}.cache
+  - ${ROOT_FOLDER}cdrom
+  - ${ROOT_FOLDER}etc
   - $HOMESEARCH
-  - /media
-  - /mnt
-  - /opt
-  - /private
-  - /sbin
-  - /snap
-  - /srv
-  - /tmp
-  - /usr
-  - /var
+  - ${ROOT_FOLDER}media
+  - ${ROOT_FOLDER}mnt
+  - ${ROOT_FOLDER}opt
+  - ${ROOT_FOLDER}private
+  - ${ROOT_FOLDER}sbin
+  - ${ROOT_FOLDER}snap
+  - ${ROOT_FOLDER}srv
+  - ${ROOT_FOLDER}tmp
+  - ${ROOT_FOLDER}usr
+  - ${ROOT_FOLDER}var
 
 peas_checks: "peass{CHECKS}"
 peas_regexes_markup: "peass{REGEXES}"
@@ -77,11 +77,13 @@ peas_finds_custom_markup: "peass{FINDS_CUSTOM}"
 find_line_markup: "peass{FIND_PARAMS_HERE}"
 find_template: >
           `eval_bckgrd "find peass{FIND_PARAMS_HERE} 2>/dev/null | sort; printf \\\$YELLOW'. '\\\$NC 1>&2;"`
+
 peas_storages_markup: "peass{STORAGES_HERE}"
 storage_line_markup: "peass{STORAGE_PARAMS_HERE}"
 storage_line_extra_markup: "peass{STORAGE_PARAMS_EXTRA_HERE}"
 storage_template: >
           $(echo -e "peass{STORAGE_PARAMS_HERE}" peass{STORAGE_PARAMS_EXTRA_HERE} | sort | uniq | head -n 70)
+
 int_hidden_files_markup: "peass{INT_HIDDEN_FILES}"
 
 suidVB1_markup: "peass{SUIDVB1_HERE}"
@@ -106,7 +108,7 @@ variables_markup: "peass{VARIABLES}"
 
 variables:
   - name: pwd_inside_history
-    value: "enable_autologin|7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|root|snyk|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|xfreerdp|^ssh|steghide|@|KEY=|TOKEN=|BEARER=|Authorization:"
+    value: "az login|enable_autologin|7z|unzip|useradd|linenum|linpeas|mkpasswd|htpasswd|openssl|PASSW|passw|shadow|roadrecon auth|root|snyk|sudo|^su|pkexec|^ftp|mongo|psql|mysql|rdesktop|Save-AzContext|xfreerdp|^ssh|steghide|@|KEY=|TOKEN=|BEARER=|Authorization:|chpasswd"
 
 
 
@@ -125,7 +127,7 @@ defaults:
   only_bad_lines: False       #Only print lines containing something red (cnotaining bad_regex)
   remove_empty_lines: False   #Remove empty lines, use only for text files (-I param in grep)
   remove_path: ""             #Not interested in files containing this path (only linpeas)
-  remove_regex: ""            #Remove linpeas containing this regex
+  remove_regex: ""            #Remove lines containing this regex
   search_in:                  #By default search in defined common (only linpeas)
     - common
   type: f                     #File by default
@@ -241,8 +243,6 @@ defaults:
 
 
 
-
-
 ###############################
 ## Files & folders to search ##
 ###############################
@@ -276,7 +276,7 @@ search:
             value:
                 type: f
                 search_in: 
-                  - all   
+                  - all
     
   - name: Socket
     value:
@@ -306,7 +306,7 @@ search:
             value: 
                 type: d
                 search_in:
-                  - /etc
+                  - ${ROOT_FOLDER}etc
     
   - name: MySQL
     value:
@@ -339,6 +339,15 @@ search:
                 type: f
                 search_in: 
                   - common
+          
+          - name: "mysqld.cnf"
+            value: 
+                bad_regex: "user.*|password.*|admin_address.*|debug.*|sql_warnings.*|secure_file_priv.*"
+                remove_regex: '^#'
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
 
   - name: MariaDB
     value:
@@ -348,7 +357,7 @@ search:
         files:
           - name: "mariadb.cnf"
             value: 
-                bad_regex: "user.*|password.*"
+                bad_regex: "user.*|password.*|admin_address.*|debug.*|sql_warnings.*|secure_file_priv.*"
                 type: f
                 remove_regex: '^#'
                 remove_empty_lines: True
@@ -357,7 +366,7 @@ search:
           
           - name: "debian.cnf"
             value: 
-                bad_regex: "user.*|password.*"
+                bad_regex: "user.*|password.*|admin_address.*|debug.*|sql_warnings.*|secure_file_priv.*"
                 type: f
                 only_bad_lines: True
                 search_in: 
@@ -403,6 +412,13 @@ search:
                 type: f
                 remove_empty_lines: True
                 remove_regex: '\W+\#|^#'
+                search_in: 
+                  - common
+          
+          - name: "pgadmin4.db"
+            value: 
+                just_list_file: True
+                type: f
                 search_in: 
                   - common
     
@@ -469,6 +485,26 @@ search:
                 search_in: 
                     - common
   
+  - name: Varnish
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "varnish"
+            value:         
+              files:
+                - name: "default.vcl"
+                  value:
+                      just_list_file:  True
+                
+                - name: "secret"
+                  value:
+                      just_list_file:  True
+              type: d
+              search_in: 
+                - common
+                
   - name: PHP Sessions
     value:
         config:
@@ -482,10 +518,10 @@ search:
                 check_extra_path: '/tmp/.*sess_.*|/var/tmp/.*sess_.*'
                 type: f
                 search_in: 
-                  - /tmp
-                  - /var
-                  - /mnt
-                  - /private
+                  - ${ROOT_FOLDER}tmp
+                  - ${ROOT_FOLDER}var
+                  - ${ROOT_FOLDER}mnt
+                  - ${ROOT_FOLDER}private
   
   - name: PHP_files
     value:
@@ -523,6 +559,41 @@ search:
                 search_in: 
                   - common
   
+  - name: Apache-Airflow
+    value:
+        config:
+          auto_check: True
+        
+        files:
+          - name: "airflow.cfg"
+            value: 
+                bad_regex: "access_control_allow_headers|access_control_allow_methods|access_control_allow_origins|auth_backend|backend.default|google_key_path.*|password|username|flower_basic_auth.*|result_backend.*|ssl_cacert|ssl_cert|ssl_key|fernet_key.*|tls_ca|tls_cert|tls_key|ccache|google_key_path|smtp_password.*|smtp_user.*|cookie_samesite|cookie_secure|expose_config|expose_stacktrace|secret_key|x_frame_enabled"
+                type: f
+                remove_regex: '^#'
+                remove_empty_lines: True
+                search_in: 
+                  - common
+          
+          - name: "webserver_config.py"
+            value: 
+                type: f
+                just_list_file: True
+                search_in: 
+                  - common
+                  
+  - name: X11
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: ".Xauthority"
+            value: 
+                type: f
+                just_list_file: True
+                search_in: 
+                  - common
+                  
   - name: Wordpress
     value:
         config:
@@ -612,8 +683,8 @@ search:
                 type: f
                 search_in: 
                   - common
-                  - /lib
-                  - /systemd
+                  - ${ROOT_FOLDER}lib
+                  - ${ROOT_FOLDER}systemd
   
   - name: Supervisord
     value:
@@ -664,7 +735,37 @@ search:
               type: f
               search_in: 
                 - common
+  
+  - name: Rpcd
+    value:
+        config:
+          auto_check: True
 
+        files:
+          - name: "rpcd"
+            value: 
+              bad_regex: "username.+|password.+"
+              type: f
+              remove_empty_lines: True
+              remove_path: '/init.d/|/sbin/|/usr/share/'
+              search_in: 
+                - common
+
+  - name: Bitcoin
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "bitcoin.conf"
+            value: 
+                bad_regex: "user=.*|password=.*|auth=.*"
+                remove_empty_lines: True
+                remove_regex: '^#'
+                type: f
+                search_in: 
+                  - common
+  
   - name: Hostapd
     value:
         config:
@@ -696,7 +797,7 @@ search:
                       type: f
               type: d
               search_in: 
-                - /etc
+                - ${ROOT_FOLDER}etc
   
   - name: PAM Auth
     value:
@@ -709,28 +810,29 @@ search:
               files:
                 - name: "sshd"
                   value:
-                      bad_regex: ".*"
-                      line_grep: '-i "auth"'
+                      bad_regex: "auth|accessfile=|secret=|user"
                       remove_regex:  "^#|^@"
                       type: f
               type: d
               search_in: 
-                - /etc
+                - ${ROOT_FOLDER}etc
   
   - name: NFS Exports
     value:
         config:
           auto_check: True
+          exec:
+            - 'nfsmounts=`cat /proc/mounts 2>/dev/null | grep nfs`; if [ "$nfsmounts" ]; then echo -e "Connected NFS Mounts: \n$nfsmounts"; fi'
 
         files:
           - name: exports
             value: 
                 very_bad_regex: "no_root_squash|no_all_squash"
-                bad_regex: "insecure"
+                bad_regex: "insecure|rw|nohide"
                 remove_regex: '\W+\#|^#'
                 type: f
                 search_in: 
-                  - /etc
+                  - ${ROOT_FOLDER}etc
   
   - name: GlusterFS
     value:
@@ -773,7 +875,27 @@ search:
                 type: f
                 search_in: 
                   - common
-  
+
+  - name: Terraform
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "*.tfstate"
+            value: 
+                bad_regex: "secret.*"
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "*.tf"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+
   - name: Racoon
     value:
         config:
@@ -808,14 +930,28 @@ search:
           - name: "kubeconfig"
             value:
                 bad_regex: "server:|cluster:|namespace:|user:|exec:"
-            type: d
+            type: f
+            search_in: 
+              - common
+          
+          - name: "bootstrap-kubeconfig"
+            value:
+                bad_regex: "server:|cluster:|namespace:|user:|exec:"
+            type: f
             search_in: 
               - common
           
           - name: "kubelet-kubeconfig"
             value:
                 bad_regex: "server:|cluster:|namespace:|user:|exec:"
-            type: d
+            type: f
+            search_in: 
+              - common
+          
+          - name: "kubelet.conf"
+            value:
+                bad_regex: "server:|cluster:|namespace:|user:|exec:"
+            type: f
             search_in: 
               - common
             
@@ -840,9 +976,6 @@ search:
           - name: "kubelet"
             value: 
                 files:
-                  - name: "kubelet.conf"
-                    value:
-                        bad_regex: "server:|cluster:|namespace:|user:|exec:"
                   - name: "config.yaml"
                     value:
                         bad_regex: "server:|cluster:|namespace:|user:|exec:"
@@ -851,20 +984,35 @@ search:
                         remove_empty_lines: True
                 type: d
                 search_in: 
-                  - /var
+                  - ${ROOT_FOLDER}var
+                  - ${ROOT_FOLDER}etc
           
           - name: "kube-proxy"
             value: 
                 type: d
                 search_in: 
-                  - /var
+                  - ${ROOT_FOLDER}var
+                  - ${ROOT_FOLDER}etc
           
           - name: "kubernetes"
-            value: 
+            value:
+                files:
+                  - name: "admin.conf"
+                    value:
+                        bad_regex: "server:|cluster:|namespace:|user:|exec:"
+                  
+                  - name: "controller-manager.conf"
+                    value:
+                        bad_regex: "server:|cluster:|namespace:|user:|exec:"
+                  
+                  - name: "scheduler.conf"
+                    value:
+                        bad_regex: "server:|cluster:|namespace:|user:|exec:"
+                      
                 type: d
-                search_in: 
-                  - /etc
-  
+                search_in:
+                  - ${ROOT_FOLDER}var
+                  - ${ROOT_FOLDER}etc
   - name: VNC
     value:
         config:
@@ -907,6 +1055,7 @@ search:
             value: 
                 bad_regex: ".*"
                 type: f
+                remove_path: "/mime/"
                 search_in: 
                   - common
 
@@ -941,9 +1090,9 @@ search:
                 type: f
                 search_in: 
                   - common
-                  - /lib
-                  - /lib32
-                  - /lib64
+                  - ${ROOT_FOLDER}lib
+                  - ${ROOT_FOLDER}lib32
+                  - ${ROOT_FOLDER}lib64
 
   - name: OpenVPN
     value:
@@ -1005,21 +1154,21 @@ search:
           - name: "*.pem"
             value: 
                 type: f
-                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*'
+                remove_path: '/usr/share/|/usr/local/lib/|/usr/lib.*'
                 search_in: 
                   - common
       
           - name: "*.cer"
             value: 
                 type: f
-                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*'
+                remove_path: '/usr/share/|/usr/local/lib/|/usr/lib.*'
                 search_in: 
                   - common
       
           - name: "*.crt"
             value: 
                 type: f
-                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib.*'
+                remove_path: '/usr/share/|/usr/local/lib/|/usr/lib.*'
                 search_in: 
                   - common
   
@@ -1032,14 +1181,14 @@ search:
           - name: "*.csr"
             value: 
                 type: f
-                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
+                remove_path: '^/usr/share/|/usr/local/lib/|/usr/lib/.*'
                 search_in: 
                   - common
       
           - name: "*.der"
             value: 
                 type: f
-                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
+                remove_path: '/usr/share/|/usr/local/lib/|/usr/lib/.*'
                 search_in: 
                   - common
   
@@ -1052,14 +1201,14 @@ search:
           - name: "*.pfx"
             value: 
                 type: f
-                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
+                remove_path: '/usr/share/|/usr/local/lib/|/usr/lib/.*'
                 search_in: 
                   - common
       
           - name: "*.p12"
             value: 
                 type: f
-                remove_path: '^/usr/share/|^/etc/ssl/|^/usr/local/lib/|^/usr/lib/.*'
+                remove_path: '/usr/share/|/usr/local/lib/|/usr/lib/.*'
                 search_in: 
                   - common
   
@@ -1072,8 +1221,9 @@ search:
           - name: "agent*"
             value: 
                 type: f
+                remove_path: ".dll"
                 search_in: 
-                  - /tmp
+                  - ${ROOT_FOLDER}tmp
       
   - name: SSH_CONFIG
     value:
@@ -1085,8 +1235,28 @@ search:
             value: 
                 type: f
                 search_in:
-                  - /usr 
+                  - ${ROOT_FOLDER}usr 
                   - $HOMESEARCH
+  
+  - name: Snyk
+    value:
+        config:
+          auto_check: False
+    
+        files:
+          - name: "snyk.json"
+            value: 
+                type: f
+                bad_regex: ".*"
+                search_in:
+                  - common
+          
+          - name: "snyk.config.json"
+            value: 
+                type: f
+                bad_regex: ".*"
+                search_in:
+                  - common 
   
   - name: Cloud Credentials
     value:
@@ -1114,6 +1284,34 @@ search:
                 type: f
                 search_in: 
                   - common
+          
+          - name: "adc.json"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+          
+          - name: ".boto"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+          
+          - name: ".credentials.json"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "firebase-tools.json"
+            value: 
+                bad_regex: "id_token.*|access_token.*|refresh_token.*"
+                type: f
+                search_in: 
+                  - common
 
           - name: "access_tokens.db"
             value: 
@@ -1133,6 +1331,27 @@ search:
             value: 
                 bad_regex: ".*"
                 type: f
+                search_in: 
+                  - common
+          
+          - name: "gcloud"
+            value: 
+                files:
+                  - name: "*"
+                    value:
+                        bad_regex: "b'authorization'.*"
+                        only_bad_lines: True
+                type: d
+                search_in: 
+                  - common
+          
+          - name: "legacy_credentials"
+            value: 
+                files:
+                  - name: "*"
+                    value:
+                        bad_regex: "refresh_token.*|client_secret"
+                type: d
                 search_in: 
                   - common
 
@@ -1156,6 +1375,13 @@ search:
                 type: f
                 search_in: 
                   - common
+          
+          - name: "TokenCache.dat"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
       
           - name: ".bluemix"
             value: 
@@ -1163,6 +1389,59 @@ search:
                   - name: "config.json"
                     value:
                         bad_regex: ".*"
+                type: d
+                search_in: 
+                  - common
+          
+          - name: "doctl"
+            value: 
+                files:
+                  - name: "config.yaml"
+                    value:
+                        bad_regex: "access-token.*"
+                        only_bad_lines: True
+                type: d
+                search_in: 
+                  - common
+          
+  
+  - name: Road Recon
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: ".roadtools_auth"
+            value: 
+                bad_regex: "accessToken.*"
+                type: f
+                search_in: 
+                  - common
+  
+  - name: FreeIPA
+    value:
+        config:
+          auto_check: True
+          exec:
+            - ipa_exists="$(command -v ipa)"; if [ "$ipa_exists" ]; then print_info "https://book.hacktricks.xyz/linux-hardening/freeipa-pentesting"; fi
+        
+        files:
+          - name: "ipa"
+            value: 
+                files:
+                  - name: "default.conf"
+                    value:
+                        remove_empty_lines: True
+                type: d
+                search_in: 
+                  - common
+           
+          - name: "dirsrv"
+            value: 
+                files:
+                  - name: "id2rntry.db"
+                    value:
+                        just_list_file: True
                 type: d
                 search_in: 
                   - common
@@ -1186,6 +1465,12 @@ search:
                   - common
 
           - name: ".k5login"
+            value: 
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "krb5cc_*"
             value: 
                 type: f
                 search_in: 
@@ -1229,7 +1514,22 @@ search:
                 remove_regex: '\W+\#|^#|^[[:space:]]*$'
                 search_in: 
                   - common
-  
+
+  - name: Grafana
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "grafana.ini"
+            value: 
+                bad_regex: "admin.*|username.*|password:*|secret.*"
+                type: f
+                remove_empty_lines: True
+                remove_regex: '^#|^;'
+                search_in: 
+                  - common
+                 
   - name: Knockd
     value:
         config:
@@ -1241,7 +1541,7 @@ search:
                 check_extra_path: "/etc/init.d/"
                 type: f
                 search_in: 
-                  - /etc
+                  - ${ROOT_FOLDER}etc
 
   - name: Logstash
     value:
@@ -1317,6 +1617,9 @@ search:
     value:
         config:
           auto_check: True
+          exec:
+            - '( redis-server --version || echo_not_found "redis-server") 2>/dev/null'
+            - if [ "`redis-cli INFO 2>/dev/null`" ] && ! [ "`redis-cli INFO 2>/dev/null | grep -i NOAUTH`" ]; then echo "Redis isn't password protected" | sed -${E} "s,.*,${SED_RED},"; fi
 
         files:
           - name: "redis.conf"
@@ -1471,6 +1774,33 @@ search:
                 search_in: 
                   - common
   
+  - name: Virtual Disks
+    value:
+        config:
+          auto_check: True
+
+        files:
+      
+          - name: "*.vhd"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+          - name: "*.vhdx"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+         
+          - name: "*.vmdk"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+  
   - name: Filezilla
     value:
         config:
@@ -1540,6 +1870,32 @@ search:
                 search_in: 
                   - common
   
+  - name: Git
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name:  ".git-credentials"
+            value:
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+                  
+  - name: Atlantis
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name:  "atlantis.db"
+            value:
+                bad_regex: "CloneURL|Username"
+                type: f
+                search_in: 
+                  - common
+                  
   - name: GitLab
     value:
         config:
@@ -1678,6 +2034,17 @@ search:
                 type: f
                 search_in: 
                   - common
+                  
+          - name: ".docker"
+            value: 
+              files:
+                - name: "config.json"
+                  value:
+                      bad_regex: ".*"
+                      remove_empty_lines: True
+              type: d
+              search_in: 
+                - common
 
 
   - name: Firefox
@@ -1898,6 +2265,10 @@ search:
                   - name: "Preferences"
                     value:
                         just_list_file: True
+                  
+                  - name: "Custom Dictionary.txt"
+                    value:
+                        just_list_file: True
             
             type: d
             search_in: 
@@ -2115,6 +2486,103 @@ search:
                 search_in: 
                   - common
   
+  - name: Fat-Free
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "fat.config"
+            value: 
+                bad_regex: "password.*"
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
+  
+  - name: Shodan
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "api_key"
+            value: 
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
+  
+  - name: Concourse
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: ".flyrc"
+            value: 
+                bad_regex: "token:*|value:.*"
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "concourse-auth"
+            value: 
+              files:
+                - name: "host-key"
+                  value:
+                      bad_regex: "RSA PRIVATE KEY"
+                      remove_empty_lines: True
+                - name: "local-users"
+                  value:
+                      bad_regex: ".*"
+                      remove_empty_lines: True
+                - name: "session-signing-key"
+                  value:
+                      bad_regex: ".*"
+                      remove_empty_lines: True
+                - name: "worker-key-pub"
+                  value:
+                      just_list_file: True
+              type: d
+              search_in: 
+                - common
+                - ${ROOT_FOLDER}concourse-auth
+          
+          - name: "concourse-keys"
+            value: 
+              files:
+                - name: "host_key"
+                  value:
+                      bad_regex: "RSA PRIVATE KEY"
+                      remove_empty_lines: True
+                - name: "session_signing_key"
+                  value:
+                      bad_regex: ".*"
+                      remove_empty_lines: True
+                - name: "worker_key.pub"
+                  value:
+                      just_list_file: True
+              type: d
+              search_in: 
+                - common
+                - ${ROOT_FOLDER}concourse-keys
+
+  - name: Boto
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: ".boto"
+            value: 
+                bad_regex: ".*"
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
+  
   - name: SNMP
     value:
         config:
@@ -2239,12 +2707,13 @@ search:
           auto_check: True
 
         files:
-          - name: ".env"
+          - name: ".env*"
             value: 
-                bad_regex: "[pP][aA][sS][sS].*|[tT][oO][kK][eE][N]|[dD][bB]"
+                bad_regex: "[pP][aA][sS][sS].*|[tT][oO][kK][eE][N]|[dD][bB]|[pP][rR][iI][vV][aA][tT][eE]|[kK][eE][yY]"
                 remove_regex: '^#'
                 remove_empty_lines: True
                 type: f
+                remove_path: "example"
                 search_in: 
                   - common
     
@@ -2329,7 +2798,7 @@ search:
       
           - name: ".gitconfig"
             value: 
-                just_list_file: True
+                remove_empty_lines: True
                 type: f
                 search_in: 
                   - common
@@ -2427,6 +2896,16 @@ search:
           auto_check: True
 
         files:
+          - name: "vsftpd.conf"
+            value: 
+                type: f
+                bad_regex: "anonymous_enable|anon_upload_enable|anon_mkdir_write_enable|anon_root|chown_uploads|chown_username|local_enable|no_anon_password|write_enable|[yY][eE][sS]"
+                good_regex: "\\s[nN][oO]|=[nN][oO]"
+                line_grep: '"anonymous_enable|anon_upload_enable|anon_mkdir_write_enable|anon_root|chown_uploads|chown_username|local_enable|no_anon_password|write_enable"'
+                remove_empty_lines: True
+                search_in: 
+                  - common
+
           - name: "*.ftpconfig"
             value: 
                 just_list_file: True
@@ -2483,7 +2962,25 @@ search:
                 search_in: 
                   - common
 
-  - name: Bind
+  - name: Samba
+    value:
+        config:
+          auto_check: True
+          exec:
+            - 'smbstatus 2>/dev/null'
+
+        files:
+          - name: "smb.conf"
+            value: 
+                type: f
+                bad_regex: "browseable.*yes|read only.*no|writable.*yes|guest ok.*yes|enable privileges.*yes|create mask.*|directory mask.*|logon script.*|magic script.*|magic output.*"
+                good_regex: "browseable.*no|read only.*yes|writable.*no|guest ok.*no|enable privileges.*no"
+                line_grep: '"browseable|read only|writable|guest ok|enable privileges|create mask|directory mask|logon script|magic script|magic output"'
+                remove_empty_lines: True
+                search_in: 
+                  - common
+
+  - name: DNS
     value:
         config:
           auto_check: True
@@ -2501,11 +2998,18 @@ search:
                         bad_regex: ".*"
                         remove_empty_lines: True
                         remove_regex: '^#'
+                  
+                  - name: "named.conf*"
+                    value:
+                        bad_regex: "allow-query|allow-recursion|allow-transfer|zone-statistics|file .*"
+                        remove_empty_lines: True
+                        remove_regex: '^#|//'
+
                 type: d
                 search_in: 
-                  - /etc #False possitives in home
-                  - /var
-                  - /usr
+                  - ${ROOT_FOLDER}etc #False possitives in home
+                  - ${ROOT_FOLDER}var
+                  - ${ROOT_FOLDER}usr
 
   - name: SeedDMS
     value:
@@ -2696,6 +3200,56 @@ search:
                 search_in: 
                   - common
   
+  - name: Jenkins
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "master.key"
+            value: 
+                bad_regex: ".*"
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "hudson.util.Secret"
+            value: 
+                bad_regex: ".*"
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
+
+          - name: "credentials.xml"
+            value: 
+                bad_regex: "secret.*|password.*"
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "config.xml"
+            value: 
+                bad_regex: "secret.*|password.*"
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "*jenkins"
+            value:         
+              files:
+                - name: "build.xml"
+                  value:
+                    bad_regex: "secret.*|password.*"
+                    only_bad_lines: True
+
+              type: d
+              search_in: 
+                - common
+  
   - name: Wget
     value:
         config:
@@ -2806,13 +3360,6 @@ search:
           auto_check: True
 
         files:
-          - name: "unattend.inf"
-            value:
-                just_list_file: True
-                type: f
-                search_in:
-                  - common
-
           - name: "*.rdg"
             value:
                 just_list_file: True
@@ -2821,6 +3368,13 @@ search:
                   - common
 
           - name: "AppEvent.Evt"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+          
+          - name: "autounattend.xml"
             value:
                 just_list_file: True
                 type: f
@@ -3092,6 +3646,13 @@ search:
                 type: f
                 search_in:
                   - common
+          
+          - name: "unattend.inf"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
 
           - name: "unattend.txt"
             value:
@@ -3148,6 +3709,14 @@ search:
                 type: f
                 search_in:
                   - common
+          
+          - name: "plum.sqlite"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+                 
 
   - name: Other Windows
     value:
@@ -3187,7 +3756,7 @@ search:
         files:
           - name: "*.db"
             value: 
-                remove_path: "/man/|/usr/|/var/cache/"
+                remove_path: "/man/|/usr/|/var/cache/|thumbcache|iconcache|IconCache"
                 type: f
                 search_in: 
                   - common
