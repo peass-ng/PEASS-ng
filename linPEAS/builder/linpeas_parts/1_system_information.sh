@@ -161,6 +161,10 @@ else
     echo_not_found "AppArmor"
 fi
 
+#-- SY) AppArmor2
+print_list "AppArmor profile? .............. "$NC
+(cat /proc/self/attr/current 2>/dev/null || echo "unconfined") | sed "s,unconfined,${SED_RED}," | sed "s,kernel,${SED_GREEN},"
+
 #-- SY) LinuxONE
 print_list "is linuxONE? ................... "$NC
 ( (uname -a | grep "s390x" >/dev/null 2>&1) && echo "Yes" || echo_not_found "s390x")
@@ -184,10 +188,6 @@ print_list "SELinux enabled? ............... "$NC
 #-- SY) Seccomp
 print_list "Seccomp enabled? ............... "$NC
 ([ "$(grep Seccomp /proc/self/status 2>/dev/null | grep -v 0)" ] && echo "enabled" || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,enabled,${SED_GREEN},"
-
-#-- SY) AppArmor
-print_list "AppArmor profile? .............. "$NC
-(cat /proc/self/attr/current 2>/dev/null || echo "unconfined") | sed "s,unconfined,${SED_RED}," | sed "s,kernel,${SED_GREEN},"
 
 #-- SY) AppArmor
 print_list "User namespace? ................ "$NC
