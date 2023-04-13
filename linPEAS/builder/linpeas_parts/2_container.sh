@@ -149,6 +149,16 @@ checkCreateReleaseAgent(){
 }
 
 checkProcSysBreakouts(){
+  dev_mounted="No"
+  if [ $(ls -l /dev | grep -E "^c" | wc -l) -gt 50 ]; then
+    dev_mounted="Yes";
+  fi
+
+  proc_mounted="No"
+  if [ $(ls /proc | grep -E "^[0-9]" | wc -l) -gt 50 ]; then
+    proc_mounted="Yes";
+  fi
+
   run_unshare=$(unshare -UrmC bash -c 'echo -n Yes' 2>/dev/null)
   if ! [ "$run_unshare" = "Yes" ]; then
     run_unshare="No"
@@ -310,6 +320,8 @@ if [ "$inContainer" ]; then
     print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/docker-breakout/docker-breakout-privilege-escalation/sensitive-mounts"
     
     checkProcSysBreakouts
+    print_list "/proc mounted? ................. $proc_mounted\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "/dev mounted? .................. $dev_mounted\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     print_list "Run ushare ..................... $run_unshare\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "release_agent breakout 1........ $release_agent_breakout1\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "release_agent breakout 2........ $release_agent_breakout2\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
@@ -318,26 +330,26 @@ if [ "$inContainer" ]; then
     print_list "uevent_helper breakout ......... $uevent_helper_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     print_list "core_pattern breakout .......... $core_pattern_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     print_list "is modprobe present ............ $modprobe_present\n" | sed -${E} "s,/.*,${SED_RED},"
-    print_list "DoS via panic_on_oom ........... $panic_on_oom_dos\n" | sed -${E} "s,/Yes,${SED_RED},"
-    print_list "DoS via panic_sys_fs ........... $panic_sys_fs_dos\n" | sed -${E} "s,/Yes,${SED_RED},"
-    print_list "DoS via sysreq_trigger_dos ..... $sysreq_trigger_dos\n" | sed -${E} "s,/Yes,${SED_RED},"
-    print_list "/proc/config.gz readable ....... $proc_configgz_readable\n" | sed -${E} "s,/Yes,${SED_RED},"
-    print_list "/proc/sched_debug readable ..... $sched_debug_readable\n" | sed -${E} "s,/Yes,${SED_RED},"
-    print_list "/proc/*/mountinfo readable ..... $mountinfo_readable\n" | sed -${E} "s,/Yes,${SED_RED},"
-    print_list "/sys/kernel/security present ... $security_present\n" | sed -${E} "s,/Yes,${SED_RED},"
-    print_list "/sys/kernel/security writable .. $security_writable\n" | sed -${E} "s,/Yes,${SED_RED},"
+    print_list "DoS via panic_on_oom ........... $panic_on_oom_dos\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "DoS via panic_sys_fs ........... $panic_sys_fs_dos\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "DoS via sysreq_trigger_dos ..... $sysreq_trigger_dos\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "/proc/config.gz readable ....... $proc_configgz_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "/proc/sched_debug readable ..... $sched_debug_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "/proc/*/mountinfo readable ..... $mountinfo_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "/sys/kernel/security present ... $security_present\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "/sys/kernel/security writable .. $security_writable\n" | sed -${E} "s,Yes,${SED_RED},"
     if [ "$EXTRA_CHECKS" ]; then
-      print_list "/proc/kmsg readable ............ $kmsg_readable\n" | sed -${E} "s,/Yes,${SED_RED},"
-      print_list "/proc/kallsyms readable ........ $kallsyms_readable\n" | sed -${E} "s,/Yes,${SED_RED},"
-      print_list "/proc/self/mem readable ........ $sched_debug_readable\n" | sed -${E} "s,/Yes,${SED_RED},"
-      print_list "/proc/kcore readable ........... $kcore_readable\n" | sed -${E} "s,/Yes,${SED_RED},"
-      print_list "/proc/kmem readable ............ $kmem_readable\n" | sed -${E} "s,/Yes,${SED_RED},"
-      print_list "/proc/kmem writable ............ $kmem_writable\n" | sed -${E} "s,/Yes,${SED_RED},"
-      print_list "/proc/mem readable ............. $mem_readable\n" | sed -${E} "s,/Yes,${SED_RED},"
-      print_list "/proc/mem writable ............. $mem_writable\n" | sed -${E} "s,/Yes,${SED_RED},"
-      print_list "/sys/kernel/vmcoreinfo readable  $vmcoreinfo_readable\n" | sed -${E} "s,/Yes,${SED_RED},"
-      print_list "/sys/firmware/efi/vars writable  $efi_vars_writable\n" | sed -${E} "s,/Yes,${SED_RED},"
-      print_list "/sys/firmware/efi/efivars writable $efi_efivars_writable\n" | sed -${E} "s,/Yes,${SED_RED},"
+      print_list "/proc/kmsg readable ............ $kmsg_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+      print_list "/proc/kallsyms readable ........ $kallsyms_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+      print_list "/proc/self/mem readable ........ $sched_debug_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+      print_list "/proc/kcore readable ........... $kcore_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+      print_list "/proc/kmem readable ............ $kmem_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+      print_list "/proc/kmem writable ............ $kmem_writable\n" | sed -${E} "s,Yes,${SED_RED},"
+      print_list "/proc/mem readable ............. $mem_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+      print_list "/proc/mem writable ............. $mem_writable\n" | sed -${E} "s,Yes,${SED_RED},"
+      print_list "/sys/kernel/vmcoreinfo readable  $vmcoreinfo_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+      print_list "/sys/firmware/efi/vars writable  $efi_vars_writable\n" | sed -${E} "s,Yes,${SED_RED},"
+      print_list "/sys/firmware/efi/efivars writable $efi_efivars_writable\n" | sed -${E} "s,Yes,${SED_RED},"
     fi
     
     echo ""
