@@ -37,6 +37,7 @@ search_for_regex(){
         timeout 120 find /tmp /srv /Applications -type f -not -path "*/node_modules/*" -exec grep -HnRIE$i "$regex" '{}' \; 2>/dev/null  | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &
     fi
     wait
+    printf "\033[2K\r"
 }
 
 

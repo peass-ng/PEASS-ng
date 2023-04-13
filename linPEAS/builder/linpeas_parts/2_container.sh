@@ -218,7 +218,7 @@ checkProcSysBreakouts(){
 ##############################################
 containerCheck
 
-print_2title "Container related tools present"
+print_2title "Container related tools present (if any):"
 command -v docker 
 command -v lxc 
 command -v rkt 
@@ -226,8 +226,10 @@ command -v kubectl
 command -v podman
 command -v runc
 
-print_2title "Am I Containered?"
-execBin "AmIContainered" "https://github.com/genuinetools/amicontained" "$FAT_LINPEAS_AMICONTAINED"
+if [ "$$FAT_LINPEAS_AMICONTAINED" ]; then
+  print_2title "Am I Containered?"
+  execBin "AmIContainered" "https://github.com/genuinetools/amicontained" "$FAT_LINPEAS_AMICONTAINED"
+fi
 
 print_2title "Container details"
 print_list "Is this a container? ...........$NC $containerType"
@@ -260,7 +262,7 @@ if echo "$containerType" | grep -qi "docker"; then
     print_2title "Docker Container details"
     inDockerGroup
     print_list "Am I inside Docker group .......$NC $DOCKER_GROUP\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
-    print_list "Looking and enumerating Docker Sockets\n"$NC
+    print_list "Looking and enumerating Docker Sockets (if any):\n"$NC
     enumerateDockerSockets
     print_list "Docker version .................$NC$dockerVersion"
     checkDockerVersionExploits
@@ -268,7 +270,7 @@ if echo "$containerType" | grep -qi "docker"; then
     print_list "Vulnerable to CVE-2019-13139 ...$NC$VULN_CVE_2019_13139"$NC | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     if [ "$inContainer" ]; then
         checkDockerRootless
-        print_list "Rootless Docker? ................ $DOCKER_ROOTLESS\n"$NC | sed -${E} "s,No,${SED_RED}," | sed -${E} "s,Yes,${SED_GREEN},"
+        print_list "Rootless Docker? ............... $DOCKER_ROOTLESS\n"$NC | sed -${E} "s,No,${SED_RED}," | sed -${E} "s,Yes,${SED_GREEN},"
         echo ""
     fi
     if df -h | grep docker; then
@@ -328,7 +330,6 @@ if [ "$inContainer" ]; then
     print_list "core_pattern breakout .......... $core_pattern_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     print_list "binfmt_misc breakout ........... $binfmt_misc_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     print_list "uevent_helper breakout ......... $uevent_helper_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
-    print_list "core_pattern breakout .......... $core_pattern_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     print_list "is modprobe present ............ $modprobe_present\n" | sed -${E} "s,/.*,${SED_RED},"
     print_list "DoS via panic_on_oom ........... $panic_on_oom_dos\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "DoS via panic_sys_fs ........... $panic_sys_fs_dos\n" | sed -${E} "s,Yes,${SED_RED},"

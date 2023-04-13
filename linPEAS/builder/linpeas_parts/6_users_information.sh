@@ -95,9 +95,9 @@ if [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ]; then
     echo "Current user has .sudo_as_admin_successful file, so he can execute with sudo" | sed -${E} "s,.*,${SED_RED},";
   fi
 
-  if ps -eo pid,command -u "$(id -u)" | grep -v "$PPID" | grep -qE '(ash|ksh|csh|dash|bash|zsh|tcsh|sh)$'; then
-    echo "Current user has other interactive shells running" | sed -${E} "s,.*,${SED_RED},g";
-    ps -eo pid,command -u "$(id -u)" | grep -v "$PPID" | grep -E '(ash|ksh|csh|dash|bash|zsh|tcsh|sh)$'
+  if ps -eo pid,command -u "$(id -u)" | grep -v "$PPID" | grep -v " " | grep -qE '(ash|ksh|csh|dash|bash|zsh|tcsh|sh)$'; then
+    echo "Current user has other interactive shells running: " | sed -${E} "s,.*,${SED_RED},g";
+    ps -eo pid,command -u "$(id -u)" | grep -v "$PPID" | grep -v " " | grep -E '(ash|ksh|csh|dash|bash|zsh|tcsh|sh)$'
   fi
 
 else 

@@ -377,7 +377,7 @@ class LinpeasBuilder:
 
         for values in regexes:
             section_name = values["name"]
-            regexes_search_section += f'print_2title "Searching {section_name}"\n'
+            regexes_search_section += f'    print_2title "Searching {section_name}"\n'
 
             for entry in values["regexes"]:
                 name = entry["name"]

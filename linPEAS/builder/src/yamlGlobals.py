@@ -1,26 +1,11 @@
 import os
 import yaml
-import requests
 from pathlib import Path
 
 
-def download_regexes():
-    print("[+] Downloading regexes...")
-    url = "https://raw.githubusercontent.com/JaimePolop/RExpository/main/regex.yaml"
-    response = requests.get(url)
-    if response.status_code == 200:
-        # Save the content of the response to a file
-        script_folder = Path(os.path.dirname(os.path.abspath(__file__)))
-        target_file = script_folder / '..' / '..' / '..' / 'build_lists' / 'regexes.yaml'
-
-        with open(target_file, "w") as file:
-            file.write(response.text)
-        print(f"Downloaded and saved in '{target_file}' successfully!")
-    else:
-        print("Error: Unable to download the regexes file.")
-        exit(1)
-
-download_regexes()
+script_folder = Path(os.path.dirname(os.path.abspath(__file__)))
+target_file = script_folder / '..' / '..' / '..' / 'build_lists' / 'download_regexes.py'
+os.system(target_file)
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
