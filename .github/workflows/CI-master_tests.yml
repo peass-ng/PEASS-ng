@@ -26,6 +26,10 @@ jobs:
         uses: actions/checkout@master
         with:
           ref: ${{ github.head_ref }}
+      
+      - name: Download regexes
+        run: |
+          powershell.exe -ExecutionPolicy Bypass -File build_lists/download_regexes.ps1
             
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild.exe
