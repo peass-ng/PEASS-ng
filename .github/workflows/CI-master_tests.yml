@@ -416,7 +416,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{steps.date.outputs.date}}
-        release_name: Release ${{ github.ref }} ${{steps.date.outputs.date}}
+        release_name: Release ${{ github.ref }}2 ${{steps.date.outputs.date}}
         draft: false
         prerelease: false
         
