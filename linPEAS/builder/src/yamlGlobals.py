@@ -1,5 +1,11 @@
 import os
 import yaml
+from pathlib import Path
+
+
+script_folder = Path(os.path.dirname(os.path.abspath(__file__)))
+target_file = script_folder / '..' / '..' / '..' / 'build_lists' / 'download_regexes.py'
+os.system(target_file)
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -41,14 +47,19 @@ LINPEAS_PARTS = [
         "file_path": LINPEAS_BASE_PARTS + "/7_software_information.sh"
     },
     {
-        "name": "Interesting Files",
+        "name": "Files with Interesting Permissions",
+        "name_check": "interesting_perms_files",
+        "file_path": LINPEAS_BASE_PARTS + "/8_interesting_perms_files.sh"
+    },
+    {
+        "name": "Other Interesting Files",
         "name_check": "interesting_files",
-        "file_path": LINPEAS_BASE_PARTS + "/8_interesting_files.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/9_interesting_files.sh"
     },
     {
         "name": "API Keys Regex",
         "name_check": "api_keys_regex",
-        "file_path": LINPEAS_BASE_PARTS + "/9_api_keys_regex.sh"
+        "file_path": LINPEAS_BASE_PARTS + "/10_api_keys_regex.sh"
     }
 ]
 

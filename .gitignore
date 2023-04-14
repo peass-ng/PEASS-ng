@@ -28,3 +28,5 @@ sh2bin
 sh2bin/*
 .dccache
 ./*/.dccache
+regexes.yaml
+build_lists/regexes.yaml

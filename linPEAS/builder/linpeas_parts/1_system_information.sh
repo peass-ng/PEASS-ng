@@ -21,42 +21,6 @@ else echo_not_found "sudo"
 fi
 echo ""
 
-#-- SY) CVEs
-print_2title "CVEs Check"
-
-#-- SY) CVE-2021-4034
-if [ `command -v pkexec` ] && stat -c '%a' $(which pkexec) | grep -q 4755 && [ "$(stat -c '%Y' $(which pkexec))" -lt "1641942000" ]; then 
-    echo "Vulnerable to CVE-2021-4034" | sed -${E} "s,.*,${SED_RED_YELLOW},"
-    echo ""
-fi
-
-#-- SY) CVE-2021-3560
-polkitVersion=$(systemctl status polkit.service 2>/dev/null | grep version | cut -d " " -f 9)
-if [ "$(apt list --installed 2>/dev/null | grep polkit | grep -c 0.105-26)" -ge 1 ] || [ "$(yum list installed 2>/dev/null | grep polkit | grep -c 0.117-2)" -ge 1 ]; then
-    echo "Vulnerable to CVE-2021-3560" | sed -${E} "s,.*,${SED_RED_YELLOW},"
-    echo ""
-fi
-
-#-- SY) CVE-2022-0847
-#-- https://dirtypipe.cm4all.com/
-#-- https://stackoverflow.com/a/37939589
-kernelversion=$(uname -r | awk -F"-" '{print $1}')
-kernelnumber=$(echo $kernelversion | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }')
-if [ $kernelnumber -ge 5008000000 ] && [ $kernelnumber -lt 5017000000 ]; then # if kernel version between 5.8 and 5.17
-    echo "Potentially Vulnerable to CVE-2022-0847" | sed -${E} "s,.*,${SED_RED},"
-    echo ""
-fi
-
-#-- SY) CVE-2022-2588
-#-- https://github.com/Markakd/CVE-2022-2588
-kernelversion=$(uname -r | awk -F"-" '{print $1}')
-kernelnumber=$(echo $kernelversion | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }')
-if [ $kernelnumber -ge 3017000000 ] && [ $kernelnumber -lt 5019000000 ]; then # if kernel version between 3.17 and 5.19
-    echo "Potentially Vulnerable to CVE-2022-2588" | sed -${E} "s,.*,${SED_RED},"
-    echo ""
-fi
-echo ""
-
 #--SY) USBCreator
 if (busctl list 2>/dev/null | grep -q com.ubuntu.USBCreator) || [ "$DEBUG" ]; then
     print_2title "USBCreator"
@@ -83,9 +47,10 @@ print_2title "PATH"
 print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#writable-path-abuses"
 if ! [ "$IAMROOT" ]; then
     echo "$OLDPATH" 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\.,${SED_RED_YELLOW},g"
-    echo "New path exported: $PATH" 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\. ,${SED_RED_YELLOW},g"
-else
-    echo "New path exported: $PATH" 2>/dev/null
+fi
+
+if [ "$DEBUG" ]; then
+     echo "New path exported: $PATH"
 fi
 echo ""
 
@@ -196,6 +161,14 @@ else
     echo_not_found "AppArmor"
 fi
 
+#-- SY) AppArmor2
+print_list "AppArmor profile? .............. "$NC
+(cat /proc/self/attr/current 2>/dev/null || echo "unconfined") | sed "s,unconfined,${SED_RED}," | sed "s,kernel,${SED_GREEN},"
+
+#-- SY) LinuxONE
+print_list "is linuxONE? ................... "$NC
+( (uname -a | grep "s390x" >/dev/null 2>&1) && echo "Yes" || echo_not_found "s390x")
+
 #-- SY) grsecurity
 print_list "grsecurity present? ............ "$NC
 ( (uname -r | grep "\-grsec" >/dev/null 2>&1 || grep "grsecurity" /etc/sysctl.conf >/dev/null 2>&1) && echo "Yes" || echo_not_found "grsecurity")
@@ -214,11 +187,7 @@ print_list "SELinux enabled? ............... "$NC
 
 #-- SY) Seccomp
 print_list "Seccomp enabled? ............... "$NC
-([ "$(grep Seccomp /proc/self/status | grep -v 0)" ] && echo "enabled" || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,enabled,${SED_GREEN},"
-
-#-- SY) AppArmor
-print_list "AppArmor profile? .............. "$NC
-(cat /proc/self/attr/current 2>/dev/null || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,kernel,${SED_GREEN},"
+([ "$(grep Seccomp /proc/self/status 2>/dev/null | grep -v 0)" ] && echo "enabled" || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,enabled,${SED_GREEN},"
 
 #-- SY) AppArmor
 print_list "User namespace? ................ "$NC
@@ -226,7 +195,7 @@ if [ "$(cat /proc/self/uid_map 2>/dev/null)" ]; then echo "enabled" | sed "s,ena
 
 #-- SY) cgroup2
 print_list "Cgroup2 enabled? ............... "$NC
-([ "$(grep cgroup2 /proc/filesystems)" ] && echo "enabled" || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,enabled,${SED_GREEN},"
+([ "$(grep cgroup2 /proc/filesystems 2>/dev/null)" ] && echo "enabled" || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,enabled,${SED_GREEN},"
 
 #-- SY) Gatekeeper
 if [ "$MACPEAS" ]; then

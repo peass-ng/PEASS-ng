@@ -8,7 +8,7 @@ namespace winPEAS.Info.FilesInfo.WSL
     {
         public static void RunLinpeas(string linpeasUrl)
         {
-            string linpeasCmd = $"curl {linpeasUrl} --silent | sh";
+            string linpeasCmd = $"curl -L {linpeasUrl} --silent | sh";
             string command = Environment.Is64BitProcess ?
                                 $@"bash -c ""{linpeasCmd}""" :
                                 Environment.GetEnvironmentVariable("WinDir") + $"\\SysNative\\bash.exe -c \"{linpeasCmd}\"";

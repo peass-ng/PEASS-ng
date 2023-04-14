@@ -7,7 +7,10 @@ GCP_BAD_SCOPES="/cloud-platform|/compute"
 
 exec_with_jq(){
   if [ "$(command -v jq)" ]; then 
-    $@ | jq;
+    $@ | jq 2>/dev/null;
+    if ! [ $? -eq 0 ]; then
+      $@;
+    fi
    else 
     $@;
    fi
@@ -17,6 +20,24 @@ check_gcp(){
   is_gcp="No"
   if grep -q metadata.google.internal /etc/hosts 2>/dev/null || (curl --connect-timeout 2 metadata.google.internal >/dev/null 2>&1 && [ "$?" -eq "0" ]) || (wget --timeout 2 --tries 1 metadata.google.internal >/dev/null 2>&1 && [ "$?" -eq "0" ]); then
     is_gcp="Yes"
+  fi
+}
+
+check_do(){
+  is_do="No"
+  if [ -f "/etc/cloud/cloud.cfg.d/90-digitalocean.cfg" ]; then
+    is_do="Yes"
+  fi
+}
+
+check_ibm_vm(){
+  is_ibm_vm="No"
+  if grep -q "nameserver 161.26.0.10" "/etc/resolv.conf" && grep -q "nameserver 161.26.0.11" "/etc/resolv.conf"; then
+    curl --connect-timeout 2  "http://169.254.169.254" > /dev/null 2>&1 || wget --timeout 2 --tries 1  "http://169.254.169.254" > /dev/null 2>&1
+    if [ "$?" -eq 0 ]; then
+      IBM_TOKEN=$( ( curl -s -X PUT "http://169.254.169.254/instance_identity/v1/token?version=2022-03-01" -H "Metadata-Flavor: ibm" -H "Accept: application/json" 2> /dev/null | cut -d '"' -f4 ) || ( wget --tries 1 -O - --method PUT "http://169.254.169.254/instance_identity/v1/token?version=2022-03-01" --header "Metadata-Flavor: ibm" --header "Accept: application/json" 2>/dev/null | cut -d '"' -f4 ) )
+      is_ibm_vm="Yes"
+    fi
   fi
 }
 
@@ -34,11 +55,6 @@ check_aws_ecs(){
   
   elif (env | grep -q AWS_CONTAINER_CREDENTIALS_RELATIVE_URI); then
     is_aws_ecs="Yes";
-    
-  
-  elif (curl --connect-timeout 2 "http://169.254.170.2/v2/credentials/" >/dev/null 2>&1 && [ "$?" -eq "0" ]) || (wget --timeout 2 --tries 1 "http://169.254.170.2/v2/credentials/" >/dev/null 2>&1 && [ "$?" -eq "0" ]); then
-    is_aws_ecs="Yes";
-
   fi
   
   if [ "$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" ]; then
@@ -48,6 +64,7 @@ check_aws_ecs(){
 
 check_aws_ec2(){
   is_aws_ec2="No"
+  is_aws_ec2_beanstalk="No"
 
   if [ -d "/var/log/amazon/" ]; then
     is_aws_ec2="Yes"
@@ -58,6 +75,10 @@ check_aws_ec2(){
     if [ "$(echo $EC2_TOKEN | cut -c1-2)" = "AQ" ]; then
       is_aws_ec2="Yes"
     fi
+  fi
+  
+  if [ "$is_aws_ec2" = "Yes" ] && grep -iq "Beanstalk" "/etc/motd"; then
+    is_aws_ec2_beanstalk="Yes"
   fi
 }
 
@@ -76,8 +97,13 @@ check_aws_ecs
 print_list "AWS ECS? ............................. $is_aws_ecs\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_aws_ec2
 print_list "AWS EC2? ............................. $is_aws_ec2\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+print_list "AWS EC2 Beanstalk? ................... $is_aws_ec2_beanstalk\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_aws_lambda
 print_list "AWS Lambda? .......................... $is_aws_lambda\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+check_do
+print_list "DO Droplet? .......................... $is_do\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+check_ibm_vm
+print_list "IBM Cloud VM? ........................ $is_ibm_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 
 echo ""
 
@@ -157,6 +183,11 @@ if [ "$is_gcp" = "Yes" ]; then
             echo "  Network: "$(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/$iface/network")
             echo "  ==============  "
         done
+        
+        echo ""
+        print_3title "User Data"
+        echo $(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/attributes/startup-script")
+        echo ""
 
         echo ""
         print_3title "Service Accounts"
@@ -259,7 +290,14 @@ if [ "$is_aws_ec2" = "Yes" ]; then
         
         echo ""
         print_3title "User Data"
-        eval $aws_req "http://169.254.169.254/latest/user-data"
+        eval $aws_req "http://169.254.169.254/latest/user-data"; echo ""
+        
+        echo ""
+        echo "EC2 Security Credentials"
+        exec_with_jq eval $aws_req "$URL/identity-credentials/ec2/security-credentials/ec2-instance"; echo ""
+        
+        print_3title "SSM Runnig"
+        ps aux 2>/dev/null | grep "ssm-agent" | grep -v "grep" | sed "s,ssm-agent,${SED_RED},"
     fi
 fi
 
@@ -275,3 +313,65 @@ if [ "$is_aws_lambda" = "Yes" ]; then
   printf "Event data: "; (curl -s "http://${AWS_LAMBDA_RUNTIME_API}/2018-06-01/runtime/invocation/next" 2>/dev/null || wget -q -O - "http://${AWS_LAMBDA_RUNTIME_API}/2018-06-01/runtime/invocation/next")
 fi
 
+if [ "$is_do" = "Yes" ]; then
+  print_2title "DO Droplet Enumeration"
+
+  do_req=""
+  if [ "$(command -v curl)" ]; then
+      do_req='curl -s -f '
+  elif [ "$(command -v wget)" ]; then
+      do_req='wget -q -O - '
+  else 
+      echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
+  fi
+
+  if [ "$do_req" ]; then
+    URL="http://169.254.169.254/metadata"
+    printf "Id: "; eval $do_req "$URL/v1/id"; echo ""
+    printf "Region: "; eval $do_req "$URL/v1/region"; echo ""
+    printf "Public keys: "; eval $do_req "$URL/v1/public-keys"; echo ""
+    printf "User data: "; eval $do_req "$URL/v1/user-data"; echo ""
+    printf "Dns: "; eval $do_req "$URL/v1/dns/nameservers" | tr '\n' ','; echo ""
+    printf "Interfaces: "; eval $do_req "$URL/v1.json" | jq ".interfaces";
+    printf "Floating_ip: "; eval $do_req "$URL/v1.json" | jq ".floating_ip";
+    printf "Reserved_ip: "; eval $do_req "$URL/v1.json" | jq ".reserved_ip";
+    printf "Tags: "; eval $do_req "$URL/v1.json" | jq ".tags";
+    printf "Features: "; eval $do_req "$URL/v1.json" | jq ".features";
+  fi
+fi
+
+if [ "$is_ibm_vm" = "Yes" ]; then
+  print_2title "IBM Cloud Enumeration"
+
+  if ! [ "$IBM_TOKEN" ]; then
+    echo "Couldn't get the metdata token:("
+
+  else
+    TOKEN_HEADER="Authorization: Bearer $IBM_TOKEN"
+    ACCEPT_HEADER="Accept: application/json"
+    URL="http://169.254.169.254/latest/meta-data"
+    
+    ibm_req=""
+    if [ "$(command -v curl)" ]; then
+        ibm_req="curl -s -f -H '$TOKEN_HEADER' -H '$ACCEPT_HEADER'"
+    elif [ "$(command -v wget)" ]; then
+        ibm_req="wget -q -O - -H '$TOKEN_HEADER' -H '$ACCEPT_HEADER'"
+    else 
+        echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
+    fi
+
+    print_3title "Instance Details"
+    exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/instance?version=2022-03-01"
+
+    print_3title "Keys and User data"
+    exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/instance/initialization?version=2022-03-01"
+    exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/keys?version=2022-03-01"
+
+    print_3title "Placement Groups"
+    exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/placement_groups?version=2022-03-01"
+
+    print_3title "IAM credentials"
+    exec_with_jq eval $ibm_req -X POST "http://169.254.169.254/instance_identity/v1/iam_token?version=2022-03-01"
+  fi
+
+fi

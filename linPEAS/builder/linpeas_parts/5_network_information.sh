@@ -24,7 +24,7 @@ fi
 #-- NI) Interfaces
 print_2title "Interfaces"
 cat /etc/networks 2>/dev/null
-(ifconfig || ip a) 2>/dev/null
+(ifconfig || ip a || (cat /proc/net/dev; cat /proc/net/fib_trie; cat /proc/net/fib_trie6)) 2>/dev/null
 echo ""
 
 #-- NI) Neighbours
@@ -54,7 +54,7 @@ fi
 #-- NI) Ports
 print_2title "Active Ports"
 print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#open-ports"
-( (netstat -punta || ss -nltpu || netstat -anv) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+|:::|::1:|0\.0\.0\.0,${SED_RED},"
+( (netstat -punta || ss -nltpu || netstat -anv) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+|:::|::1:|0\.0\.0\.0,${SED_RED},g"
 echo ""
 
 #-- NI) MacOS hardware ports

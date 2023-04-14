@@ -53,6 +53,7 @@ $wp.EntryPoint #Get the name of the ReflectedType, in obfuscated versions someti
 ## Parameters Examples
 
 ```bash
+winpeas.exe -h # Get Help
 winpeas.exe #run all checks (except for additional slower checks - LOLBAS and linpeas.sh in WSL) (noisy - CTFs)
 winpeas.exe systeminfo userinfo #Only systeminfo and userinfo checks executed
 winpeas.exe notcolor #Do not color the output
@@ -62,35 +63,6 @@ winpeas.exe debug #display additional debug information
 winpeas.exe log #log output to out.txt instead of standard output
 winpeas.exe -linpeas=http://127.0.0.1/linpeas.sh #Execute also additional linpeas check (runs linpeas.sh in default WSL distribution) with custom linpeas.sh URL (if not provided, the default URL is: https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh)
 winpeas.exe -lolbas  #Execute also additional LOLBAS search check
-```
-
-## Help
-```
-domain               Enumerate domain information
-systeminfo           Search system information
-userinfo             Search user information
-processinfo          Search processes information
-servicesinfo         Search services information
-applicationsinfo     Search installed applications information
-networkinfo          Search network information
-windowscreds         Search windows credentials
-browserinfo          Search browser information
-filesinfo            Search generic files that can contains credentials
-fileanalysis         Search specific files that can contains credentials and for regexes inside files
-eventsinfo           Display interesting events information
-
-quiet                Do not print banner
-notcolor             Don't use ansi colors (all white)
-searchpf             Search credentials via regex also in Program Files folders
-wait                 Wait for user input between checks
-debug                Display debugging information - memory usage, method execution time
-log[=logfile]        Log all output to file defined as logfile, or to "out.txt" if not specified
-MaxRegexFileSize=1000000        Max file size (in Bytes) to search regex in. Default: 1000000B
-
-Additional checks (slower):
--lolbas              Run additional LOLBAS check
--linpeas=[url]       Run additional linpeas.sh check for default WSL distribution, optionally provide custom linpeas.sh URL
-                     (default: https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh)
 ```
 
 ## Basic information

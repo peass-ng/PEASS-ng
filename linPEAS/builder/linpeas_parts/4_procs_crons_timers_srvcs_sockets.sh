@@ -6,13 +6,18 @@
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   #-- PCS) Cleaned proccesses
   print_2title "Cleaned processes"
+
   if [ "$NOUSEPS" ]; then
     printf ${BLUE}"[i]$GREEN Looks like ps is not finding processes, going to read from /proc/ and not going to monitor 1min of processes\n"$NC
   fi
   print_info "Check weird & unexpected proceses run by root: https://book.hacktricks.xyz/linux-hardening/privilege-escalation#processes"
 
+  if [ -f "/etc/fstab" ] && cat /etc/fstab | grep -q "hidepid=2"; then
+    echo "Looks like /etc/fstab has hidepid=2, so ps will not show processes of other users"
+  fi
+
   if [ "$NOUSEPS" ]; then
-    print_ps | sed -${E} "s,$Wfolders,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$rootcommon,${SED_GREEN}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED}," | sed -${E} "s,$processesVB,${SED_RED_YELLOW},g" | sed "s,$processesB,${SED_RED}," | sed -${E} "s,$processesDump,${SED_RED},"
+    print_ps | grep -v 'sed-Es' | sed -${E} "s,$Wfolders,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$rootcommon,${SED_GREEN}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED}," | sed -${E} "s,$processesVB,${SED_RED_YELLOW},g" | sed "s,$processesB,${SED_RED}," | sed -${E} "s,$processesDump,${SED_RED},"
     pslist=$(print_ps)
   else
     (ps fauxwww || ps auxwww | sort ) 2>/dev/null | grep -v "\[" | grep -v "%CPU" | while read psline; do
@@ -39,6 +44,33 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     done
     ps auxwww 2>/dev/null | awk '{print $11}' | xargs ls -la 2>/dev/null |awk '!x[$0]++' 2>/dev/null | grep -v " root root " | grep -v " $USER " | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$binW,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_RED}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED}," | sed "s,root,${SED_GREEN},"
   fi
+  echo ""
+fi
+
+CURRENT_USER_PIVOT_PID=""
+if ! [ "$SEARCH_IN_FOLDER" ] && ! [ "$NOUSEPS" ]; then
+  #-- PCS) Process opened by other users
+  print_2title "Processes whose PPID belongs to a different user (not root)"
+  print_info "You will know if a user can somehow spawn processes as a different user"
+  
+  # Function to get user by PID
+  get_user_by_pid() {
+    ps -p "$1" -o user | grep -v "USER"
+  }
+
+  # Find processes with PPID and user info, then filter those where PPID's user is different from the process's user
+  ps -eo pid,ppid,user | grep -v "PPID" | while read -r pid ppid user; do
+    if [ "$ppid" = "0" ]; then
+      continue
+    fi
+    ppid_user=$(get_user_by_pid "$ppid")
+    if echo "$user" | grep -Eqv "$ppid_user|root$"; then
+      echo "Proc $pid with ppid $ppid is run by user $user but the ppid user is $ppid_user" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,root,${SED_RED},"
+      if [ "$ppid_user" = "$USER" ]; then
+        CURRENT_USER_PIVOT_PID="$ppid"
+      fi
+    fi
+  done
   echo ""
 fi
 
@@ -71,7 +103,13 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     print_2title "Different processes executed during 1 min (interesting is low number of repetitions)"
     print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#frequent-cron-jobs"
     temp_file=$(mktemp)
-    if [ "$(ps -e -o command 2>/dev/null)" ]; then for i in $(seq 1 1250); do ps -e -o command >> "$temp_file" 2>/dev/null; sleep 0.05; done; sort "$temp_file" 2>/dev/null | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort -r -n | grep -E -v "\s*[1-9][0-9][0-9][0-9]"; rm "$temp_file"; fi
+    if [ "$(ps -e -o user,command 2>/dev/null)" ]; then 
+      for i in $(seq 1 1210); do 
+        ps -e -o user,command >> "$temp_file" 2>/dev/null; sleep 0.05; 
+      done;
+      sort "$temp_file" 2>/dev/null | uniq -c | grep -v "\[" | sed '/^.\{200\}./d' | sort -r -n | grep -E -v "\s*[1-9][0-9][0-9][0-9]" | sed -${E} "s,$Wfolders,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,root,${SED_RED},"; 
+      rm "$temp_file";
+    fi
     echo ""
   fi
 fi
@@ -109,7 +147,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
       program=""
       program=$(defaults read "$f" Program 2>/dev/null)
       if ! [ "$program" ]; then
-        program=$(defaults read /Library/LaunchDaemons/MonitorHelper.plist ProgramArguments | grep -Ev "^\(|^\)" | cut -d '"' -f 2)
+        program=$(defaults read "$f" ProgramArguments | grep -Ev "^\(|^\)" | cut -d '"' -f 2)
       fi
       if [ -w "$program" ]; then
         echo "$program" is writable | sed -${E} "s,.*,${SED_RED_YELLOW},";
@@ -173,12 +211,12 @@ printf "%s\n" "$PSTORAGE_SYSTEMD" | while read s; do
       fi
     done
     relpath1=$(grep -E '^Exec.*=(?:[^/]|-[^/]|\+[^/]|![^/]|!![^/]|)[^/@\+!-].*' "$s" 2>/dev/null | grep -Iv "=/")
-    relpath2=$(grep -E '^Exec.*=.*/bin/[a-zA-Z0-9_]*sh ' "$s" 2>/dev/null | grep -Ev "/[a-zA-Z0-9_]+/")
+    relpath2=$(grep -E '^Exec.*=.*/bin/[a-zA-Z0-9_]*sh ' "$s" 2>/dev/null)
     if [ "$relpath1" ] || [ "$relpath2" ]; then
       if [ "$WRITABLESYSTEMDPATH" ]; then
-        echo "$s is executing some relative path" | sed -${E} "s,.*,${SED_RED},";
+        echo "$s could be executing some relative path" | sed -${E} "s,.*,${SED_RED},";
       else
-        echo "$s is executing some relative path"
+        echo "$s could be executing some relative path"
       fi
     fi
   fi
@@ -249,6 +287,7 @@ if ! [ "$IAMROOT" ]; then
     if ! [ "$unix_scks_list" ];then
       unix_scks_list=$(netstat -a -p --unix 2>/dev/null | grep -Ei "listen|PID" | grep -Eo "/[a-zA-Z0-9\._/\-]+" | tail -n +2)
     fi
+     unix_scks_list3=$(lsof -U 2>/dev/null | awk '{print $9}' | grep "/") 
   fi
   
   if ! [ "$SEARCH_IN_FOLDER" ]; then
@@ -259,7 +298,7 @@ if ! [ "$IAMROOT" ]; then
   fi
 
   # Detele repeated dockets and check permissions
-  (printf "%s\n" "$unix_scks_list" && printf "%s\n" "$unix_scks_list2") | sort | uniq | while read l; do
+  (printf "%s\n" "$unix_scks_list" && printf "%s\n" "$unix_scks_list2" && printf "%s\n" "$unix_scks_list3") | sort | uniq | while read l; do
     perms=""
     if [ -r "$l" ]; then
       perms="Read "

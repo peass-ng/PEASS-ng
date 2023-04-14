@@ -1,6 +1,10 @@
 name: CI-master_test
 
-on:  
+on:
+  push:
+    branches:
+      - master
+  
   schedule:
     - cron: "5 4 * * SUN"
 
@@ -22,6 +26,10 @@ jobs:
         uses: actions/checkout@master
         with:
           ref: ${{ github.head_ref }}
+      
+      - name: Download regexes
+        run: |
+          powershell.exe -ExecutionPolicy Bypass -File build_lists/download_regexes.ps1
             
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild.exe
@@ -194,8 +202,36 @@ jobs:
         run: linPEAS/linpeas.sh -h
       
       # Run linpeas as a test
-      - name: Run linpeas
-        run: linPEAS/linpeas.sh -a -D
+      - name: Run linpeas system_information
+        run: linPEAS/linpeas.sh -o system_information -a
+      
+      - name: Run linpeas container
+        run: linPEAS/linpeas.sh -o container -a
+      
+      - name: Run linpeas cloud
+        run: linPEAS/linpeas.sh -o cloud -a
+      
+      - name: Run linpeas procs_crons_timers_srvcs_sockets
+        run: linPEAS/linpeas.sh -o procs_crons_timers_srvcs_sockets -a
+      
+      - name: Run linpeas network_information
+        run: linPEAS/linpeas.sh -o network_information -t -a
+      
+      - name: Run linpeas users_information
+        run: linPEAS/linpeas.sh -o users_information -a
+      
+      - name: Run linpeas software_information
+        run: linPEAS/linpeas.sh -o software_information -a
+      
+      - name: Run linpeas interesting_perms_files
+        run: linPEAS/linpeas.sh -o interesting_perms_files -a
+      
+      - name: Run linpeas interesting_files
+        run: linPEAS/linpeas.sh -o interesting_files -a
+      
+      # Too much time
+      #- name: Run linpeas api_keys_regex
+      #  run: linPEAS/linpeas.sh -o api_keys_regex -r
       
       # Upload files for release
       - name: Upload linpeas.sh
@@ -203,6 +239,12 @@ jobs:
         with:
           name: linpeas.sh
           path: linPEAS/linpeas.sh
+      
+      - name: Upload linpeas_fat.sh
+        uses: actions/upload-artifact@v2
+        with:
+          name: linpeas_fat.sh
+          path: linPEAS/linpeas_fat.sh
       
       ## Linux bins
       - name: Upload linpeas_linux_386
@@ -330,6 +372,11 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: linpeas.sh
+    
+    - name: Download linpeas_fat.sh
+      uses: actions/download-artifact@v2
+      with:
+        name: linpeas_fat.sh
 
     - name: Download linpeas_linux_386
       uses: actions/download-artifact@v2
@@ -365,6 +412,10 @@ jobs:
       id: date
       run: echo "::set-output name=date::$(date +'%Y%m%d')"
     
+    - name: Generate random
+      id: random_n
+      run: echo "::set-output name=some_rand::$(openssl rand -hex 4)"
+    
     # Create the release
     - name: Create Release
       id: create_release
@@ -372,8 +423,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{steps.date.outputs.date}}
-        release_name: Release ${{ github.ref }} ${{steps.date.outputs.date}}
+        tag_name: ${{steps.date.outputs.date}}-${{steps.random_n.outputs.some_rand}}
+        release_name: Release ${{ github.ref }} ${{steps.date.outputs.date}}-${{steps.random_n.outputs.some_rand}}
         draft: false
         prerelease: false
         
@@ -384,4 +435,3 @@ jobs:
         assets_path: .
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
