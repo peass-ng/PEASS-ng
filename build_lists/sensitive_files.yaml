@@ -1691,6 +1691,19 @@ search:
                 type: f
                 search_in: 
                   - common
+  - name: SIP
+    value:
+        config:
+          auto_check: True
+    
+        files:
+          - name: "sip.conf"
+            value: 
+                bad_regex: "secret.*"
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
   
   - name: GMV Auth
     value:
