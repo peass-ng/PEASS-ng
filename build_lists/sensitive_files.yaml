@@ -1699,7 +1699,7 @@ search:
         files:
           - name: "sip.conf"
             value: 
-                bad_regex: "secret.*"
+                bad_regex: "secret.*|allowguest.*=.*true"
                 remove_empty_lines: True
                 type: f
                 search_in: 
