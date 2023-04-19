@@ -1704,6 +1704,14 @@ search:
                 type: f
                 search_in: 
                   - common
+          
+          - name: "amportal.conf"
+            value: 
+                bad_regex: ".*PASS.*=.*"
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
   
   - name: GMV Auth
     value:
