@@ -1712,6 +1712,22 @@ search:
                 type: f
                 search_in: 
                   - common
+                  
+          - name: "FreePBX.conf"
+            value: 
+                bad_regex: ".*AMPDB.*=.*"
+                only_bad_lines: True
+                type: f
+                search_in: 
+                  - common
+                  
+          - name: "Elastix.conf"
+            value: 
+                bad_regex: ".*pwd.*=.*"
+                remove_empty_lines: True
+                type: f
+                search_in: 
+                  - common
   
   - name: GMV Auth
     value:
