@@ -220,6 +220,20 @@ class MetasploitModule < Msf::Post
     print_good("PEASS script sent")
   end
 
+  def fetch(uri_str, limit = 10)
+    raise 'Invalid URL, too many HTTP redirects' if limit == 0
+    response = Net::HTTP.get_response(URI(uri_str))
+    case response
+    when Net::HTTPSuccess then
+      response
+    when Net::HTTPRedirection then
+      location = response['location']
+      fetch(location, limit - 1)
+    else
+      response.value
+    end
+  end
+ 
   def load_peass
     # Load the PEASS script from a local file or from Internet
     peass_script = ""
@@ -230,7 +244,7 @@ class MetasploitModule < Msf::Post
       raise 'Invalid URL' unless target.scheme =~ /https?/
       raise 'Invalid URL' if target.host.to_s.eql? ''
       
-      res = Net::HTTP.get_response(target)
+      res = fetch(target)
       peass_script = res.body
 
       raise "Something failed downloading PEASS script from #{url_peass}" if peass_script.length < 500
