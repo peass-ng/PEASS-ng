@@ -307,7 +307,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Looking AppCmd.exe");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#appcmd-exe");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#appcmd.exe");
 
                 var appCmdPath = Environment.ExpandEnvironmentVariables(@"%systemroot%\system32\inetsrv\appcmd.exe");
 
