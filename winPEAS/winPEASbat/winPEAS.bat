@@ -565,7 +565,7 @@ CALL :T_Progress 2
 
 :AppCMD
 CALL :ColorLine " %E%33m[+]%E%97m AppCmd"
-ECHO.   [?] https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#appcmd-exe
+ECHO.   [?] https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#appcmd.exe
 IF EXIST %systemroot%\system32\inetsrv\appcmd.exe ECHO.%systemroot%\system32\inetsrv\appcmd.exe exists. 
 ECHO.
 CALL :T_Progress 2
