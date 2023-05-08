@@ -326,7 +326,7 @@ peass{NFS Exports}
 kadmin_exists="$(command -v kadmin)"
 klist_exists="$(command -v klist)"
 kinit_exists="$(command -v kinit)"
-if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$kinit_exists" ] || [ "$PSTORAGE_KERBEROS" ] || [ "$DEBUG" ]; then
+if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$kinit_exists" ] || [ "$PSTORAGE_KERBEROS" ] || [ "$DEBUG" ]; then
   print_2title "Searching kerberos conf files and tickets"
   print_info "http://book.hacktricks.xyz/linux-hardening/privilege-escalation/linux-active-directory"
 
