@@ -1376,6 +1376,12 @@ search:
                 search_in: 
                   - common
           
+          - name: "ErrorRecords" #Azure logs can contain creentials
+            value: 
+                type: d
+                search_in: 
+                  - common
+          
           - name: "TokenCache.dat"
             value: 
                 bad_regex: ".*"
