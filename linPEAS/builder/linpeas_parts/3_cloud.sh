@@ -90,6 +90,33 @@ check_aws_lambda(){
   fi
 }
 
+check_aws_codebuild(){
+  is_aws_codebuild="No"
+
+  if [ -f "/codebuild/output/tmp/env.sh" ] && grep -q "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" "/codebuild/output/tmp/env.sh" ; then
+    is_aws_codebuild="Yes"
+  fi
+}
+
+check_az_vm(){
+  is_az_vm="No"
+
+  if [ -d "/var/log/azure/" ]; then
+    is_az_vm="Yes"
+  
+  elif cat /etc/resolv.conf 2>/dev/null | grep -q "search reddog.microsoft.com"; then
+    is_az_vm="Yes"
+  fi
+}
+
+check_az_app(){
+  is_az_app="No"
+
+  if [ -d "/opt/microsoft" ] && env | grep -q "IDENTITY_ENDPOINT"; then
+    is_az_app="Yes"
+  fi
+}
+
 
 check_gcp
 print_list "Google Cloud Platform? ............... $is_gcp\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
@@ -100,10 +127,16 @@ print_list "AWS EC2? ............................. $is_aws_ec2\n"$NC | sed "s,Ye
 print_list "AWS EC2 Beanstalk? ................... $is_aws_ec2_beanstalk\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_aws_lambda
 print_list "AWS Lambda? .......................... $is_aws_lambda\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+check_aws_codebuild
+print_list "AWS Codebuild? ....................... $is_aws_codebuild\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_do
 print_list "DO Droplet? .......................... $is_do\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_ibm_vm
 print_list "IBM Cloud VM? ........................ $is_ibm_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+check_az_vm
+print_list "Azure VM? ............................ $is_az_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+check_az_app
+print_list "Azure APP? ........................... $is_az_app\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 
 echo ""
 
@@ -313,6 +346,31 @@ if [ "$is_aws_lambda" = "Yes" ]; then
   printf "Event data: "; (curl -s "http://${AWS_LAMBDA_RUNTIME_API}/2018-06-01/runtime/invocation/next" 2>/dev/null || wget -q -O - "http://${AWS_LAMBDA_RUNTIME_API}/2018-06-01/runtime/invocation/next")
 fi
 
+if [ "$is_aws_codebuild" = "Yes" ]; then
+  print_2title "AWS Codebuild Enumeration"
+
+  aws_req=""
+  if [ "$(command -v curl)" ]; then
+      aws_req="curl -s -f"
+  elif [ "$(command -v wget)" ]; then
+      aws_req="wget -q -O -"
+  else 
+      echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
+      echo "The addresses are in /codebuild/output/tmp/env.sh"
+  fi
+
+  if [ "$aws_req" ]; then
+    print_3title "Credentials"
+    CREDS_PATH=$(cat /codebuild/output/tmp/env.sh | grep "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" | cut -d "'" -f 2)
+    URL_CREDS="http://169.254.170.2$CREDS_PATH" # Already has a / at the begginig
+    exec_with_jq eval $aws_req "$URL_CREDS"; echo ""
+
+    print_3title "Container Info"
+    METADATA_URL=$(cat /codebuild/output/tmp/env.sh | grep "ECS_CONTAINER_METADATA_URI" | cut -d "'" -f 2)
+    exec_with_jq eval $aws_req "$METADATA_URL"; echo ""
+  fi
+fi
+
 if [ "$is_do" = "Yes" ]; then
   print_2title "DO Droplet Enumeration"
 
@@ -360,18 +418,87 @@ if [ "$is_ibm_vm" = "Yes" ]; then
         echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
     fi
 
-    print_3title "Instance Details"
-    exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/instance?version=2022-03-01"
+    if [ "$ibm_req" ]; then
+      print_3title "Instance Details"
+      exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/instance?version=2022-03-01"
 
-    print_3title "Keys and User data"
-    exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/instance/initialization?version=2022-03-01"
-    exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/keys?version=2022-03-01"
+      print_3title "Keys and User data"
+      exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/instance/initialization?version=2022-03-01"
+      exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/keys?version=2022-03-01"
 
-    print_3title "Placement Groups"
-    exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/placement_groups?version=2022-03-01"
+      print_3title "Placement Groups"
+      exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/placement_groups?version=2022-03-01"
 
-    print_3title "IAM credentials"
-    exec_with_jq eval $ibm_req -X POST "http://169.254.169.254/instance_identity/v1/iam_token?version=2022-03-01"
+      print_3title "IAM credentials"
+      exec_with_jq eval $ibm_req -X POST "http://169.254.169.254/instance_identity/v1/iam_token?version=2022-03-01"
+    fi
   fi
 
+fi
+
+if [ "$is_az_vm" = "Yes" ]; then
+  print_2title "Azure VM Enumeration"
+
+  HEADER="Metadata:true"
+  URL="http://169.254.169.254/metadata"
+  API_VERSION="2021-12-13" #https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service?tabs=linux#supported-api-versions
+  
+  az_req=""
+  if [ "$(command -v curl)" ]; then
+      az_req="curl -s -f -H '$HEADER'"
+  elif [ "$(command -v wget)" ]; then
+      az_req="wget -q -O - -H '$HEADER'"
+  else 
+      echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
+  fi
+
+  if [ "$az_req" ]; then
+    print_3title "Instance details"
+    exec_with_jq eval $az_req "$URL/instance?api-version=$API_VERSION"
+
+    print_3title "Load Balancer details"
+    exec_with_jq eval $az_req "$URL/loadbalancer?api-version=$API_VERSION"
+
+    print_3title "Management token"
+    exec_with_jq eval $az_req "$URL/identity/oauth2/token?api-version=$API_VERSION\&resource=https://management.azure.com/"
+
+    print_3title "Graph token"
+    exec_with_jq eval $az_req "$URL/identity/oauth2/token?api-version=$API_VERSION\&resource=https://graph.microsoft.com/"
+    
+    print_3title "Vault token"
+    exec_with_jq eval $az_req "$URL/identity/oauth2/token?api-version=$API_VERSION\&resource=https://vault.azure.net/"
+
+    print_3title "Storage token"
+    exec_with_jq eval $az_req "$URL/identity/oauth2/token?api-version=$API_VERSION\&resource=https://storage.azure.com/"
+  fi
+fi
+
+if [ "$check_az_app" = "Yes" ]; then
+  print_2title "Azure App Service Enumeration"
+  echo "I haven't tested this one, if it doesn't work, please send a PR fixing and adding functionality :)"
+
+  HEADER="secret:$IDENTITY_HEADER"
+
+  az_req=""
+  if [ "$(command -v curl)" ]; then
+      az_req="curl -s -f -H '$HEADER'"
+  elif [ "$(command -v wget)" ]; then
+      az_req="wget -q -O - -H '$HEADER'"
+  else 
+      echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
+  fi
+
+  if [ "$az_req" ]; then
+    print_3title "Management token"
+    exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://management.azure.com/"
+
+    print_3title "Graph token"
+    exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://graph.microsoft.com/"
+    
+    print_3title "Vault token"
+    exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://vault.azure.net/"
+
+    print_3title "Storage token"
+    exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://storage.azure.com/"
+  fi
 fi
