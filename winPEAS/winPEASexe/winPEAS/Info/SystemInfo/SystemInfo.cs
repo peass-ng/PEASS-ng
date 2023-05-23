@@ -114,7 +114,6 @@ namespace winPEAS.Info.SystemInfo
                 string BuildBranch = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "BuildBranch");
                 string CurrentMajorVersionNumber = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentMajorVersionNumber");
                 string CurrentVersion = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentVersion");
-                string CurrentBuildNumber = RegistryHelper.GetRegValue("HLKM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentBuildNumber");
 
                 bool isHighIntegrity = MyUtils.IsHighIntegrity();
 
