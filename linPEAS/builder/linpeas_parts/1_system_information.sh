@@ -128,7 +128,7 @@ if [ "$(command -v bash 2>/dev/null)" ]; then
     print_2title "Executing Linux Exploit Suggester"
     print_info "https://github.com/mzet-/linux-exploit-suggester"
     les_b64="peass{LES}"
-    echo $les_b64 | base64 -d | bash | sed "s,$(printf '\033')\\[[0-9;]*[a-zA-Z],,g" | grep -i "\[CVE" -A 10 | grep -Ev "^\-\-$" | sed -${E} "s,\[CVE-[0-9]+-[0-9]+\].*,${SED_RED},g"
+    echo $les_b64 | base64 -d | bash | sed "s,$(printf '\033')\\[[0-9;]*[a-zA-Z],,g" | grep -i "\[CVE" -A 10 | grep -Ev "^\-\-$" | sed -${E} "s/\[(CVE-[0-9]+-[0-9]+,?)+\].*/${SED_RED}/g"
     echo ""
 fi
 
