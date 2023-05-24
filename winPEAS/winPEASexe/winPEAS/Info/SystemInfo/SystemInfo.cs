@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -7,8 +8,10 @@ using System.Management;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
+
 
 namespace winPEAS.Info.SystemInfo
 {
@@ -44,11 +47,65 @@ namespace winPEAS.Info.SystemInfo
             }
             return false;
         }
-
+        
         //From Seatbelt
         public static Dictionary<string, string> GetBasicOSInfo()
         {
             Dictionary<string, string> results = new Dictionary<string, string>();
+
+            // Systeminfo from cmd to be able to use wes-ng
+            ///////////////////////////////////////////////
+            
+            Process process = new Process();
+
+            // Configure the process to run the systeminfo command
+            process.StartInfo.FileName = "systeminfo.exe";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardOutput = true;
+
+            // Start the process
+            process.Start();
+
+            // Read the output of the command
+            string output = process.StandardOutput.ReadToEnd();
+
+            // Wait for the command to finish
+            process.WaitForExit();
+
+
+            // Split the output by newline characters
+            string[] lines = output.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            string osname = @".*?Microsoft[\(R\)]{0,3} Windows[\(R\)?]{0,3} ?(Serverr? )?(\d+\.?\d?( R2)?|XP|VistaT).*";
+            string osversion = @".*?((\d+\.?){3}) ((Service Pack (\d)|N\/\w|.+) )?[ -\xa5]+ (\d+).*";
+            // Iterate over each line and add key-value pairs to the dictionary
+            foreach (string line in lines)
+            {
+                int index = line.IndexOf(':');
+                if (index != -1)
+                {
+                    string key = line.Substring(0, index).Trim();
+                    string value = line.Substring(index + 1).Trim();
+                    if (Regex.IsMatch(value, osname, RegexOptions.IgnoreCase))
+                    {
+                        results["OS Name"] = value;
+                    }
+                    //I have to find a better way. Maybe use regex from wes-ng
+                    if (Regex.IsMatch(value, osversion, RegexOptions.IgnoreCase))
+                    {
+                        results["OS Version"] = value;
+                    }
+
+                    if (value.Contains("based PC")) 
+                    {
+                        results["System Type"] = value;
+                    }
+                    
+                }
+            }
+
+            // ENDING Systeminfo from cmd to be able to use wes-ng
+            ///////////////////////////////////////////////
             try
             {
                 string ProductName = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "ProductName");
