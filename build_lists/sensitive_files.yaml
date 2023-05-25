@@ -1141,6 +1141,15 @@ search:
           - name: "authorized_keys"
             value: 
                 good_regex: 'from=[\w\._\-]+'
+                bad_regex: "command=.*"
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "*.pub"
+            value:
+                bad_regex: "command=.*"
+                only_bad_lines: True
                 type: f
                 search_in: 
                   - common
