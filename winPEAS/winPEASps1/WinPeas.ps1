@@ -141,7 +141,7 @@ Function Get-ClipBoardText {
   (((((((((/,  ,####################(/..((((((((((.
         (((((((((/,.  ,*//////*,. ./(((((((((((.
            (((((((((((((((((((((((((((/
-                  by @RandolphConley & carlospolop
+          by @RandolphConley & carlospolop
 "                  
 ######################## INTRODUCTION ########################
 $stopwatch = [system.diagnostics.stopwatch]::StartNew()
