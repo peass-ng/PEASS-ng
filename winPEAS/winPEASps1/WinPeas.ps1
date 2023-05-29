@@ -6,10 +6,11 @@
 .EXAMPLE
   .\WinPeas.ps1
 .NOTES
-  Version:        1.0
-  Author:         @Carlospopm and @RandolphConley
-  Creation Date:  10/4/2022
-  Website         https://github.com/carlospolop/PEASS-ng
+  Version:                    1.0
+  PEASS-ng Original Author:   carlospolop
+  WinPEAS.ps1 Author:         @RandolphConley
+  Creation Date:              10/4/2022
+  Website:                    https://github.com/carlospolop/PEASS-ng
 
   TESTED: PoSh 5,7
   UNTESTED: Posh 3,4
@@ -140,7 +141,7 @@ Function Get-ClipBoardText {
   (((((((((/,  ,####################(/..((((((((((.
         (((((((((/,.  ,*//////*,. ./(((((((((((.
            (((((((((((((((((((((((((((/
-                  by carlospolop
+                  by @RandolphConley & carlospolop
 "                  
 ######################## INTRODUCTION ########################
 $stopwatch = [system.diagnostics.stopwatch]::StartNew()

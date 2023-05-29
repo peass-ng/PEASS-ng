@@ -9,10 +9,12 @@ Check more **information about how to exploit** found misconfigurations in **[bo
 ## Quick Start
 Find the **latest versions of all the scripts and binaries in [the releases page](https://github.com/carlospolop/PEASS-ng/releases/latest)**.
 
-## WinPEAS .exe and .bat
-- [Link to WinPEAS .bat project](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASbat) 
-- [Link to WinPEAS C# project (.exe)](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe) (.Net >= 4.5.2 required)
+## WinPEAS Flavours
+- [Link to WinPEAS C# .exe project](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASexe) (.Net >= 4.5.2 required)
     - **Please, read the Readme of that folder to learn how to execute winpeas from memory or how make colors work among other tricks**
+- [Link to WinPEAS .ps1 project](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASps1)
+- [Link to WinPEAS .bat project](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS/winPEASbat) 
+
 
 ## PEASS Style
 

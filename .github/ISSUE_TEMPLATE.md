@@ -1,4 +1,5 @@
 If you are going to suggest something, please remove the following template. 
+If your issue is related with WinPEAS.ps1 please mention https://github.com/RandolphConley
 
 #### Issue description
 
