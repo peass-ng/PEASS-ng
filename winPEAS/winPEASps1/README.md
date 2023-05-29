@@ -1,4 +1,4 @@
-# Windows Privilege Escalation Awesome Script (.ps2)
+# Windows Privilege Escalation Awesome Script (.ps1)
 
 ![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/winpeas.png)
 
