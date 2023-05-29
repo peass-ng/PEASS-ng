@@ -137,6 +137,12 @@ jobs:
         with:
           name: winPEAS.bat
           path: winPEAS\winPEASbat\winPEAS.bat
+      
+      - name: Upload winpeas.ps1
+        uses: actions/upload-artifact@v2
+        with:
+          name: winPEAS.ps1
+          path: winPEAS\winPEASps1\winPEAS.ps1
           
       # Git add
       #- name: Create local changes
