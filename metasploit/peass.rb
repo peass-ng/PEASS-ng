@@ -25,7 +25,7 @@ class MetasploitModule < Msf::Post
       'License'        => MSF_LICENSE,
       'Author'         =>
         [
-          'Carlos Polop <@carlospolopm>'
+          'Carlos Polop <@hacktricks_live>'
         ],
       'Platform'       => %w{ bsd linux osx unix win },
       'SessionTypes'   => ['shell', 'meterpreter'],
