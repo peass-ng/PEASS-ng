@@ -191,14 +191,14 @@ class MetasploitModule < Msf::Post
         cmd_utf16le = cmd.encode("utf-16le")
         cmd_utf16le_b64 = Base64.encode64(cmd_utf16le).gsub(/\r?\n/, "")
         
-        tmpout << cmd_exec("powershell.exe", args="-ep bypass -WindowStyle hidden -nop -enc #{cmd_utf16le_b64}", time_out=datastore["TIMEOUT"])
+        tmpout << cmd_exec("powershell.exe", args="-ep bypass -WindowStyle hidden -nop -enc #{cmd_utf16le_b64}", time_out=datastore["TIMEOUT"].to_i)
       
         # If unix, then, suppose linpeas was loaded
       else
         cmd += "| #{decode_linpeass_cmd}"
         cmd += "| sh -s -- #{datastore['PARAMETERS']}"
         cmd += last_cmd
-        tmpout << cmd_exec(cmd, args=nil, time_out=datastore["TIMEOUT"])
+        tmpout << cmd_exec(cmd, args=nil, time_out=datastore["TIMEOUT"].to_i)
       end
 
       print "\n#{tmpout}\n\n"
