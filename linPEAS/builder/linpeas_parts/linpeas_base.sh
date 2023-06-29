@@ -74,6 +74,7 @@ THREADS="$( ( (grep -c processor /proc/cpuinfo 2>/dev/null) || ( (command -v lsc
 HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
 ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user, processes and file permissions, special file permissions, readable/writable files, bruteforce other users(top1000pwds), passwords...)$NC inside the host and highlight possible misconfigurations with colors.
       ${GREEN}  Checks:
+        ${YELLOW}    -a${BLUE} Perform all checks: 1 min of processes, su brute, and extra checks.
         ${YELLOW}    -o${BLUE} Only execute selected checks (peass{CHECKS}). Select a comma separated list.
         ${YELLOW}    -s${BLUE} Stealth & faster (don't check some time consuming checks)
         ${YELLOW}    -e${BLUE} Perform extra enumeration
@@ -81,20 +82,20 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
         ${YELLOW}    -r${BLUE} Enable Regexes (this can take from some mins to hours)
         ${YELLOW}    -P${BLUE} Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
 	${YELLOW}    -D${BLUE} Debug mode
-	
+
       ${GREEN}  Network recon:
         ${YELLOW}    -t${BLUE} Automatic network scan & Internet conectivity checks - This option writes to files
 	${YELLOW}    -d <IP/NETMASK>${BLUE} Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
         ${YELLOW}    -p <PORT(s)> -d <IP/NETMASK>${BLUE} Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
         ${YELLOW}    -i <IP> [-p <PORT(s)>]${BLUE} Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
         $GREEN     Notice${BLUE} that if you specify some network scan (options -d/-p/-i but NOT -t), no PE check will be performed
-      
+
       ${GREEN}  Port forwarding (reverse connection):
         ${YELLOW}    -F LOCAL_IP:LOCAL_PORT:REMOTE_IP:REMOTE_PORT${BLUE} Execute linpeas to forward a port from a your host (LOCAL_IP:LOCAL_PORT) to a remote IP (REMOTE_IP:REMOTE_PORT)
-      
+
       ${GREEN}  Firmware recon:
         ${YELLOW}    -f </FOLDER/PATH>${BLUE} Execute linpeas to search passwords/file permissions misconfigs inside a folder
-	
+
       ${GREEN}  Misc:
         ${YELLOW}    -h${BLUE} To show this message
 	${YELLOW}    -w${BLUE} Wait execution between big blocks of checks
@@ -124,12 +125,12 @@ while getopts "h?asd:p:i:P:qo:LMwNDterf:F:" opt; do
     r)  REGEXES="1";;
     f)  SEARCH_IN_FOLDER=$OPTARG;
     	if ! [ "$(echo -n $SEARCH_IN_FOLDER | tail -c 1)" = "/" ]; then #Make sure firmware folder ends with "/"
-        SEARCH_IN_FOLDER="${SEARCH_IN_FOLDER}/"; 
+        SEARCH_IN_FOLDER="${SEARCH_IN_FOLDER}/";
       fi;
           ROOT_FOLDER=$SEARCH_IN_FOLDER;
       REGEXES="1";
 	    CHECKS="procs_crons_timers_srvcs_sockets,software_information,interesting_perms_files,interesting_files,api_keys_regex";;
-	
+
     F)  PORT_FORWARD=$OPTARG;;
     esac
 done
@@ -244,7 +245,7 @@ print_support () {
   printf """
     ${GREEN}/---------------------------------------------------------------------------------\\
     |                             ${BLUE}Do you like PEASS?${GREEN}                                  |
-    |---------------------------------------------------------------------------------| 
+    |---------------------------------------------------------------------------------|
     |         ${YELLOW}Get the latest version${GREEN}    :     ${RED}https://github.com/sponsors/carlospolop${GREEN} |
     |         ${YELLOW}Follow on Twitter${GREEN}         :     ${RED}@hacktricks_live${GREEN}                          |
     |         ${YELLOW}Respect on HTB${GREEN}            :     ${RED}SirBroccoli            ${GREEN}                 |
@@ -315,7 +316,7 @@ idB="euid|egid$baduid"
 sudovB="[01].[012345678].[0-9]+|1.9.[01234]|1.9.5p1"
 
 mounted=$( (cat /proc/self/mountinfo || cat /proc/1/mountinfo) 2>/dev/null | cut -d " " -f5 | grep "^/" | tr '\n' '|')$(cat /etc/fstab 2>/dev/null | grep -v "#" | grep -E '\W/\W' | awk '{print $1}')
-if ! [ "$mounted" ]; then 
+if ! [ "$mounted" ]; then
   mounted=$( (mount -l || cat /proc/mounts || cat /proc/self/mounts || cat /proc/1/mounts) 2>/dev/null | grep "^/" | cut -d " " -f1 | tr '\n' '|')$(cat /etc/fstab 2>/dev/null | grep -v "#" | grep -E '\W/\W' | awk '{print $1}')
 fi
 if ! [ "$mounted" ]; then mounted="ImPoSSssSiBlEee"; fi #Don't let any blacklist to be empty
@@ -672,7 +673,7 @@ print_title(){
   printf "╚"
   for i in $(seq 1 $title_len); do printf "═"; done; printf "═";
   printf "╝"
-  
+
   printf $NC
   echo ""
 }
@@ -745,8 +746,9 @@ su_brute_user_num (){
 }
 
 check_if_su_brute(){
+  EXISTS_SU="$(command -v su 2>/dev/null)"
   error=$(echo "" | timeout 1 su $(whoami) -c whoami 2>&1);
-  if ! echo $error | grep -q "must be run from a terminal"; then
+  if [ "$EXISTS_SU" ] && ! echo $error | grep -q "must be run from a terminal"; then
     echo "1"
   fi
 }
@@ -1133,7 +1135,7 @@ elif echo $CHECKS | grep -q procs_crons_timers_srvcs_sockets || echo $CHECKS | g
 
   wait # Always wait at the end
   CONT_THREADS=0 #Reset the threads counter
-fi 
+fi
 
 if [ "$SEARCH_IN_FOLDER" ] || echo $CHECKS | grep -q procs_crons_timers_srvcs_sockets || echo $CHECKS | grep -q software_information || echo $CHECKS | grep -q interesting_files; then
   #GENERATE THE STORAGES OF THE FOUND FILES
