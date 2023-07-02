@@ -20,3 +20,4 @@ jobs:
           ORIGIN_BRANCH: 'aicoder'
           TO_BRANCH: 'master'
           CHECK_PATH: './parsers/json2pdf.py'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
