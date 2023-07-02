@@ -10,7 +10,7 @@ jobs:
     steps:
       # checkout
       - name: AICoder GH Action
-        uses: AICoderHub/GH_Action@v0.7
+        uses: AICoderHub/GH_Action@v0.8
         with:
           INPUT_MODE: 'file-optimizer'
           INPUT_PROMPT: ''
