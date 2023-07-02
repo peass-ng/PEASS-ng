@@ -1,0 +1,53 @@
+name: 'AICoder GH Action'
+description: 'A GitHub action that uses AICoder to generate PRs improving the code of files absed on prompts'
+author: 'carlospolop'
+inputs:
+  INPUT_MODE:
+    description: 'Mode of operation'
+    required: true
+  INPUT_PROMPT:
+    description: 'Prompt for the AI'
+    required: false
+  INPUT_API_KEY:
+    description: 'OpenAI API Key'
+    required: true
+  INPUT_MODEL:
+    description: 'Model to use for AI'
+    required: false
+  TEMPLATE_FILES:
+    description: 'Template files for file-generator mode'
+    required: false
+  CHECK_PATH:
+    description: 'Path to file/folder to modify'
+    required: false
+  ORIGIN_BRANCH:
+    description: 'Origin branch to checkout'
+    required: true
+  TO_BRANCH:
+    description: 'Branch to commit changes'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: pip3 install aicoder
+      shell: bash
+    - name: Run AI Coder
+      run: python3 gh-aicoder.py
+      env:
+        INPUT_MODE: ${{ inputs.INPUT_MODE }}
+        INPUT_PROMPT: ${{ inputs.INPUT_PROMPT }}
+        INPUT_API_KEY: ${{ inputs.INPUT_API_KEY }}
+        INPUT_MODEL: ${{ inputs.INPUT_MODEL }}
+        TEMPLATE_FILES: ${{ inputs.TEMPLATE_FILES }}
+        ORIGIN_BRANCH: ${{ inputs.ORIGIN_BRANCH }}
+        TO_BRANCH: ${{ inputs.TO_BRANCH }}
+        CHECK_PATH: ${{ inputs.CHECK_PATH }}
+      shell: bash
+
