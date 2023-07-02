@@ -14,7 +14,7 @@ jobs:
         with:
           INPUT_MODE: 'file-optimizer'
           INPUT_PROMPT: ''
-          INPUT_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          INPUT_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           INPUT_MODEL: 'gpt-4'
           TEMPLATE_FILES: ''
           ORIGIN_BRANCH: 'aicoder'
