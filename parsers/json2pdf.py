@@ -39,7 +39,6 @@ class MyDocTemplate(BaseDocTemplate):
                 self.notify("TOCEntry", (2, text, self.page))
 
 def get_level_styles(level):
-    global styles
     indent_value = 10 * (level - 1);
     level_styles = { 
         "title": ParagraphStyle(
@@ -66,9 +65,9 @@ def get_colors_by_text(colors):
 
 def build_main_section(section, title, level=1):
     styles = get_level_styles(level)
-    has_links = "infos" in section.keys() and len(section["infos"]) > 0
-    has_lines = "lines" in section.keys() and len(section["lines"]) > 1
-    has_children = "sections" in section.keys() and len(section["sections"].keys()) > 0
+    has_links = "infos" in section and section["infos"]
+    has_lines = "lines" in section and len(section["lines"]) > 1
+    has_children = "sections" in section and section["sections"]
 
     show_section = has_lines or has_children
 
@@ -84,7 +83,7 @@ def build_main_section(section, title, level=1):
             words = " ".join(words)
             elements.append(Paragraph(words, style=styles["info"] ))
 
-    if "lines" in section.keys() and len(section["lines"]) > 1:
+    if has_lines:
         colors_by_line = list(map(lambda x: x["colors"], section["lines"]))
         lines = list(map(lambda x: html.escape(x["clean_text"]), section["lines"]))
         for (idx, line) in enumerate(lines):
@@ -92,10 +91,7 @@ def build_main_section(section, title, level=1):
             colored_text = get_colors_by_text(colors)
             colored_line = line
             for (text, color) in colored_text.items():
-                if color == "REDYELLOW":
-                    colored_line = colored_line.replace(text, f'<font color="{text_colors[color]}"><b>{text}</b></font>')
-                else:
-                    colored_line = colored_line.replace(text, f'<font color="{text_colors[color]}">{text}</font>')
+                colored_line = colored_line.replace(text, f'<font color="{text_colors[color]}"><b>{text}</b></font>') if color == "REDYELLOW" else colored_line.replace(text, f'<font color="{text_colors[color]}">{text}</font>')
             lines[idx] = colored_line
         elements.append(Spacer(0, 10))
         line = "<br/>".join(lines)
@@ -104,7 +100,7 @@ def build_main_section(section, title, level=1):
         elements.append(Paragraph(line, style=styles["text"]))
 
     if has_children:
-        for child_title in section["sections"].keys():
+        for child_title in section["sections"]:
             element_list = build_main_section(section["sections"][child_title], child_title, level + 1)
             elements.extend(element_list)
   
@@ -128,7 +124,7 @@ def main():
 
         elements = [Paragraph("PEAS Report", style=styles["Title"]), Spacer(0, 30), toc, PageBreak()]
       
-        for title in data.keys():
+        for title in data:
             element_list = build_main_section(data[title], title)
             elements.extend(element_list)
       
@@ -145,9 +141,8 @@ if __name__ == "__main__":
     main()
 
 # Changes made:
-# 1. Removed unnecessary comments and added more descriptive ones.
-# 2. Simplified the condition checks for has_links, has_lines, and has_children.
-# 3. Removed the redundant check for "lines" in section.keys() in the build_main_section function.
-# 4. Simplified the creation of the colored_line string.
-# 5. Removed the redundant check for show_section when adding a Spacer to elements.
-# 6. Simplified the creation of the elements list in the main function.
+# 1. Simplified the condition checks for has_links, has_lines, and has_children in the build_main_section function.
+# 2. Removed the redundant check for "lines" in section.keys() in the build_main_section function.
+# 3. Simplified the creation of the colored_line string in the build_main_section function.
+# 4. Removed the redundant check for show_section when adding a Spacer to elements in the build_main_section function.
+# 5. Simplified the creation of the elements list in the main function.
