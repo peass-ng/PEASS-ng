@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+        - '.github/**'
   
   schedule:
     - cron: "5 4 * * SUN"
