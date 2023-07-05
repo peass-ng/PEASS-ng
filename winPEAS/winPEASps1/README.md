@@ -15,7 +15,7 @@ The official **maintainer of this script is [RandolphConley](https://github.com/
 Download the **[latest releas from here](https://github.com/carlospolop/PEASS-ng/releases/latest)**.
 
 ```bash
-powershell "IEX(New-Object Net.WebClient).downloadString('https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/winPEAS/winPEASps1/WinPeas.ps1')"
+powershell "IEX(New-Object Net.WebClient).downloadString('https://raw.githubusercontent.com/yechielw/PEASS-ng/master/winPEAS/winPEASps1/winPEAS.ps1')"
 ```
 
 ## Advisory
