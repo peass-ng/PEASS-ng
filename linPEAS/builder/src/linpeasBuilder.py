@@ -353,7 +353,7 @@ class LinpeasBuilder:
     
     def __get_gtfobins_lists(self) -> tuple:
         r = requests.get("https://github.com/GTFOBins/GTFOBins.github.io/tree/master/_gtfobins")
-        bins = re.findall(r'/GTFOBins/GTFOBins.github.io/blob/master/_gtfobins/([\w_ \-]+).md', r.text)
+        bins = re.findall(r'_gtfobins/([\w_ \-]+).md', r.text)
 
         sudoVB = []
         suidVB = []
