@@ -13,7 +13,7 @@ SET long=false
 REM Check if the current path contains spaces
 SET "CurrentFolder=%~dp0"
 IF "!CurrentFolder!" NEQ "!CurrentFolder: =!" (
-    ECHO winPEAS.bat cannot run if the current path that contains spaces.
+    ECHO winPEAS.bat cannot run if the current path contains spaces.
 	ECHO Exiting.
     EXIT /B 1
 )
