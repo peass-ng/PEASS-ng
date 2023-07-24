@@ -153,7 +153,7 @@ if [ "$is_gcp" = "Yes" ]; then
 
     if [ "$gcp_req" ]; then
         print_2title "Google CLoud Platform Enumeration"
-        print_info "https://book.hacktricks.xyz/cloud-security/gcp-security"
+        print_info "https://cloud.hacktricks.xyz/pentesting-cloud/gcp-security"
 
         ## GC Project Info
         p_id=$(eval $gcp_req 'http://metadata.google.internal/computeMetadata/v1/project/project-id')
