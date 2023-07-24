@@ -282,7 +282,7 @@ fi
 #If token secrets mounted
 if [ "$(mount | sed -n '/secret/ s/^tmpfs on \(.*default.*\) type tmpfs.*$/\1\/namespace/p')" ]; then
   print_2title "Listing mounted tokens"
-  print_info "https://book.hacktricks.xyz/cloud-security/pentesting-kubernetes/attacking-kubernetes-from-inside-a-pod"
+  print_info "https://cloud.hacktricks.xyz/pentesting-cloud/kubernetes-security/attacking-kubernetes-from-inside-a-pod"
   ALREADY="IinItialVaaluE"
   for i in $(mount | sed -n '/secret/ s/^tmpfs on \(.*default.*\) type tmpfs.*$/\1\/namespace/p'); do
       TOKEN=$(cat $(echo $i | sed 's/.namespace$/\/token/'))
@@ -364,7 +364,7 @@ if [ "$inContainer" ]; then
         echo ""
         
         print_2title "Kubernetes Information"
-        print_info "https://book.hacktricks.xyz/cloud-security/pentesting-kubernetes/attacking-kubernetes-from-inside-a-pod"
+        print_info "https://cloud.hacktricks.xyz/pentesting-cloud/kubernetes-security/attacking-kubernetes-from-inside-a-pod"
         
         
         print_3title "Kubernetes service account folder"
@@ -376,7 +376,7 @@ if [ "$inContainer" ]; then
         echo ""
 
         print_3title "Current sa user k8s permissions"
-        print_info "https://book.hacktricks.xyz/cloud-security/pentesting-kubernetes/hardening-roles-clusterroles"
+        print_info "https://cloud.hacktricks.xyz/pentesting-cloud/kubernetes-security/abusing-roles-clusterroles-in-kubernetes"
         kubectl auth can-i --list 2>/dev/null || curl -s -k -d "$(echo \"eyJraW5kIjoiU2VsZlN1YmplY3RSdWxlc1JldmlldyIsImFwaVZlcnNpb24iOiJhdXRob3JpemF0aW9uLms4cy5pby92MSIsIm1ldGFkYXRhIjp7ImNyZWF0aW9uVGltZXN0YW1wIjpudWxsfSwic3BlYyI6eyJuYW1lc3BhY2UiOiJlZXZlZSJ9LCJzdGF0dXMiOnsicmVzb3VyY2VSdWxlcyI6bnVsbCwibm9uUmVzb3VyY2VSdWxlcyI6bnVsbCwiaW5jb21wbGV0ZSI6ZmFsc2V9fQo=\"|base64 -d)" \
           "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT_HTTPS}/apis/authorization.k8s.io/v1/selfsubjectrulesreviews" \
             -X 'POST' -H 'Content-Type: application/json' \
