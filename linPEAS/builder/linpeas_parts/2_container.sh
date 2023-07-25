@@ -16,7 +16,7 @@ containerCheck() {
     containerType="docker\n"
   fi
 
-  # Are we inside kubenetes?
+  # Are we inside kubernetes?
   if grep "/kubepod" /proc/1/cgroup -qa 2>/dev/null ||
     grep -qai kubepods /proc/self/cgroup 2>/dev/null; then
 
@@ -257,7 +257,7 @@ else
     if [ "$rktcontainers" -ne "0" ]; then echo "Running RKT Containers" | sed -${E} "s,.*,${SED_RED},"; rkt list 2>/dev/null; echo ""; fi
 fi
 
-#If docker
+# If docker
 if echo "$containerType" | grep -qi "docker"; then
     print_2title "Docker Container details"
     inDockerGroup
@@ -279,7 +279,7 @@ if echo "$containerType" | grep -qi "docker"; then
     fi
 fi
 
-#If token secrets mounted
+# If token secrets mounted
 if [ "$(mount | sed -n '/secret/ s/^tmpfs on \(.*default.*\) type tmpfs.*$/\1\/namespace/p')" ]; then
   print_2title "Listing mounted tokens"
   print_info "https://cloud.hacktricks.xyz/pentesting-cloud/kubernetes-security/attacking-kubernetes-from-inside-a-pod"
