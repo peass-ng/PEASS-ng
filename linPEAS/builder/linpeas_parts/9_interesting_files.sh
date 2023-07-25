@@ -11,7 +11,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     for f in $(find "$d" -name "*.sh" -o -name "*.sh.*" 2>/dev/null); do
       if ! [ "$IAMROOT" ] && [ -O "$f" ]; then
         echo "You own the script: $f" | sed -${E} "s,.*,${SED_RED},"
-      elif ! [ "$IAMROOT" ] && [ -w "$f" ]; then #If write permision, win found (no check exploits)
+      elif ! [ "$IAMROOT" ] && [ -w "$f" ]; then # If write permision, win found (no check exploits)
         echo "You can write script: $f" | sed -${E} "s,.*,${SED_RED_YELLOW},"
       else
         echo $f | sed -${E} "s,$shscripsG,${SED_GREEN}," | sed -${E} "s,$Wfolders,${SED_RED},";
@@ -80,14 +80,14 @@ find $ROOT_FOLDER -type f -mmin -5 ! -path "/proc/*" ! -path "/sys/*" ! -path "/
 echo ""
 
 ##-- IF) Writable log files
-if command -v logrotate >/dev/null && logrotate --version | head -n 1 | grep -Eq "[012]\.[0-9]+\.|3\.[0-9]\.|3\.1[0-7]\.|3\.18\.0"; then #3.18.0 and below
+if command -v logrotate >/dev/null && logrotate --version | head -n 1 | grep -Eq "[012]\.[0-9]+\.|3\.[0-9]\.|3\.1[0-7]\.|3\.18\.0"; then # 3.18.0 and below
 print_2title "Writable log files (logrotten) (limit 50)"
   print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#logrotate-exploitation"
   logrotate --version 2>/dev/null || echo_not_found "logrotate"
   lastWlogFolder="ImPOsSiBleeElastWlogFolder"
   logfind=$(find $ROOT_FOLDER -type f -name "*.log" -o -name "*.log.*" 2>/dev/null | awk -F/ '{line_init=$0; if (!cont){ cont=0 }; $NF=""; act=$0; if (act == pre){(cont += 1)} else {cont=0}; if (cont < 3){ print line_init; }; if (cont == "3"){print "#)You_can_write_more_log_files_inside_last_directory"}; pre=act}' | head -n 50)
   printf "%s\n" "$logfind" | while read log; do
-    if ! [ "$IAMROOT" ] && [ "$log" ] && [ -w "$log" ] || ! [ "$IAMROOT" ] && echo "$log" | grep -qE "$Wfolders"; then #Only print info if something interesting found
+    if ! [ "$IAMROOT" ] && [ "$log" ] && [ -w "$log" ] || ! [ "$IAMROOT" ] && echo "$log" | grep -qE "$Wfolders"; then # Only print info if something interesting found
       if echo "$log" | grep -q "You_can_write_more_log_files_inside_last_directory"; then printf $ITALIC"$log\n"$NC;
       elif ! [ "$IAMROOT" ] && [ -w "$log" ] && [ "$(command -v logrotate 2>/dev/null)" ] && logrotate --version 2>&1 | grep -qE ' 1| 2| 3.1'; then printf "Writable:$RED $log\n"$NC; #Check vuln version of logrotate is used and print red in that case
       elif ! [ "$IAMROOT" ] && [ -w "$log" ]; then echo "Writable: $log";
@@ -164,7 +164,7 @@ if [ "$PSTORAGE_DATABASE" ] || [ "$DEBUG" ]; then
   SQLITEPYTHON=""
   echo ""
   printf "%s\n" "$PSTORAGE_DATABASE" | while read f; do
-    if ([ -r "$f" ] && [ "$FILECMD" ] && file "$f" | grep -qi sqlite) || ([ -r "$f" ] && [ ! "$FILECMD" ]); then #If readable and filecmd and sqlite, or readable and not filecmd
+    if ([ -r "$f" ] && [ "$FILECMD" ] && file "$f" | grep -qi sqlite) || ([ -r "$f" ] && [ ! "$FILECMD" ]); then # If readable and filecmd and sqlite, or readable and not filecmd
       if [ "$(command -v sqlite3 2>/dev/null)" ]; then
         tables=$(sqlite3 $f ".tables" 2>/dev/null)
         #printf "$tables\n" | sed "s,user.*\|credential.*,${SED_RED},g"
@@ -186,7 +186,7 @@ if [ "$PSTORAGE_DATABASE" ] || [ "$DEBUG" ]; then
           else
             columns=$($SQLITEPYTHON -c "print(__import__('sqlite3').connect('$f').cursor().execute('SELECT sql FROM sqlite_master WHERE type!=\'meta\' AND sql NOT NULL AND name =\'$t\';').fetchall()[0][0])" 2>/dev/null)
           fi
-          #Check found columns for interesting fields
+          # Check found columns for interesting fields
           INTCOLUMN=$(echo "$columns" | grep -i "username\|passw\|credential\|email\|hash\|salt")
           if [ "$INTCOLUMN" ]; then
             printf ${BLUE}"  --> Found interesting column names in$NC $t $DG(output limit 10)\n"$NC | sed -${E} "s,user.*|credential.*,${SED_RED},g"
