@@ -87,21 +87,27 @@ namespace winPEAS.Checks
 
         void PrintVulnLeakedHandlers()
         {
-            Beaprint.MainPrint("Vulnerable Leaked Handlers");
-            Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation/leaked-handle-exploitation");
-
-            List<Dictionary<string, string>> vulnHandlers = ProcessesInfo.GetVulnHandlers();
-            foreach (Dictionary<string, string> handler in vulnHandlers)
+            try
             {
-                Dictionary<string, string> colors = new Dictionary<string, string>()
+                Beaprint.MainPrint("Vulnerable Leaked Handlers");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation/leaked-handle-exploitation");
+
+                List<Dictionary<string, string>> vulnHandlers = ProcessesInfo.GetVulnHandlers();
+                foreach (Dictionary<string, string> handler in vulnHandlers)
+                {
+                    Dictionary<string, string> colors = new Dictionary<string, string>()
                     {
                         { Checks.CurrentUserName, Beaprint.ansi_color_bad },
                         { handler["Reason"], Beaprint.ansi_color_bad },
                     };
 
-                Beaprint.DictPrint(vulnHandlers, colors, true);
+                    Beaprint.DictPrint(vulnHandlers, colors, true);
+                }
             }
-
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
         }
     }
 }
