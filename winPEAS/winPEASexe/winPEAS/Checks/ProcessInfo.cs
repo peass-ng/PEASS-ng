@@ -92,7 +92,14 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("Vulnerable Leaked Handlers");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation/leaked-handle-exploitation");
 
-                List<Dictionary<string, string>> vulnHandlers = ProcessesInfo.GetVulnHandlers();
+                List<Dictionary<string, string>> vulnHandlers = new List<Dictionary<string, string>>(); 
+
+                Beaprint.InfoPrint("Getting Leaked Handlers, it might take some time...");
+                using (var progress = new ProgressBar())
+                {
+                    vulnHandlers = ProcessesInfo.GetVulnHandlers(progress);
+                }
+
                 foreach (Dictionary<string, string> handler in vulnHandlers)
                 {
                     Dictionary<string, string> colors = new Dictionary<string, string>()
