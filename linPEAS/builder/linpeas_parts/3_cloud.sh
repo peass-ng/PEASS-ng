@@ -150,9 +150,9 @@ if [ "$is_gcp" = "Yes" ]; then
         echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
     fi
 
-
+    # GCP Enumeration
     if [ "$gcp_req" ]; then
-        print_2title "Google CLoud Platform Enumeration"
+        print_2title "Google Cloud Platform Enumeration"
         print_info "https://cloud.hacktricks.xyz/pentesting-cloud/gcp-security"
 
         ## GC Project Info
@@ -236,7 +236,7 @@ if [ "$is_gcp" = "Yes" ]; then
     fi
 fi
 
-
+# AWS ECS Enumeration
 if [ "$is_aws_ecs" = "Yes" ]; then
     print_2title "AWS ECS Enumeration"
     
@@ -270,6 +270,7 @@ if [ "$is_aws_ecs" = "Yes" ]; then
     fi
 fi
 
+# AWS EC2 Enumeration
 if [ "$is_aws_ec2" = "Yes" ]; then
     print_2title "AWS EC2 Enumeration"
     
@@ -334,6 +335,7 @@ if [ "$is_aws_ec2" = "Yes" ]; then
     fi
 fi
 
+# AWS Lambda Enumeration
 if [ "$is_aws_lambda" = "Yes" ]; then
   print_2title "AWS Lambda Enumeration"
   printf "Function name: "; env | grep AWS_LAMBDA_FUNCTION_NAME
@@ -346,6 +348,7 @@ if [ "$is_aws_lambda" = "Yes" ]; then
   printf "Event data: "; (curl -s "http://${AWS_LAMBDA_RUNTIME_API}/2018-06-01/runtime/invocation/next" 2>/dev/null || wget -q -O - "http://${AWS_LAMBDA_RUNTIME_API}/2018-06-01/runtime/invocation/next")
 fi
 
+# AWS Codebuild Enumeration
 if [ "$is_aws_codebuild" = "Yes" ]; then
   print_2title "AWS Codebuild Enumeration"
 
@@ -371,6 +374,7 @@ if [ "$is_aws_codebuild" = "Yes" ]; then
   fi
 fi
 
+# DO Droplet Enumeration
 if [ "$is_do" = "Yes" ]; then
   print_2title "DO Droplet Enumeration"
 
@@ -398,11 +402,12 @@ if [ "$is_do" = "Yes" ]; then
   fi
 fi
 
+# IBM Cloud Enumeration
 if [ "$is_ibm_vm" = "Yes" ]; then
   print_2title "IBM Cloud Enumeration"
 
   if ! [ "$IBM_TOKEN" ]; then
-    echo "Couldn't get the metdata token:("
+    echo "Couldn't get the metadata token:("
 
   else
     TOKEN_HEADER="Authorization: Bearer $IBM_TOKEN"
@@ -436,12 +441,13 @@ if [ "$is_ibm_vm" = "Yes" ]; then
 
 fi
 
+# Azure VM Enumeration
 if [ "$is_az_vm" = "Yes" ]; then
   print_2title "Azure VM Enumeration"
 
   HEADER="Metadata:true"
   URL="http://169.254.169.254/metadata"
-  API_VERSION="2021-12-13" #https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service?tabs=linux#supported-api-versions
+  API_VERSION="2021-12-13" # https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service?tabs=linux#supported-api-versions
   
   az_req=""
   if [ "$(command -v curl)" ]; then

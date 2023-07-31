@@ -51,7 +51,7 @@ ITALIC="${C}[3m"
 # --) SUPERFAST - FAST & do not search for special filaes in all the folders
 
 if uname 2>/dev/null | grep -q 'Darwin' || /usr/bin/uname 2>/dev/null | grep -q 'Darwin'; then MACPEAS="1"; else MACPEAS=""; fi
-FAST="1" #By default stealth/fast mode
+FAST="1" # By default stealth/fast mode
 SUPERFAST=""
 DISCOVERY=""
 PORTS=""
@@ -68,9 +68,9 @@ EXTRA_CHECKS=""
 REGEXES=""
 PORT_FORWARD=""
 THREADS="$( ( (grep -c processor /proc/cpuinfo 2>/dev/null) || ( (command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n")"
-[ -z "$THREADS" ] && THREADS="2" #If THREADS is empty, put number 2
-[ -n "$THREADS" ] && THREADS="2" #If THREADS is null, put number 2
-[ "$THREADS" -eq "$THREADS" ] 2>/dev/null && : || THREADS="2" #It THREADS is not a number, put number 2
+[ -z "$THREADS" ] && THREADS="2" # If THREADS is empty, put number 2
+[ -n "$THREADS" ] && THREADS="2" # If THREADS is null, put number 2
+[ "$THREADS" -eq "$THREADS" ] 2>/dev/null && : || THREADS="2" # It THREADS is not a number, put number 2
 HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
 ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user, processes and file permissions, special file permissions, readable/writable files, bruteforce other users(top1000pwds), passwords...)$NC inside the host and highlight possible misconfigurations with colors.
       ${GREEN}  Checks:
@@ -124,7 +124,7 @@ while getopts "h?asd:p:i:P:qo:LMwNDterf:F:" opt; do
     e)  EXTRA_CHECKS="1";;
     r)  REGEXES="1";;
     f)  SEARCH_IN_FOLDER=$OPTARG;
-    	if ! [ "$(echo -n $SEARCH_IN_FOLDER | tail -c 1)" = "/" ]; then #Make sure firmware folder ends with "/"
+    	if ! [ "$(echo -n $SEARCH_IN_FOLDER | tail -c 1)" = "/" ]; then # Make sure firmware folder ends with "/"
         SEARCH_IN_FOLDER="${SEARCH_IN_FOLDER}/";
       fi;
           ROOT_FOLDER=$SEARCH_IN_FOLDER;
@@ -319,7 +319,7 @@ mounted=$( (cat /proc/self/mountinfo || cat /proc/1/mountinfo) 2>/dev/null | cut
 if ! [ "$mounted" ]; then
   mounted=$( (mount -l || cat /proc/mounts || cat /proc/self/mounts || cat /proc/1/mounts) 2>/dev/null | grep "^/" | cut -d " " -f1 | tr '\n' '|')$(cat /etc/fstab 2>/dev/null | grep -v "#" | grep -E '\W/\W' | awk '{print $1}')
 fi
-if ! [ "$mounted" ]; then mounted="ImPoSSssSiBlEee"; fi #Don't let any blacklist to be empty
+if ! [ "$mounted" ]; then mounted="ImPoSSssSiBlEee"; fi # Don't let any blacklist to be empty
 mountG="swap|/cdrom|/floppy|/dev/shm"
 notmounted=$(cat /etc/fstab 2>/dev/null | grep "^/" | grep -Ev "$mountG" | awk '{print $1}' | grep -Ev "$mounted" | tr '\n' '|')"ImPoSSssSiBlEee"
 mountpermsB="\Wsuid|\Wuser|\Wexec"
@@ -329,7 +329,7 @@ rootcommon="/init$|upstart-udev-bridge|udev|/getty|cron|apache2|java|tomcat|/vmt
 
 groupsB="\(root\)|\(shadow\)|\(admin\)|\(video\)|\(adm\)|\(wheel\)|\(auth\)"
 groupsVB="\(sudo\)|\(docker\)|\(lxd\)|\(disk\)|\(lxc\)"
-knw_grps='\(lpadmin\)|\(cdrom\)|\(plugdev\)|\(nogroup\)' #https://www.togaware.com/linux/survivor/Standard_Groups.html
+knw_grps='\(lpadmin\)|\(cdrom\)|\(plugdev\)|\(nogroup\)' # https://www.togaware.com/linux/survivor/Standard_Groups.html
 mygroups=$(groups 2>/dev/null | tr " " "|")
 
 # Default Binaries List
@@ -338,7 +338,7 @@ sidG2="/gnome-pty-helper$|/glines$|/gnibbles$|/gnobots2$|/gnome-suspend$|/gnomet
 sidG3="/ncsa_auth$|/netpr$|/netkit-rcp$|/netkit-rlogin$|/netkit-rsh$|/netreport$|/netstat$|/newgidmap$|/newtask$|/newuidmap$|/nvmmctl$|/opieinfo$|/opiepasswd$|/pam_auth$|/pam_extrausers_chkpwd$|/pam_timestamp_check$|/pamverifier$|/pfexec$|/ping$|/ping6$|/pmconfig$|/pmap$|/polkit-agent-helper-1$|/polkit-explicit-grant-helper$|/polkit-grant-helper$|/polkit-grant-helper-pam$|/polkit-read-auth-helper$|/polkit-resolve-exe-helper$|/polkit-revoke-helper$|/polkit-set-default-helper$|/postdrop$|/postqueue$|/poweroff$|/ppp$|/procmail$|/pstat$|/pt_chmod$|/pwdb_chkpwd$|/quota$|/rcmd|/remote.unknown$|/rlogin$|/rmformat$|/rnews$|/run-mailcap$|/sacadm$|/same-gnome$|screen.real$|/security_authtrampoline$|/sendmail.sendmail$|/shutdown$|/skeyaudit$|/skeyinfo$|/skeyinit$|/sliplogin|/slocate$|/smbmnt$|/smbumount$|/smpatch$|/smtpctl$|/sperl5.8.8$|/ssh-agent$|/ssh-keysign$|/staprun$|/startinnfeed$|/stclient$|/su$|/suexec$|/sys-suspend$|/sysstat$|/systat$"
 sidG4="/telnetlogin$|/timedc$|/tip$|/top$|/traceroute6$|/traceroute6.iputils$|/trpt$|/tsoldtlabel$|/tsoljdslabel$|/tsolxagent$|/ufsdump$|/ufsrestore$|/ulog-helper$|/umount.cifs$|/umount.nfs$|/umount.nfs4$|/unix_chkpwd$|/uptime$|/userhelper$|/userisdnctl$|/usernetctl$|/utempter$|/utmp_update$|/uucico$|/uuglist$|/uuidd$|/uuname$|/uusched$|/uustat$|/uux$|/uuxqt$|/VBoxHeadless$|/VBoxNetAdpCtl$|/VBoxNetDHCP$|/VBoxNetNAT$|/VBoxSDL$|/VBoxVolInfo$|/VirtualBoxVM$|/vmstat$|/vmware-authd$|/vmware-user-suid-wrapper$|/vmware-vmx$|/vmware-vmx-debug$|/vmware-vmx-stats$|/vncserver-x11$|/volrmmount$|/w$|/wall$|/whodo$|/write$|/X$|/Xorg.wrap$|/Xsun$|/Xvnc$|/yppasswd$"
 
-#Rules: Start path " /", end path "$", divide path and vulnversion "%". SPACE IS ONLY ALLOWED AT BEGINNING, DONT USE IT IN VULN DESCRIPTION
+# Rules: Start path " /", end path "$", divide path and vulnversion "%". SPACE IS ONLY ALLOWED AT BEGINNING, DONT USE IT IN VULN DESCRIPTION
 sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
  /at$%RTru64_UNIX_4.0g\(CVE-2002-1614\)\
  /abrt-action-install-debuginfo-to-abrt-cache$%CENTOS 7.1/Fedora22
@@ -392,7 +392,7 @@ sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
  /xscreensaver%Solaris_11.x\(CVE-2019-3010\)\
  /xorg$%Xorg_1.19_to_1.20.x\(CVE_2018-14665\)/xorg-x11-server<=1.20.3/AIX_7.1_\(6.x_to_7.x_should_be_vulnerable\)_X11.base.rte<7.1.5.32_and_\
  /xterm$%Solaris_5.5.1_X11R6.3\(05-1997\)/Debian_xterm_version_222-1etch2\(01-2009\)"
-#To update sidVB: curl https://github.com/GTFOBins/GTFOBins.github.io/tree/master/_gtfobins 2>/dev/null | grep 'href="/GTFOBins/' | grep '.md">' | awk -F 'title="' '{print $2}' | cut -d '"' -f1 | cut -d "." -f1 | sed  -e 's,^,/,' | sed  -e 's,$,\$,' | tr '\n' '|'
+# To update sidVB: curl https://github.com/GTFOBins/GTFOBins.github.io/tree/master/_gtfobins 2>/dev/null | grep 'href="/GTFOBins/' | grep '.md">' | awk -F 'title="' '{print $2}' | cut -d '"' -f1 | cut -d "." -f1 | sed  -e 's,^,/,' | sed  -e 's,$,\$,' | tr '\n' '|'
 sidVB='peass{SUIDVB1_HERE}'
 sidVB2='peass{SUIDVB2_HERE}'
 cfuncs='file|free|main|more|read|split|write'
@@ -428,7 +428,7 @@ for P in $ADDPATH; do
   if [ "${spath##*$P*}" ]; then export PATH="$PATH$P" 2>/dev/null; fi
 done
 
-# test if sed supports -E or -r
+# Test if sed supports -E or -r
 E=E
 echo | sed -${E} 's/o/a/' 2>/dev/null
 if [ $? -ne 0 ] ; then
@@ -460,13 +460,13 @@ if ! [ "$USER" ]; then
   USER=$(whoami 2>/dev/null || echo -n "UserUnknown")
 fi
 if [ ! "$HOME" ]; then
-  if [ -d "/Users/$USER" ]; then HOME="/Users/$USER"; #Mac home
+  if [ -d "/Users/$USER" ]; then HOME="/Users/$USER"; # Mac home
   else HOME="/home/$USER";
   fi
 fi
 Groups="ImPoSSssSiBlEee"$(groups "$USER" 2>/dev/null | cut -d ":" -f 2 | tr ' ' '|')
 
-#This variables are dived in several different ones because NetBSD required it
+# These variables are divided into several different ones because NetBSD requires that.
 peass{VARIABLES}
 pwd_in_variables1="Dgpg.passphrase|Dsonar.login|Dsonar.projectKey|GITHUB_TOKEN|HB_CODESIGN_GPG_PASS|HB_CODESIGN_KEY_PASS|PUSHOVER_TOKEN|PUSHOVER_USER|VIRUSTOTAL_APIKEY|ACCESSKEY|ACCESSKEYID|ACCESS_KEY|ACCESS_KEY_ID|ACCESS_KEY_SECRET|ACCESS_SECRET|ACCESS_TOKEN|ACCOUNT_SID|ADMIN_EMAIL|ADZERK_API_KEY|ALGOLIA_ADMIN_KEY_1|ALGOLIA_ADMIN_KEY_2|ALGOLIA_ADMIN_KEY_MCM|ALGOLIA_API_KEY|ALGOLIA_API_KEY_MCM|ALGOLIA_API_KEY_SEARCH|ALGOLIA_APPLICATION_ID|ALGOLIA_APPLICATION_ID_1|ALGOLIA_APPLICATION_ID_2|ALGOLIA_APPLICATION_ID_MCM|ALGOLIA_APP_ID|ALGOLIA_APP_ID_MCM|ALGOLIA_SEARCH_API_KEY|ALGOLIA_SEARCH_KEY|ALGOLIA_SEARCH_KEY_1|ALIAS_NAME|ALIAS_PASS|ALICLOUD_ACCESS_KEY|ALICLOUD_SECRET_KEY|amazon_bucket_name|AMAZON_SECRET_ACCESS_KEY|ANDROID_DOCS_DEPLOY_TOKEN|android_sdk_license|android_sdk_preview_license|aos_key|aos_sec|APIARY_API_KEY|APIGW_ACCESS_TOKEN|API_KEY|API_KEY_MCM|API_KEY_SECRET|API_KEY_SID|API_SECRET|appClientSecret|APP_BUCKET_PERM|APP_NAME|APP_REPORT_TOKEN_KEY|APP_TOKEN|ARGOS_TOKEN|ARTIFACTORY_KEY|ARTIFACTS_AWS_ACCESS_KEY_ID|ARTIFACTS_AWS_SECRET_ACCESS_KEY|ARTIFACTS_BUCKET|ARTIFACTS_KEY|ARTIFACTS_SECRET|ASSISTANT_IAM_APIKEY|AURORA_STRING_URL|AUTH0_API_CLIENTID|AUTH0_API_CLIENTSECRET|AUTH0_AUDIENCE|AUTH0_CALLBACK_URL|AUTH0_CLIENT_ID"
 pwd_in_variables2="AUTH0_CLIENT_SECRET|AUTH0_CONNECTION|AUTH0_DOMAIN|AUTHOR_EMAIL_ADDR|AUTHOR_NPM_API_KEY|AUTH_TOKEN|AWS-ACCT-ID|AWS-KEY|AWS-SECRETS|AWS.config.accessKeyId|AWS.config.secretAccessKey|AWSACCESSKEYID|AWSCN_ACCESS_KEY_ID|AWSCN_SECRET_ACCESS_KEY|AWSSECRETKEY|AWS_ACCESS|AWS_ACCESS_KEY|AWS_ACCESS_KEY_ID|AWS_CF_DIST_ID|AWS_DEFAULT|AWS_DEFAULT_REGION|AWS_S3_BUCKET|AWS_SECRET|AWS_SECRET_ACCESS_KEY|AWS_SECRET_KEY|AWS_SES_ACCESS_KEY_ID|AWS_SES_SECRET_ACCESS_KEY|B2_ACCT_ID|B2_APP_KEY|B2_BUCKET|baseUrlTravis|bintrayKey|bintrayUser|BINTRAY_APIKEY|BINTRAY_API_KEY|BINTRAY_KEY|BINTRAY_TOKEN|BINTRAY_USER|BLUEMIX_ACCOUNT|BLUEMIX_API_KEY|BLUEMIX_AUTH|BLUEMIX_NAMESPACE|BLUEMIX_ORG|BLUEMIX_ORGANIZATION|BLUEMIX_PASS|BLUEMIX_PASS_PROD|BLUEMIX_SPACE|BLUEMIX_USER|BRACKETS_REPO_OAUTH_TOKEN|BROWSERSTACK_ACCESS_KEY|BROWSERSTACK_PROJECT_NAME|BROWSER_STACK_ACCESS_KEY|BUCKETEER_AWS_ACCESS_KEY_ID|BUCKETEER_AWS_SECRET_ACCESS_KEY|BUCKETEER_BUCKET_NAME|BUILT_BRANCH_DEPLOY_KEY|BUNDLESIZE_GITHUB_TOKEN|CACHE_S3_SECRET_KEY|CACHE_URL|CARGO_TOKEN|CATTLE_ACCESS_KEY|CATTLE_AGENT_INSTANCE_AUTH|CATTLE_SECRET_KEY|CC_TEST_REPORTER_ID|CC_TEST_REPOTER_ID|CENSYS_SECRET|CENSYS_UID|CERTIFICATE_OSX_P12|CF_ORGANIZATION|CF_PROXY_HOST|channelId|CHEVERNY_TOKEN|CHROME_CLIENT_ID"
@@ -489,9 +489,9 @@ katherine kangaroo jenny immortal harris hamlet gracie fucking firefly chocolat 
 charmed cassandra caitlin bismillah believe alice airforce 7777 viper tony theodore sylvia suzanne starfish sparkle server samsam qweqwe public pass1234 neptune marian krishna kkkkkk jungle cinnamon bitches 741852 trojan theresa sweetheart speaker salmon powers pizza overlord michaela meredith masters lindsey history farmer express escape cuddles carson candy buttercup brownie broken abc12345 aardvark Passw0rd 141414 124578 123789 12345678910 00000 universal trinidad tobias thursday surfing stuart stinky standard roller porter pearljam mobile mirage markus loulou jjjjjj herbert grace goldie frosty fighter fatima evelyn eagle desire crimson coconut cheryl beavis anonymous andres africa 134679 whiskey velvet stormy springer soldier ragnarok portland oranges nobody nathalie malibu looking lemonade lavender hitler hearts gotohell gladiator gggggg freckles fashion david1 crusader cosmos commando clover clarence center cadillac brooks bronco bonita babylon archer alexandre 123654789 verbatim umbrella thanks sunny stalker splinter sparrow selena russia roberts register qwert123 penguins panda ncc1701d miracle melvin lonely lexmark kitkat julie graham frances estrella downtown doodle deborah cooler colombia chemistry cactus bridge bollocks beetle anastasia 741852963 69696969 unique sweets station showtime sheena santos rock revolution reading qwerasdf password2 mongoose marlene maiden machine juliet illusion hayden fabian derrick crazy cooldude chipper bomber blonde bigred amazing aliens abracadabra 123qweasd wwwwww treasure timber smith shelly sesame pirates pinkfloyd passwords nature marlin marines linkinpark larissa laptop hotrod gambit elvis education dustin devils damian christy braves baller anarchy white valeria underground strong poopoo monalisa memory lizzie keeper justdoit house homer gerard ericsson emily divine colleen chelsea1 cccccc camera bonbon billie bigfoot badass asterix anna animals \
 andy achilles a1s2d3f4 violin veronika vegeta tyler test1234 teddybear tatiana sporting spartan shelley sharks respect raven pentium papillon nevermind marketing manson madness juliette jericho gabrielle fuckyou2 forgot firewall faith evolution eric eduardo dagger cristian cavalier canadian bruno blowjob blackie beagle admin123 010101 together spongebob snakes sherman reddog reality ramona puppies pedro pacific pa55w0rd omega noodle murray mollie mister halflife franco foster formula1 felix dragonball desiree default chris1 bunny bobcat asdf123 951753 5555 242424 thirteen tattoo stonecold stinger shiloh seattle santana roger roberta rastaman pickles orion mustang1 felicia dracula doggie cucumber cassidy britney brianna blaster belinda apple1 753951 teddy striker stevie soleil snake skateboard sheridan sexsex roxanne redman qqqqqqqq punisher panama paladin none lovelife lights jerry iverson inside hornet holden groovy gretchen grandma gangsta faster eddie chevelle chester1 carrot cannon button administrator a 1212 zxc123 wireless volleyball vietnam twinkle terror sandiego rose pokemon1 picture parrot movies moose mirror milton mayday maestro lollypop katana johanna hunting hudson grizzly gorgeous garbage fish ernest dolores conrad chickens charity casey blueberry blackman blackbird bill beckham battle atlantic wildfire weasel waterloo trance storm singapore shooter rocknroll richie poop pitbull mississippi kisses karen juliana james123 iguana homework highland fire elliot eldorado ducati discover computer1 buddy1 antonia alphabet 159951 123456789a 1123581321 0123456 zaq1xsw2 webmaster vagina unreal university tropical swimmer sugar southpark silence sammie ravens question presario poiuytrewq palmer notebook newman nebraska manutd lucas hermes gators dave dalton cheetah cedric camilla bullseye bridget bingo ashton 123asd yahoo volume valhalla tomorrow starlight scruffy roscoe richard1 positive \
 plymouth pepsi patrick1 paradox milano maxima loser lestat gizmo ghetto faithful emerson elliott dominique doberman dillon criminal crackers converse chrissy casanova blowme attitude"
-PASSTRY="2000" #Default num of passwds to try (all by default)
+PASSTRY="2000" # Default num of passwds to try (all by default)
 
-if [ "$PORTS" ] || [ "$DISCOVERY" ] || [ "$IP" ] || [ "$AUTO_NETWORK_SCAN" ]; then MAXPATH_FIND_W="1"; fi #If Network reduce the time on this
+if [ "$PORTS" ] || [ "$DISCOVERY" ] || [ "$IP" ] || [ "$AUTO_NETWORK_SCAN" ]; then MAXPATH_FIND_W="1"; fi # If Network reduce the time on this
 SEDOVERFLOW=true
 for grp in $(groups $USER 2>/dev/null | cut -d ":" -f2); do
   wgroups="$wgroups -group $grp -or "
@@ -513,9 +513,9 @@ while $SEDOVERFLOW; do
   if [ $? -eq 0 ]; then
       SEDOVERFLOW=false
   else
-      MAXPATH_FIND_W=$(($MAXPATH_FIND_W-1)) #If overflow of directories, check again with MAXPATH_FIND_W - 1
+      MAXPATH_FIND_W=$(($MAXPATH_FIND_W-1)) # If overflow of directories, check again with MAXPATH_FIND_W - 1
   fi
-  if [ $MAXPATH_FIND_W -lt 1 ] ; then # prevent infinite loop
+  if [ $MAXPATH_FIND_W -lt 1 ] ; then # Prevents infinite loop
      SEDOVERFLOW=false
   fi
 done
@@ -691,20 +691,20 @@ print_2title(){
     START_T2_TIME=$(date +%s 2>/dev/null)
   fi
 
-  printf ${BLUE}"╔══════════╣ $GREEN$1\n"$NC #There are 10 "═"
+  printf ${BLUE}"╔══════════╣ $GREEN$1\n"$NC # There are 10 "═"
 }
 
 print_3title(){
-  printf ${BLUE}"══╣ $GREEN$1\n"$NC #There are 2 "═"
+  printf ${BLUE}"══╣ $GREEN$1\n"$NC # There are 2 "═"
 }
 
 print_3title_no_nl(){
   printf "\033[2K\r"
-  printf ${BLUE}"══╣ $GREEN${1}..."$NC #There are 2 "═"
+  printf ${BLUE}"══╣ $GREEN${1}..."$NC # There are 2 "═"
 }
 
 print_list(){
-  printf ${BLUE}"═╣ $GREEN$1"$NC #There is 1 "═"
+  printf ${BLUE}"═╣ $GREEN$1"$NC # There is 1 "═"
 }
 
 print_info(){
@@ -713,7 +713,7 @@ print_info(){
 
 print_ps (){
   (ls -d /proc/*/ 2>/dev/null | while read f; do
-    CMDLINE=$(cat $f/cmdline 2>/dev/null | grep -av "seds,"); #Delete my own sed processess
+    CMDLINE=$(cat $f/cmdline 2>/dev/null | grep -av "seds,"); # Delete my own sed processess
     if [ "$CMDLINE" ];
       then var USER2=ls -ld $f | awk '{print $3}'; PID=$(echo $f | cut -d "/" -f3);
       printf "  %-13s  %-8s  %s\n" "$USER2" "$PID" "$CMDLINE";
@@ -733,14 +733,14 @@ su_try_pwd (){
 su_brute_user_num (){
   BFUSER=$1
   TRIES=$2
-  su_try_pwd "$BFUSER" "" &    #Try without password
-  su_try_pwd "$BFUSER" "$BFUSER" & #Try username as password
-  su_try_pwd "$BFUSER" "$(echo $BFUSER | rev 2>/dev/null)" & #Try reverse username as password
+  su_try_pwd "$BFUSER" "" &    # Try without password
+  su_try_pwd "$BFUSER" "$BFUSER" & # Try username as password
+  su_try_pwd "$BFUSER" "$(echo $BFUSER | rev 2>/dev/null)" & # Try reverse username as password
   if [ "$PASSWORD" ]; then
-    su_try_pwd "$BFUSER" "$PASSWORD" & #Try given password
+    su_try_pwd "$BFUSER" "$PASSWORD" & # Try given password
   fi
   for i in $(seq "$TRIES"); do
-    su_try_pwd "$BFUSER" "$(echo $top2000pwds | cut -d ' ' -f $i)" & #Try TOP TRIES of passwords (by default 2000)
+    su_try_pwd "$BFUSER" "$(echo $top2000pwds | cut -d ' ' -f $i)" & # Try TOP TRIES of passwords (by default 2000)
     sleep 0.007 # To not overload the system
   done
   wait
@@ -796,8 +796,8 @@ check_tcp_443(){
 check_icmp(){
   (timeout -s KILL 20 /bin/bash -c '(ping -c 1 1.1.1.1 | grep "1 received" && echo "Ping is available" || echo "Ping is not available") 2>/dev/null | grep "available"') 2>/dev/null || echo "Ping is not available"
 }
-#DNS function from: https://unix.stackexchange.com/questions/600194/create-dns-query-with-netcat-or-dev-udp
-#I cannot use this function because timeout doesn't find it, so it's copy/pasted below
+# DNS function from: https://unix.stackexchange.com/questions/600194/create-dns-query-with-netcat-or-dev-udp
+# I cannot use this function because timeout doesn't find it, so it's copy/pasted below
 check_dns(){
   (timeout 20 /bin/bash -c '(( echo cfc9 0100 0001 0000 0000 0000 0a64 7563 6b64 7563 6b67 6f03 636f 6d00 0001 0001 | xxd -p -r >&3; dd bs=9000 count=1 <&3 2>/dev/null | xxd ) 3>/dev/udp/1.1.1.1/53 && echo "DNS available" || echo "DNS not available") 2>/dev/null | grep "available"' ) 2>/dev/null || echo "DNS not available"
 }
@@ -814,7 +814,7 @@ basic_net_info(){
 }
 
 select_nc (){
-  #Select the correct configuration of the netcat found
+  # Select the correct configuration of the netcat found
   NC_SCAN="$FOUND_NC -v -n -z -w 1"
   $($NC_SCAN 127.0.0.1 65321 > /dev/null 2>&1)
   if [ $? -eq 2 ]
@@ -824,7 +824,7 @@ select_nc (){
 }
 
 icmp_recon (){
-  #Discover hosts inside a /24 subnetwork using ping (start pingging broadcast addresses)
+  # Discover hosts inside a /24 subnetwork using ping (start pingging broadcast addresses)
 	IP3=$(echo $1 | cut -d "." -f 1,2,3)
 
   (timeout 1 ping -b -c 1 "$IP3.255" 2>/dev/null | grep "icmp_seq" | sed -${E} "s,[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+,${SED_RED},") &
@@ -837,7 +837,7 @@ icmp_recon (){
 }
 
 tcp_recon (){
-  #Discover hosts inside a /24 subnetwork using tcp connection to most used ports and selected ones
+  # Discover hosts inside a /24 subnetwork using tcp connection to most used ports and selected ones
   IP3=$(echo $1 | cut -d "." -f 1,2,3)
 	PORTS=$2
   printf ${YELLOW}"[+]${BLUE} Ports going to be scanned: $PORTS" $NC | tr '\n' " "
@@ -857,7 +857,7 @@ tcp_recon (){
 }
 
 tcp_port_scan (){
-  #Scan open ports of a host. Default: nmap top 1000, but the user can select others
+  # Scan open ports of a host. Default: nmap top 1000, but the user can select others
   basic_net_info
 
   print_title "Network Port Scanning"
@@ -885,7 +885,7 @@ tcp_port_scan (){
 }
 
 discover_network (){
-  #Check if IP and Netmask are correct and the use fping or ping to find hosts
+  # Check if IP and Netmask are correct and the use fping or ping to find hosts
   basic_net_info
 
   print_title "Network Discovery"
@@ -900,11 +900,11 @@ discover_network (){
     exit 0
   fi
 
-  #Using fping if possible
+  # Using fping if possible
   if [ "$FPING" ]; then
     $FPING -a -q -g "$DISCOVERY" | sed -${E} "s,.*,${SED_RED},"
 
-  #Loop using ping
+  # Loop using ping
   else
     if [ "$NETMASK" -eq "24" ]; then
       printf ${YELLOW}"[+]$GREEN Netmask /24 detected, starting...\n$NC"
@@ -927,7 +927,7 @@ discover_network (){
 discovery_port_scan (){
   basic_net_info
 
-  #Check if IP and Netmask are correct and the use nc to find hosts. By default check ports: 22 80 443 445 3389
+  # Check if IP and Netmask are correct and the use nc to find hosts. By default check ports: 22 80 443 445 3389
   print_title "Internal Network Discovery - Finding hosts and scanning ports"
   DISCOVERY=$1
   MYPORTS=$2
@@ -946,7 +946,7 @@ discovery_port_scan (){
   fi
 
   PORTS="22 80 443 445 3389 $(echo $MYPORTS | tr ',' ' ')"
-  PORTS=$(echo "$PORTS" | tr " " "\n" | sort -u) #Delete repetitions
+  PORTS=$(echo "$PORTS" | tr " " "\n" | sort -u) # Delete repetitions
 
   if [ "$NETMASK" -eq "24" ]; then
     printf ${YELLOW}"[+]$GREEN Netmask /24 detected, starting...\n" $NC
@@ -1040,7 +1040,7 @@ if [ "$PORTS" ]; then
       printf ${BLUE}"$HELP"$NC;
       exit 0
     else
-      #Select the correct configuration of the netcat found
+      # Select the correct configuration of the netcat found
       select_nc
     fi
   else
@@ -1084,12 +1084,12 @@ if [ "$PORT_FORWARD" ]; then
     exit 0
   fi
 
-  #Check if LOCAL_PORT is a number
+  # Check if LOCAL_PORT is a number
   if ! [ "$(echo $LOCAL_PORT | grep -E '^[0-9]+$')" ]; then
     printf $RED"[-] Err: Invalid port forwarding configuration: $PORT_FORWARD. The format is: LOCAL_IP:LOCAL_PORT:REMOTE_IP:REMOTE_PORT\nFor example: 10.10.14.8:7777:127.0.0.1:8000"$NC;
   fi
 
-  #Check if REMOTE_PORT is a number
+  # Check if REMOTE_PORT is a number
   if ! [ "$(echo $REMOTE_PORT | grep -E '^[0-9]+$')" ]; then
     printf $RED"[-] Err: Invalid port forwarding configuration: $PORT_FORWARD. The format is: LOCAL_IP:LOCAL_PORT:REMOTE_IP:REMOTE_PORT\nFor example: 10.10.14.8:7777:127.0.0.1:8000"$NC;
   fi
@@ -1099,7 +1099,7 @@ if [ "$PORT_FORWARD" ]; then
 fi
 
 
-#Get HOMESEARCH
+# Get HOMESEARCH
 if [ "$SEARCH_IN_FOLDER" ]; then
   HOMESEARCH="${ROOT_FOLDER}home/ ${ROOT_FOLDER}Users/ ${ROOT_FOLDER}root/ ${ROOT_FOLDER}var/www/"
 else
@@ -1139,7 +1139,7 @@ elif echo $CHECKS | grep -q procs_crons_timers_srvcs_sockets || echo $CHECKS | g
 fi
 
 if [ "$SEARCH_IN_FOLDER" ] || echo $CHECKS | grep -q procs_crons_timers_srvcs_sockets || echo $CHECKS | grep -q software_information || echo $CHECKS | grep -q interesting_files; then
-  #GENERATE THE STORAGES OF THE FOUND FILES
+  # GENERATE THE STORAGES OF THE FOUND FILES
   peass{STORAGES_HERE}
 
   ##### POST SEARCH VARIABLES #####
