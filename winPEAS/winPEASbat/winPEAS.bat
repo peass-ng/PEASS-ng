@@ -10,6 +10,14 @@ REM Registry scan of other drives besides
 REM /////true or false
 SET long=false
 
+REM Check if the current path contains spaces
+SET "CurrentFolder=%~dp0"
+IF "!CurrentFolder!" NEQ "!CurrentFolder: =!" (
+    ECHO winPEAS.bat cannot run if the current path contains spaces.
+	ECHO Exiting.
+    EXIT /B 1
+)
+
 :Splash
 ECHO.
 CALL :ColorLine "            %E%32m((,.,/((((((((((((((((((((/,  */%E%97m"

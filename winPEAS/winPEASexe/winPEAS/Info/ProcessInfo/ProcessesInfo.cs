@@ -76,14 +76,27 @@ namespace winPEAS.Info.ProcessInfo
             return f_results;
         }
 
-        public static List<Dictionary<string, string>> GetVulnHandlers()
+        public static List<Dictionary<string, string>> GetVulnHandlers(ProgressBar progress)
         {
             List<Dictionary<string, string>> vulnHandlers = new List<Dictionary<string, string>>();
             List<HandlesHelper.SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX> handlers = HandlesHelper.GetAllHandlers();
             List<string> interestingHandlerTypes = new List<string>() { "file", "key", "process", "thread" }; //section
 
+            int processedHandlersCount = 0;
+            int UPDATE_PROGRESSBAR_COUNT = 500;
+            double pb = 0;
+            int totalCount = handlers.Count;
+
             foreach (HandlesHelper.SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX h in handlers)
             {
+                processedHandlersCount++;
+
+                if (processedHandlersCount % UPDATE_PROGRESSBAR_COUNT == 0)
+                {
+                    pb = (double)processedHandlersCount / totalCount;
+                    progress.Report(pb); //Value must be in [0..1] range
+                }
+
                 // skip some objects to avoid getting stuck
                 // see: https://github.com/adamdriscoll/PoshInternals/issues/7
                 if (h.GrantedAccess == 0x0012019f
