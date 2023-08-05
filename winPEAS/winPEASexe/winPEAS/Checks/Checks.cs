@@ -68,6 +68,8 @@ namespace winPEAS.Checks
         {
             //Check parameters
             bool isAllChecks = true;
+            bool isFileSearchEnabled = false;
+            var searchEnabledChecks = new HashSet<string>() { "fileanalysis, filesinfo" };
             bool wait = false;
             FileStream fileStream = null;
             StreamWriter fileWriter = null;
@@ -202,7 +204,17 @@ namespace winPEAS.Checks
                 {
                     _systemCheckSelectedKeysHashSet.Add(argToLower);
                     isAllChecks = false;
+
+                    if (searchEnabledChecks.Contains(argToLower))
+                    {
+                        isFileSearchEnabled = true;
+                    }
                 }
+            }
+
+            if (isAllChecks)
+            {
+                isFileSearchEnabled = true;
             }
 
             try
@@ -223,7 +235,7 @@ namespace winPEAS.Checks
 
                     Beaprint.PrintInit();
 
-                    CheckRunner.Run(CreateDynamicLists, IsDebug);
+                    CheckRunner.Run(() => CreateDynamicLists(isFileSearchEnabled), IsDebug);
 
                     RunChecks(isAllChecks, wait);
 
@@ -264,7 +276,7 @@ namespace winPEAS.Checks
             }
         }
 
-        private static void CreateDynamicLists()
+        private static void CreateDynamicLists(bool isFileSearchEnabled)
         {
             Beaprint.GrayPrint("   Creating Dynamic lists, this could take a while, please wait...");
 
@@ -395,14 +407,22 @@ namespace winPEAS.Checks
             }
 
             //create the file lists
-            try
+            // only if we are running all checks or systeminfo / fileanalysis
+            Beaprint.GrayPrint("   - Creating files/directories list for search...");
+            if (isFileSearchEnabled)
             {
-                Beaprint.GrayPrint("   - Creating files/directories list for search...");
-                SearchHelper.CreateSearchDirectoriesList();
+                try
+                {
+                    SearchHelper.CreateSearchDirectoriesList();
+                }
+                catch (Exception ex)
+                {
+                    Beaprint.GrayPrint("Error while creating directory list: " + ex);
+                }
             }
-            catch (Exception ex)
+            else
             {
-                Beaprint.GrayPrint("Error while creating directory list: " + ex);
+                Beaprint.GrayPrint("        [skipped, file search is disabled]");
             }
         }
 
