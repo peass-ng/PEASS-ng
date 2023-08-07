@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -26,8 +27,14 @@ namespace winPEAS.Helpers.YamlConfig
                     string configFileContent = reader.ReadToEnd();
 
                     YamlSerializer yamlSerializer = new YamlSerializer();
-                    YamlRegexConfig yamlConfig = (YamlRegexConfig)yamlSerializer.Deserialize(configFileContent, typeof(YamlRegexConfig))[0];
+                    var yamlConfigObject = yamlSerializer.Deserialize(configFileContent, typeof(YamlRegexConfig));
 
+                    if (yamlConfigObject == null || yamlConfigObject.Length == 0)
+                    {
+                        throw new Exception($"Config '{resourceName}' is empty, check the config for more information");
+                    }
+
+                    YamlRegexConfig yamlConfig = (YamlRegexConfig)yamlConfigObject[0];
                     // check
                     if (yamlConfig.regular_expresions == null || yamlConfig.regular_expresions.Length == 0)
                     {
@@ -40,7 +47,7 @@ namespace winPEAS.Helpers.YamlConfig
             }
             catch (System.Exception e)
             {
-                Beaprint.PrintException($"An exception occured while parsing regexes.yaml configuration file: {e.Message}");
+                Beaprint.PrintException($"An exception occurred while parsing regexes.yaml configuration file: {e.Message}");
 
                 throw;
             }

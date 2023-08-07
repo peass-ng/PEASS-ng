@@ -82,7 +82,7 @@ namespace winPEAS.Helpers
        |                             {1}Do you like PEASS?{0}                                  |
        |---------------------------------------------------------------------------------| 
        |         {3}Get the latest version{0}    :     {2}https://github.com/sponsors/carlospolop{0} |
-       |         {3}Follow on Twitter{0}         :     {2}@carlospolopm{0}                           |
+       |         {3}Follow on Twitter{0}         :     {2}@hacktricks_live{0}                           |
        |         {3}Respect on HTB{0}            :     {2}SirBroccoli            {0}                 |
        |---------------------------------------------------------------------------------|
        |                                 {1}Thank you!{0}                                      |
@@ -98,7 +98,7 @@ namespace winPEAS.Helpers
                 PrintBanner();
             }
 
-            Console.WriteLine(YELLOW + "  WinPEAS-ng" + NOCOLOR + YELLOW + " by @carlospolopm" + NOCOLOR);
+            Console.WriteLine(YELLOW + "  WinPEAS-ng" + NOCOLOR + YELLOW + " by @hacktricks_live" + NOCOLOR);
 
             PrintMarketingBanner();
 

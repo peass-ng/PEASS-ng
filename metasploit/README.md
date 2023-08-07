@@ -26,7 +26,7 @@ msf6 post(multi/gather/peass) > show info
        Rank: Normal
 
 Provided by:
-  Carlos Polop <@carlospolopm>
+  Carlos Polop <@hacktricks_live>
 
 Compatible session types:
   Meterpreter

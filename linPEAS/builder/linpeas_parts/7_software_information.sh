@@ -45,7 +45,7 @@ if [ "$MACPEAS" ]; then
     done
 fi
 
-#-- SI) Mysql version
+#-- SI) MySQL version
 if [ "$(command -v mysql)" ] || [ "$(command -v mysqladmin)" ] || [ "$DEBUG" ]; then
   print_2title "MySQL version"
   mysql --version 2>/dev/null || echo_not_found "mysql"
@@ -56,7 +56,7 @@ if [ "$(command -v mysql)" ] || [ "$(command -v mysqladmin)" ] || [ "$DEBUG" ]; 
   echo ""
   echo ""
 
-  #-- SI) Mysql connection root/root
+  #-- SI) MySQL connection root/root
   print_list "MySQL connection using default root/root ........... "
   mysqlconnect=$(mysqladmin -uroot -proot version 2>/dev/null)
   if [ "$mysqlconnect" ]; then
@@ -65,7 +65,7 @@ if [ "$(command -v mysql)" ] || [ "$(command -v mysqladmin)" ] || [ "$DEBUG" ]; 
   else echo_no
   fi
 
-  #-- SI) Mysql connection root/toor
+  #-- SI) MySQL connection root/toor
   print_list "MySQL connection using root/toor ................... "
   mysqlconnect=$(mysqladmin -uroot -ptoor version 2>/dev/null)
   if [ "$mysqlconnect" ]; then
@@ -74,7 +74,7 @@ if [ "$(command -v mysql)" ] || [ "$(command -v mysqladmin)" ] || [ "$DEBUG" ]; 
   else echo_no
   fi
 
-  #-- SI) Mysql connection root/NOPASS
+  #-- SI) MySQL connection root/NOPASS
   mysqlconnectnopass=$(mysqladmin -uroot version 2>/dev/null)
   print_list "MySQL connection using root/NOPASS ................. "
   if [ "$mysqlconnectnopass" ]; then
@@ -85,7 +85,7 @@ if [ "$(command -v mysql)" ] || [ "$(command -v mysqladmin)" ] || [ "$DEBUG" ]; 
   echo ""
 fi
 
-#-- SI) Mysql credentials
+#-- SI) MySQL credentials
 if [ "$PSTORAGE_MYSQL" ] || [ "$DEBUG" ]; then
   print_2title "Searching mysql credentials and exec"
   printf "%s\n" "$PSTORAGE_MYSQL" | while read d; do
@@ -144,7 +144,7 @@ peass{PostgreSQL}
 
 #-- SI) PostgreSQL brute
 if [ "$TIMEOUT" ] && [ "$(command -v psql)" ] || [ "$DEBUG" ]; then  # In some OS (like OpenBSD) it will expect the password from console and will pause the script. Also, this OS doesn't have the "timeout" command so lets only use this checks in OS that has it.
-#checks to see if any postgres password exists and connects to DB 'template0' - following commands are a variant on this
+# Checks to see if any postgres password exists and connects to DB 'template0' - following commands are a variant on this
   print_list "PostgreSQL connection to template0 using postgres/NOPASS ........ "
   if [ "$(timeout 1 psql -U postgres -d template0 -c 'select version()' 2>/dev/null)" ]; then echo "Yes" | sed -${E} "s,.*,${SED_RED},"
   else echo_no
@@ -239,7 +239,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     privatekeyfilesroot=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /root 2>/dev/null)
     privatekeyfilesmnt=$(timeout 40 grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /mnt 2>/dev/null)
   else
-    privatekeyfilesetc=$(grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /etc 2>/dev/null) #If there is tons of files linpeas gets frozen here without a timeout
+    privatekeyfilesetc=$(grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' /etc 2>/dev/null) # If there is tons of files linpeas gets frozen here without a timeout
     privatekeyfileshome=$(grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY.*\-\-\-\-\-' $HOME/.ssh 2>/dev/null)
   fi
 else
@@ -352,8 +352,8 @@ if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$kinit_exists" ] || [ "$PST
         printf "$(klist -k $f 2>/dev/null)\n" | awk '{print $2}' | while read l; do
           if [ "$l" ] && echo "$l" | grep -q "@"; then
             printf "$ITALIC  --- Impersonation command: ${NC}kadmin -k -t /etc/krb5.keytab -p \"$l\"\n" | sed -${E} "s,$l,${SED_RED},g"
-            #kadmin -k -t /etc/krb5.keytab -p "$l" -q getprivs 2>/dev/null #This should show the permissions of each impersoanted user, the thing is that in a test it showed that every user had the same permissions (even if they didn't). So this test isn't valid
-            #We could also try to create a new user or modify a password, but I'm not user if linpeas should do that
+            # kadmin -k -t /etc/krb5.keytab -p "$l" -q getprivs 2>/dev/null #This should show the permissions of each impersoanted user, the thing is that in a test it showed that every user had the same permissions (even if they didn't). So this test isn't valid
+            # We could also try to create a new user or modify a password, but I'm not user if linpeas should do that
           fi
         done
       elif echo "$f" | grep -q krb5.conf; then
@@ -533,7 +533,7 @@ fi
 ##-- SI) Gitlab
 if [ "$(command -v gitlab-rails)" ] || [ "$(command -v gitlab-backup)" ] || [ "$PSTORAGE_GITLAB" ] || [ "$DEBUG" ]; then
   print_2title "Searching GitLab related files"
-  #Check gitlab-rails
+  # Check gitlab-rails
   if [ "$(command -v gitlab-rails)" ]; then
     echo "gitlab-rails was found. Trying to dump users..."
     gitlab-rails runner 'User.where.not(username: "peasssssssss").each { |u| pp u.attributes }' | sed -${E} "s,email|password,${SED_RED},"
@@ -546,7 +546,7 @@ if [ "$(command -v gitlab-rails)" ] || [ "$(command -v gitlab-backup)" ] || [ "$
     echo "Then you can get the plain-text with something like 'git clone \@hashed/19/23/14348274[...]38749234.bundle'"
     echo ""
   fi
-  #Check gitlab files
+  # Check gitlab files
   printf "%s\n" "$PSTORAGE_GITLAB" | sort | uniq | while read f; do
     if echo $f | grep -q secrets.yml; then
       echo "Found $f" | sed "s,$f,${SED_RED},"

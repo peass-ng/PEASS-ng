@@ -30,7 +30,7 @@ Do you want to have **access the latest version of Hacktricks and PEASS**, obtai
 
 **LinPEAS, WinPEAS and MacPEAS** aren’t enough for you? Welcome [**The PEASS Family**](https://opensea.io/collection/the-peass-family/), a limited collection of [**exclusive NFTs**](https://opensea.io/collection/the-peass-family/) of our favourite PEASS in disguise, designed by my team. Go **get your favourite and make it yours!** And if you are a **PEASS & Hacktricks enthusiast**, you can get your hands now on **our [custom swag](https://peass.creator-spring.com/) and show how much you like our projects!**
 
-You can also, join the 💬 [Discord group](https://discord.gg/hRep4RUj7f) or the [telegram group](https://t.me/peass) to learn about latest news in cybersecurity and meet other cybersecurity enthusiasts, or follow me on Twitter 🐦 [@carlospolopm](https://twitter.com/carlospolopm).
+You can also, join the 💬 [Discord group](https://discord.gg/hRep4RUj7f) or the [telegram group](https://t.me/peass) to learn about latest news in cybersecurity and meet other cybersecurity enthusiasts, or follow me on Twitter 🐦 [@hacktricks_live](https://twitter.com/hacktricks_live).
 
 ## Let's improve PEASS together
 
