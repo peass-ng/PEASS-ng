@@ -247,7 +247,7 @@ print_support () {
     |                             ${BLUE}Do you like PEASS?${GREEN}                                  |
     |---------------------------------------------------------------------------------|
     |         ${YELLOW}Get the latest version${GREEN}    :     ${RED}https://github.com/sponsors/carlospolop${GREEN} |
-    |         ${YELLOW}Follow on Twitter${GREEN}         :     ${RED}@hacktricks_live${GREEN}                          |
+    |         ${YELLOW}Follow on Twitter${GREEN}         :     ${RED}@hacktricks_live${GREEN}                        |
     |         ${YELLOW}Respect on HTB${GREEN}            :     ${RED}SirBroccoli            ${GREEN}                 |
     |---------------------------------------------------------------------------------|
     |                                 ${BLUE}Thank you! ${GREEN}                                     |
