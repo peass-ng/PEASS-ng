@@ -14,7 +14,7 @@ namespace winPEAS.Checks
 
             new List<Action>
             {
-                //PrintInterestingProcesses,
+                PrintInterestingProcesses,
                 PrintVulnLeakedHandlers,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
