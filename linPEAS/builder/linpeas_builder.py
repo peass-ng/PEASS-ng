@@ -1,7 +1,7 @@
-from .src.peasLoaded import PEASLoaded
-from .src.linpeasBuilder import LinpeasBuilder
-from .src.linpeasBaseBuilder import LinpeasBaseBuilder
-from .src.yamlGlobals import FINAL_FAT_LINPEAS_PATH, FINAL_LINPEAS_PATH, TEMPORARY_LINPEAS_BASE_PATH
+from src.peasLoaded import PEASLoaded
+from src.linpeasBuilder import LinpeasBuilder
+from src.linpeasBaseBuilder import LinpeasBaseBuilder
+from src.yamlGlobals import FINAL_FAT_LINPEAS_PATH, FINAL_LINPEAS_PATH, TEMPORARY_LINPEAS_BASE_PATH
 
 import os
 import stat
