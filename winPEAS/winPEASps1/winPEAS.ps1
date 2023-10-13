@@ -1515,9 +1515,6 @@ $Drives.Root | ForEach-Object {
         Search-Excel -Source $Path.FullName -SearchText "user"
         Search-Excel -Source $Path.FullName -SearchText "pass"
       }
-      else{
-        $Path.FullName | Select-String ".*\.xls",".*\.xlsm",".*\.xlsx"
-      }
     }
     else {
       if ($path.Length -gt 0) {
