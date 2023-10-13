@@ -6,7 +6,10 @@
 .EXAMPLE
   # Default - normal operation with username/password audit in drives/registry
   .\winPeas.ps1
-  
+
+  # Include Excel files in search: .xls, .xlsx, .xlsm
+  .\winPeas.ps1 -Excel
+
   # Full audit - normal operation with APIs / Keys / Tokens
   ## This will produce false positives ## 
   .\winPeas.ps1 -FullCheck 
@@ -31,7 +34,8 @@
 [CmdletBinding()]
 param(
   [switch]$TimeStamp,
-  [switch]$FullCheck
+  [switch]$FullCheck,
+  [switch]$Excel
 )
 
 # Gather KB from all patches installed
@@ -116,7 +120,6 @@ Function UnquotedServicePathCheck {
 }
 
 function TimeElapsed { Write-Host "Time Running: $($stopwatch.Elapsed.Minutes):$($stopwatch.Elapsed.Seconds)" }
-
 Function Get-ClipBoardText {
   Add-Type -AssemblyName PresentationCore
   $text = [Windows.Clipboard]::GetText()
@@ -128,6 +131,86 @@ Function Get-ClipBoardText {
     
   }
 }
+
+Function Search-Excel {
+  [cmdletbinding()]
+  Param (
+      [parameter(Mandatory, ValueFromPipeline)]
+      [ValidateScript({
+          Try {
+              If (Test-Path -Path $_) {$True}
+              Else {Throw "$($_) is not a valid path!"}
+          }
+          Catch {
+              Throw $_
+          }
+      })]
+      [string]$Source,
+      [parameter(Mandatory)]
+      [string]$SearchText
+      #You can specify wildcard characters (*, ?)
+  )
+  $Excel = New-Object -ComObject Excel.Application
+  Try {
+      $Source = Convert-Path $Source
+  }
+  Catch {
+      Write-Warning "Unable locate full path of $($Source)"
+      BREAK
+  }
+  $Workbook = $Excel.Workbooks.Open($Source)
+  ForEach ($Worksheet in @($Workbook.Sheets)) {
+      # Find Method https://msdn.microsoft.com/en-us/vba/excel-vba/articles/range-find-method-excel
+      $Found = $WorkSheet.Cells.Find($SearchText)
+      If ($Found) {
+        try{  
+          # Address Method https://msdn.microsoft.com/en-us/vba/excel-vba/articles/range-address-property-excel
+          Write-Host "Pattern: '$SearchText' found in $source" -ForegroundColor Blue
+          $BeginAddress = $Found.Address(0,0,1,1)
+          #Initial Found Cell
+          [pscustomobject]@{
+              WorkSheet = $Worksheet.Name
+              Column = $Found.Column
+              Row =$Found.Row
+              TextMatch = $Found.Text
+              Address = $BeginAddress
+          }
+          Do {
+              $Found = $WorkSheet.Cells.FindNext($Found)
+              $Address = $Found.Address(0,0,1,1)
+              If ($Address -eq $BeginAddress) {
+                Write-host "Address is same as Begin Address"
+                  BREAK
+              }
+              [pscustomobject]@{
+                  WorkSheet = $Worksheet.Name
+                  Column = $Found.Column
+                  Row =$Found.Row
+                  TextMatch = $Found.Text
+                  Address = $Address
+              }                 
+          } Until ($False)
+        }
+        catch {
+          # Null expression in Found
+        }
+      }
+      #Else {
+      #    Write-Warning "[$($WorkSheet.Name)] Nothing Found!"
+      #}
+  }
+  try{
+  $workbook.close($False)
+  [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject([System.__ComObject]$excel)
+  [gc]::Collect()
+  [gc]::WaitForPendingFinalizers()
+  }
+  catch{
+    #Usually an RPC error
+  }
+  Remove-Variable excel -ErrorAction SilentlyContinue
+}
+
 function Write-Color([String[]]$Text, [ConsoleColor[]]$Color) {
   for ($i = 0; $i -lt $Text.Length; $i++) {
     Write-Host $Text[$i] -Foreground $Color[$i] -NoNewline
@@ -203,7 +286,7 @@ if ($username) {
   $regexSearch.add("Net user add", "net user .+ /add")
 }
 
-if ($apiANDToken) {
+if ($FullCheck) {
   $regexSearch.add("Artifactory API Token", "AKC[a-zA-Z0-9]{10,}")
   $regexSearch.add("Artifactory Password", "AP[0-9ABCDEF][a-zA-Z0-9]{8,}")
   $regexSearch.add("Adafruit API Key", "([a-z0-9_-]{32})")
@@ -395,13 +478,13 @@ if ($webAuth) {
 
 $regexSearch.add("IPs", "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
 $Drives = Get-PSDrive | Where-Object { $_.Root -like "*:\" }
-$fileExtensions = @("*.xml", "*.txt", "*.conf", "*.config", "*.cfg", "*.ini", ".y*ml", "*.log", "*.bak")
+$fileExtensions = @("*.xml", "*.txt", "*.conf", "*.config", "*.cfg", "*.ini", ".y*ml", "*.log", "*.bak", "*.xls", "*.xlsx", "*.xlsm")
 
 
 ######################## INTRODUCTION ########################
 $stopwatch = [system.diagnostics.stopwatch]::StartNew()
 
-if($FullCheck){
+if ($FullCheck) {
   Write-Host "**Full Check Enabled. This will significantly increase false positives in registry / folder check for Usernames / Passwords.**"
 }
 # Introduction    
@@ -1377,7 +1460,6 @@ Write-Host -ForegroundColor Blue "=========|| SAM / SYSTEM Backup Checks"
   }
 }
 
-
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Group Policy Password Check"
@@ -1396,27 +1478,50 @@ if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Recycle Bin TIP:"
 Write-Host "if credentials are found in the recycle bin, tool from nirsoft may assist: http://www.nirsoft.net/password_recovery_tools.html" -ForegroundColor Yellow
 
+######################## File/Folder Check ########################
+
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========||  Password Check in Files/Folders"
 
 # Looking through the entire computer for passwords
+# Also looks for MCaffee site list while looping through the drives.
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Password Check. Starting at root of each drive. This will take some time. Like, grab a coffee or tea kinda time."
 Write-Host -ForegroundColor Blue "=========|| Looking through each drive, searching for $fileExtensions"
-# Also looks for MCaffee site list while looping through the drives.
+# Check if the Excel com object is installed, if so, look through files, if not, just notate if a file has "user" or "password in name"
+try { New-Object -ComObject Excel.Application | Out-Null; $ReadExcel = $true }catch {$ReadExcel = $false; if($Excel){
+  Write-Host -ForegroundColor Yellow "Host does not have Excel COM object, will still point out excel files when found."
+}}
 $Drives.Root | ForEach-Object {
   $Drive = $_
   Get-ChildItem $Drive -Recurse -Include $fileExtensions -ErrorAction SilentlyContinue -Force | ForEach-Object {
     $path = $_
-    if ($Path.FullName -like '*Lang*') {
+    #Exclude files/folders with 'lang' in the name
+    if ($Path.FullName | select-string "(?i).*lang.*") {
       #Write-Host "$($_.FullName) found!" -ForegroundColor red
+    }
+    if($Path.FullName | Select-String "(?i).:\\.*\\.*Pass.*"){
+      write-host -ForegroundColor Blue "$($path.FullName) contains the word 'pass'"
+    }
+    if($Path.FullName | Select-String ".:\\.*\\.*user.*" ){
+      Write-Host -ForegroundColor Blue "$($path.FullName) contains the word 'user' -excluding the 'users' directory"
+    }
+    # If path name ends with common excel extensions
+    elseif ($Path.FullName | Select-String ".*\.xls",".*\.xlsm",".*\.xlsx") {
+      if ($ReadExcel -and $Excel) {
+        Search-Excel -Source $Path.FullName -SearchText "user"
+        Search-Excel -Source $Path.FullName -SearchText "pass"
+      }
+      else{
+        $Path.FullName | Select-String ".*\.xls",".*\.xlsm",".*\.xlsx"
+      }
     }
     else {
       if ($path.Length -gt 0) {
         # Write-Host -ForegroundColor Blue "Path name matches extension search: $path"
       }
-      if ($path -like "*SiteList.xml") {
+      if ($path.FullName | Select-String "(?i).*SiteList\.xml") {
         Write-Host "Possible MCaffee Site List Found: $($_.FullName)"
         Write-Host "Just going to leave this here: https://github.com/funoverip/mcafee-sitelist-pwd-decryption" -ForegroundColor Yellow
       }
@@ -1433,6 +1538,7 @@ $Drives.Root | ForEach-Object {
   }
 }
 
+######################## Registry Password Check ########################
 
 Write-Host -ForegroundColor Blue "=========|| Registry Password Check"
 # Looking through the entire registry for passwords
