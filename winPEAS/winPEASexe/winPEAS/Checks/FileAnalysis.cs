@@ -444,7 +444,7 @@ namespace winPEAS.Checks
                                             foundRegexes[regex_obj.name][regex.name] = fileResults;
                                         }
                                     }
-                                    catch (System.IO.IOException)
+                                    catch (Exception ex)
                                     {
                                         // Cannot read the file
                                     }
