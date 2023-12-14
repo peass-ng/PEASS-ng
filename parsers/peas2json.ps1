@@ -198,7 +198,7 @@ try {
     $JSON_PATH = $(Read-Host "JSON Path")
 }
 catch {
-    Write-Host "Error: Please pass the peas.out file and the path to save the json`npeas2json.ps1 <output_file> <json_file.json>"
+    Write-Host "Error: Please pass the peas.out file and the path to save the json"
     exit
 }
 
