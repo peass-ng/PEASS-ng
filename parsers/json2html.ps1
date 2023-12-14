@@ -391,7 +391,7 @@ try {
     $HTML_PATH = $(Read-Host "HTML Path")
 }
 catch {
-    Write-Host "Error: Please pass the peas.out file and the path to save the html`npeas2html.ps1 <output_file> <HTML_file.html>"
+    Write-Host "Error: Please pass the peas.out file and the path to save the html`njson2html.ps1 <output_file> <HTML_file.html>"
     exit
 }
 
