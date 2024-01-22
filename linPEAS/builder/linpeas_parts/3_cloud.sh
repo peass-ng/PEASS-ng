@@ -172,7 +172,12 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
     i_hostname=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/hostname)
     [ "$i_hostname" ] && echo "Hostname: $i_hostname"
     i_instance_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/instance-id)
-    [ "i_instance_id" ] && echo "Instance ID: $i_instance_id"
+    [ "$i_instance_id" ] && echo "Instance ID: $i_instance_id"
+    # no dup of hostname if in ACK it possibly leaks aliyun cluster service ClusterId
+    i_instance_name=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/instance/instance-name)
+    [ "$i_instance_name" ] && echo "Instance Name: $i_instance_name"
+    i_instance_type=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/instance/instance-type)
+    [ "$i_instance_type" ] && echo "Instance Type: $i_instance_type"
     i_aliyun_owner_account=$(eval $aliyun_req http://i00.100.100.200/latest/meta-data/owner-account-id)
     [ "$i_aliyun_owner_account" ] && echo "Aliyun Owner Account: $i_aliyun_owner_account"
     i_region_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/region-id)
