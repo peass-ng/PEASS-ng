@@ -211,7 +211,7 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
     print_3title "Service account "
     for sa in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/ram/security-credentials/"); do 
       echo "  Name: $sa"
-      echo "  STS-Token: "$(eval $gcp_req "http://100.100.100.200/latest/meta-data/ram/security-credentials/$sa")
+      echo "  STS Token: "$(eval $aliyun_req "http://100.100.100.200/latest/meta-data/ram/security-credentials/$sa")
       echo "  =============="
     done
 
@@ -219,7 +219,7 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
     print_3title "Possbile admin ssh Public keys"
     for key in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/"); do
       echo "  Name: $key"
-      echo "  Key: "$(eval $gcp_req "http://100.100.100.200/latest/meta-data/public-keys/$keyopenssh-key")
+      echo "  Key: "$(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/${key}openssh-key")
       echo "  =============="
     done
 
