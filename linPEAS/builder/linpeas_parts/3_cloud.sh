@@ -167,6 +167,7 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
     print_info "https://help.aliyun.com/zh/ecs/user-guide/view-instance-metadata"
     # Todo: print_info "Hacktricks Documents needs to be updated"
 
+    echo ""
     print_3title "Instance Info"
     i_hostname=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/hostname)
     [ "$i_hostname" ] && echo "Hostname: $i_hostname"
@@ -179,11 +180,32 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
     i_zone_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/zone-id)
     [ "$i_zone_id" ] && echo "Zone ID: $i_zone_id"
 
+    echo ""
     print_3title "Network Info"
+    i_pub_ipv4=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/public-ipv4)
+    [ "$i_pub_ipv4" ] && echo "Public IPv4: $i_pub_ipv4"
+    i_priv_ipv4=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/private-ipv4)
+    [ "$i_priv_ipv4" ] && echo "Private IPv4: $i_priv_ipv4"
     net_dns=$(eval $aliyun_req  http://100.100.100.200/latest/meta-data/dns-conf/nameservers)
     [ "$net_dns" ] && echo "DNS: $net_dns"
-    net_mac=$(eval $aliyun_req  http://
+    
+    for mac in $(eval $aliyun_req  http://100.100.100.200/latest/meta-data/network/interfaces/macs/); do
+      echo "  Mac: $mac"
+      echo "  Mac VPC: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vpc-id)
+      echo "  Mac interface id: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/network-interface-id)
+      echo "  Mac netmask: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/netmask)
+      echo "  Mac vswitch id: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vswitch-id)
+      echo "  Mac vswitch cidr: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vswitch-cidr-block)
+      echo "  Mac vswitch cidr (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vswitch-ipv6-cidr-block)
+      echo "  Mac vpc cidr: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vpc-cidr-block)
+      echo "  Mac vpc cidr (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vpc-ipv6-cidr-blocks)
+      echo "  Mac private ips: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/private-ipv4s)
+      echo "  Mac private ips (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/ipv6s)
+      echo "  Mac gateway: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/gateway)
+      echo "  Mac gateway (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/ipv6-gateway)
+    done
 
+    echo ""
     print_3title "Service account "
     for sa in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/ram/security-credentials/"); do 
       echo "  Name: $sa"
@@ -191,13 +213,13 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
       echo "  =============="
     done
 
+    echo ""
     print_3title "Possbile admin ssh Public keys"
     for key in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/")
       echo "  Name: $key"
       echo "  Key: "$(eval $gcp_req "http://100.100.100.200/latest/meta-data/public-keys/$key/openssh-key")
       echo "  =============="
     done
-
 
   fi
 fi
