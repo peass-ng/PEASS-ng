@@ -203,6 +203,7 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
       echo "  Mac private ips (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/ipv6s)
       echo "  Mac gateway: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/gateway)
       echo "  Mac gateway (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/ipv6-gateway)
+
     done
 
     echo ""
@@ -215,11 +216,12 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
 
     echo ""
     print_3title "Possbile admin ssh Public keys"
-    for key in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/")
+    for key in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/") do
       echo "  Name: $key"
       echo "  Key: "$(eval $gcp_req "http://100.100.100.200/latest/meta-data/public-keys/$key/openssh-key")
       echo "  =============="
     done
+
 
   fi
 fi
