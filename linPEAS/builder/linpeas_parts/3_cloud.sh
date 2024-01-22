@@ -30,6 +30,13 @@ check_do(){
   fi
 }
 
+check_aliyun_ecs () {
+  is_aliyun_ecs="No"
+  if [ -f "/etc/cloud/cloud.cfg.d/aliyun_cloud.cfg" ]; then 
+    is_aliyun_ecs="Yes"
+  fi
+}
+
 check_ibm_vm(){
   is_ibm_vm="No"
   if grep -q "nameserver 161.26.0.10" "/etc/resolv.conf" && grep -q "nameserver 161.26.0.11" "/etc/resolv.conf"; then
@@ -131,6 +138,8 @@ check_aws_codebuild
 print_list "AWS Codebuild? ....................... $is_aws_codebuild\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_do
 print_list "DO Droplet? .......................... $is_do\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+check_aliyun_ecs
+print_list "Aliyun ECS? .......................... $is_aliyun_ecs\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_ibm_vm
 print_list "IBM Cloud VM? ........................ $is_ibm_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_az_vm
@@ -139,6 +148,59 @@ check_az_app
 print_list "Azure APP? ........................... $is_az_app\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 
 echo ""
+
+if [ "$is_aliyun_ecs" = "Yes" ]; then
+  aliyun_req=""
+  aliyun_token=""
+  if [ "$(command -v curl)" ]; then 
+    aliyun_token=$(curl -X PUT "http://100.100.100.200/latest/api/token" -H "X-aliyun-ecs-metadata-token-ttl-seconds:1000")
+    aliyun_req='curl -s -f -H "X-aliyun-ecs-metadata-token: $aliyun_token"'
+  elif [ "$(command -v wget)" ]; then
+    aliyun_token=$(wget -q -O - --method PUT "http://100.100.100.200/latest/api/token" --header "X-aliyun-ecs-metadata-token-ttl-seconds:1000")
+    aliyun_req='wget -q -O --header "X-aliyun-ecs-metadata-token: $aliyun_token"'
+  else 
+    echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
+  fi
+
+  if [ "$aliyun_token" ]; then
+    print_2title "Aliyun ECS Enumeration"
+    print_info "https://help.aliyun.com/zh/ecs/user-guide/view-instance-metadata"
+    # Todo: print_info "Hacktricks Documents needs to be updated"
+
+    print_3title "Instance Info"
+    i_hostname=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/hostname)
+    [ "$i_hostname" ] && echo "Hostname: $i_hostname"
+    i_instance_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/instance-id)
+    [ "i_instance_id" ] && echo "Instance ID: $i_instance_id"
+    i_aliyun_owner_account=$(eval $aliyun_req http://i00.100.100.200/latest/meta-data/owner-account-id)
+    [ "$i_aliyun_owner_account" ] && echo "Aliyun Owner Account: $i_aliyun_owner_account"
+    i_region_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/region-id)
+    [ "$i_region_id" ] && echo "Region ID: $i_region_id"
+    i_zone_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/zone-id)
+    [ "$i_zone_id" ] && echo "Zone ID: $i_zone_id"
+
+    print_3title "Network Info"
+    net_dns=$(eval $aliyun_req  http://100.100.100.200/latest/meta-data/dns-conf/nameservers)
+    [ "$net_dns" ] && echo "DNS: $net_dns"
+    net_mac=$(eval $aliyun_req  http://
+
+    print_3title "Service account "
+    for sa in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/ram/security-credentials/"); do 
+      echo "  Name: $sa"
+      echo "  STS-Token: "$(eval $gcp_req "http://100.100.100.200/latest/meta-data/ram/security-credentials/$sa")
+      echo "  =============="
+    done
+
+    print_3title "Possbile admin ssh Public keys"
+    for key in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/")
+      echo "  Name: $key"
+      echo "  Key: "$(eval $gcp_req "http://100.100.100.200/latest/meta-data/public-keys/$key/openssh-key")
+      echo "  =============="
+    done
+
+
+  fi
+fi
 
 if [ "$is_gcp" = "Yes" ]; then
     gcp_req=""
