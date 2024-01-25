@@ -1,8 +1,10 @@
 ###########################################
 #-----------) Cloud functions (-----------#
 ###########################################
+
 GCP_GOOD_SCOPES="/devstorage.read_only|/logging.write|/monitoring|/servicecontrol|/service.management.readonly|/trace.append"
 GCP_BAD_SCOPES="/cloud-platform|/compute"
+
 exec_with_jq(){
   if [ "$(command -v jq)" ]; then 
     $@ | jq 2>/dev/null;
@@ -13,30 +15,35 @@ exec_with_jq(){
     $@;
    fi
 }
+
 check_gcp(){
   is_gcp="No"
   if grep -q metadata.google.internal /etc/hosts 2>/dev/null || (curl --connect-timeout 2 metadata.google.internal >/dev/null 2>&1 && [ "$?" -eq "0" ]) || (wget --timeout 2 --tries 1 metadata.google.internal >/dev/null 2>&1 && [ "$?" -eq "0" ]); then
     is_gcp="Yes"
   fi
 }
+
 check_do(){
   is_do="No"
   if [ -f "/etc/cloud/cloud.cfg.d/90-digitalocean.cfg" ]; then
     is_do="Yes"
   fi
 }
+
 check_aliyun_ecs () {
   is_aliyun_ecs="No"
   if [ -f "/etc/cloud/cloud.cfg.d/aliyun_cloud.cfg" ]; then 
     is_aliyun_ecs="Yes"
   fi
 }
+
 check_tencent_cvm () {
   is_tencent_cvm="No"
   if [ "$(cat cloud.cfg | grep tencent)" ]; then
     is_tencent_cvm="Yes"
   fi
 }
+
 check_ibm_vm(){
   is_ibm_vm="No"
   if grep -q "nameserver 161.26.0.10" "/etc/resolv.conf" && grep -q "nameserver 161.26.0.11" "/etc/resolv.conf"; then
@@ -47,6 +54,7 @@ check_ibm_vm(){
     fi
   fi
 }
+
 check_aws_ecs(){
   is_aws_ecs="No"
   if (env | grep -q ECS_CONTAINER_METADATA_URI_v4); then
@@ -67,12 +75,15 @@ check_aws_ecs(){
     aws_ecs_service_account_uri="http://169.254.170.2$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI"
   fi
 }
+
 check_aws_ec2(){
   is_aws_ec2="No"
   is_aws_ec2_beanstalk="No"
+
   if [ -d "/var/log/amazon/" ]; then
     is_aws_ec2="Yes"
     EC2_TOKEN=$(curl --connect-timeout 2 -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" 2>/dev/null || wget --timeout 2 --tries 1 -q -O - --method PUT "http://169.254.169.254/latest/api/token" --header "X-aws-ec2-metadata-token-ttl-seconds: 21600" 2>/dev/null)
+
   else
     EC2_TOKEN=$(curl --connect-timeout 2 -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" 2>/dev/null || wget --timeout 2 --tries 1 -q -O - --method PUT "http://169.254.169.254/latest/api/token" --header "X-aws-ec2-metadata-token-ttl-seconds: 21600" 2>/dev/null)
     if [ "$(echo $EC2_TOKEN | cut -c1-2)" = "AQ" ]; then
@@ -84,20 +95,26 @@ check_aws_ec2(){
     is_aws_ec2_beanstalk="Yes"
   fi
 }
+
 check_aws_lambda(){
   is_aws_lambda="No"
+
   if (env | grep -q AWS_LAMBDA_); then
     is_aws_lambda="Yes"
   fi
 }
+
 check_aws_codebuild(){
   is_aws_codebuild="No"
+
   if [ -f "/codebuild/output/tmp/env.sh" ] && grep -q "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" "/codebuild/output/tmp/env.sh" ; then
     is_aws_codebuild="Yes"
   fi
 }
+
 check_az_vm(){
   is_az_vm="No"
+
   if [ -d "/var/log/azure/" ]; then
     is_az_vm="Yes"
   
@@ -105,12 +122,15 @@ check_az_vm(){
     is_az_vm="Yes"
   fi
 }
+
 check_az_app(){
   is_az_app="No"
+
   if [ -d "/opt/microsoft" ] && env | grep -q "IDENTITY_ENDPOINT"; then
     is_az_app="Yes"
   fi
 }
+
 
 check_gcp
 print_list "Google Cloud Platform? ............... $is_gcp\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
@@ -118,105 +138,26 @@ check_aws_ecs
 print_list "AWS ECS? ............................. $is_aws_ecs\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_aws_ec2
 print_list "AWS EC2? ............................. $is_aws_ec2\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
-print_list "AWS EC2 Beanstalk? 
-................... $is_aws_ec2_beanstalk\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+print_list "AWS EC2 Beanstalk? ................... $is_aws_ec2_beanstalk\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_aws_lambda
 print_list "AWS Lambda? .......................... $is_aws_lambda\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_aws_codebuild
-print_list "AWS Codebuild? 
-....................... $is_aws_codebuild\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+print_list "AWS Codebuild? ....................... $is_aws_codebuild\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_do
-print_list "DO Droplet? 
-.......................... $is_do\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+print_list "DO Droplet? .......................... $is_do\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_aliyun_ecs
 print_list "Aliyun ECS? .......................... $is_aliyun_ecs\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_tencent_cvm
 print_list "Tencent CVM? .......................... $is_tencent_cvm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_ibm_vm
-print_list "IBM Cloud VM? 
-........................ $is_ibm_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+print_list "IBM Cloud VM? ........................ $is_ibm_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_az_vm
 print_list "Azure VM? ............................ $is_az_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_az_app
-print_list "Azure APP? 
-........................... $is_az_app\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
-echo ""
-if [ "$is_aliyun_ecs" = "Yes" ]; then
-  aliyun_req=""
-  aliyun_token=""
-  if [ "$(command -v curl)" ]; then 
-    aliyun_token=$(curl -X PUT "http://100.100.100.200/latest/api/token" -H "X-aliyun-ecs-metadata-token-ttl-seconds:1000")
-    aliyun_req='curl -s -f -H "X-aliyun-ecs-metadata-token: $aliyun_token"'
-  elif [ "$(command -v wget)" ]; then
-    aliyun_token=$(wget -q -O - --method PUT "http://100.100.100.200/latest/api/token" --header "X-aliyun-ecs-metadata-token-ttl-seconds:1000")
-    aliyun_req='wget -q -O --header "X-aliyun-ecs-metadata-token: $aliyun_token"'
-  else 
-    echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
-  fi
-  if [ "$aliyun_token" ]; then
-    print_2title "Aliyun ECS Enumeration"
-    print_info "https://help.aliyun.com/zh/ecs/user-guide/view-instance-metadata"
-    # Todo: print_info "Hacktricks Documents needs to be updated"
-    echo ""
-    print_3title "Instance Info"
-    i_hostname=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/hostname)
-    [ "$i_hostname" ] && echo "Hostname: $i_hostname"
-    i_instance_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/instance-id)
-    [ "$i_instance_id" ] && echo "Instance ID: $i_instance_id"
-    # no dup of hostname if in ACK it possibly leaks aliyun cluster service ClusterId
-    i_instance_name=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/instance/instance-name)
-    [ "$i_instance_name" ] && echo "Instance Name: $i_instance_name"
-    i_instance_type=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/instance/instance-type)
-    [ "$i_instance_type" ] && echo "Instance Type: $i_instance_type"
-    i_aliyun_owner_account=$(eval $aliyun_req http://i00.100.100.200/latest/meta-data/owner-account-id)
-    [ "$i_aliyun_owner_account" ] && echo "Aliyun Owner Account: $i_aliyun_owner_account"
-    i_region_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/region-id)
-    [ "$i_region_id" ] && echo "Region ID: $i_region_id"
-    i_zone_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/zone-id)
-    [ "$i_zone_id" ] && echo "Zone ID: $i_zone_id"
-    echo ""
-    print_3title "Network Info"
-    i_pub_ipv4=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/public-ipv4)
-    [ "$i_pub_ipv4" ] && echo "Public IPv4: $i_pub_ipv4"
-    i_priv_ipv4=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/private-ipv4)
-    [ "$i_priv_ipv4" ] && echo "Private IPv4: $i_priv_ipv4"
-    net_dns=$(eval $aliyun_req  http://100.100.100.200/latest/meta-data/dns-conf/nameservers)
-    [ "$net_dns" ] && echo "DNS: $net_dns"
-    
-    echo "========"
-    for mac in $(eval $aliyun_req  http://100.100.100.200/latest/meta-data/network/interfaces/macs/); do
-      echo "  Mac: $mac"
-      echo "  Mac interface id: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/network-interface-id)
-      echo "  Mac netmask: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/netmask)
-      echo "  Mac vpc id: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vpc-id)
-      echo "  Mac vpc cidr: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vpc-cidr-block)
-      echo "  Mac vpc cidr (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vpc-ipv6-cidr-blocks)
-      echo "  Mac vswitch id: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vswitch-id)
-      echo "  Mac vswitch cidr: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vswitch-cidr-block)
-      echo "  Mac vswitch cidr (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vswitch-ipv6-cidr-block)
-      echo "  Mac private ips: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/private-ipv4s)
-      echo "  Mac private ips (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/ipv6s)
-      echo "  Mac gateway: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/gateway)
-      echo "  Mac gateway (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/ipv6-gateway)
-      echo "======="
-    done
-    echo ""
-    print_3title "Service account "
-    for sa in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/ram/security-credentials/"); do 
-      echo "  Name: $sa"
-      echo "  STS Token: "$(eval $aliyun_req "http://100.100.100.200/latest/meta-data/ram/security-credentials/$sa")
-      echo "  =============="
-    done
-    echo ""
-    print_3title "Possbile admin ssh Public keys"
-    for key in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/"); do
-      echo "  Name: $key"
-      echo "  Key: "$(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/${key}openssh-key")
-      echo "  =============="
-    done
+print_list "Azure APP? ........................... $is_az_app\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 
-  fi
-fi
+echo ""
+
 if [ "$is_tencent_cvm" = "Yes" ]; then
   tencent_req=""
   if [ "$(command -v curl)" ]; then 
@@ -290,6 +231,90 @@ if [ "$is_tencent_cvm" = "Yes" ]; then
       echo "  =============="
     done
 fi
+
+if [ "$is_aliyun_ecs" = "Yes" ]; then
+  aliyun_req=""
+  aliyun_token=""
+  if [ "$(command -v curl)" ]; then 
+    aliyun_token=$(curl -X PUT "http://100.100.100.200/latest/api/token" -H "X-aliyun-ecs-metadata-token-ttl-seconds:1000")
+    aliyun_req='curl -s -f -H "X-aliyun-ecs-metadata-token: $aliyun_token"'
+  elif [ "$(command -v wget)" ]; then
+    aliyun_token=$(wget -q -O - --method PUT "http://100.100.100.200/latest/api/token" --header "X-aliyun-ecs-metadata-token-ttl-seconds:1000")
+    aliyun_req='wget -q -O --header "X-aliyun-ecs-metadata-token: $aliyun_token"'
+  else 
+    echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
+  fi
+
+  if [ "$aliyun_token" ]; then
+    print_2title "Aliyun ECS Enumeration"
+    print_info "https://help.aliyun.com/zh/ecs/user-guide/view-instance-metadata"
+    # Todo: print_info "Hacktricks Documents needs to be updated"
+
+    echo ""
+    print_3title "Instance Info"
+    i_hostname=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/hostname)
+    [ "$i_hostname" ] && echo "Hostname: $i_hostname"
+    i_instance_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/instance-id)
+    [ "$i_instance_id" ] && echo "Instance ID: $i_instance_id"
+    # no dup of hostname if in ACK it possibly leaks aliyun cluster service ClusterId
+    i_instance_name=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/instance/instance-name)
+    [ "$i_instance_name" ] && echo "Instance Name: $i_instance_name"
+    i_instance_type=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/instance/instance-type)
+    [ "$i_instance_type" ] && echo "Instance Type: $i_instance_type"
+    i_aliyun_owner_account=$(eval $aliyun_req http://i00.100.100.200/latest/meta-data/owner-account-id)
+    [ "$i_aliyun_owner_account" ] && echo "Aliyun Owner Account: $i_aliyun_owner_account"
+    i_region_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/region-id)
+    [ "$i_region_id" ] && echo "Region ID: $i_region_id"
+    i_zone_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/zone-id)
+    [ "$i_zone_id" ] && echo "Zone ID: $i_zone_id"
+
+    echo ""
+    print_3title "Network Info"
+    i_pub_ipv4=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/public-ipv4)
+    [ "$i_pub_ipv4" ] && echo "Public IPv4: $i_pub_ipv4"
+    i_priv_ipv4=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/private-ipv4)
+    [ "$i_priv_ipv4" ] && echo "Private IPv4: $i_priv_ipv4"
+    net_dns=$(eval $aliyun_req  http://100.100.100.200/latest/meta-data/dns-conf/nameservers)
+    [ "$net_dns" ] && echo "DNS: $net_dns"
+    
+    echo "========"
+    for mac in $(eval $aliyun_req  http://100.100.100.200/latest/meta-data/network/interfaces/macs/); do
+      echo "  Mac: $mac"
+      echo "  Mac interface id: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/network-interface-id)
+      echo "  Mac netmask: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/netmask)
+      echo "  Mac vpc id: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vpc-id)
+      echo "  Mac vpc cidr: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vpc-cidr-block)
+      echo "  Mac vpc cidr (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vpc-ipv6-cidr-blocks)
+      echo "  Mac vswitch id: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vswitch-id)
+      echo "  Mac vswitch cidr: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vswitch-cidr-block)
+      echo "  Mac vswitch cidr (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/vswitch-ipv6-cidr-block)
+      echo "  Mac private ips: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/private-ipv4s)
+      echo "  Mac private ips (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/ipv6s)
+      echo "  Mac gateway: "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/gateway)
+      echo "  Mac gateway (v6): "$(eval $aliyun_req http://100.100.100.200/latest/meta-data/network/interfaces/macs/$mac/ipv6-gateway)
+      echo "======="
+    done
+
+    echo ""
+    print_3title "Service account "
+    for sa in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/ram/security-credentials/"); do 
+      echo "  Name: $sa"
+      echo "  STS Token: "$(eval $aliyun_req "http://100.100.100.200/latest/meta-data/ram/security-credentials/$sa")
+      echo "  =============="
+    done
+
+    echo ""
+    print_3title "Possbile admin ssh Public keys"
+    for key in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/"); do
+      echo "  Name: $key"
+      echo "  Key: "$(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/${key}openssh-key")
+      echo "  =============="
+    done
+
+
+  fi
+fi
+
 if [ "$is_gcp" = "Yes" ]; then
     gcp_req=""
     if [ "$(command -v curl)" ]; then
@@ -299,10 +324,12 @@ if [ "$is_gcp" = "Yes" ]; then
     else 
         echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
     fi
+
     # GCP Enumeration
     if [ "$gcp_req" ]; then
         print_2title "Google Cloud Platform Enumeration"
         print_info "https://cloud.hacktricks.xyz/pentesting-cloud/gcp-security"
+
         ## GC Project Info
         p_id=$(eval $gcp_req 'http://metadata.google.internal/computeMetadata/v1/project/project-id')
         [ "$p_id" ] && echo "Project-ID: $p_id"
@@ -312,6 +339,7 @@ if [ "$is_gcp" = "Yes" ]; then
         [ "$pssh_k" ] && echo "Project SSH-Keys: $pssh_k"
         p_attrs=$(eval $gcp_req 'http://metadata.google.internal/computeMetadata/v1/project/attributes/?recursive=true')
         [ "$p_attrs" ] && echo "All Project Attributes: $p_attrs"
+
         # OSLogin Info
         osl_u=$(eval $gcp_req http://metadata.google.internal/computeMetadata/v1/oslogin/users)
         [ "$osl_u" ] && echo "OSLogin users: $osl_u"
@@ -321,6 +349,7 @@ if [ "$is_gcp" = "Yes" ]; then
         [ "$osl_sk" ] && echo "OSLogin Security Keys: $osl_sk"
         osl_au=$(eval $gcp_req http://metadata.google.internal/computeMetadata/v1/oslogin/authorize)
         [ "$osl_au" ] && echo "OSLogin Authorize: $osl_au"
+
         # Instance Info
         inst_d=$(eval $gcp_req http://metadata.google.internal/computeMetadata/v1/instance/description)
         [ "$inst_d" ] && echo "Instance Description: "
@@ -338,6 +367,7 @@ if [ "$is_gcp" = "Yes" ]; then
         [ "$inst_tag" ] && echo "Instance tags: $inst_tag"
         inst_zone=$(eval $gcp_req http://metadata.google.internal/computeMetadata/v1/instance/zone)
         [ "$inst_zone" ] && echo "Zone: $inst_zone"
+
         inst_k8s_loc=$(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/attributes/cluster-location")
         [ "$inst_k8s_loc" ] && echo "K8s Cluster Location: $inst_k8s_loc"
         inst_k8s_name=$(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/attributes/cluster-name")
@@ -350,6 +380,7 @@ if [ "$is_gcp" = "Yes" ]; then
         [ "$inst_k8s_kubec" ] && echo "K8s Kubeconfig: $inst_k8s_kubec"
         inst_k8s_kubenv=$(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/attributes/kube-env")
         [ "$inst_k8s_kubenv" ] && echo "K8s Kube-env: $inst_k8s_kubenv"
+
         echo ""
         print_3title "Interfaces"
         for iface in $(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/"); do 
@@ -365,6 +396,7 @@ if [ "$is_gcp" = "Yes" ]; then
         print_3title "User Data"
         echo $(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/attributes/startup-script")
         echo ""
+
         echo ""
         print_3title "Service Accounts"
         for sa in $(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/"); do 
@@ -378,6 +410,7 @@ if [ "$is_gcp" = "Yes" ]; then
         done
     fi
 fi
+
 # AWS ECS Enumeration
 if [ "$is_aws_ecs" = "Yes" ]; then
     print_2title "AWS ECS Enumeration"
@@ -390,6 +423,7 @@ if [ "$is_aws_ecs" = "Yes" ]; then
     else 
         echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
     fi
+
     if [ "$aws_ecs_metadata_uri" ]; then
         print_3title "Container Info"
         exec_with_jq eval $aws_ecs_req "$aws_ecs_metadata_uri"
@@ -401,6 +435,7 @@ if [ "$is_aws_ecs" = "Yes" ]; then
     else
         echo "I couldn't find ECS_CONTAINER_METADATA_URI env var to get container info"
     fi
+
     if [ "$aws_ecs_service_account_uri" ]; then
         print_3title "IAM Role"
         exec_with_jq eval $aws_ecs_req "$aws_ecs_service_account_uri"
@@ -409,6 +444,7 @@ if [ "$is_aws_ecs" = "Yes" ]; then
         echo "I couldn't find AWS_CONTAINER_CREDENTIALS_RELATIVE_URI env var to get IAM role info (the task is running without a task role probably)"
     fi
 fi
+
 # AWS EC2 Enumeration
 if [ "$is_aws_ec2" = "Yes" ]; then
     print_2title "AWS EC2 Enumeration"
@@ -432,9 +468,11 @@ if [ "$is_aws_ec2" = "Yes" ]; then
         printf "instance-life-cycle: "; eval $aws_req "$URL/instance-life-cycle"; echo ""
         printf "instance-type: "; eval $aws_req "$URL/instance-type"; echo ""
         printf "region: "; eval $aws_req "$URL/placement/region"; echo ""
+
         echo ""
         print_3title "Account Info"
         exec_with_jq eval $aws_req "$URL/identity-credentials/ec2/info"; echo ""
+
         echo ""
         print_3title "Network Info"
         for mac in $(eval $aws_req "$URL/network/interfaces/macs/" 2>/dev/null); do 
@@ -449,6 +487,7 @@ if [ "$is_aws_ec2" = "Yes" ]; then
           echo "Public IPv4s:"; eval $aws_req "$URL/network/interfaces/macs/$mac/public-ipv4s"; echo ""
           echo ""
         done
+
         echo ""
         print_3title "IAM Role"
         exec_with_jq eval $aws_req "$URL/iam/info"; echo ""
@@ -470,6 +509,7 @@ if [ "$is_aws_ec2" = "Yes" ]; then
         ps aux 2>/dev/null | grep "ssm-agent" | grep -v "grep" | sed "s,ssm-agent,${SED_RED},"
     fi
 fi
+
 # AWS Lambda Enumeration
 if [ "$is_aws_lambda" = "Yes" ]; then
   print_2title "AWS Lambda Enumeration"
@@ -482,9 +522,11 @@ if [ "$is_aws_lambda" = "Yes" ]; then
   printf "Runtime API: "; env | grep AWS_LAMBDA_RUNTIME_API
   printf "Event data: "; (curl -s "http://${AWS_LAMBDA_RUNTIME_API}/2018-06-01/runtime/invocation/next" 2>/dev/null || wget -q -O - "http://${AWS_LAMBDA_RUNTIME_API}/2018-06-01/runtime/invocation/next")
 fi
+
 # AWS Codebuild Enumeration
 if [ "$is_aws_codebuild" = "Yes" ]; then
   print_2title "AWS Codebuild Enumeration"
+
   aws_req=""
   if [ "$(command -v curl)" ]; then
       aws_req="curl -s -f"
@@ -494,19 +536,23 @@ if [ "$is_aws_codebuild" = "Yes" ]; then
       echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
       echo "The addresses are in /codebuild/output/tmp/env.sh"
   fi
+
   if [ "$aws_req" ]; then
     print_3title "Credentials"
     CREDS_PATH=$(cat /codebuild/output/tmp/env.sh | grep "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" | cut -d "'" -f 2)
     URL_CREDS="http://169.254.170.2$CREDS_PATH" # Already has a / at the begginig
     exec_with_jq eval $aws_req "$URL_CREDS"; echo ""
+
     print_3title "Container Info"
     METADATA_URL=$(cat /codebuild/output/tmp/env.sh | grep "ECS_CONTAINER_METADATA_URI" | cut -d "'" -f 2)
     exec_with_jq eval $aws_req "$METADATA_URL"; echo ""
   fi
 fi
+
 # DO Droplet Enumeration
 if [ "$is_do" = "Yes" ]; then
   print_2title "DO Droplet Enumeration"
+
   do_req=""
   if [ "$(command -v curl)" ]; then
       do_req='curl -s -f '
@@ -515,6 +561,7 @@ if [ "$is_do" = "Yes" ]; then
   else 
       echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
   fi
+
   if [ "$do_req" ]; then
     URL="http://169.254.169.254/metadata"
     printf "Id: "; eval $do_req "$URL/v1/id"; echo ""
@@ -529,11 +576,14 @@ if [ "$is_do" = "Yes" ]; then
     printf "Features: "; eval $do_req "$URL/v1.json" | jq ".features";
   fi
 fi
+
 # IBM Cloud Enumeration
 if [ "$is_ibm_vm" = "Yes" ]; then
   print_2title "IBM Cloud Enumeration"
+
   if ! [ "$IBM_TOKEN" ]; then
     echo "Couldn't get the metadata token:("
+
   else
     TOKEN_HEADER="Authorization: Bearer $IBM_TOKEN"
     ACCEPT_HEADER="Accept: application/json"
@@ -547,22 +597,29 @@ if [ "$is_ibm_vm" = "Yes" ]; then
     else 
         echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
     fi
+
     if [ "$ibm_req" ]; then
       print_3title "Instance Details"
       exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/instance?version=2022-03-01"
+
       print_3title "Keys and User data"
       exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/instance/initialization?version=2022-03-01"
       exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/keys?version=2022-03-01"
+
       print_3title "Placement Groups"
       exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/placement_groups?version=2022-03-01"
+
       print_3title "IAM credentials"
       exec_with_jq eval $ibm_req -X POST "http://169.254.169.254/instance_identity/v1/iam_token?version=2022-03-01"
     fi
   fi
+
 fi
+
 # Azure VM Enumeration
 if [ "$is_az_vm" = "Yes" ]; then
   print_2title "Azure VM Enumeration"
+
   HEADER="Metadata:true"
   URL="http://169.254.169.254/metadata"
   API_VERSION="2021-12-13" # https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service?tabs=linux#supported-api-versions
@@ -575,26 +632,34 @@ if [ "$is_az_vm" = "Yes" ]; then
   else 
       echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
   fi
+
   if [ "$az_req" ]; then
     print_3title "Instance details"
     exec_with_jq eval $az_req "$URL/instance?api-version=$API_VERSION"
+
     print_3title "Load Balancer details"
     exec_with_jq eval $az_req "$URL/loadbalancer?api-version=$API_VERSION"
+
     print_3title "Management token"
     exec_with_jq eval $az_req "$URL/identity/oauth2/token?api-version=$API_VERSION\&resource=https://management.azure.com/"
+
     print_3title "Graph token"
     exec_with_jq eval $az_req "$URL/identity/oauth2/token?api-version=$API_VERSION\&resource=https://graph.microsoft.com/"
     
     print_3title "Vault token"
     exec_with_jq eval $az_req "$URL/identity/oauth2/token?api-version=$API_VERSION\&resource=https://vault.azure.net/"
+
     print_3title "Storage token"
     exec_with_jq eval $az_req "$URL/identity/oauth2/token?api-version=$API_VERSION\&resource=https://storage.azure.com/"
   fi
 fi
+
 if [ "$check_az_app" = "Yes" ]; then
   print_2title "Azure App Service Enumeration"
   echo "I haven't tested this one, if it doesn't work, please send a PR fixing and adding functionality :)"
+
   HEADER="secret:$IDENTITY_HEADER"
+
   az_req=""
   if [ "$(command -v curl)" ]; then
       az_req="curl -s -f -H '$HEADER'"
@@ -603,14 +668,17 @@ if [ "$check_az_app" = "Yes" ]; then
   else 
       echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
   fi
+
   if [ "$az_req" ]; then
     print_3title "Management token"
     exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://management.azure.com/"
+
     print_3title "Graph token"
     exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://graph.microsoft.com/"
     
     print_3title "Vault token"
     exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://vault.azure.net/"
+
     print_3title "Storage token"
     exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://storage.azure.com/"
   fi
