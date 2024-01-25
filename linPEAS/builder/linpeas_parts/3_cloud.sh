@@ -37,6 +37,13 @@ check_aliyun_ecs () {
   fi
 }
 
+check_tencent_cvm () {
+  is_tencent_cvm="No"
+  if [ "$(cat cloud.cfg | grep tencent)" ]; then
+    is_tencent_cvm="Yes"
+  fi
+}
+
 check_ibm_vm(){
   is_ibm_vm="No"
   if grep -q "nameserver 161.26.0.10" "/etc/resolv.conf" && grep -q "nameserver 161.26.0.11" "/etc/resolv.conf"; then
@@ -140,6 +147,8 @@ check_do
 print_list "DO Droplet? .......................... $is_do\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_aliyun_ecs
 print_list "Aliyun ECS? .......................... $is_aliyun_ecs\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+check_tencent_cvm
+print_list "Tencent CVM? .......................... $is_tencent_cvm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_ibm_vm
 print_list "IBM Cloud VM? ........................ $is_ibm_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_az_vm
@@ -227,9 +236,79 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
       echo "  Key: "$(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/${key}openssh-key")
       echo "  =============="
     done
-
-
   fi
+fi
+
+if [ "$is_tencent_cvm" = "Yes" ]; then
+  tencent_req=""
+  if [ "$(command -v curl)" ]; then 
+    tencent_req='curl -sfkG'
+  elif [ "$(command -v wget)" ]; then
+    tencent_req='wget -q -O '
+  else 
+    echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
+  fi
+
+    print_2title "Tencent CVM Enumeration"
+    print_info "https://cloud.tencent.com/document/product/213/4934"
+    # Todo: print_info "Hacktricks Documents needs to be updated"
+
+    echo ""
+    print_3title "Instance Info"
+    i_tencent_owner_account=$(eval $tencent_req http://169.254.0.23/latest/meta-data/app-id)
+    [ "$i_tencent_owner_account" ] && echo "Tencent Owner Account: $i_tencent_owner_account"
+    i_hostname=$(eval $tencent_req http://169.254.0.23/latest/meta-data/hostname)
+    [ "$i_hostname" ] && echo "Hostname: $i_hostname"
+    i_instance_id=$(eval $tencent_req http://169.254.0.23/latest/meta-data/instance-id)
+    [ "$i_instance_id" ] && echo "Instance ID: $i_instance_id"
+    i_instance_id=$(eval $tencent_req http://169.254.0.23/latest/meta-data/uuid)
+    [ "$i_instance_id" ] && echo "Instance ID: $i_instance_id"
+    i_instance_name=$(eval $tencent_req http://169.254.0.23/latest/meta-data/instance-name)
+    [ "$i_instance_name" ] && echo "Instance Name: $i_instance_name"
+    i_instance_type=$(eval $tencent_req http://169.254.0.23/latest/meta-data/instance/instance-type)
+    [ "$i_instance_type" ] && echo "Instance Type: $i_instance_type"
+    i_region_id=$(eval $tencent_req http://169.254.0.23/latest/meta-data/placement/region)
+    [ "$i_region_id" ] && echo "Region ID: $i_region_id"
+    i_zone_id=$(eval $tencent_req http://169.254.0.23/latest/meta-data/placement/zone)
+    [ "$i_zone_id" ] && echo "Zone ID: $i_zone_id"
+
+    echo ""
+    print_3title "Network Info"
+    i_pri_ipv4=$(eval $tencent_req http://169.254.0.23/latest/meta-data/network/interfaces/macs/$mac/primary-local-ipv4)
+    [ "$i_pri_ipv4" ] && echo "Primary IPv4: $i_pri_ipv4"
+
+    echo "========"
+    for mac in $(eval $tencent_req  http://169.254.0.23/latest/meta-data/network/interfaces/macs/); do
+      echo "  Mac: $mac"
+      echo "  Mac public ips: "$(eval $tencent_req http://169.254.0.23/latest/meta-data/network/interfaces/macs/$mac/public-ipv4s)
+      echo "  Mac vpc id: "$(eval $tencent_req http://169.254.0.23/latest/meta-data/network/interfaces/macs/$mac/vpc-id)
+      echo "  Mac subnet id: "$(eval $tencent_req http://169.254.0.23/latest/meta-data/network/interfaces/macs/$mac/subnet-id)
+      
+      for lipv4 in $(eval $tencent_req  http://169.254.0.23/latest/meta-data/network/interfaces/macs/$mac/local-ipv4s); do
+        echo "  Mac local ips: "$(eval $tencent_req http://169.254.0.23/latest/meta-data/network/interfaces/macs/$mac/local-ipv4s/$lipv4/local-ipv4)
+        echo "  Mac gateways: "$(eval $tencent_req http://169.254.0.23/latest/meta-data/network/interfaces/macs/$mac/local-ipv4s/$lipv4/gateway)
+        echo "  Mac public ips: "$(eval $tencent_req http://169.254.0.23/latest/meta-data/network/interfaces/macs/$mac/local-ipv4s/$lipv4/public-ipv4)
+        echo "  Mac public ips mode: "$(eval $tencent_req http://169.254.0.23/latest/meta-data/network/interfaces/macs/$mac/local-ipv4s/$lipv4/public-ipv4-mode)
+        echo "  Mac subnet mask: "$(eval $tencent_req http://169.254.0.23/latest/meta-data/network/interfaces/macs/$mac/local-ipv4s/$lipv4/subnet-mask)
+      done
+    echo "======="
+    done
+
+    echo ""
+    print_3title "Service account "
+    for sa in $(eval $tencent_req "http://169.254.0.23/latest/meta-data/cam/security-credentials/"); do 
+      echo "  Name: $sa"
+      echo "  STS Token: "$(eval $tencent_req "http://169.254.0.23/latest/meta-data/cam/security-credentials/$sa")
+      echo "  =============="
+    done
+
+    echo ""
+    print_3title "Possbile admin ssh Public keys"
+    for key in $(eval $tencent_req "http://169.254.0.23/latest/meta-data/public-keys/"); do
+      echo "  Name: $key"
+      echo "  Key: "$(eval $tencent_req "http://169.254.0.23/latest/meta-data/public-keys/${key}openssh-key")
+      echo "  =============="
+    done
 fi
 
 if [ "$is_gcp" = "Yes" ]; then
