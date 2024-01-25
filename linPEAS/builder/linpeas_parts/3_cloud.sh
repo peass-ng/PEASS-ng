@@ -236,6 +236,8 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
       echo "  Key: "$(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/${key}openssh-key")
       echo "  =============="
     done
+
+
   fi
 fi
 
@@ -249,6 +251,7 @@ if [ "$is_tencent_cvm" = "Yes" ]; then
     echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
   fi
 
+  
     print_2title "Tencent CVM Enumeration"
     print_info "https://cloud.tencent.com/document/product/213/4934"
     # Todo: print_info "Hacktricks Documents needs to be updated"
@@ -277,6 +280,7 @@ if [ "$is_tencent_cvm" = "Yes" ]; then
     i_pri_ipv4=$(eval $tencent_req http://169.254.0.23/latest/meta-data/network/interfaces/macs/$mac/primary-local-ipv4)
     [ "$i_pri_ipv4" ] && echo "Primary IPv4: $i_pri_ipv4"
 
+    
     echo "========"
     for mac in $(eval $tencent_req  http://169.254.0.23/latest/meta-data/network/interfaces/macs/); do
       echo "  Mac: $mac"
