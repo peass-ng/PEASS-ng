@@ -363,7 +363,7 @@ CALL :T_Progress 1
 
 :WifiCreds
 CALL :ColorLine " %E%33m[+]%E%97m WIFI"
-for /f "tokens=4 delims=: " %%a in ('netsh wlan show profiles ^| find "Profile "') do (netsh wlan show profiles name=%%a key=clear | findstr "SSID Cipher Content" | find /v "Number" & ECHO.)
+for /f "tokens=3,* delims=: " %%a in ('netsh wlan show profiles ^| find "Profile "') do (netsh wlan show profiles name=%%b key=clear | findstr "SSID Cipher Content" | find /v "Number" & ECHO.)
 CALL :T_Progress 1
 
 :BasicUserInfo
