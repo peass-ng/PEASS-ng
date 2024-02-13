@@ -158,16 +158,19 @@ namespace winPEAS.Checks
                 bool is_re_match = false;
                 try
                 {
+                    // Escape backslashes in the regex string
+                    string escapedRegex = regex_str.Trim().Replace(@"\", @"\\");
+                    
                     // Use "IsMatch" because it supports timeout, if exception is thrown exit the func to avoid ReDoS in "rgx.Matches"
                     if (caseinsensitive)
                     {
-                        is_re_match = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.IgnoreCase, TimeSpan.FromSeconds(120));
-                        rgx = new Regex(regex_str.Trim(), RegexOptions.IgnoreCase);
+                        is_re_match = Regex.IsMatch(text, escapedRegex, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(120));
+                        rgx = new Regex(escapedRegex, RegexOptions.IgnoreCase);
                     }
                     else
                     {
-                        is_re_match = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.None, TimeSpan.FromSeconds(120));
-                        rgx = new Regex(regex_str.Trim());
+                        is_re_match = Regex.IsMatch(text, escapedRegex, RegexOptions.None, TimeSpan.FromSeconds(120));
+                        rgx = new Regex(escapedRegex);
                     }
                 }
                 catch (RegexMatchTimeoutException e)
