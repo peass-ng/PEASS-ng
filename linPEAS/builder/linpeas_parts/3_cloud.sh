@@ -17,9 +17,15 @@ exec_with_jq(){
 }
 
 check_gcp(){
-  is_gcp="No"
+  is_gcp_vm="No"
+  is_gcp_function="No"
   if grep -q metadata.google.internal /etc/hosts 2>/dev/null || (curl --connect-timeout 2 metadata.google.internal >/dev/null 2>&1 && [ "$?" -eq "0" ]) || (wget --timeout 2 --tries 1 metadata.google.internal >/dev/null 2>&1 && [ "$?" -eq "0" ]); then
-    is_gcp="Yes"
+    is_gcp_vm="Yes"
+  fi
+  # CHeck if /workspace exists
+  if [ -d "/workspace" ] && [ -d "/layers" ]; then
+    is_gcp_vm="No"
+    is_gcp_function="Yes"
   fi
 }
 
@@ -133,7 +139,8 @@ check_az_app(){
 
 
 check_gcp
-print_list "Google Cloud Platform? ............... $is_gcp\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+print_list "GCP Virtual Machine? ................. $is_gcp_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+print_list "GCP Cloud Funtion? ................... $is_gcp_function\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_aws_ecs
 print_list "AWS ECS? ............................. $is_aws_ecs\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_aws_ec2
@@ -315,12 +322,12 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
   fi
 fi
 
-if [ "$is_gcp" = "Yes" ]; then
+if [ "$is_gcp_vm" = "Yes" ]; then
     gcp_req=""
     if [ "$(command -v curl)" ]; then
-        gcp_req='curl -s -f  -H "X-Google-Metadata-Request: True"'
+        gcp_req='curl -s -f  -H "Metadata-Flavor: Google"'
     elif [ "$(command -v wget)" ]; then
-        gcp_req='wget -q -O - --header "X-Google-Metadata-Request: True"'
+        gcp_req='wget -q -O - --header "Metadata-Flavor: Google"'
     else 
         echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
     fi
@@ -410,6 +417,51 @@ if [ "$is_gcp" = "Yes" ]; then
         done
     fi
 fi
+
+# Check if the script is running in a GCP Cloud Function
+if [ "$is_gcp_function" = "Yes" ]; then
+    gcp_req=""
+    if [ "$(command -v curl)" ]; then
+        gcp_req='curl -s -f  -H "Metadata-Flavor: Google"'
+    elif [ "$(command -v wget)" ]; then
+        gcp_req='wget -q -O - --header "Metadata-Flavor: Google"'
+    else 
+        echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
+    fi
+
+    # GCP Enumeration
+    if [ "$gcp_req" ]; then
+        print_2title "Google Cloud Platform Enumeration"
+        print_info "https://cloud.hacktricks.xyz/pentesting-cloud/gcp-security"
+
+        ## GC Project Info
+        p_id=$(eval $gcp_req 'http://metadata.google.internal/computeMetadata/v1/project/project-id')
+        [ "$p_id" ] && echo "Project-ID: $p_id"
+        p_num=$(eval $gcp_req 'http://metadata.google.internal/computeMetadata/v1/project/numeric-project-id')
+        [ "$p_num" ] && echo "Project Number: $p_num"
+
+        # Instance Info
+        inst_id=$(eval $gcp_req http://metadata.google.internal/computeMetadata/v1/instance/id)
+        [ "$inst_id" ] && echo "Instance ID: $inst_id"
+        mtls_info=$(eval $gcp_req http://metadata/computeMetadata/v1/instance/platform-security/auto-mtls-configuration)
+        [ "$mtls_info" ] && echo "MTLS info: $mtls_info"
+        inst_zone=$(eval $gcp_req http://metadata.google.internal/computeMetadata/v1/instance/zone)
+        [ "$inst_zone" ] && echo "Zone: $inst_zone"
+
+        echo ""
+        print_3title "Service Accounts"
+        for sa in $(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/"); do 
+            echo "  Name: $sa"
+            echo "  Email: "$(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/$sa/email")
+            echo "  Aliases: "$(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/$sa/aliases")
+            echo "  Identity: "$(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/$sa/identity")
+            echo "  Scopes: "$(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/$sa/scopes") | sed -${E} "s,${GCP_GOOD_SCOPES},${SED_GREEN},g" | sed -${E} "s,${GCP_BAD_SCOPES},${SED_RED},g"
+            echo "  Token: "$(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/$sa/token")
+            echo "  ==============  "
+        done
+    fi
+fi
+
 
 # AWS ECS Enumeration
 if [ "$is_aws_ecs" = "Yes" ]; then
