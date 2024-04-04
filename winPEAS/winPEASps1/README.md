@@ -1,6 +1,6 @@
 # Windows Privilege Escalation Awesome Script (.ps1)
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/winpeas.png)
+![](https://github.com/peass-ng/PEASS-ng/raw/master/winPEAS/winPEASexe/images/winpeas.png)
 
 **WinPEAS is a script that search for possible paths to escalate privileges on Windows hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation)**
 
@@ -12,11 +12,11 @@ The official **maintainer of this script is [RandolphConley](https://github.com/
 
 ## Quick Start
 
-Download the **[latest releas from here](https://github.com/carlospolop/PEASS-ng/releases/latest)**.
+Download the **[latest releas from here](https://github.com/peass-ng/PEASS-ng/releases/latest)**.
 
 
 ```bash
-powershell "IEX(New-Object Net.WebClient).downloadString('https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/winPEAS/winPEASps1/winPEAS.ps1')"
+powershell "IEX(New-Object Net.WebClient).downloadString('https://raw.githubusercontent.com/peass-ng/PEASS-ng/master/winPEAS/winPEASps1/winPEAS.ps1')"
 
 ## Advisory
 

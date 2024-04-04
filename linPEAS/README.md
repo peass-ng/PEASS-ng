@@ -1,6 +1,6 @@
 # LinPEAS - Linux Privilege Escalation Awesome Script
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/linpeas.png)
+![](https://github.com/peass-ng/PEASS-ng/raw/master/linPEAS/images/linpeas.png)
 
 **LinPEAS is a script that search for possible paths to escalate privileges on Linux/Unix\*/MacOS hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-hardening/privilege-escalation)**
 
@@ -13,16 +13,16 @@ Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks
 Just execute `linpeas.sh` in a MacOS system and the **MacPEAS version will be automatically executed**
 
 ## Quick Start
-Find the **latest versions of all the scripts and binaries in [the releases page](https://github.com/carlospolop/PEASS-ng/releases/latest)**.
+Find the **latest versions of all the scripts and binaries in [the releases page](https://github.com/peass-ng/PEASS-ng/releases/latest)**.
 
 ```bash
 # From github
-curl -L https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh | sh
+curl -L https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh | sh
 
 # Without curl
-python -c "import urllib.request; urllib.request.urlretrieve('https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh', 'linpeas.sh')"
+python -c "import urllib.request; urllib.request.urlretrieve('https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh', 'linpeas.sh')"
 
-python3 -c "import urllib.request; urllib.request.urlretrieve('https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh', 'linpeas.sh')"
+python3 -c "import urllib.request; urllib.request.urlretrieve('https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh', 'linpeas.sh')"
 ```
 
 ```bash
@@ -47,7 +47,7 @@ less -r /dev/shm/linpeas.txt #Read with colors
 
 ```bash
 # Use a linpeas binary
-wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas_linux_amd64
+wget https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas_linux_amd64
 chmod +x linpeas_linux_amd64
 ./linpeas_linux_amd64
 ```
@@ -149,7 +149,7 @@ With LinPEAS you can also **discover hosts automatically** using `fping`, `ping`
 
 LinPEAS will **automatically search for this binaries** in `$PATH` and let you know if any of them is available. In that case you can use LinPEAS to hosts dicovery and/or port scanning.
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/network.png)
+![](https://github.com/peass-ng/PEASS-ng/raw/master/linPEAS/images/network.png)
 
 
 ## Colors
@@ -223,9 +223,9 @@ Are you a PEASS fan? Get now our merch at **[PEASS Shop](https://teespring.com/s
 
 ## Collaborate
 
-If you want to help with the TODO tasks or with anything, you can do it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues) or you can submit a pull request**.
+If you want to help with the TODO tasks or with anything, you can do it using **[github issues](https://github.com/peass-ng/PEASS-ng/issues) or you can submit a pull request**.
 
-If you find any issue, please report it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)**.
+If you find any issue, please report it using **[github issues](https://github.com/peass-ng/PEASS-ng/issues)**.
 
 **Linpeas** is being **updated** every time I find something that could be useful to escalate privileges.
 

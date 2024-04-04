@@ -4,7 +4,7 @@ COLOR 0F
 CALL :SetOnce
 
 REM :: WinPEAS - Windows local Privilege Escalation Awesome Script
-REM :: Code by carlospolop; Re-Write by ThisLimn0
+REM :: Code by PEASS-ng; Re-Write by ThisLimn0
 
 REM Registry scan of other drives besides 
 REM /////true or false
@@ -46,7 +46,7 @@ CALL :ColorLine "   %E%32m(((((((((. ,%E%92m(############################(%E%32m
 CALL :ColorLine "       %E%32m(((((((((/,  %E%92m,####################(%E%32m/..((((((((((.%E%97m"
 CALL :ColorLine "             %E%32m(((((((((/,.  %E%92m,*//////*,.%E%32m ./(((((((((((.%E%97m"
 CALL :ColorLine "                %E%32m(((((((((((((((((((((((((((/%E%97m"
-ECHO.                       by carlospolop
+ECHO.                       by github.com/PEASS-ng
 ECHO.
 ECHO.
 

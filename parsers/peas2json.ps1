@@ -1,4 +1,4 @@
-# Based on https://github.com/carlospolop/PEASS-ng/blob/master/parsers/peas2json.py
+# Based on https://github.com/peass-ng/PEASS-ng/blob/master/parsers/peas2json.py
 
 # Pattern to identify main section titles
 $CHAR_1 = [String][char]0x2550 # ═

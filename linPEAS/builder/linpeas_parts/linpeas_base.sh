@@ -246,7 +246,6 @@ print_support () {
     ${GREEN}/---------------------------------------------------------------------------------\\
     |                             ${BLUE}Do you like PEASS?${GREEN}                                  |
     |---------------------------------------------------------------------------------|
-    |         ${YELLOW}Get the latest version${GREEN}    :     ${RED}https://github.com/sponsors/carlospolop${GREEN} |
     |         ${YELLOW}Follow on Twitter${GREEN}         :     ${RED}@hacktricks_live${GREEN}                        |
     |         ${YELLOW}Respect on HTB${GREEN}            :     ${RED}SirBroccoli            ${GREEN}                 |
     |---------------------------------------------------------------------------------|
@@ -261,7 +260,7 @@ print_support () {
 
 echo ""
 if [ ! "$QUIET" ]; then print_banner; print_support; fi
-printf ${BLUE}"          $SCRIPTNAME-$VERSION ${YELLOW}by carlospolop\n"$NC;
+printf ${BLUE}"          $SCRIPTNAME-$VERSION ${YELLOW}by github.com/PEASS-ng\n"$NC;
 echo ""
 printf ${YELLOW}"ADVISORY: ${BLUE}$ADVISORY\n$NC"
 echo ""
@@ -805,7 +804,6 @@ check_dns(){
 ###########################################
 #----------) Network functions (----------#
 ###########################################
-# Adapted from https://github.com/carlospolop/bashReconScan/blob/master/brs.sh
 
 basic_net_info(){
   print_title "Basic Network Info"

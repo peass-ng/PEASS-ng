@@ -1,4 +1,4 @@
-# Based on https://github.com/carlospolop/PEASS-ng/blob/master/parsers/json2html.py
+# Based on https://github.com/peass-ng/PEASS-ng/blob/master/parsers/json2html.py
 # TODO: create the script
 function parse_dict {
     param (

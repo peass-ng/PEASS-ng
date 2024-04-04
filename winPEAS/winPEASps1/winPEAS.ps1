@@ -19,10 +19,10 @@
 
 .NOTES
   Version:                    1.3
-  PEASS-ng Original Author:   carlospolop
+  PEASS-ng Original Author:   PEASS-ng
   winPEAS.ps1 Author:         @RandolphConley
   Creation Date:              10/4/2022
-  Website:                    https://github.com/carlospolop/PEASS-ng
+  Website:                    https://github.com/peass-ng/PEASS-ng
 
   TESTED: PoSh 5,7
   UNTESTED: PoSh 3,4
@@ -244,11 +244,11 @@ Write-Color "(((((((((. ,(############################(../(((((((((." -Color Gre
 Write-Color "  (((((((((/,  ,####################(/..((((((((((." -Color Green
 Write-Color "        (((((((((/,.  ,*//////*,. ./(((((((((((." -Color Green
 Write-Color "           (((((((((((((((((((((((((((/" -Color Green
-Write-Color "          by CarlosPolop & RandolphConley" -Color Green
+Write-Color "          by PEASS-ng & RandolphConley" -Color Green
 
 ######################## VARIABLES ########################
 
-# Manually added Regex search strings from https://github.com/carlospolop/PEASS-ng/blob/master/build_lists/sensitive_files.yaml
+# Manually added Regex search strings from https://github.com/peass-ng/PEASS-ng/blob/master/build_lists/sensitive_files.yaml
 
 # Set these values to true to add them to the regex search by default
 $password = $true

@@ -47,7 +47,7 @@ namespace winPEAS.Checks
         private static readonly HashSet<string> _systemCheckSelectedKeysHashSet = new HashSet<string>();
 
         // github url for Linpeas.sh
-        public static string LinpeasUrl = "https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh";
+        public static string LinpeasUrl = "https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh";
 
         public const string DefaultLogFile = "out.txt";
 

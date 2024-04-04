@@ -1,7 +1,7 @@
 # TODO
 
 ### Generate Nice Reports
-- [x] Create a parser from linpeas and winpeas.exe output to JSON. You can fin it [here](https://github.com/carlospolop/PEASS-ng/tree/master/parser).
+- [x] Create a parser from linpeas and winpeas.exe output to JSON. You can fin it [here](https://github.com/peass-ng/PEASS-ng/tree/master/parser).
 - [ ] Create a python script that generates a nice HTML/PDF from the JSON output
 
 ### Generate a DB of Known Vulnerable Binaries
