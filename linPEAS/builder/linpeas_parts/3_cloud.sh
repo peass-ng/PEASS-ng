@@ -154,7 +154,7 @@ check_do
 print_list "DO Droplet? .......................... $is_do\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_aliyun_ecs
 print_list "Aliyun ECS? .......................... $is_aliyun_ecs\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
-#check_tencent_cvm
+check_tencent_cvm
 print_list "Tencent CVM? .......................... $is_tencent_cvm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 check_ibm_vm
 print_list "IBM Cloud VM? ........................ $is_ibm_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
