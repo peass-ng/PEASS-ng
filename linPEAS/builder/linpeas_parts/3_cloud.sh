@@ -45,7 +45,7 @@ check_aliyun_ecs () {
 
 check_tencent_cvm () {
   is_tencent_cvm="No"
-  if [ -f "/etc/cloud/cloud.cfg.d/05_logging.cfg" ] || grep -qi Tencent /etc/cloud/cloud.cfg; then
+  if grep -qi Tencent /etc/cloud/cloud.cfg; then
       is_tencent_cvm="Yes"
   fi
 }
