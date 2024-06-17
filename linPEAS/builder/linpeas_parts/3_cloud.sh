@@ -237,6 +237,10 @@ if [ "$is_tencent_cvm" = "Yes" ]; then
       echo "  Key: "$(eval $tencent_req "http://169.254.0.23/latest/meta-data/public-keys/${key}openssh-key")
       echo "  =============="
     done
+
+    echo ""
+    print_3title "User Data"
+    eval $tencent_req http://169.254.0.23/latest/user-data; echo ""
 fi
 
 if [ "$is_aliyun_ecs" = "Yes" ]; then
