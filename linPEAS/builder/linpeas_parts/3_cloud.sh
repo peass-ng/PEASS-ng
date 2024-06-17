@@ -168,9 +168,9 @@ echo ""
 if [ "$is_tencent_cvm" = "Yes" ]; then
   tencent_req=""
   if [ "$(command -v curl)" ]; then 
-    tencent_req='curl -sfkG'
+    tencent_req='curl --connect-timeout 2 -sfkG'
   elif [ "$(command -v wget)" ]; then
-    tencent_req='wget -q -O '
+    tencent_req='wget -q --timeout 2 --tries 1  -O -'
   else 
     echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
   fi
