@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - main
     paths-ignore:
         - '.github/**'
   
@@ -139,12 +140,6 @@ jobs:
         with:
           name: winPEAS.bat
           path: winPEAS\winPEASbat\winPEAS.bat
-      
-      - name: Upload winpeas.ps1
-        uses: actions/upload-artifact@v2
-        with:
-          name: winPEAS.ps1
-          path: winPEAS\winPEASps1\winPEAS.ps1
           
       # Git add
       #- name: Create local changes
@@ -189,7 +184,9 @@ jobs:
         run: |
           python3 -m pip install PyYAML
           cd linPEAS
-          python3 -m builder.linpeas_builder
+          python3 -m builder.linpeas_builder --all --output linpeas_fat.sh
+          python3 -m builder.linpeas_builder --all-no-fat --output linpeas.sh
+          python3 -m builder.linpeas_builder --small --output linpeas_small.sh
       
       # Build linpeas binaries
       - name: Build linpeas binaries 
@@ -207,35 +204,35 @@ jobs:
             
       # Run linpeas help as quick test
       - name: Run linpeas help
-        run: linPEAS/linpeas.sh -h
+        run: linPEAS/linpeas_fat.sh -h && linPEAS/linpeas.sh -h && linPEAS/linpeas_small.sh -h
       
       # Run linpeas as a test
       - name: Run linpeas system_information
-        run: linPEAS/linpeas.sh -o system_information -a
+        run: linPEAS/linpeas_fat.sh -o system_information -a
       
       - name: Run linpeas container
-        run: linPEAS/linpeas.sh -o container -a
+        run: linPEAS/linpeas_fat.sh -o container -a
       
       - name: Run linpeas cloud
-        run: linPEAS/linpeas.sh -o cloud -a
+        run: linPEAS/linpeas_fat.sh -o cloud -a
       
       - name: Run linpeas procs_crons_timers_srvcs_sockets
-        run: linPEAS/linpeas.sh -o procs_crons_timers_srvcs_sockets -a
+        run: linPEAS/linpeas_fat.sh -o procs_crons_timers_srvcs_sockets -a
       
       - name: Run linpeas network_information
-        run: linPEAS/linpeas.sh -o network_information -t -a
+        run: linPEAS/linpeas_fat.sh -o network_information -t -a
       
       - name: Run linpeas users_information
-        run: linPEAS/linpeas.sh -o users_information -a
+        run: linPEAS/linpeas_fat.sh -o users_information -a
       
       - name: Run linpeas software_information
-        run: linPEAS/linpeas.sh -o software_information -a
+        run: linPEAS/linpeas_fat.sh -o software_information -a
       
       - name: Run linpeas interesting_perms_files
-        run: linPEAS/linpeas.sh -o interesting_perms_files -a
+        run: linPEAS/linpeas_fat.sh -o interesting_perms_files -a
       
       - name: Run linpeas interesting_files
-        run: linPEAS/linpeas.sh -o interesting_files -a
+        run: linPEAS/linpeas_fat.sh -o interesting_files -a
       
       # Too much time
       #- name: Run linpeas api_keys_regex
@@ -253,6 +250,12 @@ jobs:
         with:
           name: linpeas_fat.sh
           path: linPEAS/linpeas_fat.sh
+      
+      - name: Upload linpeas_small.sh
+        uses: actions/upload-artifact@v2
+        with:
+          name: linpeas_small.sh
+          path: linPEAS/linpeas_small.sh
       
       ## Linux bins
       - name: Upload linpeas_linux_386
@@ -324,11 +327,11 @@ jobs:
           python3 -m pip install PyYAML --break-system-packages
           python3 -m pip install requests --break-system-packages
           cd linPEAS
-          python3 -m builder.linpeas_builder
+          python3 -m builder.linpeas_builder --all --output linpeas_fat.sh
       
       # Run linpeas help as quick test
       - name: Run macpeas help
-        run: linPEAS/linpeas.sh -h
+        run: linPEAS/linpeas_fat.sh -h
       
       # Run macpeas parts to test it
       #- name: Run macpeas
@@ -385,6 +388,11 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: linpeas_fat.sh
+    
+    - name: Download linpeas_small.sh
+      uses: actions/download-artifact@v2
+      with:
+        name: linpeas_small.sh
 
     - name: Download linpeas_linux_386
       uses: actions/download-artifact@v2
