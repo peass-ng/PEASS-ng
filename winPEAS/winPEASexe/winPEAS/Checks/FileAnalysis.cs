@@ -178,8 +178,8 @@ namespace winPEAS.Checks
                 bool is_re_match = false;
                 try
                 {
-                    // Escape backslashes in the regex string
-                    string escapedRegex = regex_str.Trim().Replace(@"\", @"\\");
+                    // Escape backslashes in the regex string - I don't think this is needed anymore
+                    //string escapedRegex = regex_str.Trim().Replace(@"\", @"\\");
 
                     // Use "IsMatch" because it supports timeout, if exception is thrown exit the func to avoid ReDoS in "rgx.Matches"
                     if (caseinsensitive)

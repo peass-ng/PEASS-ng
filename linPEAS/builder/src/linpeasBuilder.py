@@ -7,6 +7,7 @@ from pathlib import Path
 from .peasLoaded import PEASLoaded
 from .peassRecord import PEASRecord
 from .fileRecord import FileRecord
+from .linpeasModule import LinpeasModule
 from .yamlGlobals import (
     TEMPORARY_LINPEAS_BASE_PATH,
     PEAS_FINDS_MARKUP,
@@ -28,13 +29,8 @@ from .yamlGlobals import (
     SUDOVB2_MARKUP,
     CAP_SETUID_MARKUP,
     CAP_SETGID_MARKUP,
-    LES_MARKUP,
-    LES2_MARKUP,
     REGEXES_LOADED,
-    REGEXES_MARKUP,
-    FAT_LINPEAS_AMICONTAINED_MARKUP,
-    FAT_LINPEAS_GITLEAKS_LINUX_MARKUP,
-    FAT_LINPEAS_GITLEAKS_MACOS_MARKUP
+    REGEXES_MARKUP
 )
 
 
@@ -52,18 +48,23 @@ class LinpeasBuilder:
         print("[+] Building variables...")
         variables = self.__generate_variables()
         self.__replace_mark(PEAS_VARIABLES_MARKUP, variables, "")
+        
+        if len(re.findall(r"PSTORAGE_[a-zA-Z0-9_]+", self.linpeas_sh)) > 1: #Only add storages if there are storages (PSTORAGE_BACKUPS is always there so it doesn't count)
+            print("[+] Building finds...")
+            find_calls, find_custom_calls = self.__generate_finds()
+            self.__replace_mark(PEAS_FINDS_MARKUP, find_calls, "  ")
+            self.__replace_mark(PEAS_FINDS_CUSTOM_MARKUP, find_custom_calls, "  ")
 
-        print("[+] Building finds...")
-        find_calls, find_custom_calls = self.__generate_finds()
-        self.__replace_mark(PEAS_FINDS_MARKUP, find_calls, "  ")
-        self.__replace_mark(PEAS_FINDS_CUSTOM_MARKUP, find_custom_calls, "  ")
-
-        print("[+] Building storages...")
-        storage_vars = self.__generate_storages()
-        self.__replace_mark(PEAS_STORAGES_MARKUP, storage_vars, "  ")
+            print("[+] Building storages...")
+            storage_vars = self.__generate_storages()
+            self.__replace_mark(PEAS_STORAGES_MARKUP, storage_vars, "  ")
+        
+        else:
+            lm = LinpeasModule(os.path.join(os.path.dirname(__file__), "..", "linpeas_parts", "linpeas_base", "2_caching_finds.sh"))
+            self.linpeas_sh = self.linpeas_sh.replace(lm.sh_code, "")
 
         #Check all the expected STORAGES in linpeas have been created
-        for s in re.findall(r'PSTORAGE_[\w]*', self.linpeas_sh):
+        for s in re.findall(r'PSTORAGE_[a-zA-Z0-9_]+', self.linpeas_sh):
             assert s in self.bash_storages, f"{s} isn't created"
 
         #Replace interesting hidden files markup for a list of all the searched hidden files
@@ -91,35 +92,37 @@ class LinpeasBuilder:
         self.__replace_mark(REGEXES_MARKUP, list(section), "")
 
 
-        print("[+] Building linux exploit suggesters...")
-        les_b64, les2_b64 = self.__get_linux_exploit_suggesters()
-        assert len(les_b64) > 100
-        assert len(les2_b64) > 100
-        self.__replace_mark(LES_MARKUP, list(les_b64), "")
-        self.__replace_mark(LES2_MARKUP, list(les2_b64), "")
+        print("[+] Downloading external tools...")
+        urls = re.findall(r'peass\{(https://[^\}]+)\}', self.linpeas_sh)
+        for orig_url in urls:
+            tar_gz_bin_name = ""
+            if ",,," in orig_url:
+                tar_gz_bin_name = url.split(",,,")[1]
+                url = orig_url.split(",,,")[0]
+            else:
+                url = orig_url
+            
+            print(f"Downloading {url}...")
+            
+            bin_b64 = self.__get_bin(url, tar_gz_bin_name)
 
-        print("[+] Downloading Fat Linpeas binaries...")
-        aimcont_b64 = self.__get_bin("https://github.com/genuinetools/amicontained/releases/latest/download/amicontained-linux-amd64")
-        self.__replace_mark(FAT_LINPEAS_AMICONTAINED_MARKUP, list(aimcont_b64), "")
+            assert len(bin_b64) > 15000, f"Len of downloaded {url} is {len(bin_b64)}"
+            
+            self.__replace_mark("peass{"+orig_url+"}", list(bin_b64), "")
         
-        gitleaks_b64 = self.__get_bin("https://github.com/zricethezav/gitleaks/releases/download/v8.8.7/gitleaks_8.8.7_linux_x64.tar.gz", tar_gz="gitleaks")
-        self.__replace_mark(FAT_LINPEAS_GITLEAKS_LINUX_MARKUP, list(gitleaks_b64), "")
+        if any(v in self.linpeas_sh for v in [SUIDVB1_MARKUP, SUIDVB2_MARKUP, SUDOVB1_MARKUP, SUDOVB2_MARKUP, CAP_SETUID_MARKUP, CAP_SETGID_MARKUP]):
+            print("[+] Building GTFOBins lists...")
+            suidVB, sudoVB, capsVB = self.__get_gtfobins_lists()
+            assert len(suidVB) > 185, f"Len suidVB is {len(suidVB)}"
+            assert len(sudoVB) > 250, f"Len sudo is {len(sudoVB)}"
+            assert len(capsVB) > 10, f"Len suidVB is {len(capsVB)}"
 
-        gitleaks_b64_macos = self.__get_bin("https://github.com/zricethezav/gitleaks/releases/download/v8.8.7/gitleaks_8.8.7_darwin_x64.tar.gz", tar_gz="gitleaks")
-        self.__replace_mark(FAT_LINPEAS_GITLEAKS_MACOS_MARKUP, list(gitleaks_b64_macos), "")
-
-        print("[+] Building GTFOBins lists...")
-        suidVB, sudoVB, capsVB = self.__get_gtfobins_lists()
-        assert len(suidVB) > 185, f"Len suidVB is {len(suidVB)}"
-        assert len(sudoVB) > 250, f"Len sudo is {len(sudoVB)}"
-        assert len(capsVB) > 10, f"Len suidVB is {len(capsVB)}"
-
-        self.__replace_mark(SUIDVB1_MARKUP, suidVB[:int(len(suidVB)/2)], "|")
-        self.__replace_mark(SUIDVB2_MARKUP, suidVB[int(len(suidVB)/2):], "|")
-        self.__replace_mark(SUDOVB1_MARKUP, sudoVB[:int(len(sudoVB)/2)], "|")
-        self.__replace_mark(SUDOVB2_MARKUP, sudoVB[int(len(sudoVB)/2):], "|")
-        self.__replace_mark(CAP_SETUID_MARKUP, capsVB, "|")
-        self.__replace_mark(CAP_SETGID_MARKUP, capsVB, "|")
+            self.__replace_mark(SUIDVB1_MARKUP, suidVB[:int(len(suidVB)/2)], "|")
+            self.__replace_mark(SUIDVB2_MARKUP, suidVB[int(len(suidVB)/2):], "|")
+            self.__replace_mark(SUDOVB1_MARKUP, sudoVB[:int(len(sudoVB)/2)], "|")
+            self.__replace_mark(SUDOVB2_MARKUP, sudoVB[int(len(sudoVB)/2):], "|")
+            self.__replace_mark(CAP_SETUID_MARKUP, capsVB, "|")
+            self.__replace_mark(CAP_SETGID_MARKUP, capsVB, "|")
 
         print("[+] Final sanity checks...")
         #Check that there arent peass marks left in linpeas
@@ -130,7 +133,7 @@ class LinpeasBuilder:
         assert 'sed -${E} "s,,' not in self.linpeas_sh
     
     def __get_peass_marks(self):
-        return re.findall(r'peass\{[\w\-\._ ]*\}', self.linpeas_sh)
+        return re.findall(r'peass\{[a-zA-Z0-9\-\._ ]*\}', self.linpeas_sh)
 
     
     def __generate_variables(self):
@@ -331,36 +334,35 @@ class LinpeasBuilder:
 
         analise_line += 'done; echo "";'
         return analise_line
-
-    
-    def __get_linux_exploit_suggesters(self) -> tuple:
-        r1 = requests.get("https://raw.githubusercontent.com/mzet-/linux-exploit-suggester/master/linux-exploit-suggester.sh")
-        r2 = requests.get("https://raw.githubusercontent.com/jondonas/linux-exploit-suggester-2/master/linux-exploit-suggester-2.pl")
-        return(base64.b64encode(bytes(r1.text, 'utf-8')).decode("utf-8"), base64.b64encode(bytes(r2.text, 'utf-8')).decode("utf-8"))
     
     def __get_bin(self, url, tar_gz="") -> str:
         os.system(f"wget -q '{url}' -O /tmp/bin_builder")
         if tar_gz:
-            os.system(f"cd /tmp; tar -xvzf /tmp/bin_builder; rm /tmp/bin_builder; mv {tar_gz} /tmp/bin_builder")
-        os.system("base64 /tmp/bin_builder | tr -d '\n' > /tmp/binb64; rm /tmp/bin_builder")
+            os.system(f"cd /tmp; tar -xvzf /tmp/bin_builder 2> /dev/null; rm /tmp/bin_builder; mv {tar_gz} /tmp/bin_builder")
         
-        b64bin = ""
-        with open("/tmp/binb64", "r") as f:
-            b64bin = f.read()
-        
-        os.system("rm /tmp/binb64")
-        return b64bin
+        with open("/tmp/bin_builder", "rb") as bin:
+            bin_b64 = base64.b64encode(bin.read()).decode('utf-8')
+
+        os.remove("/tmp/bin_builder")
+                
+        return bin_b64
     
     def __get_gtfobins_lists(self) -> tuple:
         r = requests.get("https://github.com/GTFOBins/GTFOBins.github.io/tree/master/_gtfobins")
-        bins = re.findall(r'_gtfobins/([\w_ \-]+).md', r.text)
+        bins = re.findall(r'_gtfobins/([a-zA-Z0-9_ \-]+).md', r.text)
 
         sudoVB = []
         suidVB = []
         capsVB = []
 
         for b in bins:
-            rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}.md")
+            try:
+                rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}.md", timeout=5)
+            except:
+                try:
+                    rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}.md", timeout=5)
+                except:
+                    rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}.md", timeout=5)
             if "sudo:" in rb.text:
                 sudoVB.append(b+"$")
             if "suid:" in rb.text:
@@ -401,16 +403,9 @@ class LinpeasBuilder:
         
         self.linpeas_sh = self.linpeas_sh.replace(mark, join_char.join(find_calls)) #New line char is't needed
     
-    def write_linpeas(self, path, rm_startswith=""):
+    def write_linpeas(self, path):
         """Write on disk the final linpeas"""
         
         with open(path, "w") as f:
-            if not rm_startswith:
-                f.write(self.linpeas_sh)
-            else:
-                tmp_linpeas = ""
-                for line in self.linpeas_sh.splitlines():
-                    if not line.startswith(rm_startswith):
-                        tmp_linpeas += line + "\n"
-                f.write(tmp_linpeas)
+            f.write(self.linpeas_sh)
     
