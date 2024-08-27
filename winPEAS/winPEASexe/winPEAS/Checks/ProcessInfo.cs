@@ -36,11 +36,14 @@ namespace winPEAS.Checks
                             { "Possible DLL Hijacking.*", Beaprint.ansi_color_bad },
                         };
 
-                    if (DefensiveProcesses.Definitions.ContainsKey(procInfo["Name"]))
+                    // we need to find first occurrence of the procinfo name
+                    string processNameSanitized = procInfo["Name"].Trim().ToLower();
+
+                    if (DefensiveProcesses.AVVendorsByProcess.ContainsKey(processNameSanitized))
                     {
-                        if (!string.IsNullOrEmpty(DefensiveProcesses.Definitions[procInfo["Name"]]))
+                        if (DefensiveProcesses.AVVendorsByProcess[processNameSanitized].Count > 0)
                         {
-                            procInfo["Product"] = DefensiveProcesses.Definitions[procInfo["Name"]];
+                            procInfo["Product"] = string.Join(", ", DefensiveProcesses.AVVendorsByProcess[processNameSanitized]);
                         }
                         colorsP[procInfo["Product"]] = Beaprint.ansi_color_good;
                     }

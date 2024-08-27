@@ -81,6 +81,7 @@ namespace winPEAS.Helpers
        /---------------------------------------------------------------------------------\
        |                             {1}Do you like PEASS?{0}                                  |
        |---------------------------------------------------------------------------------| 
+       |         {3}Get the latest version{0}    :     {2}https://github.com/sponsors/carlospolop{0} |
        |         {3}Follow on Twitter{0}         :     {2}@hacktricks_live{0}                        |
        |         {3}Respect on HTB{0}            :     {2}SirBroccoli            {0}                 |
        |---------------------------------------------------------------------------------|
@@ -132,6 +133,7 @@ namespace winPEAS.Helpers
             Console.WriteLine(LCYAN + "        filesinfo" + GRAY + "            Search generic files that can contains credentials" + NOCOLOR);
             Console.WriteLine(LCYAN + "        fileanalysis" + GRAY + "         Search specific files that can contains credentials and for regexes inside files" + NOCOLOR);
             Console.WriteLine(LCYAN + "        eventsinfo" + GRAY + "           Display interesting events information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        cloudinfo" + GRAY + "            Enumerate cloud information" + NOCOLOR);
             Console.WriteLine();
             Console.WriteLine(LCYAN + "        quiet" + GRAY + "                Do not print banner" + NOCOLOR);
             Console.WriteLine(LCYAN + "        notcolor" + GRAY + "             Don't use ansi colors (all white)" + NOCOLOR);
@@ -146,6 +148,11 @@ namespace winPEAS.Helpers
             Console.WriteLine(LCYAN + "        -lolbas" + GRAY + $"              Run additional LOLBAS check" + NOCOLOR);
             Console.WriteLine(LCYAN + "        -linpeas=[url]" + GRAY + $"       Run additional linpeas.sh check for default WSL distribution, optionally provide custom linpeas.sh URL\n" +
                                      $"                             (default: {Checks.Checks.LinpeasUrl})" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        -network" + GRAY + $"             Run additional network scanning - find network interfaces, hosts and scan nmap top 1000 TCP ports for each host found\n" +
+                                     $"                             -network=\"auto\"                          -    find interfaces/hosts automatically"  + NOCOLOR + "\n" +
+                                     $"                             -network=\"10.10.10.10,10.10.10.20\"       -    scan only selected ip address(es)" + NOCOLOR + "\n" +
+                                     $"                             -network=\"10.10.10.10/24\"                -    scan host based on ip address/netmask" + NOCOLOR + "\n" +
+                                     $"                             -ports=\"80,443,8080\"                     -    If a list of ports is provided, use this list instead of the nmap top 1000 TCP" + NOCOLOR);
 
         }
 
@@ -290,8 +297,7 @@ namespace winPEAS.Helpers
 
                 string value = entry.Value;
                 string key = entry.Key;
-                string line = "";
-
+                string line;
                 if (!no_gray)
                 {
                     line = ansi_color_gray + "    " + key + ": " + NOCOLOR + value;

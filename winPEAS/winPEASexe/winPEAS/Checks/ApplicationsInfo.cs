@@ -117,6 +117,7 @@ namespace winPEAS.Checks
                             { (app["Folder"].Length > 0) ? app["Folder"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+") : "ouigyevb2uivydi2u3id2ddf3", !string.IsNullOrEmpty(app["interestingFolderRights"]) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                             { (app["File"].Length > 0) ? app["File"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+") : "adu8v298hfubibuidiy2422r", !string.IsNullOrEmpty(app["interestingFileRights"]) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                             { (app["Reg"].Length > 0) ? app["Reg"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+") : "o8a7eduia37ibduaunbf7a4g7ukdhk4ua", (app["RegPermissions"].Length > 0) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
+                            { "Potentially sensitive file content:", Beaprint.ansi_color_bad },
                         };
                     string line = "";
 
@@ -158,14 +159,19 @@ namespace winPEAS.Checks
                         line += "\n    File: " + filepath_mod;
                     }
 
-                    if (app["isUnquotedSpaced"].ToLower() == "true")
+                    if (app["isUnquotedSpaced"].ToLower() != "false")
                     {
-                        line += " (Unquoted and Space detected)";
+                        line += $" (Unquoted and Space detected) - {app["isUnquotedSpaced"]}";
                     }
 
                     if (!string.IsNullOrEmpty(app["interestingFileRights"]))
                     {
                         line += "\n    FilePerms: " + app["interestingFileRights"];
+                    }
+
+                    if (app.ContainsKey("sensitiveInfoList") && !string.IsNullOrEmpty(app["sensitiveInfoList"]))
+                    {
+                        line += "\n    Potentially sensitive file content: " + app["sensitiveInfoList"];
                     }
 
                     Beaprint.AnsiPrint(line, colorsA);

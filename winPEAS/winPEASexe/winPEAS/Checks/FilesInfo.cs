@@ -290,15 +290,13 @@ namespace winPEAS.Checks
                         const string distribution = "Distribution";
                         const string rootDirectory = "Root directory";
                         const string runWith = "Run command";
+                        const string wslUser = "WSL user";
+                        const string root = "root";
+
 
                         var colors = new Dictionary<string, string>();
-                        new List<string>
-                        {
-                            linpeas,
-                            distribution,
-                            rootDirectory,
-                            runWith
-                        }.ForEach(str => colors.Add(str, Beaprint.ansi_color_bad));
+                        new List<string> { linpeas, distribution, rootDirectory, runWith, wslUser, root }
+                         .ForEach(str => colors.Add(str, Beaprint.ansi_color_bad));
 
                         Beaprint.BadPrint("    Found installed WSL distribution(s) - listed below");
                         Beaprint.AnsiPrint($"    Run {linpeas} in your WSL distribution(s) home folder(s).\n", colors);
@@ -310,14 +308,16 @@ namespace winPEAS.Checks
                                 string distributionSubKey = $"{basePath}\\{wslKey}";
                                 string distributionRootDirectory = $"{RegistryHelper.GetRegValue(hive, distributionSubKey, "BasePath")}\\rootfs";
                                 string distributionName = RegistryHelper.GetRegValue(hive, distributionSubKey, "DistributionName");
+                                string user = WSLHelper.TryGetRootUser(distributionName, wslKey);
 
                                 Beaprint.AnsiPrint($"    {distribution}:      \"{distributionName}\"\n" +
+                                                   $"    {wslUser}:          \"{user}\"\n" +
                                                    $"    {rootDirectory}:    \"{distributionRootDirectory}\"\n" +
                                                    $"    {runWith}:       wsl.exe --distribution \"{distributionName}\"",
                                                     colors);
                                 Beaprint.PrintLineSeparator();
                             }
-                            catch (Exception) { }
+                            catch (Exception ex) { }
                         }
 
                         // try to run linpeas.sh in the default distribution
@@ -328,7 +328,7 @@ namespace winPEAS.Checks
                         {
                             try
                             {
-                                WSL.RunLinpeas(Checks.LinpeasUrl);
+                                WSLHelper.RunLinpeas(Checks.LinpeasUrl);
                             }
                             catch (Exception ex)
                             {

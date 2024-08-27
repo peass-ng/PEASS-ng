@@ -120,7 +120,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
                                     string firefoxCredentialFile4 = $"{directory}\\{"key4.db"}";
                                     if (File.Exists(firefoxCredentialFile4))
                                     {
-                                        results.Add(firefoxCredentialFile4);
+                                        results.Add(firefoxCredentialFile3);
                                     }
                                 }
                             }

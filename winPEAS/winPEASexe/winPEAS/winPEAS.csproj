@@ -118,6 +118,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Security" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Transactions" />
@@ -1002,6 +1003,7 @@
     <Compile Include="3rdParty\YamlSerializer\YamlTagValidator.cs" />
     <Compile Include="Checks\ApplicationsInfo.cs" />
     <Compile Include="Checks\BrowserInfo.cs" />
+    <Compile Include="Checks\CloudInfo.cs" />
     <Compile Include="Checks\FileAnalysis.cs" />
     <Compile Include="Checks\FilesInfo.cs" />
     <Compile Include="Checks\Globals.cs" />
@@ -1038,6 +1040,11 @@
     <Compile Include="Info\ApplicationInfo\DeviceDrivers.cs" />
     <Compile Include="Info\ApplicationInfo\InstalledApps.cs" />
     <Compile Include="Helpers\Beaprint.cs" />
+    <Compile Include="Info\CloudInfo\AWSInfo.cs" />
+    <Compile Include="Info\CloudInfo\AzureInfo.cs" />
+    <Compile Include="Info\CloudInfo\EndpointData.cs" />
+    <Compile Include="Info\CloudInfo\GCPInfo.cs" />
+    <Compile Include="Info\CloudInfo\CloudInfoBase.cs" />
     <Compile Include="Info\EventsInfo\Logon\ExplicitLogonEventInfo.cs" />
     <Compile Include="Info\EventsInfo\Logon\Logon.cs" />
     <Compile Include="Info\EventsInfo\Logon\LogonEventInfo.cs" />
@@ -1058,7 +1065,7 @@
     <Compile Include="Info\FilesInfo\Office\OfficeRecentFileInfo.cs" />
     <Compile Include="Info\FilesInfo\Office\OneDrive\CloudSyncProviderInfo.cs" />
     <Compile Include="Info\FilesInfo\Office\OneDrive\OneDriveSyncProviderInfo.cs" />
-    <Compile Include="Info\FilesInfo\WSL\WSL.cs" />
+    <Compile Include="Info\FilesInfo\WSL\WSLHelper.cs" />
     <Compile Include="Info\NetworkInfo\Enums\IPVersion.cs" />
     <Compile Include="Info\NetworkInfo\Enums\MibTcpState.cs" />
     <Compile Include="Info\NetworkInfo\Enums\Protocol.cs" />
@@ -1068,6 +1075,10 @@
     <Compile Include="Info\NetworkInfo\InternetSettings\InternetSettingsInfo.cs" />
     <Compile Include="Info\NetworkInfo\InternetSettings\InternetSettingsKey.cs" />
     <Compile Include="Info\NetworkInfo\NetworkConnection.cs" />
+    <Compile Include="Info\NetworkInfo\NetworkScanner\NetPinger.cs" />
+    <Compile Include="Info\NetworkInfo\NetworkScanner\NetworkUtils.cs" />
+    <Compile Include="Info\NetworkInfo\NetworkScanner\NetworkScanner.cs" />
+    <Compile Include="Info\NetworkInfo\NetworkScanner\PortScanner.cs" />
     <Compile Include="Info\NetworkInfo\Structs\MIB_TCP6ROW_OWNER_PID.cs" />
     <Compile Include="Info\NetworkInfo\Structs\MIB_TCP6TABLE_OWNER_PID.cs" />
     <Compile Include="Info\NetworkInfo\Structs\MIB_TCPROW_OWNER_PID.cs" />

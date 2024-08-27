@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Net;
 using System.Security.Principal;
 using winPEAS.Helpers;
 using winPEAS.Helpers.AppLocker;
 using winPEAS.Helpers.Registry;
 using winPEAS.Helpers.Search;
 using winPEAS.Helpers.YamlConfig;
+using winPEAS.Info.NetworkInfo.NetworkScanner;
 using winPEAS.Info.UserInfo;
 
 namespace winPEAS.Checks
@@ -21,7 +23,11 @@ namespace winPEAS.Checks
         public static bool IsDebug = false;
         public static bool IsLinpeas = false;
         public static bool IsLolbas = false;
+        public static bool IsNetworkScan = false;
         public static bool SearchProgramFiles = false;
+
+        private static IEnumerable<int> PortScannerPorts = null;
+        private static string NetworkScanOptions = string.Empty;
 
         // Create Dynamic blacklists
         public static readonly string CurrentUserName = Environment.UserName;
@@ -47,7 +53,7 @@ namespace winPEAS.Checks
         private static readonly HashSet<string> _systemCheckSelectedKeysHashSet = new HashSet<string>();
 
         // github url for Linpeas.sh
-        public static string LinpeasUrl = "https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh";
+        public static string LinpeasUrl = "https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh";
 
         public const string DefaultLogFile = "out.txt";
 
@@ -87,7 +93,8 @@ namespace winPEAS.Checks
                 new SystemCheck("windowscreds", new WindowsCreds()),
                 new SystemCheck("browserinfo", new BrowserInfo()),
                 new SystemCheck("filesinfo", new FilesInfo()),
-                new SystemCheck("fileanalysis", new FileAnalysis())
+                new SystemCheck("fileanalysis", new FileAnalysis()),
+                new SystemCheck("cloudinfo", new CloudInfo())
             };
 
             var systemCheckAllKeys = new HashSet<string>(_systemChecks.Select(i => i.Key));
@@ -199,6 +206,52 @@ namespace winPEAS.Checks
                     }
                 }
 
+                if (arg.StartsWith("-network", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    /*
+                       -network="auto"                          -    find interfaces/hosts automatically
+                       -network="10.10.10.10,10.10.10.20"       -    scan only selected ip address(es)
+                       -network="10.10.10.10/24"                -    scan host based on ip address/netmask
+                     */
+                    if (!IsNetworkTypeValid(arg))
+                    {
+                        Beaprint.ColorPrint($" [!] the \"-network\" argument is invalid. For help, run winpeass.exe --help", Beaprint.YELLOW);
+
+                        return;
+                    }
+
+                    var parts = arg.Split('=');
+                    string networkType = parts[1];
+
+                    IsNetworkScan = true;
+                    NetworkScanOptions = networkType;
+                }
+
+                if (arg.StartsWith("-ports", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    // e.g. -ports="80,443,8080"
+                    var parts = arg.Split('=');
+                    if (!IsNetworkScan || parts.Length != 2 || string.IsNullOrEmpty(parts[1]))
+                    {
+                        Beaprint.ColorPrint($" [!] the \"-network\" argument is not present or valid, add it if you want to define network scan ports. For help, run winpeass.exe --help", Beaprint.YELLOW);
+
+                        return;
+                    }
+
+                    var portString = parts[1];
+                    IEnumerable<int> ports = new List<int>();
+                    try
+                    {
+                        PortScannerPorts = portString.Trim('"').Trim('\'').Split(',').ToList().ConvertAll<int>(int.Parse);
+                    }
+                    catch (Exception)
+                    {
+                        Beaprint.ColorPrint($" [!] the \"-ports\" argument is not present or valid, add it if you want to define network scan ports. For help, run winpeass.exe --help", Beaprint.YELLOW);
+
+                        return;
+                    }
+                }
+
                 string argToLower = arg.ToLower();
                 if (systemCheckAllKeys.Contains(argToLower))
                 {
@@ -237,7 +290,7 @@ namespace winPEAS.Checks
 
                     CheckRunner.Run(() => CreateDynamicLists(isFileSearchEnabled), IsDebug);
 
-                    RunChecks(isAllChecks, wait);
+                    RunChecks(isAllChecks, wait, IsNetworkScan);
 
                     SearchHelper.CleanLists();
 
@@ -258,7 +311,58 @@ namespace winPEAS.Checks
             }
         }
 
-        private static void RunChecks(bool isAllChecks, bool wait)
+        private static bool IsNetworkTypeValid(string arg)
+        {
+            var parts = arg.Split('=');
+            string networkType = string.Empty;  
+
+            if (parts.Length == 2 && !string.IsNullOrEmpty(parts[1]))
+            {
+                networkType = parts[1];
+
+                // auto
+                if (string.Equals(networkType, "auto", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }
+
+                // netmask  e.g. 10.10.10.10/24
+                else if (networkType.Contains("/"))
+                {
+                    var rangeParts = networkType.Split('/');
+
+                    if (rangeParts.Length == 2 && int.TryParse(rangeParts[1], out int res) && res <= 32 && res >= 0)
+                    {
+                        return true;
+                    }
+                }
+                // list of ip addresses
+                else if (networkType.Contains(","))
+                {
+                    var ips = networkType.Split(',');
+
+                    try
+                    {
+                        var validIpsCount = ips.ToList().ConvertAll<IPAddress>(IPAddress.Parse).Count();
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+                // single ip
+                else if (IPAddress.TryParse(networkType, out _))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void RunChecks(bool isAllChecks, bool wait, bool isNetworkScan)
         {
             for (int i = 0; i < _systemChecks.Count; i++)
             {
@@ -273,6 +377,12 @@ namespace winPEAS.Checks
                         WaitInput();
                     }
                 }
+            }
+
+            if (isNetworkScan)
+            {
+                NetworkScanner scanner = new NetworkScanner(NetworkScanOptions, PortScannerPorts);
+                scanner.Scan();
             }
         }
 

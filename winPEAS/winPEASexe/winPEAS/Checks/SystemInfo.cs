@@ -387,8 +387,7 @@ namespace winPEAS.Checks
 
         static void PrintCachedCreds()
         {
-            try
-            {
+            try{
                 Beaprint.MainPrint("Cached Creds");
                 Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/stealing-credentials/credentials-protections#cached-credentials", "If > 0, credentials will be cached in the registry and accessible by SYSTEM user");
                 string cachedlogonscount = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "CACHEDLOGONSCOUNT");
