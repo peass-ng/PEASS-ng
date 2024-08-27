@@ -180,6 +180,7 @@ namespace winPEAS.Checks
                 {
                     // Escape backslashes in the regex string - I don't think this is needed anymore
                     //string escapedRegex = regex_str.Trim().Replace(@"\", @"\\");
+                    string escapedRegex = regex_str.Trim();
 
                     // Use "IsMatch" because it supports timeout, if exception is thrown exit the func to avoid ReDoS in "rgx.Matches"
                     if (caseinsensitive)
