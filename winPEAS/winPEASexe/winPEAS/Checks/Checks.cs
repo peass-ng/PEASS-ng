@@ -94,7 +94,7 @@ namespace winPEAS.Checks
                 new SystemCheck("windowscreds", new WindowsCreds()),
                 new SystemCheck("browserinfo", new BrowserInfo()),
                 new SystemCheck("filesinfo", new FilesInfo()),
-                //new SystemCheck("fileanalysis", new FileAnalysis()),
+                new SystemCheck("fileanalysis", new FileAnalysis()),
             };
 
             var systemCheckAllKeys = new HashSet<string>(_systemChecks.Select(i => i.Key));
@@ -118,7 +118,6 @@ namespace winPEAS.Checks
 
                 if (string.Equals(arg, "all", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    _systemChecks.Add(new SystemCheck("fileanalysis", new FileAnalysis()));
                     print_fileanalysis_warn = false;
                 }
 
@@ -278,6 +277,7 @@ namespace winPEAS.Checks
             }
 
             if (print_fileanalysis_warn){
+                _systemChecks.RemoveAt(_systemChecks.Count - 1);
                 Beaprint.ColorPrint(" [!] If you want to run the file analysis checks (search sensitive information in files), you need to specify the 'fileanalysis' or 'all' argument. Note that this search might take several minutes. For help, run winpeass.exe --help", Beaprint.YELLOW);
             }
 
