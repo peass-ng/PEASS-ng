@@ -278,7 +278,7 @@ namespace winPEAS.Checks
             }
 
             if (print_fileanalysis_warn){
-                Beaprint.ColorPrint(" [!] If you want to run the file analysis checks (search sensitive information in files), you need to specify the 'fileanalysis' argument. Note that this search might take several minutes. For help, run winpeass.exe --help", Beaprint.YELLOW);
+                Beaprint.ColorPrint(" [!] If you want to run the file analysis checks (search sensitive information in files), you need to specify the 'fileanalysis' or 'all' argument. Note that this search might take several minutes. For help, run winpeass.exe --help", Beaprint.YELLOW);
             }
 
             if (isAllChecks)
