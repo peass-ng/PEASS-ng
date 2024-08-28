@@ -75,7 +75,6 @@ namespace winPEAS.Checks
             //Check parameters
             bool isAllChecks = true;
             bool isFileSearchEnabled = false;
-            var searchEnabledChecks = new HashSet<string>() { "fileanalysis, filesinfo" };
             bool wait = false;
             FileStream fileStream = null;
             StreamWriter fileWriter = null;
@@ -114,6 +113,12 @@ namespace winPEAS.Checks
                 if (string.Equals(arg, "fileanalysis", StringComparison.CurrentCultureIgnoreCase))
                 {
                     print_fileanalysis_warn = false;
+                    isFileSearchEnabled = true;
+                }
+
+                if (string.Equals(arg, "filesinfo", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    isFileSearchEnabled = true;
                 }
 
                 if (string.Equals(arg, "all", StringComparison.CurrentCultureIgnoreCase))
@@ -268,11 +273,6 @@ namespace winPEAS.Checks
                 {
                     _systemCheckSelectedKeysHashSet.Add(argToLower);
                     isAllChecks = false;
-
-                    if (searchEnabledChecks.Contains(argToLower))
-                    {
-                        isFileSearchEnabled = true;
-                    }
                 }
             }
 
