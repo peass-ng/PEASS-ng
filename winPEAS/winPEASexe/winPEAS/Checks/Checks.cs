@@ -90,14 +90,15 @@ namespace winPEAS.Checks
                 new SystemCheck("servicesinfo", new ServicesInfo()),
                 new SystemCheck("applicationsinfo", new ApplicationsInfo()),
                 new SystemCheck("networkinfo", new NetworkInfo()),
+                new SystemCheck("cloudinfo", new CloudInfo())
                 new SystemCheck("windowscreds", new WindowsCreds()),
                 new SystemCheck("browserinfo", new BrowserInfo()),
                 new SystemCheck("filesinfo", new FilesInfo()),
-                new SystemCheck("fileanalysis", new FileAnalysis()),
-                new SystemCheck("cloudinfo", new CloudInfo())
+                //new SystemCheck("fileanalysis", new FileAnalysis()),
             };
 
             var systemCheckAllKeys = new HashSet<string>(_systemChecks.Select(i => i.Key));
+            var print_fileanalysis_warn = true;
 
             foreach (string arg in args)
             {
@@ -108,6 +109,17 @@ namespace winPEAS.Checks
                 {
                     Beaprint.PrintUsage();
                     return;
+                }
+
+                if (string.Equals(arg, "fileanalysis", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    print_fileanalysis_warn = false;
+                }
+
+                if (string.Equals(arg, "all", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    _systemChecks.Add(new SystemCheck("fileanalysis", new FileAnalysis()));
+                    print_fileanalysis_warn = false;
                 }
 
                 if (arg.StartsWith("log", StringComparison.CurrentCultureIgnoreCase))
@@ -263,6 +275,10 @@ namespace winPEAS.Checks
                         isFileSearchEnabled = true;
                     }
                 }
+            }
+
+            if (print_fileanalysis_warn){
+                Beaprint.ColorPrint(" [!] If you want to run the file analysis checks (search sensitive information in files), you need to specify the 'fileanalysis' argument. Note that this search might take several minutes. For help, run winpeass.exe --help", Beaprint.YELLOW);
             }
 
             if (isAllChecks)
