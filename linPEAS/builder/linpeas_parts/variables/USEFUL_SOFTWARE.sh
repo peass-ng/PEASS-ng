@@ -13,4 +13,4 @@
 # Small linpeas: 1
 
 
-USEFUL_SOFTWARE="authbind aws az base64 ctr curl doas docker fetch g++ gcc gcloud gdb kubectl lxc make nc nc.traditional ncat netcat nmap perl php ping podman python python2 python2.6 python2.7 python3 python3.6 python3.7 pwsh rkt ruby runc socat sudo wget xterm"
+USEFUL_SOFTWARE="authbind aws az base64 ctr curl doas docker fetch g++ gcc gcloud gdb go kubectl lua lxc make nc nc.traditional ncat netcat nmap perl php ping podman python python2 python2.6 python2.7 python3 python3.6 python3.7 pwsh rkt ruby runc socat sudo wget xterm"
