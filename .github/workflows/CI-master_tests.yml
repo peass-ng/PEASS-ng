@@ -100,43 +100,43 @@ jobs:
       
       # Upload all the versions for the release
       - name: Upload winpeasx64
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEASx64.exe
           path: winPEAS\winPEASexe\binaries\x64\Release\winPEASx64.exe
       
       - name: Upload winpeasx86
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEASx86.exe
           path: winPEAS\winPEASexe\binaries\x86\Release\winPEASx86.exe
       
       - name: Upload winpeasany
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEASany.exe
           path: winPEAS\winPEASexe\binaries\Release\winPEASany.exe
       
       - name: Upload winpeasx64ofs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEASx64_ofs.exe
           path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64_ofs.exe
       
       - name: Upload winpeasx86ofs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEASx86_ofs.exe
           path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86_ofs.exe
           
       - name: Upload winpeasanyofs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEASany_ofs.exe
           path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany_ofs.exe
       
       - name: Upload winpeas.bat
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEAS.bat
           path: winPEAS\winPEASbat\winPEAS.bat
@@ -240,57 +240,57 @@ jobs:
       
       # Upload files for release
       - name: Upload linpeas.sh
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas.sh
           path: linPEAS/linpeas.sh
       
       - name: Upload linpeas_fat.sh
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_fat.sh
           path: linPEAS/linpeas_fat.sh
       
       - name: Upload linpeas_small.sh
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_small.sh
           path: linPEAS/linpeas_small.sh
       
       ## Linux bins
       - name: Upload linpeas_linux_386
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_linux_386
           path: sh2bin/builds/linpeas_linux_386
       
       - name: Upload linpeas_linux_amd64
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_linux_amd64
           path: sh2bin/builds/linpeas_linux_amd64
       
       - name: Upload linpeas_linux_arm
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_linux_arm
           path: sh2bin/builds/linpeas_linux_arm
           
       - name: Upload linpeas_linux_arm64
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_linux_arm64
           path: sh2bin/builds/linpeas_linux_arm64
       
       ## Darwin bins
       - name: Upload linpeas_darwin_amd64
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_darwin_amd64
           path: sh2bin/builds/linpeas_darwin_amd64
           
       - name: Upload linpeas_darwin_arm64
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_darwin_arm64
           path: sh2bin/builds/linpeas_darwin_arm64
