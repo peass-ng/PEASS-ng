@@ -29,7 +29,7 @@ Note that by default, in the releases pages of this repository, you will find a 
 - **linpeas_small.sh**: Contains only the most *important* checks making its size smaller.
 
 ## Quick Start
-Find the **latest versions of all the scripts and binaries in [the releases page](releases/latest)**.
+Find the **latest versions of all the scripts and binaries in [the releases page](https://github.com/peass-ng/PEASS-ng/releases/latest)**.
 
 ```bash
 # From public github
