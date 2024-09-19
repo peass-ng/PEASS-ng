@@ -19,7 +19,7 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
   aliyun_token=""
   if [ "$(command -v curl)" ]; then 
     aliyun_token=$(curl -X PUT "http://100.100.100.200/latest/api/token" -H "X-aliyun-ecs-metadata-token-ttl-seconds:1000")
-    aliyun_req='curl -s -f -H "X-aliyun-ecs-metadata-token: $aliyun_token"'
+    aliyun_req='curl -s -f -L -H "X-aliyun-ecs-metadata-token: $aliyun_token"'
   elif [ "$(command -v wget)" ]; then
     aliyun_token=$(wget -q -O - --method PUT "http://100.100.100.200/latest/api/token" --header "X-aliyun-ecs-metadata-token-ttl-seconds:1000")
     aliyun_req='wget -q -O --header "X-aliyun-ecs-metadata-token: $aliyun_token"'

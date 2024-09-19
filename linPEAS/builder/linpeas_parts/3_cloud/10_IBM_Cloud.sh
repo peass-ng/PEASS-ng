@@ -26,7 +26,7 @@ if [ "$is_ibm_vm" = "Yes" ]; then
     
     ibm_req=""
     if [ "$(command -v curl || echo -n '')" ]; then
-        ibm_req="curl -s -f -H '$TOKEN_HEADER' -H '$ACCEPT_HEADER'"
+        ibm_req="curl -s -f -L -H '$TOKEN_HEADER' -H '$ACCEPT_HEADER'"
     elif [ "$(command -v wget || echo -n '')" ]; then
         ibm_req="wget -q -O - -H '$TOKEN_HEADER' -H '$ACCEPT_HEADER'"
     else 

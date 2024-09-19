@@ -23,7 +23,7 @@ if [ "$is_az_app" = "Yes" ]; then
 
   az_req=""
   if [ "$(command -v curl || echo -n '')" ]; then
-      az_req="curl -s -f -H '$HEADER'"
+      az_req="curl -s -f -L -H '$HEADER'"
   elif [ "$(command -v wget || echo -n '')" ]; then
       az_req="wget -q -O - -H '$HEADER'"
   else 

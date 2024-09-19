@@ -18,7 +18,7 @@ if [ "$is_do" = "Yes" ]; then
 
   do_req=""
   if [ "$(command -v curl || echo -n '')" ]; then
-      do_req='curl -s -f '
+      do_req='curl -s -f -L '
   elif [ "$(command -v wget || echo -n '')" ]; then
       do_req='wget -q -O - '
   else 

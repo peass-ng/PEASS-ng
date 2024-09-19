@@ -21,7 +21,7 @@ if [ "$is_aws_ec2" = "Yes" ]; then
     
     aws_req=""
     if [ "$(command -v curl || echo -n '')" ]; then
-        aws_req="curl -s -f -H '$HEADER'"
+        aws_req="curl -s -f -L -H '$HEADER'"
     elif [ "$(command -v wget || echo -n '')" ]; then
         aws_req="wget -q -O - -H '$HEADER'"
     else 

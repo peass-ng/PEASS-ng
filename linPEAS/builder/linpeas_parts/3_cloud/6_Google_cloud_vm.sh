@@ -16,7 +16,7 @@
 if [ "$is_gcp_vm" = "Yes" ]; then
     gcp_req=""
     if [ "$(command -v curl || echo -n '')" ]; then
-        gcp_req='curl -s -f  -H "Metadata-Flavor: Google"'
+        gcp_req='curl -s -f -L -H "Metadata-Flavor: Google"'
     elif [ "$(command -v wget || echo -n '')" ]; then
         gcp_req='wget -q -O - --header "Metadata-Flavor: Google"'
     else 
