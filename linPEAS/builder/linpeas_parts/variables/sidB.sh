@@ -42,7 +42,7 @@ sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
  /newgrp$%HP-UX_10.20\
  /ntfs-3g$%Debian9/8/7/Ubuntu/Gentoo/others/Ubuntu_Server_16.10_and_others\(02-2017\)\
  /passwd$%Apple_Mac_OSX\(03-2006\)/Solaris_8/9\(12-2004\)/SPARC_8/9/Sun_Solaris_2.3_to_2.5.1\(02-1997\)\
- /pkexec$%Linux4.10_to_5.1.17\(CVE-2019-13272\)/rhel_6\(CVE-2011-1485\)\
+ /pkexec$%Linux4.10_to_5.1.17\(CVE-2019-13272\)/rhel_6\(CVE-2011-1485\)/Generic_CVE-2021-4034\
  /pppd$%Apple_Mac_OSX_10.4.8\(05-2007\)\
  /pt_chown$%GNU_glibc_2.1/2.1.1_-6\(08-1999\)\
  /pulseaudio$%\(Ubuntu_9.04/Slackware_12.2.0\)\
