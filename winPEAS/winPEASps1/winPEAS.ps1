@@ -1282,7 +1282,7 @@ $CCreds = @(".aws\credentials",
   ".azure\azureProfile.json") 
 foreach ($u in $users) {
   $CCreds | ForEach-Object {
-    if (Test-Path "c:\$u\$_") { Write-Host "$_ found!" -ForegroundColor Red }
+    if (Test-Path "c:\Users\$u\$_") { Write-Host "$_ found!" -ForegroundColor Red }
   }
 }
 
