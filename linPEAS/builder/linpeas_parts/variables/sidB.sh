@@ -25,6 +25,9 @@ sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
  /dtappgather$%Solaris_7_<_11_\(SPARC/x86\)\(CVE-2017-3622\)\
  /dtprintinfo$%Solaris_10_\(x86\)_and_lower_versions_also_SunOS_5.7_to_5.10\
  /dtsession$%Oracle_Solaris_10_1/13_and_earlier\(CVE-2020-2696\)\
+ /enlightenment_backlight$%Before_0.25.4_\(CVE-2022-37706\)\
+ /enlightenment_ckpasswd$%Before_0.25.4_\(CVE-2022-37706\)\
+ /enlightenment_sys$%Before_0.25.4_\(CVE-2022-37706\)\
  /eject$%FreeBSD_mcweject_0.9/SGI_IRIX_6.2\
  /ibstat$%IBM_AIX_Version_6.1/7.1\(09-2013\)\
  /kcheckpass$%KDE_3.2.0_<-->_3.4.2_\(both_included\)\
