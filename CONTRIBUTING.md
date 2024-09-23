@@ -13,7 +13,7 @@ If you want to **contribute adding the search of new files that can contain sens
 Also, in the comments of this PR, put links to pages where and example of the file containing sensitive information can be foud.
 
 ## Specific LinPEAS additions
-From the PEASS-ng release **linpeas is auto-build from [linpeas/builder](https://github.com/peass-ng/PEASS-ng/blob/master/linPEAS/builder/)**. Therefore, if you want to contribute adding any new check for linpeas/macpeas, please **add it in this directory and create a PR to master**. *Note that some code is auto-generated in the python but most of it it's just written in different files that willbe merged into linpeas.sh*.
+From the PEASS-ng release **linpeas is auto-build from [linpeas/builder](https://github.com/peass-ng/PEASS-ng/blob/master/linPEAS/builder/)**. Therefore, if you want to contribute adding any new check for linpeas/macpeas, please **add it in this directory and create a PR to master**. *Note that some code is auto-generated in the python but most of it it's just written in different files that will be merged into linpeas.sh*.
 The new linpeas.sh script will be auto-generated in the PR.
 
 ## Specific WinPEAS additions
