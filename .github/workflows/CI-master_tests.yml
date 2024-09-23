@@ -9,7 +9,7 @@ on:
         - '.github/**'
   
   schedule:
-    - cron: "5 4 * * SUN"
+    - cron: "5 4 1 * *"
 
   workflow_dispatch:
 
