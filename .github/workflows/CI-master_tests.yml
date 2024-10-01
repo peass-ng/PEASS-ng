@@ -77,13 +77,13 @@ jobs:
             Write-Error "winPEAS.exe not found at $exePath"
           }
 
-      - name: Execute winPEAS domain
+      - name: Execute winPEAS cloudinfo
         shell: pwsh
         run: |
           $Configuration = "Release"
           $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
           if (Test-Path $exePath) {
-            & $exePath domain
+            & $exePath cloudinfo
           } else {
             Write-Error "winPEAS.exe not found at $exePath"
           }
