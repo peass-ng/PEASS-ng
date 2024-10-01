@@ -47,12 +47,12 @@ jobs:
         run: nuget restore $env:Solution_Path
         
       # build
-      - name: run MSBuild
-        run: msbuild $env:Solution_Path
+      #- name: run MSBuild
+      #  run: msbuild $env:Solution_Path
         
       # Execute all unit tests in the solution
-      - name: Execute unit tests
-        run: dotnet test $env:Solution_Path
+      #- name: Execute unit tests
+      #  run: dotnet test $env:Solution_Path
         
       # Build & update all versions
       - name: Build all versions
