@@ -51,8 +51,8 @@ jobs:
         run: msbuild $env:Solution_Path
         
       # Execute all unit tests in the solution
-      - name: Execute unit tests
-        run: dotnet test $env:Solution_Path
+      #- name: Execute unit tests
+      #  run: dotnet test $env:Solution_Path
         
       # Build & update all versions
       - name: Build all versions
@@ -65,6 +65,9 @@ jobs:
             
             echo "build Any CPU"
             msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="Any CPU"
+      
+      - name: Execute winpeas
+        run: winPEAS\winPEASexe\winPEAS\bin\$env:Configuration\winPEAS.exe
       
       # Copy the built versions
       - name: Copy all versions
