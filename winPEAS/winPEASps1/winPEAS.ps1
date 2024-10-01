@@ -67,7 +67,8 @@ Function Start-ACLCheck {
       $Identity = @()
       $Identity += "$env:COMPUTERNAME\$env:USERNAME"
       if ($ACLObject.Owner -like $Identity ) { Write-Host "$Identity has ownership of $Target" -ForegroundColor Red }
-      whoami.exe /groups /fo csv | ConvertFrom-Csv | Select-Object -ExpandProperty 'group name' | ForEach-Object { $Identity += $_ }
+      # This should now work for any language. Command runs whoami group, removes the first two line of output, converts from csv to object, but adds "group name" to the first column.
+      whoami.exe /groups /fo csv | select-objet -skip 2 | ConvertFrom-Csv -Header 'group name' | Select-Object -ExpandProperty 'group name' | ForEach-Object { $Identity += $_ }
       $IdentityFound = $false
       foreach ($i in $Identity) {
         $permission = $ACLObject.Access | Where-Object { $_.IdentityReference -like $i }
@@ -1225,7 +1226,8 @@ Write-Host "Will enumerate SMB Shares and Access if any are available"
 
 Get-SmbShare | Get-SmbShareAccess | ForEach-Object {
   $SMBShareObject = $_
-  whoami.exe /groups /fo csv | ConvertFrom-Csv | Select-Object -ExpandProperty 'group name' | ForEach-Object {
+# see line 70 for explanation of what this does
+  whoami.exe /groups /fo csv | select-objet -skip 2 | ConvertFrom-Csv -Header 'group name' | Select-Object -ExpandProperty 'group name' | ForEach-Object {
     if ($SMBShareObject.AccountName -like $_ -and ($SMBShareObject.AccessRight -like "Full" -or "Change") -and $SMBShareObject.AccessControlType -like "Allow" ) {
       Write-Host -ForegroundColor red "$($SMBShareObject.AccountName) has $($SMBShareObject.AccessRight) to $($SMBShareObject.Name)"
     }
