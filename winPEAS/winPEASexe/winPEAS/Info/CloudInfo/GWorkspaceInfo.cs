@@ -286,8 +286,10 @@ namespace winPEAS.Info.CloudInfo
 
                 byte[] plaintext = new byte[gcm.GetOutputSize(actualCiphertext.Length)];
                 int len = gcm.ProcessBytes(actualCiphertext, 0, actualCiphertext.Length, plaintext, 0);
-                string plaintextString = Encoding.ASCII.GetString(plaintext, 0, len);
-                gcm.DoFinal(plaintext, len);
+                int len2 = gcm.DoFinal(plaintext, len);
+
+                string plaintextString = Encoding.ASCII.GetString(plaintext, 0, len+len2-mac.Length);
+                
 
                 return plaintextString;
             }
