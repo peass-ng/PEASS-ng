@@ -4,13 +4,13 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using winPEAS.Helpers;
-using Newtonsoft.Json;
 using System.Data.SQLite;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Modes;
 using System.Linq;
 using Microsoft.Win32;
+using System.Web.Script.Serialization;
 
 
 namespace winPEAS.Info.CloudInfo
@@ -194,8 +194,9 @@ namespace winPEAS.Info.CloudInfo
         private static string GetMasterKey(string localStatePath)
         {
             string localStateJson = File.ReadAllText(localStatePath);
-            dynamic json = JsonConvert.DeserializeObject(localStateJson);
-            string encryptedKeyBase64 = json.os_crypt.encrypted_key;
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            dynamic json = serializer.Deserialize<dynamic>(localStateJson);
+            string encryptedKeyBase64 = json["os_crypt"]["encrypted_key"];
 
             byte[] encryptedKeyWithPrefix = Convert.FromBase64String(encryptedKeyBase64);
             byte[] encryptedKey = new byte[encryptedKeyWithPrefix.Length - 5];
