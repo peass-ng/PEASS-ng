@@ -72,7 +72,7 @@ jobs:
           $Configuration = "Release"
           $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
           if (Test-Path $exePath) {
-            & $exePath
+            & $exePath -h
           } else {
             Write-Error "winPEAS.exe not found at $exePath"
           }
