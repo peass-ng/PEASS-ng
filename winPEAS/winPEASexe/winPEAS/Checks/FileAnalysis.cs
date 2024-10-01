@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -97,9 +97,19 @@ namespace winPEAS.Checks
                     else
                     {
                         foreach (var fold in file.FullPath.Split('\\').Skip(1))
-                        {
-                            isFileFound = Regex.IsMatch(fold, pattern, RegexOptions.IgnoreCase);
-                            if (isFileFound) break;
+                        {   
+                            try
+                            {
+                                isFileFound = Regex.IsMatch(fold, pattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(20));
+                                if (isFileFound) break;
+                            }
+                            catch (RegexMatchTimeoutException e)
+                            {
+                                if (Checks.IsDebug)
+                                {
+                                    Beaprint.GrayPrint($"The file in folder regex {pattern} had a timeout in {fold} (ReDoS avoided but regex unchecked in a file)");
+                                }
+                            }
                         }
                     }
                 }
@@ -111,7 +121,17 @@ namespace winPEAS.Checks
                     }
                     else
                     {
-                        isFileFound = Regex.IsMatch(file.Filename, pattern, RegexOptions.IgnoreCase);
+                        try
+                        {
+                            isFileFound = Regex.IsMatch(file.Filename, pattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(20));
+                        }
+                        catch (RegexMatchTimeoutException e)
+                        {
+                            if (Checks.IsDebug)
+                            {
+                                Beaprint.GrayPrint($"The file regex {pattern} had a timeout in {file.Filename} (ReDoS avoided but regex unchecked in a file)");
+                            }
+                        }
                     }
                 }
 
@@ -148,7 +168,7 @@ namespace winPEAS.Checks
             return new bool[] { false, somethingFound };
         }
 
-        private static List<string> SearchContent(string text, string regex_str, bool caseinsensitive)
+        public static List<string> SearchContent(string text, string regex_str, bool caseinsensitive)
         {
             List<string> foundMatches = new List<string>();
 
@@ -158,16 +178,20 @@ namespace winPEAS.Checks
                 bool is_re_match = false;
                 try
                 {
+                    // Escape backslashes in the regex string - I don't think this is needed anymore
+                    //string escapedRegex = regex_str.Trim().Replace(@"\", @"\\");
+                    string escapedRegex = regex_str.Trim();
+
                     // Use "IsMatch" because it supports timeout, if exception is thrown exit the func to avoid ReDoS in "rgx.Matches"
                     if (caseinsensitive)
                     {
-                        is_re_match = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.IgnoreCase, TimeSpan.FromSeconds(120));
-                        rgx = new Regex(regex_str.Trim(), RegexOptions.IgnoreCase);
+                        is_re_match = Regex.IsMatch(text, escapedRegex, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(120));
+                        rgx = new Regex(escapedRegex, RegexOptions.IgnoreCase);
                     }
                     else
                     {
-                        is_re_match = Regex.IsMatch(text, regex_str.Trim(), RegexOptions.None, TimeSpan.FromSeconds(120));
-                        rgx = new Regex(regex_str.Trim());
+                        is_re_match = Regex.IsMatch(text, escapedRegex, RegexOptions.None, TimeSpan.FromSeconds(120));
+                        rgx = new Regex(escapedRegex);
                     }
                 }
                 catch (RegexMatchTimeoutException e)
@@ -199,8 +223,6 @@ namespace winPEAS.Checks
             {
                 Beaprint.GrayPrint($"Error looking for regex {regex_str} inside files: {e}");
             }
-
-            //}
 
             return foundMatches;
         }
@@ -454,8 +476,8 @@ namespace winPEAS.Checks
                                         timer.Stop();
 
                                         TimeSpan timeTaken = timer.Elapsed;
-                                        if (timeTaken.TotalMilliseconds > 20000)
-                                            Beaprint.PrintDebugLine($"\nThe regex {regex.regex} took {timeTaken.TotalMilliseconds}s in {f.FullPath}");
+                                        if (timeTaken.TotalMilliseconds > 10000)
+                                            Beaprint.PrintDebugLine($"\nThe regex {regex.regex} took {timeTaken.TotalMilliseconds}ms in {f.FullPath}");
                                     }
                                 }
                             }

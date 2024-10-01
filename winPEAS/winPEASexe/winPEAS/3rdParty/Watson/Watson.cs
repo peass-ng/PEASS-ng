@@ -20,7 +20,7 @@ namespace winPEAS._3rdParty.Watson
             {
                 { 10240, "1507" }, { 10586, "1511" }, { 14393, "1607" }, { 15063, "1703" }, { 16299, "1709" },
                 { 17134, "1803" }, { 17763, "1809" }, { 18362, "1903" }, { 18363, "1909" }, { 19041, "2004" },
-                { 19042, "20H2" }
+                { 19042, "20H2" }, { 22000, "21H2" }, { 22621, "22H2" }
             };
 
             // Get OS Build number
@@ -30,7 +30,6 @@ namespace winPEAS._3rdParty.Watson
                 if (!supportedVersions.ContainsKey(buildNumber))
                 {
                     Console.Error.WriteLine($" [!] Windows version not supported, build number: '{buildNumber}'");
-                    return;
                 }
 
                 var version = supportedVersions[buildNumber];
@@ -39,7 +38,6 @@ namespace winPEAS._3rdParty.Watson
             else
             {
                 Console.Error.WriteLine(" [!] Could not retrieve Windows BuildNumber");
-                return;
             }
             
             // List of KBs installed

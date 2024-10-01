@@ -10,62 +10,67 @@ os.system(target_file)
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 LINPEAS_BASE_PARTS = CURRENT_DIR + "/../linpeas_parts"
-LINPEAS_PARTS = [
-    {
-        "name": "System Information",
-        "name_check": "system_information",
-        "file_path": LINPEAS_BASE_PARTS + "/1_system_information.sh"
-    },
-    {
-        "name": "Container",
-        "name_check": "container",
-        "file_path": LINPEAS_BASE_PARTS + "/2_container.sh"
-    },
-    {
-        "name": "Cloud",
-        "name_check": "cloud",
-        "file_path": LINPEAS_BASE_PARTS + "/3_cloud.sh"
-    },
-    {
-        "name": "Processes, Crons, Timers, Services and Sockets",
-        "name_check": "procs_crons_timers_srvcs_sockets",
-        "file_path": LINPEAS_BASE_PARTS + "/4_procs_crons_timers_srvcs_sockets.sh"
-    },
-    {
-        "name": "Network Information",
-        "name_check": "network_information",
-        "file_path": LINPEAS_BASE_PARTS + "/5_network_information.sh"
-    },
-    {
-        "name": "Users Information",
-        "name_check": "users_information",
-        "file_path": LINPEAS_BASE_PARTS + "/6_users_information.sh"
-    },
-    {
-        "name": "Software Information",
-        "name_check": "software_information",
-        "file_path": LINPEAS_BASE_PARTS + "/7_software_information.sh"
-    },
-    {
-        "name": "Files with Interesting Permissions",
-        "name_check": "interesting_perms_files",
-        "file_path": LINPEAS_BASE_PARTS + "/8_interesting_perms_files.sh"
-    },
-    {
-        "name": "Other Interesting Files",
-        "name_check": "interesting_files",
-        "file_path": LINPEAS_BASE_PARTS + "/9_interesting_files.sh"
-    },
-    {
-        "name": "API Keys Regex",
-        "name_check": "api_keys_regex",
-        "file_path": LINPEAS_BASE_PARTS + "/10_api_keys_regex.sh"
-    }
-]
+LINPEAS_PARTS = {
+    "functions": LINPEAS_BASE_PARTS + "/functions",
+    "variables": LINPEAS_BASE_PARTS + "/variables",
+    "base": LINPEAS_BASE_PARTS + "/linpeas_base",
+    "modules": [
+        {
+            "name": "System Information",
+            "name_check": "system_information",
+            "folder_path": LINPEAS_BASE_PARTS + "/1_system_information"
+        },
+        {
+            "name": "Container",
+            "name_check": "container",
+            "folder_path": LINPEAS_BASE_PARTS + "/2_container"
+        },
+        {
+            "name": "Cloud",
+            "name_check": "cloud",
+            "folder_path": LINPEAS_BASE_PARTS + "/3_cloud"
+        },
+        {
+            "name": "Processes, Crons, Timers, Services and Sockets",
+            "name_check": "procs_crons_timers_srvcs_sockets",
+            "folder_path": LINPEAS_BASE_PARTS + "/4_procs_crons_timers_srvcs_sockets"
+        },
+        {
+            "name": "Network Information",
+            "name_check": "network_information",
+            "folder_path": LINPEAS_BASE_PARTS + "/5_network_information"
+        },
+        {
+            "name": "Users Information",
+            "name_check": "users_information",
+            "folder_path": LINPEAS_BASE_PARTS + "/6_users_information"
+        },
+        {
+            "name": "Software Information",
+            "name_check": "software_information",
+            "folder_path": LINPEAS_BASE_PARTS + "/7_software_information"
+        },
+        {
+            "name": "Files with Interesting Permissions",
+            "name_check": "interesting_perms_files",
+            "folder_path": LINPEAS_BASE_PARTS + "/8_interesting_perms_files"
+        },
+        {
+            "name": "Other Interesting Files",
+            "name_check": "interesting_files",
+            "folder_path": LINPEAS_BASE_PARTS + "/9_interesting_files"
+        },
+        {
+            "name": "API Keys Regex",
+            "name_check": "api_keys_regex",
+            "folder_path": LINPEAS_BASE_PARTS + "/10_api_keys_regex"
+        }
+    ]
+}
 
 
 LINPEAS_BASE_PATH = LINPEAS_BASE_PARTS + "/linpeas_base.sh"
-TEMPORARY_LINPEAS_BASE_PATH = CURRENT_DIR + "/../linpeas_base.sh"
+TEMPORARY_LINPEAS_BASE_PATH = CURRENT_DIR + "/../linpeas_base_tmp.sh"
 FINAL_FAT_LINPEAS_PATH = CURRENT_DIR + "/../../" + "linpeas_fat.sh"
 FINAL_LINPEAS_PATH = CURRENT_DIR + "/../../" + "linpeas.sh"
 YAML_NAME = "sensitive_files.yaml"
@@ -114,10 +119,3 @@ SUDOVB2_MARKUP = YAML_LOADED["sudoVB2_markup"]
 CAP_SETUID_MARKUP = YAML_LOADED["cap_setuid_markup"]
 CAP_SETGID_MARKUP = YAML_LOADED["cap_setgid_markup"]
 
-LES_MARKUP = YAML_LOADED["les_markup"]
-LES2_MARKUP = YAML_LOADED["les2_markup"]
-
-
-FAT_LINPEAS_AMICONTAINED_MARKUP = YAML_LOADED["fat_linpeas_amicontained_markup"]
-FAT_LINPEAS_GITLEAKS_LINUX_MARKUP = YAML_LOADED["fat_linpeas_gitleaks_linux_markup"]
-FAT_LINPEAS_GITLEAKS_MACOS_MARKUP = YAML_LOADED["fat_linpeas_gitleaks_macos_markup"]

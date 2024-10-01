@@ -387,20 +387,26 @@ namespace winPEAS.Checks
 
         static void PrintCachedCreds()
         {
-            Beaprint.MainPrint("Cached Creds");
-            Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/stealing-credentials/credentials-protections#cached-credentials", "If > 0, credentials will be cached in the registry and accessible by SYSTEM user");
-            string cachedlogonscount = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "CACHEDLOGONSCOUNT");
-            if (!string.IsNullOrEmpty(cachedlogonscount))
+            try{
+                Beaprint.MainPrint("Cached Creds");
+                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/stealing-credentials/credentials-protections#cached-credentials", "If > 0, credentials will be cached in the registry and accessible by SYSTEM user");
+                string cachedlogonscount = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "CACHEDLOGONSCOUNT");
+                if (!string.IsNullOrEmpty(cachedlogonscount))
+                {
+                    int clc = Int16.Parse(cachedlogonscount);
+                    if (clc > 0)
+                    {
+                        Beaprint.BadPrint("    cachedlogonscount is " + cachedlogonscount);
+                    }
+                    else
+                    {
+                        Beaprint.BadPrint("    cachedlogonscount is " + cachedlogonscount);
+                    }
+                }
+            }
+            catch (Exception ex)
             {
-                int clc = Int16.Parse(cachedlogonscount);
-                if (clc > 0)
-                {
-                    Beaprint.BadPrint("    cachedlogonscount is " + cachedlogonscount);
-                }
-                else
-                {
-                    Beaprint.BadPrint("    cachedlogonscount is " + cachedlogonscount);
-                }
+                Beaprint.PrintException(ex.Message);
             }
         }
 

@@ -1,23 +1,23 @@
 # Windows Privilege Escalation Awesome Script (.exe)
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/winpeas.png)
+![](https://github.com/peass-ng/PEASS-ng/raw/master/winPEAS/winPEASexe/images/winpeas.png)
 
 **WinPEAS is a script that search for possible paths to escalate privileges on Windows hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation)**
 
 Check also the **Local Windows Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/windows-hardening/checklist-windows-privilege-escalation)**
 
-[![youtube](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/screen.png)](https://youtu.be/66gOwXMnxRI)
+[![youtube](https://github.com/peass-ng/PEASS-ng/raw/master/winPEAS/winPEASexe/images/screen.png)](https://youtu.be/66gOwXMnxRI)
 
 ## Quick Start
 
 **.Net >= 4.5.2 is required**
 
 Precompiled binaries:
-- Download the **[latest obfuscated and not obfuscated versions from here](https://github.com/carlospolop/PEASS-ng/releases/latest)** or **compile it yourself** (read instructions for compilation).
+- Download the **[latest obfuscated and not obfuscated versions from here](https://github.com/peass-ng/PEASS-ng/releases/latest)** or **compile it yourself** (read instructions for compilation).
 
 ```bash
 # Get latest release
-$url = "https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEASany_ofs.exe"
+$url = "https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASany_ofs.exe"
 
 # One liner to download and execute winPEASany from memory in a PS shell
 $wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "$url" -UseBasicParsing | Select-Object -ExpandProperty Content)); [winPEAS.Program]::Main("")
@@ -61,7 +61,7 @@ winpeas.exe domain #enumerate also domain information
 winpeas.exe wait #wait for user input between tests
 winpeas.exe debug #display additional debug information
 winpeas.exe log #log output to out.txt instead of standard output
-winpeas.exe -linpeas=http://127.0.0.1/linpeas.sh #Execute also additional linpeas check (runs linpeas.sh in default WSL distribution) with custom linpeas.sh URL (if not provided, the default URL is: https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh)
+winpeas.exe -linpeas=http://127.0.0.1/linpeas.sh #Execute also additional linpeas check (runs linpeas.sh in default WSL distribution) with custom linpeas.sh URL (if not provided, the default URL is: https://raw.githubusercontent.com/peass-ng/PEASS-ng/master/linPEAS/linpeas.sh)
 winpeas.exe -lolbas  #Execute also additional LOLBAS search check
 ```
 
@@ -82,7 +82,7 @@ REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
 
 Below you have some indications about what does each color means exacty, but keep in mind that **Red** is for something interesting (from a pentester perspective) and **Green** is something well configured (from a defender perspective).
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/colors.png)
+![](https://github.com/peass-ng/PEASS-ng/raw/master/winPEAS/winPEASexe/images/colors.png)
 
 ## Instructions to compile you own obfuscated version
 
@@ -104,7 +104,7 @@ Once you have installed and activated it you need to:
 
 **I'm sorry that all of this is necessary but is worth it. Dotfuscator minimizes a bit the size of the executable and obfuscates the code**.
 
-![](https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/winPEAS/winPEASexe/images/dotfuscator.PNG)
+![](https://raw.githubusercontent.com/peass-ng/PEASS-ng/master/winPEAS/winPEASexe/images/dotfuscator.PNG)
 
 **IMPORTANT**: Note that Defender will higly probable delete the winpeas iintial unobfuscated version, so you need to set as expections the origin folder of Winpeas and the folder were the obfuscated version will be saved:
 ![](https://user-images.githubusercontent.com/1741662/148418852-e7ffee6a-c270-4e26-bf38-bb8977b3ad9c.png)
@@ -178,6 +178,11 @@ Once you have installed and activated it you need to:
   - [x] DNS Cache (limit 70)
   - [x] Internet Settings
 
+- **Cloud Metadata Enumeration**
+  - [x] AWS Metadata
+  - [x] GCP Metadata
+  - [x] Azure Metadata
+
 - **Windows Credentials**
   - [x] Windows Vault
   - [x] Credential Manager
@@ -239,7 +244,7 @@ Once you have installed and activated it you need to:
 
 - **Additional (slower) checks**
   - [x] LOLBAS search
-  - [x] run **[linpeas.sh](https://raw.githubusercontent.com/carlospolop/privilege-escalation-awesome-scripts-suite/master/linPEAS/linpeas.sh)** in default WSL distribution
+  - [x] run **[linpeas.sh](https://raw.githubusercontent.com/peass-ng/PEASS-ng/master/linPEAS/linpeas.sh)** in default WSL distribution
 
 </details>
 
@@ -247,15 +252,12 @@ Once you have installed and activated it you need to:
 - Add more checks
 - Mantain updated Watson (last JAN 2021)
 
-If you want to help with any of this, you can do it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)** or you can submit a pull request.
+If you want to help with any of this, you can do it using **[github issues](https://github.com/peass-ng/PEASS-ng/issues)** or you can submit a pull request.
 
-If you find any issue, please report it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)**.
+If you find any issue, please report it using **[github issues](https://github.com/peass-ng/PEASS-ng/issues)**.
 
 **WinPEAS** is being **updated** every time I find something that could be useful to escalate privileges.
 
 ## Advisory
 
 All the scripts/binaries of the PEAS Suite should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
-
-
-By Polop

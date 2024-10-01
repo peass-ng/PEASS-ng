@@ -122,6 +122,51 @@ namespace winPEAS.Helpers
             return binaryPath;
         }
 
+        public static bool CheckQuoteAndSpaceWithPermissions(string path, out List<string> injectablePaths)
+        {
+            List<string> result = new List<string>();
+            bool isInjectable = false;
+
+            if (!path.Contains('"') && !path.Contains("'"))
+            {
+                if (path.Contains(" "))
+                {
+                    string currentPath = string.Empty;
+                    foreach (var pathPart in Regex.Split(path, @"\s"))
+                    {
+                        currentPath += pathPart + " ";
+
+                        if (File.Exists(currentPath) || Directory.Exists(currentPath))
+                        {
+                            var permissions = PermissionsHelper.GetPermissionsFolder(currentPath, Checks.Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT);
+
+                            if (permissions.Any())
+                            {
+                                result.Add(currentPath);
+                                isInjectable = true;
+                            }
+                        }
+                        else
+                        {
+                            var firstPathPart = currentPath;
+                            DirectoryInfo di = new DirectoryInfo(firstPathPart);
+                            var exploitablePath = di.Parent.FullName;
+                            var folderPermissions = PermissionsHelper.GetPermissionsFolder(exploitablePath, Checks.Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT);
+
+                            if (folderPermissions.Any())
+                            {
+                                result.Add(exploitablePath);
+                                isInjectable = true;
+                            };
+                        }
+                    }
+                }
+            }
+
+            injectablePaths = result.Select(i => i).Distinct().ToList();
+            return isInjectable;
+        }
+
         public static bool CheckQuoteAndSpace(string path)
         {
             if (!path.Contains('"') && !path.Contains("'"))

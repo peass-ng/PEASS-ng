@@ -120,19 +120,22 @@ namespace winPEAS.Helpers
 
         public static void PrintUsage()
         {
-            Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally" + NOCOLOR);
+            Console.WriteLine(YELLOW + "  [*] " + GREEN + "WinPEAS is a binary to enumerate possible paths to escalate privileges locally. By default it'll run all the following checks unless otherwise specified, but you could also indicate as arguments the names of the checks to run if you only want to run a few of them." + NOCOLOR);
             Console.WriteLine(LCYAN + "        domain" + GRAY + "               Enumerate domain information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        systeminfo" + GRAY + "           Search system information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        eventsinfo" + GRAY + "           Display interesting events information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        userinfo" + GRAY + "             Search user information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        processinfo" + GRAY + "          Search processes information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        servicesinfo" + GRAY + "         Search services information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        applicationsinfo" + GRAY + "     Search installed applications information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        networkinfo" + GRAY + "          Search network information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        cloudinfo" + GRAY + "            Enumerate cloud information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        windowscreds" + GRAY + "         Search windows credentials" + NOCOLOR);
             Console.WriteLine(LCYAN + "        browserinfo" + GRAY + "          Search browser information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        filesinfo" + GRAY + "            Search generic files that can contains credentials" + NOCOLOR);
-            Console.WriteLine(LCYAN + "        fileanalysis" + GRAY + "         Search specific files that can contains credentials and for regexes inside files" + NOCOLOR);
-            Console.WriteLine(LCYAN + "        eventsinfo" + GRAY + "           Display interesting events information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        fileanalysis" + GRAY + "         [NOT RUN BY DEFAULT] Search specific files that can contains credentials and for regexes inside files. Might take several minutes." + NOCOLOR);
+            Console.WriteLine(LCYAN + "        all" + GRAY + "                  Run all checks the previous check including fileanalysis." + NOCOLOR);
+            
             Console.WriteLine();
             Console.WriteLine(LCYAN + "        quiet" + GRAY + "                Do not print banner" + NOCOLOR);
             Console.WriteLine(LCYAN + "        notcolor" + GRAY + "             Don't use ansi colors (all white)" + NOCOLOR);
@@ -147,6 +150,11 @@ namespace winPEAS.Helpers
             Console.WriteLine(LCYAN + "        -lolbas" + GRAY + $"              Run additional LOLBAS check" + NOCOLOR);
             Console.WriteLine(LCYAN + "        -linpeas=[url]" + GRAY + $"       Run additional linpeas.sh check for default WSL distribution, optionally provide custom linpeas.sh URL\n" +
                                      $"                             (default: {Checks.Checks.LinpeasUrl})" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        -network|-ports" + GRAY + $"      Run additional network scanning - find network interfaces, hosts and scan nmap top 1000 TCP ports for each host found\n" +
+                                     $"                             -network=\"auto\"                          -    find interfaces/hosts automatically"  + NOCOLOR + "\n" +
+                                     $"                             -network=\"10.10.10.10,10.10.10.20\"       -    scan only selected ip address(es)" + NOCOLOR + "\n" +
+                                     $"                             -network=\"10.10.10.10/24\"                -    scan host based on ip address/netmask" + NOCOLOR + "\n" +
+                                     $"                             -ports=\"80,443,8080\"                     -    If a list of ports is provided, use this list instead of the nmap top 1000 TCP" + NOCOLOR);
 
         }
 
@@ -291,8 +299,7 @@ namespace winPEAS.Helpers
 
                 string value = entry.Value;
                 string key = entry.Key;
-                string line = "";
-
+                string line;
                 if (!no_gray)
                 {
                     line = ansi_color_gray + "    " + key + ": " + NOCOLOR + value;

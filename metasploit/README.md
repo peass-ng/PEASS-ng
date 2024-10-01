@@ -9,7 +9,7 @@ In Kali:
 ```bash
 sudo cp ./peass.rb /usr/share/metasploit-framework/modules/post/multi/gather/
 # or
-sudo wget https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/metasploit/peass.rb -O /usr/share/metasploit-framework/modules/post/multi/gather/peass.rb
+sudo wget https://raw.githubusercontent.com/peass-ng/PEASS-ng/master/metasploit/peass.rb -O /usr/share/metasploit-framework/modules/post/multi/gather/peass.rb
 ```
 
 Now you can do `reload_all` inside a running msfconsole or the next time you launch a new msfconsole the peass module will be **automatically loaded**.
@@ -38,7 +38,7 @@ Basic options:
   PARAMETERS                                                                            no        Parameters to pass to the script
   PASSWORD    um1xipfws17nkw1bi1ma3bh7tzt4mo3e                                          no        Password to encrypt and obfuscate the script (randomly generated). The length must be 32B. If no password is set, only base64 will be used
                                                                                                   .
-  PEASS_URL   https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/winPEAS/wi  yes       Path to the PEASS script. Accepted: http(s):// URL or absolute local path. Linpeas: https://raw.githubusercontent.com/carlospolop/PEASS-ng
+  PEASS_URL   https://raw.githubusercontent.com/peass-ng/PEASS-ng/master/winPEAS/wi  yes       Path to the PEASS script. Accepted: http(s):// URL or absolute local path. Linpeas: https://raw.githubusercontent.com/peass-ng/PEASS-ng
               nPEASexe/binaries/Obfuscated%20Releases/winPEASany.exe                              /master/linPEAS/linpeas.sh
   SESSION                                                                               yes       The session to run this module on.
   SRVHOST                                                                               no        Set your metasploit instance IP if you want to download the PEASS script from here via http(s) instead of uploading it.
@@ -61,7 +61,7 @@ Description:
   HTTP instead of uploading it.
 
 References:
-  https://github.com/carlospolop/PEASS-ng
+  https://github.com/peass-ng/PEASS-ng
   https://www.youtube.com/watch?v=9_fJv_weLU0
 ```
 

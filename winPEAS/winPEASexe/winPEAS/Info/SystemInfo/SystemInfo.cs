@@ -133,7 +133,7 @@ namespace winPEAS.Info.SystemInfo
                 IPGlobalProperties properties = IPGlobalProperties.GetIPGlobalProperties();
                 string dnsDomain = properties.DomainName;
 
-                const string query = "SELECT HotFixID FROM Win32_QuickFixEngineering";
+                const string query = "SELECT HotFixID,InstalledOn FROM Win32_QuickFixEngineering";
 
                 using (var search = new ManagementObjectSearcher(query))
                 {
@@ -142,7 +142,7 @@ namespace winPEAS.Info.SystemInfo
                         string hotfixes = "";
                         foreach (ManagementObject quickFix in collection)
                         {
-                            hotfixes += quickFix["HotFixID"].ToString() + ", ";
+                            hotfixes += quickFix["HotFixID"] + " (" + quickFix["InstalledOn"] + "), ";
                         }
 
                         results.Add("Hostname", strHostName);

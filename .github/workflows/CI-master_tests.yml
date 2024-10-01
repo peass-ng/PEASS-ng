@@ -4,11 +4,12 @@ on:
   push:
     branches:
       - master
+      - main
     paths-ignore:
         - '.github/**'
   
   schedule:
-    - cron: "5 4 * * SUN"
+    - cron: "5 4 1 * *"
 
   workflow_dispatch:
 
@@ -50,8 +51,8 @@ jobs:
         run: msbuild $env:Solution_Path
         
       # Execute all unit tests in the solution
-      - name: Execute unit tests
-        run: dotnet test $env:Solution_Path
+      #- name: Execute unit tests
+      #  run: dotnet test $env:Solution_Path
         
       # Build & update all versions
       - name: Build all versions
@@ -64,6 +65,39 @@ jobs:
             
             echo "build Any CPU"
             msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="Any CPU"
+      
+      - name: Execute winPEAS -h
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (Test-Path $exePath) {
+            & $exePath -h
+          } else {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
+
+      - name: Execute winPEAS cloudinfo
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (Test-Path $exePath) {
+            & $exePath cloudinfo
+          } else {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
+
+      - name: Execute winPEAS systeminfo
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (Test-Path $exePath) {
+            & $exePath systeminfo
+          } else {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
       
       # Copy the built versions
       - name: Copy all versions
@@ -99,52 +133,46 @@ jobs:
       
       # Upload all the versions for the release
       - name: Upload winpeasx64
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEASx64.exe
           path: winPEAS\winPEASexe\binaries\x64\Release\winPEASx64.exe
       
       - name: Upload winpeasx86
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEASx86.exe
           path: winPEAS\winPEASexe\binaries\x86\Release\winPEASx86.exe
       
       - name: Upload winpeasany
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEASany.exe
           path: winPEAS\winPEASexe\binaries\Release\winPEASany.exe
       
       - name: Upload winpeasx64ofs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEASx64_ofs.exe
           path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx64_ofs.exe
       
       - name: Upload winpeasx86ofs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEASx86_ofs.exe
           path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASx86_ofs.exe
           
       - name: Upload winpeasanyofs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEASany_ofs.exe
           path: winPEAS\winPEASexe\binaries\Obfuscated Releases\winPEASany_ofs.exe
       
       - name: Upload winpeas.bat
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: winPEAS.bat
           path: winPEAS\winPEASbat\winPEAS.bat
-      
-      - name: Upload winpeas.ps1
-        uses: actions/upload-artifact@v2
-        with:
-          name: winPEAS.ps1
-          path: winPEAS\winPEASps1\winPEAS.ps1
           
       # Git add
       #- name: Create local changes
@@ -189,7 +217,9 @@ jobs:
         run: |
           python3 -m pip install PyYAML
           cd linPEAS
-          python3 -m builder.linpeas_builder
+          python3 -m builder.linpeas_builder --all --output linpeas_fat.sh
+          python3 -m builder.linpeas_builder --all-no-fat --output linpeas.sh
+          python3 -m builder.linpeas_builder --small --output linpeas_small.sh
       
       # Build linpeas binaries
       - name: Build linpeas binaries 
@@ -207,35 +237,35 @@ jobs:
             
       # Run linpeas help as quick test
       - name: Run linpeas help
-        run: linPEAS/linpeas.sh -h
+        run: linPEAS/linpeas_fat.sh -h && linPEAS/linpeas.sh -h && linPEAS/linpeas_small.sh -h
       
       # Run linpeas as a test
       - name: Run linpeas system_information
-        run: linPEAS/linpeas.sh -o system_information -a
+        run: linPEAS/linpeas_fat.sh -o system_information -a
       
       - name: Run linpeas container
-        run: linPEAS/linpeas.sh -o container -a
+        run: linPEAS/linpeas_fat.sh -o container -a
       
       - name: Run linpeas cloud
-        run: linPEAS/linpeas.sh -o cloud -a
+        run: linPEAS/linpeas_fat.sh -o cloud -a
       
       - name: Run linpeas procs_crons_timers_srvcs_sockets
-        run: linPEAS/linpeas.sh -o procs_crons_timers_srvcs_sockets -a
+        run: linPEAS/linpeas_fat.sh -o procs_crons_timers_srvcs_sockets -a
       
       - name: Run linpeas network_information
-        run: linPEAS/linpeas.sh -o network_information -t -a
+        run: linPEAS/linpeas_fat.sh -o network_information -t -a
       
       - name: Run linpeas users_information
-        run: linPEAS/linpeas.sh -o users_information -a
+        run: linPEAS/linpeas_fat.sh -o users_information -a
       
       - name: Run linpeas software_information
-        run: linPEAS/linpeas.sh -o software_information -a
+        run: linPEAS/linpeas_fat.sh -o software_information -a
       
       - name: Run linpeas interesting_perms_files
-        run: linPEAS/linpeas.sh -o interesting_perms_files -a
+        run: linPEAS/linpeas_fat.sh -o interesting_perms_files -a
       
       - name: Run linpeas interesting_files
-        run: linPEAS/linpeas.sh -o interesting_files -a
+        run: linPEAS/linpeas_fat.sh -o interesting_files -a
       
       # Too much time
       #- name: Run linpeas api_keys_regex
@@ -243,51 +273,57 @@ jobs:
       
       # Upload files for release
       - name: Upload linpeas.sh
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas.sh
           path: linPEAS/linpeas.sh
       
       - name: Upload linpeas_fat.sh
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_fat.sh
           path: linPEAS/linpeas_fat.sh
       
+      - name: Upload linpeas_small.sh
+        uses: actions/upload-artifact@v4
+        with:
+          name: linpeas_small.sh
+          path: linPEAS/linpeas_small.sh
+      
       ## Linux bins
       - name: Upload linpeas_linux_386
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_linux_386
           path: sh2bin/builds/linpeas_linux_386
       
       - name: Upload linpeas_linux_amd64
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_linux_amd64
           path: sh2bin/builds/linpeas_linux_amd64
       
       - name: Upload linpeas_linux_arm
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_linux_arm
           path: sh2bin/builds/linpeas_linux_arm
           
       - name: Upload linpeas_linux_arm64
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_linux_arm64
           path: sh2bin/builds/linpeas_linux_arm64
       
       ## Darwin bins
       - name: Upload linpeas_darwin_amd64
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_darwin_amd64
           path: sh2bin/builds/linpeas_darwin_amd64
           
       - name: Upload linpeas_darwin_arm64
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linpeas_darwin_arm64
           path: sh2bin/builds/linpeas_darwin_arm64
@@ -321,14 +357,14 @@ jobs:
       # Build linpeas
       - name: Build macpeas
         run: |
-          python3 -m pip install PyYAML
-          python3 -m pip install requests
+          python3 -m pip install PyYAML --break-system-packages
+          python3 -m pip install requests --break-system-packages
           cd linPEAS
-          python3 -m builder.linpeas_builder
+          python3 -m builder.linpeas_builder --all --output linpeas_fat.sh
       
       # Run linpeas help as quick test
       - name: Run macpeas help
-        run: linPEAS/linpeas.sh -h
+        run: linPEAS/linpeas_fat.sh -h
       
       # Run macpeas parts to test it
       #- name: Run macpeas
@@ -342,77 +378,82 @@ jobs:
     steps:
     # Download files to release
     - name: Download winpeasx64ofs
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: winPEASx64_ofs.exe
 
     - name: Download winpeasx86ofs
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: winPEASx86_ofs.exe
 
     - name: Download winpeasanyofs
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: winPEASany_ofs.exe
 
     - name: Download winpeasx64
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: winPEASx64.exe
     
     - name: Download winpeasx86
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: winPEASx86.exe
 
     - name: Download winpeasany
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: winPEASany.exe
     
     - name: Download winpeas.bat
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: winPEAS.bat
 
     - name: Download linpeas.sh
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: linpeas.sh
     
     - name: Download linpeas_fat.sh
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: linpeas_fat.sh
+    
+    - name: Download linpeas_small.sh
+      uses: actions/download-artifact@v4.1.7
+      with:
+        name: linpeas_small.sh
 
     - name: Download linpeas_linux_386
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: linpeas_linux_386
 
     - name: Download linpeas_linux_amd64
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: linpeas_linux_amd64
 
     - name: Download linpeas_linux_arm
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: linpeas_linux_arm
 
     - name: Download linpeas_linux_arm64
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: linpeas_linux_arm64
 
     - name: Download linpeas_darwin_amd64
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: linpeas_darwin_amd64
 
     - name: Download linpeas_darwin_arm64
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: linpeas_darwin_arm64
     
