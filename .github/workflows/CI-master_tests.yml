@@ -66,13 +66,35 @@ jobs:
             echo "build Any CPU"
             msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="Any CPU"
       
-      - name: Execute winPEAS
+      - name: Execute winPEAS -h
         shell: pwsh
         run: |
           $Configuration = "Release"
           $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
           if (Test-Path $exePath) {
             & $exePath -h
+          } else {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
+
+      - name: Execute winPEAS domain
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (Test-Path $exePath) {
+            & $exePath domain
+          } else {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
+
+      - name: Execute winPEAS systeminfo
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (Test-Path $exePath) {
+            & $exePath systeminfo
           } else {
             Write-Error "winPEAS.exe not found at $exePath"
           }
