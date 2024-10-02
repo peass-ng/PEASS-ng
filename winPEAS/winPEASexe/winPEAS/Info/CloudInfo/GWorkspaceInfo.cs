@@ -40,6 +40,7 @@ namespace winPEAS.Info.CloudInfo
                 workspaceRegValues.Add($"    User Name{i}", Helpers.Registry.RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Google\GCPW\Users\" + users[i], @"user_name"));
                 workspaceRegValues.Add($"    Last Policy Refresh Time{i}", Helpers.Registry.RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Google\GCPW\Users\" + users[i], @"last_policy_refresh_time"));
                 workspaceRegValues.Add($"    Last Token Valid Millis{i}", Helpers.Registry.RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Google\GCPW\Users\" + users[i], @"last_token_valid_millis"));
+                workspaceRegValues.Add($"    Token Handle{i}", Helpers.Registry.RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Google\GCPW\Users\" + users[i], @"th"));
             }
 
             string[] users3 = Helpers.Registry.RegistryHelper.GetRegSubkeys("HCKU", @"SOFTWARE\Google\Accounts");
