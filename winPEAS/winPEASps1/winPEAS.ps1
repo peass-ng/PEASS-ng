@@ -1239,16 +1239,14 @@ Get-SmbShare | Get-SmbShareAccess | ForEach-Object {
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| USER INFO"
-Write-Host "== || Generating List of all Administrators, Users and Backup Operators (if any exist)"
+Write-Host "== || Generating List of all Local Administrators, Users and Backup Operators (if any exist)"
 
-@("ADMINISTRATORS", "USERS") | ForEach-Object {
-  Write-Host $_
-  Write-Host "-------"
-  Start-Process net -ArgumentList "localgroup $_" -Wait -NoNewWindow
-}
-Write-Host "BACKUP OPERATORS"
-Write-Host "-------"
-Start-Process net -ArgumentList 'localgroup "Backup Operators"' -Wait -NoNewWindow
+# Code has been modified to accomodate for any language by filtering only on the output and not looking for a string of text
+# Foreach loop to get all local groups, then examine each group's members.
+Get-LocalGroup | ForEach-Object {
+  "`n Group: $($_.Name) `n" ; if(Get-LocalGroupMember -name $_.Name){
+    (Get-LocalGroupMember -name $_.Name).Name}
+    else{"     {GROUP EMPTY}"}}
 
 
 Write-Host ""
