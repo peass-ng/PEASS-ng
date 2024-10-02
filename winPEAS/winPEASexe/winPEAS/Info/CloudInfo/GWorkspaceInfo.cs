@@ -133,6 +133,7 @@ namespace winPEAS.Info.CloudInfo
                     {
                         _endpointData.Add("Local Info", GetWorkspaceRegValues());
                         _endpointData.Add("Local Refresh Tokens", GetRefreshToken());
+                        _endpointData.Add("Local Config", GetLocalFileCong());
                     }
                     else
                     {
@@ -325,6 +326,85 @@ namespace winPEAS.Info.CloudInfo
         public override bool TestConnection()
         {
             return true;
+        }
+
+
+        static List<EndpointData> GetLocalFileCong()
+        {
+            string baseDirectory = @"C:\ProgramData\Google\Credential Provider\Policies";
+            List<EndpointData> _endpointDataList = new List<EndpointData>();
+
+            if (Directory.Exists(baseDirectory))
+            {
+                // Get all directories inside the base directory
+                string[] directories = Directory.GetDirectories(baseDirectory);
+
+                for (int i = 0; i < directories.Length; i++)
+                {
+                    string directory = directories[i];
+                    string directory_name = Path.GetFileName(directory);
+                    string filePath = Path.Combine(directory, "PolicyFetchResponse");
+
+                    if (File.Exists(filePath))
+                    {
+                        try
+                        {
+                            // Read the content of the PolicyFetchResponse file
+                            string jsonContent = File.ReadAllText(filePath);
+
+                            JavaScriptSerializer serializer = new JavaScriptSerializer();
+                            dynamic json = serializer.Deserialize<dynamic>(jsonContent);
+                            bool enableDmEnrollment = json["policies"]["enableDmEnrollment"];
+                            bool enableGcpwAutoUpdate = json["policies"]["enableGcpwAutoUpdate"];
+                            bool enableMultiUserLogin = json["policies"]["enableMultiUserLogin"];
+                            int validityPeriodDays = json["policies"]["validityPeriodDays"];
+
+                            string uniq_key = directories.Length > 1 ? directory_name : "";
+                            _endpointDataList.Add(new EndpointData()
+                            {
+                                EndpointName = $"{uniq_key}enableDmEnrollment",
+                                Data = json["policies"]["enableDmEnrollment"].ToString(),
+                                IsAttackVector = false
+                            });
+
+                            _endpointDataList.Add(new EndpointData()
+                            {
+                                EndpointName = $"{uniq_key}enableGcpwAutoUpdate",
+                                Data = json["policies"]["enableGcpwAutoUpdate"].ToString(),
+                                IsAttackVector = false
+                            });
+
+                            _endpointDataList.Add(new EndpointData()
+                            {
+                                EndpointName = $"{uniq_key}enableMultiUserLogin",
+                                Data = json["policies"]["enableMultiUserLogin"].ToString(),
+                                IsAttackVector = false
+                            });
+
+                            _endpointDataList.Add(new EndpointData()
+                            {
+                                EndpointName = $"{uniq_key}validityPeriodDays",
+                                Data = json["policies"]["validityPeriodDays"].ToString(),
+                                IsAttackVector = false
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error reading file in {directory}: {ex.Message}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"File not found in directory: {directory}");
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Directory '{baseDirectory}' does not exist.");
+            }
+
+            return _endpointDataList;
         }
     }
 }
