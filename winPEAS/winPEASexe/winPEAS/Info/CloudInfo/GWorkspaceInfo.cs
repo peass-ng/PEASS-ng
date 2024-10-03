@@ -242,7 +242,7 @@ namespace winPEAS.Info.CloudInfo
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error extracting refresh tokens (If Chrome is running the DB is probably locked): " + ex.Message);
+                Console.WriteLine("Error extracting refresh tokens (If Chrome is running the DB is probably locked but you could dump Chrome's procs and search it there or go around this lock): " + ex.Message);
                 return refreshTokens.ToArray();
             }
         }
