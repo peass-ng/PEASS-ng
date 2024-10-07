@@ -1,5 +1,5 @@
-# Title: System Information - CVE20213560
-# ID: SY_CVE20213560
+# Title: System Information - CVE_2021_3560
+# ID: SY_CVE_2021_3560
 # Author: Carlos Polop
 # Last Update: 07-10-2024
 # Description: CVE-2021-3560 - paper box from HTB
