@@ -15,7 +15,8 @@ namespace winPEAS.Checks
                new AWSInfo(),
                new AzureInfo(),
                new GCPInfo(),
-               new GCPJoinedInfo()
+               new GCPJoinedInfo(),
+               new GCDSInfo(),
             };
 
             foreach (var cloudInfo in cloudInfoList)

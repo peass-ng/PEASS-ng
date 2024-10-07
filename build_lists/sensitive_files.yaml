@@ -1419,6 +1419,16 @@ search:
                 search_in: 
                   - common
           
+          - name: "Google Cloud Directory Sync"
+            value: 
+                files:
+                  - name: "*.xml"
+                    value:
+                        bad_regex: "oAuth2RefreshToken.*|authCredentialsEncrypted.*"
+                type: d
+                search_in: 
+                  - common
+          
   
   - name: Road Recon
     value:
