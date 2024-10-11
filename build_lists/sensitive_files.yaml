@@ -1428,6 +1428,16 @@ search:
                 type: d
                 search_in: 
                   - common
+
+          - name: "Google Password Sync"
+            value: 
+                files:
+                  - name: "*.xml"
+                    value:
+                        bad_regex: "baseDN.*|authorizeUsername.*"
+                type: d
+                search_in: 
+                  - common
           
   
   - name: Road Recon
