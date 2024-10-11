@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using Microsoft.Win32.SafeHandles;
+using System;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
@@ -221,6 +223,58 @@ namespace winPEAS.Native
             StringBuilder ReferencedDomainName,
             ref uint cchReferencedDomainName,
             out SID_NAME_USE peUse);
+
+        // P/Invoke declaration for RegQueryValueExW
+        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern int RegQueryValueExW(
+            SafeRegistryHandle hKey,
+            string lpValueName,
+            IntPtr lpReserved,
+            out uint lpType,
+            byte[] lpData,
+            ref uint lpcbData);
+
+        public byte[] ReadRegistryValue(string keyPath, string valueName)
+        {
+            using (RegistryKey baseKey = Registry.LocalMachine) // Access HKLM
+            using (RegistryKey subKey = baseKey.OpenSubKey(keyPath, writable: false))
+            {
+                if (subKey == null)
+                    throw new InvalidOperationException("Registry key not found.");
+
+                SafeRegistryHandle hKey = subKey.Handle;
+                uint lpType;
+                uint dataSize = 0;
+
+                // First call to determine the size of the data
+                int ret = RegQueryValueExW(
+                    hKey,
+                    valueName,
+                    IntPtr.Zero,
+                    out lpType,
+                    null,
+                    ref dataSize);
+
+                if (ret != 0)
+                    throw new System.ComponentModel.Win32Exception(ret);
+
+                byte[] data = new byte[dataSize];
+
+                // Second call to get the actual data
+                ret = RegQueryValueExW(
+                    hKey,
+                    valueName,
+                    IntPtr.Zero,
+                    out lpType,
+                    data,
+                    ref dataSize);
+
+                if (ret != 0)
+                    throw new System.ComponentModel.Win32Exception(ret);
+
+                return data;
+            }
+        }
 
         public static string TranslateSid(string sid)
         {

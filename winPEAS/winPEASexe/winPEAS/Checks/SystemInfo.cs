@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using winPEAS._3rdParty.Watson;
 using winPEAS.Helpers;
 using winPEAS.Helpers.AppLocker;
 using winPEAS.Helpers.Extensions;
@@ -108,10 +107,6 @@ namespace winPEAS.Checks
                 };
                 Beaprint.DictPrint(basicDictSystem, colorsSI, false);
                 Console.WriteLine();
-                Watson.FindVulns();
-
-                //To update Watson, update the CVEs and add the new ones and update the main function so it uses new CVEs (becausfull with the Beaprints inside the FindVulns function)
-                //Usually you won't need to do anything with the classes Wmi, Vulnerability and VulnerabilityCollection
             }
             catch (Exception ex)
             {

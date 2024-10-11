@@ -17,6 +17,7 @@ namespace winPEAS.Checks
                new GCPInfo(),
                new GCPJoinedInfo(),
                new GCDSInfo(),
+               new GPSInfo(),
             };
 
             foreach (var cloudInfo in cloudInfoList)
