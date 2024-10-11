@@ -138,6 +138,49 @@ namespace winPEAS.Helpers.Registry
             }
         }
 
+        public static string[] ListRegValues(string hive, string path)
+        {
+            string[] keys = null;
+            try
+            {
+                if (hive == "HKCU")
+                {
+                    using (var regKeyValues = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(path))
+                    {
+                        if (regKeyValues != null)
+                        {
+                            keys = regKeyValues.GetValueNames();
+                        }
+                    }
+                }
+                else if (hive == "HKU")
+                {
+                    using (var regKeyValues = Microsoft.Win32.Registry.Users.OpenSubKey(path))
+                    {
+                        if (regKeyValues != null)
+                        {
+                            keys = regKeyValues.GetValueNames();
+                        }
+                    }
+                }
+                else
+                {
+                    using (var regKeyValues = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(path))
+                    {
+                        if (regKeyValues != null)
+                        {
+                            keys = regKeyValues.GetValueNames();
+                        }
+                    }
+                }
+                return keys;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public static byte[] GetRegValueBytes(string hive, string path, string value)
         {
             // returns a byte array of single registry value under the specified path in the specified hive (HKLM/HKCU)

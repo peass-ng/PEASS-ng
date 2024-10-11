@@ -27,7 +27,7 @@ namespace winPEAS.Info.CloudInfo
 
         public static bool CheckIfGPSInstalled()
         {
-            string[] check = Helpers.Registry.RegistryHelper.GetRegSubkeys("HKLM", @"SOFTWARE\Google\Google Apps Password Sync");
+            string[] check = Helpers.Registry.RegistryHelper.ListRegValues("HKLM", @"SOFTWARE\Google\Google Apps Password Sync");
             bool regExists = check != null && check.Length > 0;
             bool result = regExists || File.Exists(@"C:\Program Files\Google\Password Sync\PasswordSync.exe") || File.Exists(@"C:\Program Files\Google\Password Sync\password_sync_service.exe");
             return result;
@@ -66,14 +66,31 @@ namespace winPEAS.Info.CloudInfo
             // Get registry valus and decrypt them
             string hive = "HKLM";
             string regAddr = @"SOFTWARE\Google\Google Apps Password Sync";
-            string[] subkeys = Helpers.Registry.RegistryHelper.GetRegSubkeys(hive, regAddr);
+            string[] subkeys = Helpers.Registry.RegistryHelper.ListRegValues(hive, regAddr);
             if (subkeys == null || subkeys.Length == 0)
             {
-                Beaprint.PrintException("Winpeas need admin privs to check the registry for credentials");
+                Beaprint.PrintException("WinPEAS need admin privs to check the registry for credentials");
             }
             else
             {
                 GPSRegValues.Add("Email", Helpers.Registry.RegistryHelper.GetRegValue(hive, regAddr, @"Email"));
+
+                // Remove "Email" and "address" from the array
+                string[] filteredSubkeys = subkeys
+                    .Where(key => key != "Email" && key != "AuthToken" && key != "ADPassword" && key != "(Default)")
+                    .ToArray();
+
+                // Check if there are any subkeys left after filtering
+                if (filteredSubkeys.Length > 1)
+                {
+                    // Join the remaining subkeys with ", " and print to the console
+                    GPSRegValues.Add("Other keys", string.Join(", ", filteredSubkeys) + " (might contain credentials but WinPEAS doesn't support them)");
+                }
+                else
+                {
+                    Console.WriteLine("No subkeys left after filtering.");
+                }
+
 
                 // Check if AuthToken in the registry
                 string authtokenInReg = Helpers.Registry.RegistryHelper.GetRegValue(hive, regAddr, @"AuthToken");
