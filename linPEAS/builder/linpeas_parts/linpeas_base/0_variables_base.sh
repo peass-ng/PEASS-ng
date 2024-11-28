@@ -343,7 +343,7 @@ print_support () {
     ${GREEN}/---------------------------------------------------------------------------------\\
     |                             ${BLUE}Do you like PEASS?${GREEN}                                  |
     |---------------------------------------------------------------------------------|
-    |         ${YELLOW}Get the latest version${GREEN}    :     ${RED}https://github.com/sponsors/carlospolop${GREEN} |
+    |         ${YELLOW}Learn Cloud Hacking${GREEN}       :     ${RED}https://training.hacktricks.xyz${GREEN}         |
     |         ${YELLOW}Follow on Twitter${GREEN}         :     ${RED}@hacktricks_live${GREEN}                        |
     |         ${YELLOW}Respect on HTB${GREEN}            :     ${RED}SirBroccoli            ${GREEN}                 |
     |---------------------------------------------------------------------------------|
