@@ -147,9 +147,17 @@ ECHO.
 CALL :T_Progress 1
 
 :LAPSInstallCheck
-CALL :ColorLine " %E%33m[+]%E%97m LAPS installed?"
+CALL :ColorLine " %E%33m[+]%E%97m Legacy Microsoft LAPS installed?"
 ECHO.   [i] Check what is being logged
 REG QUERY "HKEY_LOCAL_MACHINE\Software\Policies\Microsoft Services\AdmPwd" /v AdmPwdEnabled 2>nul
+ECHO.
+CALL :T_Progress 1
+
+:WindowsLAPSInstallCheck
+CALL :ColorLine " %E%33m[+]%E%97m Windows LAPS installed?"
+ECHO.   [i] Check what is being logged: 0x00 Disabled, 0x01 Backup to Entra, 0x02 Backup to Active Directory
+REG QUERY "HKEY_LOCAL_MACHINE\Software\Microsoft\Policies\LAPS" /v BackupDirectory 2>nul
+REG QUERY "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\LAPS" /v BackupDirectory 2>nul
 ECHO.
 CALL :T_Progress 1
 
