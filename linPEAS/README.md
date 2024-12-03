@@ -22,7 +22,7 @@ Check how to **select the checks you want to build [in your own linpeas followin
 
 Note that by default, in the releases pages of this repository, you will find a **linpeas with all the checks**.
 
-## Differences between `linpeas_fat.sh`, `linpeas.sh` and `linpeas_small.sh`:
+## Differences between `linpeas_fat.sh`, `linpeas.sh` and `linpeas_small.sh`:
 
 - **linpeas_fat.sh**: Contains all checks, even third party applications in base64 embedded.
 - **linpeas.sh**: Contains all checks, but only the third party application `linux exploit suggester` is embedded. This is the default `linpeas.sh`.
