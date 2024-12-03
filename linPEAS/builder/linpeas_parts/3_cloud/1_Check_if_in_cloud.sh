@@ -14,6 +14,7 @@
 
 
 printf "${YELLOW}Learn and practice cloud hacking techniques in ${BLUE}training.hacktricks.xyz\n"$NC
+echo ""
 
 print_list "GCP Virtual Machine? ................. $is_gcp_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 print_list "GCP Cloud Funtion? ................... $is_gcp_function\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"

@@ -32,21 +32,35 @@ if [ "$is_az_vm" = "Yes" ]; then
   if [ "$az_req" ]; then
     print_3title "Instance details"
     exec_with_jq eval $az_req "$URL/instance?api-version=$API_VERSION"
+    echo ""
 
     print_3title "Load Balancer details"
     exec_with_jq eval $az_req "$URL/loadbalancer?api-version=$API_VERSION"
+    echo ""
+
+    print_3title "User Data"
+    exec_with_jq eval $az_req "$URL/instance/compute/userData?api-version=$API_VERSION\&format=text" | base64 -d 2>/dev/null
+    echo ""
+
+    print_3title "Custom Data and other configs (root needed)"
+    (cat /var/lib/waagent/ovf-env.xml || cat /var/lib/waagent/CustomData/ovf-env.xml) 2>/dev/null | sed "s,CustomData.*,${SED_RED},"
+    echo ""
 
     print_3title "Management token"
     exec_with_jq eval $az_req "$URL/identity/oauth2/token?api-version=$API_VERSION\&resource=https://management.azure.com/"
+    echo ""
 
     print_3title "Graph token"
     exec_with_jq eval $az_req "$URL/identity/oauth2/token?api-version=$API_VERSION\&resource=https://graph.microsoft.com/"
+    echo ""
     
     print_3title "Vault token"
     exec_with_jq eval $az_req "$URL/identity/oauth2/token?api-version=$API_VERSION\&resource=https://vault.azure.net/"
+    echo ""
 
     print_3title "Storage token"
     exec_with_jq eval $az_req "$URL/identity/oauth2/token?api-version=$API_VERSION\&resource=https://storage.azure.com/"
+    echo ""
   fi
   echo ""
 fi
