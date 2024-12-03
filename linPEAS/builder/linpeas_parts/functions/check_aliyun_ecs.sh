@@ -14,7 +14,7 @@
 
 
 
-check_aliyun_ecs () {
+check_aliyun_ecs() {
   is_aliyun_ecs="No"
   if [ -f "/etc/cloud/cloud.cfg.d/aliyun_cloud.cfg" ]; then 
     is_aliyun_ecs="Yes"
