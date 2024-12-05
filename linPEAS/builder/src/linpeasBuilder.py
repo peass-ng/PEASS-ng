@@ -365,7 +365,7 @@ class LinpeasBuilder:
                     rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}.md", timeout=5)
             if "sudo:" in rb.text:
                 if len(b) <= 3:
-                    sudoVB.append("[^a-z-Z0-9]"+b+"$") # Less false possitives applied to small names
+                    sudoVB.append("[^a-zA-Z0-9]"+b+"$") # Less false possitives applied to small names
                 else:
                     sudoVB.append(b+"$")
             if "suid:" in rb.text:

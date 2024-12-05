@@ -16,7 +16,7 @@
 
 check_tencent_cvm () {
   is_tencent_cvm="No"
-  if grep -qi Tencent /etc/cloud/cloud.cfg; then
+  if grep -qi Tencent /etc/cloud/cloud.cfg 2>/dev/null; then
       is_tencent_cvm="Yes"
   fi
 }

@@ -36,7 +36,7 @@ if [ "$PSTORAGE_MYSQL" ] || [ "$DEBUG" ]; then
       for f in $(find $d -name user.MYD 2>/dev/null); do
         if [ -r "$f" ]; then
           echo "We can read the Mysql Hashes from $f" | sed -${E} "s,.*,${SED_RED},"
-          grep -oaE "[-_\.\*a-Z0-9]{3,}" "$f" | grep -v "mysql_native_password"
+          grep -oaE "[-_\.\*a-zA-Z0-9]{3,}" "$f" | grep -v "mysql_native_password"
         fi
       done
       
