@@ -66,7 +66,7 @@ class LinpeasBaseBuilder:
             self.linpeas_base += f"\nif echo $CHECKS | grep -q {section_info['name_check']}; then\n"
             self.linpeas_base += f'print_title "{section_name}"\n'
 
-            # Sort checks alphabetically to get them in the same order of they are in the folder
+            # Sort checks alphabetically to get them in the same order as they are in the folder
             section_info["checks"] = sorted(section_info["checks"], key=lambda x: int(os.path.basename(x.path).split('_')[0]) if os.path.basename(x.path).split('_')[0].isdigit() else 99)
             for check in section_info["checks"]:
                 for func in check.initial_functions:
@@ -193,8 +193,9 @@ class LinpeasBaseBuilder:
     
     def get_funcs_deps(self, module, all_funcs):
         """Given 1 module and the list of modules return the functions recursively it depends on"""
-            
-        for func in module.functions_used:
+        
+        module_funcs = list(set(module.initial_functions + module.functions_used))
+        for func in module_funcs:
             func_module = self.find_func_module(func)
             #print(f"{module.id} has found {func} in {func_module.id}") #To find circular dependencies
             if not func_module.is_function:
