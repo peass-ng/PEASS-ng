@@ -52,7 +52,7 @@ function returnHotFixID {
   }
 }
 
-Function Start-ACLCheck {
+function Start-ACLCheck {
   param(
     $Target, $ServiceName)
   # Gather ACL of object
@@ -74,16 +74,28 @@ Function Start-ACLCheck {
         $permission = $ACLObject.Access | Where-Object { $_.IdentityReference -like $i }
         $UserPermission = ""
         switch -WildCard ($Permission.FileSystemRights) {
-          "FullControl" { $userPermission = "FullControl"; $IdentityFound = $true }
-          "Write*" { $userPermission = "Write"; $IdentityFound = $true }
-          "Modify" { $userPermission = "Modify"; $IdentityFound = $true }
+          "FullControl" { 
+            $userPermission = "FullControl"
+            $IdentityFound = $true 
+          }
+          "Write*" { 
+            $userPermission = "Write"
+            $IdentityFound = $true 
+          }
+          "Modify" { 
+            $userPermission = "Modify"
+            $IdentityFound = $true 
+          }
         }
         Switch ($permission.RegistryRights) {
-          "FullControl" { $userPermission = "FullControl"; $IdentityFound = $true }
+          "FullControl" { 
+            $userPermission = "FullControl"
+            $IdentityFound = $true 
+          }
         }
         if ($UserPermission) {
           if ($ServiceName) { Write-Host "$ServiceName found with permissions issue:" -ForegroundColor Red }
-          Write-Host -ForegroundColor red  "Identity $($permission.IdentityReference) has '$userPermission' perms for $Target"
+          Write-Host -ForegroundColor red "Identity $($permission.IdentityReference) has '$userPermission' perms for $Target"
         }
       }    
       # Identity Found Check - If False, loop through and stop at root of drive
@@ -102,11 +114,12 @@ Function Start-ACLCheck {
   }
 }
 
-Function UnquotedServicePathCheck {
-  Write-Host "Fetching the list of services, this may take a while...";
-  $services = Get-WmiObject -Class Win32_Service | Where-Object { $_.PathName -inotmatch "`"" -and $_.PathName -inotmatch ":\\Windows\\" -and ($_.StartMode -eq "Auto" -or $_.StartMode -eq "Manual") -and ($_.State -eq "Running" -or $_.State -eq "Stopped") };
+function UnquotedServicePathCheck {
+  Write-Host "Fetching the list of services, this may take a while..."
+  $services = Get-WmiObject -Class Win32_Service | 
+    Where-Object { $_.PathName -inotmatch "`"" -and $_.PathName -inotmatch ":\\Windows\\" -and ($_.StartMode -eq "Auto" -or $_.StartMode -eq "Manual") -and ($_.State -eq "Running" -or $_.State -eq "Stopped") }
   if ($($services | Measure-Object).Count -lt 1) {
-    Write-Host "No unquoted service paths were found";
+    Write-Host "No unquoted service paths were found"
   }
   else {
     $services | ForEach-Object {
@@ -120,8 +133,11 @@ Function UnquotedServicePathCheck {
   }
 }
 
-function TimeElapsed { Write-Host "Time Running: $($stopwatch.Elapsed.Minutes):$($stopwatch.Elapsed.Seconds)" }
-Function Get-ClipBoardText {
+function TimeElapsed { 
+  Write-Host "Time Running: $($stopwatch.Elapsed.Minutes):$($stopwatch.Elapsed.Seconds)" 
+}
+
+function Get-ClipBoardText {
   Add-Type -AssemblyName PresentationCore
   $text = [Windows.Clipboard]::GetText()
   if ($text) {
@@ -129,11 +145,10 @@ Function Get-ClipBoardText {
     if ($TimeStamp) { TimeElapsed }
     Write-Host -ForegroundColor Blue "=========|| ClipBoard text found:"
     Write-Host $text
-    
   }
 }
 
-Function Search-Excel {
+function Search-Excel {
   [cmdletbinding()]
   Param (
       [parameter(Mandatory, ValueFromPipeline)]
@@ -169,13 +184,13 @@ Function Search-Excel {
           Write-Host "Pattern: '$SearchText' found in $source" -ForegroundColor Blue
           $BeginAddress = $Found.Address(0,0,1,1)
           #Initial Found Cell
-          [pscustomobject]@{
+          New-Object -TypeName PSObject -Property ([Ordered]@{
               WorkSheet = $Worksheet.Name
               Column = $Found.Column
               Row =$Found.Row
               TextMatch = $Found.Text
               Address = $BeginAddress
-          }
+          })
           Do {
               $Found = $WorkSheet.Cells.FindNext($Found)
               $Address = $Found.Address(0,0,1,1)
@@ -183,13 +198,13 @@ Function Search-Excel {
                 Write-host "Address is same as Begin Address"
                   BREAK
               }
-              [pscustomobject]@{
+              New-Object -TypeName PSObject -Property ([Ordered]@{
                   WorkSheet = $Worksheet.Name
                   Column = $Found.Column
                   Row =$Found.Row
                   TextMatch = $Found.Text
                   Address = $Address
-              }                 
+              })                
           } Until ($False)
         }
         catch {
@@ -212,12 +227,47 @@ Function Search-Excel {
   Remove-Variable excel -ErrorAction SilentlyContinue
 }
 
+#Get-CIMInstace/Get-WMIObject 'Win32_Product' calls kick off silent repairs on some programs causing potential issues after/while running this & doesn't always return a complete list.
+#Allegedly 'Win32reg_AddRemovePrograms' works fine now but this method ensures safety of target systems.
+function Get-InstalledApplications {
+[cmdletbinding()]
+param(
+  [Parameter(DontShow)]
+  $keys = @('','\Wow6432Node')
+)
+  foreach($key in $keys) {
+      try {
+        $apps = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine',$env:COMPUTERNAME).OpenSubKey("SOFTWARE$key\Microsoft\Windows\CurrentVersion\Uninstall").GetSubKeyNames()
+      }
+      catch { 
+        Continue 
+      }
+    foreach($app in $apps) {
+        $program = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine',$env:COMPUTERNAME).OpenSubKey("SOFTWARE$key\Microsoft\Windows\CurrentVersion\Uninstall\$app")
+        $name = $program.GetValue('DisplayName')
+      if($name) {
+        New-Object -TypeName PSObject -Property ([Ordered]@{       
+              Computername = $env:COMPUTERNAME
+              Software = $name 
+              Version = $program.GetValue("DisplayVersion")
+              Publisher = $program.GetValue("Publisher")
+              InstallDate = $program.GetValue("InstallDate")
+              UninstallString = $program.GetValue("UninstallString")
+              Architecture = $(if($key -eq '\wow6432node') {'x86'}else{'x64'})
+              Path = $program.Name
+        })
+      }
+    }
+  }
+}
+
 function Write-Color([String[]]$Text, [ConsoleColor[]]$Color) {
   for ($i = 0; $i -lt $Text.Length; $i++) {
     Write-Host $Text[$i] -Foreground $Color[$i] -NoNewline
   }
   Write-Host
 }
+
 
 #Write-Color "    ((,.,/((((((((((((((((((((/,  */" -Color Green
 Write-Color ",/*,..*(((((((((((((((((((((((((((((((((," -Color Green
@@ -277,8 +327,8 @@ if ($password) {
   # This does not work correctly
   #$regexSearch.add("Base32", "(?:[A-Z2-7]{8})*(?:[A-Z2-7]{2}={6}|[A-Z2-7]{4}={4}|[A-Z2-7]{5}={3}|[A-Z2-7]{7}=)?")
   $regexSearch.add("Base64", "(eyJ|YTo|Tzo|PD[89]|aHR0cHM6L|aHR0cDo|rO0)[a-zA-Z0-9+\/]+={0,2}")
-
 }
+
 if ($username) {
   $regexSearch.add("Usernames1", "username[=:].+")
   $regexSearch.add("Usernames2", "user[=:].+")
@@ -491,19 +541,19 @@ if ($FullCheck) {
   Write-Host "**Full Check Enabled. This will significantly increase false positives in registry / folder check for Usernames / Passwords.**"
 }
 # Introduction    
-Write-Host -BackgroundColor Red -ForegroundColor White  "ADVISORY: WinPEAS - Windows local Privilege Escalation Awesome Script"
+Write-Host -BackgroundColor Red -ForegroundColor White "ADVISORY: WinPEAS - Windows local Privilege Escalation Awesome Script"
 Write-Host -BackgroundColor Red -ForegroundColor White "WinPEAS should be used for authorized penetration testing and/or educational purposes only"
 Write-Host -BackgroundColor Red -ForegroundColor White "Any misuse of this software will not be the responsibility of the author or of any other collaborator"
 Write-Host -BackgroundColor Red -ForegroundColor White "Use it at your own networks and/or with the network owner's explicit permission"
 
 
 # Color Scheme Introduction
-Write-Host -ForegroundColor red  "Indicates special privilege over an object or misconfiguration"
+Write-Host -ForegroundColor red    "Indicates special privilege over an object or misconfiguration"
 Write-Host -ForegroundColor green  "Indicates protection is enabled or something is well configured"
-Write-Host -ForegroundColor cyan  "Indicates active users"
-Write-Host -ForegroundColor Gray  "Indicates disabled users"
-Write-Host -ForegroundColor yellow  "Indicates links"
-Write-Host -ForegroundColor Blue "Indicates title"
+Write-Host -ForegroundColor cyan   "Indicates active users"
+Write-Host -ForegroundColor Gray   "Indicates disabled users"
+Write-Host -ForegroundColor yellow "Indicates links"
+Write-Host -ForegroundColor Blue   "Indicates title"
 
 
 Write-Host "You can find a Windows local PE Checklist here: https://book.hacktricks.xyz/windows-hardening/checklist-windows-privilege-escalation" -ForegroundColor Yellow
@@ -587,11 +637,11 @@ $hotfixreturnNum | ForEach-Object {
       $Result = "Canceled"
     }
   }
-  $FinalHotfixList += [PSCustomObject]@{
+  $FinalHotfixList += New-Object -TypeName PSObject -Property ([Ordered]@{ 
     Result = $Result
     Date   = $HotFixItem.Date
     Title  = $HotFixItem.Title
-  }    
+  })
 }
 $FinalHotfixList | Format-Table -AutoSize
 
@@ -680,7 +730,7 @@ $WDigest = (Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProv
 switch ($WDigest) {
   0 { Write-Host "Value 0 found. Plain-text Passwords are not stored in LSASS" }
   1 { Write-Host "Value 1 found. Plain-text Passwords may be stored in LSASS" -ForegroundColor red }
-  Default { Write-Host "The system was unable to find the specified registry value: UesLogonCredential" }
+  Default { Write-Host "The system was unable to find the specified registry value: UseLogonCredential" }
 }
 
  
@@ -738,7 +788,7 @@ Write-Host -ForegroundColor Blue "=========|| RDCMan Settings Check"
 if (Test-Path "$env:USERPROFILE\appdata\Local\Microsoft\Remote Desktop Connection Manager\RDCMan.settings") {
   Write-Host "RDCMan Settings Found at: $($env:USERPROFILE)\appdata\Local\Microsoft\Remote Desktop Connection Manager\RDCMan.settings" -ForegroundColor Red
 }
-else { Write-Host "No RCDMan.Settings found." }
+else { Write-Host "No RDCMan.Settings found." }
 
 
 Write-Host ""
@@ -746,7 +796,7 @@ if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| RDP Saved Connections Check"
 
 Write-Host "HK_Users"
-New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS
+New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS -ErrorAction SilentlyContinue
 Get-ChildItem HKU:\ -ErrorAction SilentlyContinue | ForEach-Object {
   # get the SID from output
   $HKUSID = $_.Name.Replace('HKEY_USERS\', "")
@@ -794,6 +844,7 @@ if (Test-Path HKCU:\Software\SimonTatham\PuTTY\SshHostKeys) {
 }
 else { Write-Host "No putty ssh keys found" }
 
+
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Checking for OpenSSH Keys"
@@ -804,19 +855,19 @@ else { Write-Host "No OpenSSH Keys found." }
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Checking for WinVNC Passwords"
-if ( Test-Path "HKCU:\Software\ORL\WinVNC3\Password") { Write-Host " WinVNC found at HKCU:\Software\ORL\WinVNC3\Password" }else { Write-Host "No WinVNC found." }
+if (Test-Path "HKCU:\Software\ORL\WinVNC3\Password") { Write-Host " WinVNC found at HKCU:\Software\ORL\WinVNC3\Password" }else { Write-Host "No WinVNC found." }
 
 
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Checking for SNMP Passwords"
-if ( Test-Path "HKLM:\SYSTEM\CurrentControlSet\Services\SNMP" ) { Write-Host "SNMP Key found at HKLM:\SYSTEM\CurrentControlSet\Services\SNMP" }else { Write-Host "No SNMP found." }
+if (Test-Path "HKLM:\SYSTEM\CurrentControlSet\Services\SNMP") { Write-Host "SNMP Key found at HKLM:\SYSTEM\CurrentControlSet\Services\SNMP" }else { Write-Host "No SNMP found." }
 
 
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Checking for TightVNC Passwords"
-if ( Test-Path "HKCU:\Software\TightVNC\Server") { Write-Host "TightVNC key found at HKCU:\Software\TightVNC\Server" }else { Write-Host "No TightVNC found." }
+if (Test-Path "HKCU:\Software\TightVNC\Server") { Write-Host "TightVNC key found at HKCU:\Software\TightVNC\Server" }else { Write-Host "No TightVNC found." }
 
 
 Write-Host ""
@@ -841,23 +892,26 @@ Get-ChildItem HKU:\ -ErrorAction SilentlyContinue | ForEach-Object {
     if (Test-Path "HKU:\$_\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU") {
       Write-Host -ForegroundColor Blue "=========||HKU Recently Run Commands"
       foreach ($p in $property) {
-        Write-Host "$((Get-Item "HKU:\$_\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU"-ErrorAction SilentlyContinue).getValue($p))" 
+        Write-Host "$((Get-Item "HKU:\$_\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU" -ErrorAction SilentlyContinue).getValue($p))" 
       }
     }
   }
 }
+
 
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========||HKCU Recently Run Commands"
 $property = (Get-Item "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU" -ErrorAction SilentlyContinue).Property
 foreach ($p in $property) {
-  Write-Host "$((Get-Item "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU"-ErrorAction SilentlyContinue).getValue($p))"
+  Write-Host "$((Get-Item "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU" -ErrorAction SilentlyContinue).getValue($p))"
 }
+
 
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Always Install Elevated Check"
+ 
  
 Write-Host "Checking Windows Installer Registry (will populate if the key exists)"
 if ((Get-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer -ErrorAction SilentlyContinue).AlwaysInstallElevated -eq 1) {
@@ -956,14 +1010,13 @@ Write-Host -ForegroundColor Blue "=========|| Internet Settings HKCU / HKLM"
 
 $property = (Get-Item "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -ErrorAction SilentlyContinue).Property
 foreach ($p in $property) {
-  Write-Host "$p - $((Get-Item "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"-ErrorAction SilentlyContinue).getValue($p))"
+  Write-Host "$p - $((Get-Item "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -ErrorAction SilentlyContinue).getValue($p))"
 }
  
 $property = (Get-Item "HKLM:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -ErrorAction SilentlyContinue).Property
 foreach ($p in $property) {
-  Write-Host "$p - $((Get-Item "HKLM:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"-ErrorAction SilentlyContinue).getValue($p))"
+  Write-Host "$p - $((Get-Item "HKLM:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -ErrorAction SilentlyContinue).getValue($p))"
 }
-
 
 
 ######################## PROCESS INFORMATION ########################
@@ -1029,6 +1082,7 @@ if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| SCHEDULED TASKS vulnerable check"
 #Scheduled tasks audit 
 
+
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Testing access to c:\windows\system32\tasks"
@@ -1051,13 +1105,13 @@ else {
         Write-Host "`n"
         Write-Host "TaskName: $($_.TaskName)"
         Write-Host "-------------"
-        [pscustomobject]@{
+        New-Object -TypeName PSObject -Property ([Ordered]@{
           LastResult = $(($_ | Get-ScheduledTaskInfo).LastTaskResult)
           NextRun    = $(($_ | Get-ScheduledTaskInfo).NextRunTime)
           Status     = $_.State
           Command    = $_.Actions.execute
           Arguments  = $_.Actions.Arguments 
-        } | Write-Host
+        }) | Write-Host
       } 
     }
   }
@@ -1086,6 +1140,8 @@ Write-Host "https://book.hacktricks.xyz/windows-hardening/windows-local-privileg
     }
   }
 }
+
+
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| STARTUP APPS Registry Check"
@@ -1113,11 +1169,8 @@ if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| INSTALLED APPLICATIONS"
 Write-Host "Generating list of installed applications"
 
-Get-CimInstance -class win32_Product | Select-Object Name, Version | 
-ForEach-Object {
-  Write-Host $("{0} : {1}" -f $_.Name, $_.Version)  
-}
-
+#Get applications via Regsitry
+Get-InstalledApplications
 
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
@@ -1244,9 +1297,14 @@ Write-Host "== || Generating List of all Local Administrators, Users and Backup 
 # Code has been modified to accomodate for any language by filtering only on the output and not looking for a string of text
 # Foreach loop to get all local groups, then examine each group's members.
 Get-LocalGroup | ForEach-Object {
-  "`n Group: $($_.Name) `n" ; if(Get-LocalGroupMember -name $_.Name){
-    (Get-LocalGroupMember -name $_.Name).Name}
-    else{"     {GROUP EMPTY}"}}
+  "`n Group: $($_.Name) `n"
+  if(Get-LocalGroupMember -name $_.Name){
+    (Get-LocalGroupMember -name $_.Name).Name
+  }
+  else{
+    "     {GROUP EMPTY}"
+  }
+}
 
 
 Write-Host ""
@@ -1332,7 +1390,7 @@ Write-Host "=|| To see all history, run this command: Get-Content $env:USERPROFI
 Write-Host $(Get-Content "$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt" | Select-String pa)
 
 
-Write-Host "=|| PowesRhell default transrcipt history check "
+Write-Host "=|| PowerShell default transcript history check "
 if (Test-Path $env:SystemDrive\transcripts\) { "Default transcripts found at $($env:SystemDrive)\transcripts\" }
 
 
@@ -1478,7 +1536,7 @@ if (Test-Path "$env:SystemDrive\Documents and Settings\All Users\Application Dat
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Recycle Bin TIP:"
-Write-Host "if credentials are found in the recycle bin, tool from nirsoft may assist: http://www.nirsoft.net/password_recovery_tools.html" -ForegroundColor Yellow
+Write-Host "If credentials are found in the recycle bin, tool from nirsoft may assist: http://www.nirsoft.net/password_recovery_tools.html" -ForegroundColor Yellow
 
 ######################## File/Folder Check ########################
 
@@ -1492,15 +1550,22 @@ if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Password Check. Starting at root of each drive. This will take some time. Like, grab a coffee or tea kinda time."
 Write-Host -ForegroundColor Blue "=========|| Looking through each drive, searching for $fileExtensions"
 # Check if the Excel com object is installed, if so, look through files, if not, just notate if a file has "user" or "password in name"
-try { New-Object -ComObject Excel.Application | Out-Null; $ReadExcel = $true }catch {$ReadExcel = $false; if($Excel){
-  Write-Host -ForegroundColor Yellow "Host does not have Excel COM object, will still point out excel files when found."
-}}
+try { 
+  New-Object -ComObject Excel.Application | Out-Null
+  $ReadExcel = $true 
+}
+catch {
+  $ReadExcel = $false
+  if($Excel) {
+    Write-Host -ForegroundColor Yellow "Host does not have Excel COM object, will still point out excel files when found."  
+  }
+}
 $Drives.Root | ForEach-Object {
   $Drive = $_
   Get-ChildItem $Drive -Recurse -Include $fileExtensions -ErrorAction SilentlyContinue -Force | ForEach-Object {
     $path = $_
     #Exclude files/folders with 'lang' in the name
-    if ($Path.FullName | select-string "(?i).*lang.*") {
+    if ($Path.FullName | select-string "(?i).*lang.*"){
       #Write-Host "$($_.FullName) found!" -ForegroundColor red
     }
     if($Path.FullName | Select-String "(?i).:\\.*\\.*Pass.*"){
