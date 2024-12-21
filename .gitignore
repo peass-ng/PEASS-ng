@@ -1,4 +1,5 @@
 .vs/*
+.vscode/*
 winPEAS/winPEASexe/.vs/*
 v16/*
 winPEAS/winPEASexe/.vs/winPEAS/v16/*
@@ -24,6 +25,8 @@ __pycache__
 linPEAS/builder/__pycache__/*
 linPEAS/builder/src/__pycache__/*
 linPEAS/linpeas.sh
+linPEAS/builder/linpeas_base_tmp.sh
+build_lists/regexes.yaml
 sh2bin
 sh2bin/*
 .dccache

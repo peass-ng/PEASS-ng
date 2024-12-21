@@ -16,7 +16,7 @@
 check_az_app(){
   is_az_app="No"
 
-  if [ -d "/opt/microsoft" ] && env | grep -q "IDENTITY_ENDPOINT"; then
+  if [ -d "/opt/microsoft" ] && env | grep -iq "azure"; then
     is_az_app="Yes"
   fi
 }
