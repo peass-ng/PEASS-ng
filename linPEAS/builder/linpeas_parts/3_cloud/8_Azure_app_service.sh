@@ -17,7 +17,6 @@ API_VERSION="2019-08-01" #https://learn.microsoft.com/en-us/azure/app-service/ov
 
 if [ "$is_az_app" = "Yes" ]; then
   print_2title "Azure App Service Enumeration"
-  echo "I haven't tested this one, if it doesn't work, please send a PR fixing and adding functionality :)"
 
   HEADER="X-IDENTITY-HEADER:$IDENTITY_HEADER"
 
@@ -33,13 +32,13 @@ if [ "$is_az_app" = "Yes" ]; then
   if [ "$az_req" ]; then
     print_3title "Management token"
     exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://management.azure.com/"
-
+    echo
     print_3title "Graph token"
     exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://graph.microsoft.com/"
-    
+    echo
     print_3title "Vault token"
     exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://vault.azure.net/"
-
+    echo
     print_3title "Storage token"
     exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://storage.azure.com/"
   fi
