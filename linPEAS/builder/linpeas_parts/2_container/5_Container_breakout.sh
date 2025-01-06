@@ -16,7 +16,7 @@
 if [ "$inContainer" ]; then
     echo ""
     print_2title "Container & breakout enumeration"
-    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/docker-breakout"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation/index.html"
     print_list "Container ID ...................$NC $(cat /etc/hostname && echo -n '\n')"
     if [ -f "/proc/1/cpuset" ] && echo "$containerType" | grep -qi "docker"; then
         print_list "Container Full ID ..............$NC $(basename $(cat /proc/1/cpuset))\n"
@@ -34,7 +34,7 @@ if [ "$inContainer" ]; then
     print_list "Vulnerable to CVE-2019-5021 .... $VULN_CVE_2019_5021\n"$NC | sed -${E} "s,Yes,${SED_RED_YELLOW},"
 
     print_3title "Breakout via mounts"
-    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/docker-breakout/docker-breakout-privilege-escalation/sensitive-mounts"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation/sensitive-mounts.html"
     
     checkProcSysBreakouts
     print_list "/proc mounted? ................. $proc_mounted\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
@@ -71,7 +71,7 @@ if [ "$inContainer" ]; then
     
     echo ""
     print_3title "Namespaces"
-    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/docker-breakout/namespaces"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/namespaces/index.html"
     ls -l /proc/self/ns/
 
     if echo "$containerType" | grep -qi "kubernetes"; then
@@ -80,7 +80,7 @@ if [ "$inContainer" ]; then
         echo ""
         
         print_2title "Kubernetes Information"
-        print_info "https://book.hacktricks.xyz/cloud-security/pentesting-kubernetes/attacking-kubernetes-from-inside-a-pod"
+        print_info "https://cloud.hacktricks.wiki/en/pentesting-cloud/kubernetes-security/attacking-kubernetes-from-inside-a-pod.html"
         
         
         print_3title "Kubernetes service account folder"
@@ -92,7 +92,7 @@ if [ "$inContainer" ]; then
         echo ""
 
         print_3title "Current sa user k8s permissions"
-        print_info "https://book.hacktricks.xyz/cloud-security/pentesting-kubernetes/hardening-roles-clusterroles"
+        print_info "https://cloud.hacktricks.wiki/en/pentesting-cloud/kubernetes-security/kubernetes-role-based-access-control-rbac.html"
         kubectl auth can-i --list 2>/dev/null || curl -s -k -d "$(echo \"eyJraW5kIjoiU2VsZlN1YmplY3RSdWxlc1JldmlldyIsImFwaVZlcnNpb24iOiJhdXRob3JpemF0aW9uLms4cy5pby92MSIsIm1ldGFkYXRhIjp7ImNyZWF0aW9uVGltZXN0YW1wIjpudWxsfSwic3BlYyI6eyJuYW1lc3BhY2UiOiJlZXZlZSJ9LCJzdGF0dXMiOnsicmVzb3VyY2VSdWxlcyI6bnVsbCwibm9uUmVzb3VyY2VSdWxlcyI6bnVsbCwiaW5jb21wbGV0ZSI6ZmFsc2V9fQo=\"|base64 -d)" \
           "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT_HTTPS}/apis/authorization.k8s.io/v1/selfsubjectrulesreviews" \
             -X 'POST' -H 'Content-Type: application/json' \
@@ -102,7 +102,7 @@ if [ "$inContainer" ]; then
     echo ""
 
     print_2title "Container Capabilities"
-    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/docker-breakout/docker-breakout-privilege-escalation#capabilities-abuse-escape"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation/index.html#capabilities-abuse-escape"
     if [ "$(command -v capsh || echo -n '')" ]; then 
       capsh --print 2>/dev/null | sed -${E} "s,$containercapsB,${SED_RED},g"
     else

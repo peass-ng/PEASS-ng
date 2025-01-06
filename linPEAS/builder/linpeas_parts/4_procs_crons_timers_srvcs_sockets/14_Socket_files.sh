@@ -16,7 +16,7 @@
 #TODO: .socket files in MACOS are folders
 if ! [ "$IAMROOT" ]; then
   print_2title "Analyzing .socket files"
-  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sockets"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sockets"
   printf "%s\n" "$PSTORAGE_SOCKET" | while read s; do
     if ! [ "$IAMROOT" ] && [ -w "$s" ] && [ -f "$s" ] && ! [ "$SEARCH_IN_FOLDER" ]; then
       echo "Writable .socket file: $s" | sed "s,/.*,${SED_RED},g"

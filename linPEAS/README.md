@@ -2,9 +2,9 @@
 
 ![](https://github.com/peass-ng/privilege-escalation-awesome-scripts-suite/raw/master/linPEAS/images/linpeas.png)
 
-**LinPEAS is a script that search for possible paths to escalate privileges on Linux/Unix\*/MacOS hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/linux-hardening/privilege-escalation)**
+**LinPEAS is a script that search for possible paths to escalate privileges on Linux/Unix\*/MacOS hosts. The checks are explained on [book.hacktricks.wiki](https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html)**
 
-Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks.xyz](https://book.hacktricks.xyz/linux-hardening/linux-privilege-escalation-checklist)**.
+Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks.wiki](https://book.hacktricks.wiki/en/linux-hardening/linux-privilege-escalation-checklist.html)**.
 
 [![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/309566)
 

@@ -78,7 +78,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Users");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#users-and-groups", "Check if you have some admin equivalent privileges");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#users--groups", "Check if you have some admin equivalent privileges");
 
                 List<string> usersGrps = User.GetMachineUsers(false, false, false, false, true);
 
@@ -109,7 +109,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Current Token privileges");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#token-manipulation", "Check if you can escalate privilege using some enabled token");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#token-manipulation", "Check if you can escalate privilege using some enabled token");
                 Dictionary<string, string> tokenPrivs = Token.GetTokenGroupPrivs();
                 Beaprint.DictPrint(tokenPrivs, ColorsU(), false);
             }

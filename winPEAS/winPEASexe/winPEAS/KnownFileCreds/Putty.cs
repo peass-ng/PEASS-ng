@@ -57,7 +57,7 @@ namespace winPEAS.KnownFileCreds
             try
             {
                 Beaprint.MainPrint("SSH keys in registry");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#ssh-keys-in-registry", "If you find anything here, follow the link to learn how to decrypt the SSH keys");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#ssh-keys-in-registry", "If you find anything here, follow the link to learn how to decrypt the SSH keys");
 
                 string[] ssh_reg = RegistryHelper.GetRegSubkeys("HKCU", @"OpenSSH\Agent\Keys");
                 if (ssh_reg.Length == 0)

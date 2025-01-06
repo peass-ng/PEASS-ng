@@ -15,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ] && ! [ "$IAMROOT" ]; then
   print_2title "Checking misconfigurations of ld.so"
-  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#ld.so"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#ldso"
   if [ -f "/etc/ld.so.conf" ] && [ -w "/etc/ld.so.conf" ]; then 
     echo "You have write privileges over /etc/ld.so.conf" | sed -${E} "s,.*,${SED_RED_YELLOW},"; 
     printf $RED$ITALIC"/etc/ld.so.conf\n"$NC;

@@ -2,9 +2,9 @@
 
 ![](https://github.com/peass-ng/PEASS-ng/raw/master/winPEAS/winPEASexe/images/winpeas.png)
 
-**WinPEAS is a script that search for possible paths to escalate privileges on Windows hosts. The checks are explained on [book.hacktricks.xyz](https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation)**
+**WinPEAS is a script that search for possible paths to escalate privileges on Windows hosts. The checks are explained on [book.hacktricks.wiki](https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html)**
 
-Check also the **Local Windows Privilege Escalation checklist** from [book.hacktricks.xyz](https://book.hacktricks.xyz/windows-hardening/checklist-windows-privilege-escalation)
+Check also the **Local Windows Privilege Escalation checklist** from [book.hacktricks.wiki](https://book.hacktricks.wiki/en/windows-hardening/checklist-windows-privilege-escalation.html)
 
 ### WinPEAS.bat is a batch script made for Windows systems which don't support WinPEAS.exe (Net.4 required)
 

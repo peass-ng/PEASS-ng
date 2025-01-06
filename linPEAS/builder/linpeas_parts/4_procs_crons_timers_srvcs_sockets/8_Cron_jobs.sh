@@ -15,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Cron jobs"
-  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#scheduled-cron-jobs"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#scheduledcron-jobs"
   command -v crontab 2>/dev/null || echo_not_found "crontab"
   crontab -l 2>/dev/null | tr -d "\r" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,root,${SED_RED},"
   command -v incrontab 2>/dev/null || echo_not_found "incrontab"
@@ -27,7 +27,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   atq 2>/dev/null
 else
   print_2title "Cron jobs"
-  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#scheduled-cron-jobs"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#scheduledcron-jobs"
   find "$SEARCH_IN_FOLDER" '(' -type d -or -type f ')' '(' -name "cron*" -or -name "anacron" -or -name "anacrontab" -or -name "incron.d" -or -name "incron" -or -name "at" -or -name "periodic" ')' -exec echo {} \; -exec ls -lR {} \;
 fi
 echo ""

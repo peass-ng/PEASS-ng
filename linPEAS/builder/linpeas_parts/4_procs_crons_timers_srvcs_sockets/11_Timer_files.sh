@@ -14,7 +14,7 @@
 
 
 print_2title "Analyzing .timer files"
-print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#timers"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#timers"
 printf "%s\n" "$PSTORAGE_TIMER" | while read t; do
   if ! [ "$IAMROOT" ] && [ -w "$t" ] && ! [ "$SEARCH_IN_FOLDER" ]; then
     echo "$t" | sed -${E} "s,.*,${SED_RED},g"

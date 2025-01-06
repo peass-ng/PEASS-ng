@@ -29,7 +29,7 @@ namespace winPEAS.KnownFileCreds.Browsers
             try
             {
                 Beaprint.MainPrint("Current IE tabs");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#browsers-history");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#browsers-history");
                 List<string> urls = GetCurrentIETabs();
 
                 Dictionary<string, string> colorsB = new Dictionary<string, string>()
@@ -50,7 +50,7 @@ namespace winPEAS.KnownFileCreds.Browsers
             try
             {
                 Beaprint.MainPrint("Looking for GET credentials in IE history");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#browsers-history");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#browsers-history");
                 Dictionary<string, List<string>> ieHistoryBook = GetIEHistFav();
                 List<string> history = ieHistoryBook["history"];
                 List<string> favorites = ieHistoryBook["favorites"];

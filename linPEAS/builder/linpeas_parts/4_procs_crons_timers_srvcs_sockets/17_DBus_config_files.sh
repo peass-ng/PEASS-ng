@@ -13,7 +13,7 @@
 # Small linpeas: 0
 
 print_2title "D-Bus config files"
-print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#d-bus"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#d-bus"
 if [ "$PSTORAGE_DBUS" ]; then
   printf "%s\n" "$PSTORAGE_DBUS" | while read d; do
     for f in $d/*; do

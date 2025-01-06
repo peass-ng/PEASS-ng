@@ -14,6 +14,6 @@
 
 
 print_2title "Active Ports"
-print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#open-ports"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#open-ports"
 ( (netstat -punta || ss -nltpu || netstat -anv) | grep -i listen) 2>/dev/null | sed -${E} "s,127.0.[0-9]+.[0-9]+|:::|::1:|0\.0\.0\.0,${SED_RED},g"
 echo ""

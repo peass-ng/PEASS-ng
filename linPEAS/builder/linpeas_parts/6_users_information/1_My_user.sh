@@ -14,6 +14,6 @@
 
 
 print_2title "My user"
-print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#users"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#users"
 (id || (whoami && groups)) 2>/dev/null | sed -${E} "s,$groupsB,${SED_RED},g" | sed -${E} "s,$groupsVB,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_LIGHT_MAGENTA},g" | sed -${E} "s,$nosh_usrs,${SED_BLUE},g" | sed -${E} "s,$knw_usrs,${SED_GREEN},g" | sed "s,root,${SED_RED}," | sed -${E} "s,$knw_grps,${SED_GREEN},g" | sed -${E} "s,$idB,${SED_RED},g"
 echo ""

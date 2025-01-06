@@ -16,7 +16,7 @@
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   if [ "$NOUSEPS" ]; then
     print_2title "Binary processes permissions (non 'root root' and not belonging to current user)"
-    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#processes"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#processes"
     binW="IniTialiZZinnggg"
     ps auxwww 2>/dev/null | awk '{print $11}' | while read bpath; do
       if [ -w "$bpath" ]; then

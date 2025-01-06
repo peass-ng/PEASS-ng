@@ -16,7 +16,7 @@
 print_2title "Can I sniff with tcpdump?"
 timeout 1 tcpdump >/dev/null 2>&1
 if [ $? -eq 124 ]; then #If 124, then timed out == It worked
-    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sniffing"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sniffing"
     echo "You can sniff with tcpdump!" | sed -${E} "s,.*,${SED_RED},"
 else echo_no
 fi

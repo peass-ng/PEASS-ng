@@ -15,7 +15,7 @@
 
 #TODO: .service files in MACOS are folders
 print_2title "Analyzing .service files"
-print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#services"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#services"
 printf "%s\n" "$PSTORAGE_SYSTEMD" | while read s; do
   if [ ! -O "" ] || [ "$SEARCH_IN_FOLDER" ]; then #Remove services that belongs to the current user or if firmware see everything
     if ! [ "$IAMROOT" ] && [ -w "$s" ] && [ -f "$s" ] && ! [ "$SEARCH_IN_FOLDER" ]; then

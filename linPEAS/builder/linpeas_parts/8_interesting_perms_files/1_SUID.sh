@@ -14,7 +14,7 @@
 
 
 print_2title "SUID - Check easy privesc, exploits and write perms"
-print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sudo-and-suid"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sudo-and-suid"
 if ! [ "$STRINGS" ]; then
   echo_not_found "strings"
 fi

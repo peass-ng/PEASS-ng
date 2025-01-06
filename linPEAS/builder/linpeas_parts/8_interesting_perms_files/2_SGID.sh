@@ -14,7 +14,7 @@
 
 
 print_2title "SGID"
-print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sudo-and-suid"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sudo-and-suid"
 sgids_files=$(find $ROOT_FOLDER -perm -2000 -type f ! -path "/dev/*" 2>/dev/null)
 printf "%s\n" "$sgids_files" | while read s; do
   s=$(ls -lahtr "$s")
