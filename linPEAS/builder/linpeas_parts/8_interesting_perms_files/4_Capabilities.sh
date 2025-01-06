@@ -15,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Capabilities"
-  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#capabilities"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#capabilities"
   if [ "$(command -v capsh || echo -n '')" ]; then
 
     print_3title "Current shell capabilities"

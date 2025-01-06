@@ -24,7 +24,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Interesting Processes -non Microsoft-");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#running-processes", "Check if any interesting processes for memory dump or if you could overwrite some binary running");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#running-processes", "Check if any interesting processes for memory dump or if you could overwrite some binary running");
                 List<Dictionary<string, string>> processesInfo = ProcessesInfo.GetProcInfo();
 
                 foreach (Dictionary<string, string> procInfo in processesInfo)
@@ -93,7 +93,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Vulnerable Leaked Handlers");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation/leaked-handle-exploitation");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#leaked-handlers");
 
                 List<Dictionary<string, string>> vulnHandlers = new List<Dictionary<string, string>>(); 
 

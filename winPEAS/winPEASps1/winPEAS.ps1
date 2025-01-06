@@ -556,7 +556,7 @@ Write-Host -ForegroundColor yellow "Indicates links"
 Write-Host -ForegroundColor Blue   "Indicates title"
 
 
-Write-Host "You can find a Windows local PE Checklist here: https://book.hacktricks.xyz/windows-hardening/checklist-windows-privilege-escalation" -ForegroundColor Yellow
+Write-Host "You can find a Windows local PE Checklist here: https://book.hacktricks.wiki/en/windows-hardening/checklist-windows-privilege-escalation.html" -ForegroundColor Yellow
 #write-host  "Creating Dynamic lists, this could take a while, please wait..."
 #write-host  "Loading sensitive_files yaml definitions file..."
 #write-host  "Loading regexes yaml definitions file..."
@@ -875,7 +875,7 @@ if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| UAC Settings"
 if ((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System).EnableLUA -eq 1) {
   Write-Host "EnableLUA is equal to 1. Part or all of the UAC components are on."
-  Write-Host "https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#basic-uac-bypass-full-file-system-access" -ForegroundColor Yellow
+  Write-Host "https://book.hacktricks.wiki/en/windows-hardening/authentication-credentials-uac-and-efs/uac-user-account-control.html#very-basic-uac-bypass-full-file-system-access" -ForegroundColor Yellow
 }
 else { Write-Host "EnableLUA value not equal to 1" }
 
@@ -917,13 +917,13 @@ Write-Host "Checking Windows Installer Registry (will populate if the key exists
 if ((Get-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer -ErrorAction SilentlyContinue).AlwaysInstallElevated -eq 1) {
   Write-Host "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer).AlwaysInstallElevated = 1" -ForegroundColor red
   Write-Host "Try msfvenom msi package to escalate" -ForegroundColor red
-  Write-Host "https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#metasploit-payloads" -ForegroundColor Yellow
+  Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#metasploit-payloads" -ForegroundColor Yellow
 }
  
 if ((Get-ItemProperty HKCU:\SOFTWARE\Policies\Microsoft\Windows\Installer -ErrorAction SilentlyContinue).AlwaysInstallElevated -eq 1) { 
   Write-Host "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Installer).AlwaysInstallElevated = 1" -ForegroundColor red
   Write-Host "Try msfvenom msi package to escalate" -ForegroundColor red
-  Write-Host "https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#metasploit-payloads" -ForegroundColor Yellow
+  Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#metasploit-payloads" -ForegroundColor Yellow
 }
 
 
@@ -995,7 +995,7 @@ if ( Test-Path HKLM:\Wow6432Node\Software\Policies\Microsoft\Windows\PowerShell\
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| WSUS check for http and UseWAServer = 1, if true, might be vulnerable to exploit"
-Write-Host "https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#wsus" -ForegroundColor Yellow
+Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#wsus" -ForegroundColor Yellow
 if (Test-Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate) {
   Get-Item HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate
 }
@@ -1123,7 +1123,7 @@ Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| STARTUP APPLICATIONS Vulnerable Check"
 "Check if you can modify any binary that is going to be executed by admin or if you can impersonate a not found binary"
-Write-Host "https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#run-at-startup" -ForegroundColor Yellow
+Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#run-at-startup" -ForegroundColor Yellow
 
 @("C:\Documents and Settings\All Users\Start Menu\Programs\Startup",
   "C:\Documents and Settings\$env:Username\Start Menu\Programs\Startup", 
@@ -1322,9 +1322,9 @@ if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| WHOAMI INFO"
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
-Write-Host -ForegroundColor Blue "=========|| Check Token access here: https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation/privilege-escalation-abusing-tokens" -ForegroundColor yellow
+Write-Host -ForegroundColor Blue "=========|| Check Token access here: https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/privilege-escalation-abusing-tokens.html#abusing-tokens" -ForegroundColor yellow
 Write-Host -ForegroundColor Blue "=========|| Check if you are inside the Administrators group or if you have enabled any token that can be use to escalate privileges like SeImpersonatePrivilege, SeAssignPrimaryPrivilege, SeTcbPrivilege, SeBackupPrivilege, SeRestorePrivilege, SeCreateTokenPrivilege, SeLoadDriverPrivilege, SeTakeOwnershipPrivilege, SeDebbugPrivilege"
-Write-Host "https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#users-and-groups" -ForegroundColor Yellow
+Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#users--groups" -ForegroundColor Yellow
 Start-Process whoami.exe -ArgumentList "/all" -Wait -NoNewWindow
 
 
@@ -1349,7 +1349,7 @@ Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| APPcmd Check"
 if (Test-Path ("$Env:SystemRoot\System32\inetsrv\appcmd.exe")) {
-  Write-Host "https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#appcmd.exe" -ForegroundColor Yellow
+  Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#appcmdexe" -ForegroundColor Yellow
   Write-Host "$Env:SystemRoot\System32\inetsrv\appcmd.exe exists!" -ForegroundColor Red
 }
 
@@ -1400,7 +1400,7 @@ if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| ENVIRONMENT VARIABLES "
 Write-Host "Maybe you can take advantage of modifying/creating a binary in some of the following locations"
 Write-Host "PATH variable entries permissions - place binary or DLL to execute instead of legitimate"
-Write-Host "https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#dll-hijacking" -ForegroundColor Yellow
+Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#dll-hijacking" -ForegroundColor Yellow
 
 Get-ChildItem env: | Format-Table -Wrap
 
@@ -1418,7 +1418,7 @@ if (Test-Path "C:\Users\$env:USERNAME\AppData\Local\Packages\Microsoft.Microsoft
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Cached Credentials Check"
-Write-Host "https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#windows-vault" -ForegroundColor Yellow 
+Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#windows-vault" -ForegroundColor Yellow 
 cmdkey.exe /list
 
 
@@ -1426,7 +1426,7 @@ Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Checking for DPAPI RPC Master Keys"
 Write-Host "Use the Mimikatz 'dpapi::masterkey' module with appropriate arguments (/rpc) to decrypt"
-Write-Host "https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#dpapi" -ForegroundColor Yellow
+Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#dpapi" -ForegroundColor Yellow
 
 $appdataRoaming = "C:\Users\$env:USERNAME\AppData\Roaming\Microsoft\"
 $appdataLocal = "C:\Users\$env:USERNAME\AppData\Local\Microsoft\"
@@ -1449,7 +1449,7 @@ if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Checking for DPAPI Cred Master Keys"
 Write-Host "Use the Mimikatz 'dpapi::cred' module with appropriate /masterkey to decrypt" 
 Write-Host "You can also extract many DPAPI masterkeys from memory with the Mimikatz 'sekurlsa::dpapi' module" 
-Write-Host "https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#dpapi" -ForegroundColor Yellow
+Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#dpapi" -ForegroundColor Yellow
 
 if ( Test-Path "$appdataRoaming\Credentials\") {
   Get-ChildItem -Path "$appdataRoaming\Credentials\" -Force

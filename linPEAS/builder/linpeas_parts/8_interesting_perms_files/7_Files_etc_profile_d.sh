@@ -15,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Files (scripts) in /etc/profile.d/"
-  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#profiles-files"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#profiles-files"
   if [ ! "$MACPEAS" ] && ! [ "$IAMROOT" ]; then #Those folders don´t exist on a MacOS
     (ls -la /etc/profile.d/ 2>/dev/null | sed -${E} "s,$profiledG,${SED_GREEN},") || echo_not_found "/etc/profile.d/"
     check_critial_root_path "/etc/profile"

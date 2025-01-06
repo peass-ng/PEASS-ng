@@ -1458,7 +1458,7 @@ search:
         config:
           auto_check: True
           exec:
-            - ipa_exists="$(command -v ipa)"; if [ "$ipa_exists" ]; then print_info "https://book.hacktricks.xyz/linux-hardening/freeipa-pentesting"; fi
+            - ipa_exists="$(command -v ipa)"; if [ "$ipa_exists" ]; then print_info "https://book.hacktricks.wiki/en/linux-hardening/freeipa-pentesting.html"; fi
         
         files:
           - name: "ipa"

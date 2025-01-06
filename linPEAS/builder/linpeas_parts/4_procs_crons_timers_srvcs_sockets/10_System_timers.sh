@@ -15,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "System timers"
-  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#timers"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#timers"
   (systemctl list-timers --all 2>/dev/null | grep -Ev "(^$|timers listed)" | sed -${E} "s,$timersG,${SED_GREEN},") || echo_not_found
   echo ""
 fi

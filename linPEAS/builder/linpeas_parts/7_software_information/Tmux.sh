@@ -18,7 +18,7 @@ tmuxnondefsess=$(ps auxwww | grep "tmux " | grep -v grep)
 tmuxsess2=$(find /tmp -type d -path "/tmp/tmux-*" 2>/dev/null)
 if ([ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ] || [ "$tmuxsess2" ] || [ "$DEBUG" ]) && ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Searching tmux sessions"$N
-  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#open-shell-sessions"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#open-shell-sessions"
   tmux -V
   printf "$tmuxdefsess\n$tmuxnondefsess\n$tmuxsess2" | sed -${E} "s,.*,${SED_RED}," | sed -${E} "s,no server running on.*,${C}[32m&${C}[0m,"
 

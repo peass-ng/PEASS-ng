@@ -13,7 +13,7 @@
 # Small linpeas: 1
 
 
-printf "${YELLOW}Learn and practice cloud hacking techniques in ${BLUE}training.hacktricks.xyz\n"$NC
+printf "${YELLOW}Learn and practice cloud hacking techniques in ${BLUE}training.hacktricks.wiki\n"$NC
 echo ""
 
 print_list "GCP Virtual Machine? ................. $is_gcp_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"

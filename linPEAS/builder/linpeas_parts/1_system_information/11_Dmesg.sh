@@ -15,7 +15,7 @@
 
 if [ "$(command -v dmesg 2>/dev/null || echo -n '')" ] || [ "$DEBUG" ]; then
     print_2title "Searching Signature verification failed in dmesg"
-    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#dmesg-signature-verification-failed"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#dmesg-signature-verification-failed"
     (dmesg 2>/dev/null | grep "signature") || echo_not_found "dmesg"
     echo ""
 fi

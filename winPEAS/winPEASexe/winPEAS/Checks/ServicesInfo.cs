@@ -42,7 +42,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Interesting Services -non Microsoft-");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#services", "Check if you can overwrite some service binary or perform a DLL hijacking, also check for unquoted paths");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services", "Check if you can overwrite some service binary or perform a DLL hijacking, also check for unquoted paths");
 
                 List<Dictionary<string, string>> services_info = ServicesInfoHelper.GetNonstandardServices();
 
@@ -121,7 +121,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Modifiable Services");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#services", "Check if you can modify any service");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services", "Check if you can modify any service");
                 if (modifiableServices.Count > 0)
                 {
                     Beaprint.BadPrint("    LOOKS LIKE YOU CAN MODIFY OR START/STOP SOME SERVICE/s:");
@@ -158,7 +158,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Looking if you can modify any service registry");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#services-registry-permissions", "Check if you can modify the registry of a service");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services-registry-modify-permissions", "Check if you can modify the registry of a service");
                 List<Dictionary<string, string>> regPerms = ServicesInfoHelper.GetWriteServiceRegs(Checks.CurrentUserSiDs);
 
                 Dictionary<string, string> colorsWR = new Dictionary<string, string>()
@@ -186,7 +186,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Checking write permissions in PATH folders (DLL Hijacking)");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#dll-hijacking", "Check for DLL Hijacking in PATH folders");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#dll-hijacking", "Check for DLL Hijacking in PATH folders");
                 Dictionary<string, string> path_dllhijacking = ServicesInfoHelper.GetPathDLLHijacking();
                 foreach (KeyValuePair<string, string> entry in path_dllhijacking)
                 {

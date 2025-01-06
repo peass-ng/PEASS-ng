@@ -15,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title ".sh files in path"
-  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#script-binaries-in-path"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#scriptbinaries-in-path"
   echo $PATH | tr ":" "\n" | while read d; do
     for f in $(find "$d" -name "*.sh" -o -name "*.sh.*" 2>/dev/null); do
       if ! [ "$IAMROOT" ] && [ -O "$f" ]; then

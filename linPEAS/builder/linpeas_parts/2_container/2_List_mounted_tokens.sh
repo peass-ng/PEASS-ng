@@ -15,7 +15,7 @@
 
 if [ "$(mount | sed -n '/secret/ s/^tmpfs on \(.*default.*\) type tmpfs.*$/\1\/namespace/p')" ]; then
   print_2title "Listing mounted tokens"
-  print_info "https://book.hacktricks.xyz/cloud-security/pentesting-kubernetes/attacking-kubernetes-from-inside-a-pod"
+  print_info "https://cloud.hacktricks.wiki/en/pentesting-cloud/kubernetes-security/attacking-kubernetes-from-inside-a-pod.html"
   ALREADY_TOKENS="IinItialVaaluE"
   for i in $(mount | sed -n '/secret/ s/^tmpfs on \(.*default.*\) type tmpfs.*$/\1\/namespace/p'); do
       TEMP_TOKEN=$(cat $(echo $i | sed 's/.namespace$/\/token/'))

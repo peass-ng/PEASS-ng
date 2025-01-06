@@ -15,7 +15,7 @@
 
 if [ "$MACPEAS" ];then
   print_2title "Keychains"
-  print_info "https://book.hacktricks.xyz/macos/macos-security-and-privilege-escalation#chainbreaker"
+  print_info "https://book.hacktricks.wiki/en/macos-hardening/macos-security-and-privilege-escalation/macos-files-folders-and-binaries/macos-sensitive-locations.html#chainbreaker"
   security list-keychains
   echo ""
 fi

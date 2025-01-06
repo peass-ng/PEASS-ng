@@ -15,7 +15,7 @@
 
 print_2title "Sudo version"
 if [ "$(command -v sudo 2>/dev/null || echo -n '')" ]; then
-print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sudo-version"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sudo-version"
 sudo -V 2>/dev/null | grep "Sudo ver" | sed -${E} "s,$sudovB,${SED_RED},"
 else echo_not_found "sudo"
 fi

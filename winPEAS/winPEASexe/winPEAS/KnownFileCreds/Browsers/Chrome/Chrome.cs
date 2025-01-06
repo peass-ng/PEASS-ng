@@ -27,7 +27,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
             try
             {
                 Beaprint.MainPrint("Looking for Chrome DBs");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#browsers-history");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#browsers-history");
                 Dictionary<string, string> chromeDBs = GetChromeDbs();
 
                 if (chromeDBs.ContainsKey("userChromeCookiesPath"))
@@ -59,7 +59,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
             try
             {
                 Beaprint.MainPrint("Looking for GET credentials in Chrome history");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#browsers-history");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#browsers-history");
                 Dictionary<string, List<string>> chromeHistBook = GetChromeHistBook();
                 List<string> history = chromeHistBook["history"];
                 List<string> bookmarks = chromeHistBook["bookmarks"];

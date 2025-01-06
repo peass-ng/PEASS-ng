@@ -17,7 +17,7 @@
 if ! [ "$IAMROOT" ]; then
   if ! [ "$SEARCH_IN_FOLDER" ]; then
     print_2title "Unix Sockets Listening"
-    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sockets"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sockets"
     # Search sockets using netstat and ss
     unix_scks_list=$(ss -xlp -H state listening 2>/dev/null | grep -Eo "/.* " | cut -d " " -f1)
     if ! [ "$unix_scks_list" ];then

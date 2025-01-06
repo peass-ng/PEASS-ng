@@ -17,7 +17,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   containerd=$(command -v ctr || echo -n '')
   if [ "$containerd" ] || [ "$DEBUG" ]; then
     print_2title "Checking if containerd(ctr) is available"
-    print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation/containerd-ctr-privilege-escalation"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#containerd-ctr-privilege-escalation"
     if [ "$containerd" ]; then
       echo "ctr was found in $containerd, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"
       ctr image list 2>&1

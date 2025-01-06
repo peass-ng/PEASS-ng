@@ -48,7 +48,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Checking Windows Vault");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#credentials-manager-windows-vault");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#credentials-manager--windows-vault");
                 var vaultCreds = VaultCli.DumpVault();
 
                 var colorsC = new Dictionary<string, string>()
@@ -68,7 +68,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Checking Credential manager");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#credentials-manager-windows-vault");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#credentials-manager--windows-vault");
 
                 var colorsC = new Dictionary<string, string>()
                 {
@@ -153,7 +153,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Checking for DPAPI Master Keys");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#dpapi");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#dpapi");
                 var masterKeys = KnownFileCredsInfo.ListMasterKeys();
 
                 if (masterKeys.Count != 0)
@@ -181,7 +181,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Checking for DPAPI Credential Files");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#dpapi");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#dpapi");
                 var credFiles = KnownFileCredsInfo.GetCredFiles();
                 Beaprint.DictPrint(credFiles, false);
 
@@ -201,7 +201,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Checking for RDCMan Settings Files");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#remote-desktop-credential-manager",
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#remote-desktop-credential-manager",
                     "Dump credentials from Remote Desktop Connection Manager");
                 var rdcFiles = RemoteDesktop.GetRDCManFiles();
                 Beaprint.DictPrint(rdcFiles, false);
@@ -222,7 +222,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Looking for Kerberos tickets");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/pentesting/pentesting-kerberos-88");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-kerberos-88/index.html");
                 var kerberosTickets = Kerberos.ListKerberosTickets();
 
                 Beaprint.DictPrint(kerberosTickets, false);
@@ -307,7 +307,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Looking AppCmd.exe");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#appcmd.exe");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#appcmdexe");
 
                 var appCmdPath = Environment.ExpandEnvironmentVariables(@"%systemroot%\system32\inetsrv\appcmd.exe");
 
@@ -368,7 +368,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Looking SSClient.exe");
-                Beaprint.LinkPrint("https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#scclient-sccm");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#scclient--sccm");
 
                 if (File.Exists(Environment.ExpandEnvironmentVariables(@"%systemroot%\Windows\CCM\SCClient.exe")))
                 {

@@ -15,7 +15,7 @@
 
 if [ "$PSTORAGE_KCPASSWORD" ] || [ "$DEBUG" ]; then
   print_2title "Analyzing kcpassword files"
-  print_info "https://book.hacktricks.xyz/macos/macos-security-and-privilege-escalation#kcpassword"
+  print_info "https://book.hacktricks.wiki/en/macos-hardening/macos-security-and-privilege-escalation/macos-files-folders-and-binaries/macos-sensitive-locations.html#kcpassword"
   printf "%s\n" "$PSTORAGE_KCPASSWORD" | while read f; do
     echo "$f" | sed -${E} "s,.*,${SED_RED},"
     base64 "$f" 2>/dev/null | sed -${E} "s,.*,${SED_RED},"

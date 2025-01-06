@@ -15,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "D-Bus Service Objects list"
-  print_info "https://book.hacktricks.xyz/linux-hardening/privilege-escalation#d-bus"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#d-bus"
   dbuslist=$(busctl list 2>/dev/null)
   if [ "$dbuslist" ]; then
     busctl list | while read l; do
