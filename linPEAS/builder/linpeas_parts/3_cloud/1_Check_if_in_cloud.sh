@@ -7,7 +7,7 @@
 # Version: 1.0
 # Functions Used: check_aws_codebuild, check_aws_ec2, check_aws_ecs, check_aws_lambda, check_az_app, check_az_vm, check_az_automation_acc, check_do, check_gcp, check_ibm_vm, check_tencent_cvm, print_list
 # Global Variables: $is_aws_codebuild, $is_aws_ecs, $is_aws_ec2, , $is_aws_lambda, $is_az_app, $is_az_automation_acc, $is_az_vm, $is_do, $is_gcp_vm, $is_gcp_function, $is_ibm_vm, $is_aws_ec2_beanstalk, $is_aliyun_ecs, $is_tencent_cvm
-# Initial Functions: check_gcp, check_aws_ecs, check_aws_ec2, check_aws_lambda, check_aws_codebuild, check_do, check_ibm_vm, check_az_vm, check_az_app, check_aliyun_ecs, check_tencent_cvm
+# Initial Functions: check_gcp, check_aws_ecs, check_aws_ec2, check_aws_lambda, check_aws_codebuild, check_do, check_ibm_vm, check_az_vm, check_az_app, check_az_automation_acc, check_aliyun_ecs, check_tencent_cvm
 # Generated Global Variables:
 # Fat linpeas: 0
 # Small linpeas: 1
