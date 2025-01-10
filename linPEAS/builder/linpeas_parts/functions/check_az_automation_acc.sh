@@ -1,5 +1,5 @@
-# Title: Cloud - check_az_app
-# ID: check_az_app
+# Title: Cloud - check_az_automation_acc
+# ID: check_az_automation_acc
 # Author: Carlos Polop
 # Last Update: 22-08-2023
 # Description: Check if the script is running in Azure App Service
