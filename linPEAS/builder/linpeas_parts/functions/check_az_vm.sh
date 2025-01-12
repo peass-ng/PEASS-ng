@@ -8,7 +8,7 @@
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $is_az_vm
+# Generated Global Variables: $is_az_vm, $meta_response
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -27,15 +27,15 @@ check_az_vm(){
   else
     # 3. Try querying the Azure Metadata Service for more wide support (e.g. Azure Container Registry tasks need this)
     if command -v curl &> /dev/null; then
-      response=$(curl -s --max-time 2 \
+      meta_response=$(curl -s --max-time 2 \
         "http://169.254.169.254/metadata/identity/oauth2/token")
-      if echo "$response" | grep -q "Missing"; then
+      if echo "$meta_response" | grep -q "Missing"; then
         is_az_vm="Yes"
       fi
     elif command -v wget &> /dev/null; then
-      response=$(wget -qO- --timeout=2 \
+      meta_response=$(wget -qO- --timeout=2 \
         "http://169.254.169.254/metadata/identity/oauth2/token")
-      if echo "$response" | grep -q "Missing"; then
+      if echo "$meta_response" | grep -q "Missing"; then
         is_az_vm="Yes"
       fi
     fi
