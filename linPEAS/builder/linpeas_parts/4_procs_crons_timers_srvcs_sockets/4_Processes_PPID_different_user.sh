@@ -28,7 +28,7 @@ if ! [ "$SEARCH_IN_FOLDER" ] && ! [ "$NOUSEPS" ]; then
       continue
     fi
     ppid_user=$(get_user_by_pid "$ppid")
-    if echo "$user" | grep -Eqv "$ppid_user|root$"; then
+    if echo "$ppid_user" | grep -Eqv "$user|root$"; then
       echo "Proc $pid with ppid $ppid is run by user $user but the ppid user is $ppid_user" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed "s,root,${SED_RED},"
     fi
   done
