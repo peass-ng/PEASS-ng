@@ -21,6 +21,7 @@ namespace winPEAS.Checks
             {
                new AWSInfo(),
                new AzureInfo(),
+               new AzureCliInfo(),
                new GCPInfo(),
                new GCPJoinedInfo(),
                new GCDSInfo(),
@@ -57,36 +58,31 @@ namespace winPEAS.Checks
 
                             foreach (var endpointData in endpointDataList)
                             {
-                                var colors = new Dictionary<string, string>
-                                {
-                                    { endpointData.EndpointName, Beaprint.GRAY }
-                                };
+                                string msgcolor = Beaprint.NOCOLOR;
 
                                 string message;
                                 if (!string.IsNullOrEmpty(endpointData.Data))
                                 {
                                     message = endpointData.Data;
                                     // if it is a JSON data, add additional newline so it's displayed on a separate line
-                                    if (message.StartsWith("{"))
+                                    if (message.StartsWith("{") || message.StartsWith("["))
                                     {
                                         message = $"\n{message}\n";
                                     }
 
                                     if (endpointData.IsAttackVector)
                                     {
-                                        colors.Add(message, Beaprint.ansi_color_bad);
-                                    }
-                                    else
-                                    {
-                                        colors.Add(message, Beaprint.ansi_color_gray);
+                                        msgcolor = Beaprint.ansi_color_bad;
                                     }
                                 }
                                 else
                                 {
                                     message = "No data received from the metadata endpoint";
+                                    msgcolor = Beaprint.ansi_color_gray;
                                 }
 
-                                Beaprint.ColorPrint($"{endpointData.EndpointName,-30}{message}", Beaprint.ansi_color_gray);
+                                Beaprint.ColorPrint($"{endpointData.EndpointName,-30}", Beaprint.ansi_users_active);
+                                Beaprint.ColorPrint(message, msgcolor);
                             }
 
                             Beaprint.GrayPrint("");
