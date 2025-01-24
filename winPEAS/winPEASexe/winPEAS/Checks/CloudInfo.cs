@@ -21,7 +21,7 @@ namespace winPEAS.Checks
             {
                new AWSInfo(),
                new AzureInfo(),
-               new AzureCliInfo(),
+               new AzureTokensInfo(),
                new GCPInfo(),
                new GCPJoinedInfo(),
                new GCDSInfo(),

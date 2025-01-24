@@ -19,21 +19,33 @@ using System.Text.Json.Nodes;
 
 namespace winPEAS.Info.CloudInfo
 {
-    internal class AzureCliInfo : CloudInfoBase
+    internal class AzureTokensInfo : CloudInfoBase
     {
-        public override string Name => "Azure Cli";
+        public override string Name => "Azure Tokens";
 
-        public override bool IsCloud => CheckIfAzureCliInstalled();
+        public override bool IsCloud => CheckIfAzureTokensInstalled();
 
         private Dictionary<string, List<EndpointData>> _endpointData = null;
 
-        public static bool CheckIfAzureCliInstalled()
+        public static bool CheckIfAzureTokensInstalled()
         {
             string homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             string AzureFolderPath = Path.Combine(homeDirectory, ".Azure");
             string azureFolderPath = Path.Combine(homeDirectory, ".azure");
 
-            return Directory.Exists(AzureFolderPath) || Directory.Exists(azureFolderPath);
+            string identityCachePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Microsoft",
+                "IdentityCache"
+            );
+
+            string tokenBrokerPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Microsoft",
+                "TokenBroker"
+            );
+
+            return Directory.Exists(AzureFolderPath) || Directory.Exists(azureFolderPath) || Directory.Exists(identityCachePath) || Directory.Exists(tokenBrokerPath);
         }
 
         public static string TBRESDecryptedData(string filePath)
@@ -79,31 +91,35 @@ namespace winPEAS.Info.CloudInfo
                 azureHomePath = AzureFolderPath;
             };
 
-            // Files that doesn't need decryption
-            string[] fileNames = {
+            if (Directory.Exists(azureHomePath))
+            {
+
+                // Files that doesn't need decryption
+                string[] fileNames = {
                 @"azureProfile.json",
                 @"clouds.config",
                 @"service_principal_entries.json",
                 @"msal_token_cache.json"
             };
 
-            foreach (string fileName in fileNames)
-            {
-                string filePath = Path.Combine(azureHomePath, fileName);
-                // Check if the file exists
-                if (File.Exists(filePath))
+                foreach (string fileName in fileNames)
                 {
-                    try
+                    string filePath = Path.Combine(azureHomePath, fileName);
+                    // Check if the file exists
+                    if (File.Exists(filePath))
                     {
-                        // Read the file content
-                        string fileContent = File.ReadAllText(filePath);
+                        try
+                        {
+                            // Read the file content
+                            string fileContent = File.ReadAllText(filePath);
 
-                        // Add the file path and content to the dictionary
-                        AzureCliValues[filePath] = fileContent;
-                    }
-                    catch (Exception ex)
-                    {
-                        Beaprint.PrintException($"Error reading file '{filePath}': {ex.Message}");
+                            // Add the file path and content to the dictionary
+                            AzureCliValues[filePath] = fileContent;
+                        }
+                        catch (Exception ex)
+                        {
+                            Beaprint.PrintException($"Error reading file '{filePath}': {ex.Message}");
+                        }
                     }
                 }
             }
@@ -134,14 +150,7 @@ namespace winPEAS.Info.CloudInfo
             {
                 Beaprint.PrintException($"An error occurred while scanning the identityCache directory: {ex.Message}");
             }
-
-
-            // Get the IdentityCache directory path and encrypted files with tokens
-            string tokenBrokerPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Microsoft",
-                "TokenBroker"
-            );
+            
 
             // Files that need decryption
             string[] fileNamesEncrp = {
@@ -189,6 +198,11 @@ namespace winPEAS.Info.CloudInfo
 
 
             //TBRES files
+            string tokenBrokerPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Microsoft",
+                "TokenBroker"
+            );
 
             string[] tbFiles = { };
 

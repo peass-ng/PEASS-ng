@@ -1226,7 +1226,7 @@
     <Compile Include="Info\CloudInfo\AWSInfo.cs" />
     <Compile Include="Info\CloudInfo\AzureInfo.cs" />
     <Compile Include="Info\CloudInfo\EndpointData.cs" />
-    <Compile Include="Info\CloudInfo\AzureCliInfo.cs" />
+    <Compile Include="Info\CloudInfo\AzureTokensInfo.cs" />
     <Compile Include="Info\CloudInfo\GPSInfo.cs" />
     <Compile Include="Info\CloudInfo\GCDSInfo.cs" />
     <Compile Include="Info\CloudInfo\GWorkspaceInfo.cs" />
