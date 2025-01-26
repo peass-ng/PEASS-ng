@@ -1271,6 +1271,8 @@ search:
     value:
         config:
           auto_check: True
+          exec:
+            - '(pwsh -Command "Save-AzContext -Path /tmp/az-context3489ht.json" && cat /tmp/az-context3489ht.json && rm /tmp/az-context3489ht.json) || echo_not_found "pwsh"'
 
         files:
           #- name: "credentials"
@@ -1379,13 +1381,54 @@ search:
                   - common
 
           - name: "AzureRMContext.json"
+            value:
+                bad_regex: "Id.*|Credential.*"
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "clouds.config"
+            value: 
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "service_principal_entries.json"
             value: 
                 bad_regex: ".*"
                 type: f
                 search_in: 
                   - common
           
-          - name: "ErrorRecords" #Azure logs can contain creentials
+          - name: "msal_token_cache.json"
+            value: 
+                bad_regex: ".*"
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "msal_http_cache.bin"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "service_principal_entries.bin"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "msal_token_cache.bin"
+            value: 
+                just_list_file: True
+                type: f
+                search_in: 
+                  - common
+          
+          - name: "ErrorRecords" #Azure logs can contain crentials
             value: 
                 type: d
                 search_in: 
