@@ -188,6 +188,9 @@ if [ $? -ne 0 ] ; then
 	fi
 fi
 
+# on macOS the built-in echo does not support -n, use /bin/echo instead
+if [ "$MACPEAS" ] ; then alias echo=/bin/echo ; fi
+
 print_title(){
   if [ "$DEBUG" ]; then
     END_T1_TIME=$(date +%s 2>/dev/null)
