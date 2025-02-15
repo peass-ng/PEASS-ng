@@ -19,4 +19,7 @@ check_az_app(){
   if [ -d "/opt/microsoft" ] && env | grep -iq "azure"; then
     is_az_app="Yes"
   fi
+  if [ -n "$IDENTITY_ENDPOINT" ] && echo "$IDENTITY_ENDPOINT" | grep -q "/token" && [ -n "$IDENTITY_HEADER" ]; then
+    is_az_app="Yes"
+  fi
 }
