@@ -26,7 +26,7 @@ print_list "AWS Codebuild? ....................... $is_aws_codebuild\n"$NC | sed
 print_list "DO Droplet? .......................... $is_do\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 print_list "IBM Cloud VM? ........................ $is_ibm_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 print_list "Azure VM or Az metadata? ............. $is_az_vm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
-print_list "Azure APP? ........................... $is_az_app\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
+print_list "Azure APP or IDENTITY_ENDPOINT? ...... $is_az_app\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 print_list "Azure Automation Account? ............ $is_az_automation_acc\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 print_list "Aliyun ECS? .......................... $is_aliyun_ecs\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
 print_list "Tencent CVM? ......................... $is_tencent_cvm\n"$NC | sed "s,Yes,${SED_RED}," | sed "s,No,${SED_GREEN},"
