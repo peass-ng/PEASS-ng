@@ -12,10 +12,10 @@ namespace winPEAS.Checks
 
             Dictionary<string, string> colorsTraining = new Dictionary<string, string>()
                 {
-                    { "training.hacktricks.wiki", Beaprint.ansi_color_good },
+                    { "training.hacktricks.xyz", Beaprint.ansi_color_good },
                     { "Learn & practice cloud hacking in", Beaprint.ansi_color_yellow },
                 };
-            Beaprint.AnsiPrint("Learn and practice cloud hacking in training.hacktricks.wiki", colorsTraining);
+            Beaprint.AnsiPrint("Learn and practice cloud hacking in training.hacktricks.xyz", colorsTraining);
 
             var cloudInfoList = new List<CloudInfoBase>
             {

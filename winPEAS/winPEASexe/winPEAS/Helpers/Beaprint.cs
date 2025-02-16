@@ -81,7 +81,7 @@ namespace winPEAS.Helpers
        /---------------------------------------------------------------------------------\
        |                             {1}Do you like PEASS?{0}                                  |
        |---------------------------------------------------------------------------------| 
-       |         {3}Learn Cloud Hacking{0}       :     {2}training.hacktricks.wiki{0}                 |
+       |         {3}Learn Cloud Hacking{0}       :     {2}training.hacktricks.xyz {0}                 |
        |         {3}Follow on Twitter{0}         :     {2}@hacktricks_live{0}                        |
        |         {3}Respect on HTB{0}            :     {2}SirBroccoli            {0}                 |
        |---------------------------------------------------------------------------------|
