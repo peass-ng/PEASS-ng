@@ -28,7 +28,7 @@ if [ "$is_ibm_vm" = "Yes" ]; then
     if [ "$(command -v curl || echo -n '')" ]; then
         ibm_req="curl -s -f -L -H '$TOKEN_HEADER' -H '$ACCEPT_HEADER'"
     elif [ "$(command -v wget || echo -n '')" ]; then
-        ibm_req="wget -q -O - -H '$TOKEN_HEADER' -H '$ACCEPT_HEADER'"
+        ibm_req="wget -q -O - --header '$TOKEN_HEADER' -H '$ACCEPT_HEADER'"
     else 
         echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
     fi

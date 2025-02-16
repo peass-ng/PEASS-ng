@@ -23,7 +23,7 @@ if [ "$is_aws_ec2" = "Yes" ]; then
     if [ "$(command -v curl || echo -n '')" ]; then
         aws_req="curl -s -f -L -H '$HEADER'"
     elif [ "$(command -v wget || echo -n '')" ]; then
-        aws_req="wget -q -O - -H '$HEADER'"
+        aws_req="wget -q -O - --header '$HEADER'"
     else 
         echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
     fi

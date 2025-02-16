@@ -24,7 +24,7 @@ if [ "$is_az_vm" = "Yes" ]; then
   if [ "$(command -v curl || echo -n '')" ]; then
       az_req="curl -s -f -L -H '$HEADER'"
   elif [ "$(command -v wget || echo -n '')" ]; then
-      az_req="wget -q -O - -H '$HEADER'"
+      az_req="wget -q -O - --header '$HEADER'"
   else 
       echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
   fi
