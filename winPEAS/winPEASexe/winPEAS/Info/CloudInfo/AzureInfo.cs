@@ -54,10 +54,10 @@ namespace winPEAS.Info.CloudInfo
                                                   Environment.GetEnvironmentVariable("IDENTITY_ENDPOINT");
                         endpoints = new List<Tuple<string, string, bool>>()
                         {
-                            new Tuple<string, string, bool>("Management token", $"identity/oauth2/token?api-version={CONTAINER_API_VERSION}&resource=https://management.azure.com/", true),
-                            new Tuple<string, string, bool>("Graph token", $"identity/oauth2/token?api-version={CONTAINER_API_VERSION}&resource=https://graph.microsoft.com/", true),
-                            new Tuple<string, string, bool>("Vault token", $"identity/oauth2/token?api-version={CONTAINER_API_VERSION}&resource=https://vault.azure.net/", true),
-                            new Tuple<string, string, bool>("Storage token", $"identity/oauth2/token?api-version={CONTAINER_API_VERSION}&resource=https://storage.azure.com/", true)
+                            new Tuple<string, string, bool>("Management token", $"?api-version={CONTAINER_API_VERSION}&resource=https://management.azure.com/", true),
+                            new Tuple<string, string, bool>("Graph token", $"?api-version={CONTAINER_API_VERSION}&resource=https://graph.microsoft.com/", true),
+                            new Tuple<string, string, bool>("Vault token", $"?api-version={CONTAINER_API_VERSION}&resource=https://vault.azure.net/", true),
+                            new Tuple<string, string, bool>("Storage token", $"?api-version={CONTAINER_API_VERSION}&resource=https://storage.azure.com/", true)
                         };
 
                         foreach (var tuple in endpoints)
