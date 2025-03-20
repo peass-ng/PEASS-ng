@@ -144,7 +144,12 @@ def parse_line(line: str):
         })
 
 
-def main():
+def parse_peass(outputpath: str, jsonpath: str = ""):
+    global OUTPUT_PATH, JSON_PATH
+
+    OUTPUT_PATH = outputpath
+    JSON_PATH = jsonpath
+
     for line in open(OUTPUT_PATH, 'r', encoding="utf8").readlines():
         line = line.strip()
         if not line or not clean_colors(line): #Remove empty lines or lines just with colors hex
@@ -152,17 +157,21 @@ def main():
 
         parse_line(line)
 
-    with open(JSON_PATH, "w") as f:
-        json.dump(FINAL_JSON, f)
+    if JSON_PATH:
+        with open(JSON_PATH, "w") as f:
+            json.dump(FINAL_JSON, f)
+    
+    else:
+        return FINAL_JSON
 
 
 # Start execution
 if __name__ == "__main__":
     try:
-        OUTPUT_PATH = sys.argv[1]
-        JSON_PATH = sys.argv[2]
+        outputpath = sys.argv[1]
+        jsonpath = sys.argv[2]
+        parse_peass(outputpath, jsonpath)
     except IndexError as err:
         print("Error: Please pass the peas.out file and the path to save the json\npeas2json.py <output_file> <json_file.json>")
         sys.exit(1)
     
-    main()

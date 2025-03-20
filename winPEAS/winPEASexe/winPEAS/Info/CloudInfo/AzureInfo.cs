@@ -28,7 +28,20 @@ namespace winPEAS.Info.CloudInfo
         const string API_VERSION = "2021-12-13";
         const string CONTAINER_API_VERSION = "2019-08-01";
 
-        // **New helper method to detect if running inside an Azure container**
+        public static bool DoesProcessExist(string processName)
+        {
+            // Return false if the process name is null or empty
+            if (string.IsNullOrEmpty(processName))
+            {
+                return false;
+            }
+
+            // Retrieve all processes matching the specified name
+            Process[] processes = Process.GetProcessesByName(processName);
+            return processes.Length > 0;
+        }
+
+        // New helper method to detect if running inside an Azure container
         private bool IsContainer()
         {
             return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("IDENTITY_ENDPOINT")) ||
@@ -122,6 +135,22 @@ namespace winPEAS.Info.CloudInfo
                             });
                         }
                     }
+
+                    string hwsRun = DoesProcessExist("HybridWorkerService") ? "Yes" : "No";
+                    _endpointDataList.Add(new EndpointData()
+                    {
+                        EndpointName = "HybridWorkerService.exe Running",
+                        Data = hwsRun,
+                        IsAttackVector = true
+                    });
+
+                    string OSRun = DoesProcessExist("Orchestrator.Sandbox") ? "Yes" : "No";
+                    _endpointDataList.Add(new EndpointData()
+                    {
+                        EndpointName = "Orchestrator.Sandbox.exe Running",
+                        Data = OSRun,
+                        IsAttackVector = true
+                    });
 
                     _endpointData.Add("General", _endpointDataList);
                 }
