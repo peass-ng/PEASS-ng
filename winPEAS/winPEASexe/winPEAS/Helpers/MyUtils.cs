@@ -184,9 +184,17 @@ namespace winPEAS.Helpers
         //////////////////////
         public static List<string> ListFolder(String path)
         {
-            string root = @Path.GetPathRoot(Environment.SystemDirectory) + path;
-            var dirs = from dir in Directory.EnumerateDirectories(root) select dir;
-            return dirs.ToList();
+            try
+            {
+                string root = @Path.GetPathRoot(Environment.SystemDirectory) + path;
+                var dirs = from dir in Directory.EnumerateDirectories(root) select dir;
+                return dirs.ToList();
+            }
+            catch(Exception ex)
+            {
+                //Path can't be accessed
+                return new List<string>();
+            }
         }
 
         internal static byte[] CombineArrays(byte[] first, byte[] second)
