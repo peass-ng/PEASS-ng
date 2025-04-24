@@ -37,9 +37,10 @@ Basic options:
   ----        ---------------                                                           --------  -----------
   PARAMETERS                                                                            no        Parameters to pass to the script
   PASSWORD    um1xipfws17nkw1bi1ma3bh7tzt4mo3e                                          no        Password to encrypt and obfuscate the script (randomly generated). The length must be 32B. If no password is set, only base64 will be used
-                                                                                                  .
-  PEASS_URL   https://raw.githubusercontent.com/peass-ng/PEASS-ng/master/winPEAS/wi  yes       Path to the PEASS script. Accepted: http(s):// URL or absolute local path. Linpeas: https://raw.githubusercontent.com/peass-ng/PEASS-ng
-              nPEASexe/binaries/Obfuscated%20Releases/winPEASany.exe                              /master/linPEAS/linpeas.sh
+
+  WINPEASS    true                                                                      yes       Use PEASS for Windows or PEASS for linux. Default is windows change to false for linux.
+  CUSTOM_URL                                                                            no        Path to the PEASS script. Accepted: http(s):// URL or absolute local path.
+                                            
   SESSION                                                                               yes       The session to run this module on.
   SRVHOST                                                                               no        Set your metasploit instance IP if you want to download the PEASS script from here via http(s) instead of uploading it.
   SRVPORT     443                                                                       no        Port to download the PEASS script from using http(s) (only used if SRVHOST)

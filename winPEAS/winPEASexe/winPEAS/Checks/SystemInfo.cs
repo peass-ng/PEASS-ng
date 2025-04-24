@@ -594,7 +594,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Checking KrbRelayUp");
-                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#krbrelayupp");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#krbrelayup");
 
                 if (Checks.CurrentAdDomainName.Length > 0)
                 {

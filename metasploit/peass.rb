@@ -37,7 +37,8 @@ class MetasploitModule < Msf::Post
     ))
     register_options(
       [
-        OptString.new('PEASS_URL', [true, 'Path to the PEASS script. Accepted: http(s):// URL or absolute local path. Linpeas: https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh', "https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASany_ofs.exe"]),
+        OptString.new('WINPEASS', [true, 'Which PEASS script to use. Use True for WinPeass and false for LinPEASS', true]),
+        OptString.new('CUSTOM_URL', [false, 'URL to download the PEASS script from (if not using the default one). Accepts http(s) or absolute path. Overrides the WINPEASS variable', '']),
         OptString.new('PASSWORD', [false, 'Password to encrypt and obfuscate the script (randomly generated). The length must be 32B. If no password is set, only base64 will be used.', rand(36**32).to_s(36)]),
         OptString.new('TEMP_DIR', [false, 'Path to upload the obfuscated PEASS script inside the compromised machine. By default "C:\Windows\System32\spool\drivers\color" is used in Windows and "/tmp" in Unix.', '']),
         OptString.new('PARAMETERS', [false, 'Parameters to pass to the script', nil]),
@@ -237,8 +238,14 @@ class MetasploitModule < Msf::Post
   def load_peass
     # Load the PEASS script from a local file or from Internet
     peass_script = ""
-    url_peass = datastore['PEASS_URL']
-    
+    url_peass = ""
+    # If no URL is set, use the default one
+    if datastore['CUSTOM_URL'] != ""
+      url_peass = datastore['CUSTOM_URL']
+    else
+      url_peass = datastore['WINPEASS'] ? "https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASany_ofs.exe" : "https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh"
+    end
+    # If URL is set, check if it is a valid URL or local file
     if url_peass.include?("http://") || url_peass.include?("https://")
       target = URI.parse url_peass
       raise 'Invalid URL' unless target.scheme =~ /https?/
