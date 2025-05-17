@@ -8,7 +8,7 @@
 # Functions Used: print_3title, print_info
 # Global Variables: $Wfolder
 # Initial Functions:
-# Generated Global Variables: $TOOL_NAME, $TOOL_LINK, $B64_BIN, $PARAMS
+# Generated Global Variables: $TOOL_NAME, $TOOL_LINK, $B64_BIN, $PARAMS, $TMP_BIN, $cmdpid, $watcher, $rc
 # Fat linpeas: 0
 # Small linpeas: 1
 
