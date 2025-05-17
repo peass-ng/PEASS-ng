@@ -31,14 +31,17 @@ execBin() {
 
   # ---------------- 120‑second wall‑clock timeout ----------------
   if command -v timeout >/dev/null 2>&1; then                 # GNU/BSD timeout
+      print_info "Running $TOOL_NAME with 120s timeout"
       timeout --preserve-status 120 "$TMP_BIN" $PARAMS
   elif command -v gtimeout >/dev/null 2>&1; then              # Homebrew coreutils (macOS)
+      print_info "Running $TOOL_NAME with 120s gtimeout"
       gtimeout --preserve-status 120 "$TMP_BIN" $PARAMS
   else                                                        # POSIX fall‑back
+      print_info "Running $TOOL_NAME with 120s custom timeout"
       (
         "$TMP_BIN" $PARAMS &                                  # run in background
         cmdpid=$!
-        ( sleep 120 && kill -0 "$cmdpid" 2>/dev/null && kill -TERM "$cmdpid" ) &
+        ( sleep 120 && kill -9 "$cmdpid" 2>/dev/null) &
         watcher=$!
         wait "$cmdpid"
         rc=$?
