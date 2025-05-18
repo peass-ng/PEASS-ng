@@ -16,14 +16,20 @@
 if [ "$is_aws_ec2" = "Yes" ]; then
     print_2title "AWS EC2 Enumeration"
     
-    HEADER="X-aws-ec2-metadata-token: "
+    TOKEN=""
+    TOKEN_HEADER="X-aws-ec2-metadata-token"
+    TOKEN_TTL="X-aws-ec2-metadata-token-ttl-seconds: 21600"
     URL="http://169.254.169.254/latest/meta-data"
     
     aws_req=""
     if [ "$(command -v curl || echo -n '')" ]; then
-        aws_req="curl -s -f -L -H '$HEADER'"
+        # Get token for IMDSv2
+        TOKEN=$(curl -s -f -X PUT "http://169.254.169.254/latest/api/token" -H "$TOKEN_TTL" 2>/dev/null)
+        aws_req="curl -s -f -L -H '$TOKEN_HEADER: $TOKEN'"
     elif [ "$(command -v wget || echo -n '')" ]; then
-        aws_req="wget -q -O - --header '$HEADER'"
+        # Get token for IMDSv2
+        TOKEN=$(wget -q -O - --method=PUT --header="$TOKEN_TTL" "http://169.254.169.254/latest/api/token" 2>/dev/null)
+        aws_req="wget -q -O - --header '$TOKEN_HEADER: $TOKEN'"
     else 
         echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
     fi
