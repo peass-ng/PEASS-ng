@@ -8,7 +8,7 @@
 # Functions Used: check_aws_ec2, exec_with_jq, print_2title, print_3title
 # Global Variables: $is_aws_ec2
 # Initial Functions: check_aws_ec2
-# Generated Global Variables: $aws_req, $HEADER, $URL, $mac, $role
+# Generated Global Variables: $aws_req, $HEADER, $URL, $mac, $role, $TOKEN, $TOKEN_HEADER, $TOKEN_TTL
 # Fat linpeas: 0
 # Small linpeas: 1
 
