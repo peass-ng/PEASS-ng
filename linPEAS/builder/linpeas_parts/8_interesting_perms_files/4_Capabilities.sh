@@ -11,6 +11,8 @@
 # Generated Global Variables: $cap_name, $cap_value, $cap_line, $capVB, $capname, $capbins, $capsVB_vuln
 # Fat linpeas: 0
 # Small linpeas: 1
+
+
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Capabilities"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#capabilities"
