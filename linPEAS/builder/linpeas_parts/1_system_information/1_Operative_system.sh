@@ -1,8 +1,28 @@
 # Title: System Information - Operative System
 # ID: SY_Operative_system
 # Author: Carlos Polop
-# Last Update: 22-08-2023
-# Description: Get Information about the Operative system
+# Last Update: 07-03-2024
+# Description: Check for operating system information relevant to privilege escalation:
+#   - OS version and distribution
+#   - Kernel version
+#   - Architecture
+#   - Common vulnerable scenarios:
+#     * Outdated OS versions
+#     * Unpatched systems
+#     * Known vulnerable distributions
+#     * Architecture-specific vulnerabilities
+#   - Exploitation methods:
+#     * Version-specific exploits: Use known exploits for the OS version
+#     * Common attack vectors:
+#       - OS version exploits
+#       - Distribution-specific vulnerabilities
+#       - Architecture-specific exploits
+#       - Kernel version exploits
+#     * Exploit techniques:
+#       - Version-specific payloads
+#       - Distribution-specific attacks
+#       - Architecture-specific techniques
+#       - Kernel exploitation
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: print_2title, print_info, warn_exec

@@ -1,8 +1,28 @@
 # Title: System Information - Disks
 # ID: SY_Disks
 # Author: Carlos Polop
-# Last Update: 22-08-2023
-# Description: Get Information about the disks
+# Last Update: 07-03-2024
+# Description: Check for disk information and misconfigurations that could lead to privilege escalation:
+#   - Available disks
+#   - Disk permissions
+#   - SMB shares
+#   - Common vulnerable scenarios:
+#     * Writable disks
+#     * Insecure SMB shares
+#     * Exposed disk devices
+#     * Shared storage
+#   - Exploitation methods:
+#     * Disk access abuse: Exploit disk misconfigurations
+#     * Common attack vectors:
+#       - Disk device modification
+#       - SMB share abuse
+#       - Storage device access
+#       - Shared disk exploitation
+#     * Exploit techniques:
+#       - Disk device manipulation
+#       - SMB share exploitation
+#       - Storage device abuse
+#       - Shared disk access
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: print_2title, warn_exec

@@ -1,8 +1,22 @@
 # Title: System Information - Sudo Version
 # ID: SY_Sudo_version
 # Author: Carlos Polop
-# Last Update: 22-08-2023
-# Description: Get Information about the Sudo Version
+# Last Update: 07-03-2024
+# Description: Check for sudo vulnerabilities and misconfigurations that could lead to privilege escalation:
+#   - Vulnerable sudo versions with known exploits
+#   - Common vulnerable versions and CVEs:
+#     * CVE-2021-3156 (Baron Samedit): Heap overflow in sudo
+#     * CVE-2021-23239: Potential privilege escalation
+#     * CVE-2021-23240: Potential privilege escalation
+#     * CVE-2021-23241: Potential privilege escalation
+#   - Exploitation methods:
+#     * Version exploits: Use known exploits for vulnerable sudo versions
+#     * Common targets: sudo < 1.9.5p2 (Baron Samedit)
+#     * Exploit techniques:
+#       - Heap overflow exploitation
+#       - Race conditions
+#       - Memory corruption
+#       - Command injection
 # License: GNU GPL
 # Version: 1.0 
 # Functions Used: echo_not_found, print_2title, print_info

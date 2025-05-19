@@ -1,8 +1,22 @@
 # Title: System Information - USBCreator
 # ID: SY_USBCreator
 # Author: Carlos Polop
-# Last Update: 22-08-2023
-# Description: Get Information about the USBCreator
+# Last Update: 07-03-2024
+# Description: Check for USBCreator vulnerabilities that could lead to privilege escalation:
+#   - Vulnerable policykit-desktop-privileges versions
+#   - Common vulnerable versions:
+#     * policykit-desktop-privileges < 0.21
+#   - Exploitation methods:
+#     * D-Bus command injection through USBCreator
+#     * Abuse of policykit privileges
+#     * Common attack vectors:
+#       - D-Bus method call injection
+#       - PolicyKit authentication bypass
+#       - Command execution through USB creation
+#     * Exploit techniques:
+#       - D-Bus method spoofing
+#       - PolicyKit privilege escalation
+#       - USB device creation abuse
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: print_2title, print_info

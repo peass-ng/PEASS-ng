@@ -1,8 +1,30 @@
-# Title: System Information - Kernel Extensions
+# Title: System Information - Protections
 # ID: SY_Protections
 # Author: Carlos Polop
-# Last Update: 22-08-2023
-# Description: Kernel Extensions
+# Last Update: 07-03-2024
+# Description: Check for system security protections and their bypass possibilities:
+#   - AppArmor/SELinux status and profiles
+#   - ASLR status
+#   - Seccomp filters
+#   - Capabilities
+#   - Common vulnerable scenarios:
+#     * Disabled security modules
+#     * Weak security profiles
+#     * Missing security features
+#     * Misconfigured protections
+#   - Exploitation methods:
+#     * Protection bypass: Circumvent security measures
+#     * Common attack vectors:
+#       - AppArmor/SELinux bypass
+#       - ASLR bypass
+#       - Seccomp filter bypass
+#       - Capability abuse
+#     * Exploit techniques:
+#       - Profile bypass
+#       - Memory randomization bypass
+#       - Filter bypass
+#       - Capability exploitation
+#       - Protection circumvention
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: echo_not_found, print_2title, print_list, warn_exec

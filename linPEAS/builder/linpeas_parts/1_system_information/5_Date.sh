@@ -1,8 +1,28 @@
 # Title: System Information - Date
 # ID: SY_Date
 # Author: Carlos Polop
-# Last Update: 22-08-2023
-# Description: Get Information about the Date
+# Last Update: 07-03-2024
+# Description: Check for system date and uptime information relevant to privilege escalation:
+#   - System uptime
+#   - Last boot time
+#   - System time
+#   - Common vulnerable scenarios:
+#     * Long uptime (unpatched systems)
+#     * Time-based vulnerabilities
+#     * Scheduled tasks timing
+#     * Cron job timing
+#   - Exploitation methods:
+#     * Timing attacks: Abuse time-based vulnerabilities
+#     * Common attack vectors:
+#       - Race conditions
+#       - Time-of-check to time-of-use (TOCTOU)
+#       - Scheduled task abuse
+#       - Cron job timing
+#     * Exploit techniques:
+#       - Race condition exploitation
+#       - TOCTOU attacks
+#       - Scheduled task manipulation
+#       - Cron job abuse
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: print_2title, warn_exec

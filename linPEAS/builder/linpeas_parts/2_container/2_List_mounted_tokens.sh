@@ -30,3 +30,4 @@ if [ "$(mount | sed -n '/secret/ s/^tmpfs on \(.*default.*\) type tmpfs.*$/\1\/n
       fi
   done
 fi
+

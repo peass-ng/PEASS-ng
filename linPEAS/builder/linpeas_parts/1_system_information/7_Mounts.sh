@@ -1,8 +1,28 @@
 # Title: System Information - Mounts
 # ID: SY_Mounts
 # Author: Carlos Polop
-# Last Update: 22-08-2023
-# Description: Get Information about the mounts
+# Last Update: 07-03-2024
+# Description: Check for mount point misconfigurations that could lead to privilege escalation:
+#   - Unmounted filesystems
+#   - Mount point permissions
+#   - Mount options
+#   - Common vulnerable scenarios:
+#     * Writable mount points
+#     * Insecure mount options
+#     * Unmounted sensitive filesystems
+#     * Shared mount points
+#   - Exploitation methods:
+#     * Mount point abuse: Exploit mount misconfigurations
+#     * Common attack vectors:
+#       - Mount point modification
+#       - Filesystem remounting
+#       - Mount option abuse
+#       - Shared mount exploitation
+#     * Exploit techniques:
+#       - Mount point manipulation
+#       - Filesystem remounting
+#       - Mount option exploitation
+#       - Shared mount abuse
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: print_2title, print_info

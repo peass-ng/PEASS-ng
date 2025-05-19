@@ -30,4 +30,28 @@ print_2title "Writable log files (logrotten) (limit 50)"
   done
 fi
 
+# Check syslog configuration
+print_2title "Syslog configuration (limit 50)"
+if [ -f "/etc/rsyslog.conf" ]; then
+    grep -v "^#" /etc/rsyslog.conf 2>/dev/null | sed -${E} "s,.*,${SED_RED},g" | head -n 50
+elif [ -f "/etc/syslog.conf" ]; then
+    grep -v "^#" /etc/syslog.conf 2>/dev/null | sed -${E} "s,.*,${SED_RED},g" | head -n 50
+else
+    echo_not_found "syslog configuration"
+fi
+
+
+# Check auditd configuration
+print_2title "Auditd configuration (limit 50)"
+if [ -f "/etc/audit/auditd.conf" ]; then
+    grep -v "^#" /etc/audit/auditd.conf 2>/dev/null | sed -${E} "s,.*,${SED_RED},g" | head -n 50
+else
+    echo_not_found "auditd configuration"
+fi
+
+# Check for log files with weak permissions
+print_2title "Log files with potentially weak perms (limit 50)"
+find /var/log -type f -ls 2>/dev/null | grep -Ev "root\s+root|root\s+systemd-journal|root\s+syslog|root\s+utmp" | sed -${E} "s,.*,${SED_RED},g" | head -n 50
+
+
 echo ""
