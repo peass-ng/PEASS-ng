@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -88,13 +88,14 @@ namespace winPEAS.Helpers
         {
             // Get interesting permissions in fSecurity (Only files and folders)
             List<string> results = new List<string>();
-            Dictionary<string, string> container = new Dictionary<string, string>();
+            var container = new Dictionary<string, Dictionary<string, string>>();
 
             foreach (FileSystemAccessRule rule in fSecurity.GetAccessRules(true, true, typeof(SecurityIdentifier)))
             {
                 //First, check if the rule to check is interesting
                 int current_perm = (int)rule.FileSystemRights;
                 string current_perm_str = PermInt2Str(current_perm, permissionType);
+
                 if (current_perm_str == "")
                 {
                     continue;
@@ -109,21 +110,40 @@ namespace winPEAS.Helpers
 
                         if (container.ContainsKey(SID_name))
                         {
-                            if (!container[SID_name].Contains(current_perm_str))
+                            if (container[SID_name].ContainsKey(rule.AccessControlType.ToString()))
                             {
-                                container[SID_name] += " " + current_perm_str;
+                                if (!container[SID_name][rule.AccessControlType.ToString()].Contains(current_perm_str))
+                                {
+                                    container[SID_name][rule.AccessControlType.ToString()] += " " + current_perm_str;
+                                }
+                            }
+                            else
+                            {
+                                container[SID_name][rule.AccessControlType.ToString()] = current_perm_str;
                             }
                         }
                         else
-                            container[SID_name] = current_perm_str;
-
-                        string to_add = string.Format("{0} [{1}]", SID_name, current_perm_str);
+                        {
+                            container[SID_name] = new Dictionary<string, string>();
+                            container[SID_name][rule.AccessControlType.ToString()] = current_perm_str;
+                        }
                     }
                 }
             }
-            foreach (KeyValuePair<string, string> SID_input in container)
+
+            foreach (var SID_input in container)
             {
-                string to_add = string.Format("{0} [{1}]", SID_input.Key, SID_input.Value);
+                string perms = "";
+
+                if (SID_input.Value.ContainsKey("Allow") && !string.IsNullOrEmpty(SID_input.Value["Allow"]))
+                {
+                    perms += string.Format(" [Allow: {0}]", SID_input.Value["Allow"]);
+                }
+                if (SID_input.Value.ContainsKey("Deny") && !string.IsNullOrEmpty(SID_input.Value["Deny"]))
+                {
+                    perms += string.Format(" [Deny: {0}]", SID_input.Value["Deny"]);
+                }
+                string to_add = string.Format("{0}{1}", SID_input.Key, perms);
                 results.Add(to_add);
             }
             return results;
@@ -133,7 +153,7 @@ namespace winPEAS.Helpers
         {
             // Get interesting permissions in rSecurity (Only Registry)
             List<string> results = new List<string>();
-            Dictionary<string, string> container = new Dictionary<string, string>();
+            var container = new Dictionary<string, Dictionary<string, string>>();
 
             try
             {
@@ -156,19 +176,39 @@ namespace winPEAS.Helpers
 
                             if (container.ContainsKey(SID_name))
                             {
-                                if (!container[SID_name].Contains(current_perm_str))
-                                    container[SID_name] += " " + current_perm_str;
+                                if (container[SID_name].ContainsKey(rule.AccessControlType.ToString()))
+                                {
+                                    if (!container[SID_name][rule.AccessControlType.ToString()].Contains(current_perm_str))
+                                    {
+                                        container[SID_name][rule.AccessControlType.ToString()] += " " + current_perm_str;
+                                    }
+                                }
+                                else
+                                {
+                                    container[SID_name][rule.AccessControlType.ToString()] = current_perm_str;
+                                }
                             }
                             else
-                                container[SID_name] = current_perm_str;
-
-                            string to_add = string.Format("{0} [{1}]", SID_name, current_perm_str);
+                            {
+                                container[SID_name] = new Dictionary<string, string>();
+                                container[SID_name][rule.AccessControlType.ToString()] = current_perm_str;
+                            }
                         }
                     }
                 }
-                foreach (KeyValuePair<string, string> SID_input in container)
+                foreach (var SID_input in container)
                 {
-                    string to_add = string.Format("{0} [{1}]", SID_input.Key, SID_input.Value);
+                    string perms = "";
+
+                    if (SID_input.Value.ContainsKey("Allow") && !string.IsNullOrEmpty(SID_input.Value["Allow"]))
+                    {
+                        perms += string.Format(" [Allow: {0}]", SID_input.Value["Allow"]);
+                    }
+                    if (SID_input.Value.ContainsKey("Deny") && !string.IsNullOrEmpty(SID_input.Value["Deny"]))
+                    {
+                        perms += string.Format(" [Deny: {0}]", SID_input.Value["Deny"]);
+                    }
+                    string to_add = string.Format("{0}{1}", SID_input.Key, perms);
                     results.Add(to_add);
                 }
             }
