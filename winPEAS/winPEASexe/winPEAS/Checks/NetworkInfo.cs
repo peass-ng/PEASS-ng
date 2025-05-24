@@ -469,6 +469,13 @@ namespace winPEAS.Checks
                     Beaprint.PrintException($"      Error: {connectivityInfo.HttpsError}");
                 }
 
+                // HTTPS By Domain Name
+                Beaprint.AnsiPrint($"    HTTPS (443) Access by Domain Name: {(connectivityInfo.LambdaAccess ? "Accessible" : "Not Accessible")}", colorsBool);
+                if (!string.IsNullOrEmpty(connectivityInfo.LambdaError))
+                {
+                    Beaprint.PrintException($"      Error: {connectivityInfo.LambdaError}");
+                }
+
                 // DNS Access
                 Beaprint.AnsiPrint($"    DNS (53) Access: {(connectivityInfo.DnsAccess ? "Accessible" : "Not Accessible")}", colorsBool);
                 if (!string.IsNullOrEmpty(connectivityInfo.DnsError))

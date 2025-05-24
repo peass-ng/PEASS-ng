@@ -50,7 +50,7 @@ namespace winPEAS.Info.NetworkInfo
         private const string LAMBDA_URL =
             "https://2e6ppt7izvuv66qmx2r3et2ufi0mxwqs.lambda-url.us-east-1.on.aws/";
 
-        // Shared HttpClient (recommended pattern)
+        // Shared HttpClient (kept for HTTP & Lambda checks)
         private static readonly HttpClient http = new HttpClient
         {
             Timeout = TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS)
@@ -60,18 +60,49 @@ namespace winPEAS.Info.NetworkInfo
         private static bool TryHttpAccess(string ip, out string error)  =>
             TryWebRequest($"http://{ip}",  out error);
 
-        private static bool TryHttpsAccess(string ip, out string error) =>
-            TryWebRequest($"https://{ip}", out error);
+        // **NEW IMPLEMENTATION** – plain TCP connect on port 443
+        private static bool TryHttpsAccess(string ip, out string error)
+        {
+            try
+            {
+                using var client = new TcpClient();
+
+                // Start async connect and wait up to the timeout
+                var connectTask = client.ConnectAsync(ip, 443);
+                bool completed  = connectTask.Wait(HTTP_TIMEOUT_MS);
+
+                if (!completed)
+                {
+                    error = "TCP connect timed out";
+                    return false;
+                }
+
+                if (client.Connected)
+                {
+                    error = null;
+                    return true;
+                }
+
+                error = "TCP connection failed";
+                return false;
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+                return false;
+            }
+        }
 
         private static bool TryWebRequest(string url, out string error)
         {
             try
             {
-                using var cts = new CancellationTokenSource(
-                                    TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS));
+                using var cts =
+                    new CancellationTokenSource(TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS));
                 http.GetAsync(url, cts.Token).GetAwaiter().GetResult();
-                error = null;
-                return true;              // any response = connectivity
+
+                error = null;          // any HTTP response == connectivity
+                return true;
             }
             catch (Exception ex)
             {
@@ -84,8 +115,8 @@ namespace winPEAS.Info.NetworkInfo
         {
             try
             {
-                using var cts = new CancellationTokenSource(
-                                    TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS));
+                using var cts =
+                    new CancellationTokenSource(TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS));
 
                 var req = new HttpRequestMessage(HttpMethod.Get, LAMBDA_URL);
                 req.Headers.UserAgent.ParseAdd("winpeas");
@@ -172,7 +203,7 @@ namespace winPEAS.Info.NetworkInfo
                     }
                 }
 
-                // HTTPS
+                // HTTPS (raw TCP 443)
                 if (!info.HttpsAccess)
                 {
                     string httpsErr;
