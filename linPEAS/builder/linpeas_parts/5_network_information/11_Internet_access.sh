@@ -5,20 +5,42 @@
 # Description: Check for internet access
 # License: GNU GPL
 # Version: 1.0
-# Functions Used: check_dns, check_icmp, check_tcp_443, check_tcp_80, print_2title
-# Global Variables: $FAST, $TIMEOUT
+# Functions Used: check_dns, check_icmp, check_tcp_443, check_tcp_443_bin, check_tcp_80, print_2title, check_external_hostname
+# Global Variables:
 # Initial Functions:
-# Generated Global Variables:
+# Generated Global Variables: $pid4, $pid2, $pid1, $pid3, $pid5, $NOT_CHECK_EXTERNAL_HOSTNAME, $TIMEOUT_INTERNET_SECONDS
 # Fat linpeas: 0
 # Small linpeas: 0
 
 
-if ! [ "$FAST" ] && [ "$TIMEOUT" ] && [ -f "/bin/bash" ]; then
-  print_2title "Internet Access?"
-  check_tcp_80 2>/dev/null &
-  check_tcp_443 2>/dev/null &
-  check_icmp 2>/dev/null &
-  check_dns 2>/dev/null &
-  wait
-  echo ""
+
+print_2title "Internet Access?"
+
+TIMEOUT_INTERNET_SECONDS=5
+
+if [ "$SUPERFAST" ]; then
+  TIMEOUT_INTERNET_SECONDS=2
 fi
+
+
+# Run all checks in background
+check_tcp_80 2>/dev/null & pid1=$!
+check_tcp_443 2>/dev/null & pid2=$!
+check_tcp_443_bin 2>/dev/null & pid3=$!
+check_icmp 2>/dev/null & pid4=$!
+check_dns 2>/dev/null & pid5=$!
+
+# Kill all after 10 seconds
+(sleep $TIMEOUT_INTERNET_SECONDS && kill -9 $pid1 $pid2 $pid3 $pid4 $pid5 2>/dev/null) &
+
+# Wait for all to finish
+wait $pid1 $pid2 $pid3 $pid4 $pid5 2>/dev/null
+
+if ! [ "$SUPERFAST" ] && ! [ "$NOT_CHECK_EXTERNAL_HOSTNAME" ]; then
+  echo ""
+  print_2title "Is hostname malicious or leaked?"
+  print_info "This will check the public IP and hostname in known malicious lists and leaks to find any relevant information about the host."
+  check_external_hostname 2>/dev/null
+fi
+
+echo ""

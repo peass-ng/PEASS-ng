@@ -83,6 +83,7 @@ AUTO_NETWORK_SCAN=""
 EXTRA_CHECKS=""
 REGEXES=""
 PORT_FORWARD=""
+NOT_CHECK_EXTERNAL_HOSTNAME=""
 THREADS="$( ( (grep -c processor /proc/cpuinfo 2>/dev/null) || ( (command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n")"
 [ -z "$THREADS" ] && THREADS="2" #If THREADS is empty, put number 2
 [ -n "$THREADS" ] && THREADS="2" #If THREADS is null, put number 2
@@ -96,6 +97,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
         ${YELLOW}    -e${BLUE} Perform extra enumeration
         ${YELLOW}    -r${BLUE} Enable Regexes (this can take from some mins to hours)
         ${YELLOW}    -P${BLUE} Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
+        ${YELLOW}    -n${BLUE} Do not check hostname & IP in known malicious lists and leaks
 	${YELLOW}    -D${BLUE} Debug mode
 
       ${GREEN}  Network recon:
@@ -128,6 +130,7 @@ while getopts "h?asd:p:i:P:qo:LMwNDterf:F:" opt; do
     p)  PORTS=$OPTARG;;
     i)  IP=$OPTARG;;
     P)  PASSWORD=$OPTARG;;
+    n)  NOT_CHECK_EXTERNAL_HOSTNAME="1";;
     q)  QUIET=1;;
     o)  CHECKS=$OPTARG;;
     L)  MACPEAS="";;

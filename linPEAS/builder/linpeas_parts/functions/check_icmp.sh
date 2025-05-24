@@ -1,4 +1,4 @@
-# Title: LinPeasBase - check_tcp_443
+# Title: LinPeasBase - check_icmp
 # ID: check_icmp
 # Author: Carlos Polop
 # Last Update: 22-08-2023
@@ -14,5 +14,5 @@
 
 
 check_icmp(){
-  (timeout -s KILL 20 /bin/bash -c '(ping -c 1 1.1.1.1 | grep "1 received" && echo "Ping is available" || echo "Ping is not available") 2>/dev/null | grep "available"') 2>/dev/null || echo "Ping is not available"
+  (ping -c 1 1.1.1.1 | grep -E "1 received|1 packets received" && echo "Ping is available" || echo "Ping is not available" 2>/dev/null) | grep -i "available"
 }

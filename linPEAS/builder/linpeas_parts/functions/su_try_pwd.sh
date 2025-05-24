@@ -6,9 +6,9 @@
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: 
-# Global Variables:
+# Global Variables: $SED_RED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $BFUSER, $PASSWORDTRY, $trysu, $SED_RED_YELLOW
+# Generated Global Variables: $BFUSER, $PASSWORDTRY, $trysu
 # Fat linpeas: 0
 # Small linpeas: 1
 

@@ -13,4 +13,4 @@
 # Small linpeas: 1
 
 
-processesVB='jdwp|tmux |screen | inspect |--inspect[= ]|--inspect$|--inpect-brk|--remote-debugging-port'
+processesVB='jdwp|tmux |screen | inspect |--inspect=|--inspect |--inspect$|--inpect-brk|--remote-debugging-port'

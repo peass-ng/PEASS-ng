@@ -26,13 +26,13 @@ check_az_vm(){
 
   else
     # 3. Try querying the Azure Metadata Service for more wide support (e.g. Azure Container Registry tasks need this)
-    if command -v curl &> /dev/null; then
+    if type curl >/dev/null 2>&1; then
       meta_response=$(curl -s --max-time 2 \
         "http://169.254.169.254/metadata/identity/oauth2/token")
       if echo "$meta_response" | grep -q "Missing"; then
         is_az_vm="Yes"
       fi
-    elif command -v wget &> /dev/null; then
+    elif type wget >/dev/null 2>&1; then
       meta_response=$(wget -qO- --timeout=2 \
         "http://169.254.169.254/metadata/identity/oauth2/token")
       if echo "$meta_response" | grep -q "Missing"; then

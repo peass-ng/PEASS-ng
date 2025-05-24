@@ -14,33 +14,40 @@
 #     * Common vulnerable modules: nf_tables, eBPF, overlayfs, etc.
 # License: GNU GPL
 # Version: 1.0
-# Functions Used: print_2title, print_list
+# Functions Used: print_2title, print_3title
 # Global Variables: 
 # Initial Functions:
 # Generated Global Variables:
 # Fat linpeas: 0
 # Small linpeas: 1
 
+echo ""
 print_2title "Kernel Modules Information"
 
 # List loaded kernel modules
-print_list "Loaded kernel modules? ........ "$NC
-if [ -f "/proc/modules" ]; then
-    lsmod
-else
-    echo_not_found "/proc/modules"
+if [ "$EXTRA_CHECKS" ] || [ "$DEBUG" ]; then
+    print_3title "Loaded kernel modules"
+    if [ -f "/proc/modules" ]; then
+        lsmod
+    else
+        echo_not_found "/proc/modules"
+    fi
 fi
 
 # Check for kernel modules with weak permissions
-print_list "Kernel modules with weak perms? "$NC
+print_3title "Kernel modules with weak perms?"
 if [ -d "/lib/modules" ]; then
     find /lib/modules -type f -name "*.ko" -ls 2>/dev/null | grep -Ev "root\s+root" | sed -${E} "s,.*,${SED_RED},g"
+    if [ $? -eq 1 ]; then
+        echo "No kernel modules with weak permissions found"
+    fi
 else
     echo_not_found "/lib/modules"
 fi
+echo ""
 
 # Check for kernel modules that can be loaded by unprivileged users
-print_list "Kernel modules loadable? "$NC
+print_3title "Kernel modules loadable? "
 if [ -f "/proc/sys/kernel/modules_disabled" ]; then
     if [ "$(cat /proc/sys/kernel/modules_disabled)" = "0" ]; then
         echo "Modules can be loaded" | sed -${E} "s,.*,${SED_RED},g"

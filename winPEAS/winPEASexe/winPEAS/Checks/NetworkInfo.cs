@@ -9,6 +9,7 @@ using winPEAS.Helpers.Extensions;
 using winPEAS.Info.NetworkInfo;
 using winPEAS.Info.NetworkInfo.Enums;
 using winPEAS.Info.NetworkInfo.InternetSettings;
+using winPEAS.Info.NetworkInfo.NetworkScanner;
 
 namespace winPEAS.Checks
 {
@@ -28,7 +29,7 @@ namespace winPEAS.Checks
         {
             Beaprint.GreatPrint("Network Information");
 
-            new List<Action>
+            var baseChecks = new List<Action> 
             {
                 PrintNetShares,
                 PrintMappedDrivesWMI,
@@ -38,7 +39,15 @@ namespace winPEAS.Checks
                 PrintFirewallRules,
                 PrintDNSCache,
                 PrintInternetSettings,
-            }.ForEach(action => CheckRunner.Run(action, isDebug));
+                PrintInternetConnectivity,
+            };
+
+            // Only create hostnameCheck list if we want to run it
+            var allChecks = !Checks.DontCheckHostname 
+                ? baseChecks.Concat(new List<Action> { () => PrintHostnameResolution().GetAwaiter().GetResult() })
+                : baseChecks;
+
+            allChecks.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
         private void PrintNetShares()
@@ -427,6 +436,91 @@ namespace winPEAS.Checks
             }
             catch (Exception ex)
             {
+            }
+        }
+
+        private void PrintInternetConnectivity()
+        {
+            try
+            {
+                Beaprint.MainPrint("Internet Connectivity");
+                Beaprint.LinkPrint("", "Checking if internet access is possible via different methods");
+
+                var connectivityInfo = InternetConnectivity.CheckConnectivity();
+
+                // HTTP Access
+                Beaprint.AnsiPrint($"    HTTP (80) Access: {(connectivityInfo.HttpAccess ? Beaprint.ansi_color_good + "Yes" + Beaprint.NOCOLOR : Beaprint.ansi_color_bad + "No" + Beaprint.NOCOLOR)}");
+                if (connectivityInfo.HttpAccess)
+                {
+                    Beaprint.AnsiPrint($"      Successful IP: {connectivityInfo.SuccessfulHttpIp}");
+                }
+                else if (!string.IsNullOrEmpty(connectivityInfo.HttpError))
+                {
+                    Beaprint.AnsiPrint($"      Error: {connectivityInfo.HttpError}");
+                }
+
+                // HTTPS Access
+                Beaprint.AnsiPrint($"    HTTPS (443) Access: {(connectivityInfo.HttpsAccess ? Beaprint.ansi_color_good + "Yes" + Beaprint.NOCOLOR : Beaprint.ansi_color_bad + "No" + Beaprint.NOCOLOR)}");
+                if (connectivityInfo.HttpsAccess)
+                {
+                    Beaprint.AnsiPrint($"      Successful IP: {connectivityInfo.SuccessfulHttpsIp}");
+                }
+                else if (!string.IsNullOrEmpty(connectivityInfo.HttpsError))
+                {
+                    Beaprint.AnsiPrint($"      Error: {connectivityInfo.HttpsError}");
+                }
+
+                // DNS Access
+                Beaprint.AnsiPrint($"    DNS (53) Access: {(connectivityInfo.DnsAccess ? Beaprint.ansi_color_good + "Yes" + Beaprint.NOCOLOR : Beaprint.ansi_color_bad + "No" + Beaprint.NOCOLOR)}");
+                if (connectivityInfo.DnsAccess)
+                {
+                    Beaprint.AnsiPrint($"      Successful IP: {connectivityInfo.SuccessfulDnsIp}");
+                }
+                else if (!string.IsNullOrEmpty(connectivityInfo.DnsError))
+                {
+                    Beaprint.AnsiPrint($"      Error: {connectivityInfo.DnsError}");
+                }
+
+                // ICMP Access
+                Beaprint.AnsiPrint($"    ICMP (ping) Access: {(connectivityInfo.IcmpAccess ? Beaprint.ansi_color_good + "Yes" + Beaprint.NOCOLOR : Beaprint.ansi_color_bad + "No" + Beaprint.NOCOLOR)}");
+                if (connectivityInfo.IcmpAccess)
+                {
+                    Beaprint.AnsiPrint($"      Successful IP: {connectivityInfo.SuccessfulIcmpIp}");
+                }
+                else if (!string.IsNullOrEmpty(connectivityInfo.IcmpError))
+                {
+                    Beaprint.AnsiPrint($"      Error: {connectivityInfo.IcmpError}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private async Task PrintHostnameResolution()
+        {
+            try
+            {
+                Beaprint.MainPrint("Hostname Resolution");
+                Beaprint.LinkPrint("", "Checking if the hostname can be resolved externally");
+
+                var resolutionInfo = await HostnameResolution.CheckResolution();
+                
+                Beaprint.AnsiPrint($"    Hostname: {resolutionInfo.Hostname}");
+
+                if (!string.IsNullOrEmpty(resolutionInfo.ExternalCheckResult))
+                {
+                    Beaprint.AnsiPrint($"    External Check Result: {resolutionInfo.ExternalCheckResult}");
+                }
+                else if (!string.IsNullOrEmpty(resolutionInfo.Error))
+                {
+                    Beaprint.AnsiPrint($"    {Beaprint.ansi_color_bad}{resolutionInfo.Error}{Beaprint.NOCOLOR}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
             }
         }
     }

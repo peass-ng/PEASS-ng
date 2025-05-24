@@ -19,6 +19,7 @@ namespace winPEAS.Checks
     {
         public static bool IsDomainEnumeration = false;
         public static bool IsNoColor = false;
+        public static bool DontCheckHostname = false;
         public static bool Banner = true;
         public static bool IsDebug = false;
         public static bool IsLinpeas = false;
@@ -160,6 +161,11 @@ namespace winPEAS.Checks
                 if (string.Equals(arg, "notcolor", StringComparison.CurrentCultureIgnoreCase))
                 {
                     IsNoColor = true;
+                }
+
+                if (string.Equals(arg, "dont-check-hostname", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    DontCheckHostname = true;
                 }
 
                 if (string.Equals(arg, "quiet", StringComparison.CurrentCultureIgnoreCase))

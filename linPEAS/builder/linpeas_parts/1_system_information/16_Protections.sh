@@ -135,3 +135,5 @@ if [ "$(command -v systemd-detect-virt 2>/dev/null || echo -n '')" ]; then
 else
     if [ "$hypervisorflag" ]; then printf $RED"Yes"$NC; else printf $GREEN"No"$NC; fi
 fi
+
+echo ""

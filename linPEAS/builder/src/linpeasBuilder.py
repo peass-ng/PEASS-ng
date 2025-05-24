@@ -411,4 +411,6 @@ class LinpeasBuilder:
         
         with open(path, "w") as f:
             f.write(self.linpeas_sh)
+        
+        print(f"[+] Linpeas written on {path}")
     

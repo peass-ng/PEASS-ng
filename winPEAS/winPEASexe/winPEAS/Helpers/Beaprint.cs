@@ -142,6 +142,7 @@ namespace winPEAS.Helpers
             Console.WriteLine(LCYAN + "        searchpf" + GRAY + "             Search credentials via regex also in Program Files folders" + NOCOLOR);
             Console.WriteLine(LCYAN + "        wait" + GRAY + "                 Wait for user input between checks" + NOCOLOR);
             Console.WriteLine(LCYAN + "        debug" + GRAY + "                Display debugging information - memory usage, method execution time" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        dont-check-hostname" + GRAY + "  Don't check the hostname externally" + NOCOLOR);
             Console.WriteLine(LCYAN + "        log[=logfile]" + GRAY + $"        Log all output to file defined as logfile, or to \"{Checks.Checks.DefaultLogFile}\" if not specified" + NOCOLOR);
             Console.WriteLine(LCYAN + "        max-regex-file-size=1000000" + GRAY + $"        Max file size (in Bytes) to search regex in. Default: {Checks.Checks.MaxRegexFileSize}B" + NOCOLOR);
 

@@ -22,7 +22,7 @@
 #       - Container escape tool usage
 # License: GNU GPL
 # Version: 1.0
-# Functions Used: print_2title, warn_exec
+# Functions Used: print_2title
 # Global Variables:
 # Initial Functions:
 # Generated Global Variables:
@@ -32,42 +32,42 @@
 print_2title "Container related tools present (if any):"
 
 # Container runtimes
-warn_exec command -v docker
-warn_exec command -v lxc
-warn_exec command -v rkt
-warn_exec command -v podman
-warn_exec command -v runc
-warn_exec command -v ctr
-warn_exec command -v containerd
-warn_exec command -v crio
-warn_exec command -v nerdctl
+command -v docker
+command -v lxc
+command -v rkt
+command -v podman
+command -v runc
+command -v ctr
+command -v containerd
+command -v crio
+command -v nerdctl
 
 # Container management
-warn_exec command -v kubectl
-warn_exec command -v crictl
-warn_exec command -v docker-compose
-warn_exec command -v docker-machine
-warn_exec command -v minikube
-warn_exec command -v kind
+command -v kubectl
+command -v crictl
+command -v docker-compose
+command -v docker-machine
+command -v minikube
+command -v kind
 
 # Container networking
-warn_exec command -v docker-proxy
-warn_exec command -v cni
-warn_exec command -v flanneld
-warn_exec command -v calicoctl
+command -v docker-proxy
+command -v cni
+command -v flanneld
+command -v calicoctl
 
 # Container security
-warn_exec command -v apparmor_parser
-warn_exec command -v seccomp
-warn_exec command -v gvisor
-warn_exec command -v kata-runtime
+command -v apparmor_parser
+command -v seccomp
+command -v gvisor
+command -v kata-runtime
 
 # Container debugging
-warn_exec command -v nsenter
-warn_exec command -v unshare
-warn_exec command -v chroot
-warn_exec command -v capsh
-warn_exec command -v setcap
-warn_exec command -v getcap
+command -v nsenter
+command -v unshare
+command -v chroot
+command -v capsh
+command -v setcap
+command -v getcap
 
 echo ""

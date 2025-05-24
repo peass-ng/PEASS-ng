@@ -8,15 +8,18 @@
 # Functions Used: print_2title
 # Global Variables: $MACPEAS 
 # Initial Functions:
-# Generated Global Variables:
+# Generated Global Variables: $user_home
 # Fat linpeas: 0
 # Small linpeas: 0
 
 
 if [ "$MACPEAS" ];then
   print_2title "All Login and Logout hooks"
-  defaults read /Users/*/Library/Preferences/com.apple.loginwindow.plist 2>/dev/null | grep -e "Hook"
-  defaults read /private/var/root/Library/Preferences/com.apple.loginwindow.plist
+  for user_home in /Users/*/ /private/var/root/; do
+    if [ -f "${user_home}Library/Preferences/com.apple.loginwindow.plist" ]; then
+      echo "User: $(basename "$user_home")" | sed -${E} "s,.*,${SED_LIGHT_CYAN},g"
+      defaults read "${user_home}Library/Preferences/com.apple.loginwindow.plist" 2>/dev/null | grep -e "Hook" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
+    fi
+  done
   echo ""
-
 fi

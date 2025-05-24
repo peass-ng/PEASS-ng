@@ -209,11 +209,15 @@ class LinpeasModule:
         if self.id != "BS_variables_base":
             main_base = LinpeasModule(os.path.join(os.path.dirname(__file__), "..", "linpeas_parts", "linpeas_base", "0_variables_base.sh"))
         
+        not_defined_global_vars = []
         for var in self.extract_variables(self.sh_code):
             if len(var) > 2 and not var in linux_global_vars and var not in self.global_variables and var not in self.generated_global_variables:
                 if not var.startswith("PSTORAGE_"):
                     if not main_base or var not in main_base.generated_global_variables:
-                        raise Exception(f"Global Variable '{var}' in module {path} is not defined inside the 'Generated Global Variables' metadata")
+                        not_defined_global_vars.append("$"+var)
+        
+        if not_defined_global_vars:
+            raise Exception(f"Global Variables '{', '.join(not_defined_global_vars)}' in module {path} are not defined inside the 'Generated Global Variables' metadata")
             
 
     def __eq__(self, other):
