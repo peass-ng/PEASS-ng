@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -7,79 +6,72 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
 
-// ------------------------------------------------------------------
-// Connectivity tester – fixed time‑outs + real HTTP/HTTPS endpoints
-// ------------------------------------------------------------------
 namespace winPEAS.Info.NetworkInfo
 {
+    // ───────────────────────────────────────────────────────────────
+    //  POCO returned to the UI
+    // ───────────────────────────────────────────────────────────────
     public class InternetConnectivityInfo
     {
-        public bool   HttpAccess          { get; set; }
-        public bool   HttpsAccess         { get; set; }
-        public bool   LambdaAccess        { get; set; }
-        public bool   DnsAccess           { get; set; }
-        public bool   IcmpAccess          { get; set; }
+        public bool   HttpAccess        { get; set; }
+        public bool   HttpsAccess       { get; set; }
+        public bool   LambdaAccess      { get; set; }
+        public bool   DnsAccess         { get; set; }
+        public bool   IcmpAccess        { get; set; }
 
-        public string HttpError           { get; set; }
-        public string HttpsError          { get; set; }
-        public string LambdaError         { get; set; }
-        public string DnsError            { get; set; }
-        public string IcmpError           { get; set; }
+        public string HttpError         { get; set; }
+        public string HttpsError        { get; set; }
+        public string LambdaError       { get; set; }
+        public string DnsError          { get; set; }
+        public string IcmpError         { get; set; }
 
-        public string SuccessfulHttpIp    { get; set; }
-        public string SuccessfulHttpsIp   { get; set; }
-        public string SuccessfulDnsIp     { get; set; }
-        public string SuccessfulIcmpIp    { get; set; }
+        public string SuccessfulHttpIp  { get; set; }
+        public string SuccessfulHttpsIp { get; set; }
+        public string SuccessfulDnsIp   { get; set; }
+        public string SuccessfulIcmpIp  { get; set; }
     }
-    
+
+    // ───────────────────────────────────────────────────────────────
+    //  Connectivity tester
+    // ───────────────────────────────────────────────────────────────
     public static class InternetConnectivity
     {
-        // 5 seconds expressed in *milliseconds* to avoid unit mistakes
-        private const int HTTP_TIMEOUT_MS = 5000;
-        private const int ICMP_TIMEOUT_MS = 2000;
+        private const int HTTP_TIMEOUT_MS = 5000;   // 5 s
+        private const int ICMP_TIMEOUT_MS = 2000;   // 2 s
 
-        // IPs that really listen on 80/443 (example.com + Fastly CDN)
+        // IPs that answer on 80 & 443
         private static readonly string[] WEB_TEST_IPS =
-            { "93.184.216.34", "151.101.1.69" };
+            { "93.184.216.34", "151.101.1.69" };   // example.com / Fastly
 
-        // DNS & ICMP targets stay the same – public resolvers
+        // Public DNS resolvers for DNS + ICMP checks
         private static readonly string[] DNS_ICMP_IPS =
             { "1.1.1.1", "8.8.8.8" };
 
         private const string LAMBDA_URL =
             "https://2e6ppt7izvuv66qmx2r3et2ufi0mxwqs.lambda-url.us-east-1.on.aws/";
 
-        // Re‑use a single HttpClient to avoid socket exhaustion
+        // Shared HttpClient (recommended pattern)
         private static readonly HttpClient http = new HttpClient
         {
             Timeout = TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS)
         };
 
-        // ----------------------------------------------------------
-        //  HTTP  (port 80)
-        // ----------------------------------------------------------
-        private static bool TryHttpAccess(string ip, out string error) =>
-            TryWebRequest($"http://{ip}", out error);
+        // ─── Helpers ───────────────────────────────────────────────
+        private static bool TryHttpAccess(string ip, out string error)  =>
+            TryWebRequest($"http://{ip}",  out error);
 
-        // ----------------------------------------------------------
-        //  HTTPS (port 443)
-        // ----------------------------------------------------------
         private static bool TryHttpsAccess(string ip, out string error) =>
             TryWebRequest($"https://{ip}", out error);
 
-        // Common HTTP/HTTPS helper
         private static bool TryWebRequest(string url, out string error)
         {
             try
             {
-                using var cts =
-                    new CancellationTokenSource(TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS));
-
-                var resp = http.GetAsync(url, cts.Token).GetAwaiter().GetResult();
-
-                // Any response indicates that we reached the server
+                using var cts = new CancellationTokenSource(
+                                    TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS));
+                http.GetAsync(url, cts.Token).GetAwaiter().GetResult();
                 error = null;
-                return true;
+                return true;              // any response = connectivity
             }
             catch (Exception ex)
             {
@@ -88,27 +80,22 @@ namespace winPEAS.Info.NetworkInfo
             }
         }
 
-        // ----------------------------------------------------------
-        //  Lambda URL check (GET)
-        // ----------------------------------------------------------
         private static bool TryLambdaAccess(out string error)
         {
             try
             {
-                using var cts =
-                    new CancellationTokenSource(TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS));
+                using var cts = new CancellationTokenSource(
+                                    TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS));
 
                 var req = new HttpRequestMessage(HttpMethod.Get, LAMBDA_URL);
                 req.Headers.UserAgent.ParseAdd("winpeas");
                 req.Headers.Accept.Add(
                     new MediaTypeWithQualityHeaderValue("application/json"));
 
-                var resp = http.SendAsync(req, cts.Token)
-                               .GetAwaiter().GetResult();
+                var resp = http.SendAsync(req, cts.Token).GetAwaiter().GetResult();
 
-                error = resp.IsSuccessStatusCode
-                        ? null
-                        : $"HTTP {(int)resp.StatusCode}";
+                error = resp.IsSuccessStatusCode ? null :
+                        $"HTTP {(int)resp.StatusCode}";
                 return error == null;
             }
             catch (Exception ex)
@@ -118,42 +105,35 @@ namespace winPEAS.Info.NetworkInfo
             }
         }
 
-        // ----------------------------------------------------------
-        //  DNS test – simple UDP query
-        // ----------------------------------------------------------
         private static bool TryDnsAccess(string ip, out string error)
         {
             try
             {
                 using var udp = new UdpClient();
                 udp.Client.ReceiveTimeout = HTTP_TIMEOUT_MS;
-                udp.Client.SendTimeout = HTTP_TIMEOUT_MS;
+                udp.Client.SendTimeout    = HTTP_TIMEOUT_MS;
 
                 var server = new IPEndPoint(IPAddress.Parse(ip), 53);
 
-                // Minimal “A record for google.com” query
-                byte[] query = new byte[]
-                {
+                // minimal query for google.com A‑record
+                byte[] q = {
                     0x00,0x01, 0x01,0x00, 0x00,0x01, 0x00,0x00, 0x00,0x00, 0x00,0x00,
                     0x06,0x67,0x6f,0x6f,0x67,0x6c,0x65, 0x03,0x63,0x6f,0x6d, 0x00,
                     0x00,0x01, 0x00,0x01
                 };
 
-                udp.Send(query, query.Length, server);
+                udp.Send(q, q.Length, server);
 
                 IPEndPoint remote = new IPEndPoint(IPAddress.Any, 0);
-                byte[] response = udp.Receive(ref remote);
+                byte[] resp = udp.Receive(ref remote);
 
-                error = response?.Length > 0 ? null : "No DNS response";
+                error = resp?.Length > 0 ? null : "No DNS response";
                 return error == null;
             }
             catch (SocketException ex) { error = ex.Message; return false; }
-            catch (Exception ex)       { error = ex.Message; return false; }
+            catch (Exception      ex) { error = ex.Message; return false; }
         }
 
-        // ----------------------------------------------------------
-        //  ICMP (Ping)
-        // ----------------------------------------------------------
         private static bool TryIcmpAccess(string ip, out string error)
         {
             try
@@ -169,68 +149,82 @@ namespace winPEAS.Info.NetworkInfo
             catch (Exception ex) { error = ex.Message; return false; }
         }
 
-        // ----------------------------------------------------------
-        //  MAIN ENTRY
-        // ----------------------------------------------------------
+        // ─── Main entry ───────────────────────────────────────────
         public static InternetConnectivityInfo CheckConnectivity()
         {
             var info = new InternetConnectivityInfo();
 
-            // --- HTTP / HTTPS -------------------------------------
+            // -------- HTTP / HTTPS --------------------------------
             foreach (var ip in WEB_TEST_IPS)
             {
-                if (!info.HttpAccess &&
-                    TryHttpAccess(ip, out string eHttp))
+                // HTTP
+                if (!info.HttpAccess)
                 {
-                    info.HttpAccess = true;
-                    info.SuccessfulHttpIp = ip;
-                }
-                else if (!info.HttpAccess)
-                {
-                    info.HttpError = eHttp;
+                    string httpErr;
+                    if (TryHttpAccess(ip, out httpErr))
+                    {
+                        info.HttpAccess       = true;
+                        info.SuccessfulHttpIp = ip;
+                    }
+                    else
+                    {
+                        info.HttpError = httpErr;
+                    }
                 }
 
-                if (!info.HttpsAccess &&
-                    TryHttpsAccess(ip, out string eHttps))
+                // HTTPS
+                if (!info.HttpsAccess)
                 {
-                    info.HttpsAccess = true;
-                    info.SuccessfulHttpsIp = ip;
-                }
-                else if (!info.HttpsAccess)
-                {
-                    info.HttpsError = eHttps;
+                    string httpsErr;
+                    if (TryHttpsAccess(ip, out httpsErr))
+                    {
+                        info.HttpsAccess       = true;
+                        info.SuccessfulHttpsIp = ip;
+                    }
+                    else
+                    {
+                        info.HttpsError = httpsErr;
+                    }
                 }
 
                 if (info.HttpAccess && info.HttpsAccess) break;
             }
 
-            // --- Lambda ------------------------------------------
-            info.LambdaAccess = TryLambdaAccess(out string eLambda);
-            if (!info.LambdaAccess) info.LambdaError = eLambda;
+            // -------- Lambda --------------------------------------
+            info.LambdaAccess = TryLambdaAccess(out string lambdaErr);
+            if (!info.LambdaAccess) info.LambdaError = lambdaErr;
 
-            // --- DNS / ICMP --------------------------------------
+            // -------- DNS / ICMP ----------------------------------
             foreach (var ip in DNS_ICMP_IPS)
             {
-                if (!info.DnsAccess &&
-                    TryDnsAccess(ip, out string eDns))
+                // DNS
+                if (!info.DnsAccess)
                 {
-                    info.DnsAccess = true;
-                    info.SuccessfulDnsIp = ip;
-                }
-                else if (!info.DnsAccess)
-                {
-                    info.DnsError = eDns;
+                    string dnsErr;
+                    if (TryDnsAccess(ip, out dnsErr))
+                    {
+                        info.DnsAccess       = true;
+                        info.SuccessfulDnsIp = ip;
+                    }
+                    else
+                    {
+                        info.DnsError = dnsErr;
+                    }
                 }
 
-                if (!info.IcmpAccess &&
-                    TryIcmpAccess(ip, out string ePing))
+                // ICMP
+                if (!info.IcmpAccess)
                 {
-                    info.IcmpAccess = true;
-                    info.SuccessfulIcmpIp = ip;
-                }
-                else if (!info.IcmpAccess)
-                {
-                    info.IcmpError = ePing;
+                    string pingErr;
+                    if (TryIcmpAccess(ip, out pingErr))
+                    {
+                        info.IcmpAccess       = true;
+                        info.SuccessfulIcmpIp = ip;
+                    }
+                    else
+                    {
+                        info.IcmpError = pingErr;
+                    }
                 }
 
                 if (info.DnsAccess && info.IcmpAccess) break;
