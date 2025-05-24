@@ -12,6 +12,26 @@ using System.Threading;
 // ------------------------------------------------------------------
 namespace winPEAS.Info.NetworkInfo
 {
+    public class InternetConnectivityInfo
+    {
+        public bool   HttpAccess          { get; set; }
+        public bool   HttpsAccess         { get; set; }
+        public bool   LambdaAccess        { get; set; }
+        public bool   DnsAccess           { get; set; }
+        public bool   IcmpAccess          { get; set; }
+
+        public string HttpError           { get; set; }
+        public string HttpsError          { get; set; }
+        public string LambdaError         { get; set; }
+        public string DnsError            { get; set; }
+        public string IcmpError           { get; set; }
+
+        public string SuccessfulHttpIp    { get; set; }
+        public string SuccessfulHttpsIp   { get; set; }
+        public string SuccessfulDnsIp     { get; set; }
+        public string SuccessfulIcmpIp    { get; set; }
+    }
+    
     public static class InternetConnectivity
     {
         // 5 seconds expressed in *milliseconds* to avoid unit mistakes
