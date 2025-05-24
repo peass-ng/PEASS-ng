@@ -1,12 +1,15 @@
 using System;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace winPEAS.Info.NetworkInfo.NetworkScanner
+namespace winPEAS.Info.NetworkInfo
 {
     public class InternetConnectivityInfo
     {
@@ -37,13 +40,20 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
         {
             try
             {
-                using (var client = new WebClient())
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(HTTP_TIMEOUT));
+                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(HTTP_TIMEOUT) };
+
+                var resp = client.GetAsync($"http://{ip}", cts.Token)
+                                 .GetAwaiter().GetResult();
+
+                if (resp.IsSuccessStatusCode)
                 {
-                    client.Timeout = HTTP_TIMEOUT;
-                    client.DownloadString($"http://{ip}");
                     error = null;
                     return true;
                 }
+
+                error = $"HTTP status {(int)resp.StatusCode}";
+                return false;
             }
             catch (Exception ex)
             {
@@ -56,13 +66,20 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
         {
             try
             {
-                using (var client = new WebClient())
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(HTTP_TIMEOUT));
+                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(HTTP_TIMEOUT) };
+
+                var resp = client.GetAsync($"https://{ip}", cts.Token)
+                                 .GetAwaiter().GetResult();
+
+                if (resp.IsSuccessStatusCode)
                 {
-                    client.Timeout = HTTP_TIMEOUT;
-                    client.DownloadString($"https://{ip}");
                     error = null;
                     return true;
                 }
+
+                error = $"HTTPS status {(int)resp.StatusCode}";
+                return false;
             }
             catch (Exception ex)
             {
@@ -75,15 +92,24 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
         {
             try
             {
-                using (var client = new WebClient())
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(HTTP_TIMEOUT));
+                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(HTTP_TIMEOUT) };
+
+                var req = new HttpRequestMessage(HttpMethod.Get, LAMBDA_URL);
+                req.Headers.UserAgent.ParseAdd("winpeas");
+                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var resp = client.SendAsync(req, cts.Token)
+                                 .GetAwaiter().GetResult();
+
+                if (resp.IsSuccessStatusCode)
                 {
-                    client.Timeout = HTTP_TIMEOUT;
-                    client.Headers.Add("User-Agent", "winpeas");
-                    client.Headers.Add("Content-Type", "application/json");
-                    client.DownloadString(LAMBDA_URL);
                     error = null;
                     return true;
                 }
+
+                error = $"Lambda status {(int)resp.StatusCode}";
+                return false;
             }
             catch (Exception ex)
             {
@@ -91,6 +117,7 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
                 return false;
             }
         }
+
 
         private static bool TryDnsAccess(string ip, out string error)
         {

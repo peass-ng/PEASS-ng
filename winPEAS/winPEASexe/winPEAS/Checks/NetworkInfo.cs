@@ -29,7 +29,8 @@ namespace winPEAS.Checks
         {
             Beaprint.GreatPrint("Network Information");
 
-            var baseChecks = new List<Action> 
+            // Base checklist
+            var checks = new List<Action>
             {
                 PrintNetShares,
                 PrintMappedDrivesWMI,
@@ -39,15 +40,16 @@ namespace winPEAS.Checks
                 PrintFirewallRules,
                 PrintDNSCache,
                 PrintInternetSettings,
-                PrintInternetConnectivity,
+                PrintInternetConnectivity
             };
 
-            // Only create hostnameCheck list if we want to run it
-            var allChecks = !Checks.DontCheckHostname 
-                ? baseChecks.Concat(new List<Action> { () => PrintHostnameResolution().GetAwaiter().GetResult() })
-                : baseChecks;
+            // **Add hostname‑resolution check only when requested**
+            if (!Checks.DontCheckHostname)
+                checks.Add(PrintHostnameResolution);
 
-            allChecks.ForEach(action => CheckRunner.Run(action, isDebug));
+            // **Run every selected check**
+            foreach (var action in checks)
+                CheckRunner.Run(action, isDebug);
         }
 
         private void PrintNetShares()
@@ -449,47 +451,36 @@ namespace winPEAS.Checks
                 var connectivityInfo = InternetConnectivity.CheckConnectivity();
 
                 // HTTP Access
-                Beaprint.AnsiPrint($"    HTTP (80) Access: {(connectivityInfo.HttpAccess ? Beaprint.ansi_color_good + "Yes" + Beaprint.NOCOLOR : Beaprint.ansi_color_bad + "No" + Beaprint.NOCOLOR)}");
-                if (connectivityInfo.HttpAccess)
+                var colorsBool = new Dictionary<string, string>
+                        {
+                            { "Accessible", Beaprint.ansi_color_good },
+                            { "Not Accessible", Beaprint.ansi_color_bad },
+                };
+                Beaprint.AnsiPrint($"    HTTP (80) Access: {(connectivityInfo.HttpAccess ? "Accessible" : "Not Accessible")}", colorsBool);
+                if (!string.IsNullOrEmpty(connectivityInfo.HttpError))
                 {
-                    Beaprint.AnsiPrint($"      Successful IP: {connectivityInfo.SuccessfulHttpIp}");
-                }
-                else if (!string.IsNullOrEmpty(connectivityInfo.HttpError))
-                {
-                    Beaprint.AnsiPrint($"      Error: {connectivityInfo.HttpError}");
+                    Beaprint.PrintException($"      Error: {connectivityInfo.HttpError}");
                 }
 
                 // HTTPS Access
-                Beaprint.AnsiPrint($"    HTTPS (443) Access: {(connectivityInfo.HttpsAccess ? Beaprint.ansi_color_good + "Yes" + Beaprint.NOCOLOR : Beaprint.ansi_color_bad + "No" + Beaprint.NOCOLOR)}");
-                if (connectivityInfo.HttpsAccess)
+                Beaprint.AnsiPrint($"    HTTPS (443) Access: {(connectivityInfo.HttpsAccess ? "Accessible" : "Not Accessible")}", colorsBool);
+                if (!string.IsNullOrEmpty(connectivityInfo.HttpsError))
                 {
-                    Beaprint.AnsiPrint($"      Successful IP: {connectivityInfo.SuccessfulHttpsIp}");
-                }
-                else if (!string.IsNullOrEmpty(connectivityInfo.HttpsError))
-                {
-                    Beaprint.AnsiPrint($"      Error: {connectivityInfo.HttpsError}");
+                    Beaprint.PrintException($"      Error: {connectivityInfo.HttpsError}");
                 }
 
                 // DNS Access
-                Beaprint.AnsiPrint($"    DNS (53) Access: {(connectivityInfo.DnsAccess ? Beaprint.ansi_color_good + "Yes" + Beaprint.NOCOLOR : Beaprint.ansi_color_bad + "No" + Beaprint.NOCOLOR)}");
-                if (connectivityInfo.DnsAccess)
+                Beaprint.AnsiPrint($"    DNS (53) Access: {(connectivityInfo.DnsAccess ? "Accessible" : "Not Accessible")}", colorsBool);
+                if (!string.IsNullOrEmpty(connectivityInfo.DnsError))
                 {
-                    Beaprint.AnsiPrint($"      Successful IP: {connectivityInfo.SuccessfulDnsIp}");
-                }
-                else if (!string.IsNullOrEmpty(connectivityInfo.DnsError))
-                {
-                    Beaprint.AnsiPrint($"      Error: {connectivityInfo.DnsError}");
+                    Beaprint.PrintException($"      Error: {connectivityInfo.DnsError}");
                 }
 
                 // ICMP Access
-                Beaprint.AnsiPrint($"    ICMP (ping) Access: {(connectivityInfo.IcmpAccess ? Beaprint.ansi_color_good + "Yes" + Beaprint.NOCOLOR : Beaprint.ansi_color_bad + "No" + Beaprint.NOCOLOR)}");
-                if (connectivityInfo.IcmpAccess)
+                Beaprint.AnsiPrint($"    ICMP (ping) Access: {(connectivityInfo.IcmpAccess ? "Accessible" : "Not Accessible")}", colorsBool);
+                if (!string.IsNullOrEmpty(connectivityInfo.IcmpError))
                 {
-                    Beaprint.AnsiPrint($"      Successful IP: {connectivityInfo.SuccessfulIcmpIp}");
-                }
-                else if (!string.IsNullOrEmpty(connectivityInfo.IcmpError))
-                {
-                    Beaprint.AnsiPrint($"      Error: {connectivityInfo.IcmpError}");
+                    Beaprint.PrintException($"      Error: {connectivityInfo.IcmpError}");
                 }
             }
             catch (Exception ex)
@@ -498,24 +489,23 @@ namespace winPEAS.Checks
             }
         }
 
-        private async Task PrintHostnameResolution()
+        private void PrintHostnameResolution()
         {
             try
             {
                 Beaprint.MainPrint("Hostname Resolution");
                 Beaprint.LinkPrint("", "Checking if the hostname can be resolved externally");
 
-                var resolutionInfo = await HostnameResolution.CheckResolution();
-                
-                Beaprint.AnsiPrint($"    Hostname: {resolutionInfo.Hostname}");
+                var resolutionInfo = HostnameResolution.TryExternalCheck();
 
                 if (!string.IsNullOrEmpty(resolutionInfo.ExternalCheckResult))
                 {
-                    Beaprint.AnsiPrint($"    External Check Result: {resolutionInfo.ExternalCheckResult}");
+                    Beaprint.GoodPrint($"    External Check Result:");
+                    Beaprint.NoColorPrint(resolutionInfo.ExternalCheckResult);
                 }
                 else if (!string.IsNullOrEmpty(resolutionInfo.Error))
                 {
-                    Beaprint.AnsiPrint($"    {Beaprint.ansi_color_bad}{resolutionInfo.Error}{Beaprint.NOCOLOR}");
+                    Beaprint.BadPrint($"    {resolutionInfo.Error}");
                 }
             }
             catch (Exception ex)
