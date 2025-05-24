@@ -1258,6 +1258,8 @@
     <Compile Include="Info\NetworkInfo\Enums\Protocol.cs" />
     <Compile Include="Info\NetworkInfo\Enums\TcpTableClass.cs" />
     <Compile Include="Info\NetworkInfo\Enums\UdpTableClass.cs" />
+    <Compile Include="Info\NetworkInfo\HostnameResolution.cs" />
+    <Compile Include="Info\NetworkInfo\InternetConnectivity.cs" />
     <Compile Include="Info\NetworkInfo\InternetSettings\InternetSettings.cs" />
     <Compile Include="Info\NetworkInfo\InternetSettings\InternetSettingsInfo.cs" />
     <Compile Include="Info\NetworkInfo\InternetSettings\InternetSettingsKey.cs" />
