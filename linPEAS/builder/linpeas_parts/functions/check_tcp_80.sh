@@ -20,7 +20,7 @@ check_tcp_80(){
   fi
 
   /bin/bash -c '
-      for ip in 1.1.1.1 8.8.8.8; do
+      for ip in 1.1.1.1; do
         (echo >/dev/tcp/$ip/80 && echo "Port 80 is accessible" && exit 0) &
         pids+=($!)
       done

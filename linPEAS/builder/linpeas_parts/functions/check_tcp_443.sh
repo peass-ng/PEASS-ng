@@ -21,7 +21,7 @@ check_tcp_443(){
   fi
 
   /bin/bash -c '
-      for ip in 1.1.1.1 8.8.8.8; do
+      for ip in 1.1.1.1; do
         (echo >/dev/tcp/$ip/443 && echo "Port 443 is accessible" && exit 0) &
         pids+=($!)
       done

@@ -8,16 +8,38 @@
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables:
+# Generated Global Variables: $url_lambda
 # Fat linpeas: 0
 # Small linpeas: 1
 
 
+check_tcp_443_bin () {
+  local url_lambda="https://2e6ppt7izvuv66qmx2r3et2ufi0mxwqs.lambda-url.us-east-1.on.aws/"
 
-check_tcp_443_bin(){
   if command -v curl >/dev/null 2>&1; then
-    curl -s "https://2e6ppt7izvuv66qmx2r3et2ufi0mxwqs.lambda-url.us-east-1.on.aws/" -H "User-Agent: linpeas" -H "Content-Type: application/json" >/dev/null 2>&1 && echo "Port 443 is accessible with curl" || echo "Port 443 is not accessible with curl"
+    if curl -s --connect-timeout 5 "$url_lambda" \
+         -H "User-Agent: linpeas" -H "Content-Type: application/json" >/dev/null 2>&1
+    then
+      echo "Port 443 is accessible with curl"
+      return 0                      # ✅ success
+    else
+      echo "Port 443 is not accessible with curl"
+      return 1
+    fi
+
   elif command -v wget >/dev/null 2>&1; then
-    wget -q -O - "https://2e6ppt7izvuv66qmx2r3et2ufi0mxwqs.lambda-url.us-east-1.on.aws/" --header "User-Agent: linpeas" -H "Content-Type: application/json" >/dev/null 2>&1 && echo "Port 443 is accessible with wget" || echo "Port 443 is not accessible with wget"
+    if wget -q --timeout=5 -O - "$url_lambda" \
+         --header "User-Agent: linpeas" -H "Content-Type: application/json" >/dev/null 2>&1
+    then
+      echo "Port 443 is accessible with wget"
+      return 0
+    else
+      echo "Port 443 is not accessible with wget"
+      return 1
+    fi
+
+  else
+    echo "Neither curl nor wget available"
+    return 1
   fi
 }
