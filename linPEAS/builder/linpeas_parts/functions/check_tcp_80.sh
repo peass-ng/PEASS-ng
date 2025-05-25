@@ -8,25 +8,21 @@
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $pid, $pids
+# Generated Global Variables: $local_pid, $TIMEOUT_INTERNET_SECONDS_80
 # Fat linpeas: 0
 # Small linpeas: 1
 
 
+
 check_tcp_80(){
+  local TIMEOUT_INTERNET_SECONDS_80=$1
   if ! [ -f "/bin/bash" ]; then
     echo "  /bin/bash not found"
     return
   fi
 
-  /bin/bash -c '
-      for ip in 1.1.1.1; do
-        (echo >/dev/tcp/$ip/80 && echo "Port 80 is accessible" && exit 0) &
-        pids+=($!)
-      done
-      for pid in ${pids[@]}; do
-        wait $pid && exit 0
-      done
-      echo "Port 80 is not accessible"
-    ' 2>/dev/null | grep "accessible"
+  # example.com
+  (bash -c '(echo >/dev/tcp/104.18.74.230/80 2>/dev/null && echo "Port 80 is accessible" && exit 0) 2>/dev/null || echo "Port 80 is not accessible"') & local_pid=$!
+
+  sleep $TIMEOUT_INTERNET_SECONDS_80 && kill -9 $local_pid 2>/dev/null && echo "Port 80 is not accessible"
 }

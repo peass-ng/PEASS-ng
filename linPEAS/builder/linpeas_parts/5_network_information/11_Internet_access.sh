@@ -19,20 +19,20 @@ print_2title "Internet Access?"
 TIMEOUT_INTERNET_SECONDS=5
 
 if [ "$SUPERFAST" ]; then
-  TIMEOUT_INTERNET_SECONDS=2
+  TIMEOUT_INTERNET_SECONDS=2.5
 fi
 
 
 # Run all checks in background
-check_tcp_80 2>/dev/null & pid1=$!
-check_tcp_443 2>/dev/null & pid2=$!
-check_icmp 2>/dev/null & pid3=$!
-check_dns 2>/dev/null & pid4=$!
+check_tcp_80 "$TIMEOUT_INTERNET_SECONDS" 2>/dev/null & pid1=$!
+check_tcp_443 "$TIMEOUT_INTERNET_SECONDS" 2>/dev/null & pid2=$!
+check_icmp "$TIMEOUT_INTERNET_SECONDS" 2>/dev/null & pid3=$!
+check_dns "$TIMEOUT_INTERNET_SECONDS" 2>/dev/null & pid4=$!
 
 # Kill all after 10 seconds
-(sleep $TIMEOUT_INTERNET_SECONDS && kill -9 $pid1 $pid2 $pid3 $pid4 2>/dev/null) &
+(sleep $(( $TIMEOUT_INTERNET_SECONDS + 1 )) && kill -9 $pid1 $pid2 $pid3 $pid4 2>/dev/null) &
 
-check_tcp_443_bin 2>/dev/null
+check_tcp_443_bin $TIMEOUT_INTERNET_SECONDS 2>/dev/null
 tcp443_bin_status=$?
 
 wait $pid1 $pid2 $pid3 $pid4 2>/dev/null

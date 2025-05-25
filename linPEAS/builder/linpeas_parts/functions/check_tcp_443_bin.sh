@@ -8,16 +8,17 @@
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $url_lambda
+# Generated Global Variables: $url_lambda, $TIMEOUT_INTERNET_SECONDS_443_BIN
 # Fat linpeas: 0
 # Small linpeas: 1
 
 
 check_tcp_443_bin () {
+  local TIMEOUT_INTERNET_SECONDS_443_BIN=$1
   local url_lambda="https://2e6ppt7izvuv66qmx2r3et2ufi0mxwqs.lambda-url.us-east-1.on.aws/"
 
   if command -v curl >/dev/null 2>&1; then
-    if curl -s --connect-timeout 5 "$url_lambda" \
+    if curl -s --connect-timeout $TIMEOUT_INTERNET_SECONDS_443_BIN "$url_lambda" \
          -H "User-Agent: linpeas" -H "Content-Type: application/json" >/dev/null 2>&1
     then
       echo "Port 443 is accessible with curl"
@@ -28,7 +29,7 @@ check_tcp_443_bin () {
     fi
 
   elif command -v wget >/dev/null 2>&1; then
-    if wget -q --timeout=5 -O - "$url_lambda" \
+    if wget -q --timeout=$TIMEOUT_INTERNET_SECONDS_443_BIN -O - "$url_lambda" \
          --header "User-Agent: linpeas" -H "Content-Type: application/json" >/dev/null 2>&1
     then
       echo "Port 443 is accessible with wget"
