@@ -457,35 +457,35 @@ namespace winPEAS.Checks
                             { "Not Accessible", Beaprint.ansi_color_bad },
                 };
                 Beaprint.AnsiPrint($"    HTTP (80) Access: {(connectivityInfo.HttpAccess ? "Accessible" : "Not Accessible")}", colorsBool);
-                if (!string.IsNullOrEmpty(connectivityInfo.HttpError))
+                if (!connectivityInfo.HttpAccess && !string.IsNullOrEmpty(connectivityInfo.HttpError))
                 {
                     Beaprint.PrintException($"      Error: {connectivityInfo.HttpError}");
                 }
 
                 // HTTPS Access
                 Beaprint.AnsiPrint($"    HTTPS (443) Access: {(connectivityInfo.HttpsAccess ? "Accessible" : "Not Accessible")}", colorsBool);
-                if (!string.IsNullOrEmpty(connectivityInfo.HttpsError))
+                if (!connectivityInfo.HttpsAccess && !string.IsNullOrEmpty(connectivityInfo.HttpsError))
                 {
                     Beaprint.PrintException($"      Error: {connectivityInfo.HttpsError}");
                 }
 
                 // HTTPS By Domain Name
                 Beaprint.AnsiPrint($"    HTTPS (443) Access by Domain Name: {(connectivityInfo.LambdaAccess ? "Accessible" : "Not Accessible")}", colorsBool);
-                if (!string.IsNullOrEmpty(connectivityInfo.LambdaError))
+                if (!connectivityInfo.LambdaAccess && !string.IsNullOrEmpty(connectivityInfo.LambdaError))
                 {
                     Beaprint.PrintException($"      Error: {connectivityInfo.LambdaError}");
                 }
 
                 // DNS Access
                 Beaprint.AnsiPrint($"    DNS (53) Access: {(connectivityInfo.DnsAccess ? "Accessible" : "Not Accessible")}", colorsBool);
-                if (!string.IsNullOrEmpty(connectivityInfo.DnsError))
+                if (!connectivityInfo.DnsAccess && !string.IsNullOrEmpty(connectivityInfo.DnsError))
                 {
                     Beaprint.PrintException($"      Error: {connectivityInfo.DnsError}");
                 }
 
                 // ICMP Access
                 Beaprint.AnsiPrint($"    ICMP (ping) Access: {(connectivityInfo.IcmpAccess ? "Accessible" : "Not Accessible")}", colorsBool);
-                if (!string.IsNullOrEmpty(connectivityInfo.IcmpError))
+                if (!connectivityInfo.IcmpAccess && !string.IsNullOrEmpty(connectivityInfo.IcmpError))
                 {
                     Beaprint.PrintException($"      Error: {connectivityInfo.IcmpError}");
                 }
