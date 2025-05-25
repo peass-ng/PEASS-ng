@@ -28,8 +28,8 @@ check_tcp_443(){
       for pid in ${pids[@]}; do
         wait $pid && exit 0
       done
-      echo "Port 80 is not accessible"
-    ' 2>/dev/null | grep "accessible" || echo "Port 80 is not accessible"
+      echo "Port 443 is not accessible"
+    ' 2>/dev/null | grep "accessible" || echo "Port 443 is not accessible"
 }
 
 

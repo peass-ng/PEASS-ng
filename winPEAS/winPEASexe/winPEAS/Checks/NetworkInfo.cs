@@ -512,7 +512,7 @@ namespace winPEAS.Checks
                 }
                 else if (!string.IsNullOrEmpty(resolutionInfo.Error))
                 {
-                    Beaprint.BadPrint($"    {resolutionInfo.Error}");
+                    Beaprint.PrintException($"    {resolutionInfo.Error}");
                 }
             }
             catch (Exception ex)
