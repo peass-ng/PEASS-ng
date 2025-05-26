@@ -6,21 +6,17 @@
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: print_2title
-# Global Variables: $MACPEAS
+# Global Variables: $MACPEAS, $NoEnvVars, $EnvVarsRed
 # Initial Functions:
 # Generated Global Variables:
 # Fat linpeas: 0
 # Small linpeas: 1
 
 if [ -z "$MACPEAS" ]; then
-  print_2title "Searching possible sensitive environment variables inside of /proc/*/environ"
-  for f in /proc/[0-9]*/environ; do
-      [ -r "$f" ] || continue
-      tr '\0' '\n' < "$f" | \
-      grep -aEi "(token|password|secret|aws|azure|gcp|api|key|jwt|session|cookie|database|sql|mongo|postgres)" | \
-      grep -avEi '(XDG_SESSION|DBUS_SESSION|systemd\/sessions)' | \
-      while read -r g; do
-          echo "$f: $g"
-      done
-  done
+  print_2title "Checking all env variables in /proc/*/environ removing duplicates and filtering out useless env vars"
+  cat /proc/[0-9]*/environ 2>/dev/null | \
+  tr '\0' '\n' | \
+  grep -Eiv "$NoEnvVars" | \
+  sort -u | \
+  sed -${E} "s,$EnvVarsRed,${SED_RED},g"
 fi
