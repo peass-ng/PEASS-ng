@@ -195,11 +195,11 @@ namespace winPEAS.Info.ProcessInfo
                                 continue;
 
                             List<string> permsFile = PermissionsHelper.GetPermissionsFile(sFilePath, Checks.Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT);
+                            IdentityReference sid = null;
                             try
                             {
                                 System.Security.AccessControl.FileSecurity fs = System.IO.File.GetAccessControl(sFilePath);
-                                IdentityReference sid = fs.GetOwner(typeof(SecurityIdentifier));
-                                string ownerName = sid.Translate(typeof(NTAccount)).ToString();
+                                sid = fs.GetOwner(typeof(SecurityIdentifier));
 
                                 // If current user already have permissions over that file or the proc belongs to the owner of the file,
                                 // handler not interesting to elevate privs
@@ -207,6 +207,8 @@ namespace winPEAS.Info.ProcessInfo
                                     continue;
 
                                 to_add["File Path"] = sFilePath;
+
+                                string ownerName = sid.Translate(typeof(NTAccount)).ToString();
                                 to_add["File Owner"] = ownerName;
                             }
                             catch (System.IO.FileNotFoundException)
@@ -218,7 +220,10 @@ namespace winPEAS.Info.ProcessInfo
                             {
                                 continue;
                             }
-
+                            catch (System.Security.Principal.IdentityNotMappedException)
+                            {
+                                to_add["File Owner"] = sid.ToString();
+                            }
                         }
 
                         else if (typeName == "key")
