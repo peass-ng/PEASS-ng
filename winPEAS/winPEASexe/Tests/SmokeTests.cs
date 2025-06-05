@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.IO;
 
 namespace winPEAS.Tests
 {
@@ -25,16 +26,27 @@ namespace winPEAS.Tests
         [TestMethod]
         public void ShouldDisplayHelp()
         {
+            var originalOut = Console.Out;
+            var sw = new StringWriter();
             try
             {
+                Console.SetOut(sw);
                 string[] args = new string[] {
                     "help",
                 };
                 Program.Main(args);
+
+                string output = sw.ToString();
+                Assert.IsTrue(output.Contains("WinPEAS is a binary"),
+                    "Help output did not contain expected text.");
             }
             catch (Exception e)
             {
                 Assert.Fail($"Exception thrown: {e.Message}");
+            }
+            finally
+            {
+                Console.SetOut(originalOut);
             }
         }
     }
