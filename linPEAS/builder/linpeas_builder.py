@@ -33,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument('--small', action='store_true', help='Build small version of linpeas.')
     parser.add_argument('--include', type=str, help='Build linpeas only with the modules indicated you can indicate section names or module IDs).')
     parser.add_argument('--exclude', type=str, help='Exclude the given modules (you can indicate section names or module IDs).')
-    parser.add_argument('--output', required=True, type=str, help='Parth to write the final linpeas file to.')
+    parser.add_argument('--output', required=True, type=str, help='Path to write the final linpeas file to.')
     args = parser.parse_args()
 
     all_modules = args.all
