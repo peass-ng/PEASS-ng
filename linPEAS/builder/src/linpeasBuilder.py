@@ -402,9 +402,9 @@ class LinpeasBuilder:
 
 
     def __replace_mark(self, mark: str, find_calls: list, join_char: str):
-        """Substitude the markup with the actual code"""
-        
-        self.linpeas_sh = self.linpeas_sh.replace(mark, join_char.join(find_calls)) #New line char is't needed
+        """Substitute the markup with the actual code"""
+
+        self.linpeas_sh = self.linpeas_sh.replace(mark, join_char.join(find_calls)) #New line char isn't needed
     
     def write_linpeas(self, path):
         """Write on disk the final linpeas"""
