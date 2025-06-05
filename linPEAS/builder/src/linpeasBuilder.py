@@ -97,7 +97,7 @@ class LinpeasBuilder:
         for orig_url in urls:
             tar_gz_bin_name = ""
             if ",,," in orig_url:
-                tar_gz_bin_name = url.split(",,,")[1]
+                tar_gz_bin_name = orig_url.split(",,,")[1]
                 url = orig_url.split(",,,")[0]
             else:
                 url = orig_url
