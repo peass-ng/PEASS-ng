@@ -106,8 +106,6 @@ def parse_line(line: str):
 
     global FINAL_JSON, C_SECTION, C_MAIN_SECTION, C_2_SECTION, C_3_SECTION
 
-    if "Cron jobs" in line:
-        a=1
 
     if is_section(line, TITLE1_PATTERN):
         title = parse_title(line)
@@ -145,17 +143,26 @@ def parse_line(line: str):
 
 
 def parse_peass(outputpath: str, jsonpath: str = ""):
-    global OUTPUT_PATH, JSON_PATH
+    global OUTPUT_PATH, JSON_PATH, FINAL_JSON, C_SECTION, C_MAIN_SECTION, C_2_SECTION, C_3_SECTION
 
     OUTPUT_PATH = outputpath
     JSON_PATH = jsonpath
 
-    for line in open(OUTPUT_PATH, 'r', encoding="utf8").readlines():
-        line = line.strip()
-        if not line or not clean_colors(line): #Remove empty lines or lines just with colors hex
-            continue
+    # Reset globals to avoid data leaking between executions
+    FINAL_JSON = {}
+    C_SECTION = FINAL_JSON
+    C_MAIN_SECTION = FINAL_JSON
+    C_2_SECTION = FINAL_JSON
+    C_3_SECTION = FINAL_JSON
 
-        parse_line(line)
+    with open(OUTPUT_PATH, 'r', encoding="utf8") as f:
+        for line in f.readlines():
+            line = line.strip()
+            # Remove empty lines or lines containing only color codes
+            if not line or not clean_colors(line):
+                continue
+
+            parse_line(line)
 
     if JSON_PATH:
         with open(JSON_PATH, "w") as f:
