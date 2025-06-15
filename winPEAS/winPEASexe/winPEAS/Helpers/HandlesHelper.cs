@@ -12,6 +12,7 @@ namespace winPEAS.Helpers
         private const int CNST_SYSTEM_EXTENDED_HANDLE_INFORMATION = 64;
         public const uint STATUS_INFO_LENGTH_MISMATCH = 0xC0000004;
         public const int DUPLICATE_SAME_ACCESS = 0x2;
+        public const string elevatedProcess = "Access denied, process is probably elevated";
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         public struct FILE_NAME_INFO
@@ -171,7 +172,7 @@ namespace winPEAS.Helpers
                 // Hex perms from https://docs.microsoft.com/en-us/windows/win32/procthread/process-security-and-access-rights and https://github.com/buffer/maltracer/blob/master/defines.py
 
                 //PROCESS_ALL_ACCESS
-                if ((h.GrantedAccess & 0x001F0FFF) == h.GrantedAccess)
+                if ((h.GrantedAccess & 0x001F0FFF) == h.GrantedAccess || (h.GrantedAccess & 0x1FFFFF) == h.GrantedAccess)
                 {
                     vulnHandler.isVuln = true;
                     vulnHandler.reason = "PROCESS_ALL_ACCESS";
@@ -454,6 +455,8 @@ namespace winPEAS.Helpers
             }
             catch
             {
+                data["name"] = elevatedProcess;
+                data["sid"] = elevatedProcess;
                 return data;
             }
             finally
@@ -469,12 +472,32 @@ namespace winPEAS.Helpers
         public static PT_RELEVANT_INFO getProcInfoById(int pid)
         {
             PT_RELEVANT_INFO pri = new PT_RELEVANT_INFO();
+            Process proc;
 
-            Process proc = Process.GetProcessById(pid);
+            try
+            {
+                proc = Process.GetProcessById(pid);
+            }
+            catch
+            {
+                pri.pid = pid;
+                pri.name = "Error, process may not exist";
+                pri.userName = "Error, process may not exist";
+                pri.userSid = "Error, process may not exist";
+                pri.imagePath = "Error, process may not exist";
+                return pri;
+            }
             Dictionary<string, string> user = GetProcU(proc);
-
             StringBuilder fileName = new StringBuilder(2000);
-            Native.Psapi.GetProcessImageFileName(proc.Handle, fileName, 2000);
+
+            try
+            {
+                Native.Psapi.GetProcessImageFileName(proc.Handle, fileName, 2000);
+            }
+            catch
+            {
+                fileName = new StringBuilder(elevatedProcess);
+            }
 
             pri.pid = pid;
             pri.name = proc.ProcessName;
