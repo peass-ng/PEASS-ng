@@ -102,17 +102,15 @@ namespace winPEAS.Checks
                 {
                     vulnHandlers = ProcessesInfo.GetVulnHandlers(progress);
                 }
+                Dictionary<string, string> colors = new Dictionary<string, string>();
+                colors[Checks.CurrentUserName] = Beaprint.ansi_color_bad;
+                colors[HandlesHelper.elevatedProcess] = Beaprint.ansi_color_bad;
 
                 foreach (Dictionary<string, string> handler in vulnHandlers)
                 {
-                    Dictionary<string, string> colors = new Dictionary<string, string>()
-                    {
-                        { Checks.CurrentUserName, Beaprint.ansi_color_bad },
-                        { handler["Reason"], Beaprint.ansi_color_bad },
-                    };
-
-                    Beaprint.DictPrint(vulnHandlers, colors, true);
+                    colors[handler["Reason"]] = Beaprint.ansi_color_bad;
                 }
+                Beaprint.DictPrint(vulnHandlers, colors, true);
             }
             catch (Exception ex)
             {
