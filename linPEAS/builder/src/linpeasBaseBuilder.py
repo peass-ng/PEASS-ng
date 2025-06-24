@@ -292,9 +292,12 @@ class LinpeasBaseBuilder:
         all_module_paths += self.enumerate_directory(LINPEAS_PARTS["variables"])
         
         for module in LINPEAS_PARTS["modules"]:
+            exclude = False
             for ex_module in exclude_modules:
                 if ex_module in module["folder_path"] or ex_module in [module["name"], module["name_check"]]:
-                    continue
+                    exclude = True
+                    break
+            if exclude: continue
             all_module_paths += self.enumerate_directory(module["folder_path"])
         
         for module in all_module_paths:
