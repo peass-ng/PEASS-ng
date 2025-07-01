@@ -8,7 +8,7 @@
 # Functions Used: print_2title
 # Global Variables: $DEBUG, $knw_usrs, $nosh_usrs, $sh_usrs, $DEBUG, $USER, $STRINGS
 # Initial Functions:
-# Generated Global Variables: $mysqluser, $mysqlexec, $mysqlconnect, $mysqlconnectnopass
+# Generated Global Variables: $mysqluser, $mysqlexec, $mysqlconnect, $mysqlconnectnopass, $mysqluser, $version_output, $major_version, $version, $process_info
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -115,7 +115,7 @@ if [ -z "$process_info" ]; then
 fi
 
 # Extract the process user
-user=$(echo "$process_info" | awk '{print $1}')
+mysqluser=$(echo "$process_info" | awk '{print $1}')
 
 # Get the MySQL version string
 version_output=$(mysqld --version 2>&1)
@@ -132,11 +132,11 @@ fi
 major_version=$(echo "$version" | cut -d. -f1)
 
 # Check if MySQL is running as root and if the version is either 4.x or 5.x
-if [ "$user" = "root" ] && { [ "$major_version" -eq 4 ] || [ "$major_version" -eq 5 ]; }; then
+if [ "$mysqluser" = "root" ] && { [ "$major_version" -eq 4 ] || [ "$major_version" -eq 5 ]; }; then
   echo "MySQL is running as root with version $version. This is a potential local privilege escalation vulnerability!" | sed -${E} "s,.*,${SED_RED},"
   echo "\tRefer to: https://www.exploit-db.com/exploits/1518" | sed -${E} "s,.*,${SED_YELLOW},"
   echo "\tRefer to: https://medium.com/r3d-buck3t/privilege-escalation-with-mysql-user-defined-functions-996ef7d5ceaf" | sed -${E} "s,.*,${SED_YELLOW},"
 else
-  echo "MySQL is running as user '$user' with version $version." | sed -${E} "s,.*,${SED_GREEN},"
+  echo "MySQL is running as user '$mysqluser' with version $version." | sed -${E} "s,.*,${SED_GREEN},"
 fi
 ### ------------------------------------------------------------------------------------------------------------------------------------------------ ###
