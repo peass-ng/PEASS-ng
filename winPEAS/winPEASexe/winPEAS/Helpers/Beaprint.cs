@@ -31,7 +31,7 @@ namespace winPEAS.Helpers
         public static string ansi_current_user = MAGENTA;
 
         private static string Advisory =
-            "winpeas should be used for authorized penetration testing and/or educational purposes only." +
+            "winpeas should be used for authorized penetration testing and/or educational purposes only. " +
             "Any misuse of this software will not be the responsibility of the author or of any other collaborator. " +
             "Use it at your own devices and/or with the device owner's permission.";
 
