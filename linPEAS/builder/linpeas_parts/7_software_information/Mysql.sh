@@ -111,32 +111,33 @@ process_info=$(ps aux | grep '[m]ysqld' | head -n1)
 
 if [ -z "$process_info" ]; then
   echo "MySQL process not found." | sed -${E} "s,.*,${SED_GREEN},"
-  exit 1
-fi
-
-# Extract the process user
-mysqluser=$(echo "$process_info" | awk '{print $1}')
-
-# Get the MySQL version string
-version_output=$(mysqld --version 2>&1)
-
-# Extract the version number (expects format like X.Y.Z)
-version=$(echo "$version_output" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
-
-if [ -z "$version" ]; then
-  echo "Unable to determine MySQL version." | sed -${E} "s,.*,${SED_GREEN},"
-  exit 1
-fi
-
-# Extract the major version number (X from X.Y.Z)
-major_version=$(echo "$version" | cut -d. -f1)
-
-# Check if MySQL is running as root and if the version is either 4.x or 5.x
-if [ "$mysqluser" = "root" ] && { [ "$major_version" -eq 4 ] || [ "$major_version" -eq 5 ]; }; then
-  echo "MySQL is running as root with version $version. This is a potential local privilege escalation vulnerability!" | sed -${E} "s,.*,${SED_RED},"
-  echo "\tRefer to: https://www.exploit-db.com/exploits/1518" | sed -${E} "s,.*,${SED_YELLOW},"
-  echo "\tRefer to: https://medium.com/r3d-buck3t/privilege-escalation-with-mysql-user-defined-functions-996ef7d5ceaf" | sed -${E} "s,.*,${SED_YELLOW},"
 else
-  echo "MySQL is running as user '$mysqluser' with version $version." | sed -${E} "s,.*,${SED_GREEN},"
+
+  # Extract the process user
+  mysqluser=$(echo "$process_info" | awk '{print $1}')
+
+  # Get the MySQL version string
+  version_output=$(mysqld --version 2>&1)
+
+  # Extract the version number (expects format like X.Y.Z)
+  version=$(echo "$version_output" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+
+  if [ -z "$version" ]; then
+    echo "Unable to determine MySQL version." | sed -${E} "s,.*,${SED_GREEN},"
+  else
+
+    # Extract the major version number (X from X.Y.Z)
+    major_version=$(echo "$version" | cut -d. -f1)
+
+    # Check if MySQL is running as root and if the version is either 4.x or 5.x
+    if [ "$mysqluser" = "root" ] && { [ "$major_version" -eq 4 ] || [ "$major_version" -eq 5 ]; }; then
+      echo "MySQL is running as root with version $version. This is a potential local privilege escalation vulnerability!" | sed -${E} "s,.*,${SED_RED},"
+      echo "\tRefer to: https://www.exploit-db.com/exploits/1518" | sed -${E} "s,.*,${SED_YELLOW},"
+      echo "\tRefer to: https://medium.com/r3d-buck3t/privilege-escalation-with-mysql-user-defined-functions-996ef7d5ceaf" | sed -${E} "s,.*,${SED_YELLOW},"
+    else
+      echo "MySQL is running as user '$mysqluser' with version $version." | sed -${E} "s,.*,${SED_GREEN},"
+    fi
+    ### ------------------------------------------------------------------------------------------------------------------------------------------------ ###
+  
+  fi
 fi
-### ------------------------------------------------------------------------------------------------------------------------------------------------ ###
