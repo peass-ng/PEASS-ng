@@ -1,0 +1,201 @@
+name: PR-tests
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+    paths-ignore:
+      - '.github/**'
+
+jobs:
+  Build_and_test_winpeas_pr:
+    runs-on: windows-latest
+    
+    # environment variables
+    env:
+      Solution_Path: 'winPEAS\winPEASexe\winPEAS.sln'
+      Configuration: 'Release'
+
+    steps:
+      # checkout
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          ref: ${{ github.head_ref }}
+      
+      - name: Download regexes
+        run: |
+          powershell.exe -ExecutionPolicy Bypass -File build_lists/download_regexes.ps1
+            
+      # Add MSBuild to the PATH
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v1.0.2
+       
+      # Setup NuGet
+      - name: Setup NuGet.exe
+        uses: nuget/setup-nuget@v1  
+        
+      # Restore the packages for testing
+      - name: Restore the application       
+        run: nuget restore $env:Solution_Path
+        
+      # build
+      - name: run MSBuild
+        run: msbuild $env:Solution_Path
+        
+      # Build all versions
+      - name: Build all versions
+        run: |
+            echo "build x64"
+            msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="x64"
+            
+            echo "build x86"
+            msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="x86"
+            
+            echo "build Any CPU"
+            msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="Any CPU"
+      
+      - name: Execute winPEAS -h
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (Test-Path $exePath) {
+            & $exePath -h
+          } else {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
+
+      - name: Execute winPEAS cloudinfo
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (Test-Path $exePath) {
+            & $exePath cloudinfo
+          } else {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
+
+      - name: Execute winPEAS systeminfo
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (Test-Path $exePath) {
+            & $exePath systeminfo
+          } else {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
+      
+      - name: Execute winPEAS networkinfo
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (Test-Path $exePath) {
+            & $exePath networkinfo
+          } else {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
+
+  Build_and_test_linpeas_pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Download repo
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+      
+      # Setup go
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.0-rc1
+          stable: false
+      - run: go version
+      
+      # Build linpeas
+      - name: Build linpeas
+        run: |
+          python3 -m pip install PyYAML
+          cd linPEAS
+          python3 -m builder.linpeas_builder --all --output linpeas_fat.sh
+          python3 -m builder.linpeas_builder --all-no-fat --output linpeas.sh
+          python3 -m builder.linpeas_builder --small --output linpeas_small.sh
+      
+      # Run linpeas help as quick test
+      - name: Run linpeas help
+        run: linPEAS/linpeas_fat.sh -h && linPEAS/linpeas.sh -h && linPEAS/linpeas_small.sh -h
+      
+      # Run linpeas as a test
+      - name: Run linpeas system_information
+        run: linPEAS/linpeas_fat.sh -o system_information -a
+      
+      - name: Run linpeas container
+        run: linPEAS/linpeas_fat.sh -o container -a
+      
+      - name: Run linpeas cloud
+        run: linPEAS/linpeas_fat.sh -o cloud -a
+      
+      - name: Run linpeas procs_crons_timers_srvcs_sockets
+        run: linPEAS/linpeas_fat.sh -o procs_crons_timers_srvcs_sockets -a
+      
+      - name: Run linpeas network_information
+        run: linPEAS/linpeas_fat.sh -o network_information -t -a
+      
+      - name: Run linpeas users_information
+        run: linPEAS/linpeas_fat.sh -o users_information -a
+      
+      - name: Run linpeas software_information
+        run: linPEAS/linpeas_fat.sh -o software_information -a
+      
+      - name: Run linpeas interesting_perms_files
+        run: linPEAS/linpeas_fat.sh -o interesting_perms_files -a
+      
+      - name: Run linpeas interesting_files
+        run: linPEAS/linpeas_fat.sh -o interesting_files -a
+
+  Build_and_test_macpeas_pr:
+    runs-on: macos-latest
+
+    steps:
+      # Download repo
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+      
+      # Build linpeas (macpeas)
+      - name: Build macpeas
+        run: |
+          python3 -m pip install PyYAML --break-system-packages
+          python3 -m pip install requests --break-system-packages
+          cd linPEAS
+          python3 -m builder.linpeas_builder --all --output linpeas_fat.sh
+      
+      # Run linpeas help as quick test
+      - name: Run macpeas help
+        run: linPEAS/linpeas_fat.sh -h
+      
+      # Run macpeas parts to test it
+      - name: Run macpeas system_information
+        run: linPEAS/linpeas_fat.sh -o system_information -a
+      
+      - name: Run macpeas container
+        run: linPEAS/linpeas_fat.sh -o container -a
+      
+      - name: Run macpeas cloud
+        run: linPEAS/linpeas_fat.sh -o cloud -a
+      
+      - name: Run macpeas procs_crons_timers_srvcs_sockets
+        run: linPEAS/linpeas_fat.sh -o procs_crons_timers_srvcs_sockets -a
+      
+      - name: Run macpeas network_information
+        run: linPEAS/linpeas_fat.sh -o network_information -t -a
+      
+      - name: Run macpeas users_information
+        run: linPEAS/linpeas_fat.sh -o users_information -a
+      
+      - name: Run macpeas software_information
+        run: linPEAS/linpeas_fat.sh -o software_information -a
