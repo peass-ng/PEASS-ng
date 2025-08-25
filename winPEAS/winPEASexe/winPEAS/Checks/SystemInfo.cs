@@ -20,6 +20,7 @@ using winPEAS.Info.SystemInfo.Printers;
 using winPEAS.Info.SystemInfo.SysMon;
 using winPEAS.Info.SystemInfo.WindowsDefender;
 using winPEAS.Native.Enums;
+using Alphaleonis.Win32.Security;
 
 namespace winPEAS.Checks
 {
@@ -72,7 +73,9 @@ namespace winPEAS.Checks
                 PrintAVInfo,
                 PrintWindowsDefenderInfo,
                 PrintUACInfo,
-                PrintPSInfo,
+                
+                PrintUACFodhelperCheck,
+PrintPSInfo,
                 PrintPowerShellSessionSettings,
                 PrintTranscriptPS,
                 PrintInetInfo,
@@ -1201,5 +1204,78 @@ namespace winPEAS.Checks
             {
             }
         }
+// --- Begin: UAC fodhelper check ---
+        // Detect and summarize the classic UAC bypass via fodhelper.exe (HKCU\Software\Classes\ms-settings hijack)
+        static void PrintUACFodhelperCheck()
+        {
+            try
+            {
+                Beaprint.MainPrint("UAC Bypass Candidates (fodhelper.exe)");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#from-administrator-medium-to-high-integrity-level--uac-bypasss", "Detection of the HKCU ms-settings COM hijack used by fodhelper.exe");
+
+                // Preconditions for this bypass to be useful
+                bool isUacEnabled = ProcessContext.IsUacEnabled;
+                bool isAdminContext = Helpers.MyUtils.IsHighIntegrity(); // actually checks Administrators group membership
+                bool isElevated = ProcessContext.IsElevatedProcess;
+
+                var uacPol = Info.SystemInfo.SystemInfo.GetUACSystemPolicies();
+                string consentPromptRaw = (uacPol != null && uacPol.ContainsKey("ConsentPromptBehaviorAdmin")) ? uacPol["ConsentPromptBehaviorAdmin"] : "";
+                string consentPromptValue = winPEAS.Helpers.Registry.RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "ConsentPromptBehaviorAdmin");
+
+                // fodhelper binary
+                string fodhelperPath = System.IO.Path.Combine(Environment.SystemDirectory, "fodhelper.exe");
+                bool fodhelperExists = File.Exists(fodhelperPath);
+
+                // Hijack key state
+                string msSettingsKey = "Software\\Classes\\ms-settings\\Shell\\Open\\command";
+                var currentDelegate = winPEAS.Helpers.Registry.RegistryHelper.GetRegValue("HKCU", msSettingsKey, "DelegateExecute");
+                var currentDefault = winPEAS.Helpers.Registry.RegistryHelper.GetRegValue("HKCU", msSettingsKey, ""); // (Default)
+
+                // Print a brief context line
+                Beaprint.InfoPrint($"Context -> Admin group: {isAdminContext}, Elevated: {isElevated}, UAC enabled: {isUacEnabled}, CPBA: {consentPromptRaw}");
+                Beaprint.InfoPrint($"Binary -> {fodhelperPath} present: {fodhelperExists}");
+
+                // Report registry state (if key exists)
+                if (!string.IsNullOrEmpty(currentDelegate) || !string.IsNullOrEmpty(currentDefault))
+                {
+                    Beaprint.BadPrint("Suspicious ms-settings hijack values found under HKCU:");
+                    Beaprint.BadPrint($"  HKCU\\{msSettingsKey}\\(Default): '{currentDefault}'");
+                    Beaprint.BadPrint($"  HKCU\\{msSettingsKey}\\DelegateExecute: '{currentDelegate}'");
+                    Beaprint.InfoPrint("This pattern is commonly used to auto-elevate fodhelper.exe without a prompt.");
+                }
+                else
+                {
+                    Beaprint.NotFoundPrint();
+                }
+
+                // Heuristic recommendation on likelihood
+                if (isAdminContext && !isElevated && isUacEnabled && fodhelperExists)
+                {
+                    // CPBA guidance
+                    if (consentPromptValue == "2")
+                    {
+                        Beaprint.GoodPrint("CPBA is 'Always Notify' (2). Fodhelper-style auto-elevation is typically blocked by this setting.");
+                    }
+                    else if (consentPromptValue == "0")
+                    {
+                        Beaprint.GoodPrint("UAC prompts are disabled for administrators (0). New admin processes elevate automatically; a bypass is unnecessary.");
+                    }
+                    else
+                    {
+                        Beaprint.BadPrint("Potential UAC bypass via fodhelper.exe is LIKELY. You're an Administrator running at medium integrity with UAC enabled.");
+                        Beaprint.InfoPrint("Create HKCU\\Software\\Classes\\ms-settings\\Shell\\Open\\command with an empty 'DelegateExecute' and set (Default) to your command, then start fodhelper.exe.");
+                    }
+                }
+                else
+                {
+                    Beaprint.GoodPrint("Conditions for fodhelper.exe UAC bypass not met (not in Admin group, already elevated, UAC disabled, or binary missing).");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+// --- End: UAC fodhelper check ---
     }
 }

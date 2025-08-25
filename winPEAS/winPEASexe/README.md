@@ -134,7 +134,7 @@ Once you have installed and activated it you need to:
   - [x] Current drives information
   - [x] AV
   - [x] Windows Defender
-  - [x] UAC configuration
+  - [x] UAC configuration and fodhelper (ms-settings) hijack detection
   - [x] NTLM Settings
   - [x] Local Group Policy
   - [x] Applocker Configuration & bypass suggestions
