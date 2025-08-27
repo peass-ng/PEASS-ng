@@ -6,3 +6,4 @@
 - Improve the speed
 - Reduce the size of the script
 - Generate automatically an obfuscated version
+- New: Detect root-owned php -S on 127.0.0.1 and ISPConfig installs; flag potential CVE-2023-46818 (Language Editor) risk.
