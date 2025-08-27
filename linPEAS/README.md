@@ -96,7 +96,7 @@ bash /path/to/linpeas.sh -f /path/to/folder
 
 The goal of this script is to search for possible **Privilege Escalation Paths** (tested in Debian, CentOS, FreeBSD, OpenBSD and MacOS).
 
-This script doesn't have any dependency.
+This script doesn't have any dependency. It also detects unsafe patterns in privileged cron/systemd scripts that read process command lines (pgrep/ps), transform them into a command string, and execute it (for example, apache2ctl -t built from pgrep -lfa output), which can lead to root code execution.
 
 It uses **/bin/sh** syntax, so can run in anything supporting `sh` (and the binaries and parameters used).
 
