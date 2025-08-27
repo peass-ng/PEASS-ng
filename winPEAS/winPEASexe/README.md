@@ -135,6 +135,7 @@ Once you have installed and activated it you need to:
   - [x] AV
   - [x] Windows Defender
   - [x] UAC configuration
+  - [x] UAC bypass hints (fodhelper) when user is in Administrators but not elevated
   - [x] NTLM Settings
   - [x] Local Group Policy
   - [x] Applocker Configuration & bypass suggestions

