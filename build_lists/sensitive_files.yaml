@@ -3941,3 +3941,27 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  - name: WAPT
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "waptserver.ini"
+            value:
+                type: f
+                search_in:
+                  - common
+
+          - name: "wapt-get.ini"
+            value:
+                type: f
+                search_in:
+                  - common
+
+          - name: "*wapt*.7z"
+            value:
+                type: f
+                search_in:
+                  - common

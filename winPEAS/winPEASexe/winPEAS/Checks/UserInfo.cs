@@ -14,7 +14,7 @@ using winPEAS.Native.Structs;
 
 namespace winPEAS.Checks
 {
-    internal class UserInfo : ISystemCheck
+    internal partial class UserInfo : ISystemCheck
     {
         /* Colors Code
         * RED:
@@ -30,7 +30,8 @@ namespace winPEAS.Checks
        */
 
 
-        static string badgroups = "docker|Remote |DNSAdmins|AD Recycle Bin|Azure Admins|Admins|Server Operators";//The space in Remote is important to not mix with SeShutdownRemotePrivilege
+        static string badgroups = "docker|Remote |DNSAdmins|AD Recycle Bin|Azure Admins|Admins|Server Operators|Group Policy Creator Owners";// The space in "Remote " is important to not mix with SeShutdownRemotePrivilege
+        // Added "Group Policy Creator Owners" as a high-value group since members can create/modify GPOs that can be abused to get SYSTEM on linked computers.
         static readonly string _badPasswd = "NotChange|NotExpi";
         static readonly string _badPrivileges = "SeImpersonatePrivilege|SeAssignPrimaryPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege";
 
@@ -44,6 +45,7 @@ namespace winPEAS.Checks
                 PrintCurrentUserIdleTime,
                 PrintCurrentTenantInfo,
                 PrintTokenP,
+                PrintPotentialGpoAbuseIndicators,
                 PrintClipboardText,
                 PrintLoggedUsers,
                 PrintLocalUsers,

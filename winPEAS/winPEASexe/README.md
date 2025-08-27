@@ -266,3 +266,8 @@ If you find any issue, please report it using **[github issues](https://github.c
 ## Advisory
 
 All the scripts/binaries of the PEAS Suite should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
+
+### New in this update
+- AD GPO abuse indicators: winPEAS now highlights membership in "Group Policy Creator Owners" and inspects applied GPO folders in SYSVOL for write permissions that can enable SYSTEM via GPO abuse.
+- WAPT artifacts: added detection of common WAPT files (waptserver.ini, wapt-get.ini) and backup archives (*wapt*.7z) in user homes and Recycle Bin searches.
+
