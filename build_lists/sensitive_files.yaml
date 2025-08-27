@@ -3941,3 +3941,27 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  - name: ISPConfig
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "config.inc.php"
+            value:
+                bad_regex: "db_|dbhost|dbuser|dbpass|db_name|db_user|db_password|db_host"
+                only_bad_lines: True
+                type: f
+                check_extra_path: "/usr/local/ispconfig"
+                search_in:
+                  - common
+
+          - name: "mysql_clientdb.conf"
+            value:
+                bad_regex: "user|pass|password|database|host"
+                only_bad_lines: True
+                type: f
+                check_extra_path: "/usr/local/ispconfig"
+                search_in:
+                  - common
