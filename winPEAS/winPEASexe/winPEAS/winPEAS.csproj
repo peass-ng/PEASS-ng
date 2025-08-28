@@ -172,6 +172,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.DirectoryServices.AccountManagement" />
+    <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Globalization.Calendars, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Globalization.Calendars.4.3.0\lib\net46\System.Globalization.Calendars.dll</HintPath>
       <Private>True</Private>
@@ -1186,6 +1187,7 @@
     <Compile Include="3rdParty\YamlSerializer\YamlTagValidator.cs" />
     <Compile Include="Checks\ApplicationsInfo.cs" />
     <Compile Include="Checks\BrowserInfo.cs" />
+    <Compile Include="Checks\ActiveDirectoryInfo.cs" />
     <Compile Include="Checks\CloudInfo.cs" />
     <Compile Include="Checks\FileAnalysis.cs" />
     <Compile Include="Checks\FilesInfo.cs" />
