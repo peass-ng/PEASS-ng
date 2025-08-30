@@ -22,6 +22,10 @@ Check how to **select the checks you want to build [in your own linpeas followin
 
 Note that by default, in the releases pages of this repository, you will find a **linpeas with all the checks**.
 
+### New in Aug 2025
+
+- Added heuristic detection for Bash arithmetic injection in root-run periodic parsers (cron/timers). LinPEAS now inspects root cron entries and systemd timers to find shell scripts that parse logs and use arithmetic contexts like (( ... )), let, or declare -i with untrusted variables. This may reveal dangerous patterns where attacker-controlled log lines can trigger command substitution inside arithmetic evaluation.
+
 ## Differences between `linpeas_fat.sh`, `linpeas.sh` and `linpeas_small.sh`:
 
 - **linpeas_fat.sh**: Contains all checks, even third party applications in base64 embedded.
