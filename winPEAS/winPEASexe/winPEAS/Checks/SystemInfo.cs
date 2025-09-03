@@ -84,6 +84,7 @@ namespace winPEAS.Checks
                 PrintLSAInfo,
                 PrintNtlmSettings,
                 PrintLocalGroupPolicy,
+                PrintPotentialGPOAbuse,
                 AppLockerHelper.PrintAppLockerPolicy,
                 PrintPrintersWMIInfo,
                 PrintNamedPipes,
@@ -1130,6 +1131,94 @@ namespace winPEAS.Checks
             {
             }
         }
+
+        private static void PrintPotentialGPOAbuse()
+        {
+            try
+            {
+                Beaprint.MainPrint("Potential GPO abuse vectors (applied domain GPOs writable by current user)");
+
+                if (!Checks.IsPartOfDomain)
+                {
+                    Beaprint.NoColorPrint("    Host is not joined to a domain or domain info is unavailable.");
+                    return;
+                }
+
+                // Build a friendly group list for the current user to quickly spot interesting memberships
+                var currentGroups = winPEAS.Info.UserInfo.User.GetUserGroups(Checks.CurrentUserName, Checks.CurrentUserDomainName) ?? new System.Collections.Generic.List<string>();
+                var hasGPCO = currentGroups.Any(g => string.Equals(g, "Group Policy Creator Owners", System.StringComparison.InvariantCultureIgnoreCase));
+
+                if (hasGPCO)
+                {
+                    Beaprint.BadPrint("    [!] Current user is member of 'Group Policy Creator Owners' — can create/own new GPOs. If you can link a GPO to an OU that applies here, you can execute code as SYSTEM via scheduled task/startup script.");
+                }
+
+                var infos = GroupPolicy.GetLocalGroupPolicyInfos();
+
+                bool anyFinding = false;
+                foreach (var info in infos)
+                {
+                    var fileSysPath = info.FileSysPath?.ToString();
+                    if (string.IsNullOrEmpty(fileSysPath))
+                    {
+                        continue;
+                    }
+
+                    // Only look at domain GPOs stored in SYSVOL
+                    var isSysvolPath = fileSysPath.StartsWith(@"\", System.StringComparison.InvariantCultureIgnoreCase) &&
+                                       fileSysPath.IndexOf(@"\SysVol\", System.StringComparison.InvariantCultureIgnoreCase) >= 0 &&
+                                       fileSysPath.IndexOf(@"\Policies\", System.StringComparison.InvariantCultureIgnoreCase) >= 0;
+
+                    if (!isSysvolPath)
+                    {
+                        continue;
+                    }
+
+                    // Check write/equivalent permissions on common abuse locations inside the GPO
+                    var pathsToCheck = new System.Collections.Generic.List<string>
+                    {
+                        fileSysPath,
+                        System.IO.Path.Combine(fileSysPath, @"Machine\Scripts\Startup"),
+                        System.IO.Path.Combine(fileSysPath, @"User\Scripts\Logon"),
+                        System.IO.Path.Combine(fileSysPath, @"Machine\Preferences\ScheduledTasks")
+                    };
+
+                    foreach (var p in pathsToCheck)
+                    {
+                        var perms = PermissionsHelper.GetPermissionsFolder(p, Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT);
+                        if (perms != null && perms.Count > 0)
+                        {
+                            if (!anyFinding)
+                            {
+                                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/gpo-abuse.html", "Why it matters");
+                            }
+                            anyFinding = true;
+                            Beaprint.BadPrint($"    [!] Writable applied GPO detected");
+                            Beaprint.NoColorPrint($"        GPO Display Name : {info.DisplayName}");
+                            Beaprint.NoColorPrint($"        GPO Name         : {info.GPOName}");
+                            Beaprint.NoColorPrint($"        GPO Link         : {info.Link}");
+                            Beaprint.NoColorPrint($"        Path             : {p}");
+                            foreach (var entry in perms)
+                            {
+                                Beaprint.NoColorPrint($"          -> {entry}");
+                            }
+                            Beaprint.GrayPrint("        Hint: Abuse by adding an immediate Scheduled Task or Startup script to execute as SYSTEM on gpupdate.");
+                        }
+                    }
+                }
+
+                if (!anyFinding && !hasGPCO)
+                {
+                    Beaprint.NoColorPrint("    No obvious GPO abuse via writable SYSVOL paths or GPCO membership detected.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Avoid noisy stack traces in normal runs
+                Beaprint.GrayPrint($"    [!] Error while checking potential GPO abuse: {ex.Message}");
+            }
+        }
+
 
         private static void PrintPowerShellSessionSettings()
         {
