@@ -15,7 +15,6 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Legacy r-commands (rsh/rlogin/rexec) and host-based trust"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#r-commands-and-rhosts"
 
   echo ""
   print_3title "Listening r-services (TCP 512-514)"
