@@ -90,6 +90,7 @@ namespace winPEAS.Checks
                 new SystemCheck("servicesinfo", new ServicesInfo()),
                 new SystemCheck("applicationsinfo", new ApplicationsInfo()),
                 new SystemCheck("networkinfo", new NetworkInfo()),
+                new SystemCheck("activedirectoryinfo", new ActiveDirectoryInfo()),
                 new SystemCheck("cloudinfo", new CloudInfo()),
                 new SystemCheck("windowscreds", new WindowsCreds()),
                 new SystemCheck("browserinfo", new BrowserInfo()),
