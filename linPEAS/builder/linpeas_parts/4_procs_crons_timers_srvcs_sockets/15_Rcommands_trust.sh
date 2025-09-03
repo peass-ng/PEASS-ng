@@ -6,7 +6,7 @@
 #              which can allow passwordless root via hostname/DNS manipulation.
 # License: GNU GPL
 # Version: 1.0
-# Functions Used: print_2title, print_3title, print_info, echo_not_found
+# Functions Used: print_2title, print_3title, echo_not_found
 # Global Variables:
 # Initial Functions:
 # Generated Global Variables: $rfile, $perms, $owner, $g, $o, $any_rhosts, $shown, $f, $p
