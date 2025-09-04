@@ -895,6 +895,14 @@ search:
                 type: f
                 search_in: 
                   - common
+          
+          - name: "credentials.tfrc.json"
+            value: 
+                type: f
+                bad_regex: ".*"
+                search_in:
+                  - common
+                  
 
   - name: Racoon
     value:
@@ -1261,20 +1269,6 @@ search:
                   - common
           
           - name: "snyk.config.json"
-            value: 
-                type: f
-                bad_regex: ".*"
-                search_in:
-                  - common
-  
-
-  - name: Terraform
-    value:
-        config:
-          auto_check: True
-    
-        files:
-          - name: "credentials.tfrc.json"
             value: 
                 type: f
                 bad_regex: ".*"
