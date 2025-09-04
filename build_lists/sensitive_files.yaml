@@ -1265,7 +1265,21 @@ search:
                 type: f
                 bad_regex: ".*"
                 search_in:
-                  - common 
+                  - common
+  
+
+  - name: Terraform
+    value:
+        config:
+          auto_check: True
+    
+        files:
+          - name: "credentials.tfrc.json"
+            value: 
+                type: f
+                bad_regex: ".*"
+                search_in:
+                  - common
   
   - name: Cloud Credentials
     value:
