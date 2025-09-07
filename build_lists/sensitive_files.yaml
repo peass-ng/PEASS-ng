@@ -2067,6 +2067,11 @@ search:
                 type: f
                 search_in: 
                   - common
+          - name: "private-keys-v1.d/*.key"
+            value: 
+                type: f
+                search_in: 
+                  - common
 
           - name: "*.gnupg"
             value: 

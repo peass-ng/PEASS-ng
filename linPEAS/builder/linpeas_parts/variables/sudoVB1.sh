@@ -13,5 +13,5 @@
 # Small linpeas: 1
 
 
-sudoVB1=" \*|env_keep\W*\+=.*LD_PRELOAD|env_keep\W*\+=.*LD_LIBRARY_PATH|peass{SUDOVB1_HERE}"
+sudoVB1=" \*|env_keep\W*\+=.*LD_PRELOAD|env_keep\W*\+=.*LD_LIBRARY_PATH|env_keep\W*\+=.*BASH_ENV|env_keep\W*\+=.* ENV|peass{SUDOVB1_HERE}"
 sudoVB2="peass{SUDOVB2_HERE}"
