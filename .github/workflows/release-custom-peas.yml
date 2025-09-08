@@ -1,0 +1,45 @@
+name: Build & Release linpeas
+
+on:
+  push:
+    tags:
+      - "*"  # Se ejecuta en cada tag creado
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout del repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Ejecutar el script de build
+      - name: Build linpeas custom
+        run: |
+          chmod +x linpeas/buildCustom.sh
+          ./linpeas/buildCustom.sh
+
+      # 3. Verificar que el archivo existe
+      - name: Check built file
+        run: |
+          if [ ! -f /tmp/linpeas_ctf.sh ]; then
+            echo "❌ El archivo /tmp/linpeas_ctf.sh no existe"
+            exit 1
+          fi
+
+      # 4. Crear o actualizar la release
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Release ${{ github.ref_name }}"
+          body: "Release automática."
+          draft: false
+          prerelease: false
+          files: |
+            /tmp/linpeas_ctf.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
