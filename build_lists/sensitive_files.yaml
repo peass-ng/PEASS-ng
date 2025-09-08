@@ -895,6 +895,14 @@ search:
                 type: f
                 search_in: 
                   - common
+          
+          - name: "credentials.tfrc.json"
+            value: 
+                type: f
+                bad_regex: ".*"
+                search_in:
+                  - common
+                  
 
   - name: Racoon
     value:
@@ -1265,7 +1273,7 @@ search:
                 type: f
                 bad_regex: ".*"
                 search_in:
-                  - common 
+                  - common
   
   - name: Cloud Credentials
     value:

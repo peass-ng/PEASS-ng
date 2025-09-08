@@ -170,7 +170,7 @@ LinPEAS uses colors to indicate where does each section begin. But **it also use
 
 - The ![](https://placehold.it/15/b32400/000000?text=+) **Red** color is used for identifing suspicious configurations that could lead to privilege escalation.
 
-- The ![](https://placehold.it/15/66ff33/000000?text=+) **Green** color is used for known good configurations (based on the name not on the conten!)
+- The ![](https://placehold.it/15/66ff33/000000?text=+) **Green** color is used for known good configurations (based on the name not on the content!)
 
 - The ![](https://placehold.it/15/0066ff/000000?text=+) **Blue** color is used for: Users without shell & Mounted devices
 
