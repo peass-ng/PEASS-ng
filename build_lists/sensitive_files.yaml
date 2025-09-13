@@ -3949,3 +3949,24 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  - name: Crontab-UI
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "crontab.db"
+            value:
+                bad_regex: "-P[[:space:]]+\\S+|--password[[:space:]]+\\S+|[Pp]ass(word)?|[Tt]oken|[Ss]ecret"
+                only_bad_lines: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "crontab-ui.service"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
