@@ -98,7 +98,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
       if [ -n "$basic_user" ] || [ -n "$basic_pwd" ]; then
         uprint="$basic_user"
         pprint="$basic_pwd"
-        [ -n "$basic_pwd" ] && pprint=$(mask_secret "$basic_pwd")
+        [ -n "$basic_pwd" ] && pprint="$basic_pwd"
         echo "  └─ Basic-Auth credentials in Environment: user='${uprint}' pwd='${pprint}'" | sed -${E} "s,pwd='[^']*',${SED_RED_YELLOW},g"
       fi
 
