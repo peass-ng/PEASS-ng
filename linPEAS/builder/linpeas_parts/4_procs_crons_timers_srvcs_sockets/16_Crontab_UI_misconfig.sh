@@ -19,17 +19,6 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Crontab UI (root) misconfiguration checks"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#scheduledcron-jobs"
 
-  # Helper: mask secret values (keep first/last 2 chars when length >4)
-  mask_secret() {
-    local s="$1"
-    local l=${#s}
-    if [ $l -le 4 ]; then
-      printf "%s" "$s"
-    else
-      printf "%s...%s" "${s:0:2}" "${s: -2}"
-    fi
-  }
-
   # Collect candidate services referencing crontab-ui
   candidates=""
   if command -v systemctl >/dev/null 2>&1; then
