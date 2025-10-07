@@ -4,6 +4,8 @@ using System.DirectoryServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
+using winPEAS.Info.FilesInfo.Certificates;
 
 namespace winPEAS.Checks
 {
@@ -17,7 +19,7 @@ namespace winPEAS.Checks
             new List<Action>
             {
                 PrintGmsaReadableByCurrentPrincipal,
-                PrintAdcsEsc4LikeTemplates
+                PrintAdcsMisconfigurations
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
@@ -152,22 +154,91 @@ namespace winPEAS.Checks
             }
         }
 
-        // Detect AD CS certificate templates where current principal has dangerous control rights (ESC4-style)
-        private void PrintAdcsEsc4LikeTemplates()
+        // Detect AD CS misconfigurations
+        private void PrintAdcsMisconfigurations()
         {
             try
             {
-                Beaprint.MainPrint("AD CS templates with dangerous ACEs (ESC4)");
-                Beaprint.LinkPrint(
-                    "https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/ad-certificates.html#esc4",
-                    "If you can modify a template (WriteDacl/WriteOwner/GenericAll), you can abuse ESC4");
-
+                Beaprint.MainPrint("AD CS misconfigurations for ESC");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/ad-certificates.html");
+    
                 if (!Checks.IsPartOfDomain)
                 {
                     Beaprint.GrayPrint("  [-] Host is not domain-joined. Skipping.");
                     return;
                 }
 
+                Beaprint.InfoPrint("Check for ADCS misconfigurations in the local DC registry");
+                bool IsDomainController = RegistryHelper.GetReg("HKLM", @"SYSTEM\CurrentControlSet\Services\NTDS")?.ValueCount > 0;
+                if (IsDomainController)
+                {
+                    // For StrongBinding and CertificateMapping, More details in KB014754 - Registry key information:
+                    // https://support.microsoft.com/en-us/topic/kb5014754-certificate-based-authentication-changes-on-windows-domain-controllers-ad2c23b0-15d8-4340-a468-4d4f3b188f16
+                    uint? strongBinding = RegistryHelper.GetDwordValue("HKLM", @"SYSTEM\CurrentControlSet\Services\Kdc", "StrongCertificateBindingEnforcement");
+                    switch (strongBinding)
+                    {
+                        case 0: 
+                            Beaprint.BadPrint("  StrongCertificateBindingEnforcement: 0 — Weak mapping allowed, vulnerable to ESC9.");
+                            break;
+                        case 2: 
+                            Beaprint.GoodPrint("  StrongCertificateBindingEnforcement: 2 — Prevents weak UPN/DNS mappings even if SID extension missing, not vulnerable to ESC9.");
+                            break;
+                        // 1 is default behavior now I think?
+                        case 1:
+                        default: 
+                            Beaprint.NoColorPrint($"  StrongCertificateBindingEnforcement: {strongBinding} — Allow weak mapping if SID extension missing, may be vulnerable to ESC9.");
+                            break;
+
+                    }  
+
+                    uint? certMapping = RegistryHelper.GetDwordValue("HKLM", @"SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL", "CertificateMappingMethods");
+                    if (certMapping.HasValue && (certMapping & 0x4) != 0)
+                        Beaprint.BadPrint($"  CertificateMappingMethods: {certMapping} — Allow UPN-based mapping, vulnerable to ESC10.");
+                    else if(certMapping.HasValue && ((certMapping & 0x1) != 0 || (certMapping & 0x2) != 0))
+                        Beaprint.NoColorPrint($"  CertificateMappingMethods: {certMapping} — Allow weak Subject/Issuer certificate mapping.");
+                    // 0x18 (strong mapping) is default behavior if not the flags above I think?
+                    else
+                        Beaprint.GoodPrint($"  CertificateMappingMethods: {certMapping} — Strong Certificate mapping enabled.");
+
+                    // We take the Active CA, can they be several?
+                    string caName = RegistryHelper.GetRegValue("HKLM", $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration", "Active");
+                    if (!string.IsNullOrWhiteSpace(caName))
+                    {
+                        // Obscure Source for InterfaceFlag Enum:
+                        // https://www.sysadmins.lv/apidocs/pki/html/T_PKI_CertificateServices_Flags_InterfaceFlagEnum.htm
+                        uint? interfaceFlags = RegistryHelper.GetDwordValue("HKLM", $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\{caName}", "InterfaceFlags");
+                        if (!interfaceFlags.HasValue || (interfaceFlags & 512) == 0)
+                            Beaprint.BadPrint("  IF_ENFORCEENCRYPTICERTREQUEST not set in InterfaceFlags — vulnerable to ESC11.");
+                        else
+                            Beaprint.GoodPrint("  IF_ENFORCEENCRYPTICERTREQUEST set in InterfaceFlags — not vulnerable to ESC11.");
+
+                        string policyModule = RegistryHelper.GetRegValue("HKLM", $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\{caName}\PolicyModules", "Active");
+                        if (!string.IsNullOrWhiteSpace(policyModule))
+                        {
+                            string disableExtensionList = RegistryHelper.GetRegValue("HKLM", $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\{caName}\PolicyModules\{policyModule}", "DisableExtensionList");
+                            // zOID_NTDS_CA_SECURITY_EXT (OID 1.3.6.1.4.1.311.25.2) 
+                            if (disableExtensionList?.Contains("1.3.6.1.4.1.311.25.2") == true)
+                                Beaprint.BadPrint("  szOID_NTDS_CA_SECURITY_EXT disabled for the entire CA — vulnerable to ESC16.");
+                            else
+                                Beaprint.GoodPrint("  szOID_NTDS_CA_SECURITY_EXT not disabled for the CA — not vulnerable to ESC16.");
+                        }
+                        else
+                        {
+                            Beaprint.GrayPrint("  [-] Policy Module not found. Skipping.");
+                        }
+                    }
+                    else
+                    {
+                        Beaprint.GrayPrint("  [-] Certificate Authority not found. Skipping.");
+                    }
+                }
+                else
+                {
+                    Beaprint.GrayPrint("  [-] Host is not a domain controller. Skipping ADCS Registry check");
+                }
+
+                // Detect AD CS certificate templates where current principal has dangerous control rights(ESC4 - style)
+                Beaprint.InfoPrint("\nIf you can modify a template (WriteDacl/WriteOwner/GenericAll), you can abuse ESC4");
                 var configNC = GetRootDseProp("configurationNamingContext");
                 if (string.IsNullOrEmpty(configNC))
                 {
