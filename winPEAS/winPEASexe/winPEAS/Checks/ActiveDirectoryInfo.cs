@@ -178,27 +178,27 @@ namespace winPEAS.Checks
                     switch (strongBinding)
                     {
                         case 0: 
-                            Beaprint.BadPrint("  StrongCertificateBindingEnforcement: 0 — Weak mapping allowed, vulnerable to ESC9.");
+                            Beaprint.BadPrint("  StrongCertificateBindingEnforcement: 0 â€” Weak mapping allowed, vulnerable to ESC9.");
                             break;
                         case 2: 
-                            Beaprint.GoodPrint("  StrongCertificateBindingEnforcement: 2 — Prevents weak UPN/DNS mappings even if SID extension missing, not vulnerable to ESC9.");
+                            Beaprint.GoodPrint("  StrongCertificateBindingEnforcement: 2 â€” Prevents weak UPN/DNS mappings even if SID extension missing, not vulnerable to ESC9.");
                             break;
                         // 1 is default behavior now I think?
                         case 1:
                         default: 
-                            Beaprint.NoColorPrint($"  StrongCertificateBindingEnforcement: {strongBinding} — Allow weak mapping if SID extension missing, may be vulnerable to ESC9.");
+                            Beaprint.NoColorPrint($"  StrongCertificateBindingEnforcement: {strongBinding} â€” Allow weak mapping if SID extension missing, may be vulnerable to ESC9.");
                             break;
 
                     }  
 
                     uint? certMapping = RegistryHelper.GetDwordValue("HKLM", @"SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL", "CertificateMappingMethods");
                     if (certMapping.HasValue && (certMapping & 0x4) != 0)
-                        Beaprint.BadPrint($"  CertificateMappingMethods: {certMapping} — Allow UPN-based mapping, vulnerable to ESC10.");
+                        Beaprint.BadPrint($"  CertificateMappingMethods: {certMapping} â€” Allow UPN-based mapping, vulnerable to ESC10.");
                     else if(certMapping.HasValue && ((certMapping & 0x1) != 0 || (certMapping & 0x2) != 0))
-                        Beaprint.NoColorPrint($"  CertificateMappingMethods: {certMapping} — Allow weak Subject/Issuer certificate mapping.");
+                        Beaprint.NoColorPrint($"  CertificateMappingMethods: {certMapping} â€” Allow weak Subject/Issuer certificate mapping.");
                     // 0x18 (strong mapping) is default behavior if not the flags above I think?
                     else
-                        Beaprint.GoodPrint($"  CertificateMappingMethods: {certMapping} — Strong Certificate mapping enabled.");
+                        Beaprint.GoodPrint($"  CertificateMappingMethods: {certMapping} â€” Strong Certificate mapping enabled.");
 
                     // We take the Active CA, can they be several?
                     string caName = RegistryHelper.GetRegValue("HKLM", $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration", "Active");
@@ -208,9 +208,9 @@ namespace winPEAS.Checks
                         // https://www.sysadmins.lv/apidocs/pki/html/T_PKI_CertificateServices_Flags_InterfaceFlagEnum.htm
                         uint? interfaceFlags = RegistryHelper.GetDwordValue("HKLM", $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\{caName}", "InterfaceFlags");
                         if (!interfaceFlags.HasValue || (interfaceFlags & 512) == 0)
-                            Beaprint.BadPrint("  IF_ENFORCEENCRYPTICERTREQUEST not set in InterfaceFlags — vulnerable to ESC11.");
+                            Beaprint.BadPrint("  IF_ENFORCEENCRYPTICERTREQUEST not set in InterfaceFlags â€” vulnerable to ESC11.");
                         else
-                            Beaprint.GoodPrint("  IF_ENFORCEENCRYPTICERTREQUEST set in InterfaceFlafs — not vulnerable to ESC11.");
+                            Beaprint.GoodPrint("  IF_ENFORCEENCRYPTICERTREQUEST set in InterfaceFlags â€” not vulnerable to ESC11.");
 
                         string policyModule = RegistryHelper.GetRegValue("HKLM", $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\{caName}\PolicyModules", "Active");
                         if (!string.IsNullOrWhiteSpace(policyModule))
@@ -218,9 +218,9 @@ namespace winPEAS.Checks
                             string disableExtensionList = RegistryHelper.GetRegValue("HKLM", $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\{caName}\PolicyModules\{policyModule}", "DisableExtensionList");
                             // zOID_NTDS_CA_SECURITY_EXT (OID 1.3.6.1.4.1.311.25.2) 
                             if (disableExtensionList?.Contains("1.3.6.1.4.1.311.25.2") == true)
-                                Beaprint.BadPrint("  szOID_NTDS_CA_SECURITY_EXT disabled for the entire CA — vulnerable to ESC16.");
+                                Beaprint.BadPrint("  szOID_NTDS_CA_SECURITY_EXT disabled for the entire CA â€” vulnerable to ESC16.");
                             else
-                                Beaprint.GoodPrint("  szOID_NTDS_CA_SECURITY_EXT not disabled for the CA — not vulnerable to ESC16.");
+                                Beaprint.GoodPrint("  szOID_NTDS_CA_SECURITY_EXT not disabled for the CA â€” not vulnerable to ESC16.");
                         }
                         else
                         {
