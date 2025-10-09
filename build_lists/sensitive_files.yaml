@@ -3975,3 +3975,39 @@ search:
                 type: f
                 search_in:
                   - common
+
+  - name: TeamCity
+    value:
+        config:
+          auto_check: False
+
+        files:
+          - name: "TeamCity"
+            value:
+                type: d
+                search_in:
+                  - common
+
+          - name: "buildAgent"
+            value:
+                type: d
+                search_in:
+                  - common
+
+          - name: "teamcity-startup.properties"
+            value:
+                type: f
+                search_in:
+                  - common
+
+          - name: "buildAgent.properties"
+            value:
+                type: f
+                search_in:
+                  - common
+
+          - name: "database.properties"
+            value:
+                type: f
+                search_in:
+                  - common
