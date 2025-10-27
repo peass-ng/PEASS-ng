@@ -35,3 +35,5 @@ regexes.yaml
 build_lists/regexes.yaml
 winPEAS/winPEASexe/Dotfuscator/DotfuscatorCE/VSLangProj100.dll
 winPEAS/winPEASexe/Dotfuscator/*
+winPEAS/winPEASexe/nuget.exe
+winPEAS/winPEASbat/.claude/settings.local.json
