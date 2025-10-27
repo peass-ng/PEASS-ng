@@ -33,3 +33,5 @@ sh2bin/*
 ./*/.dccache
 regexes.yaml
 build_lists/regexes.yaml
+winPEAS/winPEASexe/Dotfuscator/DotfuscatorCE/VSLangProj100.dll
+winPEAS/winPEASexe/Dotfuscator/*
