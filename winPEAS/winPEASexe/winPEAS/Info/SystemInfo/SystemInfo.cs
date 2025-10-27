@@ -17,34 +17,10 @@ namespace winPEAS.Info.SystemInfo
 {
     class SystemInfo
     {
-        // From Seatbelt
+        // From Seatbelt - VM detection removed for evasion
         public static bool IsVirtualMachine()
         {
-            // returns true if the system is likely a virtual machine
-            // Adapted from RobSiklos' code from https://stackoverflow.com/questions/498371/how-to-detect-if-my-application-is-running-in-a-virtual-machine/11145280#11145280
-            try
-            {
-                using (var searcher = new System.Management.ManagementObjectSearcher("Select * from Win32_ComputerSystem"))
-                {
-                    using (var items = searcher.Get())
-                    {
-                        foreach (var item in items)
-                        {
-                            string manufacturer = item["Manufacturer"].ToString().ToLower();
-                            if ((manufacturer == "microsoft corporation" && item["Model"].ToString().ToUpperInvariant().Contains("VIRTUAL"))
-                                || manufacturer.Contains("vmware")
-                                || item["Model"].ToString() == "VirtualBox")
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Beaprint.PrintException(ex.Message);
-            }
+            // VM detection disabled
             return false;
         }
         
