@@ -270,7 +270,7 @@ class MetasploitModule < Msf::Post
     if datastore['CUSTOM_URL'] != ""
       url_peass = datastore['CUSTOM_URL']
     else
-      url_peass = datastore['WINPEASS'] ? "https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASany_ofs.exe" : "https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh"
+      url_peass = datastore['WINPEASS'].to_s.strip.downcase == 'true' ? "https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASany_ofs.exe" : "https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh"
     end
     # If URL is set, check if it is a valid URL or local file
     if url_peass.include?("http://") || url_peass.include?("https://")
