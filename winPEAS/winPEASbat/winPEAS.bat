@@ -69,57 +69,62 @@ ECHO.
 CALL :T_Progress 2
 
 :ListHotFixes
-wmic qfe get Caption,Description,HotFixID,InstalledOn | more
+where wmic >nul 2>&1
+if %errorlevel% equ 0 (
+    wmic qfe get Caption,Description,HotFixID,InstalledOn | more
+) else (
+    powershell -command "Get-HotFix | Format-Table -AutoSize"
+)
 set expl=no
 for /f "tokens=3-9" %%a in ('systeminfo') do (ECHO."%%a %%b %%c %%d %%e %%f %%g" | findstr /i "2000 XP 2003 2008 vista" && set expl=yes) & (ECHO."%%a %%b %%c %%d %%e %%f %%g" | findstr /i /C:"windows 7" && set expl=yes)
 IF "%expl%" == "yes" ECHO.   [i] Possible exploits (https://github.com/codingo/OSCP-2/blob/master/Windows/WinPrivCheck.bat)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB2592799" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB2592799" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS11-080 patch is NOT installed! (Vulns: XP/SP3,2K3/SP3-afd.sys)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB3143141" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB3143141" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS16-032 patch is NOT installed! (Vulns: 2K8/SP1/2,Vista/SP2,7/SP1-secondary logon)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB2393802" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB2393802" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS11-011 patch is NOT installed! (Vulns: XP/SP2/3,2K3/SP2,2K8/SP2,Vista/SP1/2,7/SP0-WmiTraceMessageVa)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB982799" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB982799" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS10-59 patch is NOT installed! (Vulns: 2K8,Vista,7/SP0-Chimichurri)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB979683" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB979683" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS10-21 patch is NOT installed! (Vulns: 2K/SP4,XP/SP2/3,2K3/SP2,2K8/SP2,Vista/SP0/1/2,7/SP0-Win Kernel)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB2305420" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB2305420" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS10-092 patch is NOT installed! (Vulns: 2K8/SP0/1/2,Vista/SP1/2,7/SP0-Task Sched)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB981957" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB981957" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS10-073 patch is NOT installed! (Vulns: XP/SP2/3,2K3/SP2/2K8/SP2,Vista/SP1/2,7/SP0-Keyboard Layout)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB4013081" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB4013081" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS17-017 patch is NOT installed! (Vulns: 2K8/SP2,Vista/SP2,7/SP1-Registry Hive Loading)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB977165" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB977165" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS10-015 patch is NOT installed! (Vulns: 2K,XP,2K3,2K8,Vista,7-User Mode to Ring)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB941693" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB941693" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS08-025 patch is NOT installed! (Vulns: 2K/SP4,XP/SP2,2K3/SP1/2,2K8/SP0,Vista/SP0/1-win32k.sys)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB920958" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB920958" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS06-049 patch is NOT installed! (Vulns: 2K/SP4-ZwQuerySysInfo)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB914389" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB914389" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS06-030 patch is NOT installed! (Vulns: 2K,XP/SP2-Mrxsmb.sys)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB908523" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB908523" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS05-055 patch is NOT installed! (Vulns: 2K/SP4-APC Data-Free)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB890859" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB890859" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS05-018 patch is NOT installed! (Vulns: 2K/SP3/4,XP/SP1/2-CSRSS)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB842526" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB842526" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS04-019 patch is NOT installed! (Vulns: 2K/SP2/3/4-Utility Manager)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB835732" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB835732" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS04-011 patch is NOT installed! (Vulns: 2K/SP2/3/4,XP/SP0/1-LSASS service BoF)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB841872" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB841872" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS04-020 patch is NOT installed! (Vulns: 2K/SP4-POSIX)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB2975684" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB2975684" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS14-040 patch is NOT installed! (Vulns: 2K3/SP2,2K8/SP2,Vista/SP2,7/SP1-afd.sys Dangling Pointer)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB3136041" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB3136041" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS16-016 patch is NOT installed! (Vulns: 2K8/SP1/2,Vista/SP2,7/SP1-WebDAV to Address)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB3057191" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB3057191" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS15-051 patch is NOT installed! (Vulns: 2K3/SP2,2K8/SP2,Vista/SP2,7/SP1-win32k.sys)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB2989935" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB2989935" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS14-070 patch is NOT installed! (Vulns: 2K3/SP2-TCP/IP)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB2778930" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB2778930" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS13-005 patch is NOT installed! (Vulns: Vista,7,8,2008,2008R2,2012,RT-hwnd_broadcast)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB2850851" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB2850851" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS13-053 patch is NOT installed! (Vulns: 7SP0/SP1_x86-schlamperei)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn | findstr /C:"KB2870008" 1>NUL
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB2870008" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS13-081 patch is NOT installed! (Vulns: 7SP0/SP1_x86-track_popup_menu)
 ECHO.
 CALL :T_Progress 2
@@ -197,7 +202,12 @@ CALL :T_Progress 1
 
 :AVSettings
 CALL :ColorLine " %E%33m[+]%E%97m Registered Anti-Virus(AV)"
-WMIC /Node:localhost /Namespace:\\root\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List | more 
+where wmic >nul 2>&1
+if %errorlevel% equ 0 (
+    WMIC /Node:localhost /Namespace:\\root\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List | more
+) else (
+    powershell -command "Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct | Select-Object -ExpandProperty displayName"
+) 
 ECHO.Checking for defender whitelisted PATHS
 reg query "HKLM\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths" 2>nul
 CALL :T_Progress 1
@@ -226,7 +236,12 @@ CALL :T_Progress 3
 :MountedDisks
 CALL :ColorLine " %E%33m[+]%E%97m MOUNTED DISKS"
 ECHO.   [i] Maybe you find something interesting
-(wmic logicaldisk get caption 2>nul | more) || (fsutil fsinfo drives 2>nul)
+where wmic >nul 2>&1
+if %errorlevel% equ 0 (
+    wmic logicaldisk get caption | more
+) else (
+    fsutil fsinfo drives
+)
 ECHO.
 CALL :T_Progress 1
 
@@ -273,15 +288,29 @@ tasklist /SVC
 ECHO.
 CALL :T_Progress 2
 ECHO.   [i] Checking file permissions of running processes (File backdooring - maybe the same files start automatically when Administrator logs in)
-for /f "tokens=2 delims='='" %%x in ('wmic process list full^|find /i "executablepath"^|find /i /v "system32"^|find ":"') do (
-	for /f eol^=^"^ delims^=^" %%z in ('ECHO.%%x') do (
-		icacls "%%z" 2>nul | findstr /i "(F) (M) (W) :\\" | findstr /i ":\\ everyone authenticated users todos %username%" && ECHO.
+where wmic >nul 2>&1
+if %errorlevel% equ 0 (
+	for /f "tokens=2 delims='='" %%x in ('wmic process list full ^|find /i "executablepath"^|find /i /v "system32"^|find ":"') do (
+		for /f eol^=^"^ delims^=^" %%z in ('ECHO.%%x') do (
+			icacls "%%z" 2>nul | findstr /i "(F) (M) (W) :\\" | findstr /i ":\\ everyone authenticated users todos %username%" && ECHO.
+		)
+	)
+) else (
+	for /f "tokens=*" %%x in ('powershell -command "Get-Process | Where-Object {$_.Path -and $_.Path -notlike '*system32*'} | Select-Object -ExpandProperty Path -Unique"') do (
+		icacls "%%x" 2>nul | findstr /i "(F) (M) (W) :\\" | findstr /i ":\\ everyone authenticated users todos %username%" && ECHO.
 	)
 )
 ECHO.
 ECHO.   [i] Checking directory permissions of running processes (DLL injection)
-for /f "tokens=2 delims='='" %%x in ('wmic process list full^|find /i "executablepath"^|find /i /v "system32"^|find ":"') do for /f eol^=^"^ delims^=^" %%y in ('ECHO.%%x') do (
-	icacls "%%~dpy\" 2>nul | findstr /i "(F) (M) (W) :\\" | findstr /i ":\\ everyone authenticated users todos %username%" && ECHO.
+where wmic >nul 2>&1
+if %errorlevel% equ 0 (
+	for /f "tokens=2 delims='='" %%x in ('wmic process list full ^|find /i "executablepath"^|find /i /v "system32"^|find ":"') do for /f eol^=^"^ delims^=^" %%y in ('ECHO.%%x') do (
+		icacls "%%~dpy\" 2>nul | findstr /i "(F) (M) (W) :\\" | findstr /i ":\\ everyone authenticated users todos %username%" && ECHO.
+	)
+) else (
+	for /f "tokens=*" %%x in ('powershell -command "Get-Process | Where-Object {$_.Path -and $_.Path -notlike '*system32*'} | Select-Object -ExpandProperty Path -Unique"') do (
+		for /f "delims=" %%d in ("%%~dpx") do icacls "%%d" 2>nul | findstr /i "(F) (M) (W) :\\" | findstr /i ":\\ everyone authenticated users todos %username%" && ECHO.
+	)
 )
 ECHO.
 CALL :T_Progress 3
@@ -452,8 +481,19 @@ ECHO.
 :ServiceBinaryPermissions
 CALL :ColorLine " %E%33m[+]%E%97m SERVICE BINARY PERMISSIONS WITH WMIC and ICACLS"
 ECHO.   [?] https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services
-for /f "tokens=2 delims='='" %%a in ('cmd.exe /c wmic service list full ^| findstr /i "pathname" ^|findstr /i /v "system32"') do (
-    for /f eol^=^"^ delims^=^" %%b in ("%%a") do icacls "%%b" 2>nul | findstr /i "(F) (M) (W) :\\" | findstr /i ":\\ everyone authenticated users todos usuarios %username%" && ECHO.
+where wmic >nul 2>&1
+if %errorlevel% equ 0 (
+	for /f "tokens=2 delims='='" %%a in ('cmd.exe /c wmic service list full ^| findstr /i "pathname" ^|findstr /i /v "system32"') do (
+		for /f eol^=^"^ delims^=^" %%b in ("%%a") do icacls "%%b" 2>nul | findstr /i "(F) (M) (W) :\\" | findstr /i ":\\ everyone authenticated users todos usuarios %username%" && ECHO.
+	)
+) else (
+	for /f "tokens=*" %%a in ('powershell -command "Get-CimInstance -ClassName Win32_Service | Where-Object {$_.PathName -and $_.PathName -notlike '*system32*'} | Select-Object -ExpandProperty PathName"') do (
+		for /f "tokens=1 delims= " %%b in ("%%a") do (
+			set "svcpath=%%b"
+			set "svcpath=!svcpath:~1,-1!"
+			if exist "!svcpath!" icacls "!svcpath!" 2>nul | findstr /i "(F) (M) (W) :\\" | findstr /i ":\\ everyone authenticated users todos usuarios %username%" && ECHO.
+		)
+	)
 )
 ECHO.
 CALL :T_Progress 1
@@ -628,16 +668,29 @@ if "%long%" == "true" (
 	ECHO.
 	ECHO.   [i] Iterating through the drives
 	ECHO.
-	for /f %%x in ('wmic logicaldisk get name^| more') do (
-		set tdrive=%%x
-		if "!tdrive:~1,2!" == ":" (
-			%%x
-            CALL :ColorLine " %E%33m[+]%E%97m FILES THAT CONTAINS THE WORD PASSWORD WITH EXTENSION: .xml .ini .txt *.cfg *.config"
-	        findstr /s/n/m/i password *.xml *.ini *.txt *.cfg *.config 2>nul | findstr /v /i "\\AppData\\Local \\WinSxS ApnDatabase.xml \\UEV\\InboxTemplates \\Microsoft.Windows.Cloud \\Notepad\+\+\\ vmware cortana alphabet \\7-zip\\" 2>nul
-            ECHO.
-            CALL :ColorLine " %E%33m[+]%E%97m FILES WHOSE NAME CONTAINS THE WORD PASS CRED or .config not inside \Windows\"
-            dir /s/b *pass* == *cred* == *.config* == *.cfg 2>nul | findstr /v /i "\\windows\\"  
-            ECHO.
+	where wmic >nul 2>&1
+	if !errorlevel! equ 0 (
+		for /f %%x in ('wmic logicaldisk get name ^| more') do (
+			set tdrive=%%x
+			if "!tdrive:~1,2!" == ":" (
+				%%x
+				CALL :ColorLine " %E%33m[+]%E%97m FILES THAT CONTAINS THE WORD PASSWORD WITH EXTENSION: .xml .ini .txt *.cfg *.config"
+				findstr /s/n/m/i password *.xml *.ini *.txt *.cfg *.config 2>nul | findstr /v /i "\\AppData\\Local \\WinSxS ApnDatabase.xml \\UEV\\InboxTemplates \\Microsoft.Windows.Cloud \\Notepad\+\+\\ vmware cortana alphabet \\7-zip\\" 2>nul
+				ECHO.
+				CALL :ColorLine " %E%33m[+]%E%97m FILES WHOSE NAME CONTAINS THE WORD PASS CRED or .config not inside \Windows\"
+				dir /s/b *pass* == *cred* == *.config* == *.cfg 2>nul | findstr /v /i "\\windows\\"
+				ECHO.
+			)
+		)
+	) else (
+		for /f %%x in ('powershell -command "Get-PSDrive -PSProvider FileSystem | Where-Object {$_.Root -match ':'} | Select-Object -ExpandProperty Name"') do (
+			%%x:
+			CALL :ColorLine " %E%33m[+]%E%97m FILES THAT CONTAINS THE WORD PASSWORD WITH EXTENSION: .xml .ini .txt *.cfg *.config"
+			findstr /s/n/m/i password *.xml *.ini *.txt *.cfg *.config 2>nul | findstr /v /i "\\AppData\\Local \\WinSxS ApnDatabase.xml \\UEV\\InboxTemplates \\Microsoft.Windows.Cloud \\Notepad\+\+\\ vmware cortana alphabet \\7-zip\\" 2>nul
+			ECHO.
+			CALL :ColorLine " %E%33m[+]%E%97m FILES WHOSE NAME CONTAINS THE WORD PASS CRED or .config not inside \Windows\"
+			dir /s/b *pass* == *cred* == *.config* == *.cfg 2>nul | findstr /v /i "\\windows\\"
+			ECHO.
 		)
 	)
 	CALL :T_Progress 2
@@ -666,5 +719,5 @@ EXIT /B
 
 :ColorLine
 SET "CurrentLine=%~1"
-FOR /F "delims=" %%A IN ('FORFILES.EXE /P %~dp0 /M %~nx0 /C "CMD /C ECHO.!CurrentLine!"') DO ECHO.%%A
+ECHO.!CurrentLine!
 EXIT /B
