@@ -76,6 +76,8 @@ The goal of this project is to search for possible **Privilege Escalation Paths*
 
 New in this version:
 - Detect potential GPO abuse by flagging writable SYSVOL paths for GPOs applied to the current host and by highlighting membership in the "Group Policy Creator Owners" group.
+- WSUS server RCE exposure check (CVE-2025-59287): detects local WSUS role, default listeners (TCP 8530/8531), and missing October 23, 2025 OOB updates (KB5070881/KB5070882/KB5070883). Flags likely vulnerable hosts and prints mitigation guidance.
+
 
 
 It should take only a **few seconds** to execute almost all the checks and **some seconds/minutes during the lasts checks searching for known filenames** that could contain passwords (the time depened on the number of files in your home folder). By default only **some** filenames that could contain credentials are searched, you can use the **searchall** parameter to search all the list (this could will add some minutes).

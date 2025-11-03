@@ -78,6 +78,7 @@ namespace winPEAS.Checks
                 PrintInetInfo,
                 PrintDrivesInfo,
                 PrintWSUS,
+                PrintWSUSServerCVE2025_59287,
                 PrintKrbRelayUp,
                 PrintInsideContainer,
                 PrintAlwaysInstallElevated,
@@ -565,7 +566,8 @@ namespace winPEAS.Checks
                 string path2 = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU";
                 string HKLM_WSUS = RegistryHelper.GetRegValue("HKLM", path, "WUServer");
                 string using_HKLM_WSUS = RegistryHelper.GetRegValue("HKLM", path2, "UseWUServer");
-                if (HKLM_WSUS.Contains("http://"))
+                // Avoid possible NullReferenceException when HKLM_WSUS is null
+                if (!string.IsNullOrEmpty(HKLM_WSUS) && HKLM_WSUS.Contains("http://"))
                 {
                     Beaprint.BadPrint("    WSUS is using http: " + HKLM_WSUS);
                     Beaprint.InfoPrint("You can test https://github.com/pimps/wsuxploit to escalate privileges");
@@ -589,6 +591,159 @@ namespace winPEAS.Checks
                 Beaprint.PrintException(ex.Message);
             }
         }
+
+        // New in Nov 2025: Local WSUS server deserialization RCE (CVE-2025-59287) exposure check
+        // This is a local, non-invasive enumeration: it checks if the WSUS Server role is present,
+        // whether default WSUS ports are listening, and if the October 23, 2025 OOB patches are installed.
+        // If WSUS is present, ports 8530/8531 are listening, and the OOB KBs are missing, the host is flagged
+        // as potentially vulnerable to unauthenticated RCE via unsafe deserialization on WSUS (SYSTEM impact).
+        static void PrintWSUSServerCVE2025_59287()
+        {
+            try
+            {
+                Beaprint.MainPrint("WSUS Server RCE (CVE-2025-59287) – local exposure");
+                Beaprint.LinkPrint("https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-59287", "Checks WSUS role presence, listeners (TCP 8530/8531), and OOB patch status (KB5070881/KB5070882/KB5070883)");
+
+                // Detect WSUS Server role presence via registry/service/files
+                var wsusServerSetup = Helpers.Registry.RegistryHelper.GetRegValues("HKLM", @"SOFTWARE\Microsoft\Update Services\Server\Setup");
+                var wsusServiceReg = Helpers.Registry.RegistryHelper.GetRegValues("HKLM", @"SYSTEM\CurrentControlSet\Services\WSUSService");
+
+                bool wsusFilesPathExists = false;
+                try
+                {
+                    string pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                    if (!string.IsNullOrEmpty(pf))
+                    {
+                        var installDir = System.IO.Path.Combine(pf, "Update Services");
+                        wsusFilesPathExists = System.IO.Directory.Exists(installDir);
+                    }
+                }
+                catch { }
+
+                bool isWsusInstalled = (wsusServerSetup != null && wsusServerSetup.Count > 0) ||
+                                        (wsusServiceReg != null && wsusServiceReg.Count > 0) ||
+                                        wsusFilesPathExists;
+
+                if (!isWsusInstalled)
+                {
+                    Beaprint.NotFoundPrint();
+                    return;
+                }
+
+                // Gather some basic WSUS details if present
+                string usingSSL = "";
+                string portNumber = "";
+                try
+                {
+                    if (wsusServerSetup != null)
+                    {
+                        wsusServerSetup.TryGetValue("UsingSSL", out object usingSSLObj);
+                        wsusServerSetup.TryGetValue("PortNumber", out object portObj);
+                        usingSSL = usingSSLObj?.ToString() ?? "";
+                        portNumber = portObj?.ToString() ?? "";
+                    }
+                }
+                catch { }
+
+                if (!string.IsNullOrEmpty(portNumber))
+                {
+                    Beaprint.GrayPrint($"    WSUS configured port: {portNumber} (UsingSSL={usingSSL})");
+                }
+
+                // Check if default ports are listening
+                var listeningPorts = new System.Collections.Generic.HashSet<ushort>();
+                try
+                {
+                    foreach (var tcp in winPEAS.Info.NetworkInfo.NetworkInfoHelper.GetTcpConnections(winPEAS.Info.NetworkInfo.Enums.IPVersion.IPv4))
+                    {
+                        if (tcp.LocalPort == 8530 || tcp.LocalPort == 8531)
+                        {
+                            if (tcp.State == winPEAS.Info.NetworkInfo.Enums.MibTcpState.Listen)
+                                listeningPorts.Add(tcp.LocalPort);
+                        }
+                    }
+
+                    foreach (var tcp in winPEAS.Info.NetworkInfo.NetworkInfoHelper.GetTcpConnections(winPEAS.Info.NetworkInfo.Enums.IPVersion.IPv6))
+                    {
+                        if (tcp.LocalPort == 8530 || tcp.LocalPort == 8531)
+                        {
+                            if (tcp.State == winPEAS.Info.NetworkInfo.Enums.MibTcpState.Listen)
+                                listeningPorts.Add(tcp.LocalPort);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Beaprint.PrintException(ex.Message);
+                }
+
+                if (listeningPorts.Count > 0)
+                {
+                    Beaprint.AnsiPrint("    WSUS listeners detected: " + string.Join(", ", listeningPorts.Select(p => $"TCP {p}")), new System.Collections.Generic.Dictionary<string, string>());
+                }
+                else
+                {
+                    Beaprint.GrayPrint("    No default WSUS listeners (TCP 8530/8531) detected.");
+                }
+
+                // Check for presence of the October 23, 2025 OOB patches
+                var requiredKbs = new System.Collections.Generic.List<string> { "KB5070881", "KB5070882", "KB5070883" };
+                var installed = GetInstalledHotfixesLower();
+
+                var foundKbs = requiredKbs.Where(k => installed.Contains(k.ToLowerInvariant())).ToList();
+
+                if (foundKbs.Any())
+                {
+                    Beaprint.GoodPrint("    OOB WSUS security update installed: " + string.Join(", ", foundKbs));
+                    Beaprint.GoodPrint("    CVE-2025-59287 likely mitigated.");
+                }
+                else
+                {
+                    // WSUS present and patch missing – flag prominently
+                    if (listeningPorts.Contains(8530) || listeningPorts.Contains(8531))
+                    {
+                        Beaprint.BadPrint("    WSUS role detected, default listeners present, and required KB not found.");
+                        Beaprint.BadPrint("    Host may be vulnerable to CVE-2025-59287 (unauthenticated RCE via unsafe deserialization, runs as SYSTEM).");
+                    }
+                    else
+                    {
+                        Beaprint.BadPrint("    WSUS role detected and required KB not found.");
+                        Beaprint.InfoPrint("    No default listeners found; verify WSUS exposure or custom bindings.");
+                    }
+
+                    Beaprint.InfoPrint("    Mitigate: install KB5070881/KB5070882/KB5070883 (2025-10-23 OOB), restrict/disable WSUS (TCP 8530/8531).");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        // Return set of installed hotfix IDs in lowercase (e.g., {"kb5005565", ...})
+        private static System.Collections.Generic.HashSet<string> GetInstalledHotfixesLower()
+        {
+            var set = new System.Collections.Generic.HashSet<string>();
+            try
+            {
+                using (var search = new System.Management.ManagementObjectSearcher("SELECT HotFixID FROM Win32_QuickFixEngineering"))
+                using (var results = search.Get())
+                {
+                    foreach (System.Management.ManagementObject hf in results)
+                    {
+                        var id = (hf["HotFixID"]?.ToString() ?? string.Empty).Trim();
+                        if (!string.IsNullOrEmpty(id))
+                            set.Add(id.ToLowerInvariant());
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Fall back: keep empty set which means we can't confirm installed KBs.
+            }
+            return set;
+        }
+
 
         static void PrintKrbRelayUp()
         {
