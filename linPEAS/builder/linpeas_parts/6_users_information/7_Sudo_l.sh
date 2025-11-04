@@ -29,4 +29,27 @@ for f in /etc/sudoers.d/*; do
     grep -Iv "^$" "$f" | grep -v "#" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,pwfeedback,${SED_RED},g"
   fi
 done
-echo ""
+# Extra: Detect tcpdump sudoers patterns that can be abused (wildcards/-w/-Z/-r/-V)
+_tcpdump_sudol="Matching Defaults entries for runner on runnervmf2e7y:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin, use_pty
+
+User runner may run the following commands on runnervmf2e7y:
+    (ALL) NOPASSWD: ALL"
+if [ -z "" ] && [ "" ]; then
+  _tcpdump_sudol="Matching Defaults entries for runner on runnervmf2e7y:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin, use_pty
+
+User runner may run the following commands on runnervmf2e7y:
+    (ALL) NOPASSWD: ALL"
+fi
+if echo "" | grep -q "/tcpdump"; then
+  echo "Potentially dangerous sudo tcpdump rule(s) found:" | sed - "s,.*,,g"
+  printf "%s\n" "" | grep tcpdump | sed - "s,.*,,g"
+  print_info "tcpdump via sudo is commonly exploitable if arguments are not fully pinned (e.g., globbed -w path). Consider trying:"
+  echo "  sudo tcpdump -c10 -w <allowed_path> -w /dev/shm/out.pcap -F <allowed_filter>" | sed - "s,.*,,g"
+  echo "  sudo tcpdump -c10 -w <allowed_path> -Z root -w /dev/shm/root-owned -F <allowed_filter>" | sed - "s,.*,,g"
+  echo "  sudo tcpdump -c10 -w <allowed_path> -Z root -r crafted.pcap -w /etc/sudoers.d/linpeas -F <allowed_filter>" | sed - "s,.*,,g"
+  echo "  sudo tcpdump -c10 -w <allowed_path> -V /root/secret -w /tmp/dummy -F <allowed_filter>" | sed - "s,.*,,g"
+  echo "    (use with caution; ensure correct perms, e.g., 440 for sudoers.d)" | sed - "s,.*,,g"
+  echo ""
+fi
