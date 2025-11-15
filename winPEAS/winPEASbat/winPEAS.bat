@@ -707,7 +707,8 @@ EXIT /B
 
 :SetOnce
 REM :: ANSI escape character is set once below - for ColorLine Subroutine
-SET "E=0x1B["
+for /F %%a in ('echo prompt $E ^| cmd') do set "ESC=%%a"
+SET "E=%ESC%["
 SET "PercentageTrack=0"
 EXIT /B
 
