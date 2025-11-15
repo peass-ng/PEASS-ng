@@ -19,7 +19,8 @@ namespace winPEAS.Checks
             new List<Action>
             {
                 PrintGmsaReadableByCurrentPrincipal,
-                PrintAdcsMisconfigurations
+                PrintAdcsMisconfigurations,
+                PrintAdAclPrivescCandidates
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
@@ -64,6 +65,32 @@ namespace winPEAS.Checks
                 ? r.Properties[name][0]?.ToString()
                 : null;
         }
+		private static Guid? GetAttributeSchemaGuid(string ldapDisplayName)
+		{
+			try
+			{
+				var schemaNC = GetRootDseProp("schemaNamingContext");
+				if (string.IsNullOrEmpty(schemaNC)) return null;
+
+				using (var baseDe = new DirectoryEntry("LDAP://" + schemaNC))
+				using (var ds = new DirectorySearcher(baseDe))
+				{
+					ds.PageSize = 50;
+					ds.Filter = "(&(objectClass=attributeSchema)(lDAPDisplayName=" + ldapDisplayName + "))";
+					ds.PropertiesToLoad.Add("schemaIDGUID");
+					var res = ds.FindOne();
+					if (res == null) return null;
+					var guidBytes = res.Properties["schemaIDGUID"]?.Count > 0 ? res.Properties["schemaIDGUID"][0] as byte[] : null;
+					if (guidBytes == null || guidBytes.Length != 16) return null;
+					return new Guid(guidBytes);
+				}
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
 
         // Detect gMSA objects where the current principal (or one of its groups) can retrieve the managed password
         private void PrintGmsaReadableByCurrentPrincipal()
@@ -341,6 +368,299 @@ namespace winPEAS.Checks
             {
                 Beaprint.PrintException(ex.Message);
             }
+
+        // Enumerate quick, high-signal AD ACL opportunities that tools like bloodyAD can abuse
+        // - Password reset rights over privileged users (Reset Password ER or equivalent)
+        // - Shadow credentials (msDS-KeyCredentialLink writable) on users/computers
+        // - AD-Integrated DNS zones where we can write/create records; DnsAdmins membership
+        private void PrintAdAclPrivescCandidates()
+        {
+            try
+            {
+                Beaprint.MainPrint("AD ACL-based escalation opportunities (bloodyAD)");
+                Beaprint.LinkPrint(
+                    "https://github.com/CravateRouge/bloodyAD",
+                    "Detect objects where you could reset passwords, write shadow credentials, or modify AD‑integrated DNS");
+
+                if (!Checks.IsPartOfDomain)
+                {
+                    Beaprint.GrayPrint("  [-] Host is not domain-joined. Skipping.");
+                    return;
+                }
+
+                var defaultNC = GetRootDseProp("defaultNamingContext");
+                var rootDomainNC = GetRootDseProp("rootDomainNamingContext") ?? defaultNC;
+                if (string.IsNullOrEmpty(defaultNC))
+                {
+                    Beaprint.GrayPrint("  [-] Could not resolve defaultNamingContext.");
+                    return;
+                }
+
+                var currentSidSet = GetCurrentSidSet();
+
+                // Resolve attribute/extended-right GUIDs we care about
+                var resetPwdGuid = new Guid("00299570-246D-11D0-A768-00AA006E0529");
+                var unicodePwdGuid = GetAttributeSchemaGuid("unicodePwd");
+                var userPasswordGuid = GetAttributeSchemaGuid("userPassword");
+                var kclGuid = GetAttributeSchemaGuid("msDS-KeyCredentialLink");
+
+                // Build a small set of high-value targets
+                var targets = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // dn -> name
+
+                // 1) Members of Domain Admins
+                try
+                {
+                    using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
+                    using (var ds = new DirectorySearcher(baseDe))
+                    {
+                        ds.Filter = "(&(objectClass=group)(sAMAccountName=Domain Admins))";
+                        ds.PropertiesToLoad.Add("distinguishedName");
+                        ds.PropertiesToLoad.Add("member");
+                        var g = ds.FindOne();
+                        if (g != null)
+                        {
+                            var members = g.Properties["member"];
+                            if (members != null)
+                            {
+                                foreach (var m in members)
+                                {
+                                    var dn = m.ToString();
+                                    try
+                                    {
+                                        using (var de = new DirectoryEntry("LDAP://" + dn))
+                                        {
+                                            var name = de.Properties["sAMAccountName"]?.Value as string ?? dn;
+                                            if (!targets.ContainsKey(dn)) targets.Add(dn, name);
+                                        }
+                                    }
+                                    catch { }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch { }
+
+                // 2) AdminSDHolder-protected users (adminCount=1)
+                try
+                {
+                    using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
+                    using (var ds = new DirectorySearcher(baseDe))
+                    {
+                        ds.PageSize = 300;
+                        ds.Filter = "(&(objectClass=user)(objectCategory=person)(adminCount=1))";
+                        ds.PropertiesToLoad.Add("distinguishedName");
+                        ds.PropertiesToLoad.Add("sAMAccountName");
+                        foreach (SearchResult r in ds.FindAll())
+                        {
+                            var dn = GetProp(r, "distinguishedName");
+                            var name = GetProp(r, "sAMAccountName") ?? dn;
+                            if (!string.IsNullOrEmpty(dn) && !targets.ContainsKey(dn)) targets.Add(dn, name);
+                        }
+                    }
+                }
+                catch { }
+
+                // 3) Domain Controllers (computer objects)
+                try
+                {
+                    using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
+                    using (var ds = new DirectorySearcher(baseDe))
+                    {
+                        ds.PageSize = 100;
+                        // UAC bit 8192 = SERVER_TRUST_ACCOUNT
+                        ds.Filter = "(&(objectClass=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))";
+                        ds.PropertiesToLoad.Add("distinguishedName");
+                        ds.PropertiesToLoad.Add("sAMAccountName");
+                        foreach (SearchResult r in ds.FindAll())
+                        {
+                            var dn = GetProp(r, "distinguishedName");
+                            var name = GetProp(r, "sAMAccountName") ?? dn;
+                            if (!string.IsNullOrEmpty(dn) && !targets.ContainsKey(dn)) targets.Add(dn, name);
+                        }
+                    }
+                }
+                catch { }
+
+                int pwdResetHits = 0, shadowHits = 0;
+                var maxToShow = 10;
+
+                foreach (var kv in targets)
+                {
+                    DirectoryEntry de = null;
+                    try
+                    {
+                        de = new DirectoryEntry("LDAP://" + kv.Key);
+                        de.Options.SecurityMasks = SecurityMasks.Dacl;
+                        de.RefreshCache(new[] { "ntSecurityDescriptor" });
+                    }
+                    catch
+                    {
+                        de?.Dispose();
+                        continue;
+                    }
+
+                    try
+                    {
+                        var sd = de.ObjectSecurity;
+                        var rules = sd.GetAccessRules(true, true, typeof(SecurityIdentifier));
+
+                        bool canPwdReset = false;
+                        bool canShadow = false;
+                        var hitRightsPwd = new HashSet<string>();
+                        var hitRightsKcl = new HashSet<string>();
+
+                        foreach (ActiveDirectoryAccessRule rule in rules)
+                        {
+                            if (rule.AccessControlType != AccessControlType.Allow) continue;
+                            var sid = (rule.IdentityReference as SecurityIdentifier)?.Value;
+                            if (string.IsNullOrEmpty(sid) || !currentSidSet.Contains(sid)) continue;
+
+                            var rights = rule.ActiveDirectoryRights;
+
+                            // Password reset via ER or powerful rights
+                            if (rights.HasFlag(ActiveDirectoryRights.GenericAll))
+                            {
+                                canPwdReset = true; hitRightsPwd.Add("GenericAll");
+                            }
+                            if (rights.HasFlag(ActiveDirectoryRights.WriteOwner)) { canPwdReset = true; hitRightsPwd.Add("WriteOwner"); }
+                            if (rights.HasFlag(ActiveDirectoryRights.WriteDacl)) { canPwdReset = true; hitRightsPwd.Add("WriteDacl"); }
+                            if (rights.HasFlag(ActiveDirectoryRights.ExtendedRight) && rule.ObjectType == resetPwdGuid)
+                            { canPwdReset = true; hitRightsPwd.Add("ResetPassword"); }
+                            if (rights.HasFlag(ActiveDirectoryRights.WriteProperty))
+                            {
+                                if (unicodePwdGuid.HasValue && rule.ObjectType == unicodePwdGuid.Value) { canPwdReset = true; hitRightsPwd.Add("Write unicodePwd"); }
+                                if (userPasswordGuid.HasValue && rule.ObjectType == userPasswordGuid.Value) { canPwdReset = true; hitRightsPwd.Add("Write userPassword"); }
+                            }
+
+                            // Shadow credentials (msDS-KeyCredentialLink)
+                            if (rights.HasFlag(ActiveDirectoryRights.GenericAll))
+                            {
+                                canShadow = true; hitRightsKcl.Add("GenericAll");
+                            }
+                            if (rights.HasFlag(ActiveDirectoryRights.WriteProperty) && kclGuid.HasValue && rule.ObjectType == kclGuid.Value)
+                            {
+                                canShadow = true; hitRightsKcl.Add("Write msDS-KeyCredentialLink");
+                            }
+                        }
+
+                        if (canPwdReset)
+                        {
+                            pwdResetHits++;
+                            if (pwdResetHits <= maxToShow)
+                                Beaprint.BadPrint($"  [PasswordReset] {kv.Value} -> {kv.Key} ({string.Join(", ", hitRightsPwd)})");
+                        }
+                        if (canShadow)
+                        {
+                            shadowHits++;
+                            if (shadowHits <= maxToShow)
+                                Beaprint.BadPrint($"  [ShadowCreds] {kv.Value} -> {kv.Key} ({string.Join(", ", hitRightsKcl)})");
+                        }
+                    }
+                    catch { }
+                    finally { de?.Dispose(); }
+                }
+
+                if (pwdResetHits == 0) Beaprint.GoodPrint("  No obvious password reset rights over high-value objects found.");
+                else Beaprint.BadPrint($"  => {pwdResetHits} potential password reset target(s) over high-value objects.");
+
+                if (shadowHits == 0) Beaprint.GoodPrint("  No writable msDS-KeyCredentialLink found on high-value objects.");
+                else Beaprint.BadPrint($"  => {shadowHits} potential shadow credentials target(s) over high-value objects.");
+
+                // DNS: membership + zone ACLs
+                try
+                {
+                    using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
+                    using (var ds = new DirectorySearcher(baseDe))
+                    {
+                        ds.Filter = "(&(objectClass=group)(sAMAccountName=DnsAdmins))";
+                        ds.PropertiesToLoad.Add("objectSid");
+                        var res = ds.FindOne();
+                        if (res != null && res.Properties["objectSid"].Count > 0)
+                        {
+                            var sid = new SecurityIdentifier((byte[])res.Properties["objectSid"][0], 0).Value;
+                            if (currentSidSet.Contains(sid))
+                                Beaprint.BadPrint("  [DNS] Current principal is a member of DnsAdmins.");
+                        }
+                    }
+                }
+                catch { }
+
+                int dnsAclHits = 0;
+                foreach (var partition in new[] { $"DC=DomainDnsZones,{defaultNC}", $"DC=ForestDnsZones,{rootDomainNC}" })
+                {
+                    try
+                    {
+                        using (var msDns = new DirectoryEntry("LDAP://CN=MicrosoftDNS," + partition))
+                        using (var ds = new DirectorySearcher(msDns))
+                        {
+                            ds.PageSize = 200;
+                            ds.Filter = "(objectClass=dnsZone)";
+                            ds.PropertiesToLoad.Add("distinguishedName");
+                            ds.PropertiesToLoad.Add("name");
+
+                            foreach (SearchResult r in ds.FindAll())
+                            {
+                                DirectoryEntry zone = null;
+                                try
+                                {
+                                    zone = r.GetDirectoryEntry();
+                                    zone.Options.SecurityMasks = SecurityMasks.Dacl;
+                                    zone.RefreshCache(new[] { "ntSecurityDescriptor" });
+                                }
+                                catch
+                                {
+                                    zone?.Dispose();
+                                    continue;
+                                }
+
+                                try
+                                {
+                                    bool canWriteZone = false;
+                                    var sd = zone.ObjectSecurity;
+                                    var rules = sd.GetAccessRules(true, true, typeof(SecurityIdentifier));
+                                    foreach (ActiveDirectoryAccessRule rule in rules)
+                                    {
+                                        if (rule.AccessControlType != AccessControlType.Allow) continue;
+                                        var sid = (rule.IdentityReference as SecurityIdentifier)?.Value;
+                                        if (string.IsNullOrEmpty(sid) || !currentSidSet.Contains(sid)) continue;
+
+                                        var rights = rule.ActiveDirectoryRights;
+                                        if (rights.HasFlag(ActiveDirectoryRights.GenericAll) ||
+                                            rights.HasFlag(ActiveDirectoryRights.WriteProperty) ||
+                                            rights.HasFlag(ActiveDirectoryRights.CreateChild) ||
+                                            rights.HasFlag(ActiveDirectoryRights.DeleteChild))
+                                        {
+                                            canWriteZone = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if (canWriteZone)
+                                    {
+                                        dnsAclHits++;
+                                        var zname = GetProp(r, "name") ?? GetProp(r, "distinguishedName") ?? "<zone>";
+                                        if (dnsAclHits <= maxToShow)
+                                            Beaprint.BadPrint($"  [DNS] Writable AD‑integrated zone: {zname}");
+                                    }
+                                }
+                                catch { }
+                                finally { zone?.Dispose(); }
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
+                if (dnsAclHits == 0) Beaprint.GoodPrint("  No writable AD‑integrated DNS zones detected for current principal.");
+                else Beaprint.BadPrint($"  => {dnsAclHits} AD‑integrated DNS zone(s) appear writable.");
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("    [!] Error during AD ACL checks: " + ex.Message);
+            }
         }
+
     }
+}
 }
