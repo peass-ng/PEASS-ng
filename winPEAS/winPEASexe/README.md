@@ -279,3 +279,7 @@ If you find any issue, please report it using **[github issues](https://github.c
 ## Advisory
 
 All the scripts/binaries of the PEAS Suite should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
+  - AD ACL opportunities for bloodyAD:
+    - Password reset rights over privileged users and computers (Reset Password extended right or equivalent GenericAll/WriteDacl/WriteOwner/property writes).
+    - Shadow credentials possible where msDS-KeyCredentialLink is writable on user/computer objects.
+    - AD-integrated DNS zones writable by the current principal (zone ACLs) and DnsAdmins membership.
