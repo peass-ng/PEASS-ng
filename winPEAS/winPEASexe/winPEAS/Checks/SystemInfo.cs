@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -561,33 +562,98 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Checking WSUS");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#wsus");
-                string path = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate";
-                string path2 = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU";
-                string HKLM_WSUS = RegistryHelper.GetRegValue("HKLM", path, "WUServer");
-                string using_HKLM_WSUS = RegistryHelper.GetRegValue("HKLM", path2, "UseWUServer");
-                if (HKLM_WSUS.Contains("http://"))
+                string policyPath = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate";
+                string policyAUPath = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU";
+                string wsusPolicyValue = RegistryHelper.GetRegValue("HKLM", policyPath, "WUServer");
+                string useWUServerValue = RegistryHelper.GetRegValue("HKLM", policyAUPath, "UseWUServer");
+
+                if (!string.IsNullOrEmpty(wsusPolicyValue) && wsusPolicyValue.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
                 {
-                    Beaprint.BadPrint("    WSUS is using http: " + HKLM_WSUS);
+                    Beaprint.BadPrint("    WSUS is using http: " + wsusPolicyValue);
                     Beaprint.InfoPrint("You can test https://github.com/pimps/wsuxploit to escalate privileges");
-                    if (using_HKLM_WSUS == "1")
+                    if (useWUServerValue == "1")
                         Beaprint.BadPrint("    And UseWUServer is equals to 1, so it is vulnerable!");
-                    else if (using_HKLM_WSUS == "0")
+                    else if (useWUServerValue == "0")
                         Beaprint.GoodPrint("    But UseWUServer is equals to 0, so it is not vulnerable!");
                     else
-                        Console.WriteLine("    But UseWUServer is equals to " + using_HKLM_WSUS + ", so it may work or not");
+                        Console.WriteLine("    But UseWUServer is equals to " + useWUServerValue + ", so it may work or not");
                 }
                 else
                 {
-                    if (string.IsNullOrEmpty(HKLM_WSUS))
+                    if (string.IsNullOrEmpty(wsusPolicyValue))
                         Beaprint.NotFoundPrint();
                     else
-                        Beaprint.GoodPrint("    WSUS value: " + HKLM_WSUS);
+                        Beaprint.GoodPrint("    WSUS value: " + wsusPolicyValue);
+                }
+
+                if (!string.IsNullOrEmpty(wsusPolicyValue))
+                {
+                    bool clientsForced = useWUServerValue == "1";
+                    if (clientsForced)
+                    {
+                        Beaprint.BadPrint("    CVE-2025-59287: Clients talk to WSUS at " + wsusPolicyValue + " (UseWUServer=1). Unpatched WSUS allows unauthenticated deserialization to SYSTEM.");
+                    }
+                    else
+                    {
+                        Beaprint.InfoPrint("    CVE-2025-59287: WSUS endpoint discovered at " + wsusPolicyValue + ". Confirm patch level before attempting exploitation.");
+                        if (!string.IsNullOrEmpty(useWUServerValue))
+                            Beaprint.InfoPrint("    UseWUServer is set to " + useWUServerValue + ", clients may still reach Microsoft Update.");
+                    }
+                }
+
+                string wsusSetupPath = @"SOFTWARE\Microsoft\Update Services\Server\Setup";
+                string wsusVersion = RegistryHelper.GetRegValue("HKLM", wsusSetupPath, "VersionString");
+                string wsusInstallPath = RegistryHelper.GetRegValue("HKLM", wsusSetupPath, "InstallPath");
+                bool wsusRoleDetected = !string.IsNullOrEmpty(wsusVersion) || !string.IsNullOrEmpty(wsusInstallPath);
+
+                if (TryGetServiceStateAndAccount("WSUSService", out string wsusServiceState, out string wsusServiceAccount))
+                {
+                    wsusRoleDetected = true;
+                    string serviceMsg = "    WSUSService status: " + wsusServiceState;
+                    if (!string.IsNullOrEmpty(wsusServiceAccount))
+                        serviceMsg += " (runs as " + wsusServiceAccount + ")";
+                    Beaprint.BadPrint(serviceMsg);
+                }
+
+                if (wsusRoleDetected)
+                {
+                    if (!string.IsNullOrEmpty(wsusVersion))
+                        Beaprint.BadPrint("    WSUS Server version: " + wsusVersion + " (verify patch level for CVE-2025-59287).");
+                    if (!string.IsNullOrEmpty(wsusInstallPath))
+                        Beaprint.InfoPrint("    WSUS install path: " + wsusInstallPath);
+                    Beaprint.BadPrint("    CVE-2025-59287: Local WSUS server exposes an unauthenticated deserialization surface reachable over HTTP(S). Patch or restrict access.");
                 }
             }
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
             }
+        }
+
+        private static bool TryGetServiceStateAndAccount(string serviceName, out string state, out string account)
+        {
+            state = string.Empty;
+            account = string.Empty;
+
+            try
+            {
+                string query = $"SELECT Name, State, StartName FROM Win32_Service WHERE Name='{serviceName.Replace("'", "''")}'";
+                using (var searcher = new ManagementObjectSearcher(@"root\cimv2", query))
+                {
+                    foreach (ManagementObject service in searcher.Get())
+                    {
+                        state = service["State"]?.ToString() ?? string.Empty;
+                        account = service["StartName"]?.ToString() ?? string.Empty;
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+
+            return false;
         }
 
         static void PrintKrbRelayUp()
