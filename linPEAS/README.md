@@ -28,6 +28,10 @@ Note that by default, in the releases pages of this repository, you will find a 
 - **linpeas.sh**: Contains all checks, but only the third party application `linux exploit suggester` is embedded. This is the default `linpeas.sh`.
 - **linpeas_small.sh**: Contains only the most *important* checks making its size smaller.
 
+## What's new
+
+- **2025-12-06**: Added automatic detection and guidance for Netdata `ndsudo` PATH hijacking (CVE-2024-32019) so you can quickly spot vulnerable Netdata agents.
+
 ## Quick Start
 Find the **latest versions of all the scripts and binaries in [the releases page](https://github.com/peass-ng/PEASS-ng/releases/latest)**.
 
