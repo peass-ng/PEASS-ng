@@ -34,6 +34,7 @@ namespace winPEAS.Checks
                 PrintModifiableServices,
                 PrintWritableRegServices,
                 PrintPathDllHijacking,
+                PrintOemPrivilegedUtilities,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
@@ -198,6 +199,52 @@ namespace winPEAS.Checks
                     {
                         Beaprint.BadPrint("    (DLL Hijacking) " + entry.Key + ": " + entry.Value);
                     }
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        void PrintOemPrivilegedUtilities()
+        {
+            try
+            {
+                Beaprint.MainPrint("OEM privileged utilities & risky components");
+                var findings = OemSoftwareHelper.GetPotentiallyVulnerableComponents(Checks.CurrentUserSiDs);
+
+                if (findings.Count == 0)
+                {
+                    Beaprint.GoodPrint("    None of the supported OEM utilities were detected.");
+                    return;
+                }
+
+                foreach (var finding in findings)
+                {
+                    bool hasCves = finding.Cves != null && finding.Cves.Length > 0;
+                    string cveSuffix = hasCves ? $" ({string.Join(", ", finding.Cves)})" : string.Empty;
+                    Beaprint.BadPrint($"  {finding.Name}{cveSuffix}");
+
+                    if (!string.IsNullOrWhiteSpace(finding.Description))
+                    {
+                        Beaprint.GrayPrint($"      {finding.Description}");
+                    }
+
+                    foreach (var evidence in finding.Evidence)
+                    {
+                        string message = $"      - {evidence.Message}";
+                        if (evidence.Highlight)
+                        {
+                            Beaprint.BadPrint(message);
+                        }
+                        else
+                        {
+                            Beaprint.GrayPrint(message);
+                        }
+                    }
+
+                    Beaprint.PrintLineSeparator();
                 }
             }
             catch (Exception ex)
