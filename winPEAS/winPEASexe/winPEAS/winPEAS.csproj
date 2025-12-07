@@ -1458,6 +1458,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Info\ServicesInfo\ServicesInfoHelper.cs" />
+    <Compile Include="Info\ServicesInfo\OemSoftwareHelper.cs" />
     <Compile Include="Info\SystemInfo\SystemInfo.cs" />
     <Compile Include="Info\UserInfo\UserInfoHelper.cs" />
     <Compile Include="Helpers\DomainHelper.cs" />
