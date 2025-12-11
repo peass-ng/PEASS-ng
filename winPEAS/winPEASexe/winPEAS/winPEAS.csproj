@@ -1197,6 +1197,7 @@
     <Compile Include="Checks\NetworkInfo.cs" />
     <Compile Include="Checks\ProcessInfo.cs" />
     <Compile Include="Checks\ServicesInfo.cs" />
+    <Compile Include="Checks\SoapClientInfo.cs" />
     <Compile Include="Checks\SystemInfo.cs" />
     <Compile Include="Checks\UserInfo.cs" />
     <Compile Include="Checks\WindowsCreds.cs" />
@@ -1223,6 +1224,7 @@
     <Compile Include="Info\ApplicationInfo\ApplicationInfoHelper.cs" />
     <Compile Include="Info\ApplicationInfo\AutoRuns.cs" />
     <Compile Include="Info\ApplicationInfo\DeviceDrivers.cs" />
+    <Compile Include="Info\ApplicationInfo\SoapClientProxyAnalyzer.cs" />
     <Compile Include="Info\ApplicationInfo\InstalledApps.cs" />
     <Compile Include="Helpers\Beaprint.cs" />
     <Compile Include="Info\CloudInfo\AWSInfo.cs" />
