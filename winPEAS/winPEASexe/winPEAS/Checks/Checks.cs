@@ -88,6 +88,7 @@ namespace winPEAS.Checks
                 new SystemCheck("userinfo", new UserInfo()),
                 new SystemCheck("processinfo", new ProcessInfo()),
                 new SystemCheck("servicesinfo", new ServicesInfo()),
+                new SystemCheck("soapclientinfo", new SoapClientInfo()),
                 new SystemCheck("applicationsinfo", new ApplicationsInfo()),
                 new SystemCheck("networkinfo", new NetworkInfo()),
                 new SystemCheck("activedirectoryinfo", new ActiveDirectoryInfo()),
