@@ -153,6 +153,7 @@ Once you have installed and activated it you need to:
   - [x] Applocker Configuration & bypass suggestions
   - [x] Printers
   - [x] Named Pipes
+  - [x] Named Pipe ACL abuse candidates
   - [x] AMSI Providers
   - [x] SysMon
   - [x] .NET Versions
