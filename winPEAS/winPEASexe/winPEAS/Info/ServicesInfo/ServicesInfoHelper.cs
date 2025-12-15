@@ -2,11 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Management;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.ServiceProcess;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
@@ -273,6 +276,109 @@ namespace winPEAS.Info.ServicesInfo
                 Beaprint.PrintException(ex.Message);
             }
             return results;
+        }
+
+
+        private static readonly DateTime LegacyDriverCutoff = new DateTime(2015, 7, 29);
+
+        public static List<KernelDriverInfo> GetKernelDriverInfos()
+        {
+            List<KernelDriverInfo> drivers = new List<KernelDriverInfo>();
+
+            try
+            {
+                using (ManagementObjectSearcher wmiData = new ManagementObjectSearcher(@"root\cimv2", "SELECT Name,DisplayName,PathName,StartMode,State,ServiceType FROM win32_service"))
+                {
+                    using (ManagementObjectCollection data = wmiData.Get())
+                    {
+                        foreach (ManagementObject result in data)
+                        {
+                            string serviceType = GetStringOrEmpty(result["ServiceType"]);
+                            if (string.IsNullOrEmpty(serviceType) || !serviceType.ToLowerInvariant().Contains("kernel driver"))
+                                continue;
+
+                            string binaryPath = MyUtils.ReconstructExecPath(GetStringOrEmpty(result["PathName"]));
+
+                            drivers.Add(new KernelDriverInfo
+                            {
+                                Name = GetStringOrEmpty(result["Name"]),
+                                DisplayName = GetStringOrEmpty(result["DisplayName"]),
+                                StartMode = GetStringOrEmpty(result["StartMode"]),
+                                State = GetStringOrEmpty(result["State"]),
+                                PathName = binaryPath,
+                                Signature = GetDriverSignatureInfo(binaryPath)
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+
+            return drivers;
+        }
+
+        private static KernelDriverSignatureInfo GetDriverSignatureInfo(string binaryPath)
+        {
+            KernelDriverSignatureInfo info = new KernelDriverSignatureInfo
+            {
+                FilePath = binaryPath,
+                IsSigned = false
+            };
+
+            if (string.IsNullOrEmpty(binaryPath) || !File.Exists(binaryPath))
+            {
+                info.Error = "Binary not found";
+                return info;
+            }
+
+            try
+            {
+                using (var baseCertificate = X509Certificate.CreateFromSignedFile(binaryPath))
+                using (var certificate = new X509Certificate2(baseCertificate))
+                {
+                    info.IsSigned = true;
+                    info.Subject = certificate.Subject;
+                    info.Issuer = certificate.Issuer;
+                    info.NotBefore = certificate.NotBefore;
+                    info.NotAfter = certificate.NotAfter;
+                    info.IsLegacyExpired = certificate.NotAfter < LegacyDriverCutoff;
+                }
+            }
+            catch (CryptographicException cryptoEx)
+            {
+                info.Error = cryptoEx.Message;
+            }
+            catch (Exception ex)
+            {
+                info.Error = ex.Message;
+            }
+
+            return info;
+        }
+
+        internal class KernelDriverInfo
+        {
+            public string Name { get; set; }
+            public string DisplayName { get; set; }
+            public string PathName { get; set; }
+            public string StartMode { get; set; }
+            public string State { get; set; }
+            public KernelDriverSignatureInfo Signature { get; set; }
+        }
+
+        internal class KernelDriverSignatureInfo
+        {
+            public string FilePath { get; set; }
+            public bool IsSigned { get; set; }
+            public string Subject { get; set; }
+            public string Issuer { get; set; }
+            public DateTime? NotBefore { get; set; }
+            public DateTime? NotAfter { get; set; }
+            public bool IsLegacyExpired { get; set; }
+            public string Error { get; set; }
         }
 
 
