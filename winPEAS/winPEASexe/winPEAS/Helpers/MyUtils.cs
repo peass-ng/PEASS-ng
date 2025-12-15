@@ -24,36 +24,51 @@ namespace winPEAS.Helpers
         ////////////////////////////////////
         /////// MISC - Files & Paths ///////
         ////////////////////////////////////
-        public static bool CheckIfDotNet(string path)
+        public static bool CheckIfDotNet(string path, bool ignoreCompanyName = false)
         {
             bool isDotNet = false;
-            FileVersionInfo myFileVersionInfo = FileVersionInfo.GetVersionInfo(path);
-            string companyName = myFileVersionInfo.CompanyName;
-            if ((string.IsNullOrEmpty(companyName)) ||
-                (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase)))
+            string companyName = string.Empty;
+
+            try
             {
-                try
+                FileVersionInfo myFileVersionInfo = FileVersionInfo.GetVersionInfo(path);
+                companyName = myFileVersionInfo.CompanyName;
+            }
+            catch
+            {
+                // Unable to read version information, continue with assembly inspection
+            }
+
+            bool shouldInspectAssembly = ignoreCompanyName ||
+                (string.IsNullOrEmpty(companyName)) ||
+                (!Regex.IsMatch(companyName, @"^Microsoft.*", RegexOptions.IgnoreCase));
+
+            if (!shouldInspectAssembly)
+            {
+                return false;
+            }
+
+            try
+            {
+                AssemblyName.GetAssemblyName(path);
+                isDotNet = true;
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                // System.Console.WriteLine("The file cannot be found.");
+            }
+            catch (System.BadImageFormatException exception)
+            {
+                if (Regex.IsMatch(exception.Message,
+                    ".*This assembly is built by a runtime newer than the currently loaded runtime and cannot be loaded.*",
+                    RegexOptions.IgnoreCase))
                 {
-                    AssemblyName myAssemblyName = AssemblyName.GetAssemblyName(path);
                     isDotNet = true;
                 }
-                catch (System.IO.FileNotFoundException)
-                {
-                    // System.Console.WriteLine("The file cannot be found.");
-                }
-                catch (System.BadImageFormatException exception)
-                {
-                    if (Regex.IsMatch(exception.Message,
-                        ".*This assembly is built by a runtime newer than the currently loaded runtime and cannot be loaded.*",
-                        RegexOptions.IgnoreCase))
-                    {
-                        isDotNet = true;
-                    }
-                }
-                catch
-                {
-                    // System.Console.WriteLine("The assembly has already been loaded.");
-                }
+            }
+            catch
+            {
+                // System.Console.WriteLine("The assembly has already been loaded.");
             }
 
             return isDotNet;
