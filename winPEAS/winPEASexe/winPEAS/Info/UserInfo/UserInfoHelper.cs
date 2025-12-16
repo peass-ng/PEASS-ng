@@ -16,6 +16,20 @@ namespace winPEAS.Info.UserInfo
 {
     class UserInfoHelper
     {
+        private static readonly Dictionary<string, bool> _highPrivAccountCache = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        private static readonly string[] _highPrivGroupIndicators = new string[]
+        {
+            "administrators",
+            "domain admins",
+            "enterprise admins",
+            "schema admins",
+            "server operators",
+            "account operators",
+            "backup operators",
+            "dnsadmins",
+            "hyper-v administrators"
+        };
+
         // https://stackoverflow.com/questions/5247798/get-list-of-local-computer-usernames-in-windows
 
 
@@ -89,6 +103,65 @@ namespace winPEAS.Info.UserInfo
         {
             PrincipalContext oPrincipalContext = new PrincipalContext(ContextType.Machine);
             return oPrincipalContext;
+        }
+
+        public static bool IsHighPrivilegeAccount(string userName, string domain)
+        {
+            if (string.IsNullOrWhiteSpace(userName))
+            {
+                return false;
+            }
+
+            string cacheKey = ($"{domain}\\{userName}").Trim('\\');
+            if (_highPrivAccountCache.TryGetValue(cacheKey, out bool cached))
+            {
+                return cached;
+            }
+
+            bool isHighPriv = false;
+            try
+            {
+                string resolvedDomain = string.IsNullOrWhiteSpace(domain) ? Checks.Checks.CurrentUserDomainName : domain;
+                List<string> groups = User.GetUserGroups(userName, resolvedDomain);
+                foreach (string group in groups)
+                {
+                    if (IsHighPrivilegeGroup(group))
+                    {
+                        isHighPriv = true;
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint(string.Format("  [-] Unable to resolve groups for {0}\\{1}: {2}", domain, userName, ex.Message));
+            }
+
+            if (!isHighPriv)
+            {
+                isHighPriv = string.Equals(userName, "administrator", StringComparison.OrdinalIgnoreCase) || userName.StartsWith("admin", StringComparison.OrdinalIgnoreCase);
+            }
+
+            _highPrivAccountCache[cacheKey] = isHighPriv;
+            return isHighPriv;
+        }
+
+        private static bool IsHighPrivilegeGroup(string groupName)
+        {
+            if (string.IsNullOrWhiteSpace(groupName))
+            {
+                return false;
+            }
+
+            foreach (string indicator in _highPrivGroupIndicators)
+            {
+                if (groupName.IndexOf(indicator, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         //From Seatbelt

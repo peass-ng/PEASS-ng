@@ -76,6 +76,7 @@ The goal of this project is to search for possible **Privilege Escalation Paths*
 
 New in this version:
 - Detect potential GPO abuse by flagging writable SYSVOL paths for GPOs applied to the current host and by highlighting membership in the "Group Policy Creator Owners" group.
+- Highlight disconnected high-privilege RDP sessions so you can plan LSASS/token theft when admins leave idle sessions (Ink Dragon-style escalation).
 
 
 It should take only a **few seconds** to execute almost all the checks and **some seconds/minutes during the lasts checks searching for known filenames** that could contain passwords (the time depened on the number of files in your home folder). By default only **some** filenames that could contain credentials are searched, you can use the **searchall** parameter to search all the list (this could will add some minutes).
