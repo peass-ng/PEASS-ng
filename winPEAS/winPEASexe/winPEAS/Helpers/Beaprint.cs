@@ -132,6 +132,7 @@ namespace winPEAS.Helpers
             Console.WriteLine(LCYAN + "        activedirectoryinfo" + GRAY + "   Quick AD checks (gMSA readable passwords, AD CS template rights)" + NOCOLOR);
             Console.WriteLine(LCYAN + "        cloudinfo" + GRAY + "            Enumerate cloud information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        windowscreds" + GRAY + "         Search windows credentials" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        registryinfo" + GRAY + "         Flag writable HKLM/HKU keys that enable hive tampering" + NOCOLOR);
             Console.WriteLine(LCYAN + "        browserinfo" + GRAY + "          Search browser information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        filesinfo" + GRAY + "            Search generic files that can contains credentials" + NOCOLOR);
             Console.WriteLine(LCYAN + "        fileanalysis" + GRAY + "         [NOT RUN BY DEFAULT] Search specific files that can contains credentials and for regexes inside files. Might take several minutes." + NOCOLOR);
