@@ -93,6 +93,7 @@ namespace winPEAS.Checks
                 new SystemCheck("activedirectoryinfo", new ActiveDirectoryInfo()),
                 new SystemCheck("cloudinfo", new CloudInfo()),
                 new SystemCheck("windowscreds", new WindowsCreds()),
+                new SystemCheck("registryinfo", new RegistryInfo()),
                 new SystemCheck("browserinfo", new BrowserInfo()),
                 new SystemCheck("filesinfo", new FilesInfo()),
                 new SystemCheck("fileanalysis", new FileAnalysis()),

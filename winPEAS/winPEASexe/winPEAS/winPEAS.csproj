@@ -1200,6 +1200,7 @@
     <Compile Include="Checks\SystemInfo.cs" />
     <Compile Include="Checks\UserInfo.cs" />
     <Compile Include="Checks\WindowsCreds.cs" />
+    <Compile Include="Checks\RegistryInfo.cs" />
     <Compile Include="Helpers\AppLocker\AppLockerHelper.cs" />
     <Compile Include="Helpers\AppLocker\AppLockerRules.cs" />
     <Compile Include="Helpers\AppLocker\IAppIdPolicyHandler.cs" />
@@ -1464,6 +1465,7 @@
     <Compile Include="Helpers\CheckRunner.cs" />
     <Compile Include="Helpers\ReflectionHelper.cs" />
     <Compile Include="Helpers\Registry\RegistryHelper.cs" />
+    <Compile Include="Helpers\Registry\RegistryAclScanner.cs" />
     <Compile Include="Helpers\Search\SearchHelper.cs" />
     <Compile Include="Wifi\Wifi.cs" />
     <Compile Include="Wifi\NativeWifiApi\Interop.cs" />
