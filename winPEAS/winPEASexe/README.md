@@ -86,6 +86,7 @@ The tool is based on **[SeatBelt](https://github.com/GhostPack/Seatbelt)**.
 
 - Active Directory quick checks now include:
   - gMSA readable managed passwords: enumerate msDS-GroupManagedServiceAccount objects and report those where the current user/group is allowed to retrieve the managed password (PrincipalsAllowedToRetrieveManagedPassword).
+  - Kerberoasting risk scan: read domain Kerberos defaults and surface SPN accounts that still allow RC4/NT hash tickets or rely on long-lived, human passwords (prime Kerberoast targets).
   - AD CS (ESC4) hygiene: enumerate published certificate templates and highlight templates where the current user/group has dangerous control rights (GenericAll/WriteDacl/WriteOwner/WriteProperty/ExtendedRight) that could allow template abuse (e.g., ESC4 -> ESC1).
 
 These checks are lightweight, read-only, and only run when the host is domain-joined.
