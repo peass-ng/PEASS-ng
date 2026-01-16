@@ -348,8 +348,25 @@ class LinpeasBuilder:
         return bin_b64
     
     def __get_gtfobins_lists(self) -> tuple:
-        r = requests.get("https://github.com/GTFOBins/GTFOBins.github.io/tree/master/_gtfobins")
-        bins = re.findall(r'_gtfobins/([a-zA-Z0-9_ \-]+).md', r.text)
+        bins = []
+        api_url = "https://api.github.com/repos/GTFOBins/GTFOBins.github.io/contents/_gtfobins?per_page=100"
+        while api_url:
+            r = requests.get(api_url, timeout=10)
+            if not r.ok:
+                break
+            data = r.json()
+            for entry in data:
+                if entry.get("type") == "file" and entry.get("name"):
+                    bins.append(entry["name"])
+            api_url = None
+            link = r.headers.get("Link", "")
+            for part in link.split(","):
+                if 'rel="next"' in part:
+                    api_url = part.split(";")[0].strip().strip("<>")
+                    break
+        if not bins:
+            r = requests.get("https://github.com/GTFOBins/GTFOBins.github.io/tree/master/_gtfobins", timeout=10)
+            bins = re.findall(r'_gtfobins/([a-zA-Z0-9_ \-]+)(?:\\.md)?', r.text)
 
         sudoVB = []
         suidVB = []
@@ -357,12 +374,12 @@ class LinpeasBuilder:
 
         for b in bins:
             try:
-                rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}.md", timeout=5)
+                rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}", timeout=5)
             except:
                 try:
-                    rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}.md", timeout=5)
+                    rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}", timeout=5)
                 except:
-                    rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}.md", timeout=5)
+                    rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}", timeout=5)
             if "sudo:" in rb.text:
                 if len(b) <= 3:
                     sudoVB.append("[^a-zA-Z0-9]"+b+"$") # Less false possitives applied to small names
