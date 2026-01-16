@@ -58,5 +58,23 @@ else
     echo_not_found "/proc/sys/kernel/modules_disabled"
 fi
 
+# Check for module signature enforcement
+print_3title "Module signature enforcement? "
+if [ -f "/proc/sys/kernel/module_sig_enforce" ]; then
+    if [ "$(cat /proc/sys/kernel/module_sig_enforce)" = "1" ]; then
+        echo "Enforced" | sed -${E} "s,.*,${SED_GREEN},g"
+    else
+        echo "Not enforced" | sed -${E} "s,.*,${SED_RED},g"
+    fi
+elif [ -f "/sys/module/module/parameters/sig_enforce" ]; then
+    if [ "$(cat /sys/module/module/parameters/sig_enforce)" = "Y" ]; then
+        echo "Enforced" | sed -${E} "s,.*,${SED_GREEN},g"
+    else
+        echo "Not enforced" | sed -${E} "s,.*,${SED_RED},g"
+    fi
+else
+    echo_not_found "module_sig_enforce"
+fi
+
 
 echo "" 

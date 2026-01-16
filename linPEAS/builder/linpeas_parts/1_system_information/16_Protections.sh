@@ -80,9 +80,85 @@ print_list "Seccomp enabled? ............... "$NC
 print_list "User namespace? ................ "$NC
 if [ "$(cat /proc/self/uid_map 2>/dev/null)" ]; then echo "enabled" | sed "s,enabled,${SED_GREEN},"; else echo "disabled" | sed "s,disabled,${SED_RED},"; fi
 
+#-- SY) Unprivileged user namespaces
+print_list "unpriv_userns_clone? ........... "$NC
+unpriv_userns_clone=$(cat /proc/sys/kernel/unprivileged_userns_clone 2>/dev/null)
+if [ -z "$unpriv_userns_clone" ]; then
+    echo_not_found "/proc/sys/kernel/unprivileged_userns_clone"
+else
+    if [ "$unpriv_userns_clone" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_GREEN},"; else echo "$unpriv_userns_clone" | sed -${E} "s,.*,${SED_RED},g"; fi
+fi
+
+#-- SY) Unprivileged eBPF
+print_list "unpriv_bpf_disabled? ........... "$NC
+unpriv_bpf_disabled=$(cat /proc/sys/kernel/unprivileged_bpf_disabled 2>/dev/null)
+if [ -z "$unpriv_bpf_disabled" ]; then
+    echo_not_found "/proc/sys/kernel/unprivileged_bpf_disabled"
+else
+    if [ "$unpriv_bpf_disabled" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$unpriv_bpf_disabled" | sed -${E} "s,.*,${SED_GREEN},g"; fi
+fi
+
 #-- SY) cgroup2
 print_list "Cgroup2 enabled? ............... "$NC
 ([ "$(grep cgroup2 /proc/filesystems 2>/dev/null)" ] && echo "enabled" || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,enabled,${SED_GREEN},"
+
+#-- SY) Kernel hardening sysctls
+print_list "kptr_restrict? ................. "$NC
+kptr_restrict=$(cat /proc/sys/kernel/kptr_restrict 2>/dev/null)
+if [ -z "$kptr_restrict" ]; then
+    echo_not_found "/proc/sys/kernel/kptr_restrict"
+else
+    if [ "$kptr_restrict" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$kptr_restrict" | sed -${E} "s,.*,${SED_GREEN},g"; fi
+fi
+
+print_list "dmesg_restrict? ................ "$NC
+dmesg_restrict=$(cat /proc/sys/kernel/dmesg_restrict 2>/dev/null)
+if [ -z "$dmesg_restrict" ]; then
+    echo_not_found "/proc/sys/kernel/dmesg_restrict"
+else
+    if [ "$dmesg_restrict" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$dmesg_restrict" | sed -${E} "s,.*,${SED_GREEN},g"; fi
+fi
+
+print_list "ptrace_scope? .................. "$NC
+ptrace_scope=$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null)
+if [ -z "$ptrace_scope" ]; then
+    echo_not_found "/proc/sys/kernel/yama/ptrace_scope"
+else
+    if [ "$ptrace_scope" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$ptrace_scope" | sed -${E} "s,.*,${SED_GREEN},g"; fi
+fi
+
+print_list "perf_event_paranoid? ........... "$NC
+perf_event_paranoid=$(cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null)
+if [ -z "$perf_event_paranoid" ]; then
+    echo_not_found "/proc/sys/kernel/perf_event_paranoid"
+else
+    if [ "$perf_event_paranoid" -le 1 ]; then echo "$perf_event_paranoid" | sed -${E} "s,.*,${SED_RED},g"; else echo "$perf_event_paranoid" | sed -${E} "s,.*,${SED_GREEN},g"; fi
+fi
+
+print_list "mmap_min_addr? ................. "$NC
+mmap_min_addr=$(cat /proc/sys/vm/mmap_min_addr 2>/dev/null)
+if [ -z "$mmap_min_addr" ]; then
+    echo_not_found "/proc/sys/vm/mmap_min_addr"
+else
+    if [ "$mmap_min_addr" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$mmap_min_addr" | sed -${E} "s,.*,${SED_GREEN},g"; fi
+fi
+
+print_list "lockdown mode? ................. "$NC
+if [ -f "/sys/kernel/security/lockdown" ]; then
+    cat /sys/kernel/security/lockdown 2>/dev/null | sed -${E} "s,none,${SED_RED},g; s,integrity|confidentiality,${SED_GREEN},g"
+else
+    echo_not_found "/sys/kernel/security/lockdown"
+fi
+
+#-- SY) Kernel hardening config flags
+print_list "Kernel hardening flags? ........ "$NC
+if [ -f "/boot/config-$(uname -r)" ]; then
+    grep -E 'CONFIG_RANDOMIZE_BASE|CONFIG_STACKPROTECTOR|CONFIG_SLAB_FREELIST_|CONFIG_KASAN' /boot/config-$(uname -r) 2>/dev/null
+elif [ -f "/proc/config.gz" ]; then
+    zcat /proc/config.gz 2>/dev/null | grep -E 'CONFIG_RANDOMIZE_BASE|CONFIG_STACKPROTECTOR|CONFIG_SLAB_FREELIST_|CONFIG_KASAN'
+else
+    echo_not_found "kernel config"
+fi
 
 #-- SY) Gatekeeper
 if [ "$MACPEAS" ]; then
