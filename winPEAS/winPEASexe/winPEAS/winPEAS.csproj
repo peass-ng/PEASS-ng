@@ -1360,6 +1360,7 @@
     <Compile Include="KnownFileCreds\Vault\Structs\VAULT_ITEM_WIN8.cs" />
     <Compile Include="KnownFileCreds\Vault\VaultCli.cs" />
     <Compile Include="Helpers\MyUtils.cs" />
+    <Compile Include="Helpers\ObjectManagerHelper.cs" />
     <Compile Include="Info\UserInfo\SAM\Enums.cs" />
     <Compile Include="Info\UserInfo\SAM\SamServer.cs" />
     <Compile Include="Info\UserInfo\SAM\Structs.cs" />
