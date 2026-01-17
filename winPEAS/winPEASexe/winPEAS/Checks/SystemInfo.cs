@@ -89,6 +89,7 @@ namespace winPEAS.Checks
                 AppLockerHelper.PrintAppLockerPolicy,
                 PrintPrintersWMIInfo,
                 PrintNamedPipes,
+                PrintNamedPipeAbuseCandidates,
                 PrintAMSIProviders,
                 PrintSysmon,
                 PrintDotNetVersions
@@ -854,6 +855,48 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 //Beaprint.PrintException(ex.Message);
+            }
+        }
+
+
+        private static void PrintNamedPipeAbuseCandidates()
+        {
+            Beaprint.MainPrint("Named Pipes with Low-Priv Write Access to Privileged Servers");
+
+            try
+            {
+                var candidates = NamedPipeSecurityAnalyzer.GetNamedPipeAbuseCandidates().ToList();
+
+                if (!candidates.Any())
+                {
+                    Beaprint.NoColorPrint("      No risky named pipe ACLs were found.\n");
+                    return;
+                }
+
+                foreach (var candidate in candidates)
+                {
+                    var aclSummary = candidate.LowPrivilegeAces.Any()
+                        ? string.Join("; ", candidate.LowPrivilegeAces.Select(ace =>
+                            $"{ace.Principal} [{ace.RightsDescription}]").Where(s => !string.IsNullOrEmpty(s)))
+                        : "Unknown";
+
+                    var serverSummary = candidate.Processes.Any()
+                        ? string.Join("; ", candidate.Processes.Select(proc =>
+                            $"{proc.ProcessName} (PID {proc.Pid}, {proc.UserName ?? proc.UserSid})"))
+                        : "No privileged handles observed (service idle or access denied)";
+
+                    var color = candidate.HasPrivilegedServer ? Beaprint.ansi_color_bad : Beaprint.ansi_color_yellow;
+
+                    Beaprint.ColorPrint($"    \\\\.\\pipe\\{candidate.Name}", color);
+                    Beaprint.NoColorPrint($"      Low-priv ACLs  : {aclSummary}");
+                    Beaprint.NoColorPrint($"      Observed owners: {serverSummary}");
+                    Beaprint.NoColorPrint($"      SDDL           : {candidate.Sddl}");
+                    Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
             }
         }
 
