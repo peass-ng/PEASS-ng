@@ -106,6 +106,9 @@ It uses **/bin/sh** syntax, so can run in anything supporting `sh` (and the bina
 
 By default, **linpeas won't write anything to disk and won't try to login as any other user using `su`**.
 
+LinPEAS keeps expanding vendor-specific coverage; as of 29-Nov-2025 it warns when IGEL OS appliances still ship the SUID `setup`/`date` helpers that allow NetworkManager/systemd configuration hijacking (Metasploit module `linux/local/igel_network_priv_esc`).
+
+
 By default linpeas takes around **4 mins** to complete, but It could take from **5 to 10 minutes** to execute all the checks using **-a** parameter *(Recommended option for CTFs)*:
 - From less than 1 min to 2 mins to make almost all the checks
 - Almost 1 min to search for possible passwords inside all the accesible files of the system

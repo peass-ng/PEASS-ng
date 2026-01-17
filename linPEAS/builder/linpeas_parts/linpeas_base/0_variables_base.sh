@@ -371,7 +371,7 @@ echo ""
 printf ${BLUE}"Linux Privesc Checklist: ${YELLOW}https://book.hacktricks.wiki/en/linux-hardening/linux-privilege-escalation-checklist.html\n"$NC
 echo " LEGEND:" | sed "s,LEGEND,${C}[1;4m&${C}[0m,"
 echo "  RED/YELLOW: 95% a PE vector" | sed "s,RED/YELLOW,${SED_RED_YELLOW},"
-echo "  RED: You should take a look to it" | sed "s,RED,${SED_RED},"
+echo "  RED: You should take a look into it" | sed "s,RED,${SED_RED},"
 echo "  LightCyan: Users with console" | sed "s,LightCyan,${SED_LIGHT_CYAN},"
 echo "  Blue: Users without console & mounted devs" | sed "s,Blue,${SED_BLUE},"
 echo "  Green: Common things (users, groups, SUID/SGID, mounts, .sh scripts, cronjobs) " | sed "s,Green,${SED_GREEN},"
