@@ -1197,6 +1197,7 @@
     <Compile Include="Checks\NetworkInfo.cs" />
     <Compile Include="Checks\ProcessInfo.cs" />
     <Compile Include="Checks\ServicesInfo.cs" />
+    <Compile Include="Checks\SoapClientInfo.cs" />
     <Compile Include="Checks\SystemInfo.cs" />
     <Compile Include="Checks\UserInfo.cs" />
     <Compile Include="Checks\WindowsCreds.cs" />
@@ -1224,6 +1225,7 @@
     <Compile Include="Info\ApplicationInfo\ApplicationInfoHelper.cs" />
     <Compile Include="Info\ApplicationInfo\AutoRuns.cs" />
     <Compile Include="Info\ApplicationInfo\DeviceDrivers.cs" />
+    <Compile Include="Info\ApplicationInfo\SoapClientProxyAnalyzer.cs" />
     <Compile Include="Info\ApplicationInfo\InstalledApps.cs" />
     <Compile Include="Helpers\Beaprint.cs" />
     <Compile Include="Info\CloudInfo\AWSInfo.cs" />
@@ -1292,6 +1294,7 @@
     <Compile Include="Info\SystemInfo\GroupPolicy\GroupPolicy.cs" />
     <Compile Include="Info\SystemInfo\GroupPolicy\LocalGroupPolicyInfo.cs" />
     <Compile Include="Info\SystemInfo\NamedPipes\NamedPipeInfo.cs" />
+    <Compile Include="Info\SystemInfo\NamedPipes\NamedPipeSecurityAnalyzer.cs" />
     <Compile Include="Info\SystemInfo\NamedPipes\NamedPipes.cs" />
     <Compile Include="Info\SystemInfo\Ntlm\Ntlm.cs" />
     <Compile Include="Info\SystemInfo\Ntlm\NtlmSettingsInfo.cs" />
@@ -1360,6 +1363,7 @@
     <Compile Include="KnownFileCreds\Vault\Structs\VAULT_ITEM_WIN8.cs" />
     <Compile Include="KnownFileCreds\Vault\VaultCli.cs" />
     <Compile Include="Helpers\MyUtils.cs" />
+    <Compile Include="Helpers\ObjectManagerHelper.cs" />
     <Compile Include="Info\UserInfo\SAM\Enums.cs" />
     <Compile Include="Info\UserInfo\SAM\SamServer.cs" />
     <Compile Include="Info\UserInfo\SAM\Structs.cs" />

@@ -82,6 +82,7 @@ namespace winPEAS.Checks
                 PrintKrbRelayUp,
                 PrintInsideContainer,
                 PrintAlwaysInstallElevated,
+                PrintObjectManagerRaceAmplification,
                 PrintLSAInfo,
                 PrintNtlmSettings,
                 PrintLocalGroupPolicy,
@@ -89,6 +90,7 @@ namespace winPEAS.Checks
                 AppLockerHelper.PrintAppLockerPolicy,
                 PrintPrintersWMIInfo,
                 PrintNamedPipes,
+                PrintNamedPipeAbuseCandidates,
                 PrintAMSIProviders,
                 PrintSysmon,
                 PrintDotNetVersions
@@ -733,6 +735,31 @@ namespace winPEAS.Checks
             }
         }
 
+        static void PrintObjectManagerRaceAmplification()
+        {
+            try
+            {
+                Beaprint.MainPrint("Object Manager race-window amplification primitives");
+                Beaprint.LinkPrint("https://projectzero.google/2025/12/windows-exploitation-techniques.html", "Project Zero write-up:");
+
+                if (ObjectManagerHelper.TryCreateSessionEvent(out var objectName, out var error))
+                {
+                    Beaprint.BadPrint($"    Created a test named event ({objectName}) under \\BaseNamedObjects.");
+                    Beaprint.InfoPrint("    -> Low-privileged users can slow NtOpen*/NtCreate* lookups using ~32k-character names or ~16k-level directory chains.");
+                    Beaprint.InfoPrint("    -> Point attacker-controlled symbolic links to the slow path to stretch kernel race windows.");
+                    Beaprint.InfoPrint("    -> Use this whenever a bug follows check -> NtOpenX -> privileged action patterns.");
+                }
+                else
+                {
+                    Beaprint.InfoPrint($"    Could not create a test event under \\BaseNamedObjects ({error}). The namespace might be locked down.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
         private static void PrintNtlmSettings()
         {
             Beaprint.MainPrint($"Enumerating NTLM Settings");
@@ -854,6 +881,48 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 //Beaprint.PrintException(ex.Message);
+            }
+        }
+
+
+        private static void PrintNamedPipeAbuseCandidates()
+        {
+            Beaprint.MainPrint("Named Pipes with Low-Priv Write Access to Privileged Servers");
+
+            try
+            {
+                var candidates = NamedPipeSecurityAnalyzer.GetNamedPipeAbuseCandidates().ToList();
+
+                if (!candidates.Any())
+                {
+                    Beaprint.NoColorPrint("      No risky named pipe ACLs were found.\n");
+                    return;
+                }
+
+                foreach (var candidate in candidates)
+                {
+                    var aclSummary = candidate.LowPrivilegeAces.Any()
+                        ? string.Join("; ", candidate.LowPrivilegeAces.Select(ace =>
+                            $"{ace.Principal} [{ace.RightsDescription}]").Where(s => !string.IsNullOrEmpty(s)))
+                        : "Unknown";
+
+                    var serverSummary = candidate.Processes.Any()
+                        ? string.Join("; ", candidate.Processes.Select(proc =>
+                            $"{proc.ProcessName} (PID {proc.Pid}, {proc.UserName ?? proc.UserSid})"))
+                        : "No privileged handles observed (service idle or access denied)";
+
+                    var color = candidate.HasPrivilegedServer ? Beaprint.ansi_color_bad : Beaprint.ansi_color_yellow;
+
+                    Beaprint.ColorPrint($"    \\\\.\\pipe\\{candidate.Name}", color);
+                    Beaprint.NoColorPrint($"      Low-priv ACLs  : {aclSummary}");
+                    Beaprint.NoColorPrint($"      Observed owners: {serverSummary}");
+                    Beaprint.NoColorPrint($"      SDDL           : {candidate.Sddl}");
+                    Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
             }
         }
 

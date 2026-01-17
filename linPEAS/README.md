@@ -6,6 +6,8 @@
 
 Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks.wiki](https://book.hacktricks.wiki/en/linux-hardening/linux-privilege-escalation-checklist.html)**.
 
+> **Dec 2025 update:** linpeas now inspects Linux kernels for CVE-2025-38352 (POSIX CPU timers race) by combining CONFIG_POSIX_CPU_TIMERS_TASK_WORK state with kernel build information, so you immediately know if publicly available PoCs might succeed.
+
 [![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/309566)
 
 ## MacPEAS
@@ -97,6 +99,10 @@ bash /path/to/linpeas.sh -f /path/to/folder
 The goal of this script is to search for possible **Privilege Escalation Paths** (tested in Debian, CentOS, FreeBSD, OpenBSD and MacOS).
 
 This script doesn't have any dependency.
+
+### Recent updates
+
+- **Dec 2025**: Added detection for sudo configurations that expose restic's `--password-command` helper, a common privilege escalation vector observed in real environments.
 
 It uses **/bin/sh** syntax, so can run in anything supporting `sh` (and the binaries and parameters used).
 
