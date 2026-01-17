@@ -1293,6 +1293,7 @@
     <Compile Include="Info\SystemInfo\GroupPolicy\GroupPolicy.cs" />
     <Compile Include="Info\SystemInfo\GroupPolicy\LocalGroupPolicyInfo.cs" />
     <Compile Include="Info\SystemInfo\NamedPipes\NamedPipeInfo.cs" />
+    <Compile Include="Info\SystemInfo\NamedPipes\NamedPipeSecurityAnalyzer.cs" />
     <Compile Include="Info\SystemInfo\NamedPipes\NamedPipes.cs" />
     <Compile Include="Info\SystemInfo\Ntlm\Ntlm.cs" />
     <Compile Include="Info\SystemInfo\Ntlm\NtlmSettingsInfo.cs" />
