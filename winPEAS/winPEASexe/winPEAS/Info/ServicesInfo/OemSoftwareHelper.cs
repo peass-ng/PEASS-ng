@@ -160,8 +160,14 @@ namespace winPEAS.Info.ServicesInfo
                     var path = $"\\\\.\\pipe\\{pipeHint.Name}";
                     var security = File.GetAccessControl(path);
                     string sddl = security.GetSecurityDescriptorSddlForm(AccessControlSections.All);
-                    bool worldWritable = pipeHint.CheckWorldWritable &&
-                                         HasWorldWritableAce(security, out string identity, out string rights);
+                    string identity = string.Empty;
+                    string rights = string.Empty;
+                    bool worldWritable = false;
+
+                    if (pipeHint.CheckWorldWritable)
+                    {
+                        worldWritable = HasWorldWritableAce(security, out identity, out rights);
+                    }
 
                     string details = worldWritable
                         ? $"Named pipe '{pipeHint.Name}' ({pipeHint.Description}) is writable by {identity} ({rights})."
