@@ -3352,7 +3352,7 @@ search:
 
           - name: "credentials.xml"
             value: 
-                bad_regex: "secret.*|password.*"
+                bad_regex: "secret.*|password.*|token.*|SecretKey.*|credentialId.*"
                 remove_empty_lines: True
                 type: f
                 search_in: 
@@ -3360,7 +3360,7 @@ search:
           
           - name: "config.xml"
             value: 
-                bad_regex: "secret.*|password.*"
+                bad_regex: "secret.*|password.*|token.*|SecretKey.*|credentialId.*"
                 only_bad_lines: True
                 type: f
                 search_in: 
