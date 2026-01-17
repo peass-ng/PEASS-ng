@@ -204,9 +204,9 @@ namespace winPEAS.Helpers.Registry
             {
                 RegistryKey baseKey = hive switch
                 {
-                    "HKLM" => Registry.LocalMachine,
-                    "HKCU" => Registry.CurrentUser,
-                    "HKU" => Registry.Users,
+                    "HKLM" => Microsoft.Win32.Registry.LocalMachine,
+                    "HKCU" => Microsoft.Win32.Registry.CurrentUser,
+                    "HKU" => Microsoft.Win32.Registry.Users,
                     _ => null,
                 };
 
