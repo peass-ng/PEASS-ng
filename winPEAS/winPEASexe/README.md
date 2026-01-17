@@ -219,7 +219,7 @@ Once you have installed and activated it you need to:
   - [x] SCCM
   - [x] Security Package Credentials
   - [x] AlwaysInstallElevated
-  - [x] WSUS
+  - [x] WSUS (HTTP downgrade + CVE-2025-59287 exposure)
 
 - **Browser Information**
   - [x] Firefox DBs
