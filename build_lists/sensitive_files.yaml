@@ -3546,7 +3546,7 @@ search:
 
           - name: "RDCMan.settings"
             value:
-                just_list_file: True
+                bad_regex: "credentialsProfiles|password|encryptedPassword"
                 type: f
                 search_in:
                   - common
