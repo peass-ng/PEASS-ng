@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
+using System.Reflection;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -20,6 +21,7 @@ namespace winPEAS.Checks
             new List<Action>
             {
                 PrintGmsaReadableByCurrentPrincipal,
+                PrintKerberoastableServiceAccounts,
                 PrintAdObjectControlPaths,
                 PrintAdcsMisconfigurations
             }.ForEach(action => CheckRunner.Run(action, isDebug));
@@ -751,6 +753,37 @@ namespace winPEAS.Checks
             }
         }
 
+        private void PrintKerberoastableServiceAccounts()
+        {
+            try
+            {
+                Beaprint.MainPrint("Kerberoasting / service ticket risks");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/kerberoast.html",
+                    "Enumerate weak SPN accounts and legacy Kerberos crypto");
+
+                if (!Checks.IsPartOfDomain)
+                {
+                    Beaprint.GrayPrint("  [-] Host is not domain-joined. Skipping.");
+                    return;
+                }
+
+                var defaultNC = GetRootDseProp("defaultNamingContext");
+                if (string.IsNullOrEmpty(defaultNC))
+                {
+                    Beaprint.GrayPrint("  [-] Could not resolve defaultNamingContext.");
+                    return;
+                }
+
+                PrintDomainKerberosDefaults(defaultNC);
+                EnumerateKerberoastCandidates(defaultNC);
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("  [-] Kerberoasting check failed: " + ex.Message);
+            }
+        }
+
+
         // Detect AD CS misconfigurations
         private void PrintAdcsMisconfigurations()
         {
@@ -939,5 +972,420 @@ namespace winPEAS.Checks
                 Beaprint.PrintException(ex.Message);
             }
         }
+        private void PrintDomainKerberosDefaults(string defaultNc)
+        {
+            try
+            {
+                using (var domainEntry = new DirectoryEntry("LDAP://" + defaultNc))
+                {
+                    var encValue = GetDirectoryEntryInt(domainEntry, "msDS-DefaultSupportedEncryptionTypes");
+                    if (encValue.HasValue)
+                    {
+                        var desc = DescribeEncTypes(encValue);
+                        if (IsRc4Allowed(encValue))
+                            Beaprint.BadPrint($"  Domain default supported encryption types: {desc} — RC4/NT hash tickets allowed.");
+                        else
+                            Beaprint.GoodPrint($"  Domain default supported encryption types: {desc} — RC4 disabled.");
+                    }
+                    else
+                    {
+                        Beaprint.GrayPrint("  [-] Domain default supported encryption types not set (legacy compatibility defaults to RC4).");
+                    }
+                }
+
+                using (var baseDe = new DirectoryEntry("LDAP://" + defaultNc))
+                using (var ds = new DirectorySearcher(baseDe))
+                {
+                    ds.Filter = "(&(objectClass=user)(sAMAccountName=krbtgt))";
+                    ds.PropertiesToLoad.Add("msDS-SupportedEncryptionTypes");
+                    var result = ds.FindOne();
+                    if (result != null)
+                    {
+                        var encValue = GetIntProp(result, "msDS-SupportedEncryptionTypes");
+                        if (encValue.HasValue)
+                        {
+                            var desc = DescribeEncTypes(encValue);
+                            if (IsRc4Allowed(encValue))
+                                Beaprint.BadPrint($"  krbtgt supports: {desc} — RC4 TGTs can still be issued.");
+                            else
+                                Beaprint.GoodPrint($"  krbtgt supports: {desc}.");
+                        }
+                        else
+                        {
+                            Beaprint.GrayPrint("  [-] krbtgt enc types inherit domain defaults (unspecified).");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("  [-] Unable to query Kerberos defaults: " + ex.Message);
+            }
+        }
+
+        private void EnumerateKerberoastCandidates(string defaultNc)
+        {
+            int checkedAccounts = 0;
+            int highTotal = 0;
+            int mediumTotal = 0;
+            var high = new List<KerberoastCandidate>();
+            var medium = new List<KerberoastCandidate>();
+
+            try
+            {
+                using (var baseDe = new DirectoryEntry("LDAP://" + defaultNc))
+                using (var ds = new DirectorySearcher(baseDe))
+                {
+                    ds.PageSize = 500;
+                    ds.Filter = "(servicePrincipalName=*)";
+                    ds.PropertiesToLoad.Add("sAMAccountName");
+                    ds.PropertiesToLoad.Add("displayName");
+                    ds.PropertiesToLoad.Add("distinguishedName");
+                    ds.PropertiesToLoad.Add("servicePrincipalName");
+                    ds.PropertiesToLoad.Add("msDS-SupportedEncryptionTypes");
+                    ds.PropertiesToLoad.Add("userAccountControl");
+                    ds.PropertiesToLoad.Add("pwdLastSet");
+                    ds.PropertiesToLoad.Add("memberOf");
+                    ds.PropertiesToLoad.Add("objectClass");
+
+                    foreach (SearchResult r in ds.FindAll())
+                    {
+                        checkedAccounts++;
+                        var candidate = BuildKerberoastCandidate(r);
+                        if (candidate == null)
+                        {
+                            continue;
+                        }
+
+                        if (candidate.IsHighRisk)
+                        {
+                            highTotal++;
+                            if (high.Count < 15) high.Add(candidate);
+                        }
+                        else
+                        {
+                            mediumTotal++;
+                            if (medium.Count < 12) medium.Add(candidate);
+                        }
+                    }
+                }
+
+                Beaprint.InfoPrint($"Checked {checkedAccounts} SPN-bearing accounts. High-risk RC4/privileged targets: {highTotal}, long-lived AES-only targets: {mediumTotal}.");
+
+                if (highTotal == 0 && mediumTotal == 0)
+                {
+                    Beaprint.GoodPrint("  No obvious Kerberoastable service accounts detected with current visibility.");
+                    return;
+                }
+
+                if (high.Count > 0)
+                {
+                    Beaprint.BadPrint("  [!] RC4-enabled or privileged SPN accounts:");
+                    foreach (var c in high)
+                    {
+                        Beaprint.ColorPrint($"      - {c.Label} | SPNs: {c.SpnSummary} | Enc: {c.Encryption} | {c.Reason}", Beaprint.LRED);
+                    }
+                    if (highTotal > high.Count)
+                    {
+                        Beaprint.GrayPrint($"      ... {highTotal - high.Count} additional high-risk accounts omitted.");
+                    }
+                }
+
+                if (medium.Count > 0)
+                {
+                    Beaprint.ColorPrint("  [~] Long-lived SPN accounts (still Kerberoastable via AES tickets):", Beaprint.YELLOW);
+                    foreach (var c in medium)
+                    {
+                        Beaprint.ColorPrint($"      - {c.Label} | SPNs: {c.SpnSummary} | Enc: {c.Encryption} | {c.Reason}", Beaprint.YELLOW);
+                    }
+                    if (mediumTotal > medium.Count)
+                    {
+                        Beaprint.GrayPrint($"      ... {mediumTotal - medium.Count} additional medium-risk accounts omitted.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("  [-] LDAP error while enumerating SPNs: " + ex.Message);
+            }
+        }
+
+        private KerberoastCandidate BuildKerberoastCandidate(SearchResult r)
+        {
+            var sam = GetProp(r, "sAMAccountName");
+            var displayName = GetProp(r, "displayName");
+            var dn = GetProp(r, "distinguishedName");
+
+            if (IsComputerObject(r) || IsManagedServiceAccount(r))
+                return null;
+
+            var uac = GetIntProp(r, "userAccountControl");
+            if (uac.HasValue && (uac.Value & 0x2) != 0)
+                return null;
+
+            var encValue = GetIntProp(r, "msDS-SupportedEncryptionTypes");
+            bool rc4Allowed = IsRc4Allowed(encValue);
+            bool aesPresent = HasAes(encValue);
+            bool passwordNeverExpires = uac.HasValue && (uac.Value & 0x10000) != 0;
+            DateTime? pwdLastSet = GetFileTimeProp(r, "pwdLastSet");
+            bool stalePassword = pwdLastSet.HasValue && pwdLastSet.Value < DateTime.UtcNow.AddDays(-365);
+            var privilegeHits = GetPrivilegedGroups(r);
+            var reasons = new List<string>();
+
+            if (rc4Allowed)
+                reasons.Add("RC4 allowed");
+            else if (!aesPresent)
+                reasons.Add("No AES flag");
+            if (passwordNeverExpires)
+                reasons.Add("PasswordNeverExpires");
+            if (stalePassword)
+                reasons.Add("PwdLastSet " + pwdLastSet.Value.ToString("yyyy-MM-dd"));
+            if (privilegeHits.Count > 0)
+                reasons.Add("Privileged: " + string.Join("/", privilegeHits));
+
+            if (reasons.Count == 0)
+                return null;
+
+            bool isHigh = rc4Allowed || privilegeHits.Count > 0;
+            if (!isHigh && !(passwordNeverExpires || stalePassword))
+                return null;
+
+            var label = !string.IsNullOrEmpty(sam) ? sam : dn;
+            if (!string.IsNullOrEmpty(displayName) && !string.Equals(displayName, sam, StringComparison.OrdinalIgnoreCase))
+            {
+                label = string.IsNullOrEmpty(sam) ? displayName : $"{sam} ({displayName})";
+            }
+
+            return new KerberoastCandidate
+            {
+                Label = label ?? "<unknown>",
+                SpnSummary = BuildSpnSummary(r),
+                Encryption = DescribeEncTypes(encValue),
+                Reason = string.Join("; ", reasons),
+                IsHighRisk = isHigh
+            };
+        }
+
+        private static string BuildSpnSummary(SearchResult r)
+        {
+            if (!r.Properties.Contains("servicePrincipalName") || r.Properties["servicePrincipalName"].Count == 0)
+                return "<none>";
+
+            var values = r.Properties["servicePrincipalName"];
+            var list = new List<string>();
+            int limit = values.Count < 3 ? values.Count : 3;
+            for (int i = 0; i < limit; i++)
+            {
+                var spn = values[i]?.ToString();
+                if (!string.IsNullOrEmpty(spn))
+                    list.Add(spn);
+            }
+
+            string summary = list.Count > 0 ? string.Join(", ", list) : "<none>";
+            if (values.Count > limit)
+                summary += $" (+{values.Count - limit} more)";
+            return summary;
+        }
+
+        private static List<string> GetPrivilegedGroups(SearchResult r)
+        {
+            var hits = new List<string>();
+            if (!r.Properties.Contains("memberOf"))
+                return hits;
+
+            var memberships = r.Properties["memberOf"];
+            foreach (var membership in memberships)
+            {
+                var cn = ExtractCn(membership?.ToString());
+                if (string.IsNullOrEmpty(cn))
+                    continue;
+
+                foreach (var keyword in PrivilegedGroupKeywords)
+                {
+                    if (cn.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        if (!hits.Contains(cn))
+                            hits.Add(cn);
+                        break;
+                    }
+                }
+            }
+            return hits;
+        }
+
+        private static string ExtractCn(string dn)
+        {
+            if (string.IsNullOrEmpty(dn))
+                return null;
+
+            var parts = dn.Split(',');
+            foreach (var part in parts)
+            {
+                var trimmed = part.Trim();
+                if (trimmed.StartsWith("CN=", StringComparison.OrdinalIgnoreCase))
+                    return trimmed.Substring(3);
+            }
+            return dn;
+        }
+
+        private static bool IsComputerObject(SearchResult r)
+        {
+            return HasObjectClass(r, "computer");
+        }
+
+        private static bool IsManagedServiceAccount(SearchResult r)
+        {
+            return HasObjectClass(r, "msDS-ManagedServiceAccount") || HasObjectClass(r, "msDS-GroupManagedServiceAccount");
+        }
+
+        private static bool HasObjectClass(SearchResult r, string className)
+        {
+            if (!r.Properties.Contains("objectClass"))
+                return false;
+
+            foreach (var val in r.Properties["objectClass"])
+            {
+                if (string.Equals(val?.ToString(), className, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
+        private static DateTime? GetFileTimeProp(SearchResult r, string propName)
+        {
+            if (!r.Properties.Contains(propName) || r.Properties[propName].Count == 0)
+                return null;
+            return ConvertFileTime(r.Properties[propName][0]);
+        }
+
+        private static DateTime? ConvertFileTime(object value)
+        {
+            if (value == null)
+                return null;
+            try
+            {
+                if (value is long longVal)
+                {
+                    if (longVal <= 0) return null;
+                    return DateTime.FromFileTimeUtc(longVal);
+                }
+
+                if (value is IConvertible convertible)
+                {
+                    long converted = convertible.ToInt64(null);
+                    if (converted > 0)
+                        return DateTime.FromFileTimeUtc(converted);
+                }
+
+                var type = value.GetType();
+                var highProp = type.GetProperty("HighPart", BindingFlags.Public | BindingFlags.Instance);
+                var lowProp = type.GetProperty("LowPart", BindingFlags.Public | BindingFlags.Instance);
+                if (highProp != null && lowProp != null)
+                {
+                    int high = Convert.ToInt32(highProp.GetValue(value, null));
+                    int low = Convert.ToInt32(lowProp.GetValue(value, null));
+                    long fileTime = ((long)high << 32) | (uint)low;
+                    if (fileTime > 0)
+                        return DateTime.FromFileTimeUtc(fileTime);
+                }
+            }
+            catch
+            {
+                return null;
+            }
+            return null;
+        }
+
+        private static int? GetIntProp(SearchResult r, string name)
+        {
+            if (!r.Properties.Contains(name) || r.Properties[name].Count == 0)
+                return null;
+            return ConvertToNullableInt(r.Properties[name][0]);
+        }
+
+        private static int? GetDirectoryEntryInt(DirectoryEntry entry, string name)
+        {
+            try
+            {
+                return ConvertToNullableInt(entry.Properties[name]?.Value);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static int? ConvertToNullableInt(object value)
+        {
+            if (value == null)
+                return null;
+            if (value is int intValue)
+                return intValue;
+            if (value is long longValue)
+                return unchecked((int)longValue);
+            if (int.TryParse(value.ToString(), out var parsed))
+                return parsed;
+            return null;
+        }
+
+        private static bool IsRc4Allowed(int? encValue)
+        {
+            if (!encValue.HasValue || encValue.Value == 0)
+                return true;
+            return (encValue.Value & EncFlagRc4) != 0;
+        }
+
+        private static bool HasAes(int? encValue)
+        {
+            if (!encValue.HasValue)
+                return false;
+            return (encValue.Value & (EncFlagAes128 | EncFlagAes256)) != 0;
+        }
+
+        private static string DescribeEncTypes(int? encValue)
+        {
+            if (!encValue.HasValue || encValue.Value == 0)
+                return "Unspecified (inherits defaults / RC4 compatible)";
+
+            var parts = new List<string>();
+            if ((encValue.Value & EncFlagDesCrc) != 0) parts.Add("DES-CBC-CRC");
+            if ((encValue.Value & EncFlagDesMd5) != 0) parts.Add("DES-CBC-MD5");
+            if ((encValue.Value & EncFlagRc4) != 0) parts.Add("RC4-HMAC");
+            if ((encValue.Value & EncFlagAes128) != 0) parts.Add("AES128");
+            if ((encValue.Value & EncFlagAes256) != 0) parts.Add("AES256");
+            if ((encValue.Value & 0x20) != 0) parts.Add("FAST");
+            if (parts.Count == 0) parts.Add($"0x{encValue.Value:X}");
+            return string.Join(", ", parts);
+        }
+
+        private class KerberoastCandidate
+        {
+            public string Label { get; set; }
+            public string SpnSummary { get; set; }
+            public string Encryption { get; set; }
+            public string Reason { get; set; }
+            public bool IsHighRisk { get; set; }
+        }
+
+        private static readonly string[] PrivilegedGroupKeywords = new[]
+        {
+            "Domain Admin",
+            "Enterprise Admin",
+            "Administrators",
+            "Exchange",
+            "Schema Admin",
+            "Account Operator",
+            "Server Operator",
+            "Backup Operator",
+            "DnsAdmin"
+        };
+
+        private const int EncFlagDesCrc = 0x1;
+        private const int EncFlagDesMd5 = 0x2;
+        private const int EncFlagRc4 = 0x4;
+        private const int EncFlagAes128 = 0x8;
+        private const int EncFlagAes256 = 0x10;
+
+
     }
 }

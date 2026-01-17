@@ -78,15 +78,6 @@ It should take only a **few seconds** to execute almost all the checks and **som
 
 The tool is based on **[SeatBelt](https://github.com/GhostPack/Seatbelt)**.
 
-### New (AD-aware) checks
-
-- Active Directory quick checks now include:
-  - gMSA readable managed passwords: enumerate msDS-GroupManagedServiceAccount objects and report those where the current user/group is allowed to retrieve the managed password (PrincipalsAllowedToRetrieveManagedPassword).
-  - AD object control surfaces: parse ACLs for high-value objects plus a sampled set of users/groups/computers and flag when the current security principal already has GenericAll/GenericWrite/WriteDacl/WriteOwner or attribute-specific rights (SPN, UAC, msDS-AllowedToActOnBehalfOfOtherIdentity, sidHistory, member, unicodePwd, replication) that can be abused for password resets, Kerberoasting, delegation/RBCD, DCSync, or stealth persistence.
-  - AD CS (ESC4) hygiene: enumerate published certificate templates and highlight templates where the current user/group has dangerous control rights (GenericAll/WriteDacl/WriteOwner/WriteProperty/ExtendedRight) that could allow template abuse (e.g., ESC4 -> ESC1).
-
-These checks are lightweight, read-only, and only run when the host is domain-joined.
-
 
 ## Where are my COLORS?!?!?!
 
