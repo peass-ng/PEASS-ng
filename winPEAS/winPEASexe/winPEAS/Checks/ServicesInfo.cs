@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
 using winPEAS.Info.ServicesInfo;
 
 namespace winPEAS.Checks
@@ -35,6 +37,8 @@ namespace winPEAS.Checks
                 PrintWritableRegServices,
                 PrintPathDllHijacking,
                 PrintOemPrivilegedUtilities,
+                PrintLegacySignedKernelDrivers,
+                PrintKernelQuickIndicators,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
 
@@ -253,5 +257,144 @@ namespace winPEAS.Checks
             }
         }
 
+        void PrintLegacySignedKernelDrivers()
+        {
+            try
+            {
+                Beaprint.MainPrint("Kernel drivers with weak/legacy signatures");
+                Beaprint.LinkPrint("https://research.checkpoint.com/2025/cracking-valleyrat-from-builder-secrets-to-kernel-rootkits/",
+                    "Legacy cross-signed drivers (pre-July-2015) can still grant kernel execution on modern Windows");
+
+                List<ServicesInfoHelper.KernelDriverInfo> drivers = ServicesInfoHelper.GetKernelDriverInfos();
+                if (drivers.Count == 0)
+                {
+                    Beaprint.InfoPrint("  Unable to enumerate kernel services");
+                    return;
+                }
+
+                var suspiciousDrivers = drivers.Where(d => d.Signature != null && (!d.Signature.IsSigned || d.Signature.IsLegacyExpired))
+                                               .OrderBy(d => d.Name)
+                                               .ToList();
+
+                if (suspiciousDrivers.Count == 0)
+                {
+                    Beaprint.InfoPrint("  No unsigned or legacy-signed kernel drivers detected");
+                    return;
+                }
+
+                foreach (var driver in suspiciousDrivers)
+                {
+                    var signature = driver.Signature ?? new ServicesInfoHelper.KernelDriverSignatureInfo();
+                    List<string> reasons = new List<string>();
+
+                    if (!signature.IsSigned)
+                    {
+                        reasons.Add("unsigned or signature missing");
+                    }
+                    else if (signature.IsLegacyExpired)
+                    {
+                        reasons.Add("signed with certificate that expired before 29-Jul-2015 (legacy exception)");
+                    }
+
+                    if (!string.IsNullOrEmpty(driver.StartMode) &&
+                        (driver.StartMode.Equals("System", StringComparison.OrdinalIgnoreCase) ||
+                         driver.StartMode.Equals("Boot", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        reasons.Add($"loads at early boot (Start={driver.StartMode})");
+                    }
+
+                    if (string.Equals(driver.Name, "kernelquick", StringComparison.OrdinalIgnoreCase))
+                    {
+                        reasons.Add("service name matches ValleyRAT rootkit loader");
+                    }
+
+                    string reason = reasons.Count > 0 ? string.Join("; ", reasons) : "Potentially risky driver";
+                    string signatureLine = signature.IsSigned
+                        ? $"Subject: {signature.Subject}; Issuer: {signature.Issuer}; Valid: {FormatDate(signature.NotBefore)} - {FormatDate(signature.NotAfter)}"
+                        : $"Signature issue: {signature.Error ?? "Unsigned"}";
+
+                    Beaprint.BadPrint($"  {driver.Name} ({driver.DisplayName})");
+                    Beaprint.NoColorPrint($"      Path       : {driver.PathName}");
+                    Beaprint.NoColorPrint($"      Start/State: {driver.StartMode}/{driver.State}");
+                    Beaprint.NoColorPrint($"      Reason     : {reason}");
+                    Beaprint.NoColorPrint($"      Signature  : {signatureLine}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        void PrintKernelQuickIndicators()
+        {
+            try
+            {
+                Beaprint.MainPrint("KernelQuick / ValleyRAT rootkit indicators");
+
+                bool found = false;
+
+                Dictionary<string, object> serviceValues = RegistryHelper.GetRegValues("HKLM", @"SYSTEM\\CurrentControlSet\\Services\\kernelquick");
+                if (serviceValues != null)
+                {
+                    found = true;
+                    string imagePath = serviceValues.ContainsKey("ImagePath") ? serviceValues["ImagePath"].ToString() : "Unknown";
+                    string start = serviceValues.ContainsKey("Start") ? serviceValues["Start"].ToString() : "Unknown";
+                    Beaprint.BadPrint("  Service HKLM\\SYSTEM\\CurrentControlSet\\Services\\kernelquick present");
+                    Beaprint.NoColorPrint($"      ImagePath : {imagePath}");
+                    Beaprint.NoColorPrint($"      Start     : {start}");
+                }
+
+                foreach (var path in new[] { @"SOFTWARE\\KernelQuick", @"SOFTWARE\\WOW6432Node\\KernelQuick", @"SYSTEM\\CurrentControlSet\\Services\\kernelquick" })
+                {
+                    Dictionary<string, object> values = RegistryHelper.GetRegValues("HKLM", path);
+                    if (values == null)
+                        continue;
+
+                    var kernelQuickValues = values.Where(k => k.Key.StartsWith("KernelQuick_", StringComparison.OrdinalIgnoreCase)).ToList();
+                    if (kernelQuickValues.Count == 0)
+                        continue;
+
+                    found = true;
+                    Beaprint.BadPrint($"  Registry values under HKLM\\{path}");
+                    foreach (var kv in kernelQuickValues)
+                    {
+                        string displayValue = kv.Value is byte[] bytes ? $"(binary) {bytes.Length} bytes" : string.Format("{0}", kv.Value);
+                        Beaprint.NoColorPrint($"      {kv.Key} = {displayValue}");
+                    }
+                }
+
+                Dictionary<string, object> ipdatesValues = RegistryHelper.GetRegValues("HKLM", @"SOFTWARE\\IpDates");
+                if (ipdatesValues != null)
+                {
+                    found = true;
+                    Beaprint.BadPrint("  Possible kernel shellcode staging key HKLM\\SOFTWARE\\IpDates");
+                    foreach (var kv in ipdatesValues)
+                    {
+                        string displayValue = kv.Value is byte[] bytes ? $"(binary) {bytes.Length} bytes" : string.Format("{0}", kv.Value);
+                        Beaprint.NoColorPrint($"      {kv.Key} = {displayValue}");
+                    }
+                }
+
+                if (!found)
+                {
+                    Beaprint.InfoPrint("  No KernelQuick-specific registry indicators were found");
+                }
+                else
+                {
+                    Beaprint.LinkPrint("https://research.checkpoint.com/2025/cracking-valleyrat-from-builder-secrets-to-kernel-rootkits/",
+                        "KernelQuick_* values and HKLM\\SOFTWARE\\IpDates are used by the ValleyRAT rootkit to hide files and stage APC payloads");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private string FormatDate(DateTime? dateTime)
+        {
+            return dateTime.HasValue ? dateTime.Value.ToString("yyyy-MM-dd HH:mm") : "n/a";
+        }
     }
 }
