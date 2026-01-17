@@ -112,6 +112,7 @@ namespace winPEAS.Info.ApplicationInfo
 
         private static IEnumerable<SoapClientProxyCandidate> EnumerateServiceCandidates()
         {
+            var results = new List<SoapClientProxyCandidate>();
             try
             {
                 using (var searcher = new ManagementObjectSearcher(@"root\\cimv2", "SELECT Name, DisplayName, PathName, StartName FROM Win32_Service"))
@@ -127,14 +128,14 @@ namespace winPEAS.Info.ApplicationInfo
                         if (!IsDotNetBinary(binaryPath))
                             continue;
 
-                        yield return new SoapClientProxyCandidate
+                        results.Add(new SoapClientProxyCandidate
                         {
                             BinaryPath = binaryPath,
                             SourceType = "Service",
                             Name = service["Name"]?.ToString() ?? string.Empty,
                             Account = service["StartName"]?.ToString() ?? string.Empty,
                             Extra = service["DisplayName"]?.ToString() ?? string.Empty,
-                        };
+                        });
                     }
                 }
             }
@@ -142,6 +143,8 @@ namespace winPEAS.Info.ApplicationInfo
             {
                 Beaprint.GrayPrint("Error while enumerating services for SOAP client analysis: " + ex.Message);
             }
+
+            return results;
         }
 
         private static IEnumerable<SoapClientProxyCandidate> EnumerateProcessCandidates()
