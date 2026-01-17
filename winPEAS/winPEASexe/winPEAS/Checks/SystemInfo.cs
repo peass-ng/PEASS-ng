@@ -82,6 +82,7 @@ namespace winPEAS.Checks
                 PrintKrbRelayUp,
                 PrintInsideContainer,
                 PrintAlwaysInstallElevated,
+                PrintObjectManagerRaceAmplification,
                 PrintLSAInfo,
                 PrintNtlmSettings,
                 PrintLocalGroupPolicy,
@@ -726,6 +727,31 @@ namespace winPEAS.Checks
                 if (HKLM_AIE != "1" && HKCU_AIE != "1")
                 {
                     Beaprint.GoodPrint("    AlwaysInstallElevated isn't available");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        static void PrintObjectManagerRaceAmplification()
+        {
+            try
+            {
+                Beaprint.MainPrint("Object Manager race-window amplification primitives");
+                Beaprint.LinkPrint("https://projectzero.google/2025/12/windows-exploitation-techniques.html", "Project Zero write-up:");
+
+                if (ObjectManagerHelper.TryCreateSessionEvent(out var objectName, out var error))
+                {
+                    Beaprint.BadPrint($"    Created a test named event ({objectName}) under \\BaseNamedObjects.");
+                    Beaprint.InfoPrint("    -> Low-privileged users can slow NtOpen*/NtCreate* lookups using ~32k-character names or ~16k-level directory chains.");
+                    Beaprint.InfoPrint("    -> Point attacker-controlled symbolic links to the slow path to stretch kernel race windows.");
+                    Beaprint.InfoPrint("    -> Use this whenever a bug follows check -> NtOpenX -> privileged action patterns.");
+                }
+                else
+                {
+                    Beaprint.InfoPrint($"    Could not create a test event under \\BaseNamedObjects ({error}). The namespace might be locked down.");
                 }
             }
             catch (Exception ex)
