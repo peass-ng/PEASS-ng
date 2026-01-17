@@ -98,6 +98,10 @@ The goal of this script is to search for possible **Privilege Escalation Paths**
 
 This script doesn't have any dependency.
 
+### Recent updates
+
+- **Dec 2025**: Added detection for sudo configurations that expose restic's `--password-command` helper, a common privilege escalation vector observed in real environments.
+
 It uses **/bin/sh** syntax, so can run in anything supporting `sh` (and the binaries and parameters used).
 
 By default, **linpeas won't write anything to disk and won't try to login as any other user using `su`**.
