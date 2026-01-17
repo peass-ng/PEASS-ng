@@ -19,6 +19,14 @@ Download the **[latest releas from here](https://github.com/peass-ng/PEASS-ng/re
 powershell "IEX(New-Object Net.WebClient).downloadString('https://raw.githubusercontent.com/peass-ng/PEASS-ng/master/winPEAS/winPEASps1/winPEAS.ps1')"
 ```
 
+
+## Recent Updates
+
+- Added Active Directory awareness checks to highlight Kerberos-only environments (NTLM restrictions) and time skew issues before attempting ticket-based attacks.
+- winPEAS.ps1 now reviews AD-integrated DNS ACLs to flag zones where low-privileged users can register/modify records (dynamic DNS hijack risk).
+- Enumerates high-value SPN accounts and weak gMSA password readers so you can immediately target Kerberoastable admins or abused service accounts.
+- Surfaces Schannel certificate mapping settings to warn about ESC10-style certificate abuse opportunities when UPN mapping is enabled.
+
 ## Advisory
 
 All the scripts/binaries of the PEAS Suite should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own networks and/or with the network owner's permission.
