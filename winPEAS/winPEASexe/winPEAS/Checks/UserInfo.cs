@@ -156,15 +156,63 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("RDP Sessions");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/credentials-mgmt/rdp-sessions", "Disconnected high-privilege RDP sessions keep reusable tokens inside LSASS.");
                 List<Dictionary<string, string>> rdp_sessions = UserInfoHelper.GetRDPSessions();
                 if (rdp_sessions.Count > 0)
                 {
-                    string format = "    {0,-10}{1,-15}{2,-15}{3,-25}{4,-10}{5}";
-                    string header = string.Format(format, "SessID", "pSessionName", "pUserName", "pDomainName", "State", "SourceIP");
+                    string format = "    {0,-8}{1,-15}{2,-20}{3,-22}{4,-15}{5,-18}{6,-10}";
+                    string header = string.Format(format, "SessID", "Session", "User", "Domain", "State", "SourceIP", "HighPriv");
                     Beaprint.GrayPrint(header);
+                    var colors = ColorsU();
+                    List<Dictionary<string, string>> flaggedSessions = new List<Dictionary<string, string>>();
                     foreach (Dictionary<string, string> rdpSes in rdp_sessions)
                     {
-                        Beaprint.AnsiPrint(string.Format(format, rdpSes["SessionID"], rdpSes["pSessionName"], rdpSes["pUserName"], rdpSes["pDomainName"], rdpSes["State"], rdpSes["SourceIP"]), ColorsU());
+                        rdpSes.TryGetValue("SessionID", out string sessionId);
+                        rdpSes.TryGetValue("pSessionName", out string sessionName);
+                        rdpSes.TryGetValue("pUserName", out string userName);
+                        rdpSes.TryGetValue("pDomainName", out string domainName);
+                        rdpSes.TryGetValue("State", out string state);
+                        rdpSes.TryGetValue("SourceIP", out string sourceIp);
+
+                        sessionId = sessionId ?? string.Empty;
+                        sessionName = sessionName ?? string.Empty;
+                        userName = userName ?? string.Empty;
+                        domainName = domainName ?? string.Empty;
+                        state = state ?? string.Empty;
+                        sourceIp = sourceIp ?? string.Empty;
+
+                        bool isHighPriv = UserInfoHelper.IsHighPrivilegeAccount(userName, domainName);
+                        string highPrivLabel = isHighPriv ? "Yes" : "No";
+                        rdpSes["HighPriv"] = highPrivLabel;
+
+                        if (isHighPriv && string.Equals(state, "Disconnected", StringComparison.OrdinalIgnoreCase))
+                        {
+                            flaggedSessions.Add(rdpSes);
+                        }
+
+                        Beaprint.AnsiPrint(string.Format(format, sessionId, sessionName, userName, domainName, state, sourceIp, highPrivLabel), colors);
+                    }
+
+                    if (flaggedSessions.Count > 0)
+                    {
+                        Beaprint.BadPrint("    [!] Disconnected high-privilege RDP sessions detected. Their credentials/tokens stay in LSASS until the user signs out.");
+                        foreach (Dictionary<string, string> session in flaggedSessions)
+                        {
+                            session.TryGetValue("pDomainName", out string flaggedDomain);
+                            session.TryGetValue("pUserName", out string flaggedUser);
+                            session.TryGetValue("SessionID", out string flaggedSessionId);
+                            session.TryGetValue("SourceIP", out string flaggedIp);
+
+                            flaggedDomain = flaggedDomain ?? string.Empty;
+                            flaggedUser = flaggedUser ?? string.Empty;
+                            flaggedSessionId = flaggedSessionId ?? string.Empty;
+                            flaggedIp = flaggedIp ?? string.Empty;
+
+                            string userDisplay = string.Format("{0}\\{1}", flaggedDomain, flaggedUser).Trim('\\');
+                            string source = string.IsNullOrEmpty(flaggedIp) ? "local" : flaggedIp;
+                            Beaprint.BadPrint(string.Format("        -> Session {0} ({1}) from {2}", flaggedSessionId, userDisplay, source));
+                        }
+                        Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/credentials-mgmt/rdp-sessions", "Dump LSASS / steal tokens (e.g., comsvcs.dll, LsaLogonSessions, custom SSPs) to reuse those privileges.");
                     }
                 }
                 else

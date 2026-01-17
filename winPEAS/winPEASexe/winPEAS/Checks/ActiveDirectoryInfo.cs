@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Reflection;
+using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using System.Text;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
-using winPEAS.Info.FilesInfo.Certificates;
 
 namespace winPEAS.Checks
 {
@@ -21,9 +22,15 @@ namespace winPEAS.Checks
             {
                 PrintGmsaReadableByCurrentPrincipal,
                 PrintKerberoastableServiceAccounts,
+                PrintAdObjectControlPaths,
                 PrintAdcsMisconfigurations
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
+
+        private const int SampleObjectLimit = 120;
+        private const int MaxFindingsToPrint = 40;
+        private static readonly Dictionary<Guid, string> GuidNameCache = new Dictionary<Guid, string>();
+        private static readonly object GuidCacheLock = new object();
 
         private static HashSet<string> GetCurrentSidSet()
         {
@@ -65,6 +72,596 @@ namespace winPEAS.Checks
             return (r.Properties.Contains(name) && r.Properties[name].Count > 0)
                 ? r.Properties[name][0]?.ToString()
                 : null;
+        }
+
+        // Highlight objects where the current principal already has useful write/control rights
+        private void PrintAdObjectControlPaths()
+        {
+            try
+            {
+                Beaprint.MainPrint("AD object control surfaces");
+                Beaprint.LinkPrint(
+                    "https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/index.html#acl-abuse",
+                    "Look for objects where you have GenericAll/GenericWrite/attribute rights for ACL abuse (password reset, SPN/UAC/RBCD, sidHistory, delegation, DCSync).");
+
+                if (!Checks.IsPartOfDomain)
+                {
+                    Beaprint.GrayPrint("  [-] Host is not domain-joined. Skipping.");
+                    return;
+                }
+
+                var defaultNC = GetRootDseProp("defaultNamingContext");
+                var schemaNC = GetRootDseProp("schemaNamingContext");
+                var configNC = GetRootDseProp("configurationNamingContext");
+
+                if (string.IsNullOrEmpty(defaultNC))
+                {
+                    Beaprint.GrayPrint("  [-] Could not resolve defaultNamingContext.");
+                    return;
+                }
+
+                var sidSet = GetCurrentSidSet();
+                var processedDns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var findings = new List<AdObjectFinding>();
+
+                foreach (var target in EnumerateHighValueTargets(defaultNC))
+                {
+                    var finding = AnalyzeDirectoryObject(target.DistinguishedName, target.Label, sidSet, schemaNC, configNC);
+                    if (finding == null)
+                    {
+                        continue;
+                    }
+
+                    if (processedDns.Add(finding.DistinguishedName))
+                    {
+                        findings.Add(finding);
+                    }
+                }
+
+                try
+                {
+                    using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
+                    using (var ds = new DirectorySearcher(baseDe))
+                    {
+                        ds.PageSize = 200;
+                        ds.SizeLimit = SampleObjectLimit;
+                        ds.SearchScope = SearchScope.Subtree;
+                        ds.SecurityMasks = SecurityMasks.Dacl;
+                        ds.Filter = "(|(objectClass=user)(objectClass=group)(objectClass=computer))";
+                        ds.PropertiesToLoad.Add("distinguishedName");
+                        ds.PropertiesToLoad.Add("sAMAccountName");
+                        ds.PropertiesToLoad.Add("name");
+
+                        using (var results = ds.FindAll())
+                        {
+                            foreach (SearchResult r in results)
+                            {
+                                var dn = GetProp(r, "distinguishedName");
+                                if (string.IsNullOrEmpty(dn) || processedDns.Contains(dn))
+                                {
+                                    continue;
+                                }
+
+                                var label = GetProp(r, "sAMAccountName") ?? GetProp(r, "name") ?? dn;
+                                var finding = AnalyzeDirectoryObject(dn, label, sidSet, schemaNC, configNC);
+                                if (finding != null && processedDns.Add(finding.DistinguishedName))
+                                {
+                                    findings.Add(finding);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Beaprint.GrayPrint("    [!] LDAP sampling failed: " + ex.Message);
+                }
+
+                if (findings.Count == 0)
+                {
+                    Beaprint.GrayPrint("  [-] No impactful ACLs detected for the current principal (sampled set).");
+                    return;
+                }
+
+                var ordered = findings
+                    .OrderByDescending(f => f.MaxScore)
+                    .ThenBy(f => f.DisplayName, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                var truncated = ordered.Count > MaxFindingsToPrint;
+                if (truncated)
+                {
+                    ordered = ordered.Take(MaxFindingsToPrint).ToList();
+                }
+
+                Beaprint.GrayPrint($"  [+] Found {findings.Count} object(s) where your principal has abuse-friendly rights:");
+                foreach (var finding in ordered)
+                {
+                    Beaprint.BadPrint($"    -> {finding.DisplayName} ({finding.ClassName})");
+                    Beaprint.GrayPrint("       DN: " + finding.DistinguishedName);
+                    foreach (var impact in finding.Impacts.OrderByDescending(i => i.Score))
+                    {
+                        Beaprint.GrayPrint($"       * {impact.Impact}: {impact.Detail}");
+                    }
+                }
+
+                if (truncated)
+                {
+                    Beaprint.GrayPrint($"  [!] Additional {findings.Count - MaxFindingsToPrint} object(s) not shown (enable domain mode or run winPEAS with more time to enumerate all objects).");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static IEnumerable<(string Label, string DistinguishedName)> EnumerateHighValueTargets(string defaultNC)
+        {
+            return new List<(string, string)>
+            {
+                ("Domain Root", defaultNC),
+                ("AdminSDHolder", $"CN=AdminSDHolder,CN=System,{defaultNC}"),
+                ("Domain Controllers OU", $"OU=Domain Controllers,{defaultNC}"),
+                ("Domain Controllers group", $"CN=Domain Controllers,CN=Users,{defaultNC}"),
+                ("Domain Admins", $"CN=Domain Admins,CN=Users,{defaultNC}"),
+                ("Enterprise Admins", $"CN=Enterprise Admins,CN=Users,{defaultNC}"),
+                ("Schema Admins", $"CN=Schema Admins,CN=Users,{defaultNC}"),
+                ("Administrators", $"CN=Administrators,CN=Builtin,{defaultNC}"),
+                ("Account Operators", $"CN=Account Operators,CN=Builtin,{defaultNC}"),
+                ("Backup Operators", $"CN=Backup Operators,CN=Builtin,{defaultNC}"),
+                ("Group Policy Creator Owners", $"CN=Group Policy Creator Owners,CN=Users,{defaultNC}"),
+                ("krbtgt", $"CN=krbtgt,CN=Users,{defaultNC}")
+            };
+        }
+
+        private static AdObjectFinding AnalyzeDirectoryObject(string dn, string label, HashSet<string> sidSet, string schemaNC, string configNC)
+        {
+            if (string.IsNullOrEmpty(dn))
+            {
+                return null;
+            }
+
+            try
+            {
+                using (var entry = new DirectoryEntry("LDAP://" + dn))
+                {
+                    entry.Options.SecurityMasks = SecurityMasks.Owner | SecurityMasks.Dacl;
+                    entry.RefreshCache();
+                    return EvaluateSecurity(entry, label ?? dn, sidSet, schemaNC, configNC);
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private static AdObjectFinding EvaluateSecurity(DirectoryEntry entry, string label, HashSet<string> sidSet, string schemaNC, string configNC)
+        {
+            ActiveDirectorySecurity security;
+            try
+            {
+                security = entry.ObjectSecurity;
+            }
+            catch
+            {
+                return null;
+            }
+
+            if (security == null)
+            {
+                return null;
+            }
+
+            var finding = new AdObjectFinding
+            {
+                DisplayName = label ?? entry.Name,
+                DistinguishedName = entry.Properties?["distinguishedName"]?.Value as string ?? entry.Path,
+                ClassName = entry.SchemaClassName ?? "object"
+            };
+
+            var seenImpacts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                var ownerSid = security.GetOwner(typeof(SecurityIdentifier)) as SecurityIdentifier;
+                if (ownerSid != null && sidSet.Contains(ownerSid.Value))
+                {
+                    var impact = new AdAccessImpact
+                    {
+                        Impact = "Object owner",
+                        Detail = "You own this object and can rewrite its ACL to grant full control.",
+                        Score = 3
+                    };
+                    finding.Impacts.Add(impact);
+                    seenImpacts.Add(impact.Impact);
+                }
+            }
+            catch
+            {
+                // ignore owner lookup issues
+            }
+
+            AuthorizationRuleCollection rules;
+            try
+            {
+                rules = security.GetAccessRules(true, true, typeof(SecurityIdentifier));
+            }
+            catch
+            {
+                return finding.Impacts.Count > 0 ? finding : null;
+            }
+
+            foreach (ActiveDirectoryAccessRule rule in rules)
+            {
+                if (rule == null || rule.AccessControlType != AccessControlType.Allow)
+                {
+                    continue;
+                }
+
+                if (!(rule.IdentityReference is SecurityIdentifier sid))
+                {
+                    continue;
+                }
+
+                if (!sidSet.Contains(sid.Value))
+                {
+                    continue;
+                }
+
+                foreach (var impact in MapRuleToImpacts(rule, schemaNC, configNC))
+                {
+                    if (impact == null)
+                    {
+                        continue;
+                    }
+
+                    var key = impact.Impact + "|" + impact.Detail;
+                    if (seenImpacts.Add(key))
+                    {
+                        finding.Impacts.Add(impact);
+                    }
+                }
+            }
+
+            return finding.Impacts.Count > 0 ? finding : null;
+        }
+
+        private static IEnumerable<AdAccessImpact> MapRuleToImpacts(ActiveDirectoryAccessRule rule, string schemaNC, string configNC)
+        {
+            var impacts = new List<AdAccessImpact>();
+            var rights = rule.ActiveDirectoryRights;
+
+            if ((rights & ActiveDirectoryRights.GenericAll) != 0)
+            {
+                impacts.Add(new AdAccessImpact
+                {
+                    Impact = "GenericAll",
+                    Detail = "Full control -> reset password, add group members, edit SPNs/UAC, change ACLs.",
+                    Score = 5
+                });
+                return impacts;
+            }
+
+            if ((rights & ActiveDirectoryRights.GenericWrite) != 0)
+            {
+                impacts.Add(new AdAccessImpact
+                {
+                    Impact = "GenericWrite",
+                    Detail = "Can modify most attributes (logon scripts, SPNs, UAC, etc.).",
+                    Score = 4
+                });
+            }
+
+            if ((rights & ActiveDirectoryRights.WriteDacl) != 0)
+            {
+                impacts.Add(new AdAccessImpact
+                {
+                    Impact = "WriteDACL",
+                    Detail = "Can edit the ACL to grant yourself additional rights/persistence.",
+                    Score = 4
+                });
+            }
+
+            if ((rights & ActiveDirectoryRights.WriteOwner) != 0)
+            {
+                impacts.Add(new AdAccessImpact
+                {
+                    Impact = "WriteOwner",
+                    Detail = "Can take ownership and then modify the DACL.",
+                    Score = 3
+                });
+            }
+
+            if ((rights & ActiveDirectoryRights.CreateChild) != 0)
+            {
+                impacts.Add(new AdAccessImpact
+                {
+                    Impact = "CreateChild",
+                    Detail = "Can create new users/computers/groups under this container (great for planting attack principals).",
+                    Score = 3
+                });
+            }
+
+            if ((rights & ActiveDirectoryRights.ExtendedRight) != 0)
+            {
+                var extImpact = MapExtendedRightImpact(rule.ObjectType, schemaNC, configNC);
+                if (extImpact != null)
+                {
+                    impacts.Add(extImpact);
+                }
+            }
+
+            if ((rights & ActiveDirectoryRights.WriteProperty) != 0)
+            {
+                var attrImpact = MapAttributeWriteImpact(rule.ObjectType, schemaNC, configNC, false);
+                if (attrImpact != null)
+                {
+                    impacts.Add(attrImpact);
+                }
+            }
+
+            if ((rights & ActiveDirectoryRights.Self) != 0)
+            {
+                var validatedImpact = MapAttributeWriteImpact(rule.ObjectType, schemaNC, configNC, true);
+                if (validatedImpact != null)
+                {
+                    impacts.Add(validatedImpact);
+                }
+            }
+
+            return impacts;
+        }
+
+        private static AdAccessImpact MapExtendedRightImpact(Guid objectType, string schemaNC, string configNC)
+        {
+            if (objectType == Guid.Empty)
+            {
+                return null;
+            }
+
+            var name = GetGuidFriendlyName(objectType, schemaNC, configNC)?.ToLowerInvariant();
+            if (string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
+
+            if (name.Contains("reset password") || name.Contains("user-force-change-password"))
+            {
+                return new AdAccessImpact
+                {
+                    Impact = "ResetPassword right",
+                    Detail = "Can reset the target account password without knowing the current value.",
+                    Score = 5
+                };
+            }
+
+            if (name.Contains("replicating directory changes"))
+            {
+                return new AdAccessImpact
+                {
+                    Impact = "Replication (DCSync)",
+                    Detail = "Has replication rights (part of DCSync privilege to dump NTDS hashes).",
+                    Score = name.Contains("filtered") ? 5 : 4
+                };
+            }
+
+            return null;
+        }
+
+        private static AdAccessImpact MapAttributeWriteImpact(Guid objectType, string schemaNC, string configNC, bool validatedWrite)
+        {
+            if (objectType == Guid.Empty)
+            {
+                return new AdAccessImpact
+                {
+                    Impact = validatedWrite ? "Validated write (broad)" : "WriteProperty (broad)",
+                    Detail = "ACE applies to most attributes. Consider SPN/UAC/sidHistory abuse paths.",
+                    Score = 3
+                };
+            }
+
+            var attributeName = GetGuidFriendlyName(objectType, schemaNC, configNC);
+            if (string.IsNullOrEmpty(attributeName))
+            {
+                return null;
+            }
+
+            var lower = attributeName.ToLowerInvariant();
+
+            if (lower.Contains("member"))
+            {
+                return new AdAccessImpact
+                {
+                    Impact = "Group membership control",
+                    Detail = "Can edit the 'member' attribute -> add principals to this group.",
+                    Score = 5
+                };
+            }
+
+            if (lower.Contains("serviceprincipalname") || lower.Contains("validated-spn"))
+            {
+                return new AdAccessImpact
+                {
+                    Impact = "SPN control",
+                    Detail = "Can set servicePrincipalName -> Kerberoast or constrained delegation abuse.",
+                    Score = 4
+                };
+            }
+
+            if (lower.Contains("useraccountcontrol"))
+            {
+                return new AdAccessImpact
+                {
+                    Impact = "UAC control",
+                    Detail = "Can toggle UserAccountControl bits (AS-REP roastable, delegation, unconstrained).",
+                    Score = 4
+                };
+            }
+
+            if (lower.Contains("msds-allowedtoactonbehalfofotheridentity"))
+            {
+                return new AdAccessImpact
+                {
+                    Impact = "RBCD control",
+                    Detail = "Can edit msDS-AllowedToActOnBehalfOfOtherIdentity -> configure Resource-Based Constrained Delegation.",
+                    Score = 5
+                };
+            }
+
+            if (lower.Contains("msds-allowedtodelegateto"))
+            {
+                return new AdAccessImpact
+                {
+                    Impact = "Delegation target control",
+                    Detail = "Can edit msDS-AllowedToDelegateTo -> establish constrained delegation paths.",
+                    Score = 4
+                };
+            }
+
+            if (lower.Contains("sidhistory"))
+            {
+                return new AdAccessImpact
+                {
+                    Impact = "sidHistory control",
+                    Detail = "Can add privileged SIDs into sidHistory for stealth escalation/persistence.",
+                    Score = 4
+                };
+            }
+
+            if (lower.Contains("unicodepwd") || lower.Contains("userpassword"))
+            {
+                return new AdAccessImpact
+                {
+                    Impact = "Password write",
+                    Detail = "Can directly set unicodePwd/userPassword -> immediate account takeover.",
+                    Score = 5
+                };
+            }
+
+            return null;
+        }
+
+        private static string GetGuidFriendlyName(Guid guid, string schemaNC, string configNC)
+        {
+            if (guid == Guid.Empty)
+            {
+                return null;
+            }
+
+            lock (GuidCacheLock)
+            {
+                if (GuidNameCache.TryGetValue(guid, out var cached))
+                {
+                    return cached;
+                }
+            }
+
+            string resolved = null;
+
+            if (!string.IsNullOrEmpty(schemaNC))
+            {
+                resolved = LookupGuidInSchema(guid, schemaNC);
+            }
+
+            if (resolved == null && !string.IsNullOrEmpty(configNC))
+            {
+                resolved = LookupGuidInExtendedRights(guid, configNC);
+            }
+
+            if (string.IsNullOrEmpty(resolved))
+            {
+                resolved = guid.ToString();
+            }
+
+            lock (GuidCacheLock)
+            {
+                if (!GuidNameCache.ContainsKey(guid))
+                {
+                    GuidNameCache[guid] = resolved;
+                }
+                return GuidNameCache[guid];
+            }
+        }
+
+        private static string LookupGuidInSchema(Guid guid, string schemaNC)
+        {
+            try
+            {
+                using (var schema = new DirectoryEntry("LDAP://" + schemaNC))
+                using (var searcher = new DirectorySearcher(schema))
+                {
+                    searcher.Filter = $"(schemaIDGUID={GuidToLdapFilter(guid)})";
+                    searcher.PropertiesToLoad.Add("lDAPDisplayName");
+                    searcher.PropertiesToLoad.Add("name");
+                    var result = searcher.FindOne();
+                    if (result != null)
+                    {
+                        return GetProp(result, "lDAPDisplayName") ?? GetProp(result, "name");
+                    }
+                }
+            }
+            catch
+            {
+                // ignore schema lookup errors
+            }
+
+            return null;
+        }
+
+        private static string LookupGuidInExtendedRights(Guid guid, string configNC)
+        {
+            try
+            {
+                var extendedRightsDn = $"CN=Extended-Rights,{configNC}";
+                using (var rights = new DirectoryEntry("LDAP://" + extendedRightsDn))
+                using (var searcher = new DirectorySearcher(rights))
+                {
+                    searcher.Filter = $"(rightsGuid={guid})";
+                    searcher.PropertiesToLoad.Add("displayName");
+                    searcher.PropertiesToLoad.Add("name");
+                    var result = searcher.FindOne();
+                    if (result != null)
+                    {
+                        return GetProp(result, "displayName") ?? GetProp(result, "name");
+                    }
+                }
+            }
+            catch
+            {
+                // ignore extended rights lookup issues
+            }
+
+            return null;
+        }
+
+        private static string GuidToLdapFilter(Guid guid)
+        {
+            var bytes = guid.ToByteArray();
+            var sb = new StringBuilder();
+            foreach (var b in bytes)
+            {
+                sb.Append($"\\{b:X2}");
+            }
+
+            return sb.ToString();
+        }
+
+        private class AdObjectFinding
+        {
+            public string DisplayName { get; set; }
+            public string DistinguishedName { get; set; }
+            public string ClassName { get; set; }
+            public List<AdAccessImpact> Impacts { get; } = new List<AdAccessImpact>();
+            public int MaxScore => Impacts.Count == 0 ? 0 : Impacts.Max(i => i.Score);
+        }
+
+        private class AdAccessImpact
+        {
+            public string Impact { get; set; }
+            public string Detail { get; set; }
+            public int Score { get; set; }
         }
 
         // Detect gMSA objects where the current principal (or one of its groups) can retrieve the managed password
