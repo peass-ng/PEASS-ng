@@ -1,0 +1,15 @@
+You are fixing CI failures for PR #551 in peass-ng/PEASS-ng.
+The failing workflow run is: https://github.com/peass-ng/PEASS-ng/actions/runs/21120092167
+The PR branch is: codex-pr-failure-test-1
+
+Failure summary:
+Job: Build_and_test_linpeas_pr (id 60731895947)
+URL: https://github.com/peass-ng/PEASS-ng/actions/runs/21120092167/job/60731895947
+  Step: Build linpeas
+
+Job: Build_and_test_macpeas_pr (id 60731895952)
+URL: https://github.com/peass-ng/PEASS-ng/actions/runs/21120092167/job/60731895952
+  Step: Build macpeas
+Please identify the cause, apply a easy, simple and minimal fix, and update files accordingly.
+Run any fast checks you can locally (no network).
+Leave the repo in a state ready to commit as when you finish, it'll be automatically committed and pushed.

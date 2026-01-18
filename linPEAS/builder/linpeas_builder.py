@@ -9,7 +9,6 @@ import argparse
 
 # python3 -m builder.linpeas_builder
 def main(all_modules, all_no_fat_modules, no_network_scanning, small, include_modules, exclude_modules, output):
-    raise SystemExit("Intentional failure for CI test")
     # Load configuration
     ploaded = PEASLoaded()
 
