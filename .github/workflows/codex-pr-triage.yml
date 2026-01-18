@@ -1,0 +1,113 @@
+name: Codex PR Triage
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  codex_triage:
+    if: ${{ github.event.pull_request.user.login == 'carlospolop' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      decision: ${{ steps.parse.outputs.decision }}
+      message: ${{ steps.parse.outputs.message }}
+
+    steps:
+      - name: Checkout PR merge ref
+        uses: actions/checkout@v5
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+
+      - name: Pre-fetch base and head refs
+        run: |
+          git fetch --no-tags origin \
+            ${{ github.event.pull_request.base.ref }} \
+            +refs/pull/${{ github.event.pull_request.number }}/head
+
+      - name: Run Codex
+        id: run_codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          output-schema-file: .github/codex/pr-merge-schema.json
+          model: gpt-5.2-codex
+          prompt: |
+            You are reviewing PR #${{ github.event.pull_request.number }} for ${{ github.repository }}.
+
+            Decide whether to merge or comment. Merge only if all of the following are true:
+            - Changes are simple and safe (no DoS, no long operations, no backdoors).
+            - Changes follow common PEASS syntax and style without breaking anything and add useful checks or value.
+            - Changes simplify code or add new useful checks without breaking anything.
+
+            If you don't have any doubts, and all the previous conditions are met, decide to merge.
+            If you have serious doubts, choose "comment" and include your doubts or questions.
+            If you decide to merge, include a short rationale.
+
+            Pull request title and body:
+            ----
+            ${{ github.event.pull_request.title }}
+            ${{ github.event.pull_request.body }}
+
+            Review ONLY the changes introduced by the PR:
+              git log --oneline ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}
+
+            Output JSON only, following the provided schema.
+
+      - name: Parse Codex decision
+        id: parse
+        env:
+          CODEX_MESSAGE: ${{ steps.run_codex.outputs.final-message }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+
+          data = json.loads(os.environ.get('CODEX_MESSAGE', '') or '{}')
+          decision = data.get('decision', 'comment')
+          message = data.get('message', '').strip() or 'Codex did not provide details.'
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as handle:
+            handle.write(f"decision={decision}\n")
+            handle.write("message<<EOF\n")
+            handle.write(message + "\n")
+            handle.write("EOF\n")
+          PY
+
+  merge_or_comment:
+    runs-on: ubuntu-latest
+    needs: codex_triage
+    if: ${{ needs.codex_triage.outputs.decision != '' }}
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Merge PR when approved
+        if: ${{ needs.codex_triage.outputs.decision == 'merge' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh api \
+            -X PUT \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/pulls/${PR_NUMBER}/merge \
+            -f merge_method=squash \
+            -f commit_title="Auto-merge PR #${PR_NUMBER} (Codex)"
+
+      - name: Comment with doubts
+        if: ${{ needs.codex_triage.outputs.decision == 'comment' }}
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          CODEX_MESSAGE: ${{ needs.codex_triage.outputs.message }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(process.env.PR_NUMBER),
+              body: process.env.CODEX_MESSAGE,
+            });
