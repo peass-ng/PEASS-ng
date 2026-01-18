@@ -56,10 +56,9 @@ namespace winPEAS.Checks
                         colorsP[procInfo["Product"]] = Beaprint.ansi_color_bad;
                     }
 
-                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(procInfo["ExecutablePath"], Checks.CurrentUserSiDs);
-                    List<string> dirRights = new List<string>();
-                    if (procInfo["ExecutablePath"] != null && procInfo["ExecutablePath"] != "")
-                        dirRights = PermissionsHelper.GetPermissionsFolder(Path.GetDirectoryName(procInfo["ExecutablePath"]), Checks.CurrentUserSiDs);
+                    List<string> fileRights;
+                    List<string> dirRights;
+                    PermissionsHelper.GetFileAndDirectoryPermissions(procInfo["ExecutablePath"], Checks.CurrentUserSiDs, out fileRights, out dirRights);
 
                     colorsP[procInfo["ExecutablePath"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+", "\\+") + "[^\"^']"] = (fileRights.Count > 0 || dirRights.Count > 0) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good;
 

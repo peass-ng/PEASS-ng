@@ -84,6 +84,21 @@ namespace winPEAS.Helpers
             return results;
         }
 
+        public static void GetFileAndDirectoryPermissions(string path, Dictionary<string, string> SIDs, out List<string> fileRights, out List<string> dirRights, PermissionType permissionType = PermissionType.DEFAULT)
+        {
+            fileRights = GetPermissionsFile(path, SIDs, permissionType);
+            dirRights = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                string directory = Path.GetDirectoryName(path);
+                if (!string.IsNullOrWhiteSpace(directory))
+                {
+                    dirRights = GetPermissionsFolder(directory, SIDs, permissionType);
+                }
+            }
+        }
+
         public static List<string> GetMyPermissionsF(FileSecurity fSecurity, Dictionary<string, string> SIDs, PermissionType permissionType = PermissionType.DEFAULT)
         {
             // Get interesting permissions in fSecurity (Only files and folders)

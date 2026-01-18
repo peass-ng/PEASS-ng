@@ -58,13 +58,9 @@ namespace winPEAS.Checks
 
                 foreach (Dictionary<string, string> serviceInfo in services_info)
                 {
-                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(serviceInfo["FilteredPath"], Checks.CurrentUserSiDs);
-                    List<string> dirRights = new List<string>();
-
-                    if (serviceInfo["FilteredPath"] != null && serviceInfo["FilteredPath"] != "")
-                    {
-                        dirRights = PermissionsHelper.GetPermissionsFolder(Path.GetDirectoryName(serviceInfo["FilteredPath"]), Checks.CurrentUserSiDs);
-                    }
+                    List<string> fileRights;
+                    List<string> dirRights;
+                    PermissionsHelper.GetFileAndDirectoryPermissions(serviceInfo["FilteredPath"], Checks.CurrentUserSiDs, out fileRights, out dirRights);
 
                     bool noQuotesAndSpace = MyUtils.CheckQuoteAndSpace(serviceInfo["PathName"]);
 
