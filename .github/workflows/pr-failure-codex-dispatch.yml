@@ -26,26 +26,15 @@ jobs:
           PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          pr_json=$(gh api -H "Accept: application/vnd.github+json" \
-            /repos/${{ github.repository }}/pulls/${PR_NUMBER})
-          pr_author=$(printf "%s" "$pr_json" | python3 - <<'PY'
-          import json,sys
-          data=json.load(sys.stdin)
-          print(data.get("user",{}).get("login",""))
-          PY
-          )
-          pr_head_repo=$(printf "%s" "$pr_json" | python3 - <<'PY'
-          import json,sys
-          data=json.load(sys.stdin)
-          print(data.get("head",{}).get("repo",{}).get("full_name",""))
-          PY
-          )
-          pr_head_branch=$(printf "%s" "$pr_json" | python3 - <<'PY'
-          import json,sys
-          data=json.load(sys.stdin)
-          print(data.get("head",{}).get("ref",""))
-          PY
-          )
+          pr_author=$(gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/pulls/${PR_NUMBER} \
+            --jq '.user.login')
+          pr_head_repo=$(gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/pulls/${PR_NUMBER} \
+            --jq '.head.repo.full_name')
+          pr_head_branch=$(gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/pulls/${PR_NUMBER} \
+            --jq '.head.ref')
           {
             echo "number=${PR_NUMBER}"
             echo "author=${pr_author}"
