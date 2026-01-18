@@ -5,7 +5,7 @@
 # Description: Azure Automation Account Service Enumeration
 # License: GNU GPL
 # Version: 1.0
-# Functions Used: check_az_automation_acc, exec_with_jq, print_2title, print_3title
+# Functions Used: check_az_automation_acc, exec_with_jq, print_2title, print_3title, set_metadata_req_cmd
 # Global Variables: $is_az_automation_acc,
 # Initial Functions: check_az_automation_acc
 # Generated Global Variables: $API_VERSION, $HEADER, $az_req
@@ -21,13 +21,7 @@ if [ "$is_az_automation_acc" = "Yes" ]; then
   HEADER="X-IDENTITY-HEADER:$IDENTITY_HEADER"
 
   az_req=""
-  if [ "$(command -v curl || echo -n '')" ]; then
-      az_req="curl -s -f -L -H '$HEADER'"
-  elif [ "$(command -v wget || echo -n '')" ]; then
-      az_req="wget -q -O - --header '$HEADER'"
-  else 
-      echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
-  fi
+  set_metadata_req_cmd az_req "$HEADER"
 
   if [ "$az_req" ]; then
     print_3title "Management token"

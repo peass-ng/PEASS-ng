@@ -5,7 +5,7 @@
 # Description: Azure VM Enumeration
 # License: GNU GPL
 # Version: 1.0
-# Functions Used: check_az_vm, exec_with_jq, print_2title, print_3title
+# Functions Used: check_az_vm, exec_with_jq, print_2title, print_3title, set_metadata_req_cmd
 # Global Variables: $is_az_vm
 # Initial Functions: check_az_vm
 # Generated Global Variables: $API_VERSION, $HEADER, $az_req, $URL
@@ -21,13 +21,7 @@ if [ "$is_az_vm" = "Yes" ]; then
   API_VERSION="2021-12-13" #https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service?tabs=linux#supported-api-versions
   
   az_req=""
-  if [ "$(command -v curl || echo -n '')" ]; then
-      az_req="curl -s -f -L -H '$HEADER'"
-  elif [ "$(command -v wget || echo -n '')" ]; then
-      az_req="wget -q -O - --header '$HEADER'"
-  else 
-      echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
-  fi
+  set_metadata_req_cmd az_req "$HEADER"
 
   if [ "$az_req" ]; then
     print_3title "Instance details"
