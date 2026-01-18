@@ -10,7 +10,7 @@ jobs:
     if: >
       ${{ github.event.workflow_run.conclusion == 'failure' &&
           github.event.workflow_run.pull_requests &&
-          github.event.workflow_run.pull_requests[0].user.login == 'carlospolop' &&
+          github.event.workflow_run.pull_requests[0] &&
           !startsWith(github.event.workflow_run.head_commit.message, 'Fix CI failures for PR #') }}
     runs-on: ubuntu-latest
     permissions:
@@ -20,10 +20,44 @@ jobs:
       actions: read
 
     steps:
-      - name: Comment on PR with failure info
-        uses: actions/github-script@v7
+      - name: Resolve PR context
+        id: pr_context
         env:
           PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pr_json=$(gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/pulls/${PR_NUMBER})
+          pr_author=$(printf "%s" "$pr_json" | python3 - <<'PY'
+          import json,sys
+          data=json.load(sys.stdin)
+          print(data.get("user",{}).get("login",""))
+          PY
+          )
+          pr_head_repo=$(printf "%s" "$pr_json" | python3 - <<'PY'
+          import json,sys
+          data=json.load(sys.stdin)
+          print(data.get("head",{}).get("repo",{}).get("full_name",""))
+          PY
+          )
+          pr_head_branch=$(printf "%s" "$pr_json" | python3 - <<'PY'
+          import json,sys
+          data=json.load(sys.stdin)
+          print(data.get("head",{}).get("ref",""))
+          PY
+          )
+          {
+            echo "number=${PR_NUMBER}"
+            echo "author=${pr_author}"
+            echo "head_repo=${pr_head_repo}"
+            echo "head_branch=${pr_head_branch}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Comment on PR with failure info
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.pr_context.outputs.number }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
           WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
         with:
@@ -39,19 +73,22 @@ jobs:
             });
 
       - name: Checkout PR head
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
         uses: actions/checkout@v5
         with:
-          repository: ${{ github.event.workflow_run.head_repository.full_name }}
+          repository: ${{ steps.pr_context.outputs.head_repo }}
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
           persist-credentials: true
 
       - name: Configure git author
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
         run: |
           git config user.name "codex-action"
           git config user.email "codex-action@users.noreply.github.com"
 
       - name: Fetch failure summary
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.event.workflow_run.id }}
@@ -79,10 +116,11 @@ jobs:
           PY
 
       - name: Create Codex prompt
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
         env:
-          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          PR_NUMBER: ${{ steps.pr_context.outputs.number }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
-          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          HEAD_BRANCH: ${{ steps.pr_context.outputs.head_branch }}
         run: |
           {
             echo "You are fixing CI failures for PR #${PR_NUMBER} in ${{ github.repository }}."
@@ -98,6 +136,7 @@ jobs:
           } > codex_prompt.txt
 
       - name: Run Codex
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
         id: run_codex
         uses: openai/codex-action@v1
         with:
@@ -107,9 +146,10 @@ jobs:
           model: gpt-5.2-codex
 
       - name: Commit and push if changed
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
         env:
-          TARGET_BRANCH: ${{ github.event.workflow_run.head_branch }}
-          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          TARGET_BRANCH: ${{ steps.pr_context.outputs.head_branch }}
+          PR_NUMBER: ${{ steps.pr_context.outputs.number }}
         run: |
           if git diff --quiet; then
             echo "No changes to commit."
@@ -120,10 +160,10 @@ jobs:
           git push origin HEAD:${TARGET_BRANCH}
 
       - name: Comment with Codex result
-        if: steps.run_codex.outputs.final-message != ''
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' && steps.run_codex.outputs.final-message != '' }}
         uses: actions/github-script@v7
         env:
-          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          PR_NUMBER: ${{ steps.pr_context.outputs.number }}
           CODEX_MESSAGE: ${{ steps.run_codex.outputs.final-message }}
         with:
           github-token: ${{ github.token }}
