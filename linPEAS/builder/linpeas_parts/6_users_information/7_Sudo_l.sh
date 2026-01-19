@@ -19,6 +19,16 @@ print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation
 if [ "$PASSWORD" ]; then
   (echo "$PASSWORD" | timeout 1 sudo -S -l | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g") 2>/dev/null  || echo_not_found "sudo"
 fi
+(sudo -n -l 2>/dev/null | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,\!root,${SED_RED},") 2>/dev/null || echo "No cached sudo token (sudo -n -l)"
+
+secure_path_line=$(sudo -l 2>/dev/null | grep -o "secure_path=[^,]*" | head -n 1 | cut -d= -f2)
+if [ "$secure_path_line" ]; then
+  for p in $(echo "$secure_path_line" | tr ':' ' '); do
+    if [ -w "$p" ]; then
+      echo "Writable secure_path entry: $p" | sed -${E} "s,.*,${SED_RED},g"
+    fi
+  done
+fi
 ( grep -Iv "^$" cat /etc/sudoers | grep -v "#" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,pwfeedback,${SED_RED},g" ) 2>/dev/null  || echo_not_found "/etc/sudoers"
 if ! [ "$IAMROOT" ] && [ -w '/etc/sudoers.d/' ]; then
   echo "You can create a file in /etc/sudoers.d/ and escalate privileges" | sed -${E} "s,.*,${SED_RED_YELLOW},"

@@ -40,4 +40,18 @@ else
   echo "ptrace protection is enabled ($ptrace_scope)" | sed "s,is enabled,${SED_GREEN},g";
 
 fi
+
+if [ -d "/var/run/sudo/ts" ]; then
+  echo "Sudo token directory perms:" | sed -${E} "s,.*,${SED_LIGHT_CYAN},g"
+  ls -ld /var/run/sudo/ts 2>/dev/null
+  if [ -w "/var/run/sudo/ts" ]; then
+    echo "/var/run/sudo/ts is writable" | sed -${E} "s,.*,${SED_RED},g"
+  fi
+  if [ -f "/var/run/sudo/ts/$USER" ]; then
+    ls -l "/var/run/sudo/ts/$USER" 2>/dev/null
+    if [ -w "/var/run/sudo/ts/$USER" ]; then
+      echo "User sudo token file is writable" | sed -${E} "s,.*,${SED_RED},g"
+    fi
+  fi
+fi
 echo ""
