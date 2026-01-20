@@ -392,7 +392,7 @@ namespace winPEAS.Checks
 
                 foreach (string regHkcu in passRegHkcu)
                 {
-                    Beaprint.DictPrint(RegistryHelper.GetRegValues("HKLM", regHkcu), false);
+                    Beaprint.DictPrint(RegistryHelper.GetRegValues("HKCU", regHkcu), false);
                 }
 
                 foreach (string regHklm in passRegHklm)
