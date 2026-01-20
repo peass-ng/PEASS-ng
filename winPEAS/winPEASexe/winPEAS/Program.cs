@@ -11,7 +11,7 @@ namespace winPEAS
         [STAThread]
         public static void Main(string[] args)
         {
-            this_will_not_compile
+            // TODO: keep Main minimal; this line was an intentional break in test PR.
             Checks.Checks.Run(args);
         }
     }
