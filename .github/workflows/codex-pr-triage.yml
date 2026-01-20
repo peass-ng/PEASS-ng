@@ -7,6 +7,7 @@ on:
 
 jobs:
   codex_triage:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -131,7 +132,7 @@ jobs:
   merge_or_comment:
     runs-on: ubuntu-latest
     needs: codex_triage
-    if: ${{ needs.codex_triage.outputs.should_run == 'true' && needs.codex_triage.outputs.decision != '' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && needs.codex_triage.outputs.should_run == 'true' && needs.codex_triage.outputs.decision != '' }}
     permissions:
       contents: write
       pull-requests: write
