@@ -128,7 +128,7 @@ Once you have installed and activated it you need to:
 
 - **System Information**
   - [x] Basic System info information
-  - [x] Use Watson to search for vulnerabilities
+  - [x] Use WES-NG to search for vulnerabilities
   - [x] Enumerate Microsoft updates
   - [x] PS, Audit, WEF and LAPS Settings
   - [x] LSA protection
@@ -262,7 +262,7 @@ Once you have installed and activated it you need to:
 
 ## TODO
 - Add more checks
-- Mantain updated Watson (last JAN 2021)
+- Maintain updated WES-NG
 
 If you want to help with any of this, you can do it using **[github issues](https://github.com/peass-ng/PEASS-ng/issues)** or you can submit a pull request.
 

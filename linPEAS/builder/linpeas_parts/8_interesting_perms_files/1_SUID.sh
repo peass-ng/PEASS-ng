@@ -37,14 +37,14 @@ printf "%s\n" "$suids_files" | while read s; do
   else
     c="a"
     for b in $sidB; do
-      if echo $s | grep -q $(echo $b | cut -d % -f 1); then
+      if echo "$sname" | grep -q $(echo $b | cut -d % -f 1); then
         echo "$s" | sed -${E} "s,$(echo $b | cut -d % -f 1),${C}[1;31m&  --->  $(echo $b | cut -d % -f 2)${C}[0m,"
         c=""
         break;
       fi
     done;
     if [ "$c" ]; then
-      if echo "$s" | grep -qE "$sidG1" || echo "$s" | grep -qE "$sidG2" || echo "$s" | grep -qE "$sidG3" || echo "$s" | grep -qE "$sidG4" || echo "$s" | grep -qE "$sidVB" || echo "$s" | grep -qE "$sidVB2"; then
+      if echo "$sname" | grep -qE "$sidG1" || echo "$sname" | grep -qE "$sidG2" || echo "$sname" | grep -qE "$sidG3" || echo "$sname" | grep -qE "$sidG4" || echo "$sname" | grep -qE "$sidVB" || echo "$sname" | grep -qE "$sidVB2"; then
         echo "$s" | sed -${E} "s,$sidG1,${SED_GREEN}," | sed -${E} "s,$sidG2,${SED_GREEN}," | sed -${E} "s,$sidG3,${SED_GREEN}," | sed -${E} "s,$sidG4,${SED_GREEN}," | sed -${E} "s,$sidVB,${SED_RED_YELLOW}," | sed -${E} "s,$sidVB2,${SED_RED_YELLOW},"
       else
         echo "$s (Unknown SUID binary!)" | sed -${E} "s,/.*,${SED_RED},"

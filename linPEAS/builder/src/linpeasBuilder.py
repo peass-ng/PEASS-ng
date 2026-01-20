@@ -405,7 +405,7 @@ class LinpeasBuilder:
                 name = entry["name"]
                 caseinsensitive = entry.get("caseinsensitive", False)
                 regex = entry["regex"]
-                regex = regex.replace('"', '\\"').strip()
+                regex = regex.replace("\\", "\\\\").replace('"', '\\"').strip()
                 falsePositives = entry.get("falsePositives", False)
 
                 if falsePositives:
