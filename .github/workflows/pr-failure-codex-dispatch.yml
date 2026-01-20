@@ -35,15 +35,25 @@ jobs:
           pr_head_branch=$(gh api -H "Accept: application/vnd.github+json" \
             /repos/${{ github.repository }}/pulls/${PR_NUMBER} \
             --jq '.head.ref')
+          pr_labels=$(gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/issues/${PR_NUMBER} \
+            --jq '.labels[].name')
+          if echo "$pr_labels" | grep -q "^codex-fix-attempted$"; then
+            echo "codex fix already attempted for PR #${PR_NUMBER}; skipping."
+            should_run=false
+          else
+            should_run=true
+          fi
           {
             echo "number=${PR_NUMBER}"
             echo "author=${pr_author}"
             echo "head_repo=${pr_head_repo}"
             echo "head_branch=${pr_head_branch}"
+            echo "should_run=${should_run}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Comment on PR with failure info
-        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' && steps.pr_context.outputs.should_run == 'true' }}
         uses: actions/github-script@v7
         env:
           PR_NUMBER: ${{ steps.pr_context.outputs.number }}
@@ -61,23 +71,34 @@ jobs:
               body,
             });
 
+      - name: Mark fix attempt
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' && steps.pr_context.outputs.should_run == 'true' }}
+        env:
+          PR_NUMBER: ${{ steps.pr_context.outputs.number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X POST -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/issues/${PR_NUMBER}/labels \
+            -f labels='["codex-fix-attempted"]'
+
       - name: Checkout PR head
-        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' && steps.pr_context.outputs.should_run == 'true' }}
         uses: actions/checkout@v5
         with:
           repository: ${{ steps.pr_context.outputs.head_repo }}
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
           persist-credentials: true
+          token: ${{ secrets.CODEX_FIXER_TOKEN }}
 
       - name: Configure git author
-        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' && steps.pr_context.outputs.should_run == 'true' }}
         run: |
           git config user.name "codex-action"
           git config user.email "codex-action@users.noreply.github.com"
 
       - name: Fetch failure summary
-        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' && steps.pr_context.outputs.should_run == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.event.workflow_run.id }}
@@ -105,7 +126,7 @@ jobs:
           PY
 
       - name: Create Codex prompt
-        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' && steps.pr_context.outputs.should_run == 'true' }}
         env:
           PR_NUMBER: ${{ steps.pr_context.outputs.number }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
@@ -125,7 +146,7 @@ jobs:
           } > codex_prompt.txt
 
       - name: Run Codex
-        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' && steps.pr_context.outputs.should_run == 'true' }}
         id: run_codex
         uses: openai/codex-action@v1
         with:
@@ -135,7 +156,7 @@ jobs:
           model: gpt-5.2-codex
 
       - name: Commit and push if changed
-        if: ${{ steps.pr_context.outputs.author == 'carlospolop' }}
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' && steps.pr_context.outputs.should_run == 'true' }}
         env:
           TARGET_BRANCH: ${{ steps.pr_context.outputs.head_branch }}
           PR_NUMBER: ${{ steps.pr_context.outputs.number }}
@@ -151,7 +172,7 @@ jobs:
           git push origin HEAD:${TARGET_BRANCH}
 
       - name: Comment with Codex result
-        if: ${{ steps.pr_context.outputs.author == 'carlospolop' && steps.run_codex.outputs.final-message != '' }}
+        if: ${{ steps.pr_context.outputs.author == 'carlospolop' && steps.pr_context.outputs.should_run == 'true' && steps.run_codex.outputs.final-message != '' }}
         uses: actions/github-script@v7
         env:
           PR_NUMBER: ${{ steps.pr_context.outputs.number }}
