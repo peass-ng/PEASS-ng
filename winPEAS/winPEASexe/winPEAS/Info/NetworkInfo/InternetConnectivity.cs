@@ -4,6 +4,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 
 namespace winPEAS.Info.NetworkInfo
@@ -48,7 +50,7 @@ namespace winPEAS.Info.NetworkInfo
             { "1.1.1.1", "8.8.8.8" };
 
         private const string LAMBDA_URL =
-            "https://2e6ppt7izvuv66qmx2r3et2ufi0mxwqs.lambda-url.us-east-1.on.aws/";
+            "https://tools.hacktricks.wiki/api/host-checker";
 
         // Shared HttpClient (kept for HTTP & Lambda checks)
         private static readonly HttpClient http = new HttpClient
@@ -118,7 +120,12 @@ namespace winPEAS.Info.NetworkInfo
                 using var cts =
                     new CancellationTokenSource(TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS));
 
-                var req = new HttpRequestMessage(HttpMethod.Get, LAMBDA_URL);
+                var payload = new StringContent(
+                    JsonSerializer.Serialize(new { hostname = Environment.MachineName }),
+                    Encoding.UTF8,
+                    "application/json");
+                var req = new HttpRequestMessage(HttpMethod.Post, LAMBDA_URL);
+                req.Content = payload;
                 req.Headers.UserAgent.ParseAdd("winpeas");
                 req.Headers.Accept.Add(
                     new MediaTypeWithQualityHeaderValue("application/json"));

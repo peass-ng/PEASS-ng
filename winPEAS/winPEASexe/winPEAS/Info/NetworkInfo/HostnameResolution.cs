@@ -46,7 +46,7 @@ namespace winPEAS.Info.NetworkInfo
 
                 // 4. Call external checker
                 var resp = httpClient
-                    .PostAsync("https://2e6ppt7izvuv66qmx2r3et2ufi0mxwqs.lambda-url.us-east-1.on.aws/", payload)
+                    .PostAsync("https://tools.hacktricks.wiki/api/host-checker", payload)
                     .GetAwaiter().GetResult();
 
                 if (resp.IsSuccessStatusCode)
