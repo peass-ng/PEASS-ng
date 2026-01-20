@@ -1705,7 +1705,7 @@ search:
           auto_check: True
           exec:
             - '( redis-server --version || echo_not_found "redis-server") 2>/dev/null'
-            - if [ "`redis-cli INFO 2>/dev/null`" ] && ! [ "`redis-cli INFO 2>/dev/null | grep -i NOAUTH`" ]; then echo "Redis isn't password protected" | sed -${E} "s,.*,${SED_RED},"; fi
+            - redis_info="$(if [ "$TIMEOUT" ]; then $TIMEOUT 2 redis-cli INFO 2>/dev/null; else redis-cli INFO 2>/dev/null; fi)"; if [ "$redis_info" ] && ! echo "$redis_info" | grep -i NOAUTH; then echo "Redis isn't password protected" | sed -${E} "s,.*,${SED_RED},"; fi
 
         files:
           - name: "redis.conf"
