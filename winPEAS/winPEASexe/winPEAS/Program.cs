@@ -11,6 +11,7 @@ namespace winPEAS
         [STAThread]
         public static void Main(string[] args)
         {
+            this_will_not_compile
             Checks.Checks.Run(args);
         }
     }
