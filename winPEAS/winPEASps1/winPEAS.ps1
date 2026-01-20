@@ -821,6 +821,34 @@ $Hotfix = Get-HotFix | Sort-Object -Descending -Property InstalledOn -ErrorActio
 $Hotfix | Format-Table -AutoSize
 
 
+# PrintNightmare PointAndPrint policy checks
+Write-Host ""
+if ($TimeStamp) { TimeElapsed }
+Write-Host -ForegroundColor Blue "=========|| PRINTNIGHTMARE POINTANDPRINT POLICY"
+$pnKey = "HKLM:\Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint"
+if (Test-Path $pnKey) {
+  $pn = Get-ItemProperty -Path $pnKey -ErrorAction SilentlyContinue
+  $restrict = $pn.RestrictDriverInstallationToAdministrators
+  $noWarn = $pn.NoWarningNoElevationOnInstall
+  $updatePrompt = $pn.UpdatePromptSettings
+
+  Write-Host "RestrictDriverInstallationToAdministrators: $restrict"
+  Write-Host "NoWarningNoElevationOnInstall: $noWarn"
+  Write-Host "UpdatePromptSettings: $updatePrompt"
+
+  $hasAllValues = ($null -ne $restrict) -and ($null -ne $noWarn) -and ($null -ne $updatePrompt)
+  if (-not $hasAllValues) {
+    Write-Host "PointAndPrint policy values are missing or not configured" -ForegroundColor Gray
+  } elseif (($restrict -eq 0) -and ($noWarn -eq 1) -and ($updatePrompt -eq 2)) {
+    Write-Host "Potentially vulnerable to PrintNightmare misconfiguration" -ForegroundColor Red
+  } else {
+    Write-Host "PointAndPrint policy is not in the known risky configuration" -ForegroundColor Green
+  }
+} else {
+  Write-Host "PointAndPrint policy key not found" -ForegroundColor Gray
+}
+
+
 #Show all unique updates installed
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }

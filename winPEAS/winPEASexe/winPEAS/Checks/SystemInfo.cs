@@ -88,6 +88,7 @@ namespace winPEAS.Checks
                 PrintLocalGroupPolicy,
                 PrintPotentialGPOAbuse,
                 AppLockerHelper.PrintAppLockerPolicy,
+                PrintPrintNightmarePointAndPrint,
                 PrintPrintersWMIInfo,
                 PrintNamedPipes,
                 PrintNamedPipeAbuseCandidates,
@@ -829,6 +830,39 @@ namespace winPEAS.Checks
                 Beaprint.ColorPrint($"      OutboundRestrictions    : {info.OutboundRestrictions} ({info.OutboundRestrictionsString})", ntlmOutboundRestrictionsColor);
                 Beaprint.NoColorPrint($"      InboundAuditing         : {info.InboundAuditing} ({info.InboundRestrictionsString})");
                 Beaprint.NoColorPrint($"      OutboundExceptions      : {info.OutboundExceptions}");
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintPrintNightmarePointAndPrint()
+        {
+            Beaprint.MainPrint("PrintNightmare PointAndPrint Policies");
+            Beaprint.LinkPrint("https://itm4n.github.io/printnightmare-exploitation/", "Check PointAndPrint policy hardening");
+
+            try
+            {
+                string key = @"Software\\Policies\\Microsoft\\Windows NT\\Printers\\PointAndPrint";
+                var restrict = RegistryHelper.GetDwordValue("HKLM", key, "RestrictDriverInstallationToAdministrators");
+                var noWarn = RegistryHelper.GetDwordValue("HKLM", key, "NoWarningNoElevationOnInstall");
+                var updatePrompt = RegistryHelper.GetDwordValue("HKLM", key, "UpdatePromptSettings");
+
+                if (restrict == null && noWarn == null && updatePrompt == null)
+                {
+                    Beaprint.NotFoundPrint();
+                    return;
+                }
+
+                Beaprint.NoColorPrint($"      RestrictDriverInstallationToAdministrators: {restrict}\n" +
+                                      $"      NoWarningNoElevationOnInstall: {noWarn}\n" +
+                                      $"      UpdatePromptSettings: {updatePrompt}");
+
+                if (restrict == 0 && noWarn == 1 && updatePrompt == 2)
+                {
+                    Beaprint.BadPrint("      [!] Potentially vulnerable to PrintNightmare misconfiguration");
+                }
             }
             catch (Exception ex)
             {
