@@ -127,7 +127,9 @@ def parse_line(line: str):
 
     elif is_section(line, INFO_PATTERN):
         title = parse_title(line)
-        C_SECTION["infos"].append(title)
+        if C_SECTION == {}:
+            return
+        C_SECTION.setdefault("infos", []).append(title)
     
     #If here, then it's text
     else:
