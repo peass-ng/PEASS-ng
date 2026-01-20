@@ -815,7 +815,7 @@ systeminfo.exe
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| WINDOWS HOTFIXES"
-Write-Host "=| Check if windows is vulnerable with Watson https://github.com/rasta-mouse/Watson" -ForegroundColor Yellow
+Write-Host "=| Check missing patches with WES-NG https://github.com/bitsadmin/wesng" -ForegroundColor Yellow
 Write-Host "Possible exploits (https://github.com/codingo/OSCP-2/blob/master/Windows/WinPrivCheck.bat)" -ForegroundColor Yellow
 $Hotfix = Get-HotFix | Sort-Object -Descending -Property InstalledOn -ErrorAction SilentlyContinue | Select-Object HotfixID, Description, InstalledBy, InstalledOn
 $Hotfix | Format-Table -AutoSize
