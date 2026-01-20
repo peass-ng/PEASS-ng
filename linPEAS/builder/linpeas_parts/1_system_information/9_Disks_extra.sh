@@ -4,6 +4,7 @@
 # Last Update: 07-03-2024
 # Description: Check for additional disk information and system resources relevant to privilege escalation:
 #   - Disk utilization
+#   - Inode usage
 #   - System resources
 #   - Storage statistics
 #   - Common vulnerable scenarios:
@@ -43,5 +44,9 @@ if [ "$EXTRA_CHECKS" ] || [ "$DEBUG" ]; then
     print_2title "System stats"
     (df -h || lsblk) 2>/dev/null || echo_not_found "df and lsblk"
     warn_exec free 2>/dev/null
+    echo ""
+
+    print_2title "Inode usage"
+    warn_exec df -i 2>/dev/null
     echo ""
 fi
