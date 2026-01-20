@@ -31,8 +31,8 @@
 # Small linpeas: 0
 
 if apt list --installed 2>/dev/null | grep -E 'polkit.*0\.105-26' | grep -qEv 'ubuntu1\.[1-9]' || \
-   yum list installed 2>/dev/null | grep -q 'polkit.*\(0\.117-2\|0\.115-6\)' || \
-   rpm -qa 2>/dev/null | grep -q 'polkit.*\(0\.117-2\|0\.115-6\)'; then
+   yum list installed 2>/dev/null | grep -qE 'polkit.*\(0\.117-2\|0\.115-6\|0\.11[3-9]\)' || \
+   rpm -qa 2>/dev/null | grep -qE 'polkit.*\(0\.117-2\|0\.115-6\|0\.11[3-9]\)'; then
     echo "Vulnerable to CVE-2021-3560" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     echo ""
 fi
