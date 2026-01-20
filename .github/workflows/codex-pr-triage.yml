@@ -1,41 +1,93 @@
 name: Codex PR Triage
 
 on:
-  pull_request:
-    types: [opened]
+  workflow_run:
+    workflows: ["PR-tests"]
+    types: [completed]
 
 jobs:
   codex_triage:
-    if: ${{ github.event.pull_request.user.login == 'carlospolop' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+      pr_number: ${{ steps.gate.outputs.pr_number }}
+      pr_title: ${{ steps.gate.outputs.pr_title }}
+      pr_body: ${{ steps.gate.outputs.pr_body }}
+      base_ref: ${{ steps.gate.outputs.base_ref }}
+      head_ref: ${{ steps.gate.outputs.head_ref }}
+      base_sha: ${{ steps.gate.outputs.base_sha }}
+      head_sha: ${{ steps.gate.outputs.head_sha }}
       decision: ${{ steps.parse.outputs.decision }}
       message: ${{ steps.parse.outputs.message }}
 
     steps:
+      - name: Resolve PR context
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pr_number="${{ github.event.workflow_run.pull_requests[0].number }}"
+          if [ -z "$pr_number" ]; then
+            echo "No pull request found for this workflow_run; skipping."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "pr_number=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          author="$(gh pr view "$pr_number" --json author --jq .author.login)"
+          if [ "$author" != "carlospolop" ]; then
+            echo "PR author is $author; skipping."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          pr_title="$(gh pr view "$pr_number" --json title --jq .title)"
+          pr_body="$(gh pr view "$pr_number" --json body --jq .body)"
+          base_ref="$(gh pr view "$pr_number" --json baseRefName --jq .baseRefName)"
+          head_ref="$(gh pr view "$pr_number" --json headRefName --jq .headRefName)"
+          base_sha="$(gh pr view "$pr_number" --json baseRefOid --jq .baseRefOid)"
+          head_sha="$(gh pr view "$pr_number" --json headRefOid --jq .headRefOid)"
+
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+          echo "pr_title<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$pr_title" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "pr_body<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$pr_body" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "base_ref=$base_ref" >> "$GITHUB_OUTPUT"
+          echo "head_ref=$head_ref" >> "$GITHUB_OUTPUT"
+          echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+
       - name: Checkout PR merge ref
         uses: actions/checkout@v5
         with:
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          ref: refs/pull/${{ steps.gate.outputs.pr_number }}/merge
+        if: ${{ steps.gate.outputs.should_run == 'true' }}
 
       - name: Pre-fetch base and head refs
+        if: ${{ steps.gate.outputs.should_run == 'true' }}
         run: |
           git fetch --no-tags origin \
-            ${{ github.event.pull_request.base.ref }} \
-            +refs/pull/${{ github.event.pull_request.number }}/head
+            ${{ steps.gate.outputs.base_ref }} \
+            +refs/pull/${{ steps.gate.outputs.pr_number }}/head
 
       - name: Run Codex
         id: run_codex
+        if: ${{ steps.gate.outputs.should_run == 'true' }}
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           output-schema-file: .github/codex/pr-merge-schema.json
           model: gpt-5.2-codex
           prompt: |
-            You are reviewing PR #${{ github.event.pull_request.number }} for ${{ github.repository }}.
+            You are reviewing PR #${{ steps.gate.outputs.pr_number }} for ${{ github.repository }}.
 
             Decide whether to merge or comment. Merge only if all of the following are true:
             - Changes are simple and safe (no DoS, no long operations, no backdoors).
@@ -48,16 +100,17 @@ jobs:
 
             Pull request title and body:
             ----
-            ${{ github.event.pull_request.title }}
-            ${{ github.event.pull_request.body }}
+            ${{ steps.gate.outputs.pr_title }}
+            ${{ steps.gate.outputs.pr_body }}
 
             Review ONLY the changes introduced by the PR:
-              git log --oneline ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}
+              git log --oneline ${{ steps.gate.outputs.base_sha }}...${{ steps.gate.outputs.head_sha }}
 
             Output JSON only, following the provided schema.
 
       - name: Parse Codex decision
         id: parse
+        if: ${{ steps.gate.outputs.should_run == 'true' }}
         env:
           CODEX_MESSAGE: ${{ steps.run_codex.outputs.final-message }}
         run: |
@@ -78,7 +131,7 @@ jobs:
   merge_or_comment:
     runs-on: ubuntu-latest
     needs: codex_triage
-    if: ${{ needs.codex_triage.outputs.decision != '' }}
+    if: ${{ needs.codex_triage.outputs.should_run == 'true' && needs.codex_triage.outputs.decision != '' }}
     permissions:
       contents: write
       pull-requests: write
@@ -87,7 +140,7 @@ jobs:
         if: ${{ needs.codex_triage.outputs.decision == 'merge' }}
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ needs.codex_triage.outputs.pr_number }}
         run: |
           gh api \
             -X PUT \
@@ -100,7 +153,7 @@ jobs:
         if: ${{ needs.codex_triage.outputs.decision == 'comment' }}
         uses: actions/github-script@v7
         env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ needs.codex_triage.outputs.pr_number }}
           CODEX_MESSAGE: ${{ needs.codex_triage.outputs.message }}
         with:
           github-token: ${{ github.token }}
