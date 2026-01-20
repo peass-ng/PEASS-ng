@@ -836,7 +836,10 @@ if (Test-Path $pnKey) {
   Write-Host "NoWarningNoElevationOnInstall: $noWarn"
   Write-Host "UpdatePromptSettings: $updatePrompt"
 
-  if (($restrict -eq 0) -and ($noWarn -eq 1) -and ($updatePrompt -eq 2)) {
+  $hasAllValues = ($null -ne $restrict) -and ($null -ne $noWarn) -and ($null -ne $updatePrompt)
+  if (-not $hasAllValues) {
+    Write-Host "PointAndPrint policy values are missing or not configured" -ForegroundColor Gray
+  } elseif (($restrict -eq 0) -and ($noWarn -eq 1) -and ($updatePrompt -eq 2)) {
     Write-Host "Potentially vulnerable to PrintNightmare misconfiguration" -ForegroundColor Red
   } else {
     Write-Host "PointAndPrint policy is not in the known risky configuration" -ForegroundColor Green
