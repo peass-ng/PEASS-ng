@@ -6,7 +6,7 @@
 # License: GNU GPL
 # Version: 1.2
 # Functions Used: echo_not_found, print_2title, print_info, print_3title
-# Global Variables: $EXTRA_CHECKS, $SEARCH_IN_FOLDER, $IAMROOT, $WRITABLESYSTEMDPATH
+# Global Variables: $EXTRA_CHECKS, $IAMROOT, $SEARCH_IN_FOLDER, $TIMEOUT, $WRITABLESYSTEMDPATH
 # Initial Functions:
 # Generated Global Variables: $service_unit, $service_path, $service_content, $finding, $findings, $service_file, $exec_path, $exec_paths, $service, $line, $target_file, $target_exec, $relpath1, $relpath2
 # Fat linpeas: 0
@@ -178,7 +178,11 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   if [ "$EXTRA_CHECKS" ]; then
     echo ""
     print_3title "Service versions and status:"
-    (service --status-all || service -e || chkconfig --list || rc-status || launchctl list) 2>/dev/null || echo_not_found "service|chkconfig|rc-status|launchctl"
+    if [ "$TIMEOUT" ]; then
+      $TIMEOUT 30 sh -c "(service --status-all || service -e || chkconfig --list || rc-status || launchctl list) 2>/dev/null" || echo_not_found "service|chkconfig|rc-status|launchctl"
+    else
+      (service --status-all || service -e || chkconfig --list || rc-status || launchctl list) 2>/dev/null || echo_not_found "service|chkconfig|rc-status|launchctl"
+    fi
   fi
 
   # Check systemd path writability
