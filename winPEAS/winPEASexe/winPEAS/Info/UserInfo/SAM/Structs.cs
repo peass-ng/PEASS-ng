@@ -16,6 +16,10 @@ namespace winPEAS.Info.UserInfo.SAM
         {
             get
             {
+                if (_maxPasswordAge == long.MinValue)
+                {
+                    return TimeSpan.MinValue;
+                }
                 return -new TimeSpan(_maxPasswordAge);
             }
             set
@@ -28,6 +32,10 @@ namespace winPEAS.Info.UserInfo.SAM
         {
             get
             {
+                if (_minPasswordAge == long.MinValue)
+                {
+                    return TimeSpan.MinValue;
+                }
                 return -new TimeSpan(_minPasswordAge);
             }
             set
