@@ -8,7 +8,7 @@
 # Functions Used: echo_not_found, print_2title, print_info
 # Global Variables:$IAMROOT, $PASSWORD, $sudoB, $sudoG, $sudoVB1, $sudoVB2 
 # Initial Functions:
-# Generated Global Variables:
+# Generated Global Variables: $secure_path_line
 # Fat linpeas: 0
 # Small linpeas: 1
 

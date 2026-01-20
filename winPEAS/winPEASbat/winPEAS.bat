@@ -71,7 +71,7 @@ CALL :T_Progress 2
 :ListHotFixes
 where wmic >nul 2>&1
 if %errorlevel% equ 0 (
-    wmic qfe get Caption,Description,HotFixID,InstalledOn | more
+    wmic qfe get Caption,Description,HotFixID,InstalledOn
 ) else (
     powershell -command "Get-HotFix | Format-Table -AutoSize"
 )
@@ -204,7 +204,7 @@ CALL :T_Progress 1
 CALL :ColorLine " %E%33m[+]%E%97m Registered Anti-Virus(AV)"
 where wmic >nul 2>&1
 if %errorlevel% equ 0 (
-    WMIC /Node:localhost /Namespace:\\root\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List | more
+    WMIC /Node:localhost /Namespace:\\root\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List
 ) else (
     powershell -command "Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct | Select-Object -ExpandProperty displayName"
 ) 
@@ -238,7 +238,7 @@ CALL :ColorLine " %E%33m[+]%E%97m MOUNTED DISKS"
 ECHO.   [i] Maybe you find something interesting
 where wmic >nul 2>&1
 if %errorlevel% equ 0 (
-    wmic logicaldisk get caption | more
+    wmic logicaldisk get caption
 ) else (
     fsutil fsinfo drives
 )
@@ -670,7 +670,7 @@ if "%long%" == "true" (
 	ECHO.
 	where wmic >nul 2>&1
 	if !errorlevel! equ 0 (
-		for /f %%x in ('wmic logicaldisk get name ^| more') do (
+		for /f %%x in ('wmic logicaldisk get name') do (
 			set tdrive=%%x
 			if "!tdrive:~1,2!" == ":" (
 				%%x

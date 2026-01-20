@@ -6,7 +6,7 @@
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: print_2title
-# Global Variables: $MACPEAS, $sh_usrs, $USER 
+# Global Variables: $MACPEAS, $sh_usrs, $TIMEOUT, $USER 
 # Initial Functions:
 # Generated Global Variables: $ushell, $no_shells, $unexpected_shells
 # Fat linpeas: 0
@@ -26,8 +26,16 @@ else
   no_shells=$(grep -Ev "sh$" /etc/passwd 2>/dev/null | cut -d ':' -f 7 | sort | uniq)
   unexpected_shells=""
   printf "%s\n" "$no_shells" | while read f; do
-    if $f -c 'whoami' 2>/dev/null | grep -q "$USER"; then
-      unexpected_shells="$f\n$unexpected_shells"
+    if [ -x "$f" ]; then
+      if [ "$TIMEOUT" ]; then
+        if $TIMEOUT 1 "$f" -c 'whoami' 2>/dev/null | grep -q "$USER"; then
+          unexpected_shells="$f\n$unexpected_shells"
+        fi
+      else
+        if "$f" -c 'whoami' 2>/dev/null | grep -q "$USER"; then
+          unexpected_shells="$f\n$unexpected_shells"
+        fi
+      fi
     fi
   done
   grep "sh$" /etc/passwd 2>/dev/null | sort | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED},"
