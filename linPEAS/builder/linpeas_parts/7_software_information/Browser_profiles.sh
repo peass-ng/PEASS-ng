@@ -1,5 +1,5 @@
 # Title: Software Information - Browser Profiles
-# ID: SW_Browser_Profiles
+# ID: SW_Browser_profiles
 # Author: Carlos Polop
 # Last Update: 10-03-2025
 # Description: List browser profiles that may store credentials/cookies
