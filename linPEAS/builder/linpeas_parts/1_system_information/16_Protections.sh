@@ -127,6 +127,22 @@ else
     if [ "$ptrace_scope" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$ptrace_scope" | sed -${E} "s,.*,${SED_GREEN},g"; fi
 fi
 
+print_list "protected_symlinks? ............ "$NC
+protected_symlinks=$(cat /proc/sys/fs/protected_symlinks 2>/dev/null)
+if [ -z "$protected_symlinks" ]; then
+    echo_not_found "/proc/sys/fs/protected_symlinks"
+else
+    if [ "$protected_symlinks" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$protected_symlinks" | sed -${E} "s,.*,${SED_GREEN},g"; fi
+fi
+
+print_list "protected_hardlinks? ........... "$NC
+protected_hardlinks=$(cat /proc/sys/fs/protected_hardlinks 2>/dev/null)
+if [ -z "$protected_hardlinks" ]; then
+    echo_not_found "/proc/sys/fs/protected_hardlinks"
+else
+    if [ "$protected_hardlinks" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$protected_hardlinks" | sed -${E} "s,.*,${SED_GREEN},g"; fi
+fi
+
 print_list "perf_event_paranoid? ........... "$NC
 perf_event_paranoid=$(cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null)
 if [ -z "$perf_event_paranoid" ]; then
