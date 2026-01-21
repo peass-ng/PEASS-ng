@@ -123,9 +123,21 @@
     </ItemGroup>
 
     <ItemGroup>
+      <_VSTestCopyDirs Include="$(TargetDir)" Condition="'$(TargetDir)' != '' AND Exists('$(TargetDir)')" />
       <_MSTestAdapterDirs Include="$(_PackagesDir)MSTest.TestAdapter.2.2.5\build\net45\" Condition="Exists('$(_PackagesDir)MSTest.TestAdapter.2.2.5\build\net45\')" />
       <_MSTestAdapterDirs Include="$(_PackagesDir)MSTest.TestAdapter.2.2.5\build\_common\" Condition="Exists('$(_PackagesDir)MSTest.TestAdapter.2.2.5\build\_common\')" />
     </ItemGroup>
+
+    <Message
+      Condition="@(_VSTestFrameworkDlls) != ''"
+      Importance="high"
+      Text="CopyVSTestFrameworkToMSTestAdapter: copying @( _VSTestFrameworkDlls )" />
+
+    <Copy
+      Condition="@(_VSTestFrameworkDlls) != '' AND @(_VSTestCopyDirs) != ''"
+      SourceFiles="@(_VSTestFrameworkDlls)"
+      DestinationFolder="%(_VSTestCopyDirs.Identity)"
+      SkipUnchangedFiles="true" />
 
     <Copy
       Condition="@(_VSTestFrameworkDlls) != '' AND @(_MSTestAdapterDirs) != ''"
