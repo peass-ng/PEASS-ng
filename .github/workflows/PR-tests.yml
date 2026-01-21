@@ -8,6 +8,8 @@ on:
     paths-ignore:
       - '.github/**'
 
+  workflow_dispatch:
+
 jobs:
   Build_and_test_winpeas_pr:
     runs-on: windows-latest

@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using winPEAS.Checks;
 
 namespace winPEAS.Tests
 {
@@ -10,7 +9,7 @@ namespace winPEAS.Tests
     {
         private static bool InvokeIsNetworkTypeValid(string arg)
         {
-            var method = typeof(Checks).GetMethod("IsNetworkTypeValid", BindingFlags.NonPublic | BindingFlags.Static);
+            var method = typeof(winPEAS.Checks.Checks).GetMethod("IsNetworkTypeValid", BindingFlags.NonPublic | BindingFlags.Static);
             Assert.IsNotNull(method, "IsNetworkTypeValid method not found.");
             return (bool)method.Invoke(null, new object[] { arg });
         }
