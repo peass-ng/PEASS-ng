@@ -42,7 +42,7 @@ jobs:
         
       # build
       - name: run MSBuild
-        run: msbuild $env:Solution_Path
+        run: msbuild $env:Solution_Path /p:Configuration=$env:Configuration /p:UseSharedCompilation=false
 
       # Execute unit tests in the solution
       - name: Execute unit tests
@@ -52,13 +52,13 @@ jobs:
       - name: Build all versions
         run: |
             echo "build x64"
-            msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="x64"
+            msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="x64" /p:UseSharedCompilation=false
             
             echo "build x86"
-            msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="x86"
+            msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="x86" /p:UseSharedCompilation=false
             
             echo "build Any CPU"
-            msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="Any CPU"
+            msbuild -m $env:Solution_Path /t:Rebuild /p:Configuration=$env:Configuration /p:Platform="Any CPU" /p:UseSharedCompilation=false
       
       - name: Execute winPEAS -h
         shell: pwsh
