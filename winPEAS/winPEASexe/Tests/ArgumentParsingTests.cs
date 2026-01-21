@@ -29,6 +29,7 @@ namespace winPEAS.Tests
             Assert.IsFalse(InvokeIsNetworkTypeValid("-network="));
             Assert.IsFalse(InvokeIsNetworkTypeValid("-network=10.10.10.999"));
             Assert.IsFalse(InvokeIsNetworkTypeValid("-network=10.10.10.10/64"));
+            Assert.IsFalse(InvokeIsNetworkTypeValid("-network=999.999.999.999/24"));
             Assert.IsFalse(InvokeIsNetworkTypeValid("-network=not-an-ip"));
         }
     }

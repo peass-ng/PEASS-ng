@@ -356,7 +356,7 @@ namespace winPEAS.Checks
                 {
                     var rangeParts = networkType.Split('/');
 
-                    if (rangeParts.Length == 2 && int.TryParse(rangeParts[1], out int res) && res <= 32 && res >= 0)
+                    if (rangeParts.Length == 2 && IPAddress.TryParse(rangeParts[0], out _) && int.TryParse(rangeParts[1], out int res) && res <= 32 && res >= 0)
                     {
                         return true;
                     }
