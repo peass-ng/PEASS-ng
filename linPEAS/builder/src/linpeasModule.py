@@ -8,6 +8,7 @@ from .yamlGlobals import (
 class LinpeasModule:
     def __init__(self, path):
         self.path = path
+        real_path = os.path.realpath(path)
         with open(path, 'r') as file:
             self.module_text = file.read()
         
@@ -29,7 +30,7 @@ class LinpeasModule:
         self.section_info = {}
         if not (self.is_base or self.is_function or self.is_variable):
             for module in LINPEAS_PARTS["modules"]:
-                if module["folder_path"] in path:
+                if os.path.realpath(module["folder_path"]) in real_path:
                     self.section_info = module
                     self.is_check = True
                     break
