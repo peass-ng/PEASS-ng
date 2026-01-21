@@ -111,6 +111,24 @@
       <Name>winPEAS</Name>
     </ProjectReference>
   </ItemGroup>
+
+  <Target Name="CopyVSTestFrameworkToMSTestAdapter" AfterTargets="Build">
+    <PropertyGroup>
+      <_PackagesDir>$(MSBuildThisFileDirectory)..\packages\</_PackagesDir>
+      <_MSTestAdapterDir>$(_PackagesDir)MSTest.TestAdapter.2.2.5\build\net45\</_MSTestAdapterDir>
+      <_MSTestFrameworkDir>$(_PackagesDir)MSTest.TestFramework.2.2.5\lib\net45\</_MSTestFrameworkDir>
+    </PropertyGroup>
+
+    <ItemGroup Condition="Exists('$(_MSTestFrameworkDir)')">
+      <_VSTestFrameworkDlls Include="$(_MSTestFrameworkDir)Microsoft.VisualStudio.TestPlatform.TestFramework*.dll" />
+    </ItemGroup>
+
+    <Copy
+      Condition="Exists('$(_MSTestAdapterDir)') AND @(_VSTestFrameworkDlls) != ''"
+      SourceFiles="@(_VSTestFrameworkDlls)"
+      DestinationFolder="$(_MSTestAdapterDir)"
+      SkipUnchangedFiles="true" />
+  </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
