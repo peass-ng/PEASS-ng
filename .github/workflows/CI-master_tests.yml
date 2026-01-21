@@ -26,7 +26,7 @@ jobs:
     steps:
       # checkout
       - name: Checkout
-        uses: actions/checkout@master
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.head_ref }}
       
@@ -36,11 +36,11 @@ jobs:
             
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild.exe
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v2
        
       # Setup NuGet
       - name: Setup NuGet.exe
-        uses: nuget/setup-nuget@v1  
+        uses: nuget/setup-nuget@v2
         
       # Restore the packages for testing
       - name: Restore the application       
@@ -220,6 +220,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: '1.23'
+          cache: false
       - run: go version
       
       # Build linpeas
@@ -365,7 +366,7 @@ jobs:
 
     steps:
       # Download repo
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
       
       # Build linpeas
       - name: Build macpeas
@@ -472,11 +473,11 @@ jobs:
     
     - name: Get current date
       id: date
-      run: echo "::set-output name=date::$(date +'%Y%m%d')"
+      run: echo "date=$(date +'%Y%m%d')" >> "$GITHUB_OUTPUT"
     
     - name: Generate random
       id: random_n
-      run: echo "::set-output name=some_rand::$(openssl rand -hex 4)"
+      run: echo "some_rand=$(openssl rand -hex 4)" >> "$GITHUB_OUTPUT"
     
     # Create the release
     - name: Create Release
