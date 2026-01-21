@@ -115,7 +115,6 @@
   <Target Name="CopyVSTestFrameworkToMSTestAdapter" AfterTargets="Build">
     <PropertyGroup>
       <_PackagesDir>$(MSBuildThisFileDirectory)..\packages\</_PackagesDir>
-      <_MSTestAdapterDir>$(_PackagesDir)MSTest.TestAdapter.2.2.5\build\net45\</_MSTestAdapterDir>
       <_MSTestFrameworkDir>$(_PackagesDir)MSTest.TestFramework.2.2.5\lib\net45\</_MSTestFrameworkDir>
     </PropertyGroup>
 
@@ -123,10 +122,15 @@
       <_VSTestFrameworkDlls Include="$(_MSTestFrameworkDir)Microsoft.VisualStudio.TestPlatform.TestFramework*.dll" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_MSTestAdapterDirs Include="$(_PackagesDir)MSTest.TestAdapter.2.2.5\build\net45\" Condition="Exists('$(_PackagesDir)MSTest.TestAdapter.2.2.5\build\net45\')" />
+      <_MSTestAdapterDirs Include="$(_PackagesDir)MSTest.TestAdapter.2.2.5\build\_common\" Condition="Exists('$(_PackagesDir)MSTest.TestAdapter.2.2.5\build\_common\')" />
+    </ItemGroup>
+
     <Copy
-      Condition="Exists('$(_MSTestAdapterDir)') AND @(_VSTestFrameworkDlls) != ''"
+      Condition="@(_VSTestFrameworkDlls) != '' AND @(_MSTestAdapterDirs) != ''"
       SourceFiles="@(_VSTestFrameworkDlls)"
-      DestinationFolder="$(_MSTestAdapterDir)"
+      DestinationFolder="%(_MSTestAdapterDirs.Identity)"
       SkipUnchangedFiles="true" />
   </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
