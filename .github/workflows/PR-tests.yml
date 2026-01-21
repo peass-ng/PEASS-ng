@@ -43,6 +43,10 @@ jobs:
       # build
       - name: run MSBuild
         run: msbuild $env:Solution_Path
+
+      # Execute unit tests in the solution
+      - name: Execute unit tests
+        run: dotnet test $env:Solution_Path --configuration $env:Configuration
         
       # Build all versions
       - name: Build all versions
@@ -123,6 +127,9 @@ jobs:
           python3 -m builder.linpeas_builder --all --output linpeas_fat.sh
           python3 -m builder.linpeas_builder --all-no-fat --output linpeas.sh
           python3 -m builder.linpeas_builder --small --output linpeas_small.sh
+
+      - name: Run linPEAS builder tests
+        run: python3 -m unittest discover -s linPEAS/tests -p "test_*.py"
       
       # Run linpeas help as quick test
       - name: Run linpeas help
