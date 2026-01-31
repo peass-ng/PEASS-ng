@@ -21,6 +21,11 @@ namespace winPEAS.Helpers
                 ""); //To get the default object you need to use an empty string
         }
 
+        public static List<T> GetLimitedRange<T>(List<T> items, int limit)
+        {
+            return items.GetRange(0, Math.Min(items.Count, limit));
+        }
+
         ////////////////////////////////////
         /////// MISC - Files & Paths ///////
         ////////////////////////////////////

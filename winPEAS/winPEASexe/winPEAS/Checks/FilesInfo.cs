@@ -524,7 +524,7 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Looking for documents --limit 100--");
                 List<string> docFiles = InterestingFiles.InterestingFiles.ListUsersDocs();
-                Beaprint.ListPrint(docFiles.GetRange(0, docFiles.Count <= 100 ? docFiles.Count : 100));
+                Beaprint.ListPrint(MyUtils.GetLimitedRange(docFiles, 100));
             }
             catch (Exception ex)
             {
@@ -546,7 +546,7 @@ namespace winPEAS.Checks
 
                 if (recFiles.Count != 0)
                 {
-                    foreach (Dictionary<string, string> recF in recFiles.GetRange(0, recFiles.Count <= 70 ? recFiles.Count : 70))
+                    foreach (Dictionary<string, string> recF in MyUtils.GetLimitedRange(recFiles, 70))
                     {
                         Beaprint.AnsiPrint("    " + recF["Target"] + "(" + recF["Accessed"] + ")", colorF);
                     }
