@@ -30,7 +30,7 @@
 # Functions Used: echo_not_found, print_2title, print_list, warn_exec
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $ASLR, $hypervisorflag, $detectedvirt, $unpriv_userns_clone, $perf_event_paranoid, $mmap_min_addr, $ptrace_scope, $dmesg_restrict, $kptr_restrict, $unpriv_bpf_disabled, $protected_symlinks, $protected_hardlinks
+# Generated Global Variables: $ASLR, $hypervisorflag, $detectedvirt, $unpriv_userns_clone, $perf_event_paranoid, $mmap_min_addr, $ptrace_scope, $dmesg_restrict, $kptr_restrict, $unpriv_bpf_disabled, $protected_symlinks, $protected_hardlinks, $label, $sysctl_path, $sysctl_var, $zero_color, $nonzero_color, $sysctl_value
 # Fat linpeas: 0
 # Small linpeas: 0
 
