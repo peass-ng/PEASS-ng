@@ -348,8 +348,7 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("DNS cached --limit 70--");
                 Beaprint.GrayPrint(string.Format("    {0,-38}{1,-38}{2}", "Entry", "Name", "Data"));
                 List<Dictionary<string, string>> DNScache = NetworkInfoHelper.GetDNSCache();
-                foreach (Dictionary<string, string> entry in DNScache.GetRange(0,
-                    DNScache.Count <= 70 ? DNScache.Count : 70))
+                foreach (Dictionary<string, string> entry in MyUtils.GetLimitedRange(DNScache, 70))
                 {
                     Console.WriteLine($"    {entry["Entry"],-38}{entry["Name"],-38}{entry["Data"]}");
                 }
