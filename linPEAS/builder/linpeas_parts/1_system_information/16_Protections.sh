@@ -30,10 +30,32 @@
 # Functions Used: echo_not_found, print_2title, print_list, warn_exec
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $ASLR, $hypervisorflag, $detectedvirt, $unpriv_userns_clone, $perf_event_paranoid, $mmap_min_addr, $ptrace_scope, $dmesg_restrict, $kptr_restrict, $unpriv_bpf_disabled, $protected_symlinks, $protected_hardlinks
+# Generated Global Variables: $ASLR, $hypervisorflag, $detectedvirt, $unpriv_userns_clone, $perf_event_paranoid, $mmap_min_addr, $ptrace_scope, $dmesg_restrict, $kptr_restrict, $unpriv_bpf_disabled, $protected_symlinks, $protected_hardlinks, $label, $sysctl_path, $sysctl_var, $zero_color, $nonzero_color, $sysctl_value
 # Fat linpeas: 0
 # Small linpeas: 0
 
+
+print_sysctl_eq_zero() {
+    local label="$1"
+    local sysctl_path="$2"
+    local sysctl_var="$3"
+    local zero_color="$4"
+    local nonzero_color="$5"
+    local sysctl_value
+
+    print_list "$label" "$NC"
+    sysctl_value=$(cat "$sysctl_path" 2>/dev/null)
+    eval "$sysctl_var=\$sysctl_value"
+    if [ -z "$sysctl_value" ]; then
+        echo_not_found "$sysctl_path"
+    else
+        if [ "$sysctl_value" -eq 0 ]; then
+            echo "0" | sed -${E} "s,0,${zero_color},"
+        else
+            echo "$sysctl_value" | sed -${E} "s,.*,${nonzero_color},g"
+        fi
+    fi
+}
 
 #-- SY) AppArmor
 print_2title "Protections"
@@ -81,67 +103,25 @@ print_list "User namespace? ................ "$NC
 if [ "$(cat /proc/self/uid_map 2>/dev/null)" ]; then echo "enabled" | sed "s,enabled,${SED_GREEN},"; else echo "disabled" | sed "s,disabled,${SED_RED},"; fi
 
 #-- SY) Unprivileged user namespaces
-print_list "unpriv_userns_clone? ........... "$NC
-unpriv_userns_clone=$(cat /proc/sys/kernel/unprivileged_userns_clone 2>/dev/null)
-if [ -z "$unpriv_userns_clone" ]; then
-    echo_not_found "/proc/sys/kernel/unprivileged_userns_clone"
-else
-    if [ "$unpriv_userns_clone" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_GREEN},"; else echo "$unpriv_userns_clone" | sed -${E} "s,.*,${SED_RED},g"; fi
-fi
+print_sysctl_eq_zero "unpriv_userns_clone? ........... " "/proc/sys/kernel/unprivileged_userns_clone" "unpriv_userns_clone" "$SED_GREEN" "$SED_RED"
 
 #-- SY) Unprivileged eBPF
-print_list "unpriv_bpf_disabled? ........... "$NC
-unpriv_bpf_disabled=$(cat /proc/sys/kernel/unprivileged_bpf_disabled 2>/dev/null)
-if [ -z "$unpriv_bpf_disabled" ]; then
-    echo_not_found "/proc/sys/kernel/unprivileged_bpf_disabled"
-else
-    if [ "$unpriv_bpf_disabled" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$unpriv_bpf_disabled" | sed -${E} "s,.*,${SED_GREEN},g"; fi
-fi
+print_sysctl_eq_zero "unpriv_bpf_disabled? ........... " "/proc/sys/kernel/unprivileged_bpf_disabled" "unpriv_bpf_disabled" "$SED_RED" "$SED_GREEN"
 
 #-- SY) cgroup2
 print_list "Cgroup2 enabled? ............... "$NC
 ([ "$(grep cgroup2 /proc/filesystems 2>/dev/null)" ] && echo "enabled" || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,enabled,${SED_GREEN},"
 
 #-- SY) Kernel hardening sysctls
-print_list "kptr_restrict? ................. "$NC
-kptr_restrict=$(cat /proc/sys/kernel/kptr_restrict 2>/dev/null)
-if [ -z "$kptr_restrict" ]; then
-    echo_not_found "/proc/sys/kernel/kptr_restrict"
-else
-    if [ "$kptr_restrict" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$kptr_restrict" | sed -${E} "s,.*,${SED_GREEN},g"; fi
-fi
+print_sysctl_eq_zero "kptr_restrict? ................. " "/proc/sys/kernel/kptr_restrict" "kptr_restrict" "$SED_RED" "$SED_GREEN"
 
-print_list "dmesg_restrict? ................ "$NC
-dmesg_restrict=$(cat /proc/sys/kernel/dmesg_restrict 2>/dev/null)
-if [ -z "$dmesg_restrict" ]; then
-    echo_not_found "/proc/sys/kernel/dmesg_restrict"
-else
-    if [ "$dmesg_restrict" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$dmesg_restrict" | sed -${E} "s,.*,${SED_GREEN},g"; fi
-fi
+print_sysctl_eq_zero "dmesg_restrict? ................ " "/proc/sys/kernel/dmesg_restrict" "dmesg_restrict" "$SED_RED" "$SED_GREEN"
 
-print_list "ptrace_scope? .................. "$NC
-ptrace_scope=$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null)
-if [ -z "$ptrace_scope" ]; then
-    echo_not_found "/proc/sys/kernel/yama/ptrace_scope"
-else
-    if [ "$ptrace_scope" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$ptrace_scope" | sed -${E} "s,.*,${SED_GREEN},g"; fi
-fi
+print_sysctl_eq_zero "ptrace_scope? .................. " "/proc/sys/kernel/yama/ptrace_scope" "ptrace_scope" "$SED_RED" "$SED_GREEN"
 
-print_list "protected_symlinks? ............ "$NC
-protected_symlinks=$(cat /proc/sys/fs/protected_symlinks 2>/dev/null)
-if [ -z "$protected_symlinks" ]; then
-    echo_not_found "/proc/sys/fs/protected_symlinks"
-else
-    if [ "$protected_symlinks" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$protected_symlinks" | sed -${E} "s,.*,${SED_GREEN},g"; fi
-fi
+print_sysctl_eq_zero "protected_symlinks? ............ " "/proc/sys/fs/protected_symlinks" "protected_symlinks" "$SED_RED" "$SED_GREEN"
 
-print_list "protected_hardlinks? ........... "$NC
-protected_hardlinks=$(cat /proc/sys/fs/protected_hardlinks 2>/dev/null)
-if [ -z "$protected_hardlinks" ]; then
-    echo_not_found "/proc/sys/fs/protected_hardlinks"
-else
-    if [ "$protected_hardlinks" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$protected_hardlinks" | sed -${E} "s,.*,${SED_GREEN},g"; fi
-fi
+print_sysctl_eq_zero "protected_hardlinks? ........... " "/proc/sys/fs/protected_hardlinks" "protected_hardlinks" "$SED_RED" "$SED_GREEN"
 
 print_list "perf_event_paranoid? ........... "$NC
 perf_event_paranoid=$(cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null)
@@ -151,13 +131,7 @@ else
     if [ "$perf_event_paranoid" -le 1 ]; then echo "$perf_event_paranoid" | sed -${E} "s,.*,${SED_RED},g"; else echo "$perf_event_paranoid" | sed -${E} "s,.*,${SED_GREEN},g"; fi
 fi
 
-print_list "mmap_min_addr? ................. "$NC
-mmap_min_addr=$(cat /proc/sys/vm/mmap_min_addr 2>/dev/null)
-if [ -z "$mmap_min_addr" ]; then
-    echo_not_found "/proc/sys/vm/mmap_min_addr"
-else
-    if [ "$mmap_min_addr" -eq 0 ]; then echo "0" | sed -${E} "s,0,${SED_RED},"; else echo "$mmap_min_addr" | sed -${E} "s,.*,${SED_GREEN},g"; fi
-fi
+print_sysctl_eq_zero "mmap_min_addr? ................. " "/proc/sys/vm/mmap_min_addr" "mmap_min_addr" "$SED_RED" "$SED_GREEN"
 
 print_list "lockdown mode? ................. "$NC
 if [ -f "/sys/kernel/security/lockdown" ]; then
