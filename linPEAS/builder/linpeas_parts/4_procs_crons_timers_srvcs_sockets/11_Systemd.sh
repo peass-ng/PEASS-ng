@@ -17,7 +17,7 @@
 # Functions Used: print_2title, print_list, echo_not_found
 # Global Variables: $SEARCH_IN_FOLDER, $Wfolders, $SED_RED, $SED_RED_YELLOW, $NC
 # Initial Functions:
-# Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $cmd
+# Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $exec_value, $cmd, $cmd_path
 # Fat linpeas: 0
 # Small linpeas: 1
 
