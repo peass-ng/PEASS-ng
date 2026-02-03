@@ -116,18 +116,20 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
                 # Check ExecStart paths
                 grep -E "ExecStart|ExecStartPre|ExecStartPost" "$service_file" 2>/dev/null | 
                 while read -r exec_line; do
-                    # Extract the first word after ExecStart* as the command
-                    cmd=$(echo "$exec_line" | awk '{print $2}' | tr -d '"')
-                    # Extract the rest as arguments
-                    args=$(echo "$exec_line" | awk '{$1=$2=""; print $0}' | tr -d '"')
+                    # Extract command from the right side of Exec*=, not from argv
+                    exec_value="${exec_line#*=}"
+                    exec_value=$(echo "$exec_value" | sed 's/^[[:space:]]*//')
+                    cmd=$(echo "$exec_value" | awk '{print $1}' | tr -d '"')
+                    # Strip systemd command prefixes (-, @, :, +, !) before path checks
+                    cmd_path=$(echo "$cmd" | sed -E 's/^[-@:+!]+//')
                     
                     # Only check the command path, not arguments
-                    if [ -n "$cmd" ] && [ -w "$cmd" ]; then
-                        echo "$service: $cmd (from $exec_line)" | sed -${E} "s,.*,${SED_RED},g"
+                    if [ -n "$cmd_path" ] && [ -w "$cmd_path" ]; then
+                        echo "$service: $cmd_path (from $exec_line)" | sed -${E} "s,.*,${SED_RED},g"
                     fi
                     # Check for relative paths only in the command, not arguments
-                    if [ -n "$cmd" ] && [ "${cmd#/}" = "$cmd" ] && ! echo "$cmd" | grep -qE '^-|^--'; then
-                        echo "$service: Uses relative path '$cmd' (from $exec_line)" | sed -${E} "s,.*,${SED_RED},g"
+                    if [ -n "$cmd_path" ] && [ "${cmd_path#/}" = "$cmd_path" ] && [ "${cmd_path#\$}" = "$cmd_path" ]; then
+                        echo "$service: Uses relative path '$cmd_path' (from $exec_line)" | sed -${E} "s,.*,${SED_RED},g"
                     fi
                 done
             fi
