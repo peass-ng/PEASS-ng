@@ -1,0 +1,158 @@
+name: CI-master Failure Codex PR
+
+on:
+  workflow_run:
+    workflows: ["CI-master_test"]
+    types: [completed]
+
+jobs:
+  codex_fix_master_failure:
+    if: >
+      ${{ github.event.workflow_run.conclusion == 'failure' &&
+          github.event.workflow_run.head_branch == 'master' &&
+          !startsWith(github.event.workflow_run.head_commit.message, 'Fix CI-master failures for run #') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read
+    env:
+      TARGET_BRANCH: master
+      FIX_BRANCH: codex/ci-master-fix-${{ github.event.workflow_run.id }}
+    steps:
+      - name: Checkout failing commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+          persist-credentials: true
+          token: ${{ secrets.CODEX_FIXER_TOKEN }}
+
+      - name: Configure git author
+        run: |
+          git config user.name "codex-action"
+          git config user.email "codex-action@users.noreply.github.com"
+
+      - name: Create fix branch
+        run: git checkout -b "$FIX_BRANCH"
+
+      - name: Fetch failure summary and failed-step logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          failed_logs_file="$(pwd)/codex_failed_steps_logs.txt"
+          if gh run view "$RUN_ID" --repo "${{ github.repository }}" --log-failed > "$failed_logs_file"; then
+            if [ ! -s "$failed_logs_file" ]; then
+              echo "No failed step logs were returned by gh run view --log-failed." > "$failed_logs_file"
+            fi
+          else
+            echo "Failed to download failed step logs with gh run view --log-failed." > "$failed_logs_file"
+          fi
+          echo "FAILED_LOGS_PATH=$failed_logs_file" >> "$GITHUB_ENV"
+
+          gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs \
+            --paginate > /tmp/jobs.json
+          python3 - <<'PY'
+          import json
+
+          data = json.load(open('/tmp/jobs.json'))
+          lines = []
+          for job in data.get('jobs', []):
+            if job.get('conclusion') == 'failure':
+              lines.append(f"Job: {job.get('name')} (id {job.get('id')})")
+              lines.append(f"URL: {job.get('html_url')}")
+              for step in job.get('steps', []):
+                if step.get('conclusion') == 'failure':
+                  lines.append(f"  Step: {step.get('name')}")
+              lines.append("")
+
+          summary = "\n".join(lines).strip() or "No failing job details found."
+          with open('codex_failure_summary.txt', 'w') as handle:
+            handle.write(summary)
+          PY
+
+      - name: Create Codex prompt
+        env:
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          {
+            echo "You are fixing a failing CI-master_test run in ${{ github.repository }}."
+            echo "The failing workflow run is: ${RUN_URL}"
+            echo "The failing commit SHA is: ${HEAD_SHA}"
+            echo "The target branch for the final PR is: ${TARGET_BRANCH}"
+            echo ""
+            echo "Failure summary:"
+            cat codex_failure_summary.txt
+            echo ""
+            echo "Failed-step logs file absolute path (local runner): ${FAILED_LOGS_PATH}"
+            echo "Read that file to inspect the exact failing logs."
+            echo ""
+            echo "Please identify the cause, apply an easy, simple and minimal fix, and update files accordingly."
+            echo "Run any fast checks you can locally (no network)."
+            echo "Leave the repo in a state ready to commit; changes will be committed and pushed automatically."
+          } > codex_prompt.txt
+
+      - name: Run Codex
+        id: run_codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: codex_prompt.txt
+          sandbox: workspace-write
+          model: gpt-5.2-codex
+
+      - name: Commit and push fix branch if changed
+        id: push_fix
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          rm -f codex_failure_summary.txt codex_prompt.txt codex_failed_steps_logs.txt
+          git add -A
+          git reset -- codex_failure_summary.txt codex_prompt.txt codex_failed_steps_logs.txt
+          git commit -m "Fix CI-master failures for run #${{ github.event.workflow_run.id }}"
+          git push origin HEAD:"$FIX_BRANCH"
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create PR to master
+        if: ${{ steps.push_fix.outputs.pushed == 'true' }}
+        id: create_pr
+        env:
+          GH_TOKEN: ${{ secrets.CODEX_FIXER_TOKEN }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          pr_url=$(gh pr create \
+            --title "Fix CI-master_test failure (run #${{ github.event.workflow_run.id }})" \
+            --body "Automated Codex fix for failing CI-master_test run: ${RUN_URL}" \
+            --base "$TARGET_BRANCH" \
+            --head "$FIX_BRANCH")
+          echo "url=$pr_url" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on created PR with Codex result
+        if: ${{ steps.push_fix.outputs.pushed == 'true' && steps.run_codex.outputs.final-message != '' }}
+        uses: actions/github-script@v7
+        env:
+          PR_URL: ${{ steps.create_pr.outputs.url }}
+          CODEX_MESSAGE: ${{ steps.run_codex.outputs.final-message }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const prUrl = process.env.PR_URL;
+            const match = prUrl.match(/\/pull\/(\d+)$/);
+            if (!match) {
+              core.info(`Could not parse PR number from URL: ${prUrl}`);
+              return;
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(match[1]),
+              body: process.env.CODEX_MESSAGE,
+            });
