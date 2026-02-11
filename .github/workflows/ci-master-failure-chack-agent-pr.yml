@@ -98,10 +98,11 @@ jobs:
 
       - name: Run Chack Agent
         id: run_chack
+        timeout-minutes: 6
         uses: carlospolop/chack-agent@master
         with:
           provider: openrouter
-          model_primary: BEST_QUALITY
+          model_primary: CHEAP_BUT_QUALITY
           main_action: peass-ng
           sub_action: CI-master Failure Chack-Agent PR
           system_prompt: |
