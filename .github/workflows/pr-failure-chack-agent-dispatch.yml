@@ -65,7 +65,7 @@ jobs:
       issues: write
       actions: read
     env:
-      CHACK_LOGS_HTTP_URL: https://bfy6krh716.execute-api.us-east-1.amazonaws.com/prod/logs
+      CHACK_LOGS_HTTP_URL: ${{ secrets.CHACK_LOGS_HTTP_URL }}
     steps:
       - name: Comment on PR with failure info
         uses: actions/github-script@v7

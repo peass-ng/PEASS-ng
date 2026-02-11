@@ -13,7 +13,7 @@ jobs:
       contents: write
       pull-requests: write
     env:
-      CHACK_LOGS_HTTP_URL: https://bfy6krh716.execute-api.us-east-1.amazonaws.com/prod/logs
+      CHACK_LOGS_HTTP_URL: ${{ secrets.CHACK_LOGS_HTTP_URL }}
     outputs:
       should_run: ${{ steps.gate.outputs.should_run }}
       pr_number: ${{ steps.gate.outputs.pr_number }}
