@@ -7,7 +7,8 @@ on:
 
 jobs:
   chack_agent_triage:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # Temporarily disabled by maintainer request.
+    if: ${{ false && github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -156,7 +157,8 @@ jobs:
   merge_or_comment:
     runs-on: ubuntu-latest
     needs: chack_agent_triage
-    if: ${{ github.event.workflow_run.conclusion == 'success' && needs.chack_agent_triage.outputs.should_run == 'true' && needs.chack_agent_triage.outputs.decision != '' }}
+    # Temporarily disabled by maintainer request.
+    if: ${{ false && github.event.workflow_run.conclusion == 'success' && needs.chack_agent_triage.outputs.should_run == 'true' && needs.chack_agent_triage.outputs.decision != '' }}
     permissions:
       contents: write
       pull-requests: write

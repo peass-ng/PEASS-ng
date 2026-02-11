@@ -7,8 +7,9 @@ on:
 
 jobs:
   chack_agent_fix_master_failure:
+    # Temporarily disabled by maintainer request.
     if: >
-      ${{ github.event.workflow_run.conclusion == 'failure' &&
+      ${{ false && github.event.workflow_run.conclusion == 'failure' &&
           github.event.workflow_run.head_branch == 'master' &&
           !startsWith(github.event.workflow_run.head_commit.message, 'Fix CI-master failures for run #') }}
     runs-on: ubuntu-latest

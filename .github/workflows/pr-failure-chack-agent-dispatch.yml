@@ -7,8 +7,9 @@ on:
 
 jobs:
   resolve_pr_context:
+    # Temporarily disabled by maintainer request.
     if: >
-      ${{ github.event.workflow_run.conclusion == 'failure' &&
+      ${{ false && github.event.workflow_run.conclusion == 'failure' &&
           github.event.workflow_run.pull_requests &&
           github.event.workflow_run.pull_requests[0] &&
           !startsWith(github.event.workflow_run.head_commit.message, 'Fix CI failures for PR #') }}
@@ -57,7 +58,8 @@ jobs:
 
   chack_agent_on_failure:
     needs: resolve_pr_context
-    if: ${{ needs.resolve_pr_context.outputs.author == 'carlospolop' && needs.resolve_pr_context.outputs.should_run == 'true' }}
+    # Temporarily disabled by maintainer request.
+    if: ${{ false && needs.resolve_pr_context.outputs.author == 'carlospolop' && needs.resolve_pr_context.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
