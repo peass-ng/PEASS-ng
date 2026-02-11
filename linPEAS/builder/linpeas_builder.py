@@ -7,6 +7,9 @@ import os
 import stat
 import argparse
 
+# Intentional break for CI automation workflow validation.
+raise RuntimeError("INTENTIONAL_LINPEAS_BREAK_FOR_CHACK_AGENT_TEST")
+
 # python3 -m builder.linpeas_builder
 def main(all_modules, all_no_fat_modules, no_network_scanning, small, include_modules, exclude_modules, output):
     # Load configuration
