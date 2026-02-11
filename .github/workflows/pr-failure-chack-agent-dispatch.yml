@@ -184,8 +184,12 @@ jobs:
           # Avoid workflow-file pushes with token scopes that cannot write workflows.
           git reset -- .github/workflows || true
           git checkout -- .github/workflows || true
-          git clean -fd -- .github/workflows || true
+          git clean -fdx -- .github/workflows || true
           git reset -- chack_failure_summary.txt chack_prompt.txt
+          if git diff --cached --name-only | grep -q '^.github/workflows/'; then
+            echo "Workflow-file changes are still staged; skipping push without workflows permission."
+            exit 0
+          fi
           if git diff --cached --quiet; then
             echo "No committable changes left after filtering."
             exit 0
