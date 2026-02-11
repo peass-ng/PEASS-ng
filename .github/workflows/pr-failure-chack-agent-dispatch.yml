@@ -182,7 +182,9 @@ jobs:
           rm -f chack_failure_summary.txt chack_prompt.txt
           git add -A
           # Avoid workflow-file pushes with token scopes that cannot write workflows.
-          git restore --staged --worktree .github/workflows || true
+          git reset -- .github/workflows || true
+          git checkout -- .github/workflows || true
+          git clean -fd -- .github/workflows || true
           git reset -- chack_failure_summary.txt chack_prompt.txt
           if git diff --cached --quiet; then
             echo "No committable changes left after filtering."
