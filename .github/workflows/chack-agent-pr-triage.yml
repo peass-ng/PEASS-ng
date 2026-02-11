@@ -12,6 +12,8 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    env:
+      CHACK_LOGS_HTTP_URL: https://bfy6krh716.execute-api.us-east-1.amazonaws.com/prod/logs
     outputs:
       should_run: ${{ steps.gate.outputs.should_run }}
       pr_number: ${{ steps.gate.outputs.pr_number }}

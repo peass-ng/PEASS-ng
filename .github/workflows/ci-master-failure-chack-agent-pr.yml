@@ -20,6 +20,7 @@ jobs:
     env:
       TARGET_BRANCH: master
       FIX_BRANCH: chack-agent/ci-master-fix-${{ github.event.workflow_run.id }}
+      CHACK_LOGS_HTTP_URL: https://bfy6krh716.execute-api.us-east-1.amazonaws.com/prod/logs
     steps:
       - name: Checkout failing commit
         uses: actions/checkout@v5
