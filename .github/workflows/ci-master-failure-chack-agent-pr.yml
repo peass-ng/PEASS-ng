@@ -110,6 +110,7 @@ jobs:
           prompt_file: chack_prompt.txt
           tools_config_json: "{\"exec_enabled\": true}"
           session_config_json: "{\"long_term_memory_enabled\": false}"
+          max_turns: 8
           openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
 
       - name: Commit and push fix branch if changed
