@@ -96,14 +96,69 @@ jobs:
             echo "Leave the repo in a state ready to commit; changes will be committed and pushed automatically."
           } > codex_prompt.txt
 
-      - name: Run Codex
-        id: run_codex
-        uses: openai/codex-action@v1
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          prompt-file: codex_prompt.txt
-          sandbox: workspace-write
-          model: gpt-5.2-codex
+          python-version: "3.11"
+
+      - name: Install chack-agent
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e chack-agent
+
+      - name: Run Chack Agent
+        id: run_codex
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          INPUT_PROVIDER: openai
+          INPUT_MODEL_PRIMARY: gpt-5.2-codex
+          INPUT_SYSTEM_PROMPT: You are an advanced research agent.
+        run: |
+          python - <<'PY' > chack_output.txt
+          import os
+          from chack_agent import (
+              Chack,
+              ChackConfig,
+              ModelConfig,
+              AgentConfig,
+              SessionConfig,
+              ToolsConfig,
+              CredentialsConfig,
+              LoggingConfig,
+          )
+
+          with open("codex_prompt.txt", "r", encoding="utf-8") as handle:
+              user_prompt = handle.read()
+
+          config = ChackConfig(
+              model=ModelConfig(
+                  primary=os.environ.get("INPUT_MODEL_PRIMARY", "gpt-5.2-codex"),
+                  provider=os.environ.get("INPUT_PROVIDER", "openai"),
+              ),
+              agent=AgentConfig(
+                  main_action="github_action",
+                  sub_action="run",
+              ),
+              session=SessionConfig(),
+              tools=ToolsConfig(exec_enabled=True),
+              credentials=CredentialsConfig(
+                  openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
+              ),
+              logging=LoggingConfig(level="INFO"),
+              system_prompt=os.environ.get("INPUT_SYSTEM_PROMPT", "You are an advanced research agent."),
+              env={},
+          )
+
+          agent = Chack(config)
+          result = agent.run(session_id="github-action", text=user_prompt)
+          print(result.output)
+          PY
+
+          {
+            echo "final-message<<EOF"
+            cat chack_output.txt
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Commit and push fix branch if changed
         id: push_fix
@@ -114,9 +169,9 @@ jobs:
             exit 0
           fi
 
-          rm -f codex_failure_summary.txt codex_prompt.txt codex_failed_steps_logs.txt
+          rm -f codex_failure_summary.txt codex_prompt.txt codex_failed_steps_logs.txt chack_output.txt
           git add -A
-          git reset -- codex_failure_summary.txt codex_prompt.txt codex_failed_steps_logs.txt
+          git reset -- codex_failure_summary.txt codex_prompt.txt codex_failed_steps_logs.txt chack_output.txt
           git commit -m "Fix CI-master failures for run #${{ github.event.workflow_run.id }}"
           git push origin HEAD:"$FIX_BRANCH"
           echo "pushed=true" >> "$GITHUB_OUTPUT"
