@@ -124,7 +124,14 @@ jobs:
 
           rm -f chack_failure_summary.txt chack_prompt.txt chack_failed_steps_logs.txt
           git add -A
+          # Avoid workflow-file pushes with token scopes that cannot write workflows.
+          git restore --staged --worktree .github/workflows || true
           git reset -- chack_failure_summary.txt chack_prompt.txt chack_failed_steps_logs.txt
+          if git diff --cached --quiet; then
+            echo "No committable changes left after filtering."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           git commit -m "Fix CI-master failures for run #${{ github.event.workflow_run.id }}"
           git push origin HEAD:"$FIX_BRANCH"
           echo "pushed=true" >> "$GITHUB_OUTPUT"
