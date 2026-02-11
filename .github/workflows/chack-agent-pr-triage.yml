@@ -83,7 +83,6 @@ jobs:
       - name: Run Chack Agent
         id: run_chack
         if: ${{ steps.gate.outputs.should_run == 'true' }}
-        timeout-minutes: 6
         uses: carlospolop/chack-agent@master
         with:
           provider: openrouter

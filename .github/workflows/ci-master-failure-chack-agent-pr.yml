@@ -98,7 +98,6 @@ jobs:
 
       - name: Run Chack Agent
         id: run_chack
-        timeout-minutes: 6
         uses: carlospolop/chack-agent@master
         with:
           provider: openrouter
