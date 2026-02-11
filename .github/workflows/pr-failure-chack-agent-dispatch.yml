@@ -99,7 +99,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
           persist-credentials: true
-          token: ${{ secrets.CHACK_AGENT_FIXER_TOKEN }}
+          token: ${{ secrets.CHACK_AGENT_FIXER_TOKEN || github.token }}
 
       - name: Configure git author
         run: |

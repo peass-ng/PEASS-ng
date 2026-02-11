@@ -27,7 +27,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
           persist-credentials: true
-          token: ${{ secrets.CHACK_AGENT_FIXER_TOKEN }}
+          token: ${{ secrets.CHACK_AGENT_FIXER_TOKEN || github.token }}
 
       - name: Configure git author
         run: |
@@ -132,7 +132,7 @@ jobs:
         if: ${{ steps.push_fix.outputs.pushed == 'true' }}
         id: create_pr
         env:
-          GH_TOKEN: ${{ secrets.CHACK_AGENT_FIXER_TOKEN }}
+          GH_TOKEN: ${{ secrets.CHACK_AGENT_FIXER_TOKEN || github.token }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
           pr_url=$(gh pr create \
