@@ -83,7 +83,7 @@ jobs:
       - name: Run Chack Agent
         id: run_chack
         if: ${{ steps.gate.outputs.should_run == 'true' }}
-        uses: carlospolop/chack-agent@v0
+        uses: carlospolop/chack-agent@master
         with:
           provider: openrouter
           model_primary: BEST_QUALITY
