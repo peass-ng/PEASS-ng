@@ -80,35 +80,96 @@ jobs:
             ${{ steps.gate.outputs.base_ref }} \
             +refs/pull/${{ steps.gate.outputs.pr_number }}/head
 
-      - name: Run Codex
+      - name: Set up Python
+        if: ${{ steps.gate.outputs.should_run == 'true' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install chack-agent
+        if: ${{ steps.gate.outputs.should_run == 'true' }}
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e chack-agent
+
+      - name: Run Chack Agent
         id: run_codex
         if: ${{ steps.gate.outputs.should_run == 'true' }}
-        uses: openai/codex-action@v1
-        with:
-          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          output-schema-file: .github/codex/pr-merge-schema.json
-          model: gpt-5.2-codex
-          prompt: |
-            You are reviewing PR #${{ steps.gate.outputs.pr_number }} for ${{ github.repository }}.
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          INPUT_PROVIDER: openai
+          INPUT_MODEL_PRIMARY: gpt-5.2-codex
+          INPUT_SYSTEM_PROMPT: You are an advanced research agent.
+        run: |
+          cat <<'EOF' > chack_prompt.txt
+          You are reviewing PR #${{ steps.gate.outputs.pr_number }} for ${{ github.repository }}.
 
-            Decide whether to merge or comment. Merge only if all of the following are true:
-            - Changes are simple and safe (no DoS, no long operations, no backdoors).
-            - Changes follow common PEASS syntax and style without breaking anything and add useful checks or value.
-            - Changes simplify code or add new useful checks without breaking anything.
+          Decide whether to merge or comment. Merge only if all of the following are true:
+          - Changes are simple and safe (no DoS, no long operations, no backdoors).
+          - Changes follow common PEASS syntax and style without breaking anything and add useful checks or value.
+          - Changes simplify code or add new useful checks without breaking anything.
 
-            If you don't have any doubts, and all the previous conditions are met, decide to merge.
-            If you have serious doubts, choose "comment" and include your doubts or questions.
-            If you decide to merge, include a short rationale.
+          If you don't have any doubts, and all the previous conditions are met, decide to merge.
+          If you have serious doubts, choose "comment" and include your doubts or questions.
+          If you decide to merge, include a short rationale.
 
-            Pull request title and body:
-            ----
-            ${{ steps.gate.outputs.pr_title }}
-            ${{ steps.gate.outputs.pr_body }}
+          Pull request title and body:
+          ----
+          ${{ steps.gate.outputs.pr_title }}
+          ${{ steps.gate.outputs.pr_body }}
 
-            Review ONLY the changes introduced by the PR:
-              git log --oneline ${{ steps.gate.outputs.base_sha }}...${{ steps.gate.outputs.head_sha }}
+          Review ONLY the changes introduced by the PR:
+            git log --oneline ${{ steps.gate.outputs.base_sha }}...${{ steps.gate.outputs.head_sha }}
 
-            Output JSON only, following the provided schema.
+          Output JSON only, following the provided schema:
+          .github/codex/pr-merge-schema.json
+          EOF
+
+          python - <<'PY' > chack_output.txt
+          import os
+          from chack_agent import (
+              Chack,
+              ChackConfig,
+              ModelConfig,
+              AgentConfig,
+              SessionConfig,
+              ToolsConfig,
+              CredentialsConfig,
+              LoggingConfig,
+          )
+
+          with open("chack_prompt.txt", "r", encoding="utf-8") as handle:
+              user_prompt = handle.read()
+
+          config = ChackConfig(
+              model=ModelConfig(
+                  primary=os.environ.get("INPUT_MODEL_PRIMARY", "gpt-5.2-codex"),
+                  provider=os.environ.get("INPUT_PROVIDER", "openai"),
+              ),
+              agent=AgentConfig(
+                  main_action="github_action",
+                  sub_action="run",
+              ),
+              session=SessionConfig(),
+              tools=ToolsConfig(exec_enabled=True),
+              credentials=CredentialsConfig(
+                  openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
+              ),
+              logging=LoggingConfig(level="INFO"),
+              system_prompt=os.environ.get("INPUT_SYSTEM_PROMPT", "You are an advanced research agent."),
+              env={},
+          )
+
+          agent = Chack(config)
+          result = agent.run(session_id="github-action", text=user_prompt)
+          print(result.output)
+          PY
+
+          {
+            echo "final-message<<EOF"
+            cat chack_output.txt
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Parse Codex decision
         id: parse
