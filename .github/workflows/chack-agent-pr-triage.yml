@@ -1,4 +1,4 @@
-name: Codex PR Triage
+name: Chack-Agent PR Triage
 
 on:
   workflow_run:
@@ -6,7 +6,7 @@ on:
     types: [completed]
 
 jobs:
-  codex_triage:
+  chack_agent_triage:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
@@ -80,110 +80,60 @@ jobs:
             ${{ steps.gate.outputs.base_ref }} \
             +refs/pull/${{ steps.gate.outputs.pr_number }}/head
 
-      - name: Set up Python
-        if: ${{ steps.gate.outputs.should_run == 'true' }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install chack-agent
-        if: ${{ steps.gate.outputs.should_run == 'true' }}
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e chack-agent
-
       - name: Run Chack Agent
-        id: run_codex
+        id: run_chack
         if: ${{ steps.gate.outputs.should_run == 'true' }}
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          INPUT_PROVIDER: openai
-          INPUT_MODEL_PRIMARY: gpt-5.2-codex
-          INPUT_SYSTEM_PROMPT: You are an advanced research agent.
-        run: |
-          cat <<'EOF' > chack_prompt.txt
-          You are reviewing PR #${{ steps.gate.outputs.pr_number }} for ${{ github.repository }}.
+        uses: carlospolop/chack-agent@v0
+        with:
+          provider: openrouter
+          model_primary: BEST_QUALITY
+          main_action: peass-ng
+          sub_action: Chack-Agent PR Triage
+          system_prompt: |
+            You are Chack Agent, an elite PR reviewer for PEASS-ng.
+            Be conservative: merge only if changes are simple, safe, and valuable accoding to the uers give guidelines.
+            If in doubt, comment with clear questions or concerns.
+            Remember taht you are an autonomouts agent, use the exec tool to run the needed commands to list, read, analyze, modify, test...
+          tools_config_json: "{\"exec_enabled\": true}"
+          session_config_json: "{\"long_term_memory_enabled\": false}"
+          output_schema_file: .github/chack-agent/pr-merge-schema.json
+          user_prompt: |
+            You are reviewing PR #${{ steps.gate.outputs.pr_number }} for ${{ github.repository }}.
 
-          Decide whether to merge or comment. Merge only if all of the following are true:
-          - Changes are simple and safe (no DoS, no long operations, no backdoors).
-          - Changes follow common PEASS syntax and style without breaking anything and add useful checks or value.
-          - Changes simplify code or add new useful checks without breaking anything.
+            Decide whether to merge or comment. Merge only if all of the following are true:
+            - Changes are simple and safe (no DoS, no long operations, no backdoors).
+            - Changes follow common PEASS syntax and style without breaking anything and add useful checks or value.
+            - Changes simplify code or add new useful checks without breaking anything.
 
-          If you don't have any doubts, and all the previous conditions are met, decide to merge.
-          If you have serious doubts, choose "comment" and include your doubts or questions.
-          If you decide to merge, include a short rationale.
+            If you don't have any doubts, and all the previous conditions are met, decide to merge.
+            If you have serious doubts, choose "comment" and include your doubts or questions.
+            If you decide to merge, include a short rationale.
 
-          Pull request title and body:
-          ----
-          ${{ steps.gate.outputs.pr_title }}
-          ${{ steps.gate.outputs.pr_body }}
+            Pull request title and body:
+            ----
+            ${{ steps.gate.outputs.pr_title }}
+            ${{ steps.gate.outputs.pr_body }}
 
-          Review ONLY the changes introduced by the PR:
-            git log --oneline ${{ steps.gate.outputs.base_sha }}...${{ steps.gate.outputs.head_sha }}
+            Review ONLY the changes introduced by the PR:
+              git log --oneline ${{ steps.gate.outputs.base_sha }}...${{ steps.gate.outputs.head_sha }}
 
-          Output JSON only, following the provided schema:
-          .github/codex/pr-merge-schema.json
-          EOF
+            Output JSON only, following the provided schema:
+            .github/chack-agent/pr-merge-schema.json
+          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
 
-          python - <<'PY' > chack_output.txt
-          import os
-          from chack_agent import (
-              Chack,
-              ChackConfig,
-              ModelConfig,
-              AgentConfig,
-              SessionConfig,
-              ToolsConfig,
-              CredentialsConfig,
-              LoggingConfig,
-          )
-
-          with open("chack_prompt.txt", "r", encoding="utf-8") as handle:
-              user_prompt = handle.read()
-
-          config = ChackConfig(
-              model=ModelConfig(
-                  primary=os.environ.get("INPUT_MODEL_PRIMARY", "gpt-5.2-codex"),
-                  provider=os.environ.get("INPUT_PROVIDER", "openai"),
-              ),
-              agent=AgentConfig(
-                  main_action="github_action",
-                  sub_action="run",
-              ),
-              session=SessionConfig(),
-              tools=ToolsConfig(exec_enabled=True),
-              credentials=CredentialsConfig(
-                  openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
-              ),
-              logging=LoggingConfig(level="INFO"),
-              system_prompt=os.environ.get("INPUT_SYSTEM_PROMPT", "You are an advanced research agent."),
-              env={},
-          )
-
-          agent = Chack(config)
-          result = agent.run(session_id="github-action", text=user_prompt)
-          print(result.output)
-          PY
-
-          {
-            echo "final-message<<EOF"
-            cat chack_output.txt
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Parse Codex decision
+      - name: Parse Chack Agent decision
         id: parse
         if: ${{ steps.gate.outputs.should_run == 'true' }}
         env:
-          CODEX_MESSAGE: ${{ steps.run_codex.outputs.final-message }}
+          CHACK_MESSAGE: ${{ steps.run_chack.outputs.final-message }}
         run: |
           python3 - <<'PY'
           import json
           import os
 
-          data = json.loads(os.environ.get('CODEX_MESSAGE', '') or '{}')
+          data = json.loads(os.environ.get('CHACK_MESSAGE', '') or '{}')
           decision = data.get('decision', 'comment')
-          message = data.get('message', '').strip() or 'Codex did not provide details.'
+          message = data.get('message', '').strip() or 'Chack Agent did not provide details.'
           with open(os.environ['GITHUB_OUTPUT'], 'a') as handle:
             handle.write(f"decision={decision}\n")
             handle.write("message<<EOF\n")
@@ -193,31 +143,31 @@ jobs:
 
   merge_or_comment:
     runs-on: ubuntu-latest
-    needs: codex_triage
-    if: ${{ github.event.workflow_run.conclusion == 'success' && needs.codex_triage.outputs.should_run == 'true' && needs.codex_triage.outputs.decision != '' }}
+    needs: chack_agent_triage
+    if: ${{ github.event.workflow_run.conclusion == 'success' && needs.chack_agent_triage.outputs.should_run == 'true' && needs.chack_agent_triage.outputs.decision != '' }}
     permissions:
       contents: write
       pull-requests: write
     steps:
       - name: Merge PR when approved
-        if: ${{ needs.codex_triage.outputs.decision == 'merge' }}
+        if: ${{ needs.chack_agent_triage.outputs.decision == 'merge' }}
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ needs.codex_triage.outputs.pr_number }}
+          PR_NUMBER: ${{ needs.chack_agent_triage.outputs.pr_number }}
         run: |
           gh api \
             -X PUT \
             -H "Accept: application/vnd.github+json" \
             /repos/${{ github.repository }}/pulls/${PR_NUMBER}/merge \
             -f merge_method=squash \
-            -f commit_title="Auto-merge PR #${PR_NUMBER} (Codex)"
+            -f commit_title="Auto-merge PR #${PR_NUMBER} (Chack Agent)"
 
       - name: Comment with doubts
-        if: ${{ needs.codex_triage.outputs.decision == 'comment' }}
+        if: ${{ needs.chack_agent_triage.outputs.decision == 'comment' }}
         uses: actions/github-script@v7
         env:
-          PR_NUMBER: ${{ needs.codex_triage.outputs.pr_number }}
-          CODEX_MESSAGE: ${{ needs.codex_triage.outputs.message }}
+          PR_NUMBER: ${{ needs.chack_agent_triage.outputs.pr_number }}
+          CHACK_MESSAGE: ${{ needs.chack_agent_triage.outputs.message }}
         with:
           github-token: ${{ github.token }}
           script: |
@@ -225,5 +175,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: Number(process.env.PR_NUMBER),
-              body: process.env.CODEX_MESSAGE,
+              body: process.env.CHACK_MESSAGE,
             });
