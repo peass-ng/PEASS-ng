@@ -7,8 +7,6 @@ import os
 import stat
 import argparse
 
-raise RuntimeError("INTENTIONAL_CI_BREAK_FOR_CHAK_AGENT_TEST")
-
 # python3 -m builder.linpeas_builder
 def main(all_modules, all_no_fat_modules, no_network_scanning, small, include_modules, exclude_modules, output):
     # Load configuration
