@@ -53,3 +53,5 @@ if __name__ == "__main__":
         exit(1)
     
     main(all_modules, all_no_fat_modules, no_network_scanning, small, include_modules, exclude_modules, output)
+
+THIS_WILL_BREAK =
