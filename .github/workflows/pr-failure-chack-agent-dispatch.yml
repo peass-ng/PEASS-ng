@@ -167,7 +167,6 @@ jobs:
           prompt_file: chack_prompt.txt
           tools_config_json: "{\"exec_enabled\": true}"
           session_config_json: "{\"long_term_memory_enabled\": false}"
-          max_turns: 8
           agent_config_json: "{\"self_critique_enabled\": false, \"require_task_list_init_first\": true}"
           openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
 

@@ -96,7 +96,6 @@ jobs:
             Remember taht you are an autonomouts agent, use the exec tool to run the needed commands to list, read, analyze, modify, test...
           tools_config_json: "{\"exec_enabled\": true}"
           session_config_json: "{\"long_term_memory_enabled\": false}"
-          max_turns: 8
           agent_config_json: "{\"self_critique_enabled\": false, \"require_task_list_init_first\": true}"
           output_schema_file: .github/chack-agent/pr-merge-schema.json
           user_prompt: |
@@ -133,9 +132,18 @@ jobs:
           import json
           import os
 
-          data = json.loads(os.environ.get('CHACK_MESSAGE', '') or '{}')
-          decision = data.get('decision', 'comment')
-          message = data.get('message', '').strip() or 'Chack Agent did not provide details.'
+          raw = (os.environ.get('CHACK_MESSAGE', '') or '').strip()
+          decision = 'comment'
+          message = 'Chack Agent did not provide details.'
+          try:
+            data = json.loads(raw or '{}')
+            if isinstance(data, dict):
+              decision = data.get('decision', 'comment')
+              message = data.get('message', '').strip() or message
+            else:
+              message = raw or message
+          except Exception:
+            message = raw or message
           with open(os.environ['GITHUB_OUTPUT'], 'a') as handle:
             handle.write(f"decision={decision}\n")
             handle.write("message<<EOF\n")
