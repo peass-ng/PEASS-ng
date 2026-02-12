@@ -36,6 +36,14 @@ print_2title "Container details"
 
 print_list "Is this a container? ...........$NC $containerType"
 
+if [ -e "/proc/vz" ] && ! [ -e "/proc/bc" ]; then
+    print_list "Container Runtime ..............$NC OpenVZ"
+fi
+
+if [ -f "/run/systemd/container" ]; then
+     print_list "Systemd Container ..............$NC $(cat /run/systemd/container)"
+fi
+
 # Get container runtime info
 if [ "$(command -v docker || echo -n '')" ]; then
     print_list "Docker version ...............$NC "

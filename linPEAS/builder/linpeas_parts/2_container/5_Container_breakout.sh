@@ -37,10 +37,10 @@
 #       - Container escape tool execution
 # License: GNU GPL
 # Version: 1.0
-# Functions Used: checkContainerExploits, checkProcSysBreakouts, containerCheck, print_2title, print_3title, print_info, print_list, warn_exec
+# Functions Used: checkContainerExploits, checkProcSysBreakouts, containerCheck, enumerateDockerSockets, print_2title, print_3title, print_info, print_list, warn_exec
 # Global Variables: $binfmt_misc_breakout, $containercapsB, $containerType, $core_pattern_breakout, $dev_mounted, $efi_efivars_writable, $efi_vars_writable, $GREP_IGNORE_MOUNTS, $inContainer, $kallsyms_readable, $kcore_readable, $kmem_readable, $kmem_writable, $kmsg_readable, $mem_readable, $mem_writable, $modprobe_present, $mountinfo_readable, $panic_on_oom_dos, $panic_sys_fs_dos, $proc_configgz_readable, $proc_mounted, $run_unshare, $release_agent_breakout1, $release_agent_breakout2, $release_agent_breakout3, $sched_debug_readable, $security_present, $security_writable, $sysreq_trigger_dos, $uevent_helper_breakout, $vmcoreinfo_readable, $VULN_CVE_2019_5021, $self_mem_readable
 # Initial Functions: containerCheck
-# Generated Global Variables: $defautl_docker_caps, $containerd_version, $runc_version, $containerd_version
+# Generated Global Variables: $defautl_docker_caps, $containerd_version, $runc_version, $seccomp_mode_num, $seccomp_mode_desc
 # Fat linpeas: 0
 # Small linpeas: 0
 
@@ -57,14 +57,34 @@ if [ "$inContainer" ]; then
     
     # Security mechanisms
     print_3title "Security Mechanisms"
-    print_list "Seccomp enabled? ............... "$NC
-    ([ "$(grep Seccomp /proc/self/status | grep -v 0)" ] && echo "enabled" || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,enabled,${SED_GREEN},"
+    seccomp_mode_num="$(awk '/^Seccomp:/{print $2}' /proc/self/status 2>/dev/null)"
+    seccomp_mode_desc="unknown"
+    case "$seccomp_mode_num" in
+      0) seccomp_mode_desc="disabled" ;;
+      1) seccomp_mode_desc="strict" ;;
+      2) seccomp_mode_desc="filtering" ;;
+    esac
+
+    print_list "Seccomp mode ................... "$NC
+    (printf "%s (%s)\n" "$seccomp_mode_desc" "${seccomp_mode_num:-?}") | sed "s,disabled,${SED_RED}," | sed "s,strict,${SED_RED_YELLOW}," | sed "s,filtering,${SED_GREEN},"
+
+    if grep -q "^Seccomp_filters:" /proc/self/status 2>/dev/null; then
+      print_list "Seccomp filters ............... "$NC
+      awk '/^Seccomp_filters:/{print $2}' /proc/self/status 2>/dev/null | sed -${E} "s,^[0-9]+$,${SED_GREEN}&,"
+    fi
 
     print_list "AppArmor profile? .............. "$NC
     (cat /proc/self/attr/current 2>/dev/null || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,kernel,${SED_GREEN},"
 
     print_list "User proc namespace? ........... "$NC
-    if [ "$(cat /proc/self/uid_map 2>/dev/null)" ]; then (printf "enabled"; cat /proc/self/uid_map) | sed "s,enabled,${SED_GREEN},"; else echo "disabled" | sed "s,disabled,${SED_RED},"; fi
+    if [ "$(cat /proc/self/uid_map 2>/dev/null)" ]; then 
+        (printf "enabled"; cat /proc/self/uid_map) | sed "s,enabled,${SED_GREEN},"; 
+        echo ""
+        echo "  Mappings (Container -> Host -> Range):"
+        cat /proc/self/uid_map | awk '{print "  " $1 " -> " $2 " -> " $3}'
+    else 
+        echo "disabled" | sed "s,disabled,${SED_RED},"; 
+    fi
 
     # Known vulnerabilities
     print_3title "Known Vulnerabilities"
@@ -155,6 +175,9 @@ if [ "$inContainer" ]; then
         cat /proc/self/status | tr '\t' ' ' | grep Cap | sed -${E} "s, .*,${SED_RED},g" | sed -${E} "s/00000000a80425fb/$defautl_docker_caps/g" | sed -${E} "s,0000000000000000|00000000a80425fb,${SED_GREEN},g"
         echo $ITALIC"Run capsh --decode=<hex> to decode the capabilities"$NC
     fi
+
+    print_list "Ambient capabilities ........... "$NC
+    (grep "CapAmb:" /proc/self/status 2>/dev/null | grep -v "0000000000000000" | sed "s,CapAmb:.,," || echo "No") | sed -${E} "s,No,${SED_GREEN}," | sed -${E} "s,[0-9a-fA-F]\+,${SED_RED}&,"
     
     # Additional capability checks
     print_list "Dangerous syscalls allowed ... "$NC
@@ -199,6 +222,10 @@ if [ "$inContainer" ]; then
     else
         echo "No"
     fi
+    
+    
+    print_list "Looking and enumerating Docker Sockets (if any):\n"$NC
+    enumerateDockerSockets
     
     # Additional breakout vectors
     print_3title "Additional Breakout Vectors"
