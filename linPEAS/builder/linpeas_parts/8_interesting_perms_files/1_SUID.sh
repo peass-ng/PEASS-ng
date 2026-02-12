@@ -23,6 +23,7 @@ if ! [ "$STRACE" ]; then
 fi
 suids_files=$(find $ROOT_FOLDER -perm -4000 -type f ! -path "/dev/*" 2>/dev/null)
 printf "%s\n" "$suids_files" | while read s; do
+  [ -z "$s" ] && continue
   s=$(ls -lahtr "$s")
   #If starts like "total 332K" then no SUID bin was found and xargs just executed "ls" in the current folder
   if echo "$s" | grep -qE "^total"; then break; fi
@@ -59,6 +60,8 @@ printf "%s\n" "$suids_files" | while read s; do
                   if [ -O "$sline_first" ] || [ -w "$sline_first" ]; then #And modifiable
                     printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is using $RED$sline_first$NC$ITALIC and you can modify it (strings line: $sline) (https://tinyurl.com/suidpath)\n"
                   fi
+                elif echo "$sline_first" | grep -q "/" && [ -d "$(dirname "$sline_first")" ] && [ -w "$(dirname "$sline_first")" ]; then #If path does not exist but can be created
+                  printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is using $RED$sline_first$NC$ITALIC and you can create it inside writable dir $RED$(dirname "$sline_first")$NC$ITALIC (strings line: $sline) (https://tinyurl.com/suidpath)\n"
                 else #If not a path
                   if [ ${#sline_first} -gt 2 ] && command -v "$sline_first" 2>/dev/null | grep -q '/' && echo "$sline_first" | grep -Eqv "\.\."; then #Check if existing binary
                     printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is executing $RED$sline_first$NC$ITALIC and you can impersonate it (strings line: $sline) (https://tinyurl.com/suidpath)\n"

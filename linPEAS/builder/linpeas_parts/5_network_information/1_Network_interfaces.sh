@@ -5,8 +5,8 @@
 # Description: Check network interfaces
 # License: GNU GPL
 # Version: 1.0
-# Functions Used: print_2title
-# Global Variables:
+# Functions Used: print_2title, print_3title
+# Global Variables: $E, $SED_RED_YELLOW
 # Initial Functions:
 # Generated Global Variables: $iface, $state, $mac, $ip_file, $line
 # Fat linpeas: 0
@@ -72,5 +72,23 @@ elif command -v ip >/dev/null 2>&1; then
 else
     parse_network_interfaces
 fi
+
+if command -v ip >/dev/null 2>&1; then
+    print_3title "Routing & policy quick view"
+    ip route 2>/dev/null
+    ip -6 route 2>/dev/null | head -n 30
+    echo ""
+    ip rule 2>/dev/null
+
+    print_3title "Virtual/overlay interfaces quick view"
+    ip -d link 2>/dev/null | grep -E "^[0-9]+:|veth|docker|cni|flannel|br-|bridge|vlan|bond|tun|tap|wg|tailscale" | sed -${E} "s,veth|docker|cni|flannel|br-|bridge|vlan|bond|tun|tap|wg|tailscale,${SED_RED_YELLOW},g"
+
+    print_3title "Network namespaces quick view"
+    ip netns list 2>/dev/null
+    ls -la /var/run/netns/ 2>/dev/null
+fi
+
+print_3title "Forwarding status"
+sysctl net.ipv4.ip_forward net.ipv6.conf.all.forwarding 2>/dev/null | sed -${E} "s,=[[:space:]]*1,${SED_RED_YELLOW},g"
 
 echo ""

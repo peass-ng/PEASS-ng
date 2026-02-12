@@ -12,4 +12,4 @@
 # Fat linpeas: 0
 # Small linpeas: 1
 
-sudoB="$(whoami)|ALL:ALL|ALL : ALL|ALL|env_keep|NOPASSWD|SETENV|/apache2|/cryptsetup|/mount|/restic|--password-command|--password-file|-o ProxyCommand|-o PreferredAuthentications"
+sudoB="$(whoami)|ALL:ALL|ALL : ALL|ALL|env_keep|NOPASSWD|SETENV|/apache2|/cryptsetup|/mount|/restic|/usermod|/sbin/ldconfig|/usr/sbin/ldconfig|ldconfig -f|--password-command|--password-file|-o ProxyCommand|-o PreferredAuthentications"

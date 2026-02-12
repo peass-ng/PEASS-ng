@@ -6,7 +6,7 @@
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: print_2title, print_3title, print_info
-# Global Variables: $E, $SED_RED
+# Global Variables: $E, $SED_RED, $SED_RED_YELLOW
 # Initial Functions:
 # Generated Global Variables: $pid_dir, $tx_queue, $pid, $rem_port, $proc_file, $rem_ip, $local_ip, $rx_queue, $proto, $rem_addr, $program, $state, $header_sep, $proc_info, $inode, $header, $line, $local_addr, $local_port
 # Fat linpeas: 0
@@ -121,6 +121,45 @@ get_open_ports() {
         parse_proc_net_ports "tcp"
         parse_proc_net_ports "udp"
     fi
+
+    # Focused local service exposure view
+    print_3title "Local-only listeners (loopback)"
+    if command -v ss >/dev/null 2>&1; then
+        ss -nltpu 2>/dev/null | grep -E "127\.0\.0\.1:|::1:" | sed -${E} "s,127\.0\.0\.1:|::1:,${SED_RED},g"
+    elif command -v netstat >/dev/null 2>&1; then
+        netstat -punta 2>/dev/null | grep -i listen | grep -E "127\.0\.0\.1:|::1:" | sed -${E} "s,127\.0\.0\.1:|::1:,${SED_RED},g"
+    fi
+
+    print_3title "Unique listener bind addresses"
+    if command -v ss >/dev/null 2>&1; then
+        ss -nltpuH 2>/dev/null | awk '{
+            a=$5
+            if (a ~ /^\[/) {
+                sub(/^\[/, "", a)
+                sub(/\]:[0-9]+$/, "", a)
+            } else if (a ~ /:[0-9]+$/) {
+                sub(/:[0-9]+$/, "", a)
+            }
+            sub(/^::ffff:/, "", a)
+            if (a != "") print a
+        }' | sort -u | sed -${E} "s,127\.0\.0\.1|::1,${SED_RED},g"
+    elif command -v netstat >/dev/null 2>&1; then
+        netstat -punta 2>/dev/null | grep -i listen | awk '{
+            a=$4
+            if (a ~ /^\[/) {
+                sub(/^\[/, "", a)
+                sub(/\]:[0-9]+$/, "", a)
+            } else if (a ~ /:[0-9]+$/) {
+                sub(/:[0-9]+$/, "", a)
+            }
+            if (a == ":::" ) a="::"
+            sub(/^::ffff:/, "", a)
+            if (a != "") print a
+        }' | sort -u | sed -${E} "s,127\.0\.0\.1|::1,${SED_RED},g"
+    fi
+
+    print_3title "Potential local forwarders/relays"
+    ps aux 2>/dev/null | grep -E "[s]ocat|[s]sh .*(-L|-R|-D)|[n]cat|[n]c .*-l" | sed -${E} "s,socat|ssh|-L|-R|-D|ncat|nc,${SED_RED_YELLOW},g"
 
     # Additional port information
     if [ "$EXTRA_CHECKS" ] || [ "$DEBUG" ]; then

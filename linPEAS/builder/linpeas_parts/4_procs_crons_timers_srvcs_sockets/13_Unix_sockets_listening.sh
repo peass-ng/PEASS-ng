@@ -11,7 +11,7 @@
 # License: GNU GPL
 # Version: 1.1
 # Functions Used: print_2title, print_info
-# Global Variables: $EXTRA_CHECKS, $groupsB, $groupsVB, $IAMROOT, $idB, $knw_grps, $knw_usrs, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $SED_RED, $SED_GREEN, $NC, $RED
+# Global Variables: $EXTRA_CHECKS, $groupsB, $groupsVB, $IAMROOT, $idB, $knw_grps, $knw_usrs, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $SED_RED, $SED_GREEN, $SED_RED_YELLOW, $NC, $RED
 # Initial Functions:
 # Generated Global Variables: $unix_scks_list, $unix_scks_list2, $perms, $owner, $owner_info, $response, $socket, $cmd, $mode, $group
 # Fat linpeas: 0
@@ -142,6 +142,9 @@ if ! [ "$IAMROOT" ]; then
                     # Highlight dangerous ownership
                     if echo "$owner_info" | grep -q "root"; then
                         echo "  └─(${RED}Owned by root${NC})"
+                        if echo "$perms" | grep -q "Write"; then
+                            echo "  └─High risk: root-owned and writable Unix socket" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
+                        fi
                     fi
                 fi
             fi

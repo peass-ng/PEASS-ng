@@ -6,9 +6,9 @@
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: print_2title, print_3title, print_info, warn_exec
-# Global Variables: $EXTRA_CHECKS, $E, $SED_RED, $SED_GREEN
+# Global Variables: $EXTRA_CHECKS, $E, $SED_RED, $SED_GREEN, $SED_RED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $tools_found, $tool, $interfaces, $interfaces_found, $iface, $cmd, $pattern, $patterns
+# Generated Global Variables: $tools_found, $tool, $interfaces, $interfaces_found, $iface, $cmd, $pattern, $patterns, $dumpcap_test_file
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -26,8 +26,17 @@ check_command() {
 # Function to check if we can sniff on an interface
 check_interface_sniffable() {
     local iface=$1
-    if timeout 1 tcpdump -i "$iface" -c 1 >/dev/null 2>&1; then
-        return 0
+    if check_command tcpdump; then
+        if timeout 1 tcpdump -i "$iface" -c 1 >/dev/null 2>&1; then
+            return 0
+        fi
+    elif check_command dumpcap; then
+        dumpcap_test_file="/tmp/.linpeas_dumpcap_test_$$.pcap"
+        if timeout 2 dumpcap -i "$iface" -c 1 -q -w "$dumpcap_test_file" >/dev/null 2>&1; then
+            rm -f "$dumpcap_test_file" 2>/dev/null
+            return 0
+        fi
+        rm -f "$dumpcap_test_file" 2>/dev/null
     fi
     return 1
 }
@@ -55,6 +64,20 @@ check_network_traffic_analysis() {
         tools_found=1
         # Check tcpdump version and capabilities
         warn_exec tcpdump --version 2>/dev/null | head -n 1
+        getcap "$(command -v tcpdump)" 2>/dev/null
+    fi
+
+    if check_command dumpcap; then
+        echo "dumpcap is available" | sed -${E} "s,.*,${SED_GREEN},g"
+        tools_found=1
+        warn_exec dumpcap --version 2>/dev/null | head -n 1
+        getcap "$(command -v dumpcap)" 2>/dev/null
+
+        if id -nG 2>/dev/null | grep -qw wireshark; then
+            echo "Current user is in wireshark group" | sed -${E} "s,.*,${SED_GREEN},g"
+        elif getent group wireshark >/dev/null 2>&1; then
+            echo "wireshark group exists but current user is not in it" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
+        fi
     fi
     
     if check_command tshark; then
@@ -68,9 +91,27 @@ check_network_traffic_analysis() {
         echo "wireshark is available" | sed -${E} "s,.*,${SED_GREEN},g"
         tools_found=1
     fi
+
+    if check_command ngrep; then
+        echo "ngrep is available" | sed -${E} "s,.*,${SED_GREEN},g"
+        tools_found=1
+    fi
+
+    if check_command tcpflow; then
+        echo "tcpflow is available" | sed -${E} "s,.*,${SED_GREEN},g"
+        tools_found=1
+    fi
     
     if [ $tools_found -eq 0 ]; then
         echo "No sniffing tools found" | sed -${E} "s,.*,${SED_RED},g"
+    fi
+
+    if check_command tcpdump; then
+        echo "Sniffable interfaces according to tcpdump -D:"
+        timeout 2 tcpdump -D 2>/dev/null
+    elif check_command dumpcap; then
+        echo "Sniffable interfaces according to dumpcap -D:"
+        timeout 2 dumpcap -D 2>/dev/null
     fi
     
     # Check network interfaces
@@ -88,25 +129,28 @@ check_network_traffic_analysis() {
     fi
     
     for iface in $interfaces; do
-        if [ "$iface" != "lo" ]; then  # Skip loopback
+        if [ "$iface" = "lo" ]; then
+            echo -n "Interface $iface (loopback): "
+        else
             echo -n "Interface $iface: "
-            if check_interface_sniffable "$iface"; then
-                echo "Sniffable" | sed -${E} "s,.*,${SED_GREEN},g"
-                interfaces_found=1
-                
-                # Check promiscuous mode
-                if check_promiscuous_mode "$iface"; then
-                    echo "  - Promiscuous mode enabled" | sed -${E} "s,.*,${SED_RED},g"
-                fi
-                
-                # Get interface details
-                if [ "$EXTRA_CHECKS" ]; then
-                    echo "  - Interface details:"
-                    warn_exec ip addr show "$iface" 2>/dev/null || ifconfig "$iface" 2>/dev/null
-                fi
-            else
-                echo "Not sniffable" | sed -${E} "s,.*,${SED_RED},g"
+        fi
+
+        if check_interface_sniffable "$iface"; then
+            echo "Sniffable" | sed -${E} "s,.*,${SED_GREEN},g"
+            interfaces_found=1
+
+            # Check promiscuous mode
+            if [ "$iface" != "lo" ] && check_promiscuous_mode "$iface"; then
+                echo "  - Promiscuous mode enabled" | sed -${E} "s,.*,${SED_RED},g"
             fi
+
+            # Get interface details
+            if [ "$EXTRA_CHECKS" ]; then
+                echo "  - Interface details:"
+                warn_exec ip addr show "$iface" 2>/dev/null || ifconfig "$iface" 2>/dev/null
+            fi
+        else
+            echo "Not sniffable" | sed -${E} "s,.*,${SED_RED},g"
         fi
     done
     
@@ -145,7 +189,12 @@ check_network_traffic_analysis() {
         print_info "To capture sensitive traffic, you can use:"
         echo "tcpdump -i <interface> -w capture.pcap" | sed -${E} "s,.*,${SED_GREEN},g"
         echo "tshark -i <interface> -w capture.pcap" | sed -${E} "s,.*,${SED_GREEN},g"
+        echo "dumpcap -i <interface> -w capture.pcap" | sed -${E} "s,.*,${SED_GREEN},g"
     fi
+
+    echo ""
+    print_3title "Running sniffing/traffic reconstruction processes"
+    ps aux 2>/dev/null | grep -E "[t]cpdump|[d]umpcap|[t]shark|[w]ireshark|[n]grep|[t]cpflow" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
     
     # Additional information
     if [ "$EXTRA_CHECKS" ]; then

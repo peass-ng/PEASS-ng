@@ -6,9 +6,9 @@
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: print_2title, print_3title, warn_exec, echo_not_found
-# Global Variables: $EXTRA_CHECKS, $E, $SED_RED, $SED_GREEN, $SED_YELLOW
+# Global Variables: $EXTRA_CHECKS, $E, $SED_RED, $SED_GREEN, $SED_YELLOW, $SED_RED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $rules_file, $cmd, $tool, $config_file
+# Generated Global Variables: $rules_file, $cmd, $tool, $config_file, $sysctl_var
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -90,6 +90,9 @@ analyze_nftables() {
     # List all rules
     echo -e "\nNftables Ruleset:"
     warn_exec nft list ruleset 2>/dev/null
+
+    echo -e "\nNftables Ruleset with handles (-a):"
+    warn_exec nft -a list ruleset 2>/dev/null | sed -${E} "s,\\bdrop\\b|\\breject\\b|handle [0-9]+,${SED_RED_YELLOW},g"
     
     # Check for saved rules
     echo -e "\nSaved Rules:"
@@ -180,6 +183,17 @@ analyze_firewall_rules() {
     analyze_nftables
     analyze_firewalld
     analyze_ufw
+
+    echo ""
+    print_3title "Forwarding and rp_filter"
+    for sysctl_var in net.ipv4.ip_forward net.ipv6.conf.all.forwarding net.ipv4.conf.all.rp_filter; do
+        sysctl "$sysctl_var" 2>/dev/null | sed -${E} "s,=[[:space:]]*1,${SED_RED_YELLOW},g"
+    done
+
+    if check_command conntrack; then
+        echo -e "\nConntrack state (first 20):"
+        warn_exec conntrack -L 2>/dev/null | head -n 20
+    fi
     
     # Additional checks if EXTRA_CHECKS is enabled
     if [ "$EXTRA_CHECKS" ]; then

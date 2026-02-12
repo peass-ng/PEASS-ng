@@ -813,6 +813,12 @@ search:
                       bad_regex: "auth|accessfile=|secret=|user"
                       remove_regex:  "^#|^@"
                       type: f
+                - name: "*"
+                  value:
+                      bad_regex: "nullok|nullok_secure|pam_permit\\.so|pam_rootok\\.so|pam_exec\\.so|pam_unix\\.so.*(nullok|remember=0)|sufficient\\s+pam_unix\\.so"
+                      only_bad_lines: True
+                      remove_regex: "^#|^@"
+                      type: f
               type: d
               search_in: 
                 - ${ROOT_FOLDER}etc
@@ -1235,12 +1241,20 @@ search:
           auto_check: False
     
         files:
-          - name: "agent*"
+          - name: "agent.*"
             value: 
                 type: f
                 remove_path: ".dll"
                 search_in: 
                   - ${ROOT_FOLDER}tmp
+                  - ${ROOT_FOLDER}run
+
+          - name: "ssh-agent.sock"
+            value:
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}tmp
+                  - ${ROOT_FOLDER}run
       
   - name: SSH_CONFIG
     value:
@@ -2067,6 +2081,45 @@ search:
                 type: f
                 search_in: 
                   - common
+
+          - name: "*.asc"
+            value:
+                type: f
+                remove_path: "/usr/share/|/usr/lib/|/lib/|/man/"
+                search_in:
+                  - common
+
+          - name: "secring.gpg"
+            value:
+                type: f
+                search_in:
+                  - common
+
+          - name: "pubring.kbx"
+            value:
+                type: f
+                search_in:
+                  - common
+
+          - name: "trustdb.gpg"
+            value:
+                type: f
+                search_in:
+                  - common
+
+          - name: "gpg-agent.conf"
+            value:
+                type: f
+                search_in:
+                  - common
+
+          - name: "secret.asc"
+            value:
+                type: f
+                just_list_file: True
+                search_in:
+                  - common
+
           - name: "private-keys-v1.d/*.key"
             value: 
                 type: f
@@ -2843,6 +2896,85 @@ search:
                 type: f
                 remove_path: "example"
                 search_in: 
+                  - common
+
+  - name: Proxy_Config
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "environment"
+            value:
+                bad_regex: "(http|https|ftp|all)_proxy|no_proxy"
+                only_bad_lines: True
+                remove_empty_lines: True
+                remove_regex: '^#'
+                type: f
+                check_extra_path: "^/etc/environment$"
+                search_in:
+                  - common
+
+          - name: "apt.conf"
+            value:
+                bad_regex: "Acquire::http::Proxy|Acquire::https::Proxy|proxy"
+                only_bad_lines: True
+                remove_empty_lines: True
+                remove_regex: '^#'
+                type: f
+                search_in:
+                  - common
+
+          - name: "apt.conf.d"
+            value:
+                type: d
+                files:
+                  - name: "*"
+                    value:
+                        bad_regex: "Acquire::http::Proxy|Acquire::https::Proxy|proxy"
+                        only_bad_lines: True
+                        remove_empty_lines: True
+                        remove_regex: '^#'
+                        type: f
+                search_in:
+                  - common
+    
+  - name: Sniffing_Artifacts
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "*.pcap"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "*.pcapng"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "keys.log"
+            value:
+                bad_regex: "CLIENT_RANDOM|SERVER_HANDSHAKE_TRAFFIC_SECRET|CLIENT_HANDSHAKE_TRAFFIC_SECRET|EXPORTER_SECRET|RESUMPTION_MASTER_SECRET"
+                only_bad_lines: True
+                remove_empty_lines: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "sslkeylog.log"
+            value:
+                bad_regex: "CLIENT_RANDOM|SERVER_HANDSHAKE_TRAFFIC_SECRET|CLIENT_HANDSHAKE_TRAFFIC_SECRET|EXPORTER_SECRET|RESUMPTION_MASTER_SECRET"
+                only_bad_lines: True
+                remove_empty_lines: True
+                type: f
+                search_in:
                   - common
     
   - name: Msmtprc
@@ -3946,6 +4078,13 @@ search:
                 just_list_file: True
                 type: f
                 search_in: 
+                  - common
+
+          - name: "*.maintenance*"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
                   - common
 
           - name: "*.key"

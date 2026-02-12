@@ -8,7 +8,7 @@
 # Functions Used: echo_not_found, print_2title, print_info, print_3title
 # Global Variables: $capsB, $capsVB, $IAMROOT, $SEARCH_IN_FOLDER
 # Initial Functions:
-# Generated Global Variables: $cap_name, $cap_value, $cap_line, $capVB, $capname, $capbins, $capsVB_vuln
+# Generated Global Variables: $cap_name, $cap_value, $cap_line, $capVB, $capname, $capbins, $capsVB_vuln, $proc_status, $proc_pid, $proc_name, $proc_uid, $user_name, $proc_inh, $proc_prm, $proc_eff, $proc_bnd, $proc_amb, $proc_inh_dec, $proc_prm_dec, $proc_eff_dec, $proc_bnd_dec, $proc_amb_dec
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -68,6 +68,40 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
         fi
       fi
     done
+    echo ""
+
+    print_3title "Processes with capability sets (non-zero CapEff/CapAmb, limit 40)"
+    find /proc -maxdepth 2 -path "/proc/[0-9]*/status" 2>/dev/null | head -n 400 | while read -r proc_status; do
+      proc_pid=$(echo "$proc_status" | cut -d/ -f3)
+      proc_name=$(awk '/^Name:/{print $2}' "$proc_status" 2>/dev/null)
+      proc_uid=$(awk '/^Uid:/{print $2}' "$proc_status" 2>/dev/null)
+      user_name=$(awk -F: -v uid="$proc_uid" '$3==uid{print $1; exit}' /etc/passwd 2>/dev/null)
+      [ -z "$user_name" ] && user_name="$proc_uid"
+
+      proc_inh=$(awk '/^CapInh:/{print $2}' "$proc_status" 2>/dev/null)
+      proc_prm=$(awk '/^CapPrm:/{print $2}' "$proc_status" 2>/dev/null)
+      proc_eff=$(awk '/^CapEff:/{print $2}' "$proc_status" 2>/dev/null)
+      proc_bnd=$(awk '/^CapBnd:/{print $2}' "$proc_status" 2>/dev/null)
+      proc_amb=$(awk '/^CapAmb:/{print $2}' "$proc_status" 2>/dev/null)
+
+      [ -z "$proc_eff" ] && continue
+      if [ "$proc_eff" != "0000000000000000" ] || [ "$proc_amb" != "0000000000000000" ]; then
+        echo "PID $proc_pid ($proc_name) user=$user_name"
+
+        proc_inh_dec=$(capsh --decode=0x"$proc_inh" 2>/dev/null)
+        proc_prm_dec=$(capsh --decode=0x"$proc_prm" 2>/dev/null)
+        proc_eff_dec=$(capsh --decode=0x"$proc_eff" 2>/dev/null)
+        proc_bnd_dec=$(capsh --decode=0x"$proc_bnd" 2>/dev/null)
+        proc_amb_dec=$(capsh --decode=0x"$proc_amb" 2>/dev/null)
+
+        echo "  CapInh: $proc_inh_dec" | sed -${E} "s,$capsB,${SED_RED},g"
+        echo "  CapPrm: $proc_prm_dec" | sed -${E} "s,$capsB,${SED_RED},g"
+        echo "  CapEff: $proc_eff_dec" | sed -${E} "s,$capsB,${SED_RED_YELLOW},g"
+        echo "  CapBnd: $proc_bnd_dec" | sed -${E} "s,$capsB,${SED_RED},g"
+        echo "  CapAmb: $proc_amb_dec" | sed -${E} "s,$capsB,${SED_RED_YELLOW},g"
+        echo ""
+      fi
+    done | head -n 240
     echo ""
   
   else

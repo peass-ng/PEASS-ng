@@ -217,7 +217,7 @@ print_title(){
   max_title_len=80
   rest_len=$((($max_title_len - $title_len) / 2))
 
-  printf ${BLUE}
+  printf "%s" "${BLUE}"
   for i in $(seq 1 $rest_len); do printf " "; done
   printf "╔"
   for i in $(seq 1 $title_len); do printf "═"; done; printf "═";
@@ -231,13 +231,13 @@ print_title(){
 
   echo ""
 
-  printf ${BLUE}
+  printf "%s" "${BLUE}"
   for i in $(seq 1 $rest_len); do printf " "; done
   printf "╚"
   for i in $(seq 1 $title_len); do printf "═"; done; printf "═";
   printf "╝"
 
-  printf $NC
+  printf "%s" "${NC}"
   echo ""
 }
 

@@ -8,7 +8,7 @@
 # Functions Used: print_2title, print_3title
 # Global Variables: $HOME, $HOMESEARCH, $ROOT_FOLDER, $SEARCH_IN_FOLDER, $TIMEOUT, $USER, $wgroups
 # Initial Functions:
-# Generated Global Variables: $certsb4_grep, $hostsallow, $hostsdenied, $sshconfig, $writable_agents, $privatekeyfilesetc, $privatekeyfileshome, $privatekeyfilesroot, $privatekeyfilesmnt,
+# Generated Global Variables: $certsb4_grep, $hostsallow, $hostsdenied, $sshconfig, $writable_agents, $agent_sockets, $privatekeyfilesetc, $privatekeyfileshome, $privatekeyfilesroot, $privatekeyfilesmnt,
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -19,12 +19,18 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   sshconfig="$(ls /etc/ssh/ssh_config 2>/dev/null)"
   hostsdenied="$(ls /etc/hosts.denied 2>/dev/null)"
   hostsallow="$(ls /etc/hosts.allow 2>/dev/null)"
-  writable_agents=$(find /tmp /etc /home -type s -name "agent.*" -or -name "*gpg-agent*" '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)
+  agent_sockets=$(find /run/user /tmp -type s \( -path "/run/user/*/ssh-*/agent.*" -o -name "ssh-agent.sock" -o -path "/tmp/ssh-*" \) 2>/dev/null)
+  writable_agents=$(find /tmp /etc /home /run/user \
+    \( -type s -a \( -name "agent.*" -o -name "ssh-agent.sock" -o -path "*/ssh-*/agent.*" -o -name "*gpg-agent*" \) \
+    -a \( \( -user "$USER" \) -o \( -perm -o=w \) -o \( -perm -g=w -a \( $wgroups \) \) \) \) 2>/dev/null)
 else
   sshconfig="$(ls ${ROOT_FOLDER}etc/ssh/ssh_config 2>/dev/null)"
   hostsdenied="$(ls ${ROOT_FOLDER}etc/hosts.denied 2>/dev/null)"
   hostsallow="$(ls ${ROOT_FOLDER}etc/hosts.allow 2>/dev/null)"
-  writable_agents=$(find  ${ROOT_FOLDER} -type s -name "agent.*" -or -name "*gpg-agent*" '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)
+  agent_sockets=$(find "${ROOT_FOLDER}"tmp "${ROOT_FOLDER}"run -type s \( -name "agent.*" -o -name "ssh-agent.sock" \) 2>/dev/null)
+  writable_agents=$(find "${ROOT_FOLDER}" \
+    \( -type s -a \( -name "agent.*" -o -name "ssh-agent.sock" -o -path "*/ssh-*/agent.*" -o -name "*gpg-agent*" \) \
+    -a \( \( -user "$USER" \) -o \( -perm -o=w \) -o \( -perm -g=w -a \( $wgroups \) \) \) \) 2>/dev/null)
 fi
 
 peass{SSH}
@@ -58,7 +64,7 @@ fi
 if [ "$certsb4_grep" ] || [ "$PSTORAGE_CERTSBIN" ]; then
   print_3title "Some certificates were found (out limited):"
   printf "$certsb4_grep\n" | head -n 20
-  printf "$$PSTORAGE_CERTSBIN\n" | head -n 20
+  printf "$PSTORAGE_CERTSBIN\n" | head -n 20
     echo ""
 fi
 if [ "$PSTORAGE_CERTSCLIENT" ]; then
@@ -69,6 +75,11 @@ fi
 if [ "$PSTORAGE_SSH_AGENTS" ]; then
   print_3title "Some SSH Agent files were found:"
   printf "$PSTORAGE_SSH_AGENTS\n"
+  echo ""
+fi
+if [ "$agent_sockets" ]; then
+  print_3title "Potential SSH agent sockets were found:"
+  printf "%s\n" "$agent_sockets" | sed -${E} "s,.*,${SED_RED},"
   echo ""
 fi
 if ssh-add -l 2>/dev/null | grep -qv 'no identities'; then

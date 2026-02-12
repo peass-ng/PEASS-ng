@@ -17,7 +17,7 @@
 # Functions Used: print_2title, print_list, echo_not_found
 # Global Variables: $SEARCH_IN_FOLDER, $Wfolders, $SED_RED, $SED_RED_YELLOW, $NC
 # Initial Functions:
-# Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $exec_value, $cmd, $cmd_path
+# Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $exec_value, $cmd, $cmd_path, $svc_path_entry, $svc_writable_path
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -113,6 +113,19 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
             service=$(echo "$line" | awk '{print $1}')
             service_file=$(get_service_file "$service")
             if [ -n "$service_file" ]; then
+                # Check service-specific PATH entries (Environment=PATH=...)
+                svc_writable_path=$(grep -E '^Environment=.*PATH=' "$service_file" 2>/dev/null | sed -E 's/^Environment=//; s/^"//; s/"$//; s/^PATH=//' | tr ':' '\n' | while read -r svc_path_entry; do
+                    [ -z "$svc_path_entry" ] && continue
+                    if [ -d "$svc_path_entry" ] && [ -w "$svc_path_entry" ]; then
+                        echo "$svc_path_entry"
+                    fi
+                done)
+                if [ "$svc_writable_path" ]; then
+                    for svc_path_entry in $svc_writable_path; do
+                        echo "$service: Writable service PATH entry '$svc_path_entry'" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
+                    done
+                fi
+
                 # Check ExecStart paths
                 grep -E "ExecStart|ExecStartPre|ExecStartPost" "$service_file" 2>/dev/null | 
                 while read -r exec_line; do
@@ -130,6 +143,9 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
                     # Check for relative paths only in the command, not arguments
                     if [ -n "$cmd_path" ] && [ "${cmd_path#/}" = "$cmd_path" ] && [ "${cmd_path#\$}" = "$cmd_path" ]; then
                         echo "$service: Uses relative path '$cmd_path' (from $exec_line)" | sed -${E} "s,.*,${SED_RED},g"
+                        if [ "$svc_writable_path" ]; then
+                            echo "$service: Relative Exec path + writable service PATH can allow path hijacking" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
+                        fi
                     fi
                 done
             fi

@@ -6,7 +6,7 @@
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: print_2title, print_info
-# Global Variables: $IAMROOT, $ITALIC, $SEARCH_IN_FOLDER, $USER, $Wfolders, $wgroups
+# Global Variables: $IAMROOT, $ITALIC, $SEARCH_IN_FOLDER, $USER, $Wfolders, $ldsoconfdG, $wgroups
 # Initial Functions:
 # Generated Global Variables: $ini_path, $fpath
 # Fat linpeas: 0
@@ -26,40 +26,53 @@ if ! [ "$SEARCH_IN_FOLDER" ] && ! [ "$IAMROOT" ]; then
   echo "Content of /etc/ld.so.conf:"
   cat /etc/ld.so.conf 2>/dev/null | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
 
-  # Check each configured folder
-  cat /etc/ld.so.conf 2>/dev/null | while read l; do
-    if echo "$l" | grep -q include; then
+  # Check each configured folder and include directives
+  cat /etc/ld.so.conf 2>/dev/null | while IFS= read -r l; do
+    l=$(echo "$l" | sed 's/#.*$//' | xargs 2>/dev/null)
+    [ -z "$l" ] && continue
+
+    if echo "$l" | grep -qE '^include[[:space:]]+'; then
       ini_path=$(echo "$l" | cut -d " " -f 2)
       fpath=$(dirname "$ini_path")
 
-      if [ -d "/etc/ld.so.conf" ] && [ -w "$fpath" ]; then 
-        echo "You have write privileges over $fpath" | sed -${E} "s,.*,${SED_RED_YELLOW},"; 
+      if [ -d "$fpath" ] && [ -w "$fpath" ]; then
+        echo "You have write privileges over $fpath" | sed -${E} "s,.*,${SED_RED_YELLOW},";
         printf $RED_YELLOW$ITALIC"$fpath\n"$NC;
       else
         printf $GREEN$ITALIC"$fpath\n"$NC;
       fi
 
-      if [ "$(find $fpath -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then
-        echo "You have write privileges over $(find $fpath -type f '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" | sed -${E} "s,.*,${SED_RED_YELLOW},"; 
+      if [ "$(find "$fpath" -type f '(' '(' -user "$USER" ')' -or '(' -perm -o=w ')' -or '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then
+        echo "You have write privileges over $(find "$fpath" -type f '(' '(' -user "$USER" ')' -or '(' -perm -o=w ')' -or '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" | sed -${E} "s,.*,${SED_RED_YELLOW},";
       fi
 
-      for f in $fpath/*; do
-        if [ -w "$f" ]; then 
-          echo "You have write privileges over $f" | sed -${E} "s,.*,${SED_RED_YELLOW},"; 
+      for f in $ini_path; do
+        [ -f "$f" ] || continue
+
+        if [ -w "$f" ]; then
+          echo "You have write privileges over $f" | sed -${E} "s,.*,${SED_RED_YELLOW},";
           printf $RED_YELLOW$ITALIC"$f\n"$NC;
         else
           printf $GREEN$ITALIC"  $f\n"$NC;
         fi
 
-        cat "$f" | grep -v "^#" | while read l2; do
-          if [ -f "$l2" ] && [ -w "$l2" ]; then 
-            echo "You have write privileges over $l2" | sed -${E} "s,.*,${SED_RED_YELLOW},"; 
+        cat "$f" 2>/dev/null | grep -v "^#" | while IFS= read -r l2; do
+          l2=$(echo "$l2" | xargs 2>/dev/null)
+          [ -z "$l2" ] && continue
+
+          if [ -d "$l2" ] && [ -w "$l2" ]; then
+            echo "You have write privileges over $l2" | sed -${E} "s,.*,${SED_RED_YELLOW},";
             printf $RED_YELLOW$ITALIC"  - $l2\n"$NC;
-          else
-            echo $ITALIC"  - $l2"$NC | sed -${E} "s,$l2,${SED_GREEN}," | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g";
+          elif [ -d "$l2" ]; then
+            echo $ITALIC"  - $l2"$NC | sed -${E} "s,$ldsoconfdG,${SED_GREEN},g" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g";
           fi
         done
       done
+    elif [ -d "$l" ] && [ -w "$l" ]; then
+      echo "You have write privileges over $l" | sed -${E} "s,.*,${SED_RED_YELLOW},";
+      printf $RED_YELLOW$ITALIC"$l\n"$NC;
+    else
+      echo $ITALIC"$l"$NC | sed -${E} "s,$ldsoconfdG,${SED_GREEN},g" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g";
     fi
   done
   echo ""
