@@ -52,7 +52,4 @@ if __name__ == "__main__":
         parser.print_help()
         exit(1)
 
-    if args.all_no_fat or args.small:
-        raise RuntimeError("intentional test break: linux-only builder mode failure")
-    
     main(all_modules, all_no_fat_modules, no_network_scanning, small, include_modules, exclude_modules, output)
