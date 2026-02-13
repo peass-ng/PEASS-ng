@@ -30,10 +30,15 @@ jobs:
       - name: Resolve PR context
         id: gate
         env:
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          pr_number="${{ github.event.workflow_run.pull_requests[0].number }}"
+          pr_number="${PR_NUMBER}"
+          if [ -z "$pr_number" ] && [ -n "$HEAD_BRANCH" ]; then
+            pr_number="$(gh pr list --state open --head "$HEAD_BRANCH" --json number --jq '.[0].number')"
+          fi
           if [ -z "$pr_number" ]; then
             echo "No pull request found for this workflow_run; skipping."
             echo "should_run=false" >> "$GITHUB_OUTPUT"

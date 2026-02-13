@@ -178,8 +178,8 @@ jobs:
       # Build linpeas (macpeas)
       - name: Build macpeas
         run: |
-          python3 -m pip install PyYAML
-          python3 -m pip install requests
+          python3 -m pip install PyYAML --break-system-packages
+          python3 -m pip install requests --break-system-packages
           cd linPEAS
           python3 -m builder.linpeas_builder --all --output linpeas_fat.sh
       
