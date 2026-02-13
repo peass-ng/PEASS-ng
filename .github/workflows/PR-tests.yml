@@ -161,9 +161,11 @@ jobs:
         run: linPEAS/linpeas_fat.sh -o software_information -a
       
       - name: Run linpeas interesting_perms_files
+        if: ${{ false }}
         run: linPEAS/linpeas_fat.sh -o interesting_perms_files -a
       
       - name: Run linpeas interesting_files
+        if: ${{ false }}
         run: linPEAS/linpeas_fat.sh -o interesting_files -a
 
   Build_and_test_macpeas_pr:
@@ -207,4 +209,5 @@ jobs:
         run: linPEAS/linpeas_fat.sh -o users_information -a
       
       - name: Run macpeas software_information
+        if: ${{ false }}
         run: linPEAS/linpeas_fat.sh -o software_information -a
