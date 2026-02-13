@@ -7,9 +7,8 @@ on:
 
 jobs:
   resolve_pr_context:
-    # Temporarily disabled by maintainer request.
     if: >
-      ${{ false && github.event.workflow_run.conclusion == 'failure' &&
+      ${{ github.event.workflow_run.conclusion == 'failure' &&
           github.event.workflow_run.pull_requests &&
           github.event.workflow_run.pull_requests[0] &&
           !startsWith(github.event.workflow_run.head_commit.message, 'Fix CI failures for PR #') }}
@@ -58,8 +57,7 @@ jobs:
 
   chack_agent_on_failure:
     needs: resolve_pr_context
-    # Temporarily disabled by maintainer request.
-    if: ${{ false && needs.resolve_pr_context.outputs.author == 'carlospolop' && needs.resolve_pr_context.outputs.should_run == 'true' }}
+    if: ${{ needs.resolve_pr_context.outputs.author == 'carlospolop' && needs.resolve_pr_context.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -156,11 +154,21 @@ jobs:
             echo "Leave the repo in a state ready to commit as when you finish, it'll be automatically committed and pushed."
           } > chack_prompt.txt
 
+      - name: Set up Node.js for Codex
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - name: Install Codex CLI
+        run: |
+          npm install -g @openai/codex
+          codex --version
+
       - name: Run Chack Agent
         id: run_chack
         uses: carlospolop/chack-agent@master
         with:
-          provider: openrouter
+          provider: codex
           model_primary: CHEAP_BUT_QUALITY
           main_action: peass-ng
           sub_action: PR Failure Chack-Agent Dispatch
@@ -172,7 +180,7 @@ jobs:
           tools_config_json: "{\"exec_enabled\": true}"
           session_config_json: "{\"long_term_memory_enabled\": false}"
           agent_config_json: "{\"self_critique_enabled\": false, \"require_task_list_init_first\": true}"
-          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Commit and push if changed
         env:
