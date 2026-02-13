@@ -46,7 +46,7 @@ class LinpeasBuilder:
 
     def build(self):
         print("[+] Building variables...")
-        variables = self.__generate_variables()
+        variables = self.__generate_variabless()
         self.__replace_mark(PEAS_VARIABLES_MARKUP, variables, "")
         
         if len(re.findall(r"PSTORAGE_[a-zA-Z0-9_]+", self.linpeas_sh)) > 1: #Only add storages if there are storages (PSTORAGE_BACKUPS is always there so it doesn't count)
