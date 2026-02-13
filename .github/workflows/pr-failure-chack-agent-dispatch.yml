@@ -199,33 +199,44 @@ jobs:
         env:
           TARGET_BRANCH: ${{ needs.resolve_pr_context.outputs.head_branch }}
           PR_NUMBER: ${{ needs.resolve_pr_context.outputs.number }}
+          ORIGINAL_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          if git diff --quiet; then
-            echo "No changes to commit."
-            exit 0
-          fi
           rm -f chack_failure_summary.txt chack_prompt.txt
-          git add -A
-          # Avoid workflow-file pushes with token scopes that cannot write workflows.
-          git reset -- .github/workflows || true
-          git checkout -- .github/workflows || true
-          git clean -fdx -- .github/workflows || true
-          git reset -- chack_failure_summary.txt chack_prompt.txt
-          if git diff --cached --name-only | grep -q '^.github/workflows/'; then
-            echo "Workflow-file changes are still staged; skipping push without workflows permission."
+
+          pushed=false
+
+          if ! git diff --quiet; then
+            git add -A
+            # Avoid workflow-file pushes with token scopes that cannot write workflows.
+            git reset -- .github/workflows || true
+            git checkout -- .github/workflows || true
+            git clean -fdx -- .github/workflows || true
+            git reset -- chack_failure_summary.txt chack_prompt.txt
+            if git diff --cached --name-only | grep -q '^.github/workflows/'; then
+              echo "Workflow-file changes are still staged; skipping push without workflows permission."
+              exit 0
+            fi
+            if ! git diff --cached --quiet; then
+              git commit -m "Fix CI failures for PR #${PR_NUMBER}"
+            fi
+          fi
+
+          after_head="$(git rev-parse HEAD)"
+          if [ "$after_head" = "$ORIGINAL_HEAD_SHA" ]; then
+            echo "No commit produced by Chack Agent for PR #${PR_NUMBER}."
             exit 0
           fi
-          if git diff --cached --quiet; then
-            echo "No committable changes left after filtering."
-            exit 0
-          fi
-          git commit -m "Fix CI failures for PR #${PR_NUMBER}"
+
           if ! git push origin HEAD:${TARGET_BRANCH}; then
             echo "Push failed (likely token workflow permission limits); leaving run successful without push."
             exit 0
           fi
-          gh workflow run PR-tests.yml --ref "${TARGET_BRANCH}"
+          pushed=true
+
+          if [ "$pushed" = "true" ]; then
+            gh workflow run PR-tests.yml --ref "${TARGET_BRANCH}"
+          fi
 
       - name: Comment with Chack Agent result
         if: ${{ steps.run_chack.outputs.final-message != '' }}
