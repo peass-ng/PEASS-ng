@@ -158,7 +158,12 @@ jobs:
           fi
 
           echo "Sanitizing Chack commit range to non-workflow changes only."
-          git diff --binary "$ORIGINAL_HEAD_SHA"..HEAD -- . ':(exclude).github/workflows/**' > /tmp/chack_nonworkflow.patch
+          git diff --binary "$ORIGINAL_HEAD_SHA"..HEAD -- \
+            . \
+            ':(exclude).github/workflows/**' \
+            ':(exclude)chack_failure_summary.txt' \
+            ':(exclude)chack_prompt.txt' \
+            ':(exclude)chack_failed_steps_logs.txt' > /tmp/chack_nonworkflow.patch
           if [ ! -s /tmp/chack_nonworkflow.patch ]; then
             echo "Only workflow-file changes were produced; skipping push."
             echo "pushed=false" >> "$GITHUB_OUTPUT"
@@ -166,6 +171,8 @@ jobs:
           fi
           git reset --hard "$ORIGINAL_HEAD_SHA"
           git apply --index /tmp/chack_nonworkflow.patch
+          rm -f chack_failure_summary.txt chack_prompt.txt chack_failed_steps_logs.txt
+          git reset -- chack_failure_summary.txt chack_prompt.txt chack_failed_steps_logs.txt || true
           if git diff --cached --quiet; then
             echo "No non-workflow changes left after sanitizing."
             echo "pushed=false" >> "$GITHUB_OUTPUT"
