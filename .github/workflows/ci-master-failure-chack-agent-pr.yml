@@ -196,15 +196,34 @@ jobs:
           GH_TOKEN: ${{ secrets.CHACK_AGENT_FIXER_TOKEN || github.token }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
-          pr_url=$(gh pr create \
+          set +e
+          pr_output=$(gh pr create \
             --title "Fix CI-master_test failure (run #${{ github.event.workflow_run.id }})" \
             --body "Automated Chack Agent fix for failing CI-master_test run: ${RUN_URL}" \
             --base "$TARGET_BRANCH" \
-            --head "$FIX_BRANCH")
-          echo "url=$pr_url" >> "$GITHUB_OUTPUT"
+            --head "$FIX_BRANCH" 2>&1)
+          rc=$?
+          set -e
+
+          if [ $rc -eq 0 ]; then
+            echo "url=$pr_output" >> "$GITHUB_OUTPUT"
+            echo "created=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "$pr_output"
+          if echo "$pr_output" | grep -qi "not permitted to create or approve pull requests"; then
+            echo "PR creation blocked by repository Actions policy. Fix branch was pushed: $FIX_BRANCH"
+            echo "url=" >> "$GITHUB_OUTPUT"
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Unexpected PR creation error."
+          exit $rc
 
       - name: Comment on created PR with Chack Agent result
-        if: ${{ steps.push_fix.outputs.pushed == 'true' && steps.run_chack.outputs.final-message != '' }}
+        if: ${{ steps.push_fix.outputs.pushed == 'true' && steps.create_pr.outputs.created == 'true' && steps.run_chack.outputs.final-message != '' }}
         uses: actions/github-script@v7
         env:
           PR_URL: ${{ steps.create_pr.outputs.url }}
