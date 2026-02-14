@@ -1,0 +1,19 @@
+You are fixing a failing CI-master_test run in peass-ng/PEASS-ng.
+The failing workflow run is: https://github.com/peass-ng/PEASS-ng/actions/runs/22007237743
+The failing commit SHA is: 381bf74ebd87e5005525d68d52021dd646477f8b
+The target branch for the final PR is: master
+
+Failure summary:
+Job: Build_and_test_linpeas_master (id 63593607403)
+URL: https://github.com/peass-ng/PEASS-ng/actions/runs/22007237743/job/63593607403
+  Step: Build linpeas
+
+Job: Build_and_test_macpeas_master (id 63593607406)
+URL: https://github.com/peass-ng/PEASS-ng/actions/runs/22007237743/job/63593607406
+  Step: Build macpeas
+Failed-step logs file absolute path (local runner): /home/runner/work/PEASS-ng/PEASS-ng/chack_failed_steps_logs.txt
+Read that file to inspect the exact failing logs.
+
+Please identify the cause, apply an easy, simple and minimal fix, and update files accordingly.
+Run any fast checks you can locally (no network).
+Leave the repo in a state ready to commit; changes will be committed and pushed automatically.

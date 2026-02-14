@@ -1,0 +1,78 @@
+Build_and_test_linpeas_master	Build linpeas	﻿2026-02-14T00:11:52.0971447Z ##[group]Run python3 -m pip install PyYAML
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:52.0973220Z [36;1mpython3 -m pip install PyYAML[0m
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:52.0974295Z [36;1mcd linPEAS[0m
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:52.0975572Z [36;1mpython3 -m builder.linpeas_builder --all --output linpeas_fat.sh[0m
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:52.0977560Z [36;1mpython3 -m builder.linpeas_builder --all-no-fat --output linpeas.sh[0m
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:52.0979599Z [36;1mpython3 -m builder.linpeas_builder --small --output linpeas_small.sh[0m
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:52.1030508Z shell: /usr/bin/bash -e {0}
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:52.1031413Z env:
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:52.1032274Z   GOTOOLCHAIN: local
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:52.1033062Z ##[endgroup]
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:53.2773854Z Defaulting to user installation because normal site-packages is not writeable
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:53.9179829Z Requirement already satisfied: PyYAML in /usr/lib/python3/dist-packages (6.0.1)
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:54.4874406Z [+] Downloading regexes...
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:54.4875412Z Downloaded and saved in '/home/runner/work/PEASS-ng/PEASS-ng/build_lists/regexes.yaml' successfully!
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4167144Z Traceback (most recent call last):
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4168210Z   File "<frozen runpy>", line 198, in _run_module_as_main
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4168928Z   File "<frozen runpy>", line 88, in _run_code
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4169887Z   File "/home/runner/work/PEASS-ng/PEASS-ng/linPEAS/builder/linpeas_builder.py", line 55, in <module>
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4171167Z     main(all_modules, all_no_fat_modules, no_network_scanning, small, include_modules, exclude_modules, output)
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4174426Z   File "/home/runner/work/PEASS-ng/PEASS-ng/linPEAS/builder/linpeas_builder.py", line 21, in main
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4175184Z     lbuilder.build()
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4175907Z   File "/home/runner/work/PEASS-ng/PEASS-ng/linPEAS/builder/src/linpeasBuilder.py", line 49, in build
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4176725Z     variables = self.__generate_variabless()
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4177314Z                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4178354Z AttributeError: 'LinpeasBuilder' object has no attribute '_LinpeasBuilder__generate_variabless'. Did you mean: '_LinpeasBuilder__generate_variables'?
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4179375Z [+] Checking the syntax of the modules...
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4179814Z [+] 161 checks located
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4180275Z [+] Building temporary linpeas_base.sh with the indicated modules...
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4180829Z [+] Building variables...
+Build_and_test_linpeas_master	Build linpeas	2026-02-14T00:11:56.4408740Z ##[error]Process completed with exit code 1.
+Build_and_test_macpeas_master	Build macpeas	﻿2026-02-14T00:11:50.7998800Z ##[group]Run python3 -m pip install PyYAML --break-system-packages
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:50.8000500Z [36;1mpython3 -m pip install PyYAML --break-system-packages[0m
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:50.8002330Z [36;1mpython3 -m pip install requests --break-system-packages[0m
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:50.8003570Z [36;1mcd linPEAS[0m
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:50.8004650Z [36;1mpython3 -m builder.linpeas_builder --all --output linpeas_fat.sh[0m
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:50.8064280Z shell: /bin/bash -e {0}
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:50.8066060Z ##[endgroup]
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:52.4294420Z Collecting PyYAML
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:52.4743840Z   Downloading pyyaml-6.0.3-cp314-cp314-macosx_11_0_arm64.whl.metadata (2.4 kB)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:52.4954660Z Downloading pyyaml-6.0.3-cp314-cp314-macosx_11_0_arm64.whl (173 kB)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:52.5318410Z Installing collected packages: PyYAML
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:52.5701980Z Successfully installed PyYAML-6.0.3
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:52.9577360Z Collecting requests
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:52.9800800Z   Downloading requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.0525640Z Collecting charset_normalizer<4,>=2 (from requests)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.0742810Z   Downloading charset_normalizer-3.4.4-cp314-cp314-macosx_10_13_universal2.whl.metadata (37 kB)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.0836310Z Collecting idna<4,>=2.5 (from requests)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.0937740Z   Downloading idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.1041400Z Collecting urllib3<3,>=1.21.1 (from requests)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.1142970Z   Downloading urllib3-2.6.3-py3-none-any.whl.metadata (6.9 kB)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.1190720Z Requirement already satisfied: certifi>=2017.4.17 in /opt/homebrew/lib/python3.14/site-packages (from requests) (2026.1.4)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.1197310Z Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.1265270Z Downloading charset_normalizer-3.4.4-cp314-cp314-macosx_10_13_universal2.whl (207 kB)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.1306710Z Downloading idna-3.11-py3-none-any.whl (71 kB)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.1392250Z Downloading urllib3-2.6.3-py3-none-any.whl (131 kB)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.1589340Z Installing collected packages: urllib3, idna, charset_normalizer, requests
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.3645880Z 
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.3747140Z Successfully installed charset_normalizer-3.4.4 idna-3.11 requests-2.32.5 urllib3-2.6.3
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.6562290Z [+] Downloading regexes...
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:53.6667880Z Downloaded and saved in '/Users/runner/work/PEASS-ng/PEASS-ng/build_lists/regexes.yaml' successfully!
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.4616130Z Traceback (most recent call last):
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.4616610Z [+] Checking the syntax of the modules...
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.4725080Z   File "<frozen runpy>", line 198, in _run_module_as_main
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.4725360Z [+] 161 checks located
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.4828080Z   File "<frozen runpy>", line 88, in _run_code
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.4828560Z [+] Building temporary linpeas_base.sh with the indicated modules...
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.4930770Z   File "/Users/runner/work/PEASS-ng/PEASS-ng/linPEAS/builder/linpeas_builder.py", line 55, in <module>
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.4931470Z [+] Building variables...
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.5000130Z     main(all_modules, all_no_fat_modules, no_network_scanning, small, include_modules, exclude_modules, output)
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.5101380Z     ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.5202990Z   File "/Users/runner/work/PEASS-ng/PEASS-ng/linPEAS/builder/linpeas_builder.py", line 21, in main
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.5304190Z     lbuilder.build()
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.5405030Z     ~~~~~~~~~~~~~~^^
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.5506090Z   File "/Users/runner/work/PEASS-ng/PEASS-ng/linPEAS/builder/src/linpeasBuilder.py", line 49, in build
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.5610220Z     variables = self.__generate_variabless()
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.5711540Z                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.5813140Z AttributeError: 'LinpeasBuilder' object has no attribute '_LinpeasBuilder__generate_variabless'. Did you mean: '_LinpeasBuilder__generate_variables'?
+Build_and_test_macpeas_master	Build macpeas	2026-02-14T00:11:55.5911930Z ##[error]Process completed with exit code 1.
