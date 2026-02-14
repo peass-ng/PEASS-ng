@@ -157,24 +157,21 @@ jobs:
             exit 0
           fi
 
-          changed_in_range="$(git diff --name-only "$ORIGINAL_HEAD_SHA"..HEAD)"
-          if echo "$changed_in_range" | grep -q '^.github/workflows/'; then
-            echo "Detected workflow changes in Chack commit range; sanitizing commit before push."
-            git diff --binary "$ORIGINAL_HEAD_SHA"..HEAD -- . ':(exclude).github/workflows/**' > /tmp/chack_nonworkflow.patch
-            if [ ! -s /tmp/chack_nonworkflow.patch ]; then
-              echo "Only workflow-file changes were produced; skipping push."
-              echo "pushed=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            git reset --hard "$ORIGINAL_HEAD_SHA"
-            git apply --index /tmp/chack_nonworkflow.patch
-            if git diff --cached --quiet; then
-              echo "No non-workflow changes left after sanitizing."
-              echo "pushed=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            git commit -m "Fix CI-master failures for run #${{ github.event.workflow_run.id }}"
+          echo "Sanitizing Chack commit range to non-workflow changes only."
+          git diff --binary "$ORIGINAL_HEAD_SHA"..HEAD -- . ':(exclude).github/workflows/**' > /tmp/chack_nonworkflow.patch
+          if [ ! -s /tmp/chack_nonworkflow.patch ]; then
+            echo "Only workflow-file changes were produced; skipping push."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          git reset --hard "$ORIGINAL_HEAD_SHA"
+          git apply --index /tmp/chack_nonworkflow.patch
+          if git diff --cached --quiet; then
+            echo "No non-workflow changes left after sanitizing."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "Fix CI-master failures for run #${{ github.event.workflow_run.id }}"
 
           if ! git push origin HEAD:"$FIX_BRANCH"; then
             echo "Push failed (likely token workflow permission limits); skipping PR creation."
