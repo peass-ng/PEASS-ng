@@ -104,6 +104,8 @@ This script doesn't have any dependency.
 
 - **Dec 2025**: Added detection for sudo configurations that expose restic's `--password-command` helper, a common privilege escalation vector observed in real environments.
 
+- **Feb 2026**: Added a reminder that `linpeas` can be run with `-o` to execute targeted checks in long-running audits.
+
 It uses **/bin/sh** syntax, so can run in anything supporting `sh` (and the binaries and parameters used).
 
 By default, **linpeas won't write anything to disk and won't try to login as any other user using `su`**.
