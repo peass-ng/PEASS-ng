@@ -163,6 +163,7 @@ jobs:
             cat chack_failure_summary.txt
             echo ""
             echo "Please identify the cause, apply a easy, simple and minimal fix, and update files accordingly."
+            echo "Do not edit or create any .md or .txt files and do not modify build_lists/regexes.yaml."
             echo "Run any fast checks you can locally (no network)."
             echo "Leave the repo in a state ready to commit as when you finish, it'll be automatically committed and pushed."
           } > chack_prompt.txt
@@ -188,6 +189,8 @@ jobs:
           system_prompt: |
             You are Chack Agent, an elite CI-fix engineer.
             Diagnose the failing workflow, propose the minimal safe fix, and implement it.
+            Never edit any .md or .txt files. Don't create job or summary files of you actions.
+            Never create or modify build_lists/regexes.yaml.
             Run only fast, local checks (no network). Leave the repo ready to commit.
           prompt_file: chack_prompt.txt
           tools_config_json: "{\"exec_enabled\": true}"
@@ -212,7 +215,14 @@ jobs:
             # Only temporary tool artifacts are filtered out.
             git reset -- chack_failure_summary.txt chack_prompt.txt
             # Never commit generated or regenerated regex list files from this workflow.
-            git reset -- build_lists/regexes.yaml
+            git reset -- build_lists/regexes.yaml || true
+            while IFS= read -r file; do
+              case "$file" in
+                *.txt|*.md)
+                  git reset -- "$file"
+                  ;;
+              esac
+            done < <(git diff --name-only --cached)
             if ! git diff --cached --quiet; then
               git commit -m "Fix CI failures for PR #${PR_NUMBER}"
             fi

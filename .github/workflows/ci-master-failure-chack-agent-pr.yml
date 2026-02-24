@@ -93,6 +93,7 @@ jobs:
             echo "Read that file to inspect the exact failing logs."
             echo ""
             echo "Please identify the cause, apply an easy, simple and minimal fix, and update files accordingly."
+            echo "Do not edit or create any .md or .txt files or any summary file and do not modify build_lists/regexes.yaml. Don't create job or summary files of you actions."
             echo "Run any fast checks you can locally (no network)."
             echo "Leave the repo in a state ready to commit; changes will be committed and pushed automatically."
           } > chack_prompt.txt
@@ -117,6 +118,8 @@ jobs:
           sub_action: CI-master Failure Chack-Agent PR
           system_prompt: |
             Diagnose the failing gh actions workflow, propose the minimal and effective safe fix, and implement it.
+            Never edit any .md or .txt files.
+            Never create or modify build_lists/regexes.yaml.
             Run only fast, local checks (no network). Leave the repo ready to commit.
           prompt_file: chack_prompt.txt
           tools_config_json: "{\"exec_enabled\": true}"
@@ -142,6 +145,13 @@ jobs:
             git reset -- chack_failure_summary.txt chack_prompt.txt chack_failed_steps_logs.txt
             # Never include generated regex list updates in automated fixer commits.
             git reset -- build_lists/regexes.yaml || true
+            while IFS= read -r file; do
+              case "$file" in
+                *.txt|*.md)
+                  git reset -- "$file"
+                  ;;
+              esac
+            done < <(git diff --name-only --cached)
             if git diff --cached --name-only | grep -q '^.github/workflows/'; then
               echo "Workflow-file changes are still staged; skipping push without workflows permission."
               echo "pushed=false" >> "$GITHUB_OUTPUT"
@@ -166,7 +176,11 @@ jobs:
             ':(exclude)chack_failure_summary.txt' \
             ':(exclude)chack_prompt.txt' \
             ':(exclude)chack_failed_steps_logs.txt' \
-            ':(exclude)build_lists/regexes.yaml' > /tmp/chack_nonworkflow.patch
+            ':(exclude)build_lists/regexes.yaml' \
+            ':(exclude)*.md' \
+            ':(exclude)*.txt' \
+            ':(exclude)**/*.txt' \
+            ':(exclude)**/*.md' > /tmp/chack_nonworkflow.patch
           if [ ! -s /tmp/chack_nonworkflow.patch ]; then
             echo "Only workflow-file changes were produced; skipping push."
             echo "pushed=false" >> "$GITHUB_OUTPUT"
