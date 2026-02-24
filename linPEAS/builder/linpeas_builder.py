@@ -25,7 +25,7 @@ def main(all_modules, all_no_fat_modules, no_network_scanning, small, include_mo
     st = os.stat(output)
     os.chmod(output, st.st_mode | stat.S_IEXEC)
 
-if __name__ = "__main__":
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Build you own linpeas.sh')
     parser.add_argument('--all', action='store_true', help='Build linpeas with all modules (linpeas_fat).')
     parser.add_argument('--all-no-fat', action='store_true', help='Build linpeas with all modules except fat ones.')
