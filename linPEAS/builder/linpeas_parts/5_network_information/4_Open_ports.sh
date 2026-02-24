@@ -8,7 +8,7 @@
 # Functions Used: print_2title, print_3title, print_info
 # Global Variables: $E, $SED_RED, $SED_RED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $pid_dir, $tx_queue, $pid, $rem_port, $proc_file, $rem_ip, $local_ip, $rx_queue, $proto, $rem_addr, $program, $state, $header_sep, $proc_info, $inode, $header, $line, $local_addr, $local_port
+# Generated Global Variables: $pid_dir, $tx_queue, $pid, $rem_port, $proc_file, $rem_ip, $local_ip, $rx_queue, $proto, $rem_addr, $program, $state, $header_sep, $proc_info, $inode, $header, $line, $local_addr, $local_port, $fix_triple_colon, $needs_listen_filter, $col
 # Fat linpeas: 0
 # Small linpeas: 1
 
