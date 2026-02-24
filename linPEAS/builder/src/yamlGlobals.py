@@ -83,8 +83,13 @@ REGEXES_YAML = CURRENT_DIR + "/../../../build_lists/" + YAML_REGEXES
 with open(FILES_YAML, 'r') as file:
     YAML_LOADED = yaml.load(file, Loader=yaml.FullLoader)
 
-with open(REGEXES_YAML, 'r') as file:
-    REGEXES_LOADED = yaml.load(file, Loader=yaml.FullLoader)
+try:
+    with open(REGEXES_YAML, 'r') as file:
+        REGEXES_LOADED = yaml.load(file, Loader=yaml.FullLoader)
+        if REGEXES_LOADED is None:
+            REGEXES_LOADED = {"regular_expresions": []}
+except FileNotFoundError:
+    REGEXES_LOADED = {"regular_expresions": []}
 
 ROOT_FOLDER = YAML_LOADED["root_folders"]
 DEFAULTS = YAML_LOADED["defaults"]
