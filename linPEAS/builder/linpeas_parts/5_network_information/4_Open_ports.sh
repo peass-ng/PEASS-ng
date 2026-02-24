@@ -104,6 +104,41 @@ parse_proc_net_ports() {
     echo ""
 }
 
+# Function to print loopback listeners with consistent highlighting
+print_loopback_listeners() {
+    local needs_listen_filter="$1"
+    shift
+
+    if [ "$needs_listen_filter" = "1" ]; then
+        "$@" 2>/dev/null | grep -i listen | grep -E "127\.0\.0\.1:|::1:" | sed -${E} "s,127\.0\.0\.1:|::1:,${SED_RED},g"
+    else
+        "$@" 2>/dev/null | grep -E "127\.0\.0\.1:|::1:" | sed -${E} "s,127\.0\.0\.1:|::1:,${SED_RED},g"
+    fi
+}
+
+# Function to print unique bind addresses from a port listing
+print_unique_bind_addrs() {
+    local col="$1"
+    local fix_triple_colon="$2"
+    shift 2
+    if [ "$#" -gt 0 ]; then
+        "$@" 2>/dev/null
+    else
+        cat
+    fi | awk -v col="$col" -v fix_triple="$fix_triple_colon" '{
+        a=$col
+        if (a ~ /^\[/) {
+            sub(/^\[/, "", a)
+            sub(/\]:[0-9]+$/, "", a)
+        } else if (a ~ /:[0-9]+$/) {
+            sub(/:[0-9]+$/, "", a)
+        }
+        if (fix_triple==1 && a == ":::") a="::"
+        sub(/^::ffff:/, "", a)
+        if (a != "") print a
+    }' | sort -u | sed -${E} "s,127\.0\.0\.1|::1,${SED_RED},g"
+}
+
 # Function to get open ports information
 get_open_ports() {
     print_2title "Active Ports"
@@ -125,37 +160,16 @@ get_open_ports() {
     # Focused local service exposure view
     print_3title "Local-only listeners (loopback)"
     if command -v ss >/dev/null 2>&1; then
-        ss -nltpu 2>/dev/null | grep -E "127\.0\.0\.1:|::1:" | sed -${E} "s,127\.0\.0\.1:|::1:,${SED_RED},g"
+        print_loopback_listeners 0 ss -nltpu
     elif command -v netstat >/dev/null 2>&1; then
-        netstat -punta 2>/dev/null | grep -i listen | grep -E "127\.0\.0\.1:|::1:" | sed -${E} "s,127\.0\.0\.1:|::1:,${SED_RED},g"
+        print_loopback_listeners 1 netstat -punta
     fi
 
     print_3title "Unique listener bind addresses"
     if command -v ss >/dev/null 2>&1; then
-        ss -nltpuH 2>/dev/null | awk '{
-            a=$5
-            if (a ~ /^\[/) {
-                sub(/^\[/, "", a)
-                sub(/\]:[0-9]+$/, "", a)
-            } else if (a ~ /:[0-9]+$/) {
-                sub(/:[0-9]+$/, "", a)
-            }
-            sub(/^::ffff:/, "", a)
-            if (a != "") print a
-        }' | sort -u | sed -${E} "s,127\.0\.0\.1|::1,${SED_RED},g"
+        print_unique_bind_addrs 5 0 ss -nltpuH
     elif command -v netstat >/dev/null 2>&1; then
-        netstat -punta 2>/dev/null | grep -i listen | awk '{
-            a=$4
-            if (a ~ /^\[/) {
-                sub(/^\[/, "", a)
-                sub(/\]:[0-9]+$/, "", a)
-            } else if (a ~ /:[0-9]+$/) {
-                sub(/:[0-9]+$/, "", a)
-            }
-            if (a == ":::" ) a="::"
-            sub(/^::ffff:/, "", a)
-            if (a != "") print a
-        }' | sort -u | sed -${E} "s,127\.0\.0\.1|::1,${SED_RED},g"
+        netstat -punta 2>/dev/null | grep -i listen | print_unique_bind_addrs 4 1
     fi
 
     print_3title "Potential local forwarders/relays"
