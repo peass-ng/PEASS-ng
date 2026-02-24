@@ -5,10 +5,10 @@
 # Description: SUID - Check easy privesc, exploits and write perms
 # License: GNU GPL
 # Version: 1.0
-# Functions Used: echo_not_found, print_2title, print_info
-# Global Variables: $IAMROOT, $LDD, $ROOT_FOLDER, $READELF, $sidB, $sidG1, $sidG2, $sidG3, $sidG4, $sidVB, $sidVB2, $STRACE, $STRINGS, $TIMEOUT, $Wfolders, $cfuncs
+# Functions Used: check_unknown_sxid_bin, echo_not_found, print_2title, print_info
+# Global Variables: $IAMROOT, $ROOT_FOLDER, $sidB, $sidG1, $sidG2, $sidG3, $sidG4, $sidVB, $sidVB2, $STRACE, $STRINGS
 # Initial Functions:
-# Generated Global Variables: $suids_files, $sname, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH
+# Generated Global Variables: $suids_files, $sname
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -48,53 +48,7 @@ printf "%s\n" "$suids_files" | while read s; do
       if echo "$sname" | grep -qE "$sidG1" || echo "$sname" | grep -qE "$sidG2" || echo "$sname" | grep -qE "$sidG3" || echo "$sname" | grep -qE "$sidG4" || echo "$sname" | grep -qE "$sidVB" || echo "$sname" | grep -qE "$sidVB2"; then
         echo "$s" | sed -${E} "s,$sidG1,${SED_GREEN}," | sed -${E} "s,$sidG2,${SED_GREEN}," | sed -${E} "s,$sidG3,${SED_GREEN}," | sed -${E} "s,$sidG4,${SED_GREEN}," | sed -${E} "s,$sidVB,${SED_RED_YELLOW}," | sed -${E} "s,$sidVB2,${SED_RED_YELLOW},"
       else
-        echo "$s (Unknown SUID binary!)" | sed -${E} "s,/.*,${SED_RED},"
-        printf $ITALIC
-        if ! [ "$FAST" ]; then
-          
-          if [ "$STRINGS" ]; then
-            $STRINGS "$sname" 2>/dev/null | sort | uniq | while read sline; do
-              sline_first="$(echo "$sline" | cut -d ' ' -f1)"
-              if echo "$sline_first" | grep -qEv "$cfuncs"; then
-                if echo "$sline_first" | grep -q "/" && [ -f "$sline_first" ]; then #If a path
-                  if [ -O "$sline_first" ] || [ -w "$sline_first" ]; then #And modifiable
-                    printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is using $RED$sline_first$NC$ITALIC and you can modify it (strings line: $sline) (https://tinyurl.com/suidpath)\n"
-                  fi
-                elif echo "$sline_first" | grep -q "/" && [ -d "$(dirname "$sline_first")" ] && [ -w "$(dirname "$sline_first")" ]; then #If path does not exist but can be created
-                  printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is using $RED$sline_first$NC$ITALIC and you can create it inside writable dir $RED$(dirname "$sline_first")$NC$ITALIC (strings line: $sline) (https://tinyurl.com/suidpath)\n"
-                else #If not a path
-                  if [ ${#sline_first} -gt 2 ] && command -v "$sline_first" 2>/dev/null | grep -q '/' && echo "$sline_first" | grep -Eqv "\.\."; then #Check if existing binary
-                    printf "$ITALIC  --- It looks like $RED$sname$NC$ITALIC is executing $RED$sline_first$NC$ITALIC and you can impersonate it (strings line: $sline) (https://tinyurl.com/suidpath)\n"
-                  fi
-                fi
-              fi
-            done
-          fi
-
-          if [ "$LDD" ] || [ "$READELF" ]; then
-            echo "$ITALIC  --- Checking for writable dependencies of $sname...$NC"
-          fi
-          if [ "$LDD" ]; then
-            "$LDD" "$sname" | grep -E "$Wfolders" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
-          fi
-          if [ "$READELF" ]; then
-            "$READELF" -d "$sname" | grep PATH | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
-          fi
-          
-          if [ "$TIMEOUT" ] && [ "$STRACE" ] && [ -x "$sname" ]; then
-            printf $ITALIC
-            echo "----------------------------------------------------------------------------------------"
-            echo "  --- Trying to execute $sname with strace in order to look for hijackable libraries..."
-            OLD_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
-            export LD_LIBRARY_PATH=""
-            timeout 2 "$STRACE" "$sname" 2>&1 | grep -i -E "open|access|no such file" | sed -${E} "s,open|access|No such file,${SED_RED}$ITALIC,g"
-            printf $NC
-            export LD_LIBRARY_PATH=$OLD_LD_LIBRARY_PATH
-            echo "----------------------------------------------------------------------------------------"
-            echo ""
-          fi
-        
-        fi
+        check_unknown_sxid_bin "$s" "$sname" "Unknown SUID binary!" "(https://tinyurl.com/suidpath)" "1" "1" "0"
       fi
     fi
   fi
