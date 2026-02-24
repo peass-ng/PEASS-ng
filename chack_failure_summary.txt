@@ -1,0 +1,11 @@
+Job: Build_and_test_macpeas_pr (id 64740421836)
+URL: https://github.com/peass-ng/PEASS-ng/actions/runs/22368387124/job/64740421836
+  Step: Build macpeas
+
+Job: Build_and_test_winpeas_pr (id 64740421857)
+URL: https://github.com/peass-ng/PEASS-ng/actions/runs/22368387124/job/64740421857
+  Step: run MSBuild
+
+Job: Build_and_test_linpeas_pr (id 64740421892)
+URL: https://github.com/peass-ng/PEASS-ng/actions/runs/22368387124/job/64740421892
+  Step: Build linpeas

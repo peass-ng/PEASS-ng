@@ -4,8 +4,9 @@ from pathlib import Path
 
 
 script_folder = Path(os.path.dirname(os.path.abspath(__file__)))
-target_file = script_folder / '..' / '..' / '..' / 'build_lists' / 'download_regexes.py'
-os.system(target_file)
+# Note: avoid running download_regexes.py at import time (network/no-requests in CI).
+# target_file = script_folder / '..' / '..' / '..' / 'build_lists' / 'download_regexes.py'
+# If you need to refresh regexes, run build_lists/download_regexes.py explicitly from CI or locally.
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
