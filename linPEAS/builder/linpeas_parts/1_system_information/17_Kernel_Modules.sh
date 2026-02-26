@@ -28,7 +28,11 @@ print_2title "Kernel Modules Information"
 if [ "$EXTRA_CHECKS" ] || [ "$DEBUG" ]; then
     print_3title "Loaded kernel modules"
     if [ -f "/proc/modules" ]; then
-        lsmod
+        if command -v lsmod >/dev/null 2>&1; then
+            lsmod
+        else
+            cat /proc/modules
+        fi
     else
         echo_not_found "/proc/modules"
     fi

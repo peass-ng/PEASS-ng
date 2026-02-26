@@ -262,7 +262,13 @@ if [ "$inContainer" ]; then
     uname -a | sed -${E} "s,$(uname -r),${SED_RED},"
     
     print_list "Kernel modules ............. "$NC
-    lsmod | grep -E "overlay|aufs|btrfs|device_mapper|floppy|loop|squashfs|udf|veth|vbox|vmware|kvm|xen|docker|containerd|runc|crio" | sed -${E} "s,overlay|aufs|btrfs|device_mapper|floppy|loop|squashfs|udf|veth|vbox|vmware|kvm|xen|docker|containerd|runc|crio,${SED_RED},g"
+    if command -v lsmod >/dev/null 2>&1; then
+        lsmod | grep -E "overlay|aufs|btrfs|device_mapper|floppy|loop|squashfs|udf|veth|vbox|vmware|kvm|xen|docker|containerd|runc|crio" | sed -${E} "s,overlay|aufs|btrfs|device_mapper|floppy|loop|squashfs|udf|veth|vbox|vmware|kvm|xen|docker|containerd|runc|crio,${SED_RED},g"
+    elif [ -r /proc/modules ]; then
+        cat /proc/modules | grep -E "overlay|aufs|btrfs|device_mapper|floppy|loop|squashfs|udf|veth|vbox|vmware|kvm|xen|docker|containerd|runc|crio" | sed -${E} "s,overlay|aufs|btrfs|device_mapper|floppy|loop|squashfs|udf|veth|vbox|vmware|kvm|xen|docker|containerd|runc|crio,${SED_RED},g"
+    else
+        echo_not_found "lsmod and /proc/modules"
+    fi
     
     # Additional container runtime checks
     print_list "Container runtime sockets .. "$NC
