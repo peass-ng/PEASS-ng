@@ -47,8 +47,8 @@ jobs:
         run: msbuild $env:Solution_Path /p:Configuration=$env:Configuration /p:UseSharedCompilation=false
 
       # Execute unit tests in the solution
-      # - name: Execute unit tests
-      #   run: dotnet test $env:Solution_Path --configuration $env:Configuration
+      - name: Execute unit tests
+        run: dotnet test $env:Solution_Path --configuration $env:Configuration
         
       # Build all versions
       - name: Build all versions
@@ -73,38 +73,38 @@ jobs:
             Write-Error "winPEAS.exe not found at $exePath"
           }
 
-      # - name: Execute winPEAS cloudinfo
-      #   shell: pwsh
-      #   run: |
-      #     $Configuration = "Release"
-      #     $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
-      #     if (Test-Path $exePath) {
-      #       & $exePath cloudinfo
-      #     } else {
-      #       Write-Error "winPEAS.exe not found at $exePath"
-      #     }
+      - name: Execute winPEAS cloudinfo
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (Test-Path $exePath) {
+            & $exePath cloudinfo
+          } else {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
 
-      # - name: Execute winPEAS systeminfo
-      #   shell: pwsh
-      #   run: |
-      #     $Configuration = "Release"
-      #     $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
-      #     if (Test-Path $exePath) {
-      #       & $exePath systeminfo
-      #     } else {
-      #       Write-Error "winPEAS.exe not found at $exePath"
-      #     }
+      - name: Execute winPEAS systeminfo
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (Test-Path $exePath) {
+            & $exePath systeminfo
+          } else {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
       
-      # - name: Execute winPEAS networkinfo
-      #   shell: pwsh
-      #   run: |
-      #     $Configuration = "Release"
-      #     $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
-      #     if (Test-Path $exePath) {
-      #       & $exePath networkinfo
-      #     } else {
-      #       Write-Error "winPEAS.exe not found at $exePath"
-      #     }
+      - name: Execute winPEAS networkinfo
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (Test-Path $exePath) {
+            & $exePath networkinfo
+          } else {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
 
   Build_and_test_linpeas_pr:
     runs-on: ubuntu-latest
@@ -131,40 +131,40 @@ jobs:
           python3 -m builder.linpeas_builder --all-no-fat --output linpeas.sh
           python3 -m builder.linpeas_builder --small --output linpeas_small.sh
 
-      # - name: Run linPEAS builder tests
-      #   run: python3 -m unittest discover -s linPEAS/tests -p "test_*.py"
+      - name: Run linPEAS builder tests
+        run: python3 -m unittest discover -s linPEAS/tests -p "test_*.py"
       
       # Run linpeas help as quick test
-      # - name: Run linpeas help
-      #   run: linPEAS/linpeas_fat.sh -h && linPEAS/linpeas.sh -h && linPEAS/linpeas_small.sh -h
+      - name: Run linpeas help
+        run: linPEAS/linpeas_fat.sh -h && linPEAS/linpeas.sh -h && linPEAS/linpeas_small.sh -h
       
       # Run linpeas as a test
-      # - name: Run linpeas system_information
-      #   run: linPEAS/linpeas_fat.sh -o system_information -a
+      - name: Run linpeas system_information
+        run: linPEAS/linpeas_fat.sh -o system_information -a
       
-      # - name: Run linpeas container
-      #   run: linPEAS/linpeas_fat.sh -o container -a
+      - name: Run linpeas container
+        run: linPEAS/linpeas_fat.sh -o container -a
       
-      # - name: Run linpeas cloud
-      #   run: linPEAS/linpeas_fat.sh -o cloud -a
+      - name: Run linpeas cloud
+        run: linPEAS/linpeas_fat.sh -o cloud -a
       
-      # - name: Run linpeas procs_crons_timers_srvcs_sockets
-      #   run: linPEAS/linpeas_fat.sh -o procs_crons_timers_srvcs_sockets -a
+      - name: Run linpeas procs_crons_timers_srvcs_sockets
+        run: linPEAS/linpeas_fat.sh -o procs_crons_timers_srvcs_sockets -a
       
-      # - name: Run linpeas network_information
-      #   run: linPEAS/linpeas_fat.sh -o network_information -t -a
+      - name: Run linpeas network_information
+        run: linPEAS/linpeas_fat.sh -o network_information -t -a
       
-      # - name: Run linpeas users_information
-      #   run: linPEAS/linpeas_fat.sh -o users_information -a
+      - name: Run linpeas users_information
+        run: linPEAS/linpeas_fat.sh -o users_information -a
       
-      # - name: Run linpeas software_information
-      #   run: linPEAS/linpeas_fat.sh -o software_information -a
+      - name: Run linpeas software_information
+        run: linPEAS/linpeas_fat.sh -o software_information -a
       
-      # - name: Run linpeas interesting_perms_files
-      #   run: linPEAS/linpeas_fat.sh -o interesting_perms_files -a
+      - name: Run linpeas interesting_perms_files
+        run: linPEAS/linpeas_fat.sh -o interesting_perms_files -a
       
-      # - name: Run linpeas interesting_files
-      #   run: linPEAS/linpeas_fat.sh -o interesting_files -a
+      - name: Run linpeas interesting_files
+        run: linPEAS/linpeas_fat.sh -o interesting_files -a
 
   Build_and_test_macpeas_pr:
     runs-on: macos-latest
@@ -184,12 +184,12 @@ jobs:
           python3 -m builder.linpeas_builder --all --output linpeas_fat.sh
       
       # Run linpeas help as quick test
-      # - name: Run macpeas help
-      #   run: linPEAS/linpeas_fat.sh -h
+      - name: Run macpeas help
+        run: linPEAS/linpeas_fat.sh -h
       
       # Run macpeas parts to test it
-      # - name: Run macpeas system_information
-      #   run: linPEAS/linpeas_fat.sh -o system_information -a
+      - name: Run macpeas system_information
+        run: linPEAS/linpeas_fat.sh -o system_information -a
       
       # - name: Run macpeas container
       #   run: linPEAS/linpeas_fat.sh -o container -a
