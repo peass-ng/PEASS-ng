@@ -141,63 +141,36 @@ namespace winPEAS.Checks
             Beaprint.MainPrint("Current TCP Listening Ports");
             Beaprint.LinkPrint("", "Check for services restricted from the outside");
 
-            PrintListeningPortsTcpIPv4(processesByPid);
+            PrintListeningPortsTcp(processesByPid, IPVersion.IPv4);
             Beaprint.ColorPrint("", Beaprint.NOCOLOR);
-            PrintListeningPortsTcpIPv6(processesByPid);
+            PrintListeningPortsTcp(processesByPid, IPVersion.IPv6);
         }
 
-        private void PrintListeningPortsTcpIPv4(Dictionary<int, Process> processesByPid)
+        private void PrintListeningPortsTcp(Dictionary<int, Process> processesByPid, IPVersion ipVersion)
         {
             try
             {
-                Beaprint.ColorPrint("  Enumerating IPv4 connections\n", Beaprint.LBLUE);
+                var ipLabel = ipVersion == IPVersion.IPv4 ? "IPv4" : "IPv6";
+                Beaprint.ColorPrint($"  Enumerating {ipLabel} connections\n", Beaprint.LBLUE);
 
-                string formatString = @"{0,-12} {1,-21} {2,-13} {3,-21} {4,-15} {5,-17} {6,-15} {7}";
+                string formatString = ipVersion == IPVersion.IPv4
+                    ? @"{0,-12} {1,-21} {2,-13} {3,-21} {4,-15} {5,-17} {6,-15} {7}"
+                    : @"{0,-12} {1,-43} {2,-13} {3,-43} {4,-15} {5,-17} {6,-15} {7}";
 
                 Beaprint.NoColorPrint(
                     string.Format($"{formatString}\n", "  Protocol", "Local Address", "Local Port", "Remote Address", "Remote Port", "State", "Process ID", "Process Name"));
 
-                foreach (var tcpConnectionInfo in NetworkInfoHelper.GetTcpConnections(IPVersion.IPv4, processesByPid))
+                foreach (var tcpConnectionInfo in NetworkInfoHelper.GetTcpConnections(ipVersion, processesByPid))
                 {
+                    var localAddress = ipVersion == IPVersion.IPv4 ? tcpConnectionInfo.LocalAddress : $"[{tcpConnectionInfo.LocalAddress}]";
+                    var remoteAddress = ipVersion == IPVersion.IPv4 ? tcpConnectionInfo.RemoteAddress : $"[{tcpConnectionInfo.RemoteAddress}]";
+
                     Beaprint.AnsiPrint(
                         string.Format(formatString,
                                        "  TCP",
-                                       tcpConnectionInfo.LocalAddress,
+                                       localAddress,
                                        tcpConnectionInfo.LocalPort,
-                                       tcpConnectionInfo.RemoteAddress,
-                                       tcpConnectionInfo.RemotePort,
-                                       tcpConnectionInfo.State.GetDescription(),
-                                       tcpConnectionInfo.ProcessId,
-                                       tcpConnectionInfo.ProcessName
-                                     ),
-                                     colorsN);
-                }
-            }
-            catch (Exception ex)
-            {
-                Beaprint.PrintException(ex.Message);
-            }
-        }
-
-        private void PrintListeningPortsTcpIPv6(Dictionary<int, Process> processesByPid)
-        {
-            try
-            {
-                Beaprint.ColorPrint("  Enumerating IPv6 connections\n", Beaprint.LBLUE);
-
-                string formatString = @"{0,-12} {1,-43} {2,-13} {3,-43} {4,-15} {5,-17} {6,-15} {7}";
-
-                Beaprint.NoColorPrint(
-                    string.Format($"{formatString}\n", "  Protocol", "Local Address", "Local Port", "Remote Address", "Remote Port", "State", "Process ID", "Process Name"));
-
-                foreach (var tcpConnectionInfo in NetworkInfoHelper.GetTcpConnections(IPVersion.IPv6, processesByPid))
-                {
-                    Beaprint.AnsiPrint(
-                        string.Format(formatString,
-                                       "  TCP",
-                                       $"[{tcpConnectionInfo.LocalAddress}]",
-                                       tcpConnectionInfo.LocalPort,
-                                       $"[{tcpConnectionInfo.RemoteAddress}]",
+                                       remoteAddress,
                                        tcpConnectionInfo.RemotePort,
                                        tcpConnectionInfo.State.GetDescription(),
                                        tcpConnectionInfo.ProcessId,
@@ -217,69 +190,38 @@ namespace winPEAS.Checks
             Beaprint.MainPrint("Current UDP Listening Ports");
             Beaprint.LinkPrint("", "Check for services restricted from the outside");
 
-            PrintListeningPortsUdpIPv4(processesByPid);
+            PrintListeningPortsUdp(processesByPid, IPVersion.IPv4);
             Beaprint.ColorPrint("", Beaprint.NOCOLOR);
-            PrintListeningPortsUdpIPv6(processesByPid);
+            PrintListeningPortsUdp(processesByPid, IPVersion.IPv6);
         }
 
-        private void PrintListeningPortsUdpIPv4(Dictionary<int, Process> processesByPid)
+        private void PrintListeningPortsUdp(Dictionary<int, Process> processesByPid, IPVersion ipVersion)
         {
             try
             {
-                Beaprint.ColorPrint("  Enumerating IPv4 connections\n", Beaprint.LBLUE);
+                var ipLabel = ipVersion == IPVersion.IPv4 ? "IPv4" : "IPv6";
+                Beaprint.ColorPrint($"  Enumerating {ipLabel} connections\n", Beaprint.LBLUE);
 
-                string formatString = @"{0,-12} {1,-21} {2,-13} {3,-30} {4,-17} {5}";
+                string formatString = ipVersion == IPVersion.IPv4
+                    ? @"{0,-12} {1,-21} {2,-13} {3,-30} {4,-17} {5}"
+                    : @"{0,-12} {1,-43} {2,-13} {3,-30} {4,-17} {5}";
 
                 Beaprint.NoColorPrint(
                     string.Format($"{formatString}\n", "  Protocol", "Local Address", "Local Port", "Remote Address:Remote Port", "Process ID", "Process Name"));
 
-                foreach (var udpConnectionInfo in NetworkInfoHelper.GetUdpConnections(IPVersion.IPv4, processesByPid))
+                foreach (var udpConnectionInfo in NetworkInfoHelper.GetUdpConnections(ipVersion, processesByPid))
                 {
                     if (udpConnectionInfo.ProcessName == "dns") // Hundreds of them sometimes
                     {
                         continue;
                     }
 
-                    Beaprint.AnsiPrint(
-                        string.Format(formatString,
-                                       "  UDP",
-                                       udpConnectionInfo.LocalAddress,
-                                       udpConnectionInfo.LocalPort,
-                                       "*:*",   // UDP does not have remote address/port
-                                       udpConnectionInfo.ProcessId,
-                                       udpConnectionInfo.ProcessName
-                                     ),
-                                     colorsN);
-                }
-            }
-            catch (Exception ex)
-            {
-                Beaprint.PrintException(ex.Message);
-            }
-        }
-
-        private void PrintListeningPortsUdpIPv6(Dictionary<int, Process> processesByPid)
-        {
-            try
-            {
-                Beaprint.ColorPrint("  Enumerating IPv6 connections\n", Beaprint.LBLUE);
-
-                string formatString = @"{0,-12} {1,-43} {2,-13} {3,-30} {4,-17} {5}";
-
-                Beaprint.NoColorPrint(
-                    string.Format($"{formatString}\n", "  Protocol", "Local Address", "Local Port", "Remote Address:Remote Port", "Process ID", "Process Name"));
-
-                foreach (var udpConnectionInfo in NetworkInfoHelper.GetUdpConnections(IPVersion.IPv6, processesByPid))
-                {
-                    if (udpConnectionInfo.ProcessName == "dns") // Hundreds of them sometimes
-                    {
-                        continue;
-                    }
+                    var localAddress = ipVersion == IPVersion.IPv4 ? udpConnectionInfo.LocalAddress : $"[{udpConnectionInfo.LocalAddress}]";
 
                     Beaprint.AnsiPrint(
                         string.Format(formatString,
                                        "  UDP",
-                                       $"[{udpConnectionInfo.LocalAddress}]",
+                                       localAddress,
                                        udpConnectionInfo.LocalPort,
                                        "*:*",   // UDP does not have remote address/port
                                        udpConnectionInfo.ProcessId,
