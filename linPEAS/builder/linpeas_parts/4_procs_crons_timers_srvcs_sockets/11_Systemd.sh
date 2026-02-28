@@ -34,6 +34,11 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
         return 0
     }
 
+    # Function to list running systemd services
+    list_running_services() {
+        systemctl list-units --type=service --state=running 2>/dev/null
+    }
+
     # Function to get service file path
     get_service_file() {
         local service="$1"
@@ -75,7 +80,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     # Check for systemd services running as root
     print_list "Services running as root? ..... "$NC
     if check_systemctl; then
-        systemctl list-units --type=service --state=running 2>/dev/null | 
+        list_running_services | 
         grep -E "root|0:0" | 
         while read -r line; do
             service=$(echo "$line" | awk '{print $1}')
@@ -90,7 +95,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     # Check for systemd services with dangerous capabilities
     print_list "Running services with dangerous capabilities? ... "$NC
     if check_systemctl; then
-        systemctl list-units --type=service --state=running 2>/dev/null | 
+        list_running_services | 
         grep -E "\.service" | 
         while read -r line; do
             service=$(echo "$line" | awk '{print $1}')
@@ -107,7 +112,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     # Check for systemd services with writable paths
     print_list "Services with writable paths? . "$NC
     if check_systemctl; then
-        systemctl list-units --type=service --state=running 2>/dev/null | 
+        list_running_services | 
         grep -E "\.service" | 
         while read -r line; do
             service=$(echo "$line" | awk '{print $1}')
