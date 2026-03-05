@@ -86,6 +86,7 @@ PORT_FORWARD=""
 NOT_CHECK_EXTERNAL_HOSTNAME=""
 THREADS="$( ( (grep -c processor /proc/cpuinfo 2>/dev/null) || ( (command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n")"
 [ "$THREADS" -eq "$THREADS" ] 2>/dev/null && : || THREADS="2" #If THREADS is not a number, put number 2
+[ "$THREADS" -lt 1 ] 2>/dev/null && THREADS="2" #If THREADS is 0 or negative, put number 2 (avoids division-by-zero in eval_bckgrd)
 HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
 ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user, processes and file permissions, special file permissions, readable/writable files, bruteforce other users(top1000pwds), passwords...)$NC inside the host and highlight possible misconfigurations with colors.
       ${GREEN}  Checks:
@@ -118,7 +119,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
         ${YELLOW}    -M${BLUE} Force macpeas execution
 	${YELLOW}    -q${BLUE} Do not show banner
         ${YELLOW}    -N${BLUE} Do not use colours
-        ${YELLOW}    -z <N>${BLUE} Set number of threads for background checks (default: auto-detected CPU count)$NC"
+        ${YELLOW}    -z <N>${BLUE} Set number of threads for background checks (default: auto-detected CPU count, fallback: 2; must be >= 1)$NC"
 
 while getopts "h?asd:p:i:P:qo:LMwNDterf:F:z:" opt; do
   case "$opt" in
@@ -149,7 +150,7 @@ while getopts "h?asd:p:i:P:qo:LMwNDterf:F:z:" opt; do
 	    CHECKS="procs_crons_timers_srvcs_sockets,software_information,interesting_perms_files,interesting_files,api_keys_regex";;
 
     F)  PORT_FORWARD=$OPTARG;;
-    z)  [ "$OPTARG" -eq "$OPTARG" ] 2>/dev/null && THREADS=$OPTARG || echo "${YELLOW}WARNING: -z requires a numeric argument, ignoring.${NC}" >&2;;
+    z)  if [ "$OPTARG" -eq "$OPTARG" ] 2>/dev/null && [ "$OPTARG" -ge 1 ] 2>/dev/null; then THREADS=$OPTARG; else echo "${YELLOW}WARNING: -z requires an integer >= 1, ignoring.${NC}" >&2; fi;;
     esac
 done
 
