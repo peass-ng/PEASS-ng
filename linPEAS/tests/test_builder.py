@@ -1,4 +1,5 @@
 import os
+import re
 import stat
 import subprocess
 import tempfile
@@ -41,8 +42,16 @@ class LinpeasBuilderTests(unittest.TestCase):
             output_path = Path(tmpdir) / "linpeas.sh"
             self._run_builder(["--all-no-fat"], output_path)
             content = output_path.read_text(encoding="utf-8", errors="ignore")
-            self.assertIn('getopts "', content, "getopts line not found in built script.")
-            getopts_line = next(l for l in content.splitlines() if 'getopts "' in l)
+            # Match the actual option-parsing line: 'while getopts' followed by
+            # either a single or double quoted option string, to avoid matching
+            # comments or help text that happen to contain 'getopts'.
+            getopts_line = next(
+                (l for l in content.splitlines()
+                 if re.match(r'\s*while\s+getopts\s+[\'"]', l)),
+                None
+            )
+            self.assertIsNotNone(getopts_line,
+                                 "'while getopts' line not found in built script.")
             self.assertIn("z:", getopts_line,
                           "-z: option is missing from the getopts string in the built script.")
 
