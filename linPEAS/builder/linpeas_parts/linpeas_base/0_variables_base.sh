@@ -150,7 +150,7 @@ while getopts "h?asd:p:i:P:qo:LMwNDterf:F:z:" opt; do
 	    CHECKS="procs_crons_timers_srvcs_sockets,software_information,interesting_perms_files,interesting_files,api_keys_regex";;
 
     F)  PORT_FORWARD=$OPTARG;;
-    z)  if [ "$OPTARG" -eq "$OPTARG" ] 2>/dev/null && [ "$OPTARG" -ge 1 ] 2>/dev/null; then THREADS=$OPTARG; else echo "${YELLOW}WARNING: -z requires an integer >= 1, ignoring.${NC}" >&2; fi;;
+    z)  if [ "$OPTARG" -eq "$OPTARG" ] 2>/dev/null && [ "$OPTARG" -ge 1 ] 2>/dev/null; then THREADS=$OPTARG; else echo "WARNING: -z requires an integer >= 1, ignoring." >&2; fi;;
     esac
 done
 

@@ -35,6 +35,26 @@ class LinpeasBuilderTests(unittest.TestCase):
             self.assertIn("Operative system", content)
             self.assertNotIn("Am I Containered?", content)
 
+    def test_threads_flag_present_in_getopts(self):
+        """Regression: -z must appear in the getopts string so it is actually parsed."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "linpeas.sh"
+            self._run_builder(["--all-no-fat"], output_path)
+            content = output_path.read_text(encoding="utf-8", errors="ignore")
+            self.assertIn('getopts "', content, "getopts line not found in built script.")
+            getopts_line = next(l for l in content.splitlines() if 'getopts "' in l)
+            self.assertIn("z:", getopts_line,
+                          "-z: option is missing from the getopts string in the built script.")
+
+    def test_threads_flag_present_in_help_text(self):
+        """Regression: -z must be documented in the help text of the built script."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "linpeas.sh"
+            self._run_builder(["--all-no-fat"], output_path)
+            content = output_path.read_text(encoding="utf-8", errors="ignore")
+            self.assertIn("-z <N>", content,
+                          "-z <N> help entry is missing from the built script.")
+
 
 if __name__ == "__main__":
     unittest.main()
