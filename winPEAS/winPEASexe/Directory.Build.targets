@@ -1,0 +1,30 @@
+<!--
+  Linux cross-compilation shim.
+  The Microsoft.Build.Tasks.AL (Assembly Linker) task cannot run on Linux because
+  it depends on Windows-only native components.  Satellite resource assemblies are
+  purely localisation files; skipping them has no effect on winPEAS functionality.
+  We stub out the full satellite-assembly pipeline so no missing .resources.dll
+  errors occur when MSBuild tries to copy artefacts it never built.
+-->
+<Project>
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <!-- Stop ResGen from generating culture-specific .resources files -->
+    <GenerateResourcesWithPublicAccess>false</GenerateResourcesWithPublicAccess>
+  </PropertyGroup>
+
+  <!-- Wipe the list of culture-specific embedded resources before any target runs -->
+  <Target Name="_ClearSatelliteResources"
+          BeforeTargets="PrepareResourceNames;CoreCompile"
+          Condition="'$(OS)' != 'Windows_NT'">
+    <ItemGroup>
+      <EmbeddedResource Remove="@(EmbeddedResource)"
+                        Condition="'%(EmbeddedResource.Culture)' != ''" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Stub out the targets that generate and then copy the satellite DLLs -->
+  <Target Name="GenerateSatelliteAssemblies"       Condition="'$(OS)' != 'Windows_NT'" />
+  <Target Name="_GenerateSatelliteAssemblyInputs"  Condition="'$(OS)' != 'Windows_NT'" />
+  <Target Name="MakeSatelliteDlls"                 Condition="'$(OS)' != 'Windows_NT'" />
+  <Target Name="_CopySatelliteAssembliesToOutputDirectory" Condition="'$(OS)' != 'Windows_NT'" />
+</Project>
