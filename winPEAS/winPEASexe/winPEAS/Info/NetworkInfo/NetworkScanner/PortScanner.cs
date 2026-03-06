@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 using winPEAS.Helpers;
 
 namespace winPEAS.Info.NetworkInfo.NetworkScanner
