@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
-using System.Threading;
 using winPEAS.Helpers;
 
 namespace winPEAS.Info.NetworkInfo.NetworkScanner
@@ -70,8 +69,6 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
 
         public void RunScanTcp(string host, int port)
         {
-            Thread.Sleep(1);
-
             using (var client = new TcpClient())
             {
                 IAsyncResult ar = client.BeginConnect(host, port, null, null);
