@@ -90,6 +90,7 @@ namespace winPEAS.Checks
                 new SystemCheck("soapclientinfo", new SoapClientInfo()),
                 new SystemCheck("applicationsinfo", new ApplicationsInfo()),
                 new SystemCheck("networkinfo", new NetworkInfo()),
+                new SystemCheck("networkscan", new NetworkScanCheck()),
                 new SystemCheck("activedirectoryinfo", new ActiveDirectoryInfo()),
                 new SystemCheck("cloudinfo", new CloudInfo()),
                 new SystemCheck("windowscreds", new WindowsCreds()),
@@ -299,11 +300,11 @@ namespace winPEAS.Checks
                 Beaprint.ColorPrint(" [!] If you want to run the file analysis checks (search sensitive information in files), you need to specify the 'fileanalysis' or 'all' argument. Note that this search might take several minutes. For help, run winpeass.exe --help", Beaprint.YELLOW);
             }
 
-            // When -network is passed alongside a subset of checks, ensure networkinfo
-            // always runs so the scan is never silently skipped.
+            // When -network is passed alongside a subset of checks, inject the dedicated
+            // 'networkscan' check so only the scan runs, not all NetworkInfo sub-checks.
             if (IsNetworkScan && !isAllChecks)
             {
-                _systemCheckSelectedKeysHashSet.Add("networkinfo");
+                _systemCheckSelectedKeysHashSet.Add("networkscan");
             }
 
             if (isAllChecks)

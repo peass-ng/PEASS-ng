@@ -47,10 +47,6 @@ namespace winPEAS.Checks
             if (!Checks.DontCheckHostname)
                 checks.Add(PrintHostnameResolution);
 
-            // **Add network scan if requested**
-            if (Checks.IsNetworkScan)
-                checks.Add(PrintNetworkScan);
-
             // **Run every selected check**
             foreach (var action in checks)
                 CheckRunner.Run(action, isDebug);
@@ -524,7 +520,7 @@ namespace winPEAS.Checks
             }
         }
 
-        private void PrintNetworkScan()
+        internal void PrintNetworkScan()
         {
             try
             {

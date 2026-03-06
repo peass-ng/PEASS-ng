@@ -129,6 +129,7 @@ namespace winPEAS.Helpers
             Console.WriteLine(LCYAN + "        servicesinfo" + GRAY + "         Search services information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        applicationsinfo" + GRAY + "     Search installed applications information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        networkinfo" + GRAY + "          Search network information" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        networkscan" + GRAY + "          Run only the -network scan (no other NetworkInfo sub-checks)" + NOCOLOR);
             Console.WriteLine(LCYAN + "        activedirectoryinfo" + GRAY + "   Quick AD checks (gMSA readable passwords, AD CS template rights)" + NOCOLOR);
             Console.WriteLine(LCYAN + "        cloudinfo" + GRAY + "            Enumerate cloud information" + NOCOLOR);
             Console.WriteLine(LCYAN + "        windowscreds" + GRAY + "         Search windows credentials" + NOCOLOR);
