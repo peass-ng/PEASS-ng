@@ -1,4 +1,5 @@
 import os
+import re
 import stat
 import subprocess
 import tempfile
@@ -34,6 +35,34 @@ class LinpeasBuilderTests(unittest.TestCase):
             content = output_path.read_text(encoding="utf-8", errors="ignore")
             self.assertIn("Operative system", content)
             self.assertNotIn("Am I Containered?", content)
+
+    def test_threads_flag_present_in_getopts(self):
+        """Regression: -z must appear in the getopts string so it is actually parsed."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "linpeas.sh"
+            self._run_builder(["--all-no-fat"], output_path)
+            content = output_path.read_text(encoding="utf-8", errors="ignore")
+            # Match the actual option-parsing line: 'while getopts' followed by
+            # either a single or double quoted option string, to avoid matching
+            # comments or help text that happen to contain 'getopts'.
+            getopts_line = next(
+                (l for l in content.splitlines()
+                 if re.match(r'\s*while\s+getopts\s+[\'"]', l)),
+                None
+            )
+            self.assertIsNotNone(getopts_line,
+                                 "'while getopts' line not found in built script.")
+            self.assertIn("z:", getopts_line,
+                          "-z: option is missing from the getopts string in the built script.")
+
+    def test_threads_flag_present_in_help_text(self):
+        """Regression: -z must be documented in the help text of the built script."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "linpeas.sh"
+            self._run_builder(["--all-no-fat"], output_path)
+            content = output_path.read_text(encoding="utf-8", errors="ignore")
+            self.assertIn("-z <N>", content,
+                          "-z <N> help entry is missing from the built script.")
 
 
 if __name__ == "__main__":
