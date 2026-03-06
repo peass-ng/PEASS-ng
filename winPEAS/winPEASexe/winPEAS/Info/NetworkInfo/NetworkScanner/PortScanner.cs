@@ -74,17 +74,22 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
             {
                 try
                 {
-                    // ConnectAsync + Wait(timeout) is the correct TAP replacement for
-                    // BeginConnect/WaitOne. Wait(int) returns false on timeout; exceptions
-                    // (refused, unreachable) are surfaced as AggregateException — both mean
-                    // the port is closed. Disposing the TcpClient in the using block aborts
-                    // any still-running connect on the timeout path.
-                    bool connected = client.ConnectAsync(host, port).Wait(TcpTimeout);
+                    var connectTask = client.ConnectAsync(host, port);
+                    bool completed = connectTask.Wait(TcpTimeout);
 
-                    if (connected && client.Connected)
+                    if (!completed || !client.Connected)
                     {
-                        Beaprint.GoodPrint($"    [+] Open TCP port at: {host}:{port}");
+                        // Timed out: the connect task may still be running and could fault
+                        // later. Attach a continuation that observes (and silences) any
+                        // subsequent exception so it doesn't surface as an
+                        // UnobservedTaskException when the task is GC'd.
+                        connectTask.ContinueWith(
+                            t => { var _ = t.Exception; },
+                            TaskContinuationOptions.OnlyOnFaulted);
+                        return;
                     }
+
+                    Beaprint.GoodPrint($"    [+] Open TCP port at: {host}:{port}");
                 }
                 catch (AggregateException)
                 {
