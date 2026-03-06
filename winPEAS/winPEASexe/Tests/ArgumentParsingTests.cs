@@ -17,15 +17,26 @@ namespace winPEAS.Tests
         }
 
         /// <summary>
-        /// Resets all public static Checks state modified by arg parsing, then invokes
-        /// Program.Main with the supplied args followed by "--help" so execution returns
-        /// immediately after parsing without running any actual system checks.
+        /// Resets all public static Checks fields that arg parsing can mutate, then
+        /// invokes Program.Main with the supplied args followed by "--help" so execution
+        /// returns immediately after parsing without running any actual system checks.
         /// </summary>
         private static void ParseOnly(params string[] args)
         {
-            winPEAS.Checks.Checks.IsNetworkScan      = false;
-            winPEAS.Checks.Checks.NetworkScanOptions = string.Empty;
-            winPEAS.Checks.Checks.PortScannerPorts   = null;
+            // Reset every field that Checks.Run() can modify during arg parsing.
+            winPEAS.Checks.Checks.IsDomainEnumeration = false;
+            winPEAS.Checks.Checks.IsNoColor           = false;
+            winPEAS.Checks.Checks.DontCheckHostname   = false;
+            winPEAS.Checks.Checks.Banner              = true;
+            winPEAS.Checks.Checks.IsDebug             = false;
+            winPEAS.Checks.Checks.IsLinpeas           = false;
+            winPEAS.Checks.Checks.IsLolbas            = false;
+            winPEAS.Checks.Checks.IsNetworkScan       = false;
+            winPEAS.Checks.Checks.SearchProgramFiles  = false;
+            winPEAS.Checks.Checks.NetworkScanOptions  = string.Empty;
+            winPEAS.Checks.Checks.PortScannerPorts    = null;
+            winPEAS.Checks.Checks.LinpeasUrl          = "https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh";
+            winPEAS.Checks.Checks.MaxRegexFileSize    = 1000000;
 
             var argsWithHelp = args.Concat(new[] { "--help" }).ToArray();
             Program.Main(argsWithHelp);
