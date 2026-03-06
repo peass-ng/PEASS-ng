@@ -36,22 +36,23 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
 
             foreach (var ip in ipRange)
             {
-                Ping p = new Ping();
-                var task = PingAndUpdateStatus(p, ip);
-                tasks.Add(task);
+                tasks.Add(PingAndUpdateStatus(ip));
             }
             
             await Task.WhenAll(tasks);
         }
 
-        private async Task PingAndUpdateStatus(Ping ping, string ip)
+        private async Task PingAndUpdateStatus(string ip)
         {
-            var reply = await ping.SendPingAsync(ip, PingTimeout);
-
-            if (reply.Status == IPStatus.Success)
+            using (var ping = new Ping())
             {
-                HostsAlive.Add(ip);
-                Beaprint.GoodPrint($"    [+] Host alive: {ip}");
+                var reply = await ping.SendPingAsync(ip, PingTimeout);
+
+                if (reply.Status == IPStatus.Success)
+                {
+                    HostsAlive.Add(ip);
+                    Beaprint.GoodPrint($"    [+] Host alive: {ip}");
+                }
             }
         }
     }
