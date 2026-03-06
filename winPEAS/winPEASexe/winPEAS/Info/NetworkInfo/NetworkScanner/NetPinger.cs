@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
+using winPEAS.Checks;
 using winPEAS.Helpers;
 
 namespace winPEAS.Info.NetworkInfo.NetworkScanner
@@ -62,6 +63,18 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
                         Beaprint.GoodPrint($"    [+] Host alive: {ip}");
                     }
                 }
+            }
+            catch (PingException)
+            {
+                // ICMP blocked, invalid address, or host unreachable — treat as down.
+            }
+            catch (Exception ex) when (Checks.IsDebug)
+            {
+                Beaprint.PrintException($"    [!] Ping error for {ip}: {ex.Message}");
+            }
+            catch (Exception)
+            {
+                // Isolate per-IP failures so a single bad target can't abort the sweep.
             }
             finally
             {
