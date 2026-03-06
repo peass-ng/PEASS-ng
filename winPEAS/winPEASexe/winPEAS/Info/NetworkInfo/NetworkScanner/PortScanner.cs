@@ -50,12 +50,6 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
 
         #endregion
 
-        private struct TcpPortState
-        {
-            public TcpClient MainClient { get; set; }
-            public bool IsTcpPortOpen { get; set; }
-        }
-
         IEnumerable<int> portsToScan = nmapTop1000TCPPorts;
 
         public PortScanner(IEnumerable<int> ports)
@@ -79,46 +73,20 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
         {
             Thread.Sleep(1);
 
-            var newClient = new TcpClient();
-
-            var state = new TcpPortState
+            using (var client = new TcpClient())
             {
-                MainClient = newClient,
-                IsTcpPortOpen = true
-            };
+                IAsyncResult ar = client.BeginConnect(host, port, null, null);
+                bool timedOut = !ar.AsyncWaitHandle.WaitOne(TcpTimeout, false);
 
-            IAsyncResult ar = newClient.BeginConnect(host, port, AsyncCallback, state);
-            state.IsTcpPortOpen = ar.AsyncWaitHandle.WaitOne(TcpTimeout, false);
+                ar.AsyncWaitHandle.Close();
 
-            if (state.IsTcpPortOpen == false || newClient.Connected == false)
-            {
-                return;
+                if (timedOut || !client.Connected)
+                {
+                    return;
+                }
+
+                Beaprint.GoodPrint($"    [+] Open TCP port at: {host}:{port}");
             }
-
-            Beaprint.GoodPrint($"    [+] Open TCP port at: {host}:{port}");
-        }
-
-
-        void AsyncCallback(IAsyncResult asyncResult)
-        {
-            var state = (TcpPortState)asyncResult.AsyncState;
-            TcpClient client = state.MainClient;
-
-            try
-            {
-                client.EndConnect(asyncResult);
-            }
-            catch
-            {
-                return;
-            }
-
-            if (client.Connected && state.IsTcpPortOpen)
-            {
-                return;
-            }
-
-            client.Close();
         }
     }
 }
