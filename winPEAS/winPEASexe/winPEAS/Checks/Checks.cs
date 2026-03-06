@@ -10,7 +10,6 @@ using winPEAS.Helpers.AppLocker;
 using winPEAS.Helpers.Registry;
 using winPEAS.Helpers.Search;
 using winPEAS.Helpers.YamlConfig;
-using winPEAS.Info.NetworkInfo.NetworkScanner;
 using winPEAS.Info.UserInfo;
 
 namespace winPEAS.Checks
@@ -27,8 +26,8 @@ namespace winPEAS.Checks
         public static bool IsNetworkScan = false;
         public static bool SearchProgramFiles = false;
 
-        private static IEnumerable<int> PortScannerPorts = null;
-        private static string NetworkScanOptions = string.Empty;
+        public static IEnumerable<int> PortScannerPorts = null;
+        public static string NetworkScanOptions = string.Empty;
 
         // Create Dynamic blacklists
         public static readonly string CurrentUserName = Environment.UserName;
@@ -315,7 +314,7 @@ namespace winPEAS.Checks
 
                     CheckRunner.Run(() => CreateDynamicLists(isFileSearchEnabled), IsDebug);
 
-                    RunChecks(isAllChecks, wait, IsNetworkScan);
+                    RunChecks(isAllChecks, wait);
 
                     SearchHelper.CleanLists();
 
@@ -387,7 +386,7 @@ namespace winPEAS.Checks
             return false;
         }
 
-        private static void RunChecks(bool isAllChecks, bool wait, bool isNetworkScan)
+        private static void RunChecks(bool isAllChecks, bool wait)
         {
             for (int i = 0; i < _systemChecks.Count; i++)
             {
@@ -402,12 +401,6 @@ namespace winPEAS.Checks
                         WaitInput();
                     }
                 }
-            }
-
-            if (isNetworkScan)
-            {
-                NetworkScanner scanner = new NetworkScanner(NetworkScanOptions, PortScannerPorts);
-                scanner.Scan();
             }
         }
 

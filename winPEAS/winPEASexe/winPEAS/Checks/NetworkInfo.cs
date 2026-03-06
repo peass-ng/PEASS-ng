@@ -47,6 +47,10 @@ namespace winPEAS.Checks
             if (!Checks.DontCheckHostname)
                 checks.Add(PrintHostnameResolution);
 
+            // **Add network scan if requested**
+            if (Checks.IsNetworkScan)
+                checks.Add(PrintNetworkScan);
+
             // **Run every selected check**
             foreach (var action in checks)
                 CheckRunner.Run(action, isDebug);
@@ -513,6 +517,19 @@ namespace winPEAS.Checks
                 {
                     Beaprint.PrintException($"    {resolutionInfo.Error}");
                 }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private void PrintNetworkScan()
+        {
+            try
+            {
+                var scanner = new NetworkScanner(Checks.NetworkScanOptions, Checks.PortScannerPorts);
+                scanner.Scan();
             }
             catch (Exception ex)
             {

@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
+using winPEAS.Helpers;
 
 namespace winPEAS.Info.NetworkInfo.NetworkScanner
 {
@@ -11,7 +13,7 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
     {     
         private int PingTimeout = 1000;
         
-        public List<string> HostsAlive = new List<string>();
+        public ConcurrentBag<string> HostsAlive = new ConcurrentBag<string>();
 
         private List<string> ipRange = new List<string>();
 
@@ -48,8 +50,8 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
 
             if (reply.Status == IPStatus.Success)
             {
-                HostsAlive.Add(ip);             
-                await Console.Out.WriteLineAsync(ip);
+                HostsAlive.Add(ip);
+                Beaprint.GoodPrint($"    [+] Host alive: {ip}");
             }
         }
     }

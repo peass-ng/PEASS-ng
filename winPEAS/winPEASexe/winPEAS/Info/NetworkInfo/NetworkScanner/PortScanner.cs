@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using winPEAS.Helpers;
 
 namespace winPEAS.Info.NetworkInfo.NetworkScanner
 {
@@ -67,7 +68,8 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
 
         public void Start(string host)
         {
-            Parallel.ForEach(portsToScan, port =>
+            var innerOptions = new ParallelOptions { MaxDegreeOfParallelism = 50 };
+            Parallel.ForEach(portsToScan, innerOptions, port =>
             {
                 RunScanTcp(host, port);
             });
@@ -93,7 +95,7 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
                 return;
             }
 
-            Console.WriteLine("[+] Open TCP port at: {0}:{1}", host, port);
+            Beaprint.GoodPrint($"    [+] Open TCP port at: {host}:{port}");
         }
 
 
