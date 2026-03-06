@@ -299,6 +299,13 @@ namespace winPEAS.Checks
                 Beaprint.ColorPrint(" [!] If you want to run the file analysis checks (search sensitive information in files), you need to specify the 'fileanalysis' or 'all' argument. Note that this search might take several minutes. For help, run winpeass.exe --help", Beaprint.YELLOW);
             }
 
+            // When -network is passed alongside a subset of checks, ensure networkinfo
+            // always runs so the scan is never silently skipped.
+            if (IsNetworkScan && !isAllChecks)
+            {
+                _systemCheckSelectedKeysHashSet.Add("networkinfo");
+            }
+
             if (isAllChecks)
             {
                 isFileSearchEnabled = true;
