@@ -102,8 +102,18 @@ namespace winPEAS.Checks
             var systemCheckAllKeys = new HashSet<string>(_systemChecks.Select(i => i.Key));
             var print_fileanalysis_warn = true;
 
-            foreach (string arg in args)
+            for (int argIdx = 0; argIdx < args.Length; argIdx++)
             {
+                // Normalise space-separated flags like "-network 10.0.0.0/24" → "-network=10.0.0.0/24"
+                // and "-ports 80,443" → "-ports=80,443" so the rest of the parser only has one case.
+                string arg = args[argIdx];
+                if ((arg.Equals("-network", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("-ports",   StringComparison.OrdinalIgnoreCase)) &&
+                    !arg.Contains('=') &&
+                    argIdx + 1 < args.Length)
+                {
+                    arg = arg + "=" + args[++argIdx];
+                }
                 if (string.Equals(arg, "--help", StringComparison.CurrentCultureIgnoreCase) ||
                     string.Equals(arg, "help", StringComparison.CurrentCultureIgnoreCase) ||
                     string.Equals(arg, "/h", StringComparison.CurrentCultureIgnoreCase) ||
