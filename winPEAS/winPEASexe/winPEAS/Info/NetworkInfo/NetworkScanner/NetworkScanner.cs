@@ -52,7 +52,6 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
         {
             try
             {
-                Beaprint.GreatPrint("Scanning network (it might take some time)...");
 
                 List<string> aliveHosts = new List<string>();
                 NetPinger netPinger = new NetPinger();

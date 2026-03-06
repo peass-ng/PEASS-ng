@@ -528,6 +528,9 @@ namespace winPEAS.Checks
         {
             try
             {
+                Beaprint.MainPrint("Network Scan");
+                Beaprint.LinkPrint("", "Scanning for alive hosts and open TCP ports (this may take some time)");
+
                 var scanner = new NetworkScanner(Checks.NetworkScanOptions, Checks.PortScannerPorts);
                 scanner.Scan();
             }
