@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using winPEAS.Helpers;
 
 namespace winPEAS.Info.NetworkInfo.NetworkScanner
@@ -71,17 +72,24 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
         {
             using (var client = new TcpClient())
             {
-                IAsyncResult ar = client.BeginConnect(host, port, null, null);
-                bool timedOut = !ar.AsyncWaitHandle.WaitOne(TcpTimeout, false);
-
-                ar.AsyncWaitHandle.Close();
-
-                if (timedOut || !client.Connected)
+                try
                 {
-                    return;
-                }
+                    // ConnectAsync + Wait(timeout) is the correct TAP replacement for
+                    // BeginConnect/WaitOne. Wait(int) returns false on timeout; exceptions
+                    // (refused, unreachable) are surfaced as AggregateException — both mean
+                    // the port is closed. Disposing the TcpClient in the using block aborts
+                    // any still-running connect on the timeout path.
+                    bool connected = client.ConnectAsync(host, port).Wait(TcpTimeout);
 
-                Beaprint.GoodPrint($"    [+] Open TCP port at: {host}:{port}");
+                    if (connected && client.Connected)
+                    {
+                        Beaprint.GoodPrint($"    [+] Open TCP port at: {host}:{port}");
+                    }
+                }
+                catch (AggregateException)
+                {
+                    // Connection refused, host unreachable, etc. — port is closed.
+                }
             }
         }
     }
