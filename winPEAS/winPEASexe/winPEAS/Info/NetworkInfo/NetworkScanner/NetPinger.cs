@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Threading;
 using System.Threading.Tasks;
 using winPEAS.Helpers;
 
@@ -12,6 +13,7 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
     internal class NetPinger
     {     
         private int PingTimeout = 1000;
+        private const int MaxConcurrentPings = 50;
         
         public ConcurrentBag<string> HostsAlive = new ConcurrentBag<string>();
 
@@ -32,27 +34,38 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
 
         public async Task RunPingSweepAsync()
         {
-            var tasks = new List<Task>();
-
-            foreach (var ip in ipRange)
+            using (var semaphore = new SemaphoreSlim(MaxConcurrentPings))
             {
-                tasks.Add(PingAndUpdateStatus(ip));
+                var tasks = new List<Task>();
+
+                foreach (var ip in ipRange)
+                {
+                    await semaphore.WaitAsync();
+                    tasks.Add(PingAndUpdateStatus(ip, semaphore));
+                }
+
+                await Task.WhenAll(tasks);
             }
-            
-            await Task.WhenAll(tasks);
         }
 
-        private async Task PingAndUpdateStatus(string ip)
+        private async Task PingAndUpdateStatus(string ip, SemaphoreSlim semaphore)
         {
-            using (var ping = new Ping())
+            try
             {
-                var reply = await ping.SendPingAsync(ip, PingTimeout);
-
-                if (reply.Status == IPStatus.Success)
+                using (var ping = new Ping())
                 {
-                    HostsAlive.Add(ip);
-                    Beaprint.GoodPrint($"    [+] Host alive: {ip}");
+                    var reply = await ping.SendPingAsync(ip, PingTimeout);
+
+                    if (reply.Status == IPStatus.Success)
+                    {
+                        HostsAlive.Add(ip);
+                        Beaprint.GoodPrint($"    [+] Host alive: {ip}");
+                    }
                 }
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
     }
