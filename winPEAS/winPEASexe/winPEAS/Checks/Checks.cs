@@ -421,7 +421,8 @@ namespace winPEAS.Checks
         private static bool PassesMitreFilter(ISystemCheck check)
         {
             if (MitreFilter.Count == 0) return true;
-            if (check.MitreAttackIds == null) return false;
+            // No MITRE metadata declared → pass through (don't silently exclude untagged checks).
+            if (check.MitreAttackIds == null || check.MitreAttackIds.Length == 0) return true;
             foreach (var id in check.MitreAttackIds)
             {
                 if (MitreFilter.Contains(id)) return true;

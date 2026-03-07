@@ -200,5 +200,26 @@ namespace winPEAS.Tests
             Assert.IsFalse(InvokePassesMitreFilter(new[] { "T1552.001" }),
                 "Filter on T1548 must not match T1552.001.");
         }
+
+        [TestMethod]
+        public void PassesMitreFilter_NullMitreAttackIds_PassesThrough()
+        {
+            // A check with null MitreAttackIds should NOT be silently excluded
+            // when a filter is active — it simply has no metadata to match against.
+            winPEAS.Checks.Checks.MitreFilter.Clear();
+            winPEAS.Checks.Checks.MitreFilter.Add("T1082");
+            Assert.IsTrue(InvokePassesMitreFilter(null),
+                "A check with null MitreAttackIds should pass through (return true) when a filter is active.");
+        }
+
+        [TestMethod]
+        public void PassesMitreFilter_EmptyMitreAttackIds_PassesThrough()
+        {
+            // A check that declares string[0] should also pass through, not be silently excluded.
+            winPEAS.Checks.Checks.MitreFilter.Clear();
+            winPEAS.Checks.Checks.MitreFilter.Add("T1082");
+            Assert.IsTrue(InvokePassesMitreFilter(new string[0]),
+                "A check with empty MitreAttackIds should pass through (return true) when a filter is active.");
+        }
     }
 }

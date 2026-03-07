@@ -72,10 +72,11 @@ class LinpeasBaseBuilder:
                         section_mitre_ids.append(mid)
             section_mitre_str = ",".join(section_mitre_ids)
 
-            # Gate on both CHECKS name and (if MITRE_FILTER active) the section's MITRE IDs
+            # Gate on both CHECKS name and (if MITRE_FILTER active) the section's MITRE IDs.
+            # check_mitre_filter already returns 0 when MITRE_FILTER is empty, so no extra guard needed.
             if section_mitre_str:
                 self.linpeas_base += f"\nif echo $CHECKS | grep -q {section_info['name_check']}; then\n"
-                self.linpeas_base += f'if check_mitre_filter "{section_mitre_str}" || [ -z "$MITRE_FILTER" ]; then\n'
+                self.linpeas_base += f'if check_mitre_filter "{section_mitre_str}"; then\n'
                 extra_fi = True
             else:
                 self.linpeas_base += f"\nif echo $CHECKS | grep -q {section_info['name_check']}; then\n"
