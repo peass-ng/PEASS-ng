@@ -5,6 +5,7 @@
 # Description: Screen sessions
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1563
 # Functions Used: print_2title, print_info
 # Global Variables:$DEBUG, $SEARCH_IN_FOLDER, $USER, $wgroups
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if (command -v screen >/dev/null 2>&1 || [ -d "/run/screen" ] || [ "$DEBUG" ]) && ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Searching screen sessions"
+  print_2title "Searching screen sessions" "T1563"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#open-shell-sessions"
   screensess=$(screen -ls 2>/dev/null)
   screensess2=$(find /run/screen -type d -path "/run/screen/S-*" 2>/dev/null)
@@ -27,7 +28,7 @@ if (command -v screen >/dev/null 2>&1 || [ -d "/run/screen" ] || [ "$DEBUG" ]) &
   done
 
   if [ -r "/etc/passwd" ]; then
-    print_3title "Checking other users screen sessions"
+    print_3title "Checking other users screen sessions" "T1563"
     cut -d: -f1,7 /etc/passwd 2>/dev/null | grep "sh$" | cut -d: -f1 | grep -v "^$USER$" | while read u; do
       uscreen=$(screen -ls "${u}/" 2>/dev/null | grep -v "No Sockets found" | grep -v "^$")
       if [ "$uscreen" ]; then

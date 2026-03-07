@@ -5,6 +5,7 @@
 # Description: Processes whose PPID belongs to a different user (not root)
 # License: GNU GPL
 # Version: 1.1
+# Mitre: T1134.004
 # Functions Used: print_2title, print_info
 # Global Variables: $nosh_usrs, $NOUSEPS, $SEARCH_IN_FOLDER, $sh_usrs, $USER
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 1
 
 if ! [ "$SEARCH_IN_FOLDER" ] && ! [ "$NOUSEPS" ]; then
-  print_2title "Processes whose PPID belongs to a different user (not root)"
+  print_2title "Processes whose PPID belongs to a different user (not root)" "T1134.004"
   print_info "You will know if a user can somehow spawn processes as a different user"
   
   # Function to get user by PID using /proc

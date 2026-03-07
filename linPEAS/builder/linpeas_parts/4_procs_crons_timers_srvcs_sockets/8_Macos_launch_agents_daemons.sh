@@ -5,6 +5,7 @@
 # Description: Third party LaunchAgents & LaunchDemons and privilege escalation vectors
 # License: GNU GPL
 # Version: 1.1
+# Mitre: T1543.001
 # Functions Used: print_2title, print_info
 # Global Variables: $MACPEAS, $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   if [ "$MACPEAS" ]; then
-    print_2title "Third party LaunchAgents & LaunchDemons"
+    print_2title "Third party LaunchAgents & LaunchDemons" "T1543.001"
     print_info "https://book.hacktricks.wiki/en/macos-hardening/macos-auto-start-locations.html#launchd"
     print_info "Checking for privilege escalation vectors in LaunchAgents & LaunchDaemons:"
     print_info "1. Writable plist files"
@@ -100,7 +101,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     done
     echo ""
 
-    print_2title "StartupItems"
+    print_2title "StartupItems" "T1543.001"
     print_info "https://book.hacktricks.wiki/en/macos-hardening/macos-auto-start-locations.html#startup-items"
     for startup_dir in /Library/StartupItems/ /System/Library/StartupItems/; do
       [ ! -d "$startup_dir" ] && continue
@@ -114,7 +115,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     done
     echo ""
 
-    print_2title "Login Items"
+    print_2title "Login Items" "T1543.001"
     print_info "https://book.hacktricks.wiki/en/macos-hardening/macos-auto-start-locations.html#startup-items"
     osascript -e 'tell application "System Events" to get the name of every login item' 2>/dev/null | tr ", " "\n" | while read -r login_item; do
       if [ -n "$login_item" ]; then
@@ -128,7 +129,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     done
     echo ""
 
-    print_2title "SPStartupItemDataType"
+    print_2title "SPStartupItemDataType" "T1543.001"
     system_profiler SPStartupItemDataType 2>/dev/null | while read -r line; do
       if echo "$line" | grep -q "Location:"; then
         location=$(echo "$line" | cut -d: -f2- | xargs)
@@ -140,7 +141,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     done
     echo ""
 
-    print_2title "Emond scripts"
+    print_2title "Emond scripts" "T1543.001"
     print_info "https://book.hacktricks.wiki/en/macos-hardening/macos-auto-start-locations.html#emond"
     if [ -d "/private/var/db/emondClients" ]; then
       find "/private/var/db/emondClients" -type f 2>/dev/null | while read -r emond_script; do
@@ -152,7 +153,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     fi
     echo ""
 
-    print_2title "Periodic tasks"
+    print_2title "Periodic tasks" "T1543.001"
     print_info "Checking periodic tasks for privilege escalation vectors"
     for periodic_dir in /etc/periodic/daily /etc/periodic/weekly /etc/periodic/monthly; do
       [ ! -d "$periodic_dir" ] && continue

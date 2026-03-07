@@ -5,6 +5,7 @@
 # Description: S/Key athentication
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1556
 # Functions Used: print_2title
 # Global Variables: $DEBUG, $IAMROOT
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if (grep auth= /etc/login.conf 2>/dev/null | grep -v "^#" | grep -q skey) || [ "$DEBUG" ] ; then
-  print_2title "S/Key authentication"
+  print_2title "S/Key authentication" "T1556"
   printf "System supports$RED S/Key$NC authentication\n"
   if ! [ -d /etc/skey/ ]; then
     echo "${GREEN}S/Key authentication enabled, but has not been initialized"

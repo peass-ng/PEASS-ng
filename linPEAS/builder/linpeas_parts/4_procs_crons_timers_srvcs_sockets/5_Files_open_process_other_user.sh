@@ -5,6 +5,7 @@
 # Description: Files opened by processes belonging to other users
 # License: GNU GPL
 # Version: 1.1
+# Mitre: T1083
 # Functions Used: print_2title, print_info
 # Global Variables: $IAMROOT, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   if ! [ "$IAMROOT" ]; then
-    print_2title "Files opened by processes belonging to other users"
+    print_2title "Files opened by processes belonging to other users" "T1083"
     print_info "This is usually empty because of the lack of privileges to read other user processes information"
 
     # Function to get username by UID

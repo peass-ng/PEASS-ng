@@ -45,6 +45,7 @@ class LinpeasModule:
         self.last_update = None
         self.description = None
         self.version = None
+        self.mitre_ids = []  # list of MITRE ATT&CK technique IDs (e.g. ["T1082", "T1548.003"])
         self.functions_used = None
         self.global_variables = None
         self.initial_functions = None
@@ -81,7 +82,12 @@ class LinpeasModule:
             elif line.startswith("# Version:"):
                 is_description = False
                 self.version = line[11:].strip()
-            
+
+            elif line.startswith("# Mitre:"):
+                is_description = False
+                raw = line[8:].strip()
+                self.mitre_ids = [t.strip() for t in raw.split(",") if t.strip()]
+
             elif line.startswith("# Functions Used:"):
                 is_description = False
                 self.functions_used = line[17:].split(",")

@@ -34,9 +34,11 @@ namespace winPEAS.Checks
         static readonly string _badPasswd = "NotChange|NotExpi";
         static readonly string _badPrivileges = "SeImpersonatePrivilege|SeAssignPrimaryPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege";
 
+        public string[] MitreAttackIds { get; } = new[] { "T1087.001", "T1033", "T1134" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Users Information");
+            Beaprint.GreatPrint("Users Information", "T1087.001,T1033,T1134");
 
             new List<Action>
             {
@@ -77,7 +79,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Users");
+                Beaprint.MainPrint("Users", "T1087.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#users--groups", "Check if you have some admin equivalent privileges");
 
                 List<string> usersGrps = User.GetMachineUsers(false, false, false, false, true);
@@ -108,7 +110,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Current Token privileges");
+                Beaprint.MainPrint("Current Token privileges", "T1134");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#token-manipulation", "Check if you can escalate privilege using some enabled token");
                 Dictionary<string, string> tokenPrivs = Token.GetTokenGroupPrivs();
                 Beaprint.DictPrint(tokenPrivs, ColorsU(), false);
@@ -123,7 +125,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Clipboard text");
+                Beaprint.MainPrint("Clipboard text", "T1115");
                 string clipboard = UserInfoHelper.GetClipboardText();
                 if (!string.IsNullOrEmpty(clipboard))
                 {
@@ -140,7 +142,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Logged users");
+                Beaprint.MainPrint("Logged users", "T1033");
                 List<string> loggedUsers = User.GetLoggedUsers();
 
                 Beaprint.ListPrint(loggedUsers, ColorsU());
@@ -155,7 +157,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("RDP Sessions");
+                Beaprint.MainPrint("RDP Sessions", "T1563.002");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/credentials-mgmt/rdp-sessions", "Disconnected high-privilege RDP sessions keep reusable tokens inside LSASS.");
                 List<Dictionary<string, string>> rdp_sessions = UserInfoHelper.GetRDPSessions();
                 if (rdp_sessions.Count > 0)
@@ -230,7 +232,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Ever logged users");
+                Beaprint.MainPrint("Ever logged users", "T1033");
                 List<string> everLogged = User.GetEverLoggedUsers();
                 Beaprint.ListPrint(everLogged, ColorsU());
             }
@@ -244,7 +246,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Home folders found");
+                Beaprint.MainPrint("Home folders found", "T1083");
                 List<string> user_folders = User.GetUsersFolders();
                 foreach (string ufold in user_folders)
                 {
@@ -269,7 +271,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking for AutoLogon credentials");
+                Beaprint.MainPrint("Looking for AutoLogon credentials", "T1552.002");
                 bool ban = false;
                 Dictionary<string, string> autologon = UserInfoHelper.GetAutoLogon();
                 if (autologon.Count > 0)
@@ -307,7 +309,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Password Policies");
+                Beaprint.MainPrint("Password Policies", "T1201");
                 Beaprint.LinkPrint("", "Check for a possible brute-force");
                 List<Dictionary<string, string>> PPy = UserInfoHelper.GetPasswordPolicy();
                 Beaprint.DictPrint(PPy, ColorsU(), false);
@@ -322,7 +324,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Print Logon Sessions");
+                Beaprint.MainPrint("Print Logon Sessions", "T1033");
 
                 var logonSessions = LogonSessions.GetLogonSessions();
 
@@ -355,7 +357,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Current User Idle Time");
+                Beaprint.MainPrint("Current User Idle Time", "T1033");
 
                 var lastInputInfo = new LastInputInfo();
                 lastInputInfo.Size = (uint)Marshal.SizeOf(lastInputInfo);
@@ -380,7 +382,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Display information about local users");
+                Beaprint.MainPrint("Display information about local users", "T1087.001");
 
                 var computerName = Environment.GetEnvironmentVariable("COMPUTERNAME");
 
@@ -433,7 +435,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Display Tenant information (DsRegCmd.exe /status)");
+                Beaprint.MainPrint("Display Tenant information (DsRegCmd.exe /status)", "T1087.004");
 
                 var info = Tenant.GetTenantInfo();
 

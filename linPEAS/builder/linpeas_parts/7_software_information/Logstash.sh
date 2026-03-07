@@ -5,6 +5,7 @@
 # Description: Searching logstash files
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: print_2title
 # Global Variables: $DEBUG, $knw_usrs, $nosh_usrs, $sh_usrs, $USER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$PSTORAGE_LOGSTASH" ] || [ "$DEBUG" ]; then
-  print_2title "Searching logstash files"
+  print_2title "Searching logstash files" "T1552.001"
   printf "$PSTORAGE_LOGSTASH"
   printf "%s\n" "$PSTORAGE_LOGSTASH" | while read d; do
     if [ -r "$d/startup.options" ]; then

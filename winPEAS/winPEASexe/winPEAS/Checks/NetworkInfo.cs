@@ -25,9 +25,11 @@ namespace winPEAS.Checks
             { @"\[\:\:\]", Beaprint.ansi_color_bad },
         };
 
+        public string[] MitreAttackIds { get; } = new[] { "T1016", "T1049", "T1135", "T1046" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Network Information");
+            Beaprint.GreatPrint("Network Information", "T1016,T1049,T1135,T1046");
 
             // Base checklist
             var checks = new List<Action>
@@ -56,7 +58,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Network Shares");
+                Beaprint.MainPrint("Network Shares", "T1135");
                 Dictionary<string, string> colorsN = new Dictionary<string, string>()
                 {
                     { commonShares, Beaprint.ansi_color_good },
@@ -85,7 +87,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Host File");
+                Beaprint.MainPrint("Host File", "T1016");
                 string[] lines = File.ReadAllLines(@Path.GetPathRoot(Environment.SystemDirectory) + @"\windows\system32\drivers\etc\hosts");
 
                 foreach (string line in lines)
@@ -106,7 +108,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Network Ifaces and known hosts");
+                Beaprint.MainPrint("Network Ifaces and known hosts", "T1016,T1018");
                 Beaprint.LinkPrint("", "The masks are only for the IPv4 addresses");
                 foreach (Dictionary<string, string> card in NetworkInfoHelper.GetNetCardInfo())
                 {
@@ -138,7 +140,7 @@ namespace winPEAS.Checks
 
         private void PrintListeningPortsTcp(Dictionary<int, Process> processesByPid)
         {
-            Beaprint.MainPrint("Current TCP Listening Ports");
+            Beaprint.MainPrint("Current TCP Listening Ports", "T1049");
             Beaprint.LinkPrint("", "Check for services restricted from the outside");
 
             PrintListeningPortsTcpIPv4(processesByPid);
@@ -214,7 +216,7 @@ namespace winPEAS.Checks
 
         private void PrintListeningPortsUdp(Dictionary<int, Process> processesByPid)
         {
-            Beaprint.MainPrint("Current UDP Listening Ports");
+            Beaprint.MainPrint("Current UDP Listening Ports", "T1049");
             Beaprint.LinkPrint("", "Check for services restricted from the outside");
 
             PrintListeningPortsUdpIPv4(processesByPid);
@@ -298,7 +300,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Firewall Rules");
+                Beaprint.MainPrint("Firewall Rules", "T1016");
                 Beaprint.LinkPrint("", "Showing only DENY rules (too many ALLOW rules always)");
                 Dictionary<string, string> colorsN = new Dictionary<string, string>()
                         {
@@ -345,7 +347,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("DNS cached --limit 70--");
+                Beaprint.MainPrint("DNS cached --limit 70--", "T1016");
                 Beaprint.GrayPrint(string.Format("    {0,-38}{1,-38}{2}", "Entry", "Name", "Data"));
                 List<Dictionary<string, string>> DNScache = NetworkInfoHelper.GetDNSCache();
                 foreach (Dictionary<string, string> entry in MyUtils.GetLimitedRange(DNScache, 70))
@@ -363,7 +365,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Enumerate Network Mapped Drives (WMI)");
+                Beaprint.MainPrint("Enumerate Network Mapped Drives (WMI)", "T1135");
 
                 using (var wmiData = new ManagementObjectSearcher(@"root\cimv2", "SELECT * FROM win32_networkconnection"))
                 {
@@ -394,7 +396,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Enumerating Internet settings, zone and proxy configuration");
+                Beaprint.MainPrint("Enumerating Internet settings, zone and proxy configuration", "T1090");
 
                 var info = InternetSettings.GetInternetSettingsInfo();
 
@@ -444,7 +446,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Internet Connectivity");
+                Beaprint.MainPrint("Internet Connectivity", "T1016");
                 Beaprint.LinkPrint("", "Checking if internet access is possible via different methods");
 
                 var connectivityInfo = InternetConnectivity.CheckConnectivity();
@@ -499,7 +501,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Hostname Resolution");
+                Beaprint.MainPrint("Hostname Resolution", "T1016");
                 Beaprint.LinkPrint("", "Checking if the hostname can be resolved externally");
 
                 var resolutionInfo = HostnameResolution.TryExternalCheck();
@@ -524,7 +526,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Network Scan");
+                Beaprint.MainPrint("Network Scan", "T1046");
                 Beaprint.LinkPrint("", "Scanning for alive hosts and open TCP ports (this may take some time)");
 
                 var scanner = new NetworkScanner(Checks.NetworkScanOptions, Checks.PortScannerPorts);

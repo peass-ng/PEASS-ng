@@ -5,6 +5,7 @@
 # Description: MacOS network Capabilities
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1016
 # Functions Used: print_2title, print_3title, warn_exec
 # Global Variables: $MACPEAS, $EXTRA_CHECKS
 # Initial Functions:
@@ -14,28 +15,27 @@
 
 # Function to get network capabilities information
 get_macos_network_capabilities() {
-    print_2title "Network Capabilities"
-
+    print_2title "Network Capabilities" "T1016"
     # Basic network information
     echo ""
-    print_3title "Network Interfaces and Configuration"
+    print_3title "Network Interfaces and Configuration" "T1016"
     warn_exec system_profiler SPNetworkDataType
 
     # Network locations
     echo ""
-    print_3title "Network Locations"
+    print_3title "Network Locations" "T1016"
     warn_exec system_profiler SPNetworkLocationDataType
 
     # Network extensions
     echo ""
-    print_3title "Network Extensions"
+    print_3title "Network Extensions" "T1016"
     if [ -d "/Library/SystemExtensions" ]; then
         warn_exec systemextensionsctl list
     fi
 
     # Network security
     echo ""
-    print_3title "Network Security"
+    print_3title "Network Security" "T1016"
     if command -v networksetup >/dev/null 2>&1; then
         echo "Firewall Status:"
         warn_exec networksetup -getglobalstate
@@ -54,29 +54,29 @@ get_macos_network_capabilities() {
     if [ "$EXTRA_CHECKS" ]; then
         # Network preferences
         echo ""
-        print_3title "Network Preferences"
+        print_3title "Network Preferences" "T1016"
         if [ -f "/Library/Preferences/SystemConfiguration/preferences.plist" ]; then
             warn_exec plutil -p /Library/Preferences/SystemConfiguration/preferences.plist | grep -A 5 "NetworkServices"
         fi
         
         # Network statistics
         echo ""
-        print_3title "Network Statistics"
+        print_3title "Network Statistics" "T1016"
         warn_exec netstat -s
         
         # Network routes
         echo ""
-        print_3title "Network Routes"
+        print_3title "Network Routes" "T1016"
         warn_exec netstat -rn
         
         # Network interfaces details
         echo ""
-        print_3title "Network Interfaces Details"
+        print_3title "Network Interfaces Details" "T1016"
         warn_exec ifconfig -a
         
         # Network kernel extensions
         echo ""
-        print_3title "Network Kernel Extensions"
+        print_3title "Network Kernel Extensions" "T1016"
         warn_exec kextstat | grep -i network
     fi
 

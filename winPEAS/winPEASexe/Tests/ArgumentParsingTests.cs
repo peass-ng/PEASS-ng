@@ -37,6 +37,7 @@ namespace winPEAS.Tests
             winPEAS.Checks.Checks.PortScannerPorts    = null;
             winPEAS.Checks.Checks.LinpeasUrl          = "https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh";
             winPEAS.Checks.Checks.MaxRegexFileSize    = 1000000;
+            winPEAS.Checks.Checks.MitreFilter.Clear();
 
             var argsWithHelp = args.Concat(new[] { "--help" }).ToArray();
             Program.Main(argsWithHelp);
@@ -100,6 +101,38 @@ namespace winPEAS.Tests
             var ports = winPEAS.Checks.Checks.PortScannerPorts?.ToList();
             Assert.IsNotNull(ports, "PortScannerPorts should not be null");
             CollectionAssert.AreEquivalent(new List<int> { 80, 443 }, ports);
+        }
+
+        [TestMethod]
+        public void MitreFlag_SingleTechnique_ParsedIntoFilter()
+        {
+            ParseOnly("mitre=T1082");
+            Assert.AreEqual(1, winPEAS.Checks.Checks.MitreFilter.Count,
+                "mitre=T1082 should add exactly one technique to MitreFilter");
+            Assert.IsTrue(winPEAS.Checks.Checks.MitreFilter.Contains("T1082"),
+                "MitreFilter should contain T1082");
+        }
+
+        [TestMethod]
+        public void MitreFlag_MultipleIds_AllParsedIntoFilter()
+        {
+            ParseOnly("mitre=T1082,T1548.002,T1057");
+            Assert.AreEqual(3, winPEAS.Checks.Checks.MitreFilter.Count,
+                "mitre=T1082,T1548.002,T1057 should add three techniques to MitreFilter");
+            Assert.IsTrue(winPEAS.Checks.Checks.MitreFilter.Contains("T1082"));
+            Assert.IsTrue(winPEAS.Checks.Checks.MitreFilter.Contains("T1548.002"));
+            Assert.IsTrue(winPEAS.Checks.Checks.MitreFilter.Contains("T1057"));
+        }
+
+        [TestMethod]
+        public void MitreFlag_CaseInsensitive_IsRecognised()
+        {
+            ParseOnly("MITRE=t1082");
+            Assert.AreEqual(1, winPEAS.Checks.Checks.MitreFilter.Count,
+                "MITRE= (upper-case) should be accepted case-insensitively");
+            // HashSet uses OrdinalIgnoreCase so both casing variants should be found
+            Assert.IsTrue(winPEAS.Checks.Checks.MitreFilter.Contains("T1082") ||
+                          winPEAS.Checks.Checks.MitreFilter.Contains("t1082"));
         }
     }
 }

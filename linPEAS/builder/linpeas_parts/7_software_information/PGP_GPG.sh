@@ -5,6 +5,7 @@
 # Description: PGP-GPG
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.004
 # Functions Used: echo_not_found
 # Global Variables: 
 # Initial Functions: 

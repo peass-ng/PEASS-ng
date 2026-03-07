@@ -5,6 +5,7 @@
 # Description: Writable log files
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1070.002
 # Functions Used: echo_not_found, print_2title, print_info
 # Global Variables: $IAMROOT, $ROOT_FOLDER, $Wfolders
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if command -v logrotate >/dev/null && logrotate --version | head -n 1 | grep -Eq "[012]\.[0-9]+\.|3\.[0-9]\.|3\.1[0-7]\.|3\.18\.0"; then #3.18.0 and below
-print_2title "Writable log files (logrotten) (limit 50)"
+print_2title "Writable log files (logrotten) (limit 50)" "T1070.002"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#logrotate-exploitation"
   logrotate --version 2>/dev/null || echo_not_found "logrotate"
   lastWlogFolder="ImPOsSiBleeElastWlogFolder"
@@ -31,7 +32,7 @@ print_2title "Writable log files (logrotten) (limit 50)"
 fi
 
 # Check syslog configuration
-print_2title "Syslog configuration (limit 50)"
+print_2title "Syslog configuration (limit 50)" "T1070.002"
 if [ -f "/etc/rsyslog.conf" ]; then
     grep -v "^#" /etc/rsyslog.conf 2>/dev/null | sed -${E} "s,.*,${SED_RED},g" | head -n 50
 elif [ -f "/etc/syslog.conf" ]; then
@@ -42,7 +43,7 @@ fi
 
 
 # Check auditd configuration
-print_2title "Auditd configuration (limit 50)"
+print_2title "Auditd configuration (limit 50)" "T1070.002"
 if [ -f "/etc/audit/auditd.conf" ]; then
     grep -v "^#" /etc/audit/auditd.conf 2>/dev/null | sed -${E} "s,.*,${SED_RED},g" | head -n 50
 else
@@ -50,7 +51,7 @@ else
 fi
 
 # Check for log files with weak permissions
-print_2title "Log files with potentially weak perms (limit 50)"
+print_2title "Log files with potentially weak perms (limit 50)" "T1070.002"
 find /var/log -type f -ls 2>/dev/null | grep -Ev "root\s+root|root\s+systemd-journal|root\s+syslog|root\s+utmp" | sed -${E} "s,.*,${SED_RED},g" | head -n 50
 
 

@@ -5,6 +5,7 @@
 # Description: Passwords in history files
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: print_2title
 # Global Variables: $DEBUG, $pwd_inside_history
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$PSTORAGE_HISTORY" ] || [ "$DEBUG" ]; then
-  print_2title "Searching passwords in history files"
+  print_2title "Searching passwords in history files" "T1552.001"
   printf "%s\n" "$PSTORAGE_HISTORY" | while read f; do grep -EiH "$pwd_inside_history" "$f" 2>/dev/null | sed -${E} "s,$pwd_inside_history,${SED_RED},"; done
   echo ""
 fi

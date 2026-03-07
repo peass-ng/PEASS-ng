@@ -5,6 +5,7 @@
 # Description: Searching ssl/ssh files
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.004,T1021.004
 # Functions Used: print_2title, print_3title
 # Global Variables: $HOME, $HOMESEARCH, $ROOT_FOLDER, $SEARCH_IN_FOLDER, $TIMEOUT, $USER, $wgroups
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 1
 
 
-print_2title "Searching ssl/ssh files"
+print_2title "Searching ssl/ssh files" "T1552.004,T1021.004"
 if [ "$PSTORAGE_CERTSB4" ]; then certsb4_grep=$(grep -L "\"\|'\|(" $PSTORAGE_CERTSB4 2>/dev/null); fi
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   sshconfig="$(ls /etc/ssh/ssh_config 2>/dev/null)"
@@ -62,53 +63,53 @@ if [ "$privatekeyfilesetc" ] || [ "$privatekeyfileshome" ] || [ "$privatekeyfile
   echo ""
 fi
 if [ "$certsb4_grep" ] || [ "$PSTORAGE_CERTSBIN" ]; then
-  print_3title "Some certificates were found (out limited):"
+  print_3title "Some certificates were found (out limited):" "T1552.004,T1021.004"
   printf "$certsb4_grep\n" | head -n 20
   printf "$PSTORAGE_CERTSBIN\n" | head -n 20
     echo ""
 fi
 if [ "$PSTORAGE_CERTSCLIENT" ]; then
-  print_3title "Some client certificates were found:"
+  print_3title "Some client certificates were found:" "T1552.004,T1021.004"
   printf "$PSTORAGE_CERTSCLIENT\n"
   echo ""
 fi
 if [ "$PSTORAGE_SSH_AGENTS" ]; then
-  print_3title "Some SSH Agent files were found:"
+  print_3title "Some SSH Agent files were found:" "T1552.004,T1021.004"
   printf "$PSTORAGE_SSH_AGENTS\n"
   echo ""
 fi
 if [ "$agent_sockets" ]; then
-  print_3title "Potential SSH agent sockets were found:"
+  print_3title "Potential SSH agent sockets were found:" "T1552.004,T1021.004"
   printf "%s\n" "$agent_sockets" | sed -${E} "s,.*,${SED_RED},"
   echo ""
 fi
 if ssh-add -l 2>/dev/null | grep -qv 'no identities'; then
-  print_3title "Listing SSH Agents"
+  print_3title "Listing SSH Agents" "T1552.004,T1021.004"
   ssh-add -l
   echo ""
 fi
 if gpg-connect-agent "keyinfo --list" /bye 2>/dev/null | grep "D - - 1"; then
-  print_3title "Listing gpg keys cached in gpg-agent"
+  print_3title "Listing gpg keys cached in gpg-agent" "T1552.004,T1021.004"
   gpg-connect-agent "keyinfo --list" /bye
   echo ""
 fi
 if [ "$writable_agents" ]; then
-  print_3title "Writable ssh and gpg agents"
+  print_3title "Writable ssh and gpg agents" "T1552.004,T1021.004"
   printf "%s\n" "$writable_agents"
 fi
 if [ "$PSTORAGE_SSH_CONFIG" ]; then
-  print_3title "Some home ssh config file was found"
+  print_3title "Some home ssh config file was found" "T1552.004,T1021.004"
   printf "%s\n" "$PSTORAGE_SSH_CONFIG" | while read f; do ls "$f" | sed -${E} "s,$f,${SED_RED},"; cat "$f" 2>/dev/null | grep -Iv "^$" | grep -v "^#" | sed -${E} "s,User|ProxyCommand,${SED_RED},"; done
   echo ""
 fi
 if [ "$hostsdenied" ]; then
-  print_3title "/etc/hosts.denied file found, read the rules:"
+  print_3title "/etc/hosts.denied file found, read the rules:" "T1552.004,T1021.004"
   printf "$hostsdenied\n"
   cat " ${ROOT_FOLDER}etc/hosts.denied" 2>/dev/null | grep -v "#" | grep -Iv "^$" | sed -${E} "s,.*,${SED_GREEN},"
   echo ""
 fi
 if [ "$hostsallow" ]; then
-  print_3title "/etc/hosts.allow file found, trying to read the rules:"
+  print_3title "/etc/hosts.allow file found, trying to read the rules:" "T1552.004,T1021.004"
   printf "$hostsallow\n"
   cat " ${ROOT_FOLDER}etc/hosts.allow" 2>/dev/null | grep -v "#" | grep -Iv "^$" | sed -${E} "s,.*,${SED_RED},"
   echo ""

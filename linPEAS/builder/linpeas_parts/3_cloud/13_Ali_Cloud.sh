@@ -5,6 +5,7 @@
 # Description: Ali Cloud Platform Enumeration
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.005,T1580
 # Functions Used: print_2title, print_3title, print_info
 # Global Variables: $is_aliyun_ecs
 # Initial Functions: check_aliyun_ecs
@@ -28,11 +29,11 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
   fi
 
   if [ "$aliyun_token" ]; then
-    print_2title "Aliyun ECS Enumeration"
+    print_2title "Aliyun ECS Enumeration" "T1552.005,T1580"
     print_info "https://help.aliyun.com/zh/ecs/user-guide/view-instance-metadata"
 
     echo ""
-    print_3title "Instance Info"
+    print_3title "Instance Info" "T1552.005,T1580"
     i_hostname=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/hostname)
     [ "$i_hostname" ] && echo "Hostname: $i_hostname"
     i_instance_id=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/instance-id)
@@ -50,7 +51,7 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
     [ "$i_zone_id" ] && echo "Zone ID: $i_zone_id"
 
     echo ""
-    print_3title "Network Info"
+    print_3title "Network Info" "T1552.005,T1580"
     i_pub_ipv4=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/public-ipv4)
     [ "$i_pub_ipv4" ] && echo "Public IPv4: $i_pub_ipv4"
     i_priv_ipv4=$(eval $aliyun_req http://100.100.100.200/latest/meta-data/private-ipv4)
@@ -77,7 +78,7 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
     done
 
     echo ""
-    print_3title "Service account "
+    print_3title "Service account " "T1552.005,T1580"
     for sa in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/ram/security-credentials/"); do 
       echo "  Name: $sa"
       echo "  STS Token: "$(eval $aliyun_req "http://100.100.100.200/latest/meta-data/ram/security-credentials/$sa")
@@ -85,7 +86,7 @@ if [ "$is_aliyun_ecs" = "Yes" ]; then
     done
 
     echo ""
-    print_3title "Possbile admin ssh Public keys"
+    print_3title "Possbile admin ssh Public keys" "T1552.005,T1580"
     for key in $(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/"); do
       echo "  Name: $key"
       echo "  Key: "$(eval $aliyun_req "http://100.100.100.200/latest/meta-data/public-keys/${key}openssh-key")

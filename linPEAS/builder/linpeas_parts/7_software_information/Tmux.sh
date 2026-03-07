@@ -5,6 +5,7 @@
 # Description: Enumerate Tmux
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1563
 # Functions Used: print_2title, print_info
 # Global Variables: $DEBUG, $SEARCH_IN_FOLDER, $wgroups
 # Initial Functions:

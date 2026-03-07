@@ -5,6 +5,7 @@
 # Description: Get all relevant hidden files
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1564.001
 # Functions Used: print_2title
 # Global Variables:$INT_HIDDEN_FILES, $ROOT_FOLDER
 # Initial Functions:
@@ -13,6 +14,6 @@
 # Small linpeas: 0
 
 
-print_2title "All relevant hidden files (not in /sys/ or the ones listed in the previous check) (limit 70)"
+print_2title "All relevant hidden files (not in /sys/ or the ones listed in the previous check) (limit 70)" "T1564.001"
 find $ROOT_FOLDER -type f -iname ".*" ! -path "/sys/*" ! -path "/System/*" ! -path "/private/var/*" -exec ls -l {} \; 2>/dev/null | grep -Ev "$INT_HIDDEN_FILES" | grep -Ev "_history$|\.gitignore|.npmignore|\.listing|\.ignore|\.uuid|\.depend|\.placeholder|\.gitkeep|\.keep|\.keepme|\.travis.yml" | head -n 70
 echo ""

@@ -27,6 +27,7 @@
 #       - Protection circumvention
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1518.001
 # Functions Used: echo_not_found, print_2title, print_list, warn_exec
 # Global Variables:
 # Initial Functions:
@@ -58,7 +59,7 @@ print_sysctl_eq_zero() {
 }
 
 #-- SY) AppArmor
-print_2title "Protections"
+print_2title "Protections" "T1518.001"
 print_list "AppArmor enabled? .............. "$NC
 if [ "$(command -v aa-status 2>/dev/null || echo -n '')" ]; then
     aa-status 2>&1 | sed "s,disabled,${SED_RED},"

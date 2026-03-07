@@ -52,6 +52,9 @@ namespace winPEAS.Checks
         private static List<SystemCheck> _systemChecks;
         private static readonly HashSet<string> _systemCheckSelectedKeysHashSet = new HashSet<string>();
 
+        /// <summary>MITRE ATT&amp;CK technique IDs to filter checks (empty = run all).</summary>
+        public static readonly HashSet<string> MitreFilter = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         // github url for Linpeas.sh
         public static string LinpeasUrl = "https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh";
 
@@ -219,6 +222,17 @@ namespace winPEAS.Checks
                 if (string.Equals(arg, "-lolbas", StringComparison.CurrentCultureIgnoreCase))
                 {
                     IsLolbas = true;
+                }
+
+                if (arg.StartsWith("mitre=", StringComparison.OrdinalIgnoreCase))
+                {
+                    var mitreList = arg.Substring("mitre=".Length);
+                    foreach (var t in mitreList.Split(','))
+                    {
+                        var trimmed = t.Trim();
+                        if (!string.IsNullOrEmpty(trimmed))
+                            MitreFilter.Add(trimmed);
+                    }
                 }
 
                 if (arg.StartsWith("-linpeas", StringComparison.CurrentCultureIgnoreCase))
@@ -404,13 +418,30 @@ namespace winPEAS.Checks
             return false;
         }
 
+        private static bool PassesMitreFilter(ISystemCheck check)
+        {
+            if (MitreFilter.Count == 0) return true;
+            if (check.MitreAttackIds == null) return false;
+            foreach (var id in check.MitreAttackIds)
+            {
+                if (MitreFilter.Contains(id)) return true;
+                // Also match on just the base technique (e.g. filter "T1552" matches "T1552.001")
+                var dot = id.IndexOf('.');
+                if (dot > 0 && MitreFilter.Contains(id.Substring(0, dot))) return true;
+            }
+            return false;
+        }
+
         private static void RunChecks(bool isAllChecks, bool wait)
         {
             for (int i = 0; i < _systemChecks.Count; i++)
             {
                 var systemCheck = _systemChecks[i];
 
-                if (_systemCheckSelectedKeysHashSet.Contains(systemCheck.Key) || isAllChecks)
+                bool selectedByKey = _systemCheckSelectedKeysHashSet.Contains(systemCheck.Key) || isAllChecks;
+                bool selectedByMitre = PassesMitreFilter(systemCheck.Check);
+
+                if (selectedByKey && selectedByMitre)
                 {
                     systemCheck.Check.PrintInfo(IsDebug);
 

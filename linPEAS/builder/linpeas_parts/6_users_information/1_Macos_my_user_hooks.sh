@@ -5,6 +5,7 @@
 # Description: Get current user Login and Logout hooks
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1033,T1543.001
 # Functions Used: print_2title
 # Global Variables: $HOME, $MACPEAS
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$MACPEAS" ];then
-  print_2title "Current user Login and Logout hooks"
+  print_2title "Current user Login and Logout hooks" "T1033,T1543.001"
   defaults read $HOME/Library/Preferences/com.apple.loginwindow.plist 2>/dev/null | grep -e "Hook"
   echo ""
 fi

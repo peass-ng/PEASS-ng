@@ -5,6 +5,7 @@
 # Description: FreeIPA
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: print_info
 # Global Variables:
 # Initial Functions:

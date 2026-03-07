@@ -5,6 +5,7 @@
 # Description: Analyze firewall rules and configurations
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1016
 # Functions Used: print_2title, print_3title, warn_exec, echo_not_found
 # Global Variables: $EXTRA_CHECKS, $E, $SED_RED, $SED_GREEN, $SED_YELLOW, $SED_RED_YELLOW
 # Initial Functions:
@@ -26,8 +27,7 @@ check_command() {
 # Function to analyze iptables rules
 analyze_iptables() {
     echo ""
-    print_3title "Iptables Rules"
-    
+    print_3title "Iptables Rules" "T1016"
     # Check if iptables is available
     if ! check_command iptables; then
         echo_not_found "iptables"
@@ -70,8 +70,7 @@ analyze_iptables() {
 # Function to analyze nftables rules
 analyze_nftables() {
     echo ""
-    print_3title "Nftables Rules"
-    
+    print_3title "Nftables Rules" "T1016"
     # Check if nft is available
     if ! check_command nft; then
         echo_not_found "nftables"
@@ -107,8 +106,7 @@ analyze_nftables() {
 # Function to analyze firewalld rules
 analyze_firewalld() {
     echo ""
-    print_3title "Firewalld Rules"
-    
+    print_3title "Firewalld Rules" "T1016"
     # Check if firewall-cmd is available
     if ! check_command firewall-cmd; then
         echo_not_found "firewalld"
@@ -148,8 +146,7 @@ analyze_firewalld() {
 # Function to analyze UFW rules
 analyze_ufw() {
     echo ""
-    print_3title "UFW Rules"
-    
+    print_3title "UFW Rules" "T1016"
     # Check if ufw is available
     if ! check_command ufw; then
         echo_not_found "ufw"
@@ -176,8 +173,7 @@ analyze_ufw() {
 
 # Main function to analyze firewall rules
 analyze_firewall_rules() {
-    print_2title "Firewall Rules Analysis"
-    
+    print_2title "Firewall Rules Analysis" "T1016"
     # Analyze different firewall systems
     analyze_iptables
     analyze_nftables
@@ -185,7 +181,7 @@ analyze_firewall_rules() {
     analyze_ufw
 
     echo ""
-    print_3title "Forwarding and rp_filter"
+    print_3title "Forwarding and rp_filter" "T1016"
     for sysctl_var in net.ipv4.ip_forward net.ipv6.conf.all.forwarding net.ipv4.conf.all.rp_filter; do
         sysctl "$sysctl_var" 2>/dev/null | sed -${E} "s,=[[:space:]]*1,${SED_RED_YELLOW},g"
     done
@@ -198,8 +194,7 @@ analyze_firewall_rules() {
     # Additional checks if EXTRA_CHECKS is enabled
     if [ "$EXTRA_CHECKS" ]; then
         echo ""
-        print_3title "Additional Firewall Information"
-        
+        print_3title "Additional Firewall Information" "T1016"
         # Check for common firewall configuration files
         echo "Checking for firewall configuration files..."
         for config_file in /etc/sysconfig/iptables /etc/sysconfig/ip6tables /etc/iptables/rules.v4 /etc/iptables/rules.v6 /etc/nftables.conf /etc/ufw/user.rules /etc/ufw/user6.rules; do

@@ -5,6 +5,7 @@
 # Description: Google Cloud VM Enumeration
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.005,T1580
 # Functions Used: check_gcp, print_2title, print_3title, print_info
 # Global Variables: $is_gcp_vm, $GCP_GOOD_SCOPES, $GCP_BAD_SCOPES
 # Initial Functions: check_gcp
@@ -25,7 +26,7 @@ if [ "$is_gcp_vm" = "Yes" ]; then
 
 
     if [ "$gcp_req" ]; then
-        print_2title "Google Cloud Platform Enumeration"
+        print_2title "Google Cloud Platform Enumeration" "T1552.005,T1580"
         print_info "https://cloud.hacktricks.wiki/en/pentesting-cloud/gcp-security/index.html"
 
         ## GC Project Info
@@ -80,7 +81,7 @@ if [ "$is_gcp_vm" = "Yes" ]; then
         [ "$inst_k8s_kubenv" ] && echo "K8s Kube-env: $inst_k8s_kubenv"
 
         echo ""
-        print_3title "Interfaces"
+        print_3title "Interfaces" "T1552.005,T1580"
         for iface in $(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/"); do 
             echo "  IP: "$(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/$iface/ip")
             echo "  Subnetmask: "$(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/$iface/subnetmask")
@@ -91,12 +92,12 @@ if [ "$is_gcp_vm" = "Yes" ]; then
         done
         
         echo ""
-        print_3title "User Data"
+        print_3title "User Data" "T1552.005,T1580"
         echo $(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/attributes/startup-script")
         echo ""
 
         echo ""
-        print_3title "Service Accounts"
+        print_3title "Service Accounts" "T1552.005,T1580"
         for sa in $(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/"); do 
             echo "  Name: $sa"
             echo "  Email: "$(eval $gcp_req "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/$sa/email")

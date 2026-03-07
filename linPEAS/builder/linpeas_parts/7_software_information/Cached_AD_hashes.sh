@@ -5,6 +5,7 @@
 # Description: Cached AD Hashes
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1003.003
 # Functions Used: print_2title
 # Global Variables: $DEBUG
 # Initial Functions:
@@ -15,7 +16,7 @@
 
 adhashes=$(ls "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null)
 if [ "$adhashes" ] || [ "$DEBUG" ]; then
-  print_2title "Searching AD cached hashes"
+  print_2title "Searching AD cached hashes" "T1003.003"
   ls -l "/var/lib/samba/private/secrets.tdb" "/var/lib/samba/passdb.tdb" "/var/opt/quest/vas/authcache/vas_auth.vdb" "/var/lib/sss/db/cache_*" 2>/dev/null
   echo ""
 fi

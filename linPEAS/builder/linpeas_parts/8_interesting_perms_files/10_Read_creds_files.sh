@@ -5,6 +5,7 @@
 # Description: Hashes in passwd file, shadow files and other files
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: echo_no, print_list
 # Global Variables: $IAMROOT, $SEARCH_IN_FOLDER, $USER, $wgroups
 # Initial Functions:

@@ -5,6 +5,7 @@
 # Description: Searching Vault-ssh files
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.004
 # Functions Used: print_2title
 # Global Variables: $DEBUG
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$PSTORAGE_VAULT_SSH_HELPER" ] || [ "$DEBUG" ]; then
-  print_2title "Searching Vault-ssh files"
+  print_2title "Searching Vault-ssh files" "T1552.004"
   printf "$PSTORAGE_VAULT_SSH_HELPER\n"
   printf "%s\n" "$PSTORAGE_VAULT_SSH_HELPER" | while read f; do cat "$f" 2>/dev/null; vault-ssh-helper -verify-only -config "$f" 2>/dev/null; done
   echo ""

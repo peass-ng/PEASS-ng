@@ -5,6 +5,7 @@
 # Description: Date times inside firmware
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1082
 # Functions Used: print_2title
 # Global Variables: $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Files datetimes inside the firmware (limit 50)"
+  print_2title "Files datetimes inside the firmware (limit 50)" "T1082"
   find "$SEARCH_IN_FOLDER" -type f -printf "%T+\n" 2>/dev/null | sort | uniq -c | sort | head -n 50
   echo "To find a file with an specific date execute: find \"$SEARCH_IN_FOLDER\" -type f -printf \"%T+ %p\n\" 2>/dev/null | grep \"<date>\""
   echo ""

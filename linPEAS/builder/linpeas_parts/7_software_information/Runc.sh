@@ -5,6 +5,7 @@
 # Description: Runc
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1613,T1611
 # Functions Used: print_2title, print_info
 # Global Variables: $DEBUG, $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -16,7 +17,7 @@
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   runc=$(command -v runc || echo -n '')
   if [ "$runc" ] || [ "$DEBUG" ]; then
-    print_2title "Checking if runc is available"
+    print_2title "Checking if runc is available" "T1613,T1611"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#runc--privilege-escalation"
     if [ "$runc" ]; then
       echo "runc was found in $runc, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"

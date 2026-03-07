@@ -5,6 +5,7 @@
 # Description: AWS EC2 Enumeration
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.005,T1580
 # Functions Used: check_aws_ec2, exec_with_jq, print_2title, print_3title
 # Global Variables: $is_aws_ec2
 # Initial Functions: check_aws_ec2
@@ -14,8 +15,7 @@
 
 
 if [ "$is_aws_ec2" = "Yes" ]; then
-    print_2title "AWS EC2 Enumeration"
-    
+    print_2title "AWS EC2 Enumeration" "T1552.005,T1580"
     TOKEN=""
     TOKEN_HEADER="X-aws-ec2-metadata-token"
     TOKEN_TTL="X-aws-ec2-metadata-token-ttl-seconds: 21600"
@@ -43,11 +43,11 @@ if [ "$is_aws_ec2" = "Yes" ]; then
         printf "region: "; eval $aws_req "$URL/placement/region"; echo ""
 
         echo ""
-        print_3title "Account Info"
+        print_3title "Account Info" "T1552.005,T1580"
         exec_with_jq eval $aws_req "$URL/identity-credentials/ec2/info"; echo ""
 
         echo ""
-        print_3title "Network Info"
+        print_3title "Network Info" "T1552.005,T1580"
         for mac in $(eval $aws_req "$URL/network/interfaces/macs/" 2>/dev/null); do 
           echo "Mac: $mac"
           printf "Owner ID: "; eval $aws_req "$URL/network/interfaces/macs/$mac/owner-id"; echo ""
@@ -62,7 +62,7 @@ if [ "$is_aws_ec2" = "Yes" ]; then
         done
 
         echo ""
-        print_3title "IAM Role"
+        print_3title "IAM Role" "T1552.005,T1580"
         exec_with_jq eval $aws_req "$URL/iam/info"; echo ""
         for role in $(eval $aws_req "$URL/iam/security-credentials/" 2>/dev/null); do 
           echo "Role: $role"
@@ -71,14 +71,14 @@ if [ "$is_aws_ec2" = "Yes" ]; then
         done
         
         echo ""
-        print_3title "User Data"
+        print_3title "User Data" "T1552.005,T1580"
         eval $aws_req "http://169.254.169.254/latest/user-data"; echo ""
         
         echo ""
-        print_3title "EC2 Security Credentials"
+        print_3title "EC2 Security Credentials" "T1552.005,T1580"
         exec_with_jq eval $aws_req "$URL/identity-credentials/ec2/security-credentials/ec2-instance"; echo ""
         
-        print_3title "SSM Runnig"
+        print_3title "SSM Runnig" "T1552.005,T1580"
         ps aux 2>/dev/null | grep "ssm-agent" | grep -Ev "grep|sed s,ssm-agent" | sed "s,ssm-agent,${SED_RED},"
     fi
     echo ""

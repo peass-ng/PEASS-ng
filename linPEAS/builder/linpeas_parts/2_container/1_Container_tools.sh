@@ -22,6 +22,7 @@
 #       - Container escape tool usage
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1613
 # Functions Used: print_2title
 # Global Variables:
 # Initial Functions:
@@ -29,8 +30,7 @@
 # Fat linpeas: 0
 # Small linpeas: 1
 
-print_2title "Container related tools present (if any):"
-
+print_2title "Container related tools present (if any):" "T1613"
 # Container runtimes
 command -v docker
 command -v lxc

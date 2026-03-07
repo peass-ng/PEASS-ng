@@ -5,6 +5,7 @@
 # Description: List browser profiles that may store credentials/cookies
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1539,T1217
 # Functions Used: print_2title, print_3title, print_info
 # Global Variables: $HOMESEARCH, $SED_RED
 # Initial Functions:
@@ -12,7 +13,7 @@
 # Fat linpeas: 0
 # Small linpeas: 1
 
-print_2title "Browser Profiles"
+print_2title "Browser Profiles" "T1539,T1217"
 print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#browser-data"
 
 echo ""
@@ -22,7 +23,7 @@ for h in $HOMESEARCH; do
 
   firefox_ini="$h/.mozilla/firefox/profiles.ini"
   if [ -f "$firefox_ini" ]; then
-    print_3title "Firefox profiles ($h)"
+    print_3title "Firefox profiles ($h)" "T1539,T1217"
     awk -F= '
       /^\[Profile/ { in_profile=1 }
       /^Path=/ { path=$2 }
@@ -54,7 +55,7 @@ for h in $HOMESEARCH; do
     if [ -d "$chrome_base" ]; then
       profiles=$(find "$chrome_base" -maxdepth 1 -type d \( -name "Default" -o -name "Profile *" \) 2>/dev/null)
       if [ "$profiles" ]; then
-        print_3title "Chromium profiles ($chrome_base)"
+        print_3title "Chromium profiles ($chrome_base)" "T1539,T1217"
         printf "%s\n" "$profiles" | sed -${E} "s,.*,${SED_RED},"
         echo ""
       fi

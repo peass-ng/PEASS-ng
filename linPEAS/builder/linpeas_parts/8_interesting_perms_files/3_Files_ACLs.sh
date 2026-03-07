@@ -5,6 +5,7 @@
 # Description: Files with ACLs 
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1222
 # Functions Used: echo_not_found, print_2title, print_info
 # Global Variables: $HOMESEARCH, $knw_usrs, $MACPEAS, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $writeB, $writeVB
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 1
 
 
-print_2title "Files with ACLs (limited to 50)"
+print_2title "Files with ACLs (limited to 50)" "T1222"
 print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#acls"
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   ( (getfacl -t -s -R -p /bin /etc $HOMESEARCH /opt /sbin /usr /tmp /root 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | head -n 70 | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED}," | sed -${E} "s,$writeVB,${SED_RED_YELLOW},g" | sed -${E} "s,$writeB,${SED_RED},g"

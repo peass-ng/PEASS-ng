@@ -5,6 +5,7 @@
 # Description: Mail applications
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1114.001
 # Functions Used: print_2title
 # Global Variables: $mail_apps, $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Searching installed mail applications"
+  print_2title "Searching installed mail applications" "T1114.001"
   ls /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin /etc 2>/dev/null | grep -Ewi "$mail_apps" | sort | uniq
   echo ""
 fi

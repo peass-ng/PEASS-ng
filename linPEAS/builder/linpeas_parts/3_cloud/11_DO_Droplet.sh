@@ -5,6 +5,7 @@
 # Description: DO Droplet Enumeration
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.005,T1580
 # Functions Used: check_do, print_2title
 # Global Variables: $is_do
 # Initial Functions: check_do
@@ -14,8 +15,7 @@
 
 
 if [ "$is_do" = "Yes" ]; then
-  print_2title "DO Droplet Enumeration"
-
+  print_2title "DO Droplet Enumeration" "T1552.005,T1580"
   do_req=""
   if [ "$(command -v curl || echo -n '')" ]; then
       do_req='curl -s -f -L '

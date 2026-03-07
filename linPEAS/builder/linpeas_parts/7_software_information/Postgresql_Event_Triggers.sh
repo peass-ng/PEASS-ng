@@ -5,6 +5,7 @@
 # Description: Detect unsafe PostgreSQL event triggers and postgres_fdw custom scripts that grant temporary SUPERUSER
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1505.001
 # Functions Used: echo_not_found, print_2title, print_info
 # Global Variables: $DEBUG, $E, $SED_GREEN, $SED_RED, $SED_YELLOW, $TIMEOUT
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$DEBUG" ] || { [ "$TIMEOUT" ] && [ "$(command -v psql 2>/dev/null || echo -n '')" ]; }; then
-  print_2title "PostgreSQL event trigger ownership & postgres_fdw hooks"
+  print_2title "PostgreSQL event trigger ownership & postgres_fdw hooks" "T1505.001"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#postgresql-event-triggers"
 
   psql_bin="$(command -v psql 2>/dev/null || echo -n '')"

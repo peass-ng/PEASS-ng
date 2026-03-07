@@ -5,6 +5,7 @@
 # Description: Dovecot
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: echo_not_found, print_2title
 # Global Variables: $DEBUG
 # Initial Functions:
@@ -16,7 +17,7 @@
 # Needs testing
 dovecotpass=$(grep -r "PLAIN" /etc/dovecot 2>/dev/null)
 if [ "$dovecotpass" ] || [ "$DEBUG" ]; then
-  print_2title "Searching dovecot files"
+  print_2title "Searching dovecot files" "T1552.001"
   if [ -z "$dovecotpass" ]; then
     echo_not_found "dovecot credentials"
   else

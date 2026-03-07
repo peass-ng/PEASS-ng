@@ -5,6 +5,7 @@
 # Description: Check Pkexec policy and related files for privilege escalation
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1548
 # Functions Used: print_2title, print_info
 # Global Variables: $Groups, $groupsB, $groupsVB, $nosh_usrs, $sh_usrs, $USER
 # Initial Functions:
@@ -13,11 +14,11 @@
 # Small linpeas: 1
 
 
-print_2title "Checking Pkexec and Polkit"
+print_2title "Checking Pkexec and Polkit" "T1548"
 print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/interesting-groups-linux-pe/index.html#pe---method-2"
 
 echo ""
-print_3title "Polkit Binary"
+print_3title "Polkit Binary" "T1548"
 # Check pkexec binary
 pkexec_bin=$(command -v pkexec 2>/dev/null)
 if [ -n "$pkexec_bin" ]; then
@@ -39,7 +40,7 @@ fi
 
 # Check polkit policies
 echo ""
-print_3title "Polkit Policies"
+print_3title "Polkit Policies" "T1548"
 for policy_dir in "/etc/polkit-1/localauthority.conf.d/" "/etc/polkit-1/rules.d/" "/usr/share/polkit-1/rules.d/"; do
   if [ -d "$policy_dir" ]; then
     echo "Checking $policy_dir:" | sed -${E} "s,.*,${SED_LIGHT_CYAN},g"
@@ -59,6 +60,6 @@ done
 
 # Check for polkit authentication agent
 echo ""
-print_3title "Polkit Authentication Agent"
+print_3title "Polkit Authentication Agent" "T1548"
 ps aux 2>/dev/null | grep -i "polkit" | grep -v "grep"
 echo ""

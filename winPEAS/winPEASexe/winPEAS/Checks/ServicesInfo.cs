@@ -12,9 +12,11 @@ namespace winPEAS.Checks
     {
         Dictionary<string, string> modifiableServices = new Dictionary<string, string>();
 
+        public string[] MitreAttackIds { get; } = new[] { "T1007", "T1543.003", "T1574.001", "T1014" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Services Information");
+            Beaprint.GreatPrint("Services Information", "T1007,T1543.003,T1574.001,T1014");
 
             /// Start finding Modifiable services so any function could use them
 
@@ -46,7 +48,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Interesting Services -non Microsoft-");
+                Beaprint.MainPrint("Interesting Services -non Microsoft-", "T1007");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services", "Check if you can overwrite some service binary or perform a DLL hijacking, also check for unquoted paths");
 
                 List<Dictionary<string, string>> services_info = ServicesInfoHelper.GetNonstandardServices();
@@ -125,7 +127,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Modifiable Services");
+                Beaprint.MainPrint("Modifiable Services", "T1543.003");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services", "Check if you can modify any service");
                 if (modifiableServices.Count > 0)
                 {
@@ -162,7 +164,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking if you can modify any service registry");
+                Beaprint.MainPrint("Looking if you can modify any service registry", "T1574.011");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services-registry-modify-permissions", "Check if you can modify the registry of a service");
                 List<Dictionary<string, string>> regPerms = ServicesInfoHelper.GetWriteServiceRegs(Checks.CurrentUserSiDs);
 
@@ -190,7 +192,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Checking write permissions in PATH folders (DLL Hijacking)");
+                Beaprint.MainPrint("Checking write permissions in PATH folders (DLL Hijacking)", "T1574.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#dll-hijacking", "Check for DLL Hijacking in PATH folders");
                 Dictionary<string, string> path_dllhijacking = ServicesInfoHelper.GetPathDLLHijacking();
                 foreach (KeyValuePair<string, string> entry in path_dllhijacking)
@@ -215,7 +217,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("OEM privileged utilities & risky components");
+                Beaprint.MainPrint("OEM privileged utilities & risky components", "T1068");
                 var findings = OemSoftwareHelper.GetPotentiallyVulnerableComponents(Checks.CurrentUserSiDs);
 
                 if (findings.Count == 0)
@@ -261,7 +263,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Kernel drivers with weak/legacy signatures");
+                Beaprint.MainPrint("Kernel drivers with weak/legacy signatures", "T1014");
                 Beaprint.LinkPrint("https://research.checkpoint.com/2025/cracking-valleyrat-from-builder-secrets-to-kernel-rootkits/",
                     "Legacy cross-signed drivers (pre-July-2015) can still grant kernel execution on modern Windows");
 
@@ -330,7 +332,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("KernelQuick / ValleyRAT rootkit indicators");
+                Beaprint.MainPrint("KernelQuick / ValleyRAT rootkit indicators", "T1014");
 
                 bool found = false;
 

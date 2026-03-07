@@ -25,6 +25,7 @@
 #       - Shared disk access
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1082
 # Functions Used: print_2title, warn_exec
 # Global Variables: $DEBUG
 # Initial Functions:
@@ -34,14 +35,14 @@
 
 
 if [ -d "/dev" ] || [ "$DEBUG" ] ; then
-    print_2title "Any sd*/disk* disk in /dev? (limit 20)"
+    print_2title "Any sd*/disk* disk in /dev? (limit 20)" "T1082"
     ls /dev 2>/dev/null | grep -Ei "^sd|^disk" | sed "s,crypt,${SED_RED}," | head -n 20
     echo ""
 fi
 
 
 if [ "$(command -v smbutil 2>/dev/null || echo -n '')" ] || [ "$DEBUG" ]; then
-    print_2title "Mounted SMB Shares"
+    print_2title "Mounted SMB Shares" "T1082"
     warn_exec smbutil statshares -a
     echo ""
 fi

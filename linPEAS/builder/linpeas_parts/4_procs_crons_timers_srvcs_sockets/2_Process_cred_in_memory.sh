@@ -5,6 +5,7 @@
 # Description: Processes with credentials inside memory and memory-mapped files
 # License: GNU GPL
 # Version: 1.2
+# Mitre: T1003,T1055
 # Functions Used: echo_not_found, print_2title, print_info
 # Global Variables: $pslist, $SEARCH_IN_FOLDER, $processesDump, $nosh_usrs, $processesB, $knw_usrs, $rootcommon, $sh_usrs, $processesVB
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 1
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Processes with credentials in memory (root req)"
+  print_2title "Processes with credentials in memory (root req)" "T1003,T1055"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#credentials-from-process-memory"
 
   # Common credential-storing processes
@@ -30,7 +31,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
 
   # Check for processes with open handles to credential files
   echo ""
-  print_2title "Opened Files by processes"
+  print_2title "Opened Files by processes" "T1003,T1055"
   for pid in $(find /proc -maxdepth 1 -regex '/proc/[0-9]+' -printf "%f\n" 2>/dev/null); do
     # Skip if process doesn't exist or we can't access it
     [ ! -d "/proc/$pid" ] && continue
@@ -76,7 +77,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
 
   # Check for processes with memory-mapped files that might contain credentials
   echo ""
-  print_2title "Processes with memory-mapped credential files"
+  print_2title "Processes with memory-mapped credential files" "T1003,T1055"
   for pid in $(find /proc -maxdepth 1 -regex '/proc/[0-9]+' -printf "%f\n" 2>/dev/null); do
     # Skip if process doesn't exist or we can't access it
     [ ! -d "/proc/$pid" ] && continue

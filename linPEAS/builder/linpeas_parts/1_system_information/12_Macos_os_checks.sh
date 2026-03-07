@@ -26,6 +26,7 @@
 #       - System modification
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1082
 # Functions Used:macosNotSigned, print_2title
 # Global Variables: $MACPEAS
 # Initial Functions:
@@ -35,18 +36,18 @@
 
 
 if [ "$MACPEAS" ]; then
-    print_2title "Kernel Extensions not belonging to apple"
+    print_2title "Kernel Extensions not belonging to apple" "T1082"
     kextstat 2>/dev/null | grep -Ev " com.apple."
     echo ""
 
-    print_2title "Unsigned Kernel Extensions"
+    print_2title "Unsigned Kernel Extensions" "T1082"
     macosNotSigned /Library/Extensions
     macosNotSigned /System/Library/Extensions
     echo ""
 fi
 
 if [ "$MACPEAS" ] && [ "$(command -v brew 2>/dev/null || echo -n '')" ]; then
-    print_2title "Brew Doctor Suggestions"
+    print_2title "Brew Doctor Suggestions" "T1082"
     brew doctor
     echo ""
 fi

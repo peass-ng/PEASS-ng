@@ -5,6 +5,7 @@
 # Description: Executable files potentially added by user
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1083
 # Functions Used: print_2title
 # Global Variables: $SEARCH_IN_FOLDER 
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 0
 
 
-print_2title "Executable files potentially added by user (limit 70)"
+print_2title "Executable files potentially added by user (limit 70)" "T1083"
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   find / -type f -executable -printf "%T+ %p\n" 2>/dev/null | grep -Ev "000|/site-packages|/python|/node_modules|\.sample|/gems|/cgroup/" | sort -r | head -n 70
 else

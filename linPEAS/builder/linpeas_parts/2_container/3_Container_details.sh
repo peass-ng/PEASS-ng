@@ -25,6 +25,7 @@
 #       - Network escape techniques
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1613,T1611
 # Functions Used: containerCheck, echo_no, print_2title, print_list, warn_exec
 # Global Variables: $containerType
 # Initial Functions: containerCheck
@@ -32,8 +33,7 @@
 # Fat linpeas: 0
 # Small linpeas: 1
 
-print_2title "Container details"
-
+print_2title "Container details" "T1613,T1611"
 print_list "Is this a container? ...........$NC $containerType"
 
 if [ -e "/proc/vz" ] && ! [ -e "/proc/bc" ]; then

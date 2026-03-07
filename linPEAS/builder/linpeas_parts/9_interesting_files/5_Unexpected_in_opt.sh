@@ -5,6 +5,7 @@
 # Description: Unexpected in /opt
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1083
 # Functions Used: print_2title
 # Global Variables: $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   if [ "$(ls /opt 2>/dev/null)" ]; then
-    print_2title "Unexpected in /opt (usually empty)"
+    print_2title "Unexpected in /opt (usually empty)" "T1083"
     ls -la /opt
     echo ""
   fi

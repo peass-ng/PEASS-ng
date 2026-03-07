@@ -5,6 +5,7 @@
 # Description: Backup files
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: print_2title
 # Global Variables: $notExtensions, $ROOT_FOLDER, $notBackup
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 0
 
 
-print_2title "Backup files (limited 100)"
+print_2title "Backup files (limited 100)" "T1552.001"
 backs=$(find $ROOT_FOLDER -type f \( -name "*backup*" -o -name "*\.bak" -o -name "*\.bak\.*" -o -name "*\.bck" -o -name "*\.bck\.*" -o -name "*\.bk" -o -name "*\.bk\.*" -o -name "*\.old" -o -name "*\.old\.*" \) -not -path "/proc/*" 2>/dev/null)
 printf "%s\n" "$backs" | head -n 100 | while read b ; do
   if [ -r "$b" ]; then

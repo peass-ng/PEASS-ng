@@ -14,9 +14,11 @@ namespace winPEAS.Checks
     // Lightweight AD-oriented checks for common escalation paths (gMSA readable password, AD CS template control)
     internal class ActiveDirectoryInfo : ISystemCheck
     {
+        public string[] MitreAttackIds { get; } = new[] { "T1018", "T1087.002", "T1558.003", "T1484", "T1649" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Active Directory Quick Checks");
+            Beaprint.GreatPrint("Active Directory Quick Checks", "T1018,T1087.002,T1558.003,T1484,T1649");
 
             new List<Action>
             {
@@ -79,7 +81,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("AD object control surfaces");
+                Beaprint.MainPrint("AD object control surfaces", "T1484");
                 Beaprint.LinkPrint(
                     "https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/index.html#acl-abuse",
                     "Look for objects where you have GenericAll/GenericWrite/attribute rights for ACL abuse (password reset, SPN/UAC/RBCD, sidHistory, delegation, DCSync).");
@@ -669,7 +671,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("gMSA readable managed passwords");
+                Beaprint.MainPrint("gMSA readable managed passwords", "T1003");
                 Beaprint.LinkPrint(
                     "https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/gmsa.html",
                     "Look for Group Managed Service Accounts you can read (msDS-ManagedPassword)");
@@ -757,7 +759,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Kerberoasting / service ticket risks");
+                Beaprint.MainPrint("Kerberoasting / service ticket risks", "T1558.003");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/kerberoast.html",
                     "Enumerate weak SPN accounts and legacy Kerberos crypto");
 
@@ -789,7 +791,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("AD CS misconfigurations for ESC");
+                Beaprint.MainPrint("AD CS misconfigurations for ESC", "T1649");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/ad-certificates.html");
     
                 if (!Checks.IsPartOfDomain)

@@ -5,6 +5,7 @@
 # Description: Azure App Service Enumeration
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.005,T1580
 # Functions Used: check_az_app, exec_with_jq, print_2title, print_3title
 # Global Variables: $is_az_app,
 # Initial Functions: check_az_app
@@ -16,8 +17,7 @@
 API_VERSION="2019-08-01" #https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity?tabs=portal%2Chttp
 
 if [ "$is_az_app" = "Yes" ]; then
-  print_2title "Azure App Service Enumeration"
-
+  print_2title "Azure App Service Enumeration" "T1552.005,T1580"
   HEADER="X-IDENTITY-HEADER:$IDENTITY_HEADER"
 
   az_req=""
@@ -30,16 +30,16 @@ if [ "$is_az_app" = "Yes" ]; then
   fi
 
   if [ "$az_req" ]; then
-    print_3title "Management token"
+    print_3title "Management token" "T1552.005,T1580"
     exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://management.azure.com/"
     echo
-    print_3title "Graph token"
+    print_3title "Graph token" "T1552.005,T1580"
     exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://graph.microsoft.com/"
     echo
-    print_3title "Vault token"
+    print_3title "Vault token" "T1552.005,T1580"
     exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://vault.azure.net/"
     echo
-    print_3title "Storage token"
+    print_3title "Storage token" "T1552.005,T1580"
     exec_with_jq eval $az_req "$IDENTITY_ENDPOINT?api-version=$API_VERSION\&resource=https://storage.azure.com/"
   fi
   echo ""
