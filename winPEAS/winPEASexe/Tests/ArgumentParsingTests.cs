@@ -221,5 +221,24 @@ namespace winPEAS.Tests
             Assert.IsTrue(InvokePassesMitreFilter(new string[0]),
                 "A check with empty MitreAttackIds should pass through (return true) when a filter is active.");
         }
+
+        [TestMethod]
+        public void PassesMitreFilter_SubtechniqueFilter_DoesNotMatchParentOnlyTag()
+        {
+            // filter=T1552.001 (child) must NOT match a check tagged only with T1552 (parent).
+            // Parent filters may broaden to children, but never the reverse.
+            winPEAS.Checks.Checks.MitreFilter.Clear();
+            winPEAS.Checks.Checks.MitreFilter.Add("T1552.001");
+            Assert.IsFalse(InvokePassesMitreFilter(new[] { "T1552" }),
+                "A sub-technique filter (T1552.001) must not match a check tagged with only the parent (T1552).");
+        }
+
+        [TestMethod]
+        public void MaxRegexFileSize_ArgParsed_Correctly()
+        {
+            ParseOnly("max-regex-file-size=500000");
+            Assert.AreEqual(500000, winPEAS.Checks.Checks.MaxRegexFileSize,
+                "max-regex-file-size=500000 should set MaxRegexFileSize to 500000.");
+        }
     }
 }

@@ -209,7 +209,7 @@ namespace winPEAS.Checks
                     SearchProgramFiles = true;
                 }
 
-                if (string.Equals(arg, "max-regex-file-size", StringComparison.CurrentCultureIgnoreCase))
+                if (arg.StartsWith("max-regex-file-size=", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var parts = arg.Split('=');
                     if (parts.Length >= 2 && !string.IsNullOrEmpty(parts[1]))
@@ -435,6 +435,13 @@ namespace winPEAS.Checks
 
         private static void RunChecks(bool isAllChecks, bool wait)
         {
+            // Pre-compute how many checks will actually execute so we can prompt between
+            // each one and skip the prompt after the very last executed check.
+            int totalToRun = _systemChecks.Count(sc =>
+                (_systemCheckSelectedKeysHashSet.Contains(sc.Key) || isAllChecks) &&
+                PassesMitreFilter(sc.Check));
+
+            int runCount = 0;
             for (int i = 0; i < _systemChecks.Count; i++)
             {
                 var systemCheck = _systemChecks[i];
@@ -445,8 +452,9 @@ namespace winPEAS.Checks
                 if (selectedByKey && selectedByMitre)
                 {
                     systemCheck.Check.PrintInfo(IsDebug);
+                    runCount++;
 
-                    if ((i < _systemCheckSelectedKeysHashSet.Count - 1) && wait)
+                    if (wait && runCount < totalToRun)
                     {
                         WaitInput();
                     }
