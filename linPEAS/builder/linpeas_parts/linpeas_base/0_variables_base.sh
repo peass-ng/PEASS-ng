@@ -8,7 +8,7 @@
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $VERSION, $ADVISORY, $IAMROOT, $MAXPATH_FIND_W, $C, $RED, $SED_RED, $GREEN, $SED_GREEN, $YELLOW, $SED_YELLOW, $RED_YELLOW, $SED_RED_YELLOW, $BLUE, $SED_BLUE, $ITALIC_BLUE, $LIGHT_MAGENTA, $SED_LIGHT_MAGENTA, $LIGHT_CYAN, $SED_LIGHT_CYAN, $LG, $SED_LG, $DG, $SED_DG, $NC, $UNDERLINED, $ITALIC, $MACPEAS, $FAST, $SUPERFAST, $DISCOVERY, $PORTS, $QUIET, $CHECKS, $MITRE_FILTER, $SEARCH_IN_FOLDER, $ROOT_FOLDER, $WAIT, $PASSWORD, $NOCOLOR, $DEBUG, $AUTO_NETWORK_SCAN, $EXTRA_CHECKS, $REGEXES, $PORT_FORWARD, $E, $PING, $FPING, $DISCOVER_BAN_BAD, $DISCOVER_BAN_GOOD, $SCAN_BAN_GOOD, $NMAP_GOOD, $SCRIPTNAME, $FOUND_BASH, $FOUND_NC, $HOMESEARCH, $GREPHOMESEARCH, $SCAN_BAN_BAD, $HOME, $THREADS, $opt, $HELP, $USER, $TOTAL_T1_TIME, $END_T1_TIME, $START_T1_TIME, $title, $title_len, $max_title_len, $rest_len, $CONT_THREADS, $wgroups, $SEDOVERFLOW, $Wfolders, $Wfolder, $grp, $END_T2_TIME, $TOTAL_T2_TIME, $START_T2_TIME, $_mitre_tag
+# Generated Global Variables: $VERSION, $ADVISORY, $IAMROOT, $MAXPATH_FIND_W, $C, $RED, $SED_RED, $GREEN, $SED_GREEN, $YELLOW, $SED_YELLOW, $RED_YELLOW, $SED_RED_YELLOW, $BLUE, $SED_BLUE, $ITALIC_BLUE, $LIGHT_MAGENTA, $SED_LIGHT_MAGENTA, $LIGHT_CYAN, $SED_LIGHT_CYAN, $LG, $SED_LG, $DG, $SED_DG, $NC, $UNDERLINED, $ITALIC, $MACPEAS, $FAST, $SUPERFAST, $DISCOVERY, $PORTS, $QUIET, $CHECKS, $MITRE_FILTER, $SEARCH_IN_FOLDER, $ROOT_FOLDER, $WAIT, $PASSWORD, $NOCOLOR, $DEBUG, $AUTO_NETWORK_SCAN, $EXTRA_CHECKS, $REGEXES, $PORT_FORWARD, $E, $PING, $FPING, $DISCOVER_BAN_BAD, $DISCOVER_BAN_GOOD, $SCAN_BAN_GOOD, $NMAP_GOOD, $SCRIPTNAME, $FOUND_BASH, $FOUND_NC, $HOMESEARCH, $GREPHOMESEARCH, $SCAN_BAN_BAD, $HOME, $THREADS, $opt, $HELP, $USER, $TOTAL_T1_TIME, $END_T1_TIME, $START_T1_TIME, $title, $title_len, $max_title_len, $rest_len, $CONT_THREADS, $wgroups, $SEDOVERFLOW, $Wfolders, $Wfolder, $grp, $END_T2_TIME, $TOTAL_T2_TIME, $START_T2_TIME, $_mitre_tag, $_mitre_filter, $_mitre_base
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -247,12 +247,16 @@ print_title(){
 
 check_mitre_filter(){
   # $1 = comma-separated MITRE technique IDs for this check (e.g. "T1082,T1548.003")
-  # Returns 0 (run the check) when no filter is active OR when at least one ID matches
+  # Returns 0 (run the check) when no filter is active OR when at least one ID matches.
+  # Parent filters match child techniques (e.g. T1552 matches T1552.001),
+  # but a child filter must not match a parent-only tag.
   [ -z "$MITRE_FILTER" ] && return 0
   for _mitre_tag in $(echo "$1" | tr ',' ' '); do
-    if echo "$MITRE_FILTER" | grep -qi "$_mitre_tag"; then
-      return 0
-    fi
+    _mitre_base=${_mitre_tag%%.*}
+    for _mitre_filter in $(echo "$MITRE_FILTER" | tr ',' ' '); do
+      [ "$_mitre_filter" = "$_mitre_tag" ] && return 0
+      [ "$_mitre_filter" = "$_mitre_base" ] && return 0
+    done
   done
   return 1
 }

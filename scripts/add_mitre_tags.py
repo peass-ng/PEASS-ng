@@ -144,9 +144,9 @@ MITRE_MAP = {
     "8_interesting_perms_files/12_Others_files_in_my_dirs.sh":"T1083",
     "8_interesting_perms_files/13_Root_readable_files_notworld_readeble.sh":"T1083",
     "8_interesting_perms_files/14_Writable_files_owner_all.sh":"T1574.009,T1574.010",
-    "8_interesting_perms_files/15_Writable_files_group.sh":"T1574",
+    "8_interesting_perms_files/15_Writable_files_group.sh":"T1574.009,T1574.010",
     "8_interesting_perms_files/16_IGEL_OS_SUID.sh":      "T1548.001",
-    "8_interesting_perms_files/16_Writable_root_execs.sh":"T1574",
+    "8_interesting_perms_files/16_Writable_root_execs.sh":"T1574.009,T1574.010",
     # ─── Section 9: Interesting Files ─────────────────────────────────────────
     "9_interesting_files/1_Sh_files_in_PATH.sh":         "T1574.007",
     "9_interesting_files/2_Date_in_firmware.sh":         "T1082",
@@ -177,7 +177,6 @@ MITRE_MAP = {
     "9_interesting_files/27_Passwords_in_logs.sh":       "T1552.001",
     "9_interesting_files/28_Files_with_passwords.sh":    "T1552.001",
     "9_interesting_files/29_Interesting_environment_variables.sh": "T1552.007,T1082",
-    "9_interesting_files/29_Interesting_environment_variables.sh": "T1552.007,T1082",
     # ─── Section 10: API Keys Regex ───────────────────────────────────────────
     "10_api_keys_regex/regexes.sh":                      "T1552.001,T1528",
 }
@@ -196,12 +195,16 @@ for rel_path, mitre_ids in MITRE_MAP.items():
         skipped += 1
         continue
 
-    with open(abs_path, "r") as f:
-        text = f.read()
+    with open(abs_path, "r", encoding="utf-8") as f:
+        original_text = f.read()
 
-    # 1. Insert # Mitre: after # Version: (only if not already present)
+    text = original_text
+
+    # 1. Insert # Mitre: after # Version: if missing, otherwise refresh the existing tag.
     if "# Mitre:" not in text:
         text = VERSION_RE.sub(rf'\1\n# Mitre: {mitre_ids}', text, count=1)
+    else:
+        text = re.sub(r'^# Mitre:.*$', f'# Mitre: {mitre_ids}', text, count=1, flags=re.MULTILINE)
 
     # 2. Annotate print_2title calls that don't already have a 2nd argument
     def add_mitre_to_title2(m):
@@ -224,8 +227,9 @@ for rel_path, mitre_ids in MITRE_MAP.items():
 
     text = PRINT3_RE.sub(add_mitre_to_title3, text)
 
-    with open(abs_path, "w") as f:
-        f.write(text)
-    changed += 1
+    if text != original_text:
+        with open(abs_path, "w", encoding="utf-8") as f:
+            f.write(text)
+        changed += 1
 
 print(f"\nDone: {changed} files updated, {skipped} skipped.")

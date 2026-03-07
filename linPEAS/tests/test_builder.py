@@ -98,6 +98,38 @@ class LinpeasBuilderTests(unittest.TestCase):
             self.assertIn("check_mitre_filter", content,
                           "check_mitre_filter function is missing from the built script.")
 
+    def _run_base_mitre_filter(self, mitre_filter, check_ids):
+        base_file = self.linpeas_dir / "builder" / "linpeas_parts" / "linpeas_base" / "0_variables_base.sh"
+        result = subprocess.run(
+            [
+                "bash",
+                "-lc",
+                (
+                    f'source "{base_file}" >/dev/null 2>&1 || true; '
+                    f'MITRE_FILTER="{mitre_filter}"; '
+                    f'check_mitre_filter "{check_ids}"; '
+                    'echo $?'
+                ),
+            ],
+            capture_output=True,
+            text=True,
+            cwd=str(self.repo_root),
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout.strip().splitlines()[-1]
+
+    def test_mitre_parent_filter_matches_subtechnique(self):
+        """Regression: filtering by a base technique must include child sub-techniques."""
+        exit_code = self._run_base_mitre_filter("T1552", "T1552.001")
+        self.assertEqual("0", exit_code,
+                         "Parent MITRE filter T1552 should match sub-technique T1552.001.")
+
+    def test_mitre_subtechnique_filter_does_not_match_parent(self):
+        """Regression: filtering by a sub-technique must not include a parent-only tag."""
+        exit_code = self._run_base_mitre_filter("T1552.001", "T1552")
+        self.assertEqual("1", exit_code,
+                         "Sub-technique MITRE filter T1552.001 should not match parent tag T1552.")
+
 
 if __name__ == "__main__":
     unittest.main()
