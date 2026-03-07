@@ -81,7 +81,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("AD object control surfaces", "T1484.001");
+                Beaprint.MainPrint("AD object control surfaces", "T1484.001,T1087.002,T1018");
                 Beaprint.LinkPrint(
                     "https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/index.html#acl-abuse",
                     "Look for objects where you have GenericAll/GenericWrite/attribute rights for ACL abuse (password reset, SPN/UAC/RBCD, sidHistory, delegation, DCSync).");
