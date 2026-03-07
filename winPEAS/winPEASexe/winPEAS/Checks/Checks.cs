@@ -10,7 +10,6 @@ using winPEAS.Helpers.AppLocker;
 using winPEAS.Helpers.Registry;
 using winPEAS.Helpers.Search;
 using winPEAS.Helpers.YamlConfig;
-using winPEAS.Info.NetworkInfo.NetworkScanner;
 using winPEAS.Info.UserInfo;
 
 namespace winPEAS.Checks
@@ -27,8 +26,8 @@ namespace winPEAS.Checks
         public static bool IsNetworkScan = false;
         public static bool SearchProgramFiles = false;
 
-        private static IEnumerable<int> PortScannerPorts = null;
-        private static string NetworkScanOptions = string.Empty;
+        public static IEnumerable<int> PortScannerPorts = null;
+        public static string NetworkScanOptions = string.Empty;
 
         // Create Dynamic blacklists
         public static readonly string CurrentUserName = Environment.UserName;
@@ -91,6 +90,7 @@ namespace winPEAS.Checks
                 new SystemCheck("soapclientinfo", new SoapClientInfo()),
                 new SystemCheck("applicationsinfo", new ApplicationsInfo()),
                 new SystemCheck("networkinfo", new NetworkInfo()),
+                new SystemCheck("networkscan", new NetworkScanCheck()),
                 new SystemCheck("activedirectoryinfo", new ActiveDirectoryInfo()),
                 new SystemCheck("cloudinfo", new CloudInfo()),
                 new SystemCheck("windowscreds", new WindowsCreds()),
@@ -103,8 +103,18 @@ namespace winPEAS.Checks
             var systemCheckAllKeys = new HashSet<string>(_systemChecks.Select(i => i.Key));
             var print_fileanalysis_warn = true;
 
-            foreach (string arg in args)
+            for (int argIdx = 0; argIdx < args.Length; argIdx++)
             {
+                // Normalise space-separated flags like "-network 10.0.0.0/24" → "-network=10.0.0.0/24"
+                // and "-ports 80,443" → "-ports=80,443" so the rest of the parser only has one case.
+                string arg = args[argIdx];
+                if ((arg.Equals("-network", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("-ports",   StringComparison.OrdinalIgnoreCase)) &&
+                    !arg.Contains('=') &&
+                    argIdx + 1 < args.Length)
+                {
+                    arg = arg + "=" + args[++argIdx];
+                }
                 if (string.Equals(arg, "--help", StringComparison.CurrentCultureIgnoreCase) ||
                     string.Equals(arg, "help", StringComparison.CurrentCultureIgnoreCase) ||
                     string.Equals(arg, "/h", StringComparison.CurrentCultureIgnoreCase) ||
@@ -290,6 +300,13 @@ namespace winPEAS.Checks
                 Beaprint.ColorPrint(" [!] If you want to run the file analysis checks (search sensitive information in files), you need to specify the 'fileanalysis' or 'all' argument. Note that this search might take several minutes. For help, run winpeass.exe --help", Beaprint.YELLOW);
             }
 
+            // When -network is passed alongside a subset of checks, inject the dedicated
+            // 'networkscan' check so only the scan runs, not all NetworkInfo sub-checks.
+            if (IsNetworkScan && !isAllChecks)
+            {
+                _systemCheckSelectedKeysHashSet.Add("networkscan");
+            }
+
             if (isAllChecks)
             {
                 isFileSearchEnabled = true;
@@ -315,7 +332,7 @@ namespace winPEAS.Checks
 
                     CheckRunner.Run(() => CreateDynamicLists(isFileSearchEnabled), IsDebug);
 
-                    RunChecks(isAllChecks, wait, IsNetworkScan);
+                    RunChecks(isAllChecks, wait);
 
                     SearchHelper.CleanLists();
 
@@ -387,7 +404,7 @@ namespace winPEAS.Checks
             return false;
         }
 
-        private static void RunChecks(bool isAllChecks, bool wait, bool isNetworkScan)
+        private static void RunChecks(bool isAllChecks, bool wait)
         {
             for (int i = 0; i < _systemChecks.Count; i++)
             {
@@ -402,12 +419,6 @@ namespace winPEAS.Checks
                         WaitInput();
                     }
                 }
-            }
-
-            if (isNetworkScan)
-            {
-                NetworkScanner scanner = new NetworkScanner(NetworkScanOptions, PortScannerPorts);
-                scanner.Scan();
             }
         }
 
