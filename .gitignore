@@ -33,4 +33,5 @@ winPEAS/winPEASexe/Directory.Build.targets
 .dccache
 ./*/.dccache
 regexes.yaml
+.github/instructions/
 build_lists/regexes.yaml
