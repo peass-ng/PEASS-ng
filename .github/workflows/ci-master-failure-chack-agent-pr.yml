@@ -21,6 +21,7 @@ jobs:
       TARGET_BRANCH: master
       FIX_BRANCH: chack-agent/ci-master-fix-${{ github.event.workflow_run.id }}
       CHACK_LOGS_HTTP_URL: ${{ secrets.CHACK_LOGS_HTTP_URL }}
+      CAN_PUSH_WORKFLOWS: ${{ secrets.CHACK_AGENT_FIXER_TOKEN != '' }}
     steps:
       - name: Checkout failing commit
         uses: actions/checkout@v5
@@ -93,6 +94,7 @@ jobs:
             echo "Read that file to inspect the exact failing logs."
             echo ""
             echo "Please identify the cause, apply an easy, simple and minimal fix, and update files accordingly."
+            echo "Workflow-file edits are allowed when required to fix the failing run."
             echo "Do not edit or create any .md or .txt files or any summary file and do not modify build_lists/regexes.yaml. Don't create job or summary files of you actions."
             echo "Run any fast checks you can locally (no network)."
             echo "Leave the repo in a state ready to commit; changes will be committed and pushed automatically."
@@ -119,6 +121,7 @@ jobs:
           sub_action: CI-master Failure Chack-Agent PR
           system_prompt: |
             Diagnose the failing gh actions workflow, propose the minimal and effective safe fix, and implement it.
+            Workflow-file edits are allowed when needed to fix the failure.
             Never edit any .md or .txt files.
             Never create or modify build_lists/regexes.yaml.
             Run only fast, local checks (no network). Leave the repo ready to commit.
@@ -139,10 +142,12 @@ jobs:
 
           if ! git diff --quiet; then
             git add -A
-            # Avoid workflow-file pushes with token scopes that cannot write workflows.
-            git reset -- .github/workflows || true
-            git checkout -- .github/workflows || true
-            git clean -fdx -- .github/workflows || true
+            if [ "$CAN_PUSH_WORKFLOWS" != "true" ]; then
+              # Avoid workflow-file pushes with token scopes that cannot write workflows.
+              git reset -- .github/workflows || true
+              git checkout -- .github/workflows || true
+              git clean -fdx -- .github/workflows || true
+            fi
             git reset -- chack_failure_summary.txt chack_prompt.txt chack_failed_steps_logs.txt
             # Never include generated regex list updates in automated fixer commits.
             git reset -- build_lists/regexes.yaml || true
@@ -153,7 +158,7 @@ jobs:
                   ;;
               esac
             done < <(git diff --name-only --cached)
-            if git diff --cached --name-only | grep -q '^.github/workflows/'; then
+            if [ "$CAN_PUSH_WORKFLOWS" != "true" ] && git diff --cached --name-only | grep -q '^.github/workflows/'; then
               echo "Workflow-file changes are still staged; skipping push without workflows permission."
               echo "pushed=false" >> "$GITHUB_OUTPUT"
               exit 0
@@ -170,29 +175,43 @@ jobs:
             exit 0
           fi
 
-          echo "Sanitizing Chack commit range to non-workflow changes only."
-          git diff --binary "$ORIGINAL_HEAD_SHA"..HEAD -- \
-            . \
-            ':(exclude).github/workflows/**' \
-            ':(exclude)chack_failure_summary.txt' \
-            ':(exclude)chack_prompt.txt' \
-            ':(exclude)chack_failed_steps_logs.txt' \
-            ':(exclude)build_lists/regexes.yaml' \
-            ':(exclude)*.md' \
-            ':(exclude)*.txt' \
-            ':(exclude)**/*.txt' \
-            ':(exclude)**/*.md' > /tmp/chack_nonworkflow.patch
-          if [ ! -s /tmp/chack_nonworkflow.patch ]; then
-            echo "Only workflow-file changes were produced; skipping push."
-            echo "pushed=false" >> "$GITHUB_OUTPUT"
-            exit 0
+          if [ "$CAN_PUSH_WORKFLOWS" = "true" ]; then
+            echo "Sanitizing Chack commit range, preserving workflow fixes."
+            git diff --binary "$ORIGINAL_HEAD_SHA"..HEAD -- \
+              . \
+              ':(exclude)chack_failure_summary.txt' \
+              ':(exclude)chack_prompt.txt' \
+              ':(exclude)chack_failed_steps_logs.txt' \
+              ':(exclude)build_lists/regexes.yaml' \
+              ':(exclude)*.md' \
+              ':(exclude)*.txt' \
+              ':(exclude)**/*.txt' \
+              ':(exclude)**/*.md' > /tmp/chack_sanitized.patch
+          else
+            echo "Sanitizing Chack commit range to non-workflow changes only."
+            git diff --binary "$ORIGINAL_HEAD_SHA"..HEAD -- \
+              . \
+              ':(exclude).github/workflows/**' \
+              ':(exclude)chack_failure_summary.txt' \
+              ':(exclude)chack_prompt.txt' \
+              ':(exclude)chack_failed_steps_logs.txt' \
+              ':(exclude)build_lists/regexes.yaml' \
+              ':(exclude)*.md' \
+              ':(exclude)*.txt' \
+              ':(exclude)**/*.txt' \
+              ':(exclude)**/*.md' > /tmp/chack_sanitized.patch
+            if [ ! -s /tmp/chack_sanitized.patch ]; then
+              echo "Only workflow-file changes were produced; skipping push."
+              echo "pushed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
           fi
           git reset --hard "$ORIGINAL_HEAD_SHA"
-          git apply --index /tmp/chack_nonworkflow.patch
+          git apply --index /tmp/chack_sanitized.patch
           rm -f chack_failure_summary.txt chack_prompt.txt chack_failed_steps_logs.txt
           git reset -- chack_failure_summary.txt chack_prompt.txt chack_failed_steps_logs.txt || true
           if git diff --cached --quiet; then
-            echo "No non-workflow changes left after sanitizing."
+            echo "No sanitized changes left after filtering."
             echo "pushed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
