@@ -64,6 +64,40 @@ class LinpeasBuilderTests(unittest.TestCase):
             self.assertIn("-z <N>", content,
                           "-z <N> help entry is missing from the built script.")
 
+    def test_mitre_flag_present_in_getopts(self):
+        """The -T flag must appear in the getopts string so it is actually parsed."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "linpeas.sh"
+            self._run_builder(["--all-no-fat"], output_path)
+            content = output_path.read_text(encoding="utf-8", errors="ignore")
+            getopts_line = next(
+                (l for l in content.splitlines()
+                 if re.match(r'\s*while\s+getopts\s+[\'"]', l)),
+                None
+            )
+            self.assertIsNotNone(getopts_line,
+                                 "'while getopts' line not found in built script.")
+            self.assertIn("T:", getopts_line,
+                          "-T: option is missing from the getopts string in the built script.")
+
+    def test_mitre_flag_present_in_help_text(self):
+        """The -T flag must be documented in the help text of the built script."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "linpeas.sh"
+            self._run_builder(["--all-no-fat"], output_path)
+            content = output_path.read_text(encoding="utf-8", errors="ignore")
+            self.assertIn("-T", content,
+                          "-T help entry is missing from the built script.")
+
+    def test_mitre_filter_function_present(self):
+        """check_mitre_filter() must be emitted into the built script."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "linpeas.sh"
+            self._run_builder(["--all-no-fat"], output_path)
+            content = output_path.read_text(encoding="utf-8", errors="ignore")
+            self.assertIn("check_mitre_filter", content,
+                          "check_mitre_filter function is missing from the built script.")
+
 
 if __name__ == "__main__":
     unittest.main()

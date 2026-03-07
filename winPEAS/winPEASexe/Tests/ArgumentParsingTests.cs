@@ -16,6 +16,23 @@ namespace winPEAS.Tests
             return (bool)method.Invoke(null, new object[] { arg });
         }
 
+        private static bool InvokePassesMitreFilter(string[] checkIds)
+        {
+            // Build a minimal ISystemCheck stub whose MitreAttackIds returns checkIds.
+            var stub = new MitreCheckStub(checkIds);
+            var method = typeof(winPEAS.Checks.Checks).GetMethod("PassesMitreFilter", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(method, "PassesMitreFilter method not found.");
+            return (bool)method.Invoke(null, new object[] { stub });
+        }
+
+        /// <summary>Minimal ISystemCheck stub for PassesMitreFilter reflection tests.</summary>
+        private sealed class MitreCheckStub : winPEAS.Checks.ISystemCheck
+        {
+            public MitreCheckStub(string[] ids) { MitreAttackIds = ids; }
+            public string[] MitreAttackIds { get; }
+            public void PrintInfo(bool isDebug) { }
+        }
+
         /// <summary>
         /// Resets all public static Checks fields that arg parsing can mutate, then
         /// invokes Program.Main with the supplied args followed by "--help" so execution
@@ -133,6 +150,55 @@ namespace winPEAS.Tests
             // HashSet uses OrdinalIgnoreCase so both casing variants should be found
             Assert.IsTrue(winPEAS.Checks.Checks.MitreFilter.Contains("T1082") ||
                           winPEAS.Checks.Checks.MitreFilter.Contains("t1082"));
+        }
+
+        [TestMethod]
+        public void PassesMitreFilter_EmptyFilter_AllChecksPass()
+        {
+            winPEAS.Checks.Checks.MitreFilter.Clear();
+            Assert.IsTrue(InvokePassesMitreFilter(new[] { "T1082" }),
+                "An empty MitreFilter should pass every check.");
+            Assert.IsTrue(InvokePassesMitreFilter(new string[0]),
+                "An empty MitreFilter should pass a check with no IDs.");
+        }
+
+        [TestMethod]
+        public void PassesMitreFilter_ExactMatch_Passes()
+        {
+            winPEAS.Checks.Checks.MitreFilter.Clear();
+            winPEAS.Checks.Checks.MitreFilter.Add("T1082");
+            Assert.IsTrue(InvokePassesMitreFilter(new[] { "T1082" }),
+                "A check tagged T1082 should pass when filter contains T1082.");
+        }
+
+        [TestMethod]
+        public void PassesMitreFilter_NoMatch_Fails()
+        {
+            winPEAS.Checks.Checks.MitreFilter.Clear();
+            winPEAS.Checks.Checks.MitreFilter.Add("T1082");
+            Assert.IsFalse(InvokePassesMitreFilter(new[] { "T1057" }),
+                "A check tagged T1057 should not pass when filter only contains T1082.");
+        }
+
+        [TestMethod]
+        public void PassesMitreFilter_PrefixMatch_Passes()
+        {
+            // Filter on base technique T1552 should match sub-technique T1552.001
+            winPEAS.Checks.Checks.MitreFilter.Clear();
+            winPEAS.Checks.Checks.MitreFilter.Add("T1552");
+            Assert.IsTrue(InvokePassesMitreFilter(new[] { "T1552.001" }),
+                "Filter on T1552 should match a check tagged T1552.001 (prefix match).");
+            Assert.IsTrue(InvokePassesMitreFilter(new[] { "T1552.005" }),
+                "Filter on T1552 should match a check tagged T1552.005 (prefix match).");
+        }
+
+        [TestMethod]
+        public void PassesMitreFilter_SubtechniqueDoesNotMatchDifferentBase_Fails()
+        {
+            winPEAS.Checks.Checks.MitreFilter.Clear();
+            winPEAS.Checks.Checks.MitreFilter.Add("T1548");
+            Assert.IsFalse(InvokePassesMitreFilter(new[] { "T1552.001" }),
+                "Filter on T1548 must not match T1552.001.");
         }
     }
 }
