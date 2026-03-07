@@ -78,8 +78,8 @@ namespace winPEAS.Tests
             ParseOnly("-network", "auto");
             Assert.IsTrue(winPEAS.Checks.Checks.IsNetworkScan,
                 "-network auto (space-separated) should set IsNetworkScan");
-            Assert.AreEqual("auto", winPEAS.Checks.Checks.NetworkScanOptions,
-                StringComparer.OrdinalIgnoreCase);
+            Assert.IsTrue(string.Equals("auto", winPEAS.Checks.Checks.NetworkScanOptions, StringComparison.OrdinalIgnoreCase),
+                "-network auto (space-separated) should set IsNetworkScan");
         }
 
         [TestMethod]
