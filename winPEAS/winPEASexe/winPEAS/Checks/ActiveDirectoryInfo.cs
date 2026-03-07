@@ -14,11 +14,11 @@ namespace winPEAS.Checks
     // Lightweight AD-oriented checks for common escalation paths (gMSA readable password, AD CS template control)
     internal class ActiveDirectoryInfo : ISystemCheck
     {
-        public string[] MitreAttackIds { get; } = new[] { "T1018", "T1087.002", "T1558.003", "T1484", "T1649" };
+        public string[] MitreAttackIds { get; } = new[] { "T1018", "T1087.002", "T1558.003", "T1484.001", "T1649", "T1003" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Active Directory Quick Checks", "T1018,T1087.002,T1558.003,T1484,T1649");
+            Beaprint.GreatPrint("Active Directory Quick Checks", "T1018,T1087.002,T1558.003,T1484.001,T1649,T1003");
 
             new List<Action>
             {
@@ -81,7 +81,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("AD object control surfaces", "T1484");
+                Beaprint.MainPrint("AD object control surfaces", "T1484.001");
                 Beaprint.LinkPrint(
                     "https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/index.html#acl-abuse",
                     "Look for objects where you have GenericAll/GenericWrite/attribute rights for ACL abuse (password reset, SPN/UAC/RBCD, sidHistory, delegation, DCSync).");

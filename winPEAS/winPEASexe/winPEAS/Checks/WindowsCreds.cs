@@ -19,11 +19,11 @@ namespace winPEAS.Checks
 {
     internal class WindowsCreds : ISystemCheck
     {
-        public string[] MitreAttackIds { get; } = new[] { "T1552", "T1555", "T1558" };
+        public string[] MitreAttackIds { get; } = new[] { "T1552.001", "T1552.002", "T1555.003", "T1555.004", "T1558", "T1547.005", "T1563.002" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Windows Credentials", "T1552,T1555,T1558");
+            Beaprint.GreatPrint("Windows Credentials", "T1552.001,T1552.002,T1555.003,T1555.004,T1558,T1547.005,T1563.002");
 
             new List<Action>
             {
@@ -369,7 +369,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking SSClient.exe", "T1059");
+                Beaprint.MainPrint("Looking SSClient.exe", "T1552.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#scclient--sccm");
 
                 if (File.Exists(Environment.ExpandEnvironmentVariables(@"%systemroot%\Windows\CCM\SCClient.exe")))

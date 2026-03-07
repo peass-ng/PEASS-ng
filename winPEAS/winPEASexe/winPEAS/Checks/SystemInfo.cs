@@ -51,11 +51,11 @@ namespace winPEAS.Checks
             { "be9ba2d9-53ea-4cdc-84e5-9b1eeee46550" , "Block executable content from email client and webmail"},
         };
 
-        public string[] MitreAttackIds { get; } = new[] { "T1082", "T1068", "T1548.002", "T1003.001" };
+        public string[] MitreAttackIds { get; } = new[] { "T1082", "T1068", "T1548.002", "T1003.001", "T1003.004", "T1003.005", "T1059.001", "T1552.001", "T1552.002", "T1562.002", "T1518.001", "T1557.001", "T1558", "T1559", "T1134.001", "T1547.005", "T1484.001", "T1654", "T1072", "T1187" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("System Information", "T1082,T1068,T1548.002,T1003.001");
+            Beaprint.GreatPrint("System Information", "T1082,T1068,T1548.002,T1003.001,T1003.004,T1003.005,T1059.001,T1552.001,T1552.002,T1562.002,T1518.001,T1557.001,T1558,T1559,T1134.001,T1547.005,T1484.001,T1654,T1072,T1187");
 
             new List<Action>
             {
@@ -629,7 +629,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Checking WSUS", "T1195");
+                Beaprint.MainPrint("Checking WSUS", "T1072,T1068");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#wsus");
                 string policyPath = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate";
                 string policyAUPath = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU";
@@ -729,7 +729,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Checking KrbRelayUp", "T1558");
+                Beaprint.MainPrint("Checking KrbRelayUp", "T1187,T1558");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#krbrelayup");
 
                 if (Checks.CurrentAdDomainName.Length > 0)
@@ -806,7 +806,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Object Manager race-window amplification primitives", "T1548");
+                Beaprint.MainPrint("Object Manager race-window amplification primitives", "T1068");
                 Beaprint.LinkPrint("https://projectzero.google/2025/12/windows-exploitation-techniques.html", "Project Zero write-up:");
 
                 if (ObjectManagerHelper.TryCreateSessionEvent(out var objectName, out var error))
@@ -960,7 +960,7 @@ namespace winPEAS.Checks
 
         private static void PrintNamedPipes()
         {
-            Beaprint.MainPrint("Enumerating Named Pipes", "T1559.001");
+            Beaprint.MainPrint("Enumerating Named Pipes", "T1559");
 
             try
             {
@@ -987,7 +987,7 @@ namespace winPEAS.Checks
 
         private static void PrintNamedPipeAbuseCandidates()
         {
-            Beaprint.MainPrint("Named Pipes with Low-Priv Write Access to Privileged Servers", "T1559.001");
+            Beaprint.MainPrint("Named Pipes with Low-Priv Write Access to Privileged Servers", "T1134.001,T1559");
 
             try
             {

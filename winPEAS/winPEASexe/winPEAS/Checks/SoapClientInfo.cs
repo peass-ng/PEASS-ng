@@ -7,11 +7,11 @@ namespace winPEAS.Checks
 {
     internal class SoapClientInfo : ISystemCheck
     {
-        public string[] MitreAttackIds { get; } = new[] { "T1059", "T1071" };
+        public string[] MitreAttackIds { get; } = new[] { "T1559", "T1071.001" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint(".NET SOAP Client Proxies (SOAPwn)", "T1059,T1071");
+            Beaprint.GreatPrint(".NET SOAP Client Proxies (SOAPwn)", "T1559,T1071.001");
 
             CheckRunner.Run(PrintSoapClientFindings, isDebug);
         }
@@ -20,7 +20,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Potential SOAPwn / HttpWebClientProtocol abuse surfaces", "T1059,T1071");
+                Beaprint.MainPrint("Potential SOAPwn / HttpWebClientProtocol abuse surfaces", "T1559,T1071.001");
                 Beaprint.LinkPrint(
                     "https://labs.watchtowr.com/soapwn-pwning-net-framework-applications-through-http-client-proxies-and-wsdl/",
                     "Look for .NET services that let attackers control SoapHttpClientProtocol URLs or WSDL imports to coerce NTLM or drop files.");

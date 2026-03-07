@@ -25,11 +25,11 @@ namespace winPEAS.Checks
             { @"\[\:\:\]", Beaprint.ansi_color_bad },
         };
 
-        public string[] MitreAttackIds { get; } = new[] { "T1016", "T1049", "T1135", "T1046" };
+        public string[] MitreAttackIds { get; } = new[] { "T1016", "T1049", "T1135", "T1046", "T1018", "T1090" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Network Information", "T1016,T1049,T1135,T1046");
+            Beaprint.GreatPrint("Network Information", "T1016,T1049,T1135,T1046,T1018,T1090");
 
             // Base checklist
             var checks = new List<Action>

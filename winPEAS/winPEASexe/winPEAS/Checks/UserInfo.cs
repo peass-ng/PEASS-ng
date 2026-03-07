@@ -34,11 +34,11 @@ namespace winPEAS.Checks
         static readonly string _badPasswd = "NotChange|NotExpi";
         static readonly string _badPrivileges = "SeImpersonatePrivilege|SeAssignPrimaryPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege";
 
-        public string[] MitreAttackIds { get; } = new[] { "T1087.001", "T1033", "T1134" };
+        public string[] MitreAttackIds { get; } = new[] { "T1087.001", "T1087.004", "T1033", "T1134.001", "T1115", "T1563.002", "T1083", "T1552.002", "T1201" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Users Information", "T1087.001,T1033,T1134");
+            Beaprint.GreatPrint("Users Information", "T1087.001,T1087.004,T1033,T1134.001,T1115,T1563.002,T1083,T1552.002,T1201");
 
             new List<Action>
             {
@@ -110,7 +110,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Current Token privileges", "T1134");
+                Beaprint.MainPrint("Current Token privileges", "T1134.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#token-manipulation", "Check if you can escalate privilege using some enabled token");
                 Dictionary<string, string> tokenPrivs = Token.GetTokenGroupPrivs();
                 Beaprint.DictPrint(tokenPrivs, ColorsU(), false);

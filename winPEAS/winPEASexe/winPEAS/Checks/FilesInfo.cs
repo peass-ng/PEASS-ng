@@ -113,11 +113,11 @@ namespace winPEAS.Checks
         };
 
 
-        public string[] MitreAttackIds { get; } = new[] { "T1083", "T1552.001", "T1003.002" };
+        public string[] MitreAttackIds { get; } = new[] { "T1083", "T1552.001", "T1552.002", "T1552.004", "T1552.006", "T1003.002", "T1564.001", "T1574.001", "T1059.004", "T1114.001", "T1218", "T1649" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Interesting files and registry", "T1083,T1552.001,T1003.002");
+            Beaprint.GreatPrint("Interesting files and registry", "T1083,T1552.001,T1552.002,T1552.004,T1552.006,T1003.002,T1564.001,T1574.001,T1059.004,T1114.001,T1218,T1649");
 
             new List<Action>
             {
@@ -152,7 +152,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Cloud Credentials", "T1552.005");
+                Beaprint.MainPrint("Cloud Credentials", "T1552.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#files-and-registry-credentials");
                 List<Dictionary<string, string>> could_creds = KnownFileCredsInfo.ListCloudCreds();
                 if (could_creds.Count != 0)

@@ -11,11 +11,11 @@ namespace winPEAS.Checks
 {
     internal class EventsInfo : ISystemCheck
     {
-        public string[] MitreAttackIds { get; } = new[] { "T1654", "T1078" };
+        public string[] MitreAttackIds { get; } = new[] { "T1654", "T1078", "T1078.003", "T1552.001", "T1059.001", "T1082" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Interesting Events information", "T1654,T1078");
+            Beaprint.GreatPrint("Interesting Events information", "T1654,T1078,T1078.003,T1552.001,T1059.001,T1082");
 
             new List<Action>
             {

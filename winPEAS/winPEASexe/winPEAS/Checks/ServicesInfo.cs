@@ -12,11 +12,11 @@ namespace winPEAS.Checks
     {
         Dictionary<string, string> modifiableServices = new Dictionary<string, string>();
 
-        public string[] MitreAttackIds { get; } = new[] { "T1007", "T1543.003", "T1574.001", "T1014" };
+        public string[] MitreAttackIds { get; } = new[] { "T1007", "T1543.003", "T1574.001", "T1574.011", "T1014", "T1068" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Services Information", "T1007,T1543.003,T1574.001,T1014");
+            Beaprint.GreatPrint("Services Information", "T1007,T1543.003,T1574.001,T1574.011,T1014,T1068");
 
             /// Start finding Modifiable services so any function could use them
 

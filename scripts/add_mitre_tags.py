@@ -13,7 +13,7 @@ MITRE_MAP = {
     # ─── Section 1: System Information ────────────────────────────────────────
     "1_system_information/1_Operative_system.sh":        "T1082",
     "1_system_information/2_Sudo_version.sh":            "T1548.003,T1068",
-    "1_system_information/3_USBCreator.sh":              "T1548",
+    "1_system_information/3_USBCreator.sh":              "T1548.003,T1068",
     "1_system_information/4_Path.sh":                    "T1574.007",
     "1_system_information/5_Date.sh":                    "T1082",
     "1_system_information/6_CPU_info.sh":                "T1082",
@@ -50,7 +50,7 @@ MITRE_MAP = {
     "3_cloud/15_Tencent_Cloud.sh":                       "T1552.005,T1580",
     # ─── Section 4: Processes / Crons / Timers / Services / Sockets ───────────
     "4_procs_crons_timers_srvcs_sockets/1_List_processes.sh":              "T1057",
-    "4_procs_crons_timers_srvcs_sockets/2_Process_cred_in_memory.sh":      "T1003,T1055",
+    "4_procs_crons_timers_srvcs_sockets/2_Process_cred_in_memory.sh":      "T1003.007",
     "4_procs_crons_timers_srvcs_sockets/3_Process_binaries_perms.sh":      "T1574,T1554",
     "4_procs_crons_timers_srvcs_sockets/4_Processes_PPID_different_user.sh":"T1134.004",
     "4_procs_crons_timers_srvcs_sockets/5_Files_open_process_other_user.sh":"T1083",
@@ -88,9 +88,9 @@ MITRE_MAP = {
     "6_users_information/6_Clipboard_highlighted_text.sh":"T1115",
     "6_users_information/7_Sudo_l.sh":                   "T1548.003",
     "6_users_information/8_Sudo_tokens.sh":              "T1548.003",
-    "6_users_information/9_Doas.sh":                     "T1548",
-    "6_users_information/10_Pkexec.sh":                  "T1548",
-    "6_users_information/11_Superusers.sh":              "T1087.001,T1548",
+    "6_users_information/9_Doas.sh":                     "T1548.003",
+    "6_users_information/10_Pkexec.sh":                  "T1548.003,T1548.004,T1068",
+    "6_users_information/11_Superusers.sh":              "T1087.001",
     "6_users_information/12_Users_with_console.sh":      "T1087.001",
     "6_users_information/13_Users_groups.sh":            "T1087.001,T1069.001",
     "6_users_information/14_Login_now.sh":               "T1033",
@@ -143,7 +143,7 @@ MITRE_MAP = {
     "8_interesting_perms_files/11_Root_files_home_dir.sh":"T1083",
     "8_interesting_perms_files/12_Others_files_in_my_dirs.sh":"T1083",
     "8_interesting_perms_files/13_Root_readable_files_notworld_readeble.sh":"T1083",
-    "8_interesting_perms_files/14_Writable_files_owner_all.sh":"T1574",
+    "8_interesting_perms_files/14_Writable_files_owner_all.sh":"T1574.009,T1574.010",
     "8_interesting_perms_files/15_Writable_files_group.sh":"T1574",
     "8_interesting_perms_files/16_IGEL_OS_SUID.sh":      "T1548.001",
     "8_interesting_perms_files/16_Writable_root_execs.sh":"T1574",
@@ -176,6 +176,8 @@ MITRE_MAP = {
     "9_interesting_files/26_Mails_addr_inside_logs.sh":  "T1114.001",
     "9_interesting_files/27_Passwords_in_logs.sh":       "T1552.001",
     "9_interesting_files/28_Files_with_passwords.sh":    "T1552.001",
+    "9_interesting_files/29_Interesting_environment_variables.sh": "T1552.007,T1082",
+    "9_interesting_files/29_Interesting_environment_variables.sh": "T1552.007,T1082",
     # ─── Section 10: API Keys Regex ───────────────────────────────────────────
     "10_api_keys_regex/regexes.sh":                      "T1552.001,T1528",
 }

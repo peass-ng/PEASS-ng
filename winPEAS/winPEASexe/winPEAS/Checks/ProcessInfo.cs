@@ -8,11 +8,11 @@ namespace winPEAS.Checks
 {
     internal class ProcessInfo : ISystemCheck
     {
-        public string[] MitreAttackIds { get; } = new[] { "T1057", "T1134.003" };
+        public string[] MitreAttackIds { get; } = new[] { "T1057", "T1134.001" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Processes Information", "T1057,T1134.003");
+            Beaprint.GreatPrint("Processes Information", "T1057,T1134.001");
 
             new List<Action>
             {
@@ -94,7 +94,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Vulnerable Leaked Handlers", "T1134.003");
+                Beaprint.MainPrint("Vulnerable Leaked Handlers", "T1134.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#leaked-handlers");
 
                 List<Dictionary<string, string>> vulnHandlers = new List<Dictionary<string, string>>(); 

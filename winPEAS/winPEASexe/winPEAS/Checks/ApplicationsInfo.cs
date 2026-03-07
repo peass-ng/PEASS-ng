@@ -7,11 +7,11 @@ namespace winPEAS.Checks
 {
     internal class ApplicationsInfo : ISystemCheck
     {
-        public string[] MitreAttackIds { get; } = new[] { "T1518", "T1547.001", "T1053.005" };
+        public string[] MitreAttackIds { get; } = new[] { "T1518", "T1547.001", "T1053.005", "T1010", "T1014" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Applications Information", "T1518,T1547.001,T1053.005");
+            Beaprint.GreatPrint("Applications Information", "T1518,T1547.001,T1053.005,T1010,T1014");
 
             new List<Action>
             {
