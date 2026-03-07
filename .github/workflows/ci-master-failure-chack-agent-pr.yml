@@ -59,21 +59,57 @@ jobs:
             --paginate > /tmp/jobs.json
           python3 - <<'PY'
           import json
+          import re
+          import subprocess
 
           data = json.load(open('/tmp/jobs.json'))
           lines = []
+          failure_evidence = []
+          failure_jobs = []
           for job in data.get('jobs', []):
             if job.get('conclusion') == 'failure':
+              job_id = job.get('id')
               lines.append(f"Job: {job.get('name')} (id {job.get('id')})")
               lines.append(f"URL: {job.get('html_url')}")
               for step in job.get('steps', []):
                 if step.get('conclusion') == 'failure':
                   lines.append(f"  Step: {step.get('name')}")
               lines.append("")
+              failure_jobs.append((job_id, job.get('name')))
+
+          error_pattern = re.compile(r'error\s+[A-Z]+[0-9]+|: error |Build FAILED\.|##\[error\]', re.IGNORECASE)
+          for job_id, job_name in failure_jobs:
+            try:
+              raw_log = subprocess.check_output(
+                ["gh", "api", f"/repos/${{ github.repository }}/actions/jobs/{job_id}/logs"],
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+              )
+            except subprocess.CalledProcessError as exc:
+              failure_evidence.append(f"Job {job_name} ({job_id}): failed to download raw logs: {exc}")
+              continue
+
+            matches = []
+            for raw_line in raw_log.splitlines():
+              if error_pattern.search(raw_line):
+                line = re.sub(r"^\ufeff?", "", raw_line).strip()
+                matches.append(line)
+
+            failure_evidence.append(f"Job {job_name} ({job_id})")
+            if matches:
+              failure_evidence.extend(matches[:40])
+            else:
+              failure_evidence.append("No compiler/runtime error lines extracted from raw job logs.")
+            failure_evidence.append("")
 
           summary = "\n".join(lines).strip() or "No failing job details found."
           with open('chack_failure_summary.txt', 'w') as handle:
             handle.write(summary)
+
+          evidence = "\n".join(failure_evidence).strip() or "No raw failure evidence extracted."
+          with open('chack_failure_evidence.txt', 'w') as handle:
+            handle.write(evidence)
           PY
 
       - name: Create Chack Agent prompt
@@ -90,10 +126,16 @@ jobs:
             echo "Failure summary:"
             cat chack_failure_summary.txt
             echo ""
+            echo "Extracted raw failure evidence:"
+            cat chack_failure_evidence.txt
+            echo ""
             echo "Failed-step logs file absolute path (local runner): ${FAILED_LOGS_PATH}"
             echo "Read that file to inspect the exact failing logs."
             echo ""
             echo "Please identify the cause, apply an easy, simple and minimal fix, and update files accordingly."
+            echo "Priority rule: if extracted failure evidence references repository source files or project files, fix those first."
+            echo "Only edit workflow files when the evidence points to the workflow itself (checkout/setup/permissions/event wiring) or when no repository file is implicated."
+            echo "Do not guess from truncated logs when exact compiler/runtime error lines are available."
             echo "Workflow-file edits are allowed when required to fix the failing run."
             echo "Do not edit or create any .md or .txt files or any summary file and do not modify build_lists/regexes.yaml. Don't create job or summary files of you actions."
             echo "Run any fast checks you can locally (no network)."
@@ -121,6 +163,8 @@ jobs:
           sub_action: CI-master Failure Chack-Agent PR
           system_prompt: |
             Diagnose the failing gh actions workflow, propose the minimal and effective safe fix, and implement it.
+            When the provided failure evidence names repository files, treat that as the primary root-cause signal and fix those files before considering workflow edits.
+            Do not make speculative workflow changes when compiler/runtime error lines point to source or project files.
             Workflow-file edits are allowed when needed to fix the failure.
             Never edit any .md or .txt files.
             Never create or modify build_lists/regexes.yaml.
@@ -136,7 +180,7 @@ jobs:
         env:
           ORIGINAL_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          rm -f chack_failure_summary.txt chack_prompt.txt chack_failed_steps_logs.txt
+          rm -f chack_failure_summary.txt chack_failure_evidence.txt chack_prompt.txt chack_failed_steps_logs.txt
 
           pushed=false
 
@@ -148,7 +192,7 @@ jobs:
               git checkout -- .github/workflows || true
               git clean -fdx -- .github/workflows || true
             fi
-            git reset -- chack_failure_summary.txt chack_prompt.txt chack_failed_steps_logs.txt
+            git reset -- chack_failure_summary.txt chack_failure_evidence.txt chack_prompt.txt chack_failed_steps_logs.txt
             # Never include generated regex list updates in automated fixer commits.
             git reset -- build_lists/regexes.yaml || true
             while IFS= read -r file; do
@@ -180,6 +224,7 @@ jobs:
             git diff --binary "$ORIGINAL_HEAD_SHA"..HEAD -- \
               . \
               ':(exclude)chack_failure_summary.txt' \
+              ':(exclude)chack_failure_evidence.txt' \
               ':(exclude)chack_prompt.txt' \
               ':(exclude)chack_failed_steps_logs.txt' \
               ':(exclude)build_lists/regexes.yaml' \
@@ -193,6 +238,7 @@ jobs:
               . \
               ':(exclude).github/workflows/**' \
               ':(exclude)chack_failure_summary.txt' \
+              ':(exclude)chack_failure_evidence.txt' \
               ':(exclude)chack_prompt.txt' \
               ':(exclude)chack_failed_steps_logs.txt' \
               ':(exclude)build_lists/regexes.yaml' \
@@ -208,8 +254,8 @@ jobs:
           fi
           git reset --hard "$ORIGINAL_HEAD_SHA"
           git apply --index /tmp/chack_sanitized.patch
-          rm -f chack_failure_summary.txt chack_prompt.txt chack_failed_steps_logs.txt
-          git reset -- chack_failure_summary.txt chack_prompt.txt chack_failed_steps_logs.txt || true
+          rm -f chack_failure_summary.txt chack_failure_evidence.txt chack_prompt.txt chack_failed_steps_logs.txt
+          git reset -- chack_failure_summary.txt chack_failure_evidence.txt chack_prompt.txt chack_failed_steps_logs.txt || true
           if git diff --cached --quiet; then
             echo "No sanitized changes left after filtering."
             echo "pushed=false" >> "$GITHUB_OUTPUT"

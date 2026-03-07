@@ -6,8 +6,8 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
-using winPEAS.Checks;
 using winPEAS.Helpers;
+using WinPEASChecks = winPEAS.Checks.Checks;
 
 namespace winPEAS.Info.NetworkInfo.NetworkScanner
 {
@@ -68,7 +68,7 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
             {
                 // ICMP blocked, invalid address, or host unreachable — treat as down.
             }
-            catch (Exception ex) when (Checks.IsDebug)
+            catch (Exception ex) when (WinPEASChecks.IsDebug)
             {
                 Beaprint.PrintException($"    [!] Ping error for {ip}: {ex.Message}");
             }

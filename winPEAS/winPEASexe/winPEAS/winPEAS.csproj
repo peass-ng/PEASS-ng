@@ -1195,6 +1195,7 @@
     <Compile Include="Checks\ISystemCheck.cs" />
     <Compile Include="Checks\EventsInfo.cs" />
     <Compile Include="Checks\NetworkInfo.cs" />
+    <Compile Include="Checks\NetworkScanCheck.cs" />
     <Compile Include="Checks\ProcessInfo.cs" />
     <Compile Include="Checks\ServicesInfo.cs" />
     <Compile Include="Checks\SoapClientInfo.cs" />
