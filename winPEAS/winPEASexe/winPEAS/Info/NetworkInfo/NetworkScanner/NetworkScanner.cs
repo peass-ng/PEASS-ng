@@ -52,7 +52,6 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
         {
             try
             {
-                Beaprint.GreatPrint("Scanning network (it might take some time)...");
 
                 List<string> aliveHosts = new List<string>();
                 NetPinger netPinger = new NetPinger();
@@ -62,25 +61,26 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
                     // this is the "auto" mode
                     foreach (var ipAddressAndNetmask in NetworkUtils.GetInternalInterfaces())
                     {
-                        netPinger.AddRange(ipAddressAndNetmask.Item1, ipAddressAndNetmask.Item2);                        
+                        netPinger.AddRange(ipAddressAndNetmask.Item1, ipAddressAndNetmask.Item2);
                     }
                 }
-                if (scanMode == ScanMode.IPAddressNetmask)
+                else if (scanMode == ScanMode.IPAddressNetmask)
                 {
-                    netPinger.AddRange(baseAddress, netmask);                    
+                    netPinger.AddRange(baseAddress, netmask);
                 }
                 else if (scanMode == ScanMode.IPAddressList)
                 {
-                    netPinger.AddRange(ipAddressList);                    
+                    netPinger.AddRange(ipAddressList);
                 }
 
                 var task = netPinger.RunPingSweepAsync();
                 task.Wait();
                 aliveHosts.AddRange(netPinger.HostsAlive);
 
-                PortScanner ps = new PortScanner(this.ports);
-                Parallel.ForEach(aliveHosts, host =>
+                var outerOptions = new ParallelOptions { MaxDegreeOfParallelism = 5 };
+                Parallel.ForEach(aliveHosts, outerOptions, host =>
                 {
+                    var ps = new PortScanner(this.ports);
                     ps.Start(host);
                 });
             }

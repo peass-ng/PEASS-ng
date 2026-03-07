@@ -29,6 +29,7 @@ linPEAS/builder/linpeas_base_tmp.sh
 build_lists/regexes.yaml
 sh2bin
 sh2bin/*
+winPEAS/winPEASexe/Directory.Build.targets
 .dccache
 ./*/.dccache
 regexes.yaml

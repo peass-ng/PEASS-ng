@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
+using winPEAS.Helpers;
 
 namespace winPEAS.Info.NetworkInfo.NetworkScanner
 {
@@ -49,12 +49,6 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
 
         #endregion
 
-        private struct TcpPortState
-        {
-            public TcpClient MainClient { get; set; }
-            public bool IsTcpPortOpen { get; set; }
-        }
-
         IEnumerable<int> portsToScan = nmapTop1000TCPPorts;
 
         public PortScanner(IEnumerable<int> ports)
@@ -67,7 +61,8 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
 
         public void Start(string host)
         {
-            Parallel.ForEach(portsToScan, port =>
+            var innerOptions = new ParallelOptions { MaxDegreeOfParallelism = 50 };
+            Parallel.ForEach(portsToScan, innerOptions, port =>
             {
                 RunScanTcp(host, port);
             });
@@ -75,48 +70,32 @@ namespace winPEAS.Info.NetworkInfo.NetworkScanner
 
         public void RunScanTcp(string host, int port)
         {
-            Thread.Sleep(1);
-
-            var newClient = new TcpClient();
-
-            var state = new TcpPortState
+            using (var client = new TcpClient())
             {
-                MainClient = newClient,
-                IsTcpPortOpen = true
-            };
+                try
+                {
+                    var connectTask = client.ConnectAsync(host, port);
+                    bool completed = connectTask.Wait(TcpTimeout);
 
-            IAsyncResult ar = newClient.BeginConnect(host, port, AsyncCallback, state);
-            state.IsTcpPortOpen = ar.AsyncWaitHandle.WaitOne(TcpTimeout, false);
+                    if (!completed || !client.Connected)
+                    {
+                        // Timed out: the connect task may still be running and could fault
+                        // later. Attach a continuation that observes (and silences) any
+                        // subsequent exception so it doesn't surface as an
+                        // UnobservedTaskException when the task is GC'd.
+                        connectTask.ContinueWith(
+                            t => { var _ = t.Exception; },
+                            TaskContinuationOptions.OnlyOnFaulted);
+                        return;
+                    }
 
-            if (state.IsTcpPortOpen == false || newClient.Connected == false)
-            {
-                return;
+                    Beaprint.GoodPrint($"    [+] Open TCP port at: {host}:{port}");
+                }
+                catch (AggregateException)
+                {
+                    // Connection refused, host unreachable, etc. — port is closed.
+                }
             }
-
-            Console.WriteLine("[+] Open TCP port at: {0}:{1}", host, port);
-        }
-
-
-        void AsyncCallback(IAsyncResult asyncResult)
-        {
-            var state = (TcpPortState)asyncResult.AsyncState;
-            TcpClient client = state.MainClient;
-
-            try
-            {
-                client.EndConnect(asyncResult);
-            }
-            catch
-            {
-                return;
-            }
-
-            if (client.Connected && state.IsTcpPortOpen)
-            {
-                return;
-            }
-
-            client.Close();
         }
     }
 }
