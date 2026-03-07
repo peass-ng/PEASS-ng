@@ -123,7 +123,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
         ${YELLOW}    -N${BLUE} Do not use colours
         ${YELLOW}    -z <N>${BLUE} Set number of threads for background checks (default: auto-detected CPU count, fallback: 2; must be >= 1)$NC"
 
-while getopts "h?asd:p:i:P:qo:T:LMwNDterf:F:z:" opt; do
+while getopts ":h?asd:p:i:P:qo:T:LMwNDterf:F:z:" opt; do
   case "$opt" in
     h|\?) printf "%s\n\n" "$HELP$NC"; exit 0;;
     a)  FAST="";EXTRA_CHECKS="1";;
@@ -154,6 +154,8 @@ while getopts "h?asd:p:i:P:qo:T:LMwNDterf:F:z:" opt; do
 
     F)  PORT_FORWARD=$OPTARG;;
     z)  if [ "$OPTARG" -eq "$OPTARG" ] 2>/dev/null && [ "$OPTARG" -ge 1 ] 2>/dev/null; then THREADS=$OPTARG; else echo "WARNING: -z requires an integer >= 1, ignoring." >&2; fi;;
+    :)  echo "ERROR: -$OPTARG requires an argument (e.g. -T T1082,T1552)" >&2; printf "%s\n\n" "$HELP$NC"; exit 1;;
+    *)  echo "ERROR: Unknown option -$OPTARG" >&2; printf "%s\n\n" "$HELP$NC"; exit 1;;
     esac
 done
 
