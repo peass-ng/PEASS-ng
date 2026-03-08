@@ -51,9 +51,11 @@ namespace winPEAS.Checks
             { "be9ba2d9-53ea-4cdc-84e5-9b1eeee46550" , "Block executable content from email client and webmail"},
         };
 
+        public string[] MitreAttackIds { get; } = new[] { "T1082", "T1068", "T1548.002", "T1003.001", "T1003.004", "T1003.005", "T1059.001", "T1552.001", "T1552.002", "T1562.001", "T1562.002", "T1518.001", "T1557.001", "T1558", "T1559", "T1134.001", "T1547.005", "T1484.001", "T1613", "T1654", "T1072", "T1187" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("System Information");
+            Beaprint.GreatPrint("System Information", "T1082,T1068,T1548.002,T1003.001,T1003.004,T1003.005,T1059.001,T1552.001,T1552.002,T1562.001,T1562.002,T1518.001,T1557.001,T1558,T1559,T1134.001,T1547.005,T1484.001,T1613,T1654,T1072,T1187");
 
             new List<Action>
             {
@@ -104,7 +106,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Basic System Information");
+                Beaprint.MainPrint("Basic System Information", "T1082");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#version-exploits", "Check if the Windows versions is vulnerable to some known exploit");
                 Dictionary<string, string> basicDictSystem = Info.SystemInfo.SystemInfo.GetBasicOSInfo();
                 _basicSystemInfo = new Dictionary<string, string>(basicDictSystem);
@@ -126,7 +128,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Windows Version Vulnerabilities");
+                Beaprint.MainPrint("Windows Version Vulnerabilities", "T1082,T1068");
 
                 var basicInfo = _basicSystemInfo ?? Info.SystemInfo.SystemInfo.GetBasicOSInfo();
                 var report = WindowsVersionVulns.GetVulnerabilityReport(basicInfo);
@@ -187,7 +189,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Showing All Microsoft Updates");
+                Beaprint.MainPrint("Showing All Microsoft Updates", "T1082");
 
                 var searcher = Type.GetTypeFromProgID("Microsoft.Update.Searcher");
                 var searcherObj = Activator.CreateInstance(searcher);
@@ -247,7 +249,7 @@ namespace winPEAS.Checks
                     { "PS history file: .+", Beaprint.ansi_color_bad },
                     { "PS history size: .+", Beaprint.ansi_color_bad }
                 };
-                Beaprint.MainPrint("PowerShell Settings");
+                Beaprint.MainPrint("PowerShell Settings", "T1059.001");
                 Dictionary<string, string> PSs = Info.SystemInfo.SystemInfo.GetPowerShellSettings();
                 Beaprint.DictPrint(PSs, colorsPSI, false);
             }
@@ -261,7 +263,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("PS default transcripts history");
+                Beaprint.MainPrint("PS default transcripts history", "T1552.001");
                 Beaprint.InfoPrint("Read the PS history inside these files (if any)");
                 string drive = Path.GetPathRoot(Environment.SystemDirectory);
                 string transcriptsPath = drive + @"transcripts\";
@@ -330,7 +332,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Audit Settings");
+                Beaprint.MainPrint("Audit Settings", "T1562.002");
                 Beaprint.LinkPrint("", "Check what is being logged");
                 Dictionary<string, string> auditDict = Info.SystemInfo.SystemInfo.GetAuditSettings();
                 Beaprint.DictPrint(auditDict, false);
@@ -345,7 +347,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Audit Policy Settings - Classic & Advanced");
+                Beaprint.MainPrint("Audit Policy Settings - Classic & Advanced", "T1562.002");
 
                 var policies = AuditPolicies.GetAuditPoliciesInfos();
 
@@ -373,7 +375,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("WEF Settings");
+                Beaprint.MainPrint("WEF Settings", "T1562.002");
                 Beaprint.LinkPrint("", "Windows Event Forwarding, is interesting to know were are sent the logs");
                 Dictionary<string, string> weftDict = Info.SystemInfo.SystemInfo.GetWEFSettings();
                 Beaprint.DictPrint(weftDict, false);
@@ -388,7 +390,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("LAPS Settings");
+                Beaprint.MainPrint("LAPS Settings", "T1003.004");
                 Beaprint.LinkPrint("", "If installed, local administrator password is changed frequently and is restricted by ACL");
                 Dictionary<string, string> lapsDict = Info.SystemInfo.SystemInfo.GetLapsSettings();
                 Dictionary<string, string> colorsSI = new Dictionary<string, string>()
@@ -405,7 +407,7 @@ namespace winPEAS.Checks
 
         static void PrintWdigest()
         {
-            Beaprint.MainPrint("Wdigest");
+            Beaprint.MainPrint("Wdigest", "T1003.001");
             Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#wdigest", "If enabled, plain-text crds could be stored in LSASS");
             string useLogonCredential = RegistryHelper.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest", "UseLogonCredential");
             if (useLogonCredential == "1")
@@ -416,7 +418,7 @@ namespace winPEAS.Checks
 
         static void PrintLSAProtection()
         {
-            Beaprint.MainPrint("LSA Protection");
+            Beaprint.MainPrint("LSA Protection", "T1003.001");
             Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#lsa-protection", "If enabled, a driver is needed to read LSASS memory (If Secure Boot or UEFI, RunAsPPL cannot be disabled by deleting the registry key)");
             string useLogonCredential = RegistryHelper.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\LSA", "RunAsPPL");
             if (useLogonCredential == "1")
@@ -427,7 +429,7 @@ namespace winPEAS.Checks
 
         static void PrintCredentialGuard()
         {
-            Beaprint.MainPrint("Credentials Guard");
+            Beaprint.MainPrint("Credentials Guard", "T1003.001");
             Beaprint.LinkPrint("https://book.hacktricks.wiki/windows-hardening/stealing-credentials/credentials-protections#credentials-guard", "If enabled, a driver is needed to read LSASS memory");
             string lsaCfgFlags = RegistryHelper.GetRegValue("HKLM", @"System\CurrentControlSet\Control\LSA", "LsaCfgFlags");
 
@@ -452,7 +454,7 @@ namespace winPEAS.Checks
         static void PrintCachedCreds()
         {
             try{
-                Beaprint.MainPrint("Cached Creds");
+                Beaprint.MainPrint("Cached Creds", "T1003.005");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#cached-credentials", "If > 0, credentials will be cached in the registry and accessible by SYSTEM user");
                 string cachedlogonscount = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "CACHEDLOGONSCOUNT");
                 if (!string.IsNullOrEmpty(cachedlogonscount))
@@ -478,7 +480,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("User Environment Variables");
+                Beaprint.MainPrint("User Environment Variables", "T1082");
                 Beaprint.LinkPrint("", "Check for some passwords or keys in the env variables");
                 Dictionary<string, string> userEnvDict = Info.SystemInfo.SystemInfo.GetUserEnvVariables();
                 Dictionary<string, string> colorsSI = new Dictionary<string, string>()
@@ -497,7 +499,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("System Environment Variables");
+                Beaprint.MainPrint("System Environment Variables", "T1082");
                 Beaprint.LinkPrint("", "Check for some passwords or keys in the env variables");
                 Dictionary<string, string> sysEnvDict = Info.SystemInfo.SystemInfo.GetSystemEnvVariables();
                 Dictionary<string, string> colorsSI = new Dictionary<string, string>()
@@ -521,11 +523,11 @@ namespace winPEAS.Checks
                     { "ProxyServer.*", Beaprint.ansi_color_bad }
                 };
 
-                Beaprint.MainPrint("HKCU Internet Settings");
+                Beaprint.MainPrint("HKCU Internet Settings", "T1082");
                 Dictionary<string, string> HKCUDict = Info.SystemInfo.SystemInfo.GetInternetSettings("HKCU");
                 Beaprint.DictPrint(HKCUDict, colorsSI, true);
 
-                Beaprint.MainPrint("HKLM Internet Settings");
+                Beaprint.MainPrint("HKLM Internet Settings", "T1082");
                 Dictionary<string, string> HKMLDict = Info.SystemInfo.SystemInfo.GetInternetSettings("HKLM");
                 Beaprint.DictPrint(HKMLDict, colorsSI, true);
             }
@@ -539,7 +541,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Drives Information");
+                Beaprint.MainPrint("Drives Information", "T1082");
                 Beaprint.LinkPrint("", "Remember that you should search more info inside the other drives");
                 Dictionary<string, string> colorsSI = new Dictionary<string, string>()
                 {
@@ -575,7 +577,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("AV Information");
+                Beaprint.MainPrint("AV Information", "T1518.001");
                 Dictionary<string, string> AVInfo = Info.SystemInfo.SystemInfo.GetAVInfo();
                 if (AVInfo.ContainsKey("Name") && AVInfo["Name"].Length > 0)
                     Beaprint.GoodPrint("    Some AV was detected, search for bypasses");
@@ -594,7 +596,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("UAC Status");
+                Beaprint.MainPrint("UAC Status", "T1548.002");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#from-administrator-medium-to-high-integrity-level--uac-bypasss", "If you are in the Administrators group check how to bypass the UAC");
                 Dictionary<string, string> uacDict = Info.SystemInfo.SystemInfo.GetUACSystemPolicies();
 
@@ -627,7 +629,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Checking WSUS");
+                Beaprint.MainPrint("Checking WSUS", "T1072,T1068");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#wsus");
                 string policyPath = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate";
                 string policyAUPath = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU";
@@ -727,7 +729,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Checking KrbRelayUp");
+                Beaprint.MainPrint("Checking KrbRelayUp", "T1187,T1558");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#krbrelayup");
 
                 if (Checks.CurrentAdDomainName.Length > 0)
@@ -750,7 +752,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Checking If Inside Container");
+                Beaprint.MainPrint("Checking If Inside Container", "T1613");
                 Beaprint.LinkPrint("", "If the binary cexecsvc.exe or associated service exists, you are inside Docker");
                 Dictionary<string, object> regVal = RegistryHelper.GetRegValues("HKLM", @"System\CurrentControlSet\Services\cexecsvc");
                 bool cexecsvcExist = File.Exists(Environment.SystemDirectory + @"\cexecsvc.exe");
@@ -773,7 +775,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Checking AlwaysInstallElevated");
+                Beaprint.MainPrint("Checking AlwaysInstallElevated", "T1548.002");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#alwaysinstallelevated");
                 string path = "Software\\Policies\\Microsoft\\Windows\\Installer";
                 string HKLM_AIE = RegistryHelper.GetRegValue("HKLM", path, "AlwaysInstallElevated");
@@ -804,7 +806,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Object Manager race-window amplification primitives");
+                Beaprint.MainPrint("Object Manager race-window amplification primitives", "T1068");
                 Beaprint.LinkPrint("https://projectzero.google/2025/12/windows-exploitation-techniques.html", "Project Zero write-up:");
 
                 if (ObjectManagerHelper.TryCreateSessionEvent(out var objectName, out var error))
@@ -827,7 +829,7 @@ namespace winPEAS.Checks
 
         private static void PrintNtlmSettings()
         {
-            Beaprint.MainPrint($"Enumerating NTLM Settings");
+            Beaprint.MainPrint($"Enumerating NTLM Settings", "T1557.001");
 
             try
             {
@@ -903,7 +905,7 @@ namespace winPEAS.Checks
 
         private static void PrintPrintNightmarePointAndPrint()
         {
-            Beaprint.MainPrint("PrintNightmare PointAndPrint Policies");
+            Beaprint.MainPrint("PrintNightmare PointAndPrint Policies", "T1068");
             Beaprint.LinkPrint("https://itm4n.github.io/printnightmare-exploitation/", "Check PointAndPrint policy hardening");
 
             try
@@ -936,7 +938,7 @@ namespace winPEAS.Checks
 
         private static void PrintPrintersWMIInfo()
         {
-            Beaprint.MainPrint("Enumerating Printers (WMI)");
+            Beaprint.MainPrint("Enumerating Printers (WMI)", "T1082");
 
             try
             {
@@ -958,7 +960,7 @@ namespace winPEAS.Checks
 
         private static void PrintNamedPipes()
         {
-            Beaprint.MainPrint("Enumerating Named Pipes");
+            Beaprint.MainPrint("Enumerating Named Pipes", "T1559");
 
             try
             {
@@ -985,7 +987,7 @@ namespace winPEAS.Checks
 
         private static void PrintNamedPipeAbuseCandidates()
         {
-            Beaprint.MainPrint("Named Pipes with Low-Priv Write Access to Privileged Servers");
+            Beaprint.MainPrint("Named Pipes with Low-Priv Write Access to Privileged Servers", "T1134.001,T1559");
 
             try
             {
@@ -1026,7 +1028,7 @@ namespace winPEAS.Checks
 
         private void PrintAMSIProviders()
         {
-            Beaprint.MainPrint("Enumerating AMSI registered providers");
+            Beaprint.MainPrint("Enumerating AMSI registered providers", "T1562.001");
 
             try
             {
@@ -1055,7 +1057,7 @@ namespace winPEAS.Checks
 
         private void PrintSysmonConfiguration()
         {
-            Beaprint.MainPrint("Enumerating Sysmon configuration");
+            Beaprint.MainPrint("Enumerating Sysmon configuration", "T1518.001");
 
             Dictionary<string, string> colors = new Dictionary<string, string>
             {
@@ -1088,7 +1090,7 @@ namespace winPEAS.Checks
 
         private void PrintSysmonEventLogs()
         {
-            Beaprint.MainPrint("Enumerating Sysmon process creation logs (1)");
+            Beaprint.MainPrint("Enumerating Sysmon process creation logs (1)", "T1654");
 
             try
             {
@@ -1114,7 +1116,7 @@ namespace winPEAS.Checks
 
         private static void PrintWindowsDefenderInfo()
         {
-            Beaprint.MainPrint("Windows Defender configuration");
+            Beaprint.MainPrint("Windows Defender configuration", "T1518.001");
 
             void DisplayDefenderSettings(WindowsDefenderSettings settings)
             {
@@ -1213,7 +1215,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Installed .NET versions\n");
+                Beaprint.MainPrint("Installed .NET versions\n", "T1082");
 
                 var info = DotNet.GetDotNetInfo();
 
@@ -1269,7 +1271,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("System Last Shutdown Date/time (from Registry)\n");
+                Beaprint.MainPrint("System Last Shutdown Date/time (from Registry)\n", "T1082");
 
                 var shutdownBytes = RegistryHelper.GetRegValueBytes("HKLM", "SYSTEM\\ControlSet001\\Control\\Windows", "ShutdownTime");
                 if (shutdownBytes != null)
@@ -1289,7 +1291,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Enumerate LSA settings - auth packages included\n");
+                Beaprint.MainPrint("Enumerate LSA settings - auth packages included\n", "T1547.005");
 
                 var settings = RegistryHelper.GetRegValues("HKLM", "SYSTEM\\CurrentControlSet\\Control\\Lsa");
 
@@ -1342,7 +1344,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Display Local Group Policy settings - local users/machine");
+                Beaprint.MainPrint("Display Local Group Policy settings - local users/machine", "T1082");
 
                 var infos = GroupPolicy.GetLocalGroupPolicyInfos();
 
@@ -1369,7 +1371,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Potential GPO abuse vectors (applied domain GPOs writable by current user)");
+                Beaprint.MainPrint("Potential GPO abuse vectors (applied domain GPOs writable by current user)", "T1484.001");
 
                 if (!Checks.IsPartOfDomain)
                 {
@@ -1457,7 +1459,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Enumerating PowerShell Session Settings using the registry");
+                Beaprint.MainPrint("Enumerating PowerShell Session Settings using the registry", "T1059.001");
 
                 if (!MyUtils.IsHighIntegrity())
                 {
@@ -1488,7 +1490,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Enumerating saved credentials in Registry (CurrentPass)");
+                Beaprint.MainPrint("Enumerating saved credentials in Registry (CurrentPass)", "T1552.002");
                 string currentPass = "CurrentPass";
                 var hive = "HKLM";
                 var path = "System";

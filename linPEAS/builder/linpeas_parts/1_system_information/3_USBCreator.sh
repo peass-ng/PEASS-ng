@@ -19,6 +19,7 @@
 #       - USB device creation abuse
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1548.003,T1068
 # Functions Used: print_2title, print_info
 # Global Variables: $DEBUG
 # Initial Functions:
@@ -28,7 +29,7 @@
 
 
 if (busctl list 2>/dev/null | grep -q com.ubuntu.USBCreator) || [ "$DEBUG" ]; then
-    print_2title "USBCreator"
+    print_2title "USBCreator" "T1548.003,T1068"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/d-bus-enumeration-and-command-injection-privilege-escalation.html"
 
     pc_version=$(dpkg -l 2>/dev/null | grep policykit-desktop-privileges | grep -oP "[0-9][0-9a-zA-Z\.]+")

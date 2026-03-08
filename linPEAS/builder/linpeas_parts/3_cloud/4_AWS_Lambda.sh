@@ -5,6 +5,7 @@
 # Description: AWS Lambda Enumeration
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.005,T1580
 # Functions Used: check_aws_lambda, print_2title
 # Global Variables: $is_aws_lambda
 # Initial Functions: check_aws_lambda
@@ -14,7 +15,7 @@
 
 
 if [ "$is_aws_lambda" = "Yes" ]; then
-  print_2title "AWS Lambda Enumeration"
+  print_2title "AWS Lambda Enumeration" "T1552.005,T1580"
   printf "Function name: "; env | grep AWS_LAMBDA_FUNCTION_NAME
   printf "Region: "; env | grep AWS_REGION
   printf "Secret Access Key: "; env | grep AWS_SECRET_ACCESS_KEY

@@ -5,6 +5,7 @@
 # Description: SGID
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1548.001
 # Functions Used: print_2title, print_info
 # Global Variables: $cfuncs, $IAMROOT, $LDD, $READELF, $ROOT_FOLDER, $sidB, $sidG1, $sidG2, $sidG3, $sidG4, $sidVB, $sidVB2, $STRACE, $STRINGS, $TIMEOUT, $Wfolders
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 1
 
 
-print_2title "SGID"
+print_2title "SGID" "T1548.001"
 print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sudo-and-suid"
 sgids_files=$(find $ROOT_FOLDER -perm -2000 -type f ! -path "/dev/*" 2>/dev/null)
 printf "%s\n" "$sgids_files" | while read s; do

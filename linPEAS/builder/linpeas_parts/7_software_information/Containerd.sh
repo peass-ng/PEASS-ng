@@ -5,6 +5,7 @@
 # Description: containerd installed
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1613
 # Functions Used: print_2title, print_info
 # Global Variables: $DEBUG, $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -16,7 +17,7 @@
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   containerd=$(command -v ctr || echo -n '')
   if [ "$containerd" ] || [ "$DEBUG" ]; then
-    print_2title "Checking if containerd(ctr) is available"
+    print_2title "Checking if containerd(ctr) is available" "T1613"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#containerd-ctr-privilege-escalation"
     if [ "$containerd" ]; then
       echo "ctr was found in $containerd, you may be able to escalate privileges with it" | sed -${E} "s,.*,${SED_RED},"

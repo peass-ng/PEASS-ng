@@ -5,6 +5,7 @@
 # Description: Analyze inetd and xinetd services and configurations
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1049
 # Functions Used: print_2title, print_3title, warn_exec, echo_not_found
 # Global Variables: $EXTRA_CHECKS, $E, $SED_RED, $SED_GREEN, $SED_YELLOW
 # Initial Functions:
@@ -26,8 +27,7 @@ check_command() {
 # Function to analyze inetd services
 analyze_inetd() {
     echo ""
-    print_3title "Inetd Services"
-    
+    print_3title "Inetd Services" "T1049"
     # Check if inetd is installed
     if ! check_command inetd; then
         echo_not_found "inetd"
@@ -67,8 +67,7 @@ analyze_inetd() {
 # Function to analyze xinetd services
 analyze_xinetd() {
     echo ""
-    print_3title "Xinetd Services"
-    
+    print_3title "Xinetd Services" "T1049"
     # Check if xinetd is installed
     if ! check_command xinetd; then
         echo_not_found "xinetd"
@@ -129,8 +128,7 @@ analyze_xinetd() {
 # Function to check for running inetd/xinetd services
 check_running_services() {
     echo ""
-    print_3title "Running Inetd/Xinetd Services"
-    
+    print_3title "Running Inetd/Xinetd Services" "T1049"
     # Check netstat for services
     if check_command netstat; then
         echo "Active Services (from netstat):"
@@ -152,8 +150,7 @@ check_running_services() {
 
 # Main function to analyze inetd/xinetd services
 analyze_inetd_services() {
-    print_2title "Inetd/Xinetd Services Analysis"
-    
+    print_2title "Inetd/Xinetd Services Analysis" "T1049"
     # Analyze inetd and xinetd services
     analyze_inetd
     analyze_xinetd
@@ -164,8 +161,7 @@ analyze_inetd_services() {
     # Additional checks if EXTRA_CHECKS is enabled
     if [ "$EXTRA_CHECKS" ]; then
         echo ""
-        print_3title "Additional Inetd/Xinetd Information"
-        
+        print_3title "Additional Inetd/Xinetd Information" "T1049"
         # Check for inetd/xinetd logs
         echo "Checking for service logs..."
         for log_file in /var/log/inetd.log /var/log/xinetd.log /var/log/messages /var/log/syslog; do

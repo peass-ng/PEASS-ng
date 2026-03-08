@@ -5,6 +5,7 @@
 # Description: Backup folders
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: print_2title
 # Global Variables: $DEBUG, $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -15,7 +16,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   if [ "$PSTORAGE_BACKUPS" ] || [ "$DEBUG" ]; then
-    print_2title "Backup folders"
+    print_2title "Backup folders" "T1552.001"
     printf "%s\n" "$PSTORAGE_BACKUPS" | while read b ; do
       ls -ld "$b" 2> /dev/null | sed -${E} "s,backups|backup,${SED_RED},g";
       ls -l "$b" 2>/dev/null && echo ""

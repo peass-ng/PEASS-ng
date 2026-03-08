@@ -5,6 +5,7 @@
 # Description: Detect IGEL OS environments that expose the SUID-root `setup`/`date` binaries and highlight writable NetworkManager/systemd configs that enable the documented privilege escalation chain (Metasploit linux/local/igel_network_priv_esc).
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1548.001
 # Functions Used: print_2title, print_info
 # Global Variables: $ITALIC, $NC, $SED_GREEN, $SED_RED, $SED_RED_YELLOW, $SUPERFAST
 # Initial Functions:
@@ -37,7 +38,7 @@ for candidate in /usr/bin/setup /bin/setup /usr/sbin/setup /opt/igel/bin/setup /
 done
 
 if [ -n "$igel_markers" ] || [ -n "$igel_suid_hits" ]; then
-  print_2title "IGEL OS SUID setup/date privilege escalation surface"
+  print_2title "IGEL OS SUID setup/date privilege escalation surface" "T1548.001"
   print_info "https://www.rapid7.com/blog/post/pt-metasploit-wrap-up-11-28-2025"
   if [ -n "$igel_markers" ]; then
     echo "Potential IGEL OS detected via: $igel_marker_sources" | sed -${E} "s,.*,${SED_GREEN},"

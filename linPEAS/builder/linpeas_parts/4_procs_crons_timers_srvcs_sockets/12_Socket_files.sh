@@ -10,6 +10,7 @@
 #   - Socket files with unsafe configurations
 # License: GNU GPL
 # Version: 1.2
+# Mitre: T1559
 # Functions Used: print_2title, print_info, print_list
 # Global Variables: $IAMROOT, $SEARCH_IN_FOLDER, $SED_RED, $SED_RED_YELLOW, $NC
 # Initial Functions:
@@ -18,7 +19,7 @@
 # Small linpeas: 0
 
 if ! [ "$IAMROOT" ]; then
-    print_2title "Analyzing .socket files"
+    print_2title "Analyzing .socket files" "T1559"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sockets"
 
     # Function to check if path is relative

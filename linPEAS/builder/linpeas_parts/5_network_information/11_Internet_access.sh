@@ -5,6 +5,7 @@
 # Description: Check for internet access
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1016,T1590
 # Functions Used: check_dns, check_icmp, check_tcp_443, check_tcp_443_bin, check_tcp_80, print_2title, print_3title, print_info, check_external_hostname
 # Global Variables: $E
 # Initial Functions:
@@ -14,8 +15,7 @@
 
 
 
-print_2title "Internet Access?"
-
+print_2title "Internet Access?" "T1016,T1590"
 TIMEOUT_INTERNET_SECONDS=5
 
 if [ "$SUPERFAST" ]; then
@@ -44,13 +44,13 @@ wait 2>/dev/null
 if [ "$tcp443_bin_status" -eq 0 ] && \
    [ -z "$SUPERFAST" ] && [ -z "$NOT_CHECK_EXTERNAL_HOSTNAME" ]; then
   echo ""
-  print_2title "Is hostname malicious or leaked?"
+  print_2title "Is hostname malicious or leaked?" "T1016,T1590"
   print_info "This will check the public IP and hostname in known malicious lists and leaks to find any relevant information about the host."
   check_external_hostname 2>/dev/null
 fi
 
 echo ""
-print_3title "Proxy discovery"
+print_3title "Proxy discovery" "T1016,T1590"
 print_info "Checking common proxy env vars and apt proxy config"
 (env | grep -iE '^(http|https|ftp|all)_proxy=|^no_proxy=') 2>/dev/null | sed -${E} "s,_proxy|no_proxy,${SED_RED_YELLOW},g"
 grep -RinE 'Acquire::(http|https)::Proxy|proxy' /etc/apt/apt.conf /etc/apt/apt.conf.d 2>/dev/null | sed -${E} "s,proxy|Acquire::http::Proxy|Acquire::https::Proxy,${SED_RED_YELLOW},g"

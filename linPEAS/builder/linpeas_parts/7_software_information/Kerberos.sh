@@ -5,6 +5,7 @@
 # Description: Kerberos
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1558.003
 # Functions Used: echo_not_found, print_2title, print_info
 # Global Variables: $DEBUG, $ITALIC
 # Initial Functions:
@@ -17,7 +18,7 @@ kadmin_exists="$(command -v kadmin || echo -n '')"
 klist_exists="$(command -v klist || echo -n '')"
 kinit_exists="$(command -v kinit || echo -n '')"
 if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$kinit_exists" ] || [ "$PSTORAGE_KERBEROS" ] || [ "$DEBUG" ]; then
-  print_2title "Searching kerberos conf files and tickets"
+  print_2title "Searching kerberos conf files and tickets" "T1558.003"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/linux-active-directory.html#linux-active-directory"
 
   if [ "$kadmin_exists" ]; then echo "kadmin was found on $kadmin_exists" | sed "s,$kadmin_exists,${SED_RED},"; fi

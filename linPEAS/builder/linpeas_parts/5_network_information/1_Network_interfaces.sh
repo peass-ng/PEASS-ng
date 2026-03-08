@@ -5,6 +5,7 @@
 # Description: Check network interfaces
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1016
 # Functions Used: print_2title, print_3title
 # Global Variables: $E, $SED_RED_YELLOW
 # Initial Functions:
@@ -61,7 +62,7 @@ parse_network_interfaces() {
     fi
 }
 
-print_2title "Interfaces"
+print_2title "Interfaces" "T1016"
 cat /etc/networks 2>/dev/null
 
 # Try standard tools first, then fall back to our custom function
@@ -74,21 +75,21 @@ else
 fi
 
 if command -v ip >/dev/null 2>&1; then
-    print_3title "Routing & policy quick view"
+    print_3title "Routing & policy quick view" "T1016"
     ip route 2>/dev/null
     ip -6 route 2>/dev/null | head -n 30
     echo ""
     ip rule 2>/dev/null
 
-    print_3title "Virtual/overlay interfaces quick view"
+    print_3title "Virtual/overlay interfaces quick view" "T1016"
     ip -d link 2>/dev/null | grep -E "^[0-9]+:|veth|docker|cni|flannel|br-|bridge|vlan|bond|tun|tap|wg|tailscale" | sed -${E} "s,veth|docker|cni|flannel|br-|bridge|vlan|bond|tun|tap|wg|tailscale,${SED_RED_YELLOW},g"
 
-    print_3title "Network namespaces quick view"
+    print_3title "Network namespaces quick view" "T1016"
     ip netns list 2>/dev/null
     ls -la /var/run/netns/ 2>/dev/null
 fi
 
-print_3title "Forwarding status"
+print_3title "Forwarding status" "T1016"
 sysctl net.ipv4.ip_forward net.ipv6.conf.all.forwarding 2>/dev/null | sed -${E} "s,=[[:space:]]*1,${SED_RED_YELLOW},g"
 
 echo ""

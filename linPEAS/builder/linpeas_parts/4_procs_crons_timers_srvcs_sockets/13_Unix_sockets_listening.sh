@@ -10,6 +10,7 @@
 #   - Socket protocol analysis
 # License: GNU GPL
 # Version: 1.1
+# Mitre: T1571,T1049
 # Functions Used: print_2title, print_info
 # Global Variables: $EXTRA_CHECKS, $groupsB, $groupsVB, $IAMROOT, $idB, $knw_grps, $knw_usrs, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $SED_RED, $SED_GREEN, $SED_RED_YELLOW, $NC, $RED
 # Initial Functions:
@@ -19,7 +20,7 @@
 
 if ! [ "$IAMROOT" ]; then
     if ! [ "$SEARCH_IN_FOLDER" ]; then
-        print_2title "Unix Sockets Analysis"
+        print_2title "Unix Sockets Analysis" "T1571,T1049"
         print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sockets"
 
 

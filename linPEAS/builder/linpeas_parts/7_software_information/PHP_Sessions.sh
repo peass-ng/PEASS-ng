@@ -5,6 +5,7 @@
 # Description: PHP Sessions
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: echo_not_found
 # Global Variables:
 # Initial Functions:

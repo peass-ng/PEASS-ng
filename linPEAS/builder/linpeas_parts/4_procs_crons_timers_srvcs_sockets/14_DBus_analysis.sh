@@ -11,6 +11,7 @@
 #   - D-Bus Privilege Escalation Vectors
 # License: GNU GPL
 # Version: 1.3
+# Mitre: T1559.001
 # Functions Used: print_2title, print_3title, print_info, echo_not_found
 # Global Variables: $IAMROOT, $mygroups, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $dbuslistG, $knw_usrs, $rootcommon, $SED_RED, $SED_GREEN, $SED_BLUE, $SED_LIGHT_CYAN, $SED_LIGHT_MAGENTA, $NC
 # Initial Functions:
@@ -19,7 +20,7 @@
 # Small linpeas: 1
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-    print_2title "D-Bus Analysis"
+    print_2title "D-Bus Analysis" "T1559.001"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#d-bus"
 
 
@@ -213,7 +214,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     # Analyze D-Bus Configuration Files
     if [ "$PSTORAGE_DBUS" ]; then
         echo ""
-        print_2title "D-Bus Configuration Files"
+        print_2title "D-Bus Configuration Files" "T1559.001"
         echo "$PSTORAGE_DBUS" | while read -r dir; do
             for dbus_file in "$dir"/*; do
                 if [ -f "$dbus_file" ]; then
@@ -229,7 +230,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     # Check for D-Bus session bus
     if command -v dbus-send >/dev/null 2>&1; then
         echo ""
-        print_3title "D-Bus Session Bus Analysis"
+        print_3title "D-Bus Session Bus Analysis" "T1559.001"
         if dbus-send --session --dest=org.freedesktop.DBus --type=method_call --print-reply /org/freedesktop/DBus org.freedesktop.DBus.ListNames 2>/dev/null | grep -q "Error"; then
             echo "(${RED}No access to session bus${NC})"
         else

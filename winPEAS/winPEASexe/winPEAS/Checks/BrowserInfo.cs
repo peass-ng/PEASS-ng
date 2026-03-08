@@ -10,9 +10,11 @@ namespace winPEAS.Checks
 {
     internal class BrowserInfo : ISystemCheck
     {
+        public string[] MitreAttackIds { get; } = new[] { "T1217", "T1539", "T1555.003" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Browsers Information");
+            Beaprint.GreatPrint("Browsers Information", "T1217,T1539,T1555.003");
 
             new List<IBrowser>
             {

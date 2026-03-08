@@ -5,6 +5,7 @@
 # Description: Get macOS SystemKey information (used for FileVault encryption)
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1555.001
 # Functions Used: print_2title
 # Global Variables: $MACPEAS
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$MACPEAS" ];then
-  print_2title "SystemKey"
+  print_2title "SystemKey" "T1555.001"
   echo "The SystemKey is used by FileVault to encrypt/decrypt the volume. If you can read it, you might be able to decrypt the disk."
   echo -e "\nSystemKey file permissions:" | sed -${E} "s,.*,${SED_LIGHT_CYAN},g"
   ls -l /var/db/SystemKey 2>/dev/null | sed -${E} "s,.*,${SED_RED_YELLOW},g"

@@ -5,6 +5,7 @@
 # Description: Searching GitLab related files
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: print_2title
 # Global Variables: $DEBUG
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$(command -v gitlab-rails || echo -n '')" ] || [ "$(command -v gitlab-backup || echo -n '')" ] || [ "$PSTORAGE_GITLAB" ] || [ "$DEBUG" ]; then
-  print_2title "Searching GitLab related files"
+  print_2title "Searching GitLab related files" "T1552.001"
   #Check gitlab-rails
   if [ "$(command -v gitlab-rails || echo -n '')" ]; then
     echo "gitlab-rails was found. Trying to dump users..."

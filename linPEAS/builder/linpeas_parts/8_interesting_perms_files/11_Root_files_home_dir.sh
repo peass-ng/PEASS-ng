@@ -5,6 +5,7 @@
 # Description: Searching root files in home dirs
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1083
 # Functions Used: echo_not_found, print_2title
 # Global Variables: $HOMESEARCH, $SEARCH_IN_FOLDER, $sh_usrs, $USER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Searching root files in home dirs (limit 30)"
+  print_2title "Searching root files in home dirs (limit 30)" "T1083"
   (find $HOMESEARCH -user root 2>/dev/null | head -n 30 | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN},g" | sed "s,$USER,${SED_RED},g") || echo_not_found
   echo ""
 fi

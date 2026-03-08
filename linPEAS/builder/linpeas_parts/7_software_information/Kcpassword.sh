@@ -5,6 +5,7 @@
 # Description: Analyzing kcpassword files
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1555.001
 # Functions Used: print_2title, print_info
 # Global Variables: $DEBUG
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$PSTORAGE_KCPASSWORD" ] || [ "$DEBUG" ]; then
-  print_2title "Analyzing kcpassword files"
+  print_2title "Analyzing kcpassword files" "T1555.001"
   print_info "https://book.hacktricks.wiki/en/macos-hardening/macos-security-and-privilege-escalation/macos-files-folders-and-binaries/macos-sensitive-locations.html#kcpassword"
   printf "%s\n" "$PSTORAGE_KCPASSWORD" | while read f; do
     echo "$f" | sed -${E} "s,.*,${SED_RED},"

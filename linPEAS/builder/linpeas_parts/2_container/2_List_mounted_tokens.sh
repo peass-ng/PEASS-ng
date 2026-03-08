@@ -5,6 +5,7 @@
 # Description: List tokens mounted in the system if any
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1528,T1552.007
 # Functions Used: print_2title, print_info
 # Global Variables:
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$(mount | sed -n '/secret/ s/^tmpfs on \(.*default.*\) type tmpfs.*$/\1\/namespace/p')" ]; then
-  print_2title "Listing mounted tokens"
+  print_2title "Listing mounted tokens" "T1528,T1552.007"
   print_info "https://cloud.hacktricks.wiki/en/pentesting-cloud/kubernetes-security/attacking-kubernetes-from-inside-a-pod.html"
   ALREADY_TOKENS="IinItialVaaluE"
   for i in $(mount | sed -n '/secret/ s/^tmpfs on \(.*default.*\) type tmpfs.*$/\1\/namespace/p'); do

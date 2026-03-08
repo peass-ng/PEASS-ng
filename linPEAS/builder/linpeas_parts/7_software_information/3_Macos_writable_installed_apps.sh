@@ -5,6 +5,7 @@
 # Description: Writable Installed Applications
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1574
 # Functions Used: print_2title
 # Global Variables: $MACPEAS
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$MACPEAS" ]; then
-    print_2title "Writable Installed Applications"
+    print_2title "Writable Installed Applications" "T1574"
     system_profiler SPApplicationsDataType | grep "Location:" | cut -d ":" -f 2 | cut -c2- | while read f; do
         if [ -w "$f" ]; then
             echo "$f is writable" | sed -${E} "s,.*,${SED_RED},g"

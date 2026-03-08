@@ -5,6 +5,7 @@
 # Description: Tencent Cloud Platform Enumeration
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.005,T1580
 # Functions Used: print_2title, print_3title, print_info
 # Global Variables: $is_tencent_cvm
 # Initial Functions: check_tencent_cvm
@@ -24,12 +25,12 @@ if [ "$is_tencent_cvm" = "Yes" ]; then
   fi
 
   
-    print_2title "Tencent CVM Enumeration"
+    print_2title "Tencent CVM Enumeration" "T1552.005,T1580"
     print_info "https://cloud.tencent.com/document/product/213/4934"
     # Todo: print_info "Hacktricks Documents needs to be updated"
 
     echo ""
-    print_3title "Instance Info"
+    print_3title "Instance Info" "T1552.005,T1580"
     i_tencent_owner_account=$(eval $tencent_req http://169.254.0.23/latest/meta-data/app-id)
     [ "$i_tencent_owner_account" ] && echo "Tencent Owner Account: $i_tencent_owner_account"
     i_hostname=$(eval $tencent_req http://169.254.0.23/latest/meta-data/hostname)
@@ -48,7 +49,7 @@ if [ "$is_tencent_cvm" = "Yes" ]; then
     [ "$i_zone_id" ] && echo "Zone ID: $i_zone_id"
 
     echo ""
-    print_3title "Network Info"
+    print_3title "Network Info" "T1552.005,T1580"
     for mac_tencent in $(eval $tencent_req http://169.254.0.23/latest/meta-data/network/interfaces/macs/); do
       echo "  Mac: $mac_tencent"
       echo "  Primary IPv4: "$(eval $tencent_req http://169.254.0.23/latest/meta-data/network/interfaces/macs/$mac_tencent/primary-local-ipv4)
@@ -67,7 +68,7 @@ if [ "$is_tencent_cvm" = "Yes" ]; then
     done
 
     echo ""
-    print_3title "Service account "
+    print_3title "Service account " "T1552.005,T1580"
     for sa_tencent in $(eval $tencent_req "http://169.254.0.23/latest/meta-data/cam/security-credentials/"); do 
       echo "  Name: $sa_tencent"
       echo "  STS Token: "$(eval $tencent_req "http://169.254.0.23/latest/meta-data/cam/security-credentials/$sa_tencent")
@@ -75,7 +76,7 @@ if [ "$is_tencent_cvm" = "Yes" ]; then
     done
 
     echo ""
-    print_3title "Possbile admin ssh Public keys"
+    print_3title "Possbile admin ssh Public keys" "T1552.005,T1580"
     for key_tencent in $(eval $tencent_req "http://169.254.0.23/latest/meta-data/public-keys/"); do
       echo "  Name: $key_tencent"
       echo "  Key: "$(eval $tencent_req "http://169.254.0.23/latest/meta-data/public-keys/${key_tencent}openssh-key")
@@ -83,6 +84,6 @@ if [ "$is_tencent_cvm" = "Yes" ]; then
     done
 
     echo ""
-    print_3title "User Data"
+    print_3title "User Data" "T1552.005,T1580"
     eval $tencent_req http://169.254.0.23/latest/user-data; echo ""
 fi

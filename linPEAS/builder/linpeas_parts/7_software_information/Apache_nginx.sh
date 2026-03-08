@@ -5,6 +5,7 @@
 # Description: Apache-Nginx
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: print_3title, warn_exec
 # Global Variables: $NGINX_KNOWN_MODULES
 # Initial Functions:

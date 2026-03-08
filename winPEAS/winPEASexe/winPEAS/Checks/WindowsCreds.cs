@@ -19,9 +19,11 @@ namespace winPEAS.Checks
 {
     internal class WindowsCreds : ISystemCheck
     {
+        public string[] MitreAttackIds { get; } = new[] { "T1552.001", "T1552.002", "T1555.003", "T1555.004", "T1558", "T1547.005", "T1563.002" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Windows Credentials");
+            Beaprint.GreatPrint("Windows Credentials", "T1552.001,T1552.002,T1555.003,T1555.004,T1558,T1547.005,T1563.002");
 
             new List<Action>
             {
@@ -47,7 +49,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Checking Windows Vault");
+                Beaprint.MainPrint("Checking Windows Vault", "T1555.004");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#credentials-manager--windows-vault");
                 var vaultCreds = VaultCli.DumpVault();
 
@@ -67,7 +69,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Checking Credential manager");
+                Beaprint.MainPrint("Checking Credential manager", "T1555.004");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#credentials-manager--windows-vault");
 
                 var colorsC = new Dictionary<string, string>()
@@ -113,7 +115,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Saved RDP connections");
+                Beaprint.MainPrint("Saved RDP connections", "T1552.002");
 
                 List<Dictionary<string, string>> rdps_info = RemoteDesktop.GetSavedRDPConnections();
                 if (rdps_info.Count > 0)
@@ -138,7 +140,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Recently run commands");
+                Beaprint.MainPrint("Recently run commands", "T1552.002");
                 Dictionary<string, object> recentCommands = KnownFileCredsInfo.GetRecentRunCommands();
                 Beaprint.DictPrint(recentCommands, false);
             }
@@ -152,7 +154,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Checking for DPAPI Master Keys");
+                Beaprint.MainPrint("Checking for DPAPI Master Keys", "T1555.003");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#dpapi");
                 var masterKeys = KnownFileCredsInfo.ListMasterKeys();
 
@@ -180,7 +182,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Checking for DPAPI Credential Files");
+                Beaprint.MainPrint("Checking for DPAPI Credential Files", "T1555.003");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#dpapi");
                 var credFiles = KnownFileCredsInfo.GetCredFiles();
                 Beaprint.DictPrint(credFiles, false);
@@ -200,7 +202,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Checking for RDCMan Settings Files");
+                Beaprint.MainPrint("Checking for RDCMan Settings Files", "T1552.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#remote-desktop-credential-manager",
                     "Dump credentials from Remote Desktop Connection Manager");
                 var rdcFiles = RemoteDesktop.GetRDCManFiles();
@@ -221,7 +223,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking for Kerberos tickets");
+                Beaprint.MainPrint("Looking for Kerberos tickets", "T1558");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-kerberos-88/index.html");
                 var kerberosTickets = Kerberos.ListKerberosTickets();
 
@@ -237,7 +239,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking for Kerberos TGT tickets");
+                Beaprint.MainPrint("Looking for Kerberos TGT tickets", "T1558");
                 var kerberosTgts = Kerberos.GetKerberosTGTData();
                 Beaprint.DictPrint(kerberosTgts, false);
             }
@@ -251,7 +253,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking for saved Wifi credentials");
+                Beaprint.MainPrint("Looking for saved Wifi credentials", "T1552.001");
 
                 WlanClient wlanClient = new WlanClient();
 
@@ -306,7 +308,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking AppCmd.exe");
+                Beaprint.MainPrint("Looking AppCmd.exe", "T1552.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#appcmdexe");
 
                 var appCmdPath = Environment.ExpandEnvironmentVariables(@"%systemroot%\system32\inetsrv\appcmd.exe");
@@ -367,7 +369,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking SSClient.exe");
+                Beaprint.MainPrint("Looking SSClient.exe", "T1552.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#scclient--sccm");
 
                 if (File.Exists(Environment.ExpandEnvironmentVariables(@"%systemroot%\Windows\CCM\SCClient.exe")))
@@ -389,7 +391,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Enumerating SSCM - System Center Configuration Manager settings");
+                Beaprint.MainPrint("Enumerating SSCM - System Center Configuration Manager settings", "T1552.001");
 
                 var server = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\CCMSetup", "LastValidMP");
                 var siteCode = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\SMS\Mobile Client", "AssignedSiteCode");
@@ -412,7 +414,7 @@ namespace winPEAS.Checks
 
         private static void PrintSecurityPackagesCredentials()
         {
-            Beaprint.MainPrint("Enumerating Security Packages Credentials");
+            Beaprint.MainPrint("Enumerating Security Packages Credentials", "T1547.005");
 
             try
             {
@@ -445,7 +447,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Remote Desktop Server/Client Settings");
+                Beaprint.MainPrint("Remote Desktop Server/Client Settings", "T1563.002");
 
                 var info = Info.WindowsCreds.RemoteDesktop.GetRDPSettingsInfo();
 

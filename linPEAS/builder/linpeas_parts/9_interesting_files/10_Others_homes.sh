@@ -5,6 +5,7 @@
 # Description: Files inside /home
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: echo_not_found, print_2title
 # Global Variables: $HOMESEARCH, $SEARCH_IN_FOLDER, $USER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Files inside others home (limit 20)"
+  print_2title "Files inside others home (limit 20)" "T1552.001"
   (find $HOMESEARCH -type f 2>/dev/null | grep -v -i "/"$USER | head -n 20) || echo_not_found
   echo ""
 fi

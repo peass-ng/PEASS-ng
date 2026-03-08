@@ -5,6 +5,7 @@
 # Description: Users with capabilities
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1548.001
 # Functions Used: echo_not_found, print_2title, print_info
 # Global Variables: $capsB, $DEBUG, $knw_usrs, $nosh_usrs, $sh_usrs, $USER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ -f "/etc/security/capability.conf" ] || [ "$DEBUG" ] || grep -Rqs "pam_cap\.so" /etc/pam.d /etc/pam.conf 2>/dev/null; then
-  print_2title "Users with capabilities"
+  print_2title "Users with capabilities" "T1548.001"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#capabilities"
   if [ -f "/etc/security/capability.conf" ]; then
     grep -v '^#\|none\|^$' /etc/security/capability.conf 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED}," | sed -${E} "s,$capsB,${SED_RED},g"

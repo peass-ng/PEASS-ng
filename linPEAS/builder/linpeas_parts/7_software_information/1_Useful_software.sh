@@ -5,6 +5,7 @@
 # Description: Useful Software
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1082
 # Functions Used: print_2title
 # Global Variables: $SEARCH_IN_FOLDER, $USEFUL_SOFTWARE
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Useful software"
+  print_2title "Useful software" "T1082"
   for t in $USEFUL_SOFTWARE; do command -v "$t" || echo -n ''; done
   echo ""
 fi

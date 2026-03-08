@@ -22,6 +22,7 @@
 #       - Sudo PATH abuse
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1574.007
 # Functions Used: print_2title, print_info
 # Global Variables: $DEBUG, $IAMROOT, $OLDPATH, $PATH, $Wfolders
 # Initial Functions:
@@ -30,7 +31,7 @@
 # Small linpeas: 1
 
 
-print_2title "PATH"
+print_2title "PATH" "T1574.007"
 print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#writable-path-abuses"
 if ! [ "$IAMROOT" ]; then
     echo "$OLDPATH" 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\.,${SED_RED_YELLOW},g"

@@ -5,6 +5,7 @@
 # Description: Regexes
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001,T1528
 # Functions Used: print_2title, search_for_regex
 # Global Variables: $REGEXES, $TIMEOUT
 # Initial Functions:

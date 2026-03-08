@@ -5,6 +5,7 @@
 # Description: Get the macOS unsigned applications
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1204.002
 # Functions Used: macosNotSigned, print_2title
 # Global Variables: $MACPEAS 
 # Initial Functions:
@@ -14,6 +15,6 @@
 
 
 if [ "$MACPEAS" ]; then
-  print_2title "Unsigned Applications"
+  print_2title "Unsigned Applications" "T1204.002"
   macosNotSigned /System/Applications
 fi

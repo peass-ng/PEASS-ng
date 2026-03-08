@@ -5,6 +5,7 @@
 # Description: Enumerate open ports
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1049
 # Functions Used: print_2title, print_3title, print_info
 # Global Variables: $E, $SED_RED, $SED_RED_YELLOW
 # Initial Functions:
@@ -43,7 +44,7 @@ parse_proc_net_ports() {
     local header_sep="--------------------------------------------------------------------------------"
 
     if [ -f "$proc_file" ]; then
-        print_3title "Active $proto Ports (from /proc/net/$proto)"
+        print_3title "Active $proto Ports (from /proc/net/$proto)" "T1049"
         echo "$header"
         echo "$header_sep"
 
@@ -106,15 +107,15 @@ parse_proc_net_ports() {
 
 # Function to get open ports information
 get_open_ports() {
-    print_2title "Active Ports"
+    print_2title "Active Ports" "T1049"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#open-ports"
 
     # Try standard tools first
     if command -v netstat >/dev/null 2>&1; then
-        print_3title "Active Ports (netstat)"
+        print_3title "Active Ports (netstat)" "T1049"
         netstat -punta 2>/dev/null | grep -i listen | sed -${E} "s,127.0.[0-9]+.[0-9]+|:::|::1:|0\.0\.0\.0,${SED_RED},g"
     elif command -v ss >/dev/null 2>&1; then
-        print_3title "Active Ports (ss)"
+        print_3title "Active Ports (ss)" "T1049"
         ss -nltpu 2>/dev/null | grep -i listen | sed -${E} "s,127.0.[0-9]+.[0-9]+|:::|::1:|0\.0\.0\.0,${SED_RED},g"
     else
         # Fallback to parsing /proc/net files
@@ -123,14 +124,14 @@ get_open_ports() {
     fi
 
     # Focused local service exposure view
-    print_3title "Local-only listeners (loopback)"
+    print_3title "Local-only listeners (loopback)" "T1049"
     if command -v ss >/dev/null 2>&1; then
         ss -nltpu 2>/dev/null | grep -E "127\.0\.0\.1:|::1:" | sed -${E} "s,127\.0\.0\.1:|::1:,${SED_RED},g"
     elif command -v netstat >/dev/null 2>&1; then
         netstat -punta 2>/dev/null | grep -i listen | grep -E "127\.0\.0\.1:|::1:" | sed -${E} "s,127\.0\.0\.1:|::1:,${SED_RED},g"
     fi
 
-    print_3title "Unique listener bind addresses"
+    print_3title "Unique listener bind addresses" "T1049"
     if command -v ss >/dev/null 2>&1; then
         ss -nltpuH 2>/dev/null | awk '{
             a=$5
@@ -158,13 +159,12 @@ get_open_ports() {
         }' | sort -u | sed -${E} "s,127\.0\.0\.1|::1,${SED_RED},g"
     fi
 
-    print_3title "Potential local forwarders/relays"
+    print_3title "Potential local forwarders/relays" "T1049"
     ps aux 2>/dev/null | grep -E "[s]ocat|[s]sh .*(-L|-R|-D)|[n]cat|[n]c .*-l" | sed -${E} "s,socat|ssh|-L|-R|-D|ncat|nc,${SED_RED_YELLOW},g"
 
     # Additional port information
     if [ "$EXTRA_CHECKS" ] || [ "$DEBUG" ]; then
-        print_3title "Additional Port Information"
-
+        print_3title "Additional Port Information" "T1049"
         # Check for listening ports in /proc/net/unix
         if [ -f "/proc/net/unix" ]; then
             echo "Unix Domain Sockets:"

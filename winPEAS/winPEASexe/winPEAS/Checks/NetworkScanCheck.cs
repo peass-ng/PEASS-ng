@@ -12,6 +12,8 @@ namespace winPEAS.Checks
     /// </summary>
     internal class NetworkScanCheck : ISystemCheck
     {
+        public string[] MitreAttackIds { get; } = new[] { "T1046" };
+
         public void PrintInfo(bool isDebug)
         {
             if (!Checks.IsNetworkScan)

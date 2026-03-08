@@ -25,6 +25,7 @@
 #       - CPU timing exploitation
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1082
 # Functions Used: print_2title, warn_exec
 # Global Variables: $DEBUG, $EXTRA_CHECKS
 # Initial Functions:
@@ -34,7 +35,7 @@
 
 
 if [ "$EXTRA_CHECKS" ] || [ "$DEBUG" ]; then
-    print_2title "CPU info"
+    print_2title "CPU info" "T1082"
     warn_exec lscpu 2>/dev/null
     echo ""
 fi

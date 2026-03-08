@@ -14,6 +14,7 @@
 #     * Common vulnerable modules: nf_tables, eBPF, overlayfs, etc.
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1547.006
 # Functions Used: print_2title, print_3title
 # Global Variables: 
 # Initial Functions:
@@ -22,11 +23,10 @@
 # Small linpeas: 1
 
 echo ""
-print_2title "Kernel Modules Information"
-
+print_2title "Kernel Modules Information" "T1547.006"
 # List loaded kernel modules
 if [ "$EXTRA_CHECKS" ] || [ "$DEBUG" ]; then
-    print_3title "Loaded kernel modules"
+    print_3title "Loaded kernel modules" "T1547.006"
     if [ -f "/proc/modules" ]; then
         if command -v lsmod >/dev/null 2>&1; then
             lsmod
@@ -39,7 +39,7 @@ if [ "$EXTRA_CHECKS" ] || [ "$DEBUG" ]; then
 fi
 
 # Check for kernel modules with weak permissions
-print_3title "Kernel modules with weak perms?"
+print_3title "Kernel modules with weak perms?" "T1547.006"
 if [ -d "/lib/modules" ]; then
     find /lib/modules -type f -name "*.ko" -ls 2>/dev/null | grep -Ev "root\s+root" | sed -${E} "s,.*,${SED_RED},g"
     if [ $? -eq 1 ]; then
@@ -51,7 +51,7 @@ fi
 echo ""
 
 # Check for kernel modules that can be loaded by unprivileged users
-print_3title "Kernel modules loadable? "
+print_3title "Kernel modules loadable? " "T1547.006"
 if [ -f "/proc/sys/kernel/modules_disabled" ]; then
     if [ "$(cat /proc/sys/kernel/modules_disabled)" = "0" ]; then
         echo "Modules can be loaded" | sed -${E} "s,.*,${SED_RED},g"
@@ -63,7 +63,7 @@ else
 fi
 
 # Check for module signature enforcement
-print_3title "Module signature enforcement? "
+print_3title "Module signature enforcement? " "T1547.006"
 if [ -f "/proc/sys/kernel/module_sig_enforce" ]; then
     if [ "$(cat /proc/sys/kernel/module_sig_enforce)" = "1" ]; then
         echo "Enforced" | sed -${E} "s,.*,${SED_GREEN},g"

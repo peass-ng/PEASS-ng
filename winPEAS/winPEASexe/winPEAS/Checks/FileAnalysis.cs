@@ -16,9 +16,11 @@ namespace winPEAS.Checks
     {
         private const int ListFileLimit = 70;
 
+        public string[] MitreAttackIds { get; } = new[] { "T1552.001", "T1083" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("File Analysis");
+            Beaprint.GreatPrint("File Analysis", "T1552.001,T1083");
 
             new List<Action>
             {
@@ -140,7 +142,7 @@ namespace winPEAS.Checks
                 {
                     if (!somethingFound)
                     {
-                        Beaprint.MainPrint($"Found {searchName} Files");
+                        Beaprint.MainPrint($"Found {searchName} Files", "T1552.001");
                         somethingFound = true;
                     }
 
@@ -501,7 +503,7 @@ namespace winPEAS.Checks
                         if (item2.Value.Count > limit)
                             msg += $" (limited to {limit})";
 
-                        Beaprint.MainPrint(msg);
+                        Beaprint.MainPrint(msg, "T1552.001");
 
                         int cont = 0;
                         foreach (KeyValuePair<string, List<string>> item3 in item2.Value)

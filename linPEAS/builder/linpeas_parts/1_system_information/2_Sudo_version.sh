@@ -19,6 +19,7 @@
 #       - Command injection
 # License: GNU GPL
 # Version: 1.0 
+# Mitre: T1548.003,T1068
 # Functions Used: echo_not_found, print_2title, print_info
 # Global Variables: $sudovB
 # Initial Functions:
@@ -27,7 +28,7 @@
 # Small linpeas: 1
 
 
-print_2title "Sudo version"
+print_2title "Sudo version" "T1548.003,T1068"
 if [ "$(command -v sudo 2>/dev/null || echo -n '')" ]; then
 print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sudo-version"
 sudo -V 2>/dev/null | grep "Sudo ver" | sed -${E} "s,$sudovB,${SED_RED},"

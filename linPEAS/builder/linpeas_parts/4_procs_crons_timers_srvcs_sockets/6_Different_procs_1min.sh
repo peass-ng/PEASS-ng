@@ -5,6 +5,7 @@
 # Description: Different processes executed during 1 min
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1057
 # Functions Used: print_2title, print_info
 # Global Variables: $nosh_usrs, $sh_usrs, $Wfolders
 # Initial Functions:
@@ -15,7 +16,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   if ! [ "$FAST" ] && ! [ "$SUPERFAST" ]; then
-    print_2title "Different processes executed during 1 min (interesting is low number of repetitions)"
+    print_2title "Different processes executed during 1 min (interesting is low number of repetitions)" "T1057"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#frequent-cron-jobs"
     temp_file=$(mktemp)
     if [ "$(ps -e -o user,command 2>/dev/null)" ]; then 

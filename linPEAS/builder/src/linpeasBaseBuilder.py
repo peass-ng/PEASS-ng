@@ -63,18 +63,45 @@ class LinpeasBaseBuilder:
         for section_name, section_info in section_checks.items():
             # Add 1 time the big section name to check_names to then put it inside linpeas in PEAS_CHECKS_MARKUP
             if not section_info['name_check'] in check_names: check_names.append(section_info['name_check'])
-            self.linpeas_base += f"\nif echo $CHECKS | grep -q {section_info['name_check']}; then\n"
-            self.linpeas_base += f'print_title "{section_name}"\n'
 
-            # Sort checks alphabetically to get them in the same order as they are in the folder
+            # Collect all MITRE IDs declared across every check in this section
+            section_mitre_ids = []
+            for c in section_info["checks"]:
+                for mid in c.mitre_ids:
+                    if mid not in section_mitre_ids:
+                        section_mitre_ids.append(mid)
+            section_mitre_str = ",".join(section_mitre_ids)
+
+            # Gate on both CHECKS name and (if MITRE_FILTER active) the section's MITRE IDs.
+            # check_mitre_filter already returns 0 when MITRE_FILTER is empty, so no extra guard needed.
+            if section_mitre_str:
+                self.linpeas_base += f"\nif echo $CHECKS | grep -q {section_info['name_check']}; then\n"
+                self.linpeas_base += f'if check_mitre_filter "{section_mitre_str}"; then\n'
+                extra_fi = True
+            else:
+                self.linpeas_base += f"\nif echo $CHECKS | grep -q {section_info['name_check']}; then\n"
+                extra_fi = False
+
+            # Section title does not show MITRE IDs (too verbose); individual checks carry their own tags
+            self.linpeas_base += f'print_title "{section_name}"\n'
             section_info["checks"] = sorted(section_info["checks"], key=lambda x: int(os.path.basename(x.path).split('_')[0]) if os.path.basename(x.path).split('_')[0].isdigit() else 99)
             for check in section_info["checks"]:
                 for func in check.initial_functions:
                     if not func in initial_functions:
                         self.linpeas_base += func + "\n"
                         initial_functions.add(func)
-                
-                self.linpeas_base += check.sh_code.strip() + "\n\n"
+
+                # Wrap individual check in MITRE filter if it declares technique IDs
+                if check.mitre_ids:
+                    mitre_tag_str = ",".join(check.mitre_ids)
+                    self.linpeas_base += f'if check_mitre_filter "{mitre_tag_str}"; then\n'
+                    self.linpeas_base += check.sh_code.strip() + "\n\n"
+                    self.linpeas_base += "fi\n\n"
+                else:
+                    self.linpeas_base += check.sh_code.strip() + "\n\n"
+
+            if extra_fi:
+                self.linpeas_base += "fi\n"
 
             self.linpeas_base += f"\nfi\necho ''\necho ''\n"
             self.linpeas_base += 'if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi\n'

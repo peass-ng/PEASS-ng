@@ -5,6 +5,7 @@
 # Description: Modified interesting files into specific folders in the last 5mins
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1083
 # Functions Used: print_2title
 # Global Variables:$ROOT_FOLDER, $Wfolders 
 # Initial Functions:
@@ -13,6 +14,6 @@
 # Small linpeas: 0
 
 
-print_2title "Modified interesting files in the last 5mins (limit 100)"
+print_2title "Modified interesting files in the last 5mins (limit 100)" "T1083"
 find $ROOT_FOLDER -type f -mmin -5 ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/dev/*" ! -path "/var/lib/*" ! -path "/private/var/*" 2>/dev/null | grep -v "/linpeas" | head -n 100 | sed -${E} "s,$Wfolders,${SED_RED},"
 echo ""

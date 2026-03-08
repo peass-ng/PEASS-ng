@@ -5,6 +5,7 @@
 # Description: IBM Cloud Enumeration
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.005,T1580
 # Functions Used: check_ibm_vm, print_2title, print_3title
 # Global Variables: $IBM_TOKEN, $is_ibm_vm
 # Initial Functions: check_ibm_vm
@@ -14,8 +15,7 @@
 
 
 if [ "$is_ibm_vm" = "Yes" ]; then
-  print_2title "IBM Cloud Enumeration"
-
+  print_2title "IBM Cloud Enumeration" "T1552.005,T1580"
   if ! [ "$IBM_TOKEN" ]; then
     echo "Couldn't get the metadata token:("
 
@@ -34,17 +34,17 @@ if [ "$is_ibm_vm" = "Yes" ]; then
     fi
 
     if [ "$ibm_req" ]; then
-      print_3title "Instance Details"
+      print_3title "Instance Details" "T1552.005,T1580"
       exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/instance?version=2022-03-01"
 
-      print_3title "Keys and User data"
+      print_3title "Keys and User data" "T1552.005,T1580"
       exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/instance/initialization?version=2022-03-01"
       exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/keys?version=2022-03-01"
 
-      print_3title "Placement Groups"
+      print_3title "Placement Groups" "T1552.005,T1580"
       exec_with_jq eval $ibm_req "http://169.254.169.254/metadata/v1/placement_groups?version=2022-03-01"
 
-      print_3title "IAM credentials"
+      print_3title "IAM credentials" "T1552.005,T1580"
       exec_with_jq eval $ibm_req -X POST "http://169.254.169.254/instance_identity/v1/iam_token?version=2022-03-01"
     fi
   fi

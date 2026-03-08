@@ -5,6 +5,7 @@
 # Description: Add all the extra software checks from build_lists/sensitive_files.yaml that doesn't have linpeas disabled
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1082
 # Functions Used: print_3title, warn_exec
 # Global Variables: $NGINX_KNOWN_MODULES
 # Initial Functions:

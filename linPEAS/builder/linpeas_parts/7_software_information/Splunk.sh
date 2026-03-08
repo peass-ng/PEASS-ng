@@ -5,6 +5,7 @@
 # Description: passwd files (splunk)
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: print_2title
 # Global Variables: $DEBUG
 # Initial Functions:
@@ -15,7 +16,7 @@
 
 SPLUNK_BIN="$(command -v splunk 2>/dev/null || echo -n '')"
 if [ "$PSTORAGE_SPLUNK" ] || [ "$SPLUNK_BIN" ] || [ "$DEBUG" ]; then
-  print_2title "Searching uncommon passwd files (splunk)"
+  print_2title "Searching uncommon passwd files (splunk)" "T1552.001"
   if [ "$SPLUNK_BIN" ]; then echo "splunk binary was found installed on $SPLUNK_BIN" | sed "s,.*,${SED_RED},"; fi
   printf "%s\n" "$PSTORAGE_SPLUNK" | grep -v ".htpasswd" | sort | uniq | while read f; do
     if [ -f "$f" ] && ! [ -x "$f" ]; then

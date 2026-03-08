@@ -25,6 +25,7 @@
 #       - Configuration abuse
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1082,T1552.007
 # Functions Used: echo_not_found, print_2title, print_info
 # Global Variables: $NoEnvVars, $EnvVarsRed
 # Initial Functions:
@@ -33,7 +34,7 @@
 # Small linpeas: 1
 
 
-print_2title "Environment"
+print_2title "Environment" "T1082,T1552.007"
 print_info "Any private information inside environment variables?"
 (env || printenv || set) 2>/dev/null | grep -Eiv "$NoEnvVars" | sed -${E} "s,$EnvVarsRed,${SED_RED},g" || echo_not_found "env || set"
 echo ""

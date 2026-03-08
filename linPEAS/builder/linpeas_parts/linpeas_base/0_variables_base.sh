@@ -8,7 +8,7 @@
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $VERSION, $ADVISORY, $IAMROOT, $MAXPATH_FIND_W, $C, $RED, $SED_RED, $GREEN, $SED_GREEN, $YELLOW, $SED_YELLOW, $RED_YELLOW, $SED_RED_YELLOW, $BLUE, $SED_BLUE, $ITALIC_BLUE, $LIGHT_MAGENTA, $SED_LIGHT_MAGENTA, $LIGHT_CYAN, $SED_LIGHT_CYAN, $LG, $SED_LG, $DG, $SED_DG, $NC, $UNDERLINED, $ITALIC, $MACPEAS, $FAST, $SUPERFAST, $DISCOVERY, $PORTS, $QUIET, $CHECKS, $SEARCH_IN_FOLDER, $ROOT_FOLDER, $WAIT, $PASSWORD, $NOCOLOR, $DEBUG, $AUTO_NETWORK_SCAN, $EXTRA_CHECKS, $REGEXES, $PORT_FORWARD, $E, $PING, $FPING, $DISCOVER_BAN_BAD, $DISCOVER_BAN_GOOD, $SCAN_BAN_GOOD, $NMAP_GOOD, $SCRIPTNAME, $FOUND_BASH, $FOUND_NC, $HOMESEARCH, $GREPHOMESEARCH, $SCAN_BAN_BAD, $HOME, $THREADS, $opt, $HELP, $USER, $TOTAL_T1_TIME, $END_T1_TIME, $START_T1_TIME, $title, $title_len, $max_title_len, $rest_len, $CONT_THREADS, $wgroups, $SEDOVERFLOW, $Wfolders, $Wfolder, $grp, $END_T2_TIME, $TOTAL_T2_TIME, $START_T2_TIME
+# Generated Global Variables: $VERSION, $ADVISORY, $IAMROOT, $MAXPATH_FIND_W, $C, $RED, $SED_RED, $GREEN, $SED_GREEN, $YELLOW, $SED_YELLOW, $RED_YELLOW, $SED_RED_YELLOW, $BLUE, $SED_BLUE, $ITALIC_BLUE, $LIGHT_MAGENTA, $SED_LIGHT_MAGENTA, $LIGHT_CYAN, $SED_LIGHT_CYAN, $LG, $SED_LG, $DG, $SED_DG, $NC, $UNDERLINED, $ITALIC, $MACPEAS, $FAST, $SUPERFAST, $DISCOVERY, $PORTS, $QUIET, $CHECKS, $MITRE_FILTER, $SEARCH_IN_FOLDER, $ROOT_FOLDER, $WAIT, $PASSWORD, $NOCOLOR, $DEBUG, $AUTO_NETWORK_SCAN, $EXTRA_CHECKS, $REGEXES, $PORT_FORWARD, $E, $PING, $FPING, $DISCOVER_BAN_BAD, $DISCOVER_BAN_GOOD, $SCAN_BAN_GOOD, $NMAP_GOOD, $SCRIPTNAME, $FOUND_BASH, $FOUND_NC, $HOMESEARCH, $GREPHOMESEARCH, $SCAN_BAN_BAD, $HOME, $THREADS, $opt, $HELP, $USER, $TOTAL_T1_TIME, $END_T1_TIME, $START_T1_TIME, $title, $title_len, $max_title_len, $rest_len, $CONT_THREADS, $wgroups, $SEDOVERFLOW, $Wfolders, $Wfolder, $grp, $END_T2_TIME, $TOTAL_T2_TIME, $START_T2_TIME, $_mitre_tag, $_mitre_filter, $_mitre_base, $_mitre_tags_left, $_mitre_filters_left
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -73,6 +73,7 @@ DISCOVERY=""
 PORTS=""
 QUIET=""
 CHECKS="peass{CHECKS}"
+MITRE_FILTER=""
 SEARCH_IN_FOLDER=""
 ROOT_FOLDER="/"
 WAIT=""
@@ -92,6 +93,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
       ${GREEN}  Checks:
         ${YELLOW}    -a${BLUE} Perform all checks: 1 min of processes, su brute, and extra checks.
         ${YELLOW}    -o${BLUE} Only execute selected checks (peass{CHECKS}). Select a comma separated list.
+        ${YELLOW}    -T${BLUE} Only execute checks matching the specified MITRE ATT&CK technique(s).$DG Ex: -T T1057,T1082$BLUE
         ${YELLOW}    -s${BLUE} Stealth & faster (don't check some time consuming checks)
         ${YELLOW}    -e${BLUE} Perform extra enumeration
         ${YELLOW}    -r${BLUE} Enable Regexes (this can take from some mins to hours)
@@ -121,7 +123,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
         ${YELLOW}    -N${BLUE} Do not use colours
         ${YELLOW}    -z <N>${BLUE} Set number of threads for background checks (default: auto-detected CPU count, fallback: 2; must be >= 1)$NC"
 
-while getopts "h?asd:p:i:P:qo:LMwNDterf:F:z:" opt; do
+while getopts ":h?asd:p:i:P:qo:T:LMwNDterf:F:z:" opt; do
   case "$opt" in
     h|\?) printf "%s\n\n" "$HELP$NC"; exit 0;;
     a)  FAST="";EXTRA_CHECKS="1";;
@@ -133,6 +135,7 @@ while getopts "h?asd:p:i:P:qo:LMwNDterf:F:z:" opt; do
     n)  NOT_CHECK_EXTERNAL_HOSTNAME="1";;
     q)  QUIET=1;;
     o)  CHECKS=$OPTARG;;
+    T)  MITRE_FILTER=$OPTARG;;
     L)  MACPEAS="";;
     M)  MACPEAS="1";;
     w)  WAIT=1;;
@@ -151,6 +154,8 @@ while getopts "h?asd:p:i:P:qo:LMwNDterf:F:z:" opt; do
 
     F)  PORT_FORWARD=$OPTARG;;
     z)  if [ "$OPTARG" -eq "$OPTARG" ] 2>/dev/null && [ "$OPTARG" -ge 1 ] 2>/dev/null; then THREADS=$OPTARG; else echo "WARNING: -z requires an integer >= 1, ignoring." >&2; fi;;
+    :)  echo "ERROR: -$OPTARG requires an argument (e.g. -T T1082,T1552)" >&2; printf "%s\n\n" "$HELP$NC"; exit 1;;
+    *)  echo "ERROR: Unknown option -$OPTARG" >&2; printf "%s\n\n" "$HELP$NC"; exit 1;;
     esac
 done
 
@@ -242,6 +247,29 @@ print_title(){
   echo ""
 }
 
+check_mitre_filter(){
+  # $1 = comma-separated MITRE technique IDs for this check (e.g. "T1082,T1548.003")
+  # Returns 0 (run the check) when no filter is active OR when at least one ID matches.
+  # Parent filters match child techniques (e.g. T1552 matches T1552.001),
+  # but a child filter must not match a parent-only tag.
+  # Uses pure parameter-expansion loops — no subprocess forks, POSIX-compliant.
+  [ -z "$MITRE_FILTER" ] && return 0
+  _mitre_tags_left="$1,"
+  while [ -n "$_mitre_tags_left" ]; do
+    _mitre_tag="${_mitre_tags_left%%,*}"
+    _mitre_tags_left="${_mitre_tags_left#*,}"
+    _mitre_base=${_mitre_tag%%.*}
+    _mitre_filters_left="$MITRE_FILTER,"
+    while [ -n "$_mitre_filters_left" ]; do
+      _mitre_filter="${_mitre_filters_left%%,*}"
+      _mitre_filters_left="${_mitre_filters_left#*,}"
+      [ "$_mitre_filter" = "$_mitre_tag" ] && return 0
+      [ "$_mitre_filter" = "$_mitre_base" ] && return 0
+    done
+  done
+  return 1
+}
+
 print_2title(){
   if [ "$DEBUG" ]; then
     END_T2_TIME=$(date +%s 2>/dev/null)
@@ -254,11 +282,19 @@ print_2title(){
     START_T2_TIME=$(date +%s 2>/dev/null)
   fi
 
-  printf ${BLUE}"╔══════════╣ $GREEN$1\n"$NC #There are 10 "═"
+  if [ -n "$2" ]; then
+    printf ${BLUE}"╔══════════╣ $GREEN$1 ${DG}($2)\n"$NC #There are 10 "═"
+  else
+    printf ${BLUE}"╔══════════╣ $GREEN$1\n"$NC #There are 10 "═"
+  fi
 }
 
 print_3title(){
-  printf ${BLUE}"══╣ $GREEN$1\n"$NC #There are 2 "═"
+  if [ -n "$2" ]; then
+    printf ${BLUE}"══╣ $GREEN$1 ${DG}($2)\n"$NC #There are 2 "═"
+  else
+    printf ${BLUE}"══╣ $GREEN$1\n"$NC #There are 2 "═"
+  fi
 }
 
 print_3title_no_nl(){

@@ -5,6 +5,7 @@
 # Description: Users with console
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1087.001
 # Functions Used: print_2title
 # Global Variables: $MACPEAS, $sh_usrs, $TIMEOUT, $USER 
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 1
 
 
-print_2title "Users with console"
+print_2title "Users with console" "T1087.001"
 if [ "$MACPEAS" ]; then
   dscl . list /Users | while read un; do
     ushell=$(dscl . -read "/Users/$un" UserShell | cut -d " " -f2)

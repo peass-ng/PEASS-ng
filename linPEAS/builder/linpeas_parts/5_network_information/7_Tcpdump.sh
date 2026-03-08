@@ -5,6 +5,7 @@
 # Description: Check network traffic analysis capabilities and tools
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1040
 # Functions Used: print_2title, print_3title, print_info, warn_exec
 # Global Variables: $EXTRA_CHECKS, $E, $SED_RED, $SED_GREEN, $SED_RED_YELLOW
 # Initial Functions:
@@ -52,11 +53,10 @@ check_promiscuous_mode() {
 
 # Main function to check network traffic analysis capabilities
 check_network_traffic_analysis() {
-    print_2title "Network Traffic Analysis Capabilities"
-    
+    print_2title "Network Traffic Analysis Capabilities" "T1040"
     # Check for sniffing tools
     echo ""
-    print_3title "Available Sniffing Tools"
+    print_3title "Available Sniffing Tools" "T1040"
     tools_found=0
     
     if check_command tcpdump; then
@@ -116,7 +116,7 @@ check_network_traffic_analysis() {
     
     # Check network interfaces
     echo ""
-    print_3title "Network Interfaces Sniffing Capabilities"
+    print_3title "Network Interfaces Sniffing Capabilities" "T1040"
     interfaces_found=0
     
     # Get list of network interfaces
@@ -161,7 +161,7 @@ check_network_traffic_analysis() {
     # Check for sensitive traffic patterns if we have sniffing capabilities
     if [ $tools_found -eq 1 ] && [ $interfaces_found -eq 1 ]; then
         echo ""
-        print_3title "Sensitive Traffic Detection"
+        print_3title "Sensitive Traffic Detection" "T1040"
         print_info "Checking for common sensitive traffic patterns..."
         
         # List of sensitive traffic patterns to check
@@ -193,14 +193,13 @@ check_network_traffic_analysis() {
     fi
 
     echo ""
-    print_3title "Running sniffing/traffic reconstruction processes"
+    print_3title "Running sniffing/traffic reconstruction processes" "T1040"
     ps aux 2>/dev/null | grep -E "[t]cpdump|[d]umpcap|[t]shark|[w]ireshark|[n]grep|[t]cpflow" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
     
     # Additional information
     if [ "$EXTRA_CHECKS" ]; then
         echo ""
-        print_3title "Additional Network Analysis Information"
-        
+        print_3title "Additional Network Analysis Information" "T1040"
         # Check for network monitoring tools
         echo "Checking for network monitoring tools..."
         for tool in nethogs iftop iotop nload bmon; do

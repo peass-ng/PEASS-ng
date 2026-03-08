@@ -5,6 +5,7 @@
 # Description: Enumerate macos network services
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1016
 # Functions Used: print_2title, print_3title, warn_exec
 # Global Variables: $EXTRA_CHECKS, $MACPEAS, $E, $SED_RED
 # Initial Functions:
@@ -25,8 +26,7 @@ check_listening_port() {
 
 # Function to get sharing services status
 get_sharing_services_status() {
-    print_2title "MacOS Sharing Services Status"
-    
+    print_2title "MacOS Sharing Services Status" "T1016"
     # Define services and their ports using parallel arrays
     services="Screen Sharing File Sharing Remote Login Remote Management Remote Apple Events Back to My Mac AirPlay Receiver AirDrop Bonjour Printer Sharing Internet Sharing"
     ports="5900 88,445,548 22 3283 3031 4488 7000 5353 5353 515,631 67,68"
@@ -77,8 +77,7 @@ get_sharing_services_status() {
 
 # Function to get VPN information
 get_vpn_info() {
-    print_3title "VPN Information"
-    
+    print_3title "VPN Information" "T1016"
     # Get VPN configurations
     warn_exec system_profiler SPNetworkLocationDataType | grep -A 5 -B 7 ": Password" | sed -${E} "s,Password|Authorization Name.*,${SED_RED},g"
     
@@ -95,8 +94,7 @@ get_vpn_info() {
 
 # Function to get firewall information
 get_firewall_info() {
-    print_3title "Firewall Information"
-    
+    print_3title "Firewall Information" "T1016"
     # Get firewall status
     warn_exec system_profiler SPFirewallDataType
     
@@ -117,8 +115,7 @@ get_firewall_info() {
 # Function to get additional network information
 get_additional_network_info() {
     if [ "$EXTRA_CHECKS" ]; then
-        print_3title "Additional Network Information"
-        
+        print_3title "Additional Network Information" "T1016"
         # Bluetooth information
         echo "Bluetooth Status:"
         warn_exec system_profiler SPBluetoothDataType

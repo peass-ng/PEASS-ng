@@ -6,9 +6,11 @@ namespace winPEAS.Checks
 {
     internal class CloudInfo : ISystemCheck
     {
+        public string[] MitreAttackIds { get; } = new[] { "T1552.005", "T1580" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Cloud Information");
+            Beaprint.GreatPrint("Cloud Information", "T1552.005,T1580");
 
             Dictionary<string, string> colorsTraining = new Dictionary<string, string>()
                 {
@@ -44,7 +46,7 @@ namespace winPEAS.Checks
             {                
                 if (cloudInfo.IsCloud)
                 {
-                    Beaprint.MainPrint(cloudInfo.Name + " Enumeration");
+                    Beaprint.MainPrint(cloudInfo.Name + " Enumeration", "T1552.005,T1580");
 
                     if (cloudInfo.IsAvailable)
                     {

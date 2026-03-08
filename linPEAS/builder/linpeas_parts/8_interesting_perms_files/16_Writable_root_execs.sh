@@ -5,6 +5,7 @@
 # Description: Locate root-owned executables outside home folders that the current user can modify
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1574.009,T1574.010
 # Functions Used: print_2title, print_info, echo_not_found
 # Global Variables: $DEBUG, $IAMROOT, $ROOT_FOLDER, $HOME, $writeVB
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 1
 
 if ! [ "$IAMROOT" ]; then
-  print_2title "Writable root-owned executables I can modify (max 200)"
+  print_2title "Writable root-owned executables I can modify (max 200)" "T1574.009,T1574.010"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#writable-files"
 
   writable_root_execs=$(
