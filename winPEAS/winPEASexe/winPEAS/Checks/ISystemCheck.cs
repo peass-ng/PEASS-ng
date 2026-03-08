@@ -1,6 +1,6 @@
 ﻿namespace winPEAS.Checks
 {
-    internal interface ISystemCheck
+    public interface ISystemCheck
     {
         void PrintInfo(bool isDebug);
 
