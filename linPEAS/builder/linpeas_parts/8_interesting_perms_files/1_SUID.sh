@@ -5,6 +5,7 @@
 # Description: SUID - Check easy privesc, exploits and write perms
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1548.001
 # Functions Used: echo_not_found, print_2title, print_info
 # Global Variables: $IAMROOT, $LDD, $ROOT_FOLDER, $READELF, $sidB, $sidG1, $sidG2, $sidG3, $sidG4, $sidVB, $sidVB2, $STRACE, $STRINGS, $TIMEOUT, $Wfolders, $cfuncs
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 1
 
 
-print_2title "SUID - Check easy privesc, exploits and write perms"
+print_2title "SUID - Check easy privesc, exploits and write perms" "T1548.001"
 print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sudo-and-suid"
 if ! [ "$STRINGS" ]; then
   echo_not_found "strings"

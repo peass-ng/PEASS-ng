@@ -14,6 +14,7 @@
 #     * Writable paths: Replace executables in writable paths to get code execution
 # License: GNU GPL
 # Version: 1.1
+# Mitre: T1543.002
 # Functions Used: print_2title, print_list, echo_not_found
 # Global Variables: $SEARCH_IN_FOLDER, $Wfolders, $SED_RED, $SED_RED_YELLOW, $NC
 # Initial Functions:
@@ -22,7 +23,7 @@
 # Small linpeas: 1
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-    print_2title "Systemd Information"
+    print_2title "Systemd Information" "T1543.002"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#systemd-path---relative-paths"
 
     # Function to check if systemctl is available
@@ -161,7 +162,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
 
     echo ""
 
-    print_2title "Systemd PATH"
+    print_2title "Systemd PATH" "T1543.002"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#systemd-path---relative-paths"
     if check_systemctl; then
         systemctl show-environment 2>/dev/null | 

@@ -5,6 +5,7 @@
 # Description: AppArmor profiles to prevent suid/capabilities abuse
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1518.001
 # Functions Used: print_2title
 # Global Variables: $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -15,7 +16,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   if [ -d "/etc/apparmor.d/" ] && [ -r "/etc/apparmor.d/" ]; then
-    print_2title "AppArmor binary profiles"
+    print_2title "AppArmor binary profiles" "T1518.001"
     ls -l /etc/apparmor.d/ 2>/dev/null | grep -E "^-" | grep "\."
     echo ""
   fi

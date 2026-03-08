@@ -142,6 +142,7 @@ namespace winPEAS.Helpers
             Console.WriteLine();
             Console.WriteLine(LCYAN + "        quiet" + GRAY + "                Do not print banner" + NOCOLOR);
             Console.WriteLine(LCYAN + "        notcolor" + GRAY + "             Don't use ansi colors (all white)" + NOCOLOR);
+            Console.WriteLine(LCYAN + "        mitre=T1082,T1548" + GRAY + $"   Only run checks matching the specified MITRE ATT&CK technique IDs (comma-separated)" + NOCOLOR);
             Console.WriteLine(LCYAN + "        searchpf" + GRAY + "             Search credentials via regex also in Program Files folders" + NOCOLOR);
             Console.WriteLine(LCYAN + "        wait" + GRAY + "                 Wait for user input between checks" + NOCOLOR);
             Console.WriteLine(LCYAN + "        debug" + GRAY + "                Display debugging information - memory usage, method execution time" + NOCOLOR);
@@ -166,25 +167,22 @@ namespace winPEAS.Helpers
         /////////////////////////////////
         /// DIFFERENT PRINT FUNCTIONS ///
         /////////////////////////////////
-        public static void GreatPrint(string toPrint)
+        public static void GreatPrint(string toPrint, string mitreIds = null)
         {
             // print_title
-
             Console.WriteLine();
             Console.WriteLine();
-            int halfTotal = 60;
-            //Console.WriteLine(LCYAN + "  " + new String('=', halfTotal - toPrint.Length) + "(" + NOCOLOR + YELLOW + toPrint + LCYAN + ")" + new String('=', halfTotal - toPrint.Length) + NOCOLOR);
 
-            Console.WriteLine($"{LCYAN}════════════════════════════════════╣ {GREEN}{toPrint}{LCYAN} ╠════════════════════════════════════{NOCOLOR}");
+            string mitreSuffix = string.IsNullOrEmpty(mitreIds) ? "" : $" {DGRAY}({mitreIds}){LCYAN}";
+            Console.WriteLine($"{LCYAN}════════════════════════════════════╣ {GREEN}{toPrint}{mitreSuffix}{LCYAN} ╠════════════════════════════════════{NOCOLOR}");
         }
 
-        public static void MainPrint(string toPrint)
+        public static void MainPrint(string toPrint, string mitreIds = null)
         {
             // print_2title
-
             Console.WriteLine();
-            //Console.WriteLine(YELLOW + "  [+] " + GREEN + toPrint + NOCOLOR);
-            Console.WriteLine($"{LCYAN}╔══════════╣ {GREEN}{toPrint}{NOCOLOR}");
+            string mitreSuffix = string.IsNullOrEmpty(mitreIds) ? "" : $" {DGRAY}({mitreIds}){NOCOLOR}";
+            Console.WriteLine($"{LCYAN}╔══════════╣ {GREEN}{toPrint}{mitreSuffix}{NOCOLOR}");
         }
 
         public static void LinkPrint(string link, string comment = "")

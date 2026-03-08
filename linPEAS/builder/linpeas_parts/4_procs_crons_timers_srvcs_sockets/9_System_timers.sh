@@ -5,6 +5,7 @@
 # Description: System Timers and privilege escalation vectors
 # License: GNU GPL
 # Version: 1.2
+# Mitre: T1053.003
 # Functions Used: echo_not_found, print_2title, print_info, print_3title
 # Global Variables: $SEARCH_IN_FOLDER, $timersG
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 1
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "System timers"
+  print_2title "System timers" "T1053.003"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#timers"
 
   # Function to check timer content for privilege escalation vectors
@@ -111,7 +112,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   }
 
   # List all timers and check for privilege escalation vectors
-  print_3title "Active timers:"
+  print_3title "Active timers:" "T1053.003"
   systemctl list-timers --all 2>/dev/null | grep -Ev "(^$|timers listed)" | while read -r line; do
     # Extract timer unit name
     timer_unit=$(echo "$line" | awk '{print $1}')
@@ -131,7 +132,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   done || echo_not_found
 
   # Check for disabled but available timers
-  print_3title "Disabled timers:"
+  print_3title "Disabled timers:" "T1053.003"
   systemctl list-unit-files --type=timer --state=disabled 2>/dev/null | grep -v "UNIT FILE" | while read -r line; do
     timer_unit=$(echo "$line" | awk '{print $1}')
     if [ -n "$timer_unit" ]; then
@@ -144,7 +145,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
 
   # Check timer files from PSTORAGE_TIMER
   if [ -n "$PSTORAGE_TIMER" ]; then
-    print_3title "Additional timer files:"
+    print_3title "Additional timer files:" "T1053.003"
     printf "%s\n" "$PSTORAGE_TIMER" | while read -r timer_file; do
       if [ -n "$timer_file" ] && [ -e "$timer_file" ]; then
         check_timer_file "$timer_file"

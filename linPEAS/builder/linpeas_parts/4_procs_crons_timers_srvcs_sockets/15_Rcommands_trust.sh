@@ -6,6 +6,7 @@
 #              which can allow passwordless root via hostname/DNS manipulation.
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1021.004
 # Functions Used: print_2title, print_3title, echo_not_found
 # Global Variables:
 # Initial Functions:
@@ -14,10 +15,9 @@
 # Small linpeas: 1
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Legacy r-commands (rsh/rlogin/rexec) and host-based trust"
-
+  print_2title "Legacy r-commands (rsh/rlogin/rexec) and host-based trust" "T1021.004"
   echo ""
-  print_3title "Listening r-services (TCP 512-514)"
+  print_3title "Listening r-services (TCP 512-514)" "T1021.004"
   if command -v ss >/dev/null 2>&1; then
     ss -ltnp 2>/dev/null | awk '$1 ~ /^LISTEN$/ && $4 ~ /:(512|513|514)$/ {print}' || echo_not_found "ss"
   elif command -v netstat >/dev/null 2>&1; then
@@ -27,7 +27,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   fi
 
   echo ""
-  print_3title "systemd units exposing r-services"
+  print_3title "systemd units exposing r-services" "T1021.004"
   if command -v systemctl >/dev/null 2>&1; then
     systemctl list-unit-files 2>/dev/null | grep -E '^(rlogin|rsh|rexec)\.(socket|service)\b' || echo_not_found "rlogin|rsh|rexec units"
     systemctl list-sockets 2>/dev/null | grep -E '\b(rlogin|rsh|rexec)\.socket\b' || true
@@ -36,7 +36,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   fi
 
   echo ""
-  print_3title "inetd/xinetd configuration for r-services"
+  print_3title "inetd/xinetd configuration for r-services" "T1021.004"
   if [ -f /etc/inetd.conf ]; then
     grep -vE '^\s*#|^\s*$' /etc/inetd.conf 2>/dev/null | grep -Ei '\b(shell|login|exec|rsh|rlogin|rexec)\b' 2>/dev/null || echo "  No r-services found in /etc/inetd.conf"
   else
@@ -60,7 +60,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   fi
 
   echo ""
-  print_3title "Installed r-service server packages"
+  print_3title "Installed r-service server packages" "T1021.004"
   if command -v dpkg >/dev/null 2>&1; then
     dpkg -l 2>/dev/null | grep -E '\b(rsh-server|rsh-redone-server|krb5-rsh-server|inetutils-inetd|openbsd-inetd|xinetd|netkit-rsh)\b' || echo "  No related packages found via dpkg"
   elif command -v rpm >/dev/null 2>&1; then
@@ -70,7 +70,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   fi
 
   echo ""
-  print_3title "/etc/hosts.equiv and /etc/shosts.equiv"
+  print_3title "/etc/hosts.equiv and /etc/shosts.equiv" "T1021.004"
   for f in /etc/hosts.equiv /etc/shosts.equiv; do
     if [ -f "$f" ]; then
       perms=$(stat -c %a "$f" 2>/dev/null)
@@ -87,7 +87,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   done
 
   echo ""
-  print_3title "Per-user .rhosts files"
+  print_3title "Per-user .rhosts files" "T1021.004"
   any_rhosts=false
   for rfile in /root/.rhosts /home/*/.rhosts; do
     if [ -f "$rfile" ]; then
@@ -107,7 +107,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   if ! $any_rhosts; then echo_not_found ".rhosts"; fi
 
   echo ""
-  print_3title "PAM rhosts authentication"
+  print_3title "PAM rhosts authentication" "T1021.004"
   shown=false
   for p in /etc/pam.d/rlogin /etc/pam.d/rsh; do
     if [ -f "$p" ]; then
@@ -119,7 +119,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   if ! $shown; then echo_not_found "/etc/pam.d/rlogin|rsh"; fi
 
   echo ""
-  print_3title "SSH HostbasedAuthentication"
+  print_3title "SSH HostbasedAuthentication" "T1021.004"
   if [ -f /etc/ssh/sshd_config ]; then
     if grep -qiE '^[^#]*HostbasedAuthentication\s+yes' /etc/ssh/sshd_config 2>/dev/null; then
       echo "  HostbasedAuthentication yes (check /etc/shosts.equiv or ~/.shosts)"
@@ -131,7 +131,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   fi
 
   echo ""
-  print_3title "Potential DNS control indicators (local)"
+  print_3title "Potential DNS control indicators (local)" "T1021.004"
   (ps -eo comm,args 2>/dev/null | grep -Ei '(^|/)(pdns|pdns_server|pdns_recursor|powerdns-admin)( |$)' | grep -Ev 'grep|bash' || echo "  Not detected")
 
   echo ""

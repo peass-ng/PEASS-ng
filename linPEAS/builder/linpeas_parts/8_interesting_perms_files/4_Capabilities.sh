@@ -5,6 +5,7 @@
 # Description: Capabilities
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1548.001
 # Functions Used: echo_not_found, print_2title, print_info, print_3title
 # Global Variables: $capsB, $capsVB, $IAMROOT, $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -14,10 +15,10 @@
 
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Capabilities"
+  print_2title "Capabilities" "T1548.001"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#capabilities"
   if [ "$(command -v capsh || echo -n '')" ]; then
-    print_3title "Current shell capabilities"
+    print_3title "Current shell capabilities" "T1548.001"
     cat "/proc/$$/status" | grep Cap | while read -r cap_line; do
       cap_name=$(echo "$cap_line" | awk '{print $1}')
       cap_value=$(echo "$cap_line" | awk '{print $2}')
@@ -70,7 +71,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     done
     echo ""
 
-    print_3title "Processes with capability sets (non-zero CapEff/CapAmb, limit 40)"
+    print_3title "Processes with capability sets (non-zero CapEff/CapAmb, limit 40)" "T1548.001"
     find /proc -maxdepth 2 -path "/proc/[0-9]*/status" 2>/dev/null | head -n 400 | while read -r proc_status; do
       proc_pid=$(echo "$proc_status" | cut -d/ -f3)
       proc_name=$(awk '/^Name:/{print $2}' "$proc_status" 2>/dev/null)
@@ -105,11 +106,11 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     echo ""
   
   else
-    print_3title "Current shell capabilities"
+    print_3title "Current shell capabilities" "T1548.001"
     (cat "/proc/$$/status" | grep Cap | sed -${E} "s,.*0000000000000000|CapBnd:	0000003fffffffff,${SED_GREEN},") 2>/dev/null || echo_not_found "/proc/$$/status"
     echo ""
     
-    print_3title "Parent proc capabilities"
+    print_3title "Parent proc capabilities" "T1548.001"
     (cat "/proc/$PPID/status" | grep Cap | sed -${E} "s,.*0000000000000000|CapBnd:	0000003fffffffff,${SED_GREEN},") 2>/dev/null || echo_not_found "/proc/$PPID/status"
     echo ""
   fi

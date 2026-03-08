@@ -37,6 +37,7 @@
 #       - Container escape tool execution
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1611
 # Functions Used: checkContainerExploits, checkProcSysBreakouts, containerCheck, enumerateDockerSockets, print_2title, print_3title, print_info, print_list, warn_exec
 # Global Variables: $binfmt_misc_breakout, $containercapsB, $containerType, $core_pattern_breakout, $dev_mounted, $efi_efivars_writable, $efi_vars_writable, $GREP_IGNORE_MOUNTS, $inContainer, $kallsyms_readable, $kcore_readable, $kmem_readable, $kmem_writable, $kmsg_readable, $mem_readable, $mem_writable, $modprobe_present, $mountinfo_readable, $panic_on_oom_dos, $panic_sys_fs_dos, $proc_configgz_readable, $proc_mounted, $run_unshare, $release_agent_breakout1, $release_agent_breakout2, $release_agent_breakout3, $sched_debug_readable, $security_present, $security_writable, $sysreq_trigger_dos, $uevent_helper_breakout, $vmcoreinfo_readable, $VULN_CVE_2019_5021, $self_mem_readable
 # Initial Functions: containerCheck
@@ -46,7 +47,7 @@
 
 if [ "$inContainer" ]; then
     echo ""
-    print_2title "Container & breakout enumeration"
+    print_2title "Container & breakout enumeration" "T1611"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation/index.html"
     
     # Basic container info
@@ -56,7 +57,7 @@ if [ "$inContainer" ]; then
     fi
     
     # Security mechanisms
-    print_3title "Security Mechanisms"
+    print_3title "Security Mechanisms" "T1611"
     seccomp_mode_num="$(awk '/^Seccomp:/{print $2}' /proc/self/status 2>/dev/null)"
     seccomp_mode_desc="unknown"
     case "$seccomp_mode_num" in
@@ -87,8 +88,7 @@ if [ "$inContainer" ]; then
     fi
 
     # Known vulnerabilities
-    print_3title "Known Vulnerabilities"
-    
+    print_3title "Known Vulnerabilities" "T1611"
     checkContainerExploits
     print_list "Vulnerable to CVE-2019-5021 .... $VULN_CVE_2019_5021\n"$NC | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     
@@ -97,8 +97,7 @@ if [ "$inContainer" ]; then
     (command -v nsenter || command -v unshare || command -v chroot || command -v capsh || command -v setcap || command -v getcap || command -v docker || command -v kubectl || command -v ctr || command -v runc || command -v containerd || command -v crio || command -v podman || command -v lxc || command -v rkt || command -v nerdctl || echo "No") | sed -${E} "s,nsenter|unshare|chroot|capsh|setcap|getcap|docker|kubectl|ctr|runc|containerd|crio|podman|lxc|rkt|nerdctl,${SED_RED},g"
     
     # Runtime vulnerabilities
-    print_3title "Runtime Vulnerabilities"
-    
+    print_3title "Runtime Vulnerabilities" "T1611"
     # Check for known runtime vulnerabilities
     if [ "$(command -v runc || echo -n '')" ]; then
         print_list "Runc version ................. "$NC
@@ -131,7 +130,7 @@ if [ "$inContainer" ]; then
     fi
     
     # Mount escape vectors
-    print_3title "Breakout via mounts"
+    print_3title "Breakout via mounts" "T1611"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation/sensitive-mounts.html"
     
     checkProcSysBreakouts
@@ -164,7 +163,7 @@ if [ "$inContainer" ]; then
     mount | grep -E "shared|slave" | sed -${E} "s,docker.sock|host|privileged,${SED_RED},g"
     
     # Capability checks
-    print_3title "Capability Checks"
+    print_3title "Capability Checks" "T1611"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation/capabilities-abuse-escape.html"
     
     print_list "Dangerous capabilities ......... "$NC
@@ -188,7 +187,7 @@ if [ "$inContainer" ]; then
     fi
     
     # Namespace checks
-    print_3title "Namespace Checks"
+    print_3title "Namespace Checks" "T1611"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/namespaces/index.html"
     
     print_list "Current namespaces ............. "$NC
@@ -228,8 +227,7 @@ if [ "$inContainer" ]; then
     enumerateDockerSockets
     
     # Additional breakout vectors
-    print_3title "Additional Breakout Vectors"
-    
+    print_3title "Additional Breakout Vectors" "T1611"
     print_list "is modprobe present ............ $modprobe_present\n" | sed -${E} "s,/.*,${SED_RED},"
     print_list "DoS via panic_on_oom ........... $panic_on_oom_dos\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "DoS via panic_sys_fs ........... $panic_sys_fs_dos\n" | sed -${E} "s,Yes,${SED_RED},"
@@ -239,7 +237,7 @@ if [ "$inContainer" ]; then
     print_list "Container escape tools in PATH . "$NC
     (which nsenter 2>/dev/null || which unshare 2>/dev/null || which chroot 2>/dev/null || which capsh 2>/dev/null || which setcap 2>/dev/null || which getcap 2>/dev/null || echo "No") | sed -${E} "s,nsenter|unshare|chroot|capsh|setcap|getcap,${SED_RED},g"
 
-    print_3title "Extra Breakout Vectors"
+    print_3title "Extra Breakout Vectors" "T1611"
     print_list "/proc/config.gz readable ....... $proc_configgz_readable\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "/proc/sched_debug readable ..... $sched_debug_readable\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "/proc/*/mountinfo readable ..... $mountinfo_readable\n" | sed -${E} "s,Yes,${SED_RED},"
@@ -279,7 +277,7 @@ if [ "$inContainer" ]; then
     
     # Kubernetes specific checks
     if echo "$containerType" | grep -qi "kubernetes"; then
-        print_3title "Kubernetes Specific Checks"
+        print_3title "Kubernetes Specific Checks" "T1611"
         print_info "https://cloud.hacktricks.wiki/en/pentesting-cloud/kubernetes-security/attacking-kubernetes-from-inside-a-pod.html"
         
         print_list "Kubernetes namespace ...........$NC $(cat /run/secrets/kubernetes.io/serviceaccount/namespace /var/run/secrets/kubernetes.io/serviceaccount/namespace /secrets/kubernetes.io/serviceaccount/namespace 2>/dev/null)\n"
@@ -315,7 +313,7 @@ if [ "$inContainer" ]; then
     fi
     
     # Interesting files and mounts
-    print_3title "Interesting Files & Mounts"
+    print_3title "Interesting Files & Mounts" "T1611"
     print_list "Interesting files mounted ........ "$NC
     (mount -l || cat /proc/self/mountinfo || cat /proc/1/mountinfo || cat /proc/mounts || cat /proc/self/mounts || cat /proc/1/mounts )2>/dev/null | grep -Ev "$GREP_IGNORE_MOUNTS" | sed -${E} "s,.sock,${SED_RED}," | sed -${E} "s,docker.sock,${SED_RED_YELLOW}," | sed -${E} "s,/dev/,${SED_RED},g"
     

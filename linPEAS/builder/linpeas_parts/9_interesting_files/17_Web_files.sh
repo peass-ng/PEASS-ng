@@ -5,6 +5,7 @@
 # Description: Web files
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1005
 # Functions Used:  print_2title
 # Global Variables: $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Web files?(output limit)"
+  print_2title "Web files?(output limit)" "T1005"
   ls -alhR /var/www/ 2>/dev/null | head
   ls -alhR /srv/www/htdocs/ 2>/dev/null | head
   ls -alhR /usr/local/www/apache22/data/ 2>/dev/null | head

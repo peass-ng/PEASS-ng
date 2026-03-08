@@ -7,9 +7,11 @@ namespace winPEAS.Checks
 {
     internal class ApplicationsInfo : ISystemCheck
     {
+        public string[] MitreAttackIds { get; } = new[] { "T1518", "T1547.001", "T1053.005", "T1010", "T1014" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Applications Information");
+            Beaprint.GreatPrint("Applications Information", "T1518,T1547.001,T1053.005,T1010,T1014");
 
             new List<Action>
             {
@@ -25,7 +27,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Current Active Window Application");
+                Beaprint.MainPrint("Current Active Window Application", "T1010");
                 string title = ApplicationInfoHelper.GetActiveWindowTitle();
                 List<string> permsFile = PermissionsHelper.GetPermissionsFile(title, Checks.CurrentUserSiDs);
                 List<string> permsFolder = PermissionsHelper.GetPermissionsFolder(title, Checks.CurrentUserSiDs);
@@ -55,7 +57,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Installed Applications --Via Program Files/Uninstall registry--");
+                Beaprint.MainPrint("Installed Applications --Via Program Files/Uninstall registry--", "T1518");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#applications", "Check if you can modify installed software");
                 SortedDictionary<string, Dictionary<string, string>> installedAppsPerms = InstalledApps.GetInstalledAppsPerms();
                 string format = "    ==>  {0} ({1})";
@@ -101,7 +103,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Autorun Applications");
+                Beaprint.MainPrint("Autorun Applications", "T1547.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/privilege-escalation-with-autorun-binaries.html", "Check if you can modify other users AutoRuns binaries (Note that is normal that you can modify HKCU registry and binaries indicated there)");
                 List<Dictionary<string, string>> apps = AutoRuns.GetAutoRuns(Checks.CurrentUserSiDs);
 
@@ -188,7 +190,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Scheduled Applications --Non Microsoft--");
+                Beaprint.MainPrint("Scheduled Applications --Non Microsoft--", "T1053.005");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/privilege-escalation-with-autorun-binaries.html", "Check if you can modify other users scheduled binaries");
                 List<Dictionary<string, string>> scheduled_apps = ApplicationInfoHelper.GetScheduledAppsNoMicrosoft();
 
@@ -237,7 +239,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Device Drivers --Non Microsoft--");
+                Beaprint.MainPrint("Device Drivers --Non Microsoft--", "T1014");
                 // this link is not very specific, but its the best on hacktricks
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#drivers", "Check 3rd party drivers for known vulnerabilities/rootkits.");
 

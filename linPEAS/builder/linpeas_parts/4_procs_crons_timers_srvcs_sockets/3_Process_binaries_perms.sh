@@ -5,6 +5,7 @@
 # Description: Check the permissions of the binaries of the running processes
 # License: GNU GPL
 # Version: 1.2
+# Mitre: T1574,T1554
 # Functions Used: print_2title, print_info
 # Global Variables: $knw_usrs, $nosh_usrs, $NOUSEPS, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   if [ "$NOUSEPS" ]; then
-    print_2title "Binary processes permissions (non 'root root' and not belonging to current user)"
+    print_2title "Binary processes permissions (non 'root root' and not belonging to current user)" "T1574,T1554"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#processes"
     
     # Get list of writable binaries

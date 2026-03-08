@@ -5,6 +5,7 @@
 # Description: Checking misconfigurations of ld.so
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1574.006
 # Functions Used: print_2title, print_info
 # Global Variables: $IAMROOT, $ITALIC, $SEARCH_IN_FOLDER, $USER, $Wfolders, $ldsoconfdG, $wgroups
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if ! [ "$SEARCH_IN_FOLDER" ] && ! [ "$IAMROOT" ]; then
-  print_2title "Checking misconfigurations of ld.so"
+  print_2title "Checking misconfigurations of ld.so" "T1574.006"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#ldso"
   if [ -f "/etc/ld.so.conf" ] && [ -w "/etc/ld.so.conf" ]; then 
     echo "You have write privileges over /etc/ld.so.conf" | sed -${E} "s,.*,${SED_RED_YELLOW},"; 

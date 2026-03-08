@@ -8,6 +8,7 @@
 #   - Cron DB path (CRON_DB_PATH) and weak permissions / embedded secrets in jobs
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1053.003
 # Functions Used: print_2title, print_info, print_list, echo_not_found
 # Global Variables: $SEARCH_IN_FOLDER, $SED_RED, $SED_RED_YELLOW, $NC
 # Initial Functions:
@@ -16,7 +17,7 @@
 # Small linpeas: 1
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Crontab UI (root) misconfiguration checks"
+  print_2title "Crontab UI (root) misconfiguration checks" "T1053.003"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#scheduledcron-jobs"
 
   # Collect candidate services referencing crontab-ui

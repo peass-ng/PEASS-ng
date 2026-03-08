@@ -5,6 +5,7 @@
 # Description: Check aws-vault
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.005
 # Functions Used: print_2title
 # Global Variables: $DEBUG
 # Initial Functions:
@@ -15,6 +16,6 @@
 
 AWSVAULT="$(command -v aws-vault 2>/dev/null || echo -n '')"
 if [ "$AWSVAULT" ] || [ "$DEBUG" ]; then
-  print_2title "Check aws-vault"
+  print_2title "Check aws-vault" "T1552.005"
   aws-vault list
 fi

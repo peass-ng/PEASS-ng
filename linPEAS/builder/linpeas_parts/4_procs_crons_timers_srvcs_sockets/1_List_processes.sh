@@ -5,6 +5,7 @@
 # Description: List running processes and check for unusual configurations
 # License: GNU GPL
 # Version: 1.4
+# Mitre: T1057
 # Functions Used: print_2title, print_info, print_ps
 # Global Variables: $capsB, $knw_usrs, $nosh_usrs, $NOUSEPS, $processesB, $processesDump, $processesVB, $rootcommon, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders
 # Initial Functions:
@@ -13,8 +14,7 @@
 # Small linpeas: 1
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Running processes (cleaned)"
-
+  print_2title "Running processes (cleaned)" "T1057"
   if [ "$NOUSEPS" ]; then
     printf ${BLUE}"[i]$GREEN Looks like ps is not finding processes, going to read from /proc/ and not going to monitor 1min of processes\n"$NC
   fi
@@ -234,7 +234,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   fi
 
   # Additional checks for each process
-  print_2title "Processes with unusual configurations"
+  print_2title "Processes with unusual configurations" "T1057"
   for pid in $(find /proc -maxdepth 1 -regex '/proc/[0-9]+' -printf "%f\n" 2>/dev/null); do
     # Skip if process doesn't exist or we can't access it
     [ ! -d "/proc/$pid" ] && continue

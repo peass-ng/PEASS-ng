@@ -5,6 +5,7 @@
 # Description: Brute su
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1110.001
 # Functions Used: check_if_su_brute, print_2title, su_brute_user_num
 # Global Variables: $IAMROOT, $PASSTRY, $TIMEOUT
 # Initial Functions:

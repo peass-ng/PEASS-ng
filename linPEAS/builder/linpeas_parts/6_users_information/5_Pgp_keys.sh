@@ -5,6 +5,7 @@
 # Description: Check for PGP keys and related files that might contain sensitive information
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.004
 # Functions Used: echo_not_found, print_2title, print_info
 # Global Variables: $HOME
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 1
 
 
-print_2title "PGP Keys and Related Files"
+print_2title "PGP Keys and Related Files" "T1552.004"
 print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#pgp-keys"
 
 # Check for GPG

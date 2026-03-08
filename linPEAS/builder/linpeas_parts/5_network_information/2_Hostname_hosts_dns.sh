@@ -5,6 +5,7 @@
 # Description: Get hostname, hosts and DNS
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1016,T1018
 # Functions Used: print_2title, warn_exec
 # Global Variables:
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 # Function to get hostname using multiple methods
 get_hostname_info() {
-    print_3title "Hostname Information"
+    print_3title "Hostname Information" "T1016,T1018"
     # Try multiple methods to get hostname
     if command -v hostname >/dev/null 2>&1; then
         echo "System hostname: $(hostname 2>/dev/null)"
@@ -33,7 +34,7 @@ get_hostname_info() {
 
 # Function to get hosts file information
 get_hosts_info() {
-    print_3title "Hosts File Information"
+    print_3title "Hosts File Information" "T1016,T1018"
     if [ -f "/etc/hosts" ]; then
         echo "Contents of /etc/hosts:"
         grep -v "^#" /etc/hosts 2>/dev/null | grep -v "^$" | while read -r line; do
@@ -45,8 +46,7 @@ get_hosts_info() {
 
 # Function to get DNS information
 get_dns_info() {
-    print_3title "DNS Configuration"
-    
+    print_3title "DNS Configuration" "T1016,T1018"
     # Get resolv.conf information
     if [ -f "/etc/resolv.conf" ]; then
         echo "DNS Servers (resolv.conf):"
@@ -99,8 +99,7 @@ get_dns_info() {
     echo ""
 }
 
-print_2title "Hostname, hosts and DNS"
-
+print_2title "Hostname, hosts and DNS" "T1016,T1018"
 # Execute all information gathering functions
 get_hostname_info
 get_hosts_info

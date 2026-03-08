@@ -5,6 +5,7 @@
 # Description: Services and service files analysis with privilege escalation vectors
 # License: GNU GPL
 # Version: 1.2
+# Mitre: T1543.002,T1007
 # Functions Used: echo_not_found, print_2title, print_info, print_3title
 # Global Variables: $EXTRA_CHECKS, $IAMROOT, $SEARCH_IN_FOLDER, $TIMEOUT, $WRITABLESYSTEMDPATH
 # Initial Functions:
@@ -13,7 +14,7 @@
 # Small linpeas: 0
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Services and Service Files"
+  print_2title "Services and Service Files" "T1543.002,T1007"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#services"
 
   # Function to check service content for privilege escalation vectors
@@ -125,7 +126,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
 
   # List all services and check for privilege escalation vectors
   echo ""
-  print_3title "Active services:"
+  print_3title "Active services:" "T1543.002,T1007"
   systemctl list-units --type=service --state=active 2>/dev/null | grep -v "UNIT" | while read -r line; do
     service_unit=$(echo "$line" | awk '{print $1}')
     if [ -n "$service_unit" ]; then
@@ -145,7 +146,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
 
   # Check for disabled but available services
   echo ""
-  print_3title "Disabled services:"
+  print_3title "Disabled services:" "T1543.002,T1007"
   systemctl list-unit-files --type=service --state=disabled 2>/dev/null | grep -v "UNIT FILE" | while read -r line; do
     service_unit=$(echo "$line" | awk '{print $1}')
     if [ -n "$service_unit" ]; then
@@ -166,7 +167,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   # Check service files from PSTORAGE_SYSTEMD
   if [ -n "$PSTORAGE_SYSTEMD" ]; then
     echo ""
-    print_3title "Additional service files:"
+    print_3title "Additional service files:" "T1543.002,T1007"
     printf "%s\n" "$PSTORAGE_SYSTEMD" | while read -r service_file; do
       if [ -n "$service_file" ] && [ -e "$service_file" ]; then
         check_service_file "$service_file"
@@ -177,7 +178,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   # Check for outdated services if EXTRA_CHECKS is enabled
   if [ "$EXTRA_CHECKS" ]; then
     echo ""
-    print_3title "Service versions and status:"
+    print_3title "Service versions and status:" "T1543.002,T1007"
     if [ "$TIMEOUT" ]; then
       $TIMEOUT 30 sh -c "(service --status-all || service -e || chkconfig --list || rc-status || launchctl list) 2>/dev/null" || echo_not_found "service|chkconfig|rc-status|launchctl"
     else

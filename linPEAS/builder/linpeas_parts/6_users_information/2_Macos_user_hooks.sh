@@ -5,6 +5,7 @@
 # Description: Enumerate all users login and logout hooks
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1543.001
 # Functions Used: print_2title
 # Global Variables: $MACPEAS 
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$MACPEAS" ];then
-  print_2title "All Login and Logout hooks"
+  print_2title "All Login and Logout hooks" "T1543.001"
   for user_home in /Users/*/ /private/var/root/; do
     if [ -f "${user_home}Library/Preferences/com.apple.loginwindow.plist" ]; then
       echo "User: $(basename "$user_home")" | sed -${E} "s,.*,${SED_LIGHT_CYAN},g"

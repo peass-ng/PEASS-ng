@@ -5,6 +5,7 @@
 # Description: Readable files belonging to root and readable by me but not world readable
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1083
 # Functions Used: echo_not_found, print_2title
 # Global Variables: $IAMROOT, $ROOT_FOLDER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if ! [ "$IAMROOT" ]; then
-  print_2title "Readable files belonging to root and readable by me but not world readable"
+  print_2title "Readable files belonging to root and readable by me but not world readable" "T1083"
   (find $ROOT_FOLDER -type f -user root ! -perm -o=r ! -path "/proc/*" 2>/dev/null | grep -v "\.journal" | while read f; do if [ -r "$f" ]; then ls -l "$f" 2>/dev/null | sed -${E} "s,/.*,${SED_RED},"; fi; done) || echo_not_found
   echo ""
 fi

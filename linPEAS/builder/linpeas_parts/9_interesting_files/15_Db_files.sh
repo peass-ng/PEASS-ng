@@ -5,6 +5,7 @@
 # Description: Searching tables inside readable .db/.sql/.sqlite files
 # License: GNU GPL
 # Version: 1.0 
+# Mitre: T1005
 # Functions Used: print_2title
 # Global Variables: $DEBUG, $HOME, $MACPEAS
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$MACPEAS" ]; then
-  print_2title "Reading messages database"
+  print_2title "Reading messages database" "T1005"
   sqlite3 $HOME/Library/Messages/chat.db 'select * from message' 2>/dev/null
   sqlite3 $HOME/Library/Messages/chat.db 'select * from attachment' 2>/dev/null
   sqlite3 $HOME/Library/Messages/chat.db 'select * from deleted_messages' 2>/dev/null
@@ -23,7 +24,7 @@ fi
 
 
 if [ "$PSTORAGE_DATABASE" ] || [ "$DEBUG" ]; then
-  print_2title "Searching tables inside readable .db/.sql/.sqlite files (limit 100)"
+  print_2title "Searching tables inside readable .db/.sql/.sqlite files (limit 100)" "T1005"
   FILECMD="$(command -v file 2>/dev/null || echo -n '')"
   printf "%s\n" "$PSTORAGE_DATABASE" | while read f; do
     if [ "$FILECMD" ]; then
@@ -73,6 +74,6 @@ fi
 echo ""
 
 if [ "$MACPEAS" ]; then
-  print_2title "Downloaded Files"
+  print_2title "Downloaded Files" "T1005"
   sqlite3 ~/Library/Preferences/com.apple.LaunchServices.QuarantineEventsV2 'select LSQuarantineAgentName, LSQuarantineDataURLString, LSQuarantineOriginURLString, date(LSQuarantineTimeStamp + 978307200, "unixepoch") as downloadedDate from LSQuarantineEvent order by LSQuarantineTimeStamp' | sort | grep -Ev "\|\|\|"
 fi

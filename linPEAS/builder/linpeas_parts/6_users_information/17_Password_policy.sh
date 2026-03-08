@@ -5,6 +5,7 @@
 # Description: Get assword policy
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1201
 # Functions Used: echo_not_found, print_2title
 # Global Variables: $EXTRA_CHECKS, $MACPEAS
 # Initial Functions:
@@ -14,16 +15,16 @@
 
 
 if [ "$EXTRA_CHECKS" ]; then
-  print_2title "Password policy"
+  print_2title "Password policy" "T1201"
   grep "^PASS_MAX_DAYS\|^PASS_MIN_DAYS\|^PASS_WARN_AGE\|^ENCRYPT_METHOD" /etc/login.defs 2>/dev/null || echo_not_found "/etc/login.defs"
   echo ""
 
   if [ "$MACPEAS" ]; then
-    print_2title "Relevant last user info and user configs"
+    print_2title "Relevant last user info and user configs" "T1201"
     defaults read /Library/Preferences/com.apple.loginwindow.plist 2>/dev/null
     echo ""
 
-    print_2title "Guest user status"
+    print_2title "Guest user status" "T1201"
     sysadminctl -afpGuestAccess status | sed -${E} "s,enabled,${SED_RED}," | sed -${E} "s,disabled,${SED_GREEN},"
     sysadminctl -guestAccount status | sed -${E} "s,enabled,${SED_RED}," | sed -${E} "s,disabled,${SED_GREEN},"
     sysadminctl -smbGuestAccess status | sed -${E} "s,enabled,${SED_RED}," | sed -${E} "s,disabled,${SED_GREEN},"

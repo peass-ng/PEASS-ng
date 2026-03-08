@@ -26,6 +26,7 @@
 #       - Resource-based attacks
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1082
 # Functions Used: print_2title, warn_exec
 # Global Variables: $DEBUG, $EXTRA_CHECKS
 # Initial Functions:
@@ -35,18 +36,18 @@
 
 
 if ([ "$(command -v diskutil 2>/dev/null || echo -n '')" ] || [ "$DEBUG" ]) && [ "$EXTRA_CHECKS" ]; then
-    print_2title "Mounted disks information"
+    print_2title "Mounted disks information" "T1082"
     warn_exec diskutil list
     echo ""
 fi
 
 if [ "$EXTRA_CHECKS" ] || [ "$DEBUG" ]; then
-    print_2title "System stats"
+    print_2title "System stats" "T1082"
     (df -h || lsblk) 2>/dev/null || echo_not_found "df and lsblk"
     warn_exec free 2>/dev/null
     echo ""
 
-    print_2title "Inode usage"
+    print_2title "Inode usage" "T1082"
     warn_exec df -i 2>/dev/null
     echo ""
 fi

@@ -39,9 +39,11 @@ namespace winPEAS.Checks
             @"SYSTEM\ControlSet001\Control",
         };
 
+        public string[] MitreAttackIds { get; } = new[] { "T1012", "T1574.011", "T1056.001" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Registry permissions for hive exploitation");
+            Beaprint.GreatPrint("Registry permissions for hive exploitation", "T1012,T1574.011,T1056.001");
 
             new List<Action>
             {
@@ -53,7 +55,7 @@ namespace winPEAS.Checks
 
         private void PrintTypingInsightsPermissions()
         {
-            Beaprint.MainPrint("Cross-user TypingInsights key (HKCU/HKU)");
+            Beaprint.MainPrint("Cross-user TypingInsights key (HKCU/HKU)", "T1056.001");
 
             var matches = new List<RegistryWritableKeyInfo>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -92,7 +94,7 @@ namespace winPEAS.Checks
 
         private void PrintKnownSystemWritableKeys()
         {
-            Beaprint.MainPrint("Known HKLM descendants writable by standard users");
+            Beaprint.MainPrint("Known HKLM descendants writable by standard users", "T1574.011");
 
             var matches = new List<RegistryWritableKeyInfo>();
             foreach (var path in KnownWritableSystemKeyCandidates)
@@ -114,7 +116,7 @@ namespace winPEAS.Checks
 
         private void PrintHeuristicWritableKeys()
         {
-            Beaprint.MainPrint("Sample of additional writable HKLM keys (depth-limited scan)");
+            Beaprint.MainPrint("Sample of additional writable HKLM keys (depth-limited scan)", "T1574.011");
 
             var matches = RegistryAclScanner.ScanWritableKeys("HKLM", ScanBasePaths, maxDepth: 3, maxResults: 25);
             if (matches.Count == 0)

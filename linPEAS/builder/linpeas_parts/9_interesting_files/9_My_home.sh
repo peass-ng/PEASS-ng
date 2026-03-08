@@ -5,6 +5,7 @@
 # Description: Files inside HOME
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1083
 # Functions Used: echo_not_found, print_2title
 # Global Variables: $HOME, $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Files inside $HOME (limit 20)"
+  print_2title "Files inside $HOME (limit 20)" "T1083"
   (ls -la $HOME 2>/dev/null | head -n 23) || echo_not_found
   echo ""
 fi

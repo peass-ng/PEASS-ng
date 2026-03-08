@@ -5,6 +5,7 @@
 # Description: AWS ECS Enumeration
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.005,T1580
 # Functions Used: check_aws_ecs, exec_with_jq, print_2title, print_3title
 # Global Variables: $aws_ecs_metadata_uri, $aws_ecs_service_account_uri, $is_aws_ecs
 # Initial Functions: check_aws_ecs
@@ -14,8 +15,7 @@
 
 
 if [ "$is_aws_ecs" = "Yes" ]; then
-    print_2title "AWS ECS Enumeration"
-    
+    print_2title "AWS ECS Enumeration" "T1552.005,T1580"
     aws_ecs_req=""
     if [ "$(command -v curl || echo -n '')" ]; then
         aws_ecs_req='curl -s -f'
@@ -26,11 +26,11 @@ if [ "$is_aws_ecs" = "Yes" ]; then
     fi
 
     if [ "$aws_ecs_metadata_uri" ]; then
-        print_3title "Container Info"
+        print_3title "Container Info" "T1552.005,T1580"
         exec_with_jq eval $aws_ecs_req "$aws_ecs_metadata_uri"
         echo ""
         
-        print_3title "Task Info"
+        print_3title "Task Info" "T1552.005,T1580"
         exec_with_jq eval $aws_ecs_req "$aws_ecs_metadata_uri/task"
         echo ""
     else
@@ -38,14 +38,14 @@ if [ "$is_aws_ecs" = "Yes" ]; then
     fi
 
     if [ "$aws_ecs_service_account_uri" ]; then
-        print_3title "IAM Role"
+        print_3title "IAM Role" "T1552.005,T1580"
         exec_with_jq eval $aws_ecs_req "$aws_ecs_service_account_uri"
         echo ""
     else
         echo "I couldn't find AWS_CONTAINER_CREDENTIALS_RELATIVE_URI env var to get IAM role info (the task is running without a task role probably)"
     fi
 
-    print_3title "ECS task metadata hints"
+    print_3title "ECS task metadata hints" "T1552.005,T1580"
     aws_exec_env=$(printenv AWS_EXECUTION_ENV 2>/dev/null)
     if [ "$aws_exec_env" ]; then
         printf "AWS_EXECUTION_ENV=%s\n" "$aws_exec_env"
@@ -70,7 +70,7 @@ if [ "$is_aws_ecs" = "Yes" ]; then
     fi
     echo ""
 
-    print_3title "IMDS reachability from this task"
+    print_3title "IMDS reachability from this task" "T1552.005,T1580"
     imds_token=""
     imds_roles=""
     imds_http_code=""
@@ -128,7 +128,7 @@ if [ "$is_aws_ecs" = "Yes" ]; then
     fi
     echo ""
 
-    print_3title "ECS agent IMDS settings"
+    print_3title "ECS agent IMDS settings" "T1552.005,T1580"
     if [ -r "/etc/ecs/ecs.config" ]; then
         ecs_block_line=$(grep -E "^ECS_AWSVPC_BLOCK_IMDS=" /etc/ecs/ecs.config 2>/dev/null | tail -n 1)
         ecs_host_line=$(grep -E "^ECS_ENABLE_TASK_IAM_ROLE_NETWORK_HOST=" /etc/ecs/ecs.config 2>/dev/null | tail -n 1)
@@ -158,7 +158,7 @@ if [ "$is_aws_ecs" = "Yes" ]; then
     fi
     echo ""
 
-    print_3title "DOCKER-USER IMDS filtering"
+    print_3title "DOCKER-USER IMDS filtering" "T1552.005,T1580"
     iptables_cmd=""
     if command -v iptables >/dev/null 2>&1; then
         iptables_cmd=$(command -v iptables)

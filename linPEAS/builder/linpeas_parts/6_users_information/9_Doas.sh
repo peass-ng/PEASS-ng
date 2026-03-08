@@ -5,6 +5,7 @@
 # Description: Check doas configuration and permissions for privilege escalation
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1548.003
 # Functions Used: echo_not_found, print_2title, print_info
 # Global Variables: $DEBUG, $nosh_usrs, $sh_usrs, $USER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ -f "/etc/doas.conf" ] || [ -f "/usr/local/etc/doas.conf" ] || [ "$DEBUG" ]; then
-  print_2title "Doas Configuration"
+  print_2title "Doas Configuration" "T1548.003"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#doas"
 
   # Find doas binary and its config locations

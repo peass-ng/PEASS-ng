@@ -5,6 +5,7 @@
 # Description: Checking Sudo tokens
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1548.003
 # Functions Used: print_2title, print_info
 # Global Variables: $HOME, $CURRENT_USER_PIVOT_PID
 # Initial Functions: get_current_user_privot_pid
@@ -13,7 +14,7 @@
 # Small linpeas: 1
 
 
-print_2title "Checking sudo tokens"
+print_2title "Checking sudo tokens" "T1548.003"
 print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#reusing-sudo-tokens"
 ptrace_scope="$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null)"
 if [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ]; then

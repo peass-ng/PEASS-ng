@@ -113,9 +113,11 @@ namespace winPEAS.Checks
         };
 
 
+        public string[] MitreAttackIds { get; } = new[] { "T1083", "T1552.001", "T1552.002", "T1552.004", "T1552.006", "T1003.002", "T1564.001", "T1574.001", "T1059.004", "T1114.001", "T1218", "T1649" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Interesting files and registry");
+            Beaprint.GreatPrint("Interesting files and registry", "T1083,T1552.001,T1552.002,T1552.004,T1552.006,T1003.002,T1564.001,T1574.001,T1059.004,T1114.001,T1218,T1649");
 
             new List<Action>
             {
@@ -150,7 +152,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Cloud Credentials");
+                Beaprint.MainPrint("Cloud Credentials", "T1552.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#files-and-registry-credentials");
                 List<Dictionary<string, string>> could_creds = KnownFileCredsInfo.ListCloudCreds();
                 if (could_creds.Count != 0)
@@ -175,7 +177,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Unattend Files");
+                Beaprint.MainPrint("Unattend Files", "T1552.001");
                 //Beaprint.LinkPrint("");
                 List<string> unattended_files = Unattended.GetUnattendedInstallFiles();
                 foreach (string path in unattended_files)
@@ -195,7 +197,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking for common SAM & SYSTEM backups");
+                Beaprint.MainPrint("Looking for common SAM & SYSTEM backups", "T1003.002");
                 List<string> sam_files = InterestingFiles.InterestingFiles.GetSAMBackups();
                 foreach (string path in sam_files)
                 {
@@ -218,7 +220,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking for McAfee Sitelist.xml Files");
+                Beaprint.MainPrint("Looking for McAfee Sitelist.xml Files", "T1552.001");
                 var sitelistFilesInfos = McAfee.GetMcAfeeSitelistInfos();
 
                 foreach (var sitelistFilesInfo in sitelistFilesInfos)
@@ -266,7 +268,7 @@ namespace winPEAS.Checks
 
         void PrintWSLDistributions()
         {
-            Beaprint.MainPrint("Looking for Linux shells/distributions - wsl.exe, bash.exe");
+            Beaprint.MainPrint("Looking for Linux shells/distributions - wsl.exe, bash.exe", "T1059.004");
             List<string> linuxShells = InterestingFiles.InterestingFiles.GetLinuxShells();
             string hive = "HKCU";
             string basePath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss";
@@ -353,7 +355,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Cached GPP Passwords");
+                Beaprint.MainPrint("Cached GPP Passwords", "T1552.006");
                 Dictionary<string, Dictionary<string, string>> gpp_passwords = GPP.GetCachedGPPPassword();
 
                 Dictionary<string, string> gppColors = new Dictionary<string, string>()
@@ -381,7 +383,7 @@ namespace winPEAS.Checks
                 string[] passRegHkcu = new string[] { @"Software\ORL\WinVNC3\Password", @"Software\TightVNC\Server", @"Software\SimonTatham\PuTTY\Sessions" };
                 string[] passRegHklm = new string[] { @"SYSTEM\CurrentControlSet\Services\SNMP" };
 
-                Beaprint.MainPrint("Looking for possible regs with creds");
+                Beaprint.MainPrint("Looking for possible regs with creds", "T1552.002");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#inside-the-registry");
 
                 string winVnc4 = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\RealVNC\WinVNC4", "password");
@@ -430,7 +432,7 @@ namespace winPEAS.Checks
                     { pattern_color, Beaprint.ansi_color_bad },
                 };
 
-                Beaprint.MainPrint("Looking for possible password files in users homes");
+                Beaprint.MainPrint("Looking for possible password files in users homes", "T1552.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#files-and-registry-credentials");
                 var fileInfos = SearchHelper.SearchUserCredsFiles();
 
@@ -469,7 +471,7 @@ namespace winPEAS.Checks
                     { _patternsFileCredsColor + "|.*password.*|.*credential.*", Beaprint.ansi_color_bad },
                 };
 
-                Beaprint.MainPrint("Looking inside the Recycle Bin for creds files");
+                Beaprint.MainPrint("Looking inside the Recycle Bin for creds files", "T1552.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#files-and-registry-credentials");
                 List<Dictionary<string, string>> recy_files = InterestingFiles.InterestingFiles.GetRecycleBin();
 
@@ -505,7 +507,7 @@ namespace winPEAS.Checks
                     { _patternsFileCredsColor, Beaprint.ansi_color_bad },
                 };
 
-                Beaprint.MainPrint("Searching known files that can contain creds in home");
+                Beaprint.MainPrint("Searching known files that can contain creds in home", "T1552.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#files-and-registry-credentials");
 
                 var files = SearchHelper.SearchUsersInterestingFiles();
@@ -522,7 +524,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking for documents --limit 100--");
+                Beaprint.MainPrint("Looking for documents --limit 100--", "T1083");
                 List<string> docFiles = InterestingFiles.InterestingFiles.ListUsersDocs();
                 Beaprint.ListPrint(MyUtils.GetLimitedRange(docFiles, 100));
             }
@@ -536,7 +538,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Recent files --limit 70--");
+                Beaprint.MainPrint("Recent files --limit 70--", "T1083");
                 List<Dictionary<string, string>> recFiles = KnownFileCredsInfo.GetRecentFiles();
 
                 Dictionary<string, string> colorF = new Dictionary<string, string>()
@@ -566,7 +568,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Searching interesting files in other users home directories (can be slow)\n");
+                Beaprint.MainPrint("Searching interesting files in other users home directories (can be slow)\n", "T1552.001");
 
                 // check if admin already, if yes, print a message, if not, try to enumerate all files
                 if (MyUtils.IsHighIntegrity())
@@ -684,7 +686,7 @@ namespace winPEAS.Checks
 
             var systemDrive = Environment.GetEnvironmentVariable("SystemDrive");
 
-            Beaprint.MainPrint($"Searching hidden files or folders in {systemDrive}\\Users home (can be slow)\n");
+            Beaprint.MainPrint($"Searching hidden files or folders in {systemDrive}\\Users home (can be slow)\n", "T1564.001");
 
             foreach (var file in SearchHelper.RootDirUsers)
             {
@@ -726,7 +728,7 @@ namespace winPEAS.Checks
 
         private void PrintExecutablesInNonDefaultFoldersWithWritePermissions()
         {
-            Beaprint.MainPrint($"Searching executable files in non-default folders with write (equivalent) permissions (can be slow)");
+            Beaprint.MainPrint($"Searching executable files in non-default folders with write (equivalent) permissions (can be slow)", "T1574.001");
 
             var systemDrive = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\";
 
@@ -785,7 +787,7 @@ namespace winPEAS.Checks
 
         private static void PrintOracleSQLDeveloperConfigFiles()
         {
-            Beaprint.MainPrint($"Searching for Oracle SQL Developer config files\n");
+            Beaprint.MainPrint($"Searching for Oracle SQL Developer config files\n", "T1552.001");
 
             var userFolders = User.GetUsersFolders();
 
@@ -817,7 +819,7 @@ namespace winPEAS.Checks
 
         private static void PrintMachineAndUserCertificateFiles()
         {
-            Beaprint.MainPrint($"Enumerating machine and user certificate files\n");
+            Beaprint.MainPrint($"Enumerating machine and user certificate files\n", "T1649,T1552.004");
 
             try
             {
@@ -861,7 +863,7 @@ namespace winPEAS.Checks
 
         private static void PrintOutlookDownloads()
         {
-            Beaprint.MainPrint("Enumerating Outlook download files\n");
+            Beaprint.MainPrint("Enumerating Outlook download files\n", "T1114.001");
 
             try
             {
@@ -897,7 +899,7 @@ namespace winPEAS.Checks
         {
             int limit = 50;
 
-            Beaprint.MainPrint($"Office Most Recent Files -- limit {limit}\n");
+            Beaprint.MainPrint($"Office Most Recent Files -- limit {limit}\n", "T1083");
 
             try
             {
@@ -931,7 +933,7 @@ namespace winPEAS.Checks
                 Beaprint.NoColorPrint($"          {mpSub.Key,-40} {mpSub.Value,-50} {formattedDateString}");
             }
 
-            Beaprint.MainPrint("Enumerating Office 365 endpoints synced by OneDrive.\n");
+            Beaprint.MainPrint("Enumerating Office 365 endpoints synced by OneDrive.\n", "T1083");
 
             try
             {
@@ -1007,7 +1009,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking for LOL Binaries and Scripts (can be slow)");
+                Beaprint.MainPrint("Looking for LOL Binaries and Scripts (can be slow)", "T1218");
                 Beaprint.LinkPrint("https://lolbas-project.github.io/");
 
                 if (!Checks.IsLolbas)

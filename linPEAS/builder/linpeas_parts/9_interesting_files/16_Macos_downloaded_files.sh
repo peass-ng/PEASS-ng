@@ -5,6 +5,7 @@
 # Description: Check which files have been downloaded
 # License: GNU GPL
 # Version: 1.0 
+# Mitre: T1005
 # Functions Used: print_2title
 # Global Variables: $MACPEAS
 # Initial Functions:
@@ -14,6 +15,6 @@
 
 
 if [ "$MACPEAS" ]; then
-  print_2title "Downloaded Files"
+  print_2title "Downloaded Files" "T1005"
   sqlite3 ~/Library/Preferences/com.apple.LaunchServices.QuarantineEventsV2 'select LSQuarantineAgentName, LSQuarantineDataURLString, LSQuarantineOriginURLString, date(LSQuarantineTimeStamp + 978307200, "unixepoch") as downloadedDate from LSQuarantineEvent order by LSQuarantineTimeStamp' | sort | grep -Ev "\|\|\|"
 fi

@@ -5,6 +5,7 @@
 # Description: Passwords in history cmd
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: print_2title
 # Global Variables: $DEBUG, $pwd_inside_history
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$(history 2>/dev/null)" ] || [ "$DEBUG" ]; then
-  print_2title "Searching passwords in history cmd"
+  print_2title "Searching passwords in history cmd" "T1552.001"
   history | grep -Ei "$pwd_inside_history" "$f" 2>/dev/null | sed -${E} "s,$pwd_inside_history,${SED_RED},"
   echo ""
 fi

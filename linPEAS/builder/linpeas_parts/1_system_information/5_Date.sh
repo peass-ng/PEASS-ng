@@ -25,6 +25,7 @@
 #       - Cron job abuse
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1082
 # Functions Used: print_2title, warn_exec
 # Global Variables:
 # Initial Functions:
@@ -33,7 +34,7 @@
 # Small linpeas: 0
 
 
-print_2title "Date & uptime"
+print_2title "Date & uptime" "T1082"
 warn_exec date 2>/dev/null
 warn_exec uptime 2>/dev/null
 echo ""

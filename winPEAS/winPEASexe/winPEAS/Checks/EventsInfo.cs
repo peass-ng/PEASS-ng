@@ -11,9 +11,11 @@ namespace winPEAS.Checks
 {
     internal class EventsInfo : ISystemCheck
     {
+        public string[] MitreAttackIds { get; } = new[] { "T1654", "T1078", "T1078.003", "T1552.001", "T1059.001", "T1082" };
+
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Interesting Events information");
+            Beaprint.GreatPrint("Interesting Events information", "T1654,T1078,T1078.003,T1552.001,T1059.001,T1082");
 
             new List<Action>
             {
@@ -29,7 +31,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("PowerShell events - script block logs (EID 4104) - searching for sensitive data.\n");
+                Beaprint.MainPrint("PowerShell events - script block logs (EID 4104) - searching for sensitive data.\n", "T1552.001,T1059.001");
                 var powerShellEventInfos = PowerShell.GetPowerShellEventInfos();
 
                 foreach (var info in powerShellEventInfos)
@@ -53,7 +55,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Process creation events - searching logs (EID 4688) for sensitive data.\n");
+                Beaprint.MainPrint("Process creation events - searching logs (EID 4688) for sensitive data.\n", "T1654");
 
                 if (!MyUtils.IsHighIntegrity())
                 {
@@ -82,7 +84,7 @@ namespace winPEAS.Checks
             try
             {
                 var lastDays = 10;
-                Beaprint.MainPrint($"Printing Account Logon Events (4624) for the last {lastDays} days.\n");
+                Beaprint.MainPrint($"Printing Account Logon Events (4624) for the last {lastDays} days.\n", "T1654,T1078");
 
                 if (!MyUtils.IsHighIntegrity())
                 {
@@ -151,7 +153,7 @@ namespace winPEAS.Checks
             {
                 var lastDays = 30;
 
-                Beaprint.MainPrint($"Printing Explicit Credential Events (4648) for last {lastDays} days - A process logged on using plaintext credentials\n");
+                Beaprint.MainPrint($"Printing Explicit Credential Events (4648) for last {lastDays} days - A process logged on using plaintext credentials\n", "T1078.003");
 
                 if (!MyUtils.IsHighIntegrity())
                 {
@@ -198,7 +200,7 @@ namespace winPEAS.Checks
             {
                 var lastDays = 5;
 
-                Beaprint.MainPrint($"Displaying Power off/on events for last {lastDays} days\n");
+                Beaprint.MainPrint($"Displaying Power off/on events for last {lastDays} days\n", "T1082");
 
                 var infos = Power.GetPowerEventInfos(lastDays);
 

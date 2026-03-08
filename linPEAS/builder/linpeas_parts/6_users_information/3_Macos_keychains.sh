@@ -5,6 +5,7 @@
 # Description: Get macOS keychains information
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1555.001
 # Functions Used: print_2title, print_info
 # Global Variables: $MACPEAS
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$MACPEAS" ];then
-  print_2title "Keychains"
+  print_2title "Keychains" "T1555.001"
   print_info "https://book.hacktricks.wiki/en/macos-hardening/macos-security-and-privilege-escalation/macos-files-folders-and-binaries/macos-sensitive-locations.html#chainbreaker"
   echo "System Keychains:" | sed -${E} "s,.*,${SED_LIGHT_CYAN},g"
   security list-keychains 2>/dev/null | sed -${E} "s,.*,${SED_RED},g"

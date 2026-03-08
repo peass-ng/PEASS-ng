@@ -5,6 +5,7 @@
 # Description: YubiKey athentication
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1556
 # Functions Used: print_2title
 # Global Variables: $DEBUG, $IAMROOT
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if (grep "auth=" /etc/login.conf 2>/dev/null | grep -v "^#" | grep -q yubikey) || [ "$DEBUG" ]; then
-  print_2title "YubiKey authentication"
+  print_2title "YubiKey authentication" "T1556"
   printf "System supports$RED YubiKey authentication\n"
   if ! [ "$IAMROOT" ] && [ -w /var/db/yubikey/ ]; then
     echo "${RED}/var/db/yubikey/ is writable by you"

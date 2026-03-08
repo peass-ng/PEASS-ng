@@ -5,6 +5,7 @@
 # Description: Networks and neighbours
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1018,T1040
 # Functions Used: print_2title, print_3title
 # Global Variables: $EXTRA_CHECKS, $MACPEAS
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 # Function to parse routing information from /proc/net/route
 parse_proc_route() {
-    print_3title "Routing Table (from /proc/net/route)"
+    print_3title "Routing Table (from /proc/net/route)" "T1018,T1040"
     echo "Destination         Gateway         Genmask         Flags Metric Ref    Use Iface"
     echo "--------------------------------------------------------------------------------"
     # Skip header line and process each route
@@ -39,7 +40,7 @@ parse_proc_route() {
 
 # Function to parse ARP information from /proc/net/arp
 parse_proc_arp() {
-    print_3title "ARP Table (from /proc/net/arp)"
+    print_3title "ARP Table (from /proc/net/arp)" "T1018,T1040"
     echo "IP address       HW type     Flags     HW address           Mask     Device"
     echo "------------------------------------------------------------------------"
     # Skip header line and process each ARP entry
@@ -61,10 +62,9 @@ parse_proc_arp() {
 
 # Function to get network neighbors information
 get_network_neighbors() {
-    print_2title "Networks and neighbours"
-
+    print_2title "Networks and neighbours" "T1018,T1040"
     # Get routing information
-    print_3title "Routing Information"
+    print_3title "Routing Information" "T1018,T1040"
     if [ "$MACPEAS" ]; then
         # macOS specific
         if command -v netstat >/dev/null 2>&1; then
@@ -88,7 +88,7 @@ get_network_neighbors() {
     fi
 
     # Get ARP information
-    print_3title "ARP Information"
+    print_3title "ARP Information" "T1018,T1040"
     if command -v arp >/dev/null 2>&1; then
         if [ "$MACPEAS" ]; then
             arp -a 2>/dev/null
@@ -102,8 +102,7 @@ get_network_neighbors() {
     fi
 
     # Additional neighbor discovery methods
-    print_3title "Additional Neighbor Information"
-    
+    print_3title "Additional Neighbor Information" "T1018,T1040"
     # Check for IPv6 neighbors if available
     if [ -f "/proc/net/ipv6_neigh" ]; then
         echo "IPv6 Neighbors:"

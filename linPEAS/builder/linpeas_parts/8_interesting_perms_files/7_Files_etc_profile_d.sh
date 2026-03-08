@@ -5,6 +5,7 @@
 # Description: Files (scripts) in /etc/profile.d/
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1546.004
 # Functions Used: check_critial_root_path, echo_not_found, print_2title, print_info
 # Global Variables: $IAMROOT, $MACPEAS, $profiledG, $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Files (scripts) in /etc/profile.d/"
+  print_2title "Files (scripts) in /etc/profile.d/" "T1546.004"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#profiles-files"
   if [ ! "$MACPEAS" ] && ! [ "$IAMROOT" ]; then #Those folders don´t exist on a MacOS
     (ls -la /etc/profile.d/ 2>/dev/null | sed -${E} "s,$profiledG,${SED_GREEN},") || echo_not_found "/etc/profile.d/"

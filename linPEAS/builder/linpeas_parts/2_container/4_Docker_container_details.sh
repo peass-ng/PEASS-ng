@@ -5,6 +5,7 @@
 # Description: Get docker Container details from the inside
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1613
 # Functions Used: checkDockerRootless, checkDockerVersionExploits, containerCheck, enumerateDockerSockets, inDockerGroup, print_2title, print_list
 # Global Variables: $containerType, $DOCKER_GROUP, $DOCKER_ROOTLESS, $dockerVersion, $inContainer, $VULN_CVE_2019_5736, $VULN_CVE_2019_13139, $VULN_CVE_2021_41091
 # Initial Functions: containerCheck
@@ -15,7 +16,7 @@
 
 #If docker
 if echo "$containerType" | grep -qi "docker"; then
-    print_2title "Docker Container details"
+    print_2title "Docker Container details" "T1613"
     inDockerGroup
     print_list "Am I inside Docker group .......$NC $DOCKER_GROUP\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     print_list "Looking and enumerating Docker Sockets (if any):\n"$NC
@@ -31,7 +32,7 @@ if echo "$containerType" | grep -qi "docker"; then
         echo ""
     fi
     if df -h | grep docker; then
-        print_2title "Docker Overlays"
+        print_2title "Docker Overlays" "T1613"
         df -h | grep docker
     fi
 fi

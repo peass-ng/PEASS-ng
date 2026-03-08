@@ -8,6 +8,7 @@
 #   (classic container-to-host breakout via writable bind mount).
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1611
 # Functions Used: containerCheck, print_2title, print_list, print_info
 # Global Variables: $inContainer
 # Initial Functions: containerCheck
@@ -19,7 +20,7 @@ containerCheck
 
 if [ "$inContainer" ]; then
   echo ""
-  print_2title "Container - Writable bind mounts w/o nosuid (SUID persistence risk)"
+  print_2title "Container - Writable bind mounts w/o nosuid (SUID persistence risk)" "T1611"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation/index.html#writable-bind-mounts"
 
   if [ -r /proc/self/mountinfo ]; then

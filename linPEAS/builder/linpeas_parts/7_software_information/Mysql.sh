@@ -5,6 +5,7 @@
 # Description: Mysql credentials
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1552.001
 # Functions Used: print_2title
 # Global Variables: $DEBUG, $knw_usrs, $nosh_usrs, $sh_usrs, $DEBUG, $USER, $STRINGS
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if [ "$PSTORAGE_MYSQL" ] || [ "$DEBUG" ]; then
-  print_2title "Searching mysql credentials and exec"
+  print_2title "Searching mysql credentials and exec" "T1552.001"
   printf "%s\n" "$PSTORAGE_MYSQL" | while read d; do
     if [ -f "$d" ] && ! [ "$(basename $d)" = "mysql" ]; then # Only interested in "mysql" that are folders (filesaren't the ones with creds)
       echo "Potential file containing credentials:"
@@ -66,7 +67,7 @@ echo ""
 
 #-- SI) Mysql version
 if [ "$(command -v mysql || echo -n '')" ] || [ "$(command -v mysqladmin || echo -n '')" ] || [ "$DEBUG" ]; then
-  print_2title "MySQL version"
+  print_2title "MySQL version" "T1552.001"
   mysql --version 2>/dev/null || echo_not_found "mysql"
   mysqluser=$(systemctl status mysql 2>/dev/null | grep -o ".\{0,0\}user.\{0,50\}" | cut -d '=' -f2 | cut -d ' ' -f1)
   if [ "$mysqluser" ]; then

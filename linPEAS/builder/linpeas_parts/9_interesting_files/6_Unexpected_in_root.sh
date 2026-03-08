@@ -5,6 +5,7 @@
 # Description: Unexpected folders in /
 # License: GNU GPL
 # Version: 1.0
+# Mitre: T1083
 # Functions Used: echo_not_found, print_2title
 # Global Variables: $commonrootdirsG, $commonrootdirsMacG, $MACPEAS, $ROOT_FOLDER, $SEARCH_IN_FOLDER
 # Initial Functions:
@@ -14,7 +15,7 @@
 
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Unexpected in root"
+  print_2title "Unexpected in root" "T1083"
   if [ "$MACPEAS" ]; then
     (find $ROOT_FOLDER -maxdepth 1 | grep -Ev "$commonrootdirsMacG" | sed -${E} "s,.*,${SED_RED},") || echo_not_found
   else
