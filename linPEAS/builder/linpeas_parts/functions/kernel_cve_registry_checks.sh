@@ -223,6 +223,26 @@ EOFC
     printf "%s" "$KERNEL_CVE_ID_OUT"
 }
 
+kercve_print_match() {
+    KERNEL_CVE_PRINT_ID="$1"
+    KERNEL_CVE_NAME="$2"
+    KERNEL_CVE_REQS="$3"
+    KERNEL_CVE_TAGS="$4"
+    KERNEL_CVE_RANK="$5"
+    KERNEL_CVE_COMMENTS="$6"
+    KERNEL_CVE_PRINT_LINE=""
+
+    [ -n "$KERNEL_CVE_PRINT_ID" ] && KERNEL_CVE_PRINT_LINE="CVE: $KERNEL_CVE_PRINT_ID"
+    [ -n "$KERNEL_CVE_NAME" ] && KERNEL_CVE_PRINT_LINE="${KERNEL_CVE_PRINT_LINE}${KERNEL_CVE_PRINT_LINE:+ | }Name: $KERNEL_CVE_NAME"
+    [ -n "$KERNEL_CVE_REQS" ] && KERNEL_CVE_PRINT_LINE="${KERNEL_CVE_PRINT_LINE}${KERNEL_CVE_PRINT_LINE:+ | }Match data: $KERNEL_CVE_REQS"
+    [ -n "$KERNEL_CVE_TAGS" ] && KERNEL_CVE_PRINT_LINE="${KERNEL_CVE_PRINT_LINE}${KERNEL_CVE_PRINT_LINE:+ | }Tags: $KERNEL_CVE_TAGS"
+    [ -n "$KERNEL_CVE_RANK" ] && KERNEL_CVE_PRINT_LINE="${KERNEL_CVE_PRINT_LINE}${KERNEL_CVE_PRINT_LINE:+ | }Rank: $KERNEL_CVE_RANK"
+    [ -n "$KERNEL_CVE_COMMENTS" ] && KERNEL_CVE_PRINT_LINE="${KERNEL_CVE_PRINT_LINE}${KERNEL_CVE_PRINT_LINE:+ | }Details: $KERNEL_CVE_COMMENTS"
+
+    [ -z "$KERNEL_CVE_PRINT_LINE" ] && KERNEL_CVE_PRINT_LINE="Kernel vuln matched with no printable metadata"
+    printf "%s\n" "$KERNEL_CVE_PRINT_LINE" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+}
+
 kercve_run_registry() {
     KERNEL_CVE_KERNEL_OS=$(uname -s 2>/dev/null)
     KERNEL_CVE_KERNEL_RELEASE=$(uname -r 2>/dev/null)
@@ -262,7 +282,6 @@ kercve_run_registry() {
 
     KERNEL_CVE_MATCHES=0
 
-    print_3title "Matched CVEs"
     while IFS="	" read -r KERNEL_CVE_ID KERNEL_CVE_NAME KERNEL_CVE_REQS KERNEL_CVE_TAGS KERNEL_CVE_RANK KERNEL_CVE_COMMENTS; do
         [ -z "$KERNEL_CVE_ID" ] && continue
 
@@ -289,7 +308,8 @@ EOFR
 
         # Some embedded datasets store rows as: <exploit_name> <cve_id> <versions> ...
         # while others store: <cve_id> <exploit_name> <reqs> ...
-        # Normalize whichever column contains the CVE identifier and keep the printable name sensible.
+        # Normalize whichever column contains the CVE identifier, but keep printing
+        # all matched vulns even when no CVE exists for that row.
         KERNEL_CVE_ID_RAW="$KERNEL_CVE_ID"
         KERNEL_CVE_ID_NORM=$(kercve_normalize_cve_list "$KERNEL_CVE_ID_RAW")
         if [ -z "$KERNEL_CVE_ID_NORM" ]; then
@@ -298,21 +318,29 @@ EOFR
                 KERNEL_CVE_NAME="$KERNEL_CVE_ID_RAW"
             fi
         fi
-        [ -z "$KERNEL_CVE_ID_NORM" ] && continue
+
+        if [ "$KERNEL_CVE_NAME" = "N/A" ] || [ "$KERNEL_CVE_NAME" = "n/a" ] || [ "$KERNEL_CVE_NAME" = "N\\A" ]; then
+            KERNEL_CVE_NAME=""
+        fi
+        if [ "$KERNEL_CVE_ID_RAW" = "N/A" ] || [ "$KERNEL_CVE_ID_RAW" = "n/a" ] || [ "$KERNEL_CVE_ID_RAW" = "N\\A" ]; then
+            KERNEL_CVE_ID_RAW=""
+        fi
+
         KERNEL_CVE_PRINT_ID="$KERNEL_CVE_ID_NORM"
+        if [ -z "$KERNEL_CVE_PRINT_ID" ] && printf "%s" "$KERNEL_CVE_ID_RAW" | grep -Eq '^CVE-|^[0-9]{4}-[0-9]+$'; then
+            KERNEL_CVE_PRINT_ID=$(kercve_normalize_cve_list "$KERNEL_CVE_ID_RAW")
+        fi
 
         KERNEL_CVE_MATCHES=$((KERNEL_CVE_MATCHES + 1))
-        printf "%-30s %s\n" "$KERNEL_CVE_PRINT_ID" "$KERNEL_CVE_NAME" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+        kercve_print_match "$KERNEL_CVE_PRINT_ID" "$KERNEL_CVE_NAME" "$KERNEL_CVE_REQS" "$KERNEL_CVE_TAGS" "$KERNEL_CVE_RANK" "$KERNEL_CVE_COMMENTS"
     done <<EOFD
 $KERNEL_CVE_ALL_DATA
 EOFD
 
-    KERNEL_CVE_PRINT_REASON="Matched CVEs: $KERNEL_CVE_MATCHES"
+    KERNEL_CVE_PRINT_REASON="Kernel vulns found: $KERNEL_CVE_MATCHES"
     if [ "$KERNEL_CVE_MATCHES" -gt 0 ]; then
         print_list "$KERNEL_CVE_PRINT_REASON\n" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     else
         print_list "No rule matched current kernel/version prerequisites in embedded datasets.\n" | sed -${E} "s,.*,${SED_GREEN},"
     fi
-
-    print_list "CVE format note: only normalized CVE-YYYY-NNNN identifiers are reported as findings.\n"
 }
