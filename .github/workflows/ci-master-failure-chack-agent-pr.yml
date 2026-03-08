@@ -195,6 +195,11 @@ jobs:
             git reset -- chack_failure_summary.txt chack_failure_evidence.txt chack_prompt.txt chack_failed_steps_logs.txt
             # Never include generated regex list updates in automated fixer commits.
             git reset -- build_lists/regexes.yaml || true
+            # Never allow the agent to commit generated linpeas artifacts.
+            git reset -- linpeas.sh linpeas_fat.sh || true
+            while IFS= read -r forbidden_file; do
+              git reset -- "$forbidden_file" || true
+            done < <(git diff --name-only --cached | grep -E '(^|/)(linpeas\.sh|linpeas_fat\.sh)$' || true)
             while IFS= read -r file; do
               case "$file" in
                 *.txt|*.md)
@@ -204,6 +209,11 @@ jobs:
             done < <(git diff --name-only --cached)
             if [ "$CAN_PUSH_WORKFLOWS" != "true" ] && git diff --cached --name-only | grep -q '^.github/workflows/'; then
               echo "Workflow-file changes are still staged; skipping push without workflows permission."
+              echo "pushed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            if git diff --cached --name-only | grep -Eq '(^|/)(linpeas\.sh|linpeas_fat\.sh)$'; then
+              echo "Forbidden generated linpeas files are still staged; skipping push."
               echo "pushed=false" >> "$GITHUB_OUTPUT"
               exit 0
             fi
@@ -256,6 +266,15 @@ jobs:
           git apply --index /tmp/chack_sanitized.patch
           rm -f chack_failure_summary.txt chack_failure_evidence.txt chack_prompt.txt chack_failed_steps_logs.txt
           git reset -- chack_failure_summary.txt chack_failure_evidence.txt chack_prompt.txt chack_failed_steps_logs.txt || true
+          git reset -- linpeas.sh linpeas_fat.sh || true
+          while IFS= read -r forbidden_file; do
+            git reset -- "$forbidden_file" || true
+          done < <(git diff --name-only --cached | grep -E '(^|/)(linpeas\.sh|linpeas_fat\.sh)$' || true)
+          if git diff --cached --name-only | grep -Eq '(^|/)(linpeas\.sh|linpeas_fat\.sh)$'; then
+            echo "Forbidden generated linpeas files remain after sanitizing; skipping push."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           if git diff --cached --quiet; then
             echo "No sanitized changes left after filtering."
             echo "pushed=false" >> "$GITHUB_OUTPUT"

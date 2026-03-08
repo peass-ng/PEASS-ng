@@ -217,6 +217,11 @@ jobs:
             git reset -- chack_failure_summary.txt chack_prompt.txt
             # Never commit generated or regenerated regex list files from this workflow.
             git reset -- build_lists/regexes.yaml || true
+            # Never allow the agent to commit generated linpeas artifacts.
+            git reset -- linpeas.sh linpeas_fat.sh || true
+            while IFS= read -r forbidden_file; do
+              git reset -- "$forbidden_file" || true
+            done < <(git diff --name-only --cached | grep -E '(^|/)(linpeas\.sh|linpeas_fat\.sh)$' || true)
             while IFS= read -r file; do
               case "$file" in
                 *.txt|*.md)
@@ -224,6 +229,11 @@ jobs:
                   ;;
               esac
             done < <(git diff --name-only --cached)
+            if git diff --cached --name-only | grep -Eq '(^|/)(linpeas\.sh|linpeas_fat\.sh)$'; then
+              echo "Forbidden generated linpeas files are still staged; skipping push."
+              echo "pushed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             if ! git diff --cached --quiet; then
               git commit -m "Fix CI failures for PR #${PR_NUMBER}"
             fi
