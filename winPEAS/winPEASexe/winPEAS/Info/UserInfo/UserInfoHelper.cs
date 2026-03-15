@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
@@ -16,6 +17,7 @@ namespace winPEAS.Info.UserInfo
 {
     class UserInfoHelper
     {
+        private const int ClipboardReadTimeoutMs = 1500;
         private static readonly Dictionary<string, bool> _highPrivAccountCache = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         private static readonly string[] _highPrivGroupIndicators = new string[]
         {
@@ -338,29 +340,48 @@ namespace winPEAS.Info.UserInfo
         // From: https://stackoverflow.com/questions/35867427/read-text-from-clipboard
         public static string GetClipboardText()
         {
-            string c = "";
-            try
+            string clipboardText = "";
+            Exception clipboardException = null;
+
+            Thread clipboardThread = new Thread(() =>
             {
-                if (Clipboard.ContainsText(TextDataFormat.Text))
-                    c = Clipboard.GetText(TextDataFormat.Text);
+                try
+                {
+                    if (Clipboard.ContainsText(TextDataFormat.Text))
+                        clipboardText = Clipboard.GetText(TextDataFormat.Text);
 
-                else if (Clipboard.ContainsText(TextDataFormat.Html))
-                    c = Clipboard.GetText(TextDataFormat.Html);
+                    else if (Clipboard.ContainsText(TextDataFormat.Html))
+                        clipboardText = Clipboard.GetText(TextDataFormat.Html);
 
-                else if (Clipboard.ContainsAudio())
-                    c = $"{Clipboard.GetAudioStream()}";
+                    else if (Clipboard.ContainsAudio())
+                        clipboardText = $"{Clipboard.GetAudioStream()}";
 
-                else if (Clipboard.ContainsFileDropList())
-                    c = $"{Clipboard.GetFileDropList()}";
+                    else if (Clipboard.ContainsFileDropList())
+                        clipboardText = $"{Clipboard.GetFileDropList()}";
 
-                //else if (Clipboard.ContainsImage()) //No system.Drwing import
-                //c = string.Format("{0}", Clipboard.GetImage());
-            }
-            catch (Exception ex)
+                    //else if (Clipboard.ContainsImage()) //No system.Drwing import
+                    //clipboardText = string.Format("{0}", Clipboard.GetImage());
+                }
+                catch (Exception ex)
+                {
+                    clipboardException = ex;
+                }
+            });
+
+            clipboardThread.SetApartmentState(ApartmentState.STA);
+            clipboardThread.IsBackground = true;
+            clipboardThread.Start();
+
+            if (!clipboardThread.Join(ClipboardReadTimeoutMs))
             {
-                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
+                Beaprint.GrayPrint($"  [X] Clipboard read timed out after {ClipboardReadTimeoutMs}ms");
+                return "";
             }
-            return c;
+
+            if (clipboardException != null)
+                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", clipboardException));
+
+            return clipboardText;
         }
     }
 }
