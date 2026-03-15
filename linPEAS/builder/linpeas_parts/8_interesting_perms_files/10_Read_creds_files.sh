@@ -6,7 +6,7 @@
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1552.001
-# Functions Used: echo_no, print_list
+# Functions Used: echo_no, print_2title, print_list
 # Global Variables: $IAMROOT, $SEARCH_IN_FOLDER, $USER, $wgroups
 # Initial Functions:
 # Generated Global Variables: $possible_check
@@ -16,6 +16,7 @@
 
 ##-- IPF) Hashes in passwd file
 if ! [ "$SEARCH_IN_FOLDER" ]; then
+  print_2title "Readable credential/config files (T1552.001)" "T1552.001"
   print_list "Hashes inside passwd file? ........... "
   if grep -qv '^[^:]*:[x\*\!]\|^#\|^$' /etc/passwd /etc/master.passwd /etc/group 2>/dev/null; then grep -v '^[^:]*:[x\*]\|^#\|^$' /etc/passwd /etc/pwd.db /etc/master.passwd /etc/group 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
   else echo_no

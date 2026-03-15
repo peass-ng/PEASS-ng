@@ -78,10 +78,10 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
       # If it's a symlink, check the target file
       local target_file=$(readlink -f "$service_file")
       if ! [ "$IAMROOT" ] && [ -w "$target_file" ] && [ -f "$target_file" ] && ! [ "$SEARCH_IN_FOLDER" ]; then
-        findings="${findings}WRITABLE_FILE: Service target file is writable: $target_file\n"
+        findings="${findings}WRITABLE_FILE (T1574.010): Service target file is writable: $target_file\n"
       fi
     elif ! [ "$IAMROOT" ] && [ -w "$service_file" ] && [ -f "$service_file" ] && ! [ "$SEARCH_IN_FOLDER" ]; then
-      findings="${findings}WRITABLE_FILE: Service file is writable\n"
+      findings="${findings}WRITABLE_FILE (T1574.010): Service file is writable\n"
     fi
 
     # Check for weak permissions (following symlinks)

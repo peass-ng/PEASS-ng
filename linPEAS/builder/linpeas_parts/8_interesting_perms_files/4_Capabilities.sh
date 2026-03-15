@@ -15,7 +15,7 @@
 
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
-  print_2title "Capabilities" "T1548.001"
+  print_2title "Capabilities (T1548.001)" "T1548.001"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#capabilities"
   if [ "$(command -v capsh || echo -n '')" ]; then
     print_3title "Current shell capabilities" "T1548.001"
@@ -115,7 +115,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     echo ""
   fi
   echo ""
-  echo "Files with capabilities (limited to 50):"
+  echo "Files with capabilities (T1548.001, limited to 50):"
   getcap -r / 2>/dev/null | head -n 50 | while read cb; do
     capsVB_vuln=""
     

@@ -14,7 +14,7 @@
 # Small linpeas: 1
 
 
-print_2title "Searching ssl/ssh files" "T1552.004,T1021.004"
+print_2title "Searching ssl/ssh files (T1552.004)" "T1552.004,T1021.004"
 if [ "$PSTORAGE_CERTSB4" ]; then certsb4_grep=$(grep -L "\"\|'\|(" $PSTORAGE_CERTSB4 2>/dev/null); fi
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   sshconfig="$(ls /etc/ssh/ssh_config 2>/dev/null)"
@@ -55,7 +55,7 @@ fi
 
 if [ "$privatekeyfilesetc" ] || [ "$privatekeyfileshome" ] || [ "$privatekeyfilesroot" ] || [ "$privatekeyfilesmnt" ] ; then
   echo ""
-  print_3title "Possible private SSH keys were found!" | sed -${E} "s,private SSH keys,${SED_RED},"
+  print_3title "Possible private SSH keys were found! (T1552.004)" "T1552.004" | sed -${E} "s,private SSH keys,${SED_RED},"
   if [ "$privatekeyfilesetc" ]; then printf "$privatekeyfilesetc\n" | sed -${E} "s,.*,${SED_RED},"; fi
   if [ "$privatekeyfileshome" ]; then printf "$privatekeyfileshome\n" | sed -${E} "s,.*,${SED_RED},"; fi
   if [ "$privatekeyfilesroot" ]; then printf "$privatekeyfilesroot\n" | sed -${E} "s,.*,${SED_RED},"; fi

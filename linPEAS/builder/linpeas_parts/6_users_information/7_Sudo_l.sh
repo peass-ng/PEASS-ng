@@ -14,7 +14,7 @@
 # Small linpeas: 1
 
 
-print_2title "Checking 'sudo -l', /etc/sudoers, and /etc/sudoers.d" "T1548.003"
+print_2title "Checking 'sudo -l', /etc/sudoers, and /etc/sudoers.d (T1548.003)" "T1548.003"
 print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sudo-and-suid"
 (echo '' | timeout 1 sudo -S -l | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,\!root,${SED_RED},") 2>/dev/null || echo_not_found "sudo"
 if [ "$PASSWORD" ]; then
