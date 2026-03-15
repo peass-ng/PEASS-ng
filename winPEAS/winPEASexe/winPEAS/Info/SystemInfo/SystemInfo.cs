@@ -52,9 +52,6 @@ namespace winPEAS.Info.SystemInfo
         public static Dictionary<string, string> GetBasicOSInfo()
         {
             Dictionary<string, string> results = new Dictionary<string, string>();
-
-            // Systeminfo from cmd to be able to use wes-ng
-            ///////////////////////////////////////////////
             
             Process process = new Process();
 
@@ -90,7 +87,7 @@ namespace winPEAS.Info.SystemInfo
                     {
                         results["OS Name"] = value;
                     }
-                    //I have to find a better way. Maybe use regex from wes-ng
+
                     if (Regex.IsMatch(value, osversion, RegexOptions.IgnoreCase))
                     {
                         results["OS Version"] = value;
@@ -104,8 +101,6 @@ namespace winPEAS.Info.SystemInfo
                 }
             }
 
-            // ENDING Systeminfo from cmd to be able to use wes-ng
-            ///////////////////////////////////////////////
             try
             {
                 string ProductName = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "ProductName");

@@ -135,11 +135,11 @@ namespace winPEAS.Checks
 
                 if (report.CandidateProducts.Count == 0)
                 {
-                    Beaprint.InfoPrint("Unable to map this OS to WES-NG product definitions.");
+                    Beaprint.InfoPrint("Unable to map this OS to product definitions.");
                     return;
                 }
 
-                Beaprint.InfoPrint("WES-NG product candidates: " + string.Join(" | ", report.CandidateProducts));
+                Beaprint.InfoPrint("Product candidates: " + string.Join(" | ", report.CandidateProducts));
                 if (!string.IsNullOrEmpty(report.DefinitionsDate))
                 {
                     Beaprint.InfoPrint("Definitions date: " + report.DefinitionsDate);

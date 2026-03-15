@@ -22,6 +22,9 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Install Python dependencies
+        run: python3 -m pip install --disable-pip-version-check openpyxl
+
       - name: Update windows version definitions
         run: python3 build_lists/update_windows_version_defs.py
 
@@ -32,7 +35,7 @@ jobs:
         with:
           commit-message: "chore(winpeas): update windows version vulnerability definitions"
           title: "chore(winpeas): update windows version vulnerability definitions"
-          body: "Automated update of `build_lists/windows_version_exploits.json` from latest WES-NG definitions."
+          body: "Automated update of `build_lists/windows_version_exploits.json`."
           branch: "bot/update-windows-version-definitions"
           delete-branch: true
 
