@@ -105,7 +105,7 @@ jobs:
         uses: carlospolop/chack-agent@master
         with:
           provider: codex
-          model_primary: CHEAP_BUT_QUALITY
+          model_primary: BEST_QUALITY
           max_turns: 125
           main_action: peass-ng-pr-traige
           sub_action: Chack-Agent PR Triage
@@ -140,7 +140,7 @@ jobs:
 
             Output JSON only, following the provided schema:
             .github/chack-agent/pr-merge-schema.json
-          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          codex_access_token: ${{ secrets.CODEX_ACCESS_TOKEN }}
 
       - name: Parse Chack Agent decision
         id: parse
