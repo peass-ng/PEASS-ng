@@ -141,6 +141,7 @@ jobs:
             Output JSON only, following the provided schema:
             .github/chack-agent/pr-merge-schema.json
           codex_access_token: ${{ secrets.CODEX_ACCESS_TOKEN }}
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Parse Chack Agent decision
         id: parse
