@@ -5,6 +5,7 @@ You can **build you own linpeas which will contain only the checks you want**. T
 ## Quick start building linpeas.sh
 
 It's possible to indicate the params `--all`, `--all-no-fat` and `--small` to build the classic `linpeas_fat.sh`, `linpeas.sh` and `linpeas_small.sh`:
+- When testing builder changes locally, prefer writing the output to `/tmp` so you don't overwrite tracked release artifacts by accident.
 
 - **linpeas_fat.sh**: Contains all checks, even third party applications in base64 embedded.
 - **linpeas.sh**: Contains all checks, but only the third party application `linux exploit suggester` is embedded. This is the default `linpeas.sh`.
