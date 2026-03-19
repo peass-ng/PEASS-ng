@@ -1503,6 +1503,124 @@ search:
                 type: d
                 search_in: 
                   - common
+
+  - name: AI Coding Assistants
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: ".codex"
+            value:
+                files:
+                  - name: "auth.json"
+                    value:
+                        bad_regex: "access_token|refresh_token|id_token|OPENAI_API_KEY|api_key|auth_mode"
+                        remove_empty_lines: True
+
+                  - name: "config.toml"
+                    value:
+                        bad_regex: "OPENAI_API_KEY|api_key|auth_mode|model|profile"
+                        remove_empty_lines: True
+                type: d
+                search_in:
+                  - common
+
+          - name: ".claude"
+            value:
+                files:
+                  - name: "settings.json"
+                    value:
+                        bad_regex: "apiKeyHelper|ANTHROPIC_API_KEY|ANTHROPIC_AUTH_TOKEN|Authorization|Bearer|token|secret|mcpServers"
+                        remove_empty_lines: True
+
+                  - name: "settings.local.json"
+                    value:
+                        bad_regex: "apiKeyHelper|ANTHROPIC_API_KEY|ANTHROPIC_AUTH_TOKEN|Authorization|Bearer|token|secret|mcpServers"
+                        remove_empty_lines: True
+                type: d
+                search_in:
+                  - common
+
+          - name: ".claude.json"
+            value:
+                bad_regex: "auth|token|bearer|session|oauth|api[_-]?key"
+                remove_empty_lines: True
+                type: f
+                search_in:
+                  - common
+
+          - name: ".gemini"
+            value:
+                files:
+                  - name: "settings.json"
+                    value:
+                        bad_regex: "GEMINI_API_KEY|GOOGLE_API_KEY|access_token|refresh_token|oauth|client_secret|Authorization|Bearer|headers|mcpServers"
+                        remove_empty_lines: True
+
+                  - name: "oauth_creds.json"
+                    value:
+                        bad_regex: "access_token|refresh_token|id_token|token_type|scope|client_id"
+                        remove_empty_lines: True
+                type: d
+                search_in:
+                  - common
+
+          - name: ".cursor"
+            value:
+                files:
+                  - name: "mcp.json"
+                    value:
+                        bad_regex: "Authorization|Bearer|token|api[_-]?key|secret|headers|env"
+                        remove_empty_lines: True
+                type: d
+                search_in:
+                  - common
+
+          - name: ".mcp.json"
+            value:
+                bad_regex: "Authorization|Bearer|token|api[_-]?key|secret|headers|env"
+                remove_empty_lines: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "gh"
+            value:
+                files:
+                  - name: "hosts.yml"
+                    value:
+                        bad_regex: "oauth_token|user:|oauth"
+                        remove_empty_lines: True
+                check_extra_path: ".*/\\.config/gh$|.*/AppData/.*gh$|.*/Library/Application Support/gh$"
+                type: d
+                search_in:
+                  - common
+
+          - name: "state.vscdb"
+            value:
+                just_list_file: True
+                check_extra_path: ".*/(Cursor|Code|Code - Insiders)/User/(globalStorage|workspaceStorage)(/.*)?$|.*/Library/Application Support/(Cursor|Code|Code - Insiders)/User/(globalStorage|workspaceStorage)(/.*)?$"
+                type: f
+                search_in:
+                  - common
+
+          - name: "state.vscdb.backup"
+            value:
+                just_list_file: True
+                check_extra_path: ".*/(Cursor|Code|Code - Insiders)/User/(globalStorage|workspaceStorage)(/.*)?$|.*/Library/Application Support/(Cursor|Code|Code - Insiders)/User/(globalStorage|workspaceStorage)(/.*)?$"
+                type: f
+                search_in:
+                  - common
+
+          - name: "storage.json"
+            value:
+                bad_regex: "github\\.copilot|copilot|cursor|openai|anthropic|gemini|token|auth"
+                remove_empty_lines: True
+                check_extra_path: ".*/(Cursor|Code|Code - Insiders)/User/(globalStorage|workspaceStorage)(/.*)?$|.*/Library/Application Support/(Cursor|Code|Code - Insiders)/User/(globalStorage|workspaceStorage)(/.*)?$"
+                type: f
+                search_in:
+                  - common
           
   
   - name: Road Recon
