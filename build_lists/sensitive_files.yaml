@@ -319,19 +319,19 @@ search:
                 type: d
                 search_in:
                   - ${ROOT_FOLDER}etc
-                  - ${ROOT_FOLDER}usr/share/dbus-1
+                  - ${ROOT_FOLDER}usr
 
           - name: "system-services"
             value:
                 type: d
                 search_in:
-                  - ${ROOT_FOLDER}usr/share/dbus-1
+                  - ${ROOT_FOLDER}usr
 
           - name: "services"
             value:
                 type: d
                 search_in:
-                  - ${ROOT_FOLDER}usr/share/dbus-1
+                  - ${ROOT_FOLDER}usr
     
   - name: MySQL
     value:
