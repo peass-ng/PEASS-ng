@@ -13,4 +13,4 @@
 # Small linpeas: 1
 
 
-cronjobsB="centreon"
+cronjobsB="centreon|pg_basebackup|run-parts|crontab-ui"

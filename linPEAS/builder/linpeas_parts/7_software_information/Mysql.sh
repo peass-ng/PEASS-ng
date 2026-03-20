@@ -100,6 +100,8 @@ if [ "$(command -v mysql || echo -n '')" ] || [ "$(command -v mysqladmin || echo
   if [ "$mysqlconnectnopass" ]; then
     echo "Yes" | sed -${E} "s,.*,${SED_RED},"
     mysql -u root -e "SELECT User,Host,authentication_string FROM mysql.user;" 2>/dev/null | sed -${E} "s,.*,${SED_RED},"
+    mysql -u root -e "SELECT User,Host,plugin FROM mysql.user;" 2>/dev/null | sed -${E} "s,auth_socket|unix_socket|plugin,${SED_RED},g"
+    mysql -u root -e "SHOW VARIABLES LIKE 'secure_file_priv'; SHOW VARIABLES LIKE 'local_infile';" 2>/dev/null | sed -${E} "s,secure_file_priv|local_infile,${SED_RED},g"
   else echo_no
   fi
   echo ""

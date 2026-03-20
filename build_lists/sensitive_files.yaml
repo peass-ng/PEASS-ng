@@ -307,6 +307,31 @@ search:
                 type: d
                 search_in:
                   - ${ROOT_FOLDER}etc
+
+          - name: "system-local.d"
+            value:
+                type: d
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "session.d"
+            value:
+                type: d
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}usr/share/dbus-1
+
+          - name: "system-services"
+            value:
+                type: d
+                search_in:
+                  - ${ROOT_FOLDER}usr/share/dbus-1
+
+          - name: "services"
+            value:
+                type: d
+                search_in:
+                  - ${ROOT_FOLDER}usr/share/dbus-1
     
   - name: MySQL
     value:
@@ -342,11 +367,18 @@ search:
           
           - name: "mysqld.cnf"
             value: 
-                bad_regex: "user.*|password.*|admin_address.*|debug.*|sql_warnings.*|secure_file_priv.*"
+                bad_regex: "user.*|password.*|admin_address.*|debug.*|sql_warnings.*|secure_file_priv.*|local_infile.*"
                 remove_regex: '^#'
                 remove_empty_lines: True
                 type: f
                 search_in: 
+                  - common
+
+          - name: ".mylogin.cnf"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
                   - common
 
   - name: MariaDB
@@ -357,7 +389,7 @@ search:
         files:
           - name: "mariadb.cnf"
             value: 
-                bad_regex: "user.*|password.*|admin_address.*|debug.*|sql_warnings.*|secure_file_priv.*"
+                bad_regex: "user.*|password.*|admin_address.*|debug.*|sql_warnings.*|secure_file_priv.*|local_infile.*"
                 type: f
                 remove_regex: '^#'
                 remove_empty_lines: True
@@ -390,7 +422,7 @@ search:
       
           - name: "pg_hba.conf"
             value: 
-                bad_regex: "auth|password|md5|user=|pass=|trust"
+                bad_regex: "auth|password|md5|user=|pass=|trust|peer"
                 type: f
                 remove_empty_lines: True
                 remove_regex: '\W+\#|^#'
@@ -408,11 +440,20 @@ search:
       
           - name: "pgsql.conf"
             value: 
-                bad_regex: "auth|password|md5|user=|pass=|trust"
+                bad_regex: "auth|password|md5|user=|pass=|trust|peer"
                 type: f
                 remove_empty_lines: True
                 remove_regex: '\W+\#|^#'
                 search_in: 
+                  - common
+
+          - name: ".pgpass"
+            value:
+                bad_regex: ".*"
+                remove_regex: '^#'
+                remove_empty_lines: True
+                type: f
+                search_in:
                   - common
           
           - name: "pgadmin4.db"
@@ -440,7 +481,7 @@ search:
                 files:
                     - name: "*"
                       value:
-                        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|command on"
+                        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status|command on"
                         remove_empty_lines: True
                         remove_regex: '#'
                 search_in: 
@@ -448,7 +489,7 @@ search:
       
             - name: "000-default.conf"
               value: 
-                bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias"
+                bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status"
                 remove_regex: '#'
                 type: f
                 search_in: 
@@ -465,7 +506,7 @@ search:
             
             - name: "nginx.conf"
               value: 
-                bad_regex: "location.*.php$|$uri|$document_uri|proxy_intercept_errors.*on|proxy_hide_header.*|merge_slashes.*on|resolver.*|proxy_pass|internal|location.+[a-zA-Z0-9][^/]\\s+\\{|map|proxy_set_header.*Upgrade.*http_upgrade|proxy_set_header.*Connection.*http_connection"
+                bad_regex: "location.*.php$|$uri|$document_uri|proxy_intercept_errors.*on|proxy_hide_header.*|merge_slashes.*on|resolver.*|proxy_pass|fastcgi_pass|alias|try_files|internal|location.+[a-zA-Z0-9][^/]\\s+\\{|map|proxy_set_header.*Upgrade.*http_upgrade|proxy_set_header.*Connection.*http_connection"
                 remove_regex: "#"
                 type: f
                 remove_empty_lines: True
@@ -478,7 +519,7 @@ search:
                 files:
                     - name: "*.conf"
                       value:
-                        bad_regex: "location.*.php$|$uri|$document_uri|proxy_intercept_errors.*on|proxy_hide_header.*|merge_slashes.*on|resolver.*|proxy_pass|internal|location.+[a-zA-Z0-9][^/]\\s+\\{|map|proxy_set_header.*Upgrade.*http_upgrade|proxy_set_header.*Connection.*http_connection"
+                        bad_regex: "location.*.php$|$uri|$document_uri|proxy_intercept_errors.*on|proxy_hide_header.*|merge_slashes.*on|resolver.*|proxy_pass|fastcgi_pass|alias|try_files|internal|location.+[a-zA-Z0-9][^/]\\s+\\{|map|proxy_set_header.*Upgrade.*http_upgrade|proxy_set_header.*Connection.*http_connection"
                         remove_empty_lines: True
                         remove_regex: '#'
                         remove_path: "nginx.conf"
@@ -797,6 +838,18 @@ search:
                       type: f
               type: d
               search_in: 
+                - ${ROOT_FOLDER}etc
+
+          - name: "wpa_supplicant"
+            value:
+              type: d
+              files:
+                - name: "*.conf"
+                  value:
+                      bad_regex: "psk.*|password.*|ssid.*"
+                      only_bad_lines: True
+                      type: f
+              search_in:
                 - ${ROOT_FOLDER}etc
   
   - name: PAM Auth
@@ -1842,7 +1895,7 @@ search:
         files:
           - name: "redis.conf"
             value: 
-                bad_regex: "masterauth.*|requirepass.*"
+                bad_regex: "masterauth.*|requirepass.*|rename-command.*|protected-mode.*no"
                 type: f
                 remove_empty_lines: True
                 remove_regex: '\W+\#|^#'
@@ -2915,6 +2968,15 @@ search:
           auto_check: True
 
         files:
+          - name: "aliases"
+            value:
+                bad_regex: "\\|"
+                only_bad_lines: True
+                remove_empty_lines: True
+                type: f
+                search_in:
+                  - common
+
           - name: "postfix"
             value: 
               files:

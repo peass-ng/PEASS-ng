@@ -216,14 +216,34 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
         echo ""
         print_2title "D-Bus Configuration Files" "T1559.001"
         echo "$PSTORAGE_DBUS" | while read -r dir; do
-            for dbus_file in "$dir"/*; do
-                if [ -f "$dbus_file" ]; then
-                    echo "Analyzing $dbus_file:"
-                    if analyze_policy_file "$dbus_file"; then
-                        echo "  └─(${RED}Multiple weak policies found${NC})"
-                    fi
+            [ -n "$dir" ] || continue
+
+            if [ -f "$dir" ]; then
+                echo "Analyzing $dir:"
+                if analyze_policy_file "$dir"; then
+                    echo "  └─(${RED}Multiple weak policies found${NC})"
                 fi
-            done
+                continue
+            fi
+
+            [ -d "$dir" ] || continue
+
+            case "$dir" in
+                */system-services|*/services)
+                    echo "Activation definitions in $dir:"
+                    grep -RInE '^(Name|Exec|User)=' "$dir" 2>/dev/null | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed "s,Exec=,${SED_RED}Exec=${NC},g" | sed "s,User=,${SED_RED}User=${NC},g"
+                    ;;
+                *)
+                    for dbus_file in "$dir"/*; do
+                        if [ -f "$dbus_file" ]; then
+                            echo "Analyzing $dbus_file:"
+                            if analyze_policy_file "$dbus_file"; then
+                                echo "  └─(${RED}Multiple weak policies found${NC})"
+                            fi
+                        fi
+                    done
+                    ;;
+            esac
         done
     fi
 

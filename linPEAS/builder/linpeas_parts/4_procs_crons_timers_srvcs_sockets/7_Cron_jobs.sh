@@ -25,9 +25,18 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   ls -alR /etc/cron* /var/spool/cron/crontabs /var/spool/anacron 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g"
   cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/* /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
   grep -Hn '^PATH=' /etc/crontab /etc/cron.d/* 2>/dev/null | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
+  grep -RInE 'pg_basebackup|run-parts|crontab-ui' /etc/crontab /etc/cron.d /etc/anacrontab /var/spool/cron/crontabs /etc/incron.d /var/spool/incron 2>/dev/null | sed -${E} "s,$cronjobsB,${SED_RED},g" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
   ls -lR /usr/lib/cron/tabs/ /private/var/at/jobs /var/at/tabs/ /etc/periodic/ 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g" #MacOS paths
   atq 2>/dev/null
+  echo ""
+
+  print_3title "Cron files with hidden carriage returns" "T1053.003"
+  grep -IRl $'\r' /etc/crontab /etc/cron.d /var/spool/cron/crontabs 2>/dev/null | while read -r file; do
+    [ -n "$file" ] || continue
+    echo "$file" | sed -${E} "s,.*,${SED_RED},g"
+    sed -n 'l' "$file" 2>/dev/null | head -n 20
+  done
   echo ""
 
   print_3title "Checking for specific cron jobs vulnerabilities" "T1053.003"
@@ -212,6 +221,16 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
       echo "Writable cron directory: $cron_dir"
     fi
   done
+
+  if command -v run-parts >/dev/null 2>&1; then
+    print_3title "run-parts executable entries" "T1053.003"
+    for cron_dir in /etc/cron.hourly /etc/cron.daily /etc/cron.weekly /etc/cron.monthly; do
+      [ -d "$cron_dir" ] || continue
+      echo "[$cron_dir]"
+      run-parts --test "$cron_dir" 2>/dev/null | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
+    done
+    echo ""
+  fi
 
   # Check for at jobs
   #if command -v atq >/dev/null 2>&1; then
