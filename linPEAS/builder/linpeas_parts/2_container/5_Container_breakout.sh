@@ -1,54 +1,22 @@
 # Title: Container - Container & breakout enumeration
 # ID: CT_Container_breakout
 # Author: Carlos Polop
-# Last Update: 07-03-2024
-# Description: Container breakout enumeration to identify potential escape vectors:
-#   - Container runtime vulnerabilities
-#   - Mount point misconfigurations
-#   - Capability abuse
-#   - Namespace escape
-#   - Common vulnerable scenarios:
-#     * Privileged containers
-#     * Misconfigured mounts
-#     * Excessive capabilities
-#     * Namespace isolation bypass
-#     * Runtime vulnerabilities
-#     * Container escape tools
-#     * Shared kernel exploits
-#     * Container escape CVEs
-#   - Exploitation methods:
-#     * Mount escape: Abuse mount misconfigurations
-#     * Capability abuse: Exploit excessive capabilities
-#     * Namespace escape: Break out of container namespaces
-#     * Runtime escape: Exploit container runtime vulnerabilities
-#     * Common attack vectors:
-#       - Mount point manipulation
-#       - Capability exploitation
-#       - Namespace breakout
-#       - Runtime vulnerability abuse
-#       - Kernel exploit abuse
-#       - Container escape tool usage
-#     * Exploit techniques:
-#       - Mount point abuse
-#       - Capability escalation
-#       - Namespace escape
-#       - Runtime exploitation
-#       - Kernel exploitation
-#       - Container escape tool execution
+# Last Update: 21-03-2026
+# Description: Enumerate container hardening, breakout surfaces, runtime exposure, and high-impact escape vectors from inside a container.
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1611
 # Functions Used: checkContainerExploits, checkProcSysBreakouts, containerCheck, enumerateDockerSockets, print_2title, print_3title, print_info, print_list, warn_exec
-# Global Variables: $binfmt_misc_breakout, $containercapsB, $containerType, $core_pattern_breakout, $dev_mounted, $efi_efivars_writable, $efi_vars_writable, $GREP_IGNORE_MOUNTS, $inContainer, $kallsyms_readable, $kcore_readable, $kmem_readable, $kmem_writable, $kmsg_readable, $mem_readable, $mem_writable, $modprobe_present, $mountinfo_readable, $panic_on_oom_dos, $panic_sys_fs_dos, $proc_configgz_readable, $proc_mounted, $run_unshare, $release_agent_breakout1, $release_agent_breakout2, $release_agent_breakout3, $sched_debug_readable, $security_present, $security_writable, $sysreq_trigger_dos, $uevent_helper_breakout, $vmcoreinfo_readable, $VULN_CVE_2019_5021, $self_mem_readable
+# Global Variables: $binfmt_misc_breakout, $containercapsB, $containerType, $core_pattern_breakout, $debugfs_present, $debugfs_readable, $dev_mounted, $efi_efivars_writable, $efi_vars_writable, $GREP_IGNORE_MOUNTS, $inContainer, $kallsyms_readable, $kcore_readable, $kmem_readable, $kmem_writable, $kmsg_readable, $mem_readable, $mem_writable, $modprobe_binary, $modprobe_config_writable, $mountinfo_readable, $panic_on_oom_dos, $panic_sys_fs_dos, $proc_configgz_readable, $proc_keys_readable, $proc_mounted, $proc_timer_list_readable, $release_agent_breakout1, $release_agent_breakout2, $release_agent_breakout3, $run_unshare, $sched_debug_readable, $security_present, $security_writable, $self_mem_readable, $sys_firmware_readable, $sysreq_trigger_dos, $thermal_present, $thermal_readable, $uevent_helper_breakout, $vmcoreinfo_readable, $VULN_CVE_2019_5021
 # Initial Functions: containerCheck
-# Generated Global Variables: $defautl_docker_caps, $containerd_version, $runc_version, $seccomp_mode_num, $seccomp_mode_desc
+# Generated Global Variables: $container_breakout_tools, $containerd_version, $gid_map_value, $host_process_count, $host_process_indicators, $no_new_privs_num, $root_mount_mode, $runc_version, $seccomp_mode_desc, $seccomp_mode_num, $selinux_context, $selinux_status, $setgroups_value, $uid_map_value
 # Fat linpeas: 0
 # Small linpeas: 0
 
 if [ "$inContainer" ]; then
     echo ""
     print_2title "Container & breakout enumeration" "T1611"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation/index.html"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/container-security/index.html"
     
     # Basic container info
     print_list "Container ID ...................$NC $(cat /etc/hostname && echo -n '\n')"
@@ -56,8 +24,8 @@ if [ "$inContainer" ]; then
         print_list "Container Full ID ..............$NC $(basename $(cat /proc/1/cpuset))\n"
     fi
     
-    # Security mechanisms
-    print_3title "Security Mechanisms" "T1611"
+    # Hardening and isolation controls
+    print_3title "Hardening & isolation" "T1611"
     seccomp_mode_num="$(awk '/^Seccomp:/{print $2}' /proc/self/status 2>/dev/null)"
     seccomp_mode_desc="unknown"
     case "$seccomp_mode_num" in
@@ -74,17 +42,57 @@ if [ "$inContainer" ]; then
       awk '/^Seccomp_filters:/{print $2}' /proc/self/status 2>/dev/null | sed -${E} "s,^[0-9]+$,${SED_GREEN}&,"
     fi
 
-    print_list "AppArmor profile? .............. "$NC
+    no_new_privs_num="$(awk '/^NoNewPrivs:/{print $2}' /proc/self/status 2>/dev/null)"
+    print_list "NoNewPrivs ..................... "$NC
+    case "$no_new_privs_num" in
+      1) printf "enabled (1)\n" | sed -${E} "s,enabled,${SED_GREEN}," ;;
+      0) printf "disabled (0)\n" | sed -${E} "s,disabled,${SED_RED_YELLOW}," ;;
+      *) printf "unknown\n" ;;
+    esac
+
+    print_list "AppArmor profile ............... "$NC
     (cat /proc/self/attr/current 2>/dev/null || echo "disabled") | sed "s,disabled,${SED_RED}," | sed "s,kernel,${SED_GREEN},"
 
-    print_list "User proc namespace? ........... "$NC
-    if [ "$(cat /proc/self/uid_map 2>/dev/null)" ]; then 
-        (printf "enabled"; cat /proc/self/uid_map) | sed "s,enabled,${SED_GREEN},"; 
-        echo ""
-        echo "  Mappings (Container -> Host -> Range):"
-        cat /proc/self/uid_map | awk '{print "  " $1 " -> " $2 " -> " $3}'
-    else 
-        echo "disabled" | sed "s,disabled,${SED_RED},"; 
+    selinux_status="disabled"
+    if command -v getenforce >/dev/null 2>&1; then
+        selinux_status="$(getenforce 2>/dev/null || echo disabled)"
+    elif [ -r /sys/fs/selinux/enforce ]; then
+        if [ "$(cat /sys/fs/selinux/enforce 2>/dev/null)" = "1" ]; then
+            selinux_status="Enforcing"
+        else
+            selinux_status="Permissive"
+        fi
+    fi
+    print_list "SELinux status ................. "$NC
+    printf "%s\n" "$selinux_status" | sed -${E} "s,Enforcing,${SED_GREEN},g" | sed -${E} "s,Permissive,${SED_RED_YELLOW},g" | sed -${E} "s,disabled,${SED_RED},g"
+
+    selinux_context="$(cat /proc/self/attr/current 2>/dev/null | grep -E ':' || true)"
+    if [ "$selinux_context" ]; then
+        print_list "SELinux context ................ "$NC
+        printf "%s\n" "$selinux_context" | sed -${E} "s,container_t|spc_t,${SED_RED_YELLOW}&,g"
+    fi
+
+    uid_map_value="$(cat /proc/self/uid_map 2>/dev/null)"
+    gid_map_value="$(cat /proc/self/gid_map 2>/dev/null)"
+    setgroups_value="$(cat /proc/self/setgroups 2>/dev/null)"
+    print_list "User namespace mappings ....... "$NC
+    if echo "$uid_map_value" | grep -Eq "^[[:space:]]*0[[:space:]]+0[[:space:]]+4294967295[[:space:]]*$"; then
+        echo "initial user namespace" | sed -${E} "s,initial user namespace,${SED_RED_YELLOW},"
+    elif [ "$uid_map_value" ]; then
+        echo "remapped user namespace" | sed -${E} "s,remapped user namespace,${SED_GREEN},"
+    else
+        echo "unknown"
+    fi
+    if [ "$uid_map_value" ]; then
+        echo "  UID map (container -> host -> range):"
+        echo "$uid_map_value" | awk '{print "  " $1 " -> " $2 " -> " $3}'
+    fi
+    if [ "$gid_map_value" ]; then
+        echo "  GID map (container -> host -> range):"
+        echo "$gid_map_value" | awk '{print "  " $1 " -> " $2 " -> " $3}'
+    fi
+    if [ "$setgroups_value" ]; then
+        echo "  setgroups: $setgroups_value"
     fi
 
     # Known vulnerabilities
@@ -93,8 +101,17 @@ if [ "$inContainer" ]; then
     print_list "Vulnerable to CVE-2019-5021 .... $VULN_CVE_2019_5021\n"$NC | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     
     # Check for container escape tools
-    print_list "Container escape tools present .. "$NC
-    (command -v nsenter || command -v unshare || command -v chroot || command -v capsh || command -v setcap || command -v getcap || command -v docker || command -v kubectl || command -v ctr || command -v runc || command -v containerd || command -v crio || command -v podman || command -v lxc || command -v rkt || command -v nerdctl || echo "No") | sed -${E} "s,nsenter|unshare|chroot|capsh|setcap|getcap|docker|kubectl|ctr|runc|containerd|crio|podman|lxc|rkt|nerdctl,${SED_RED},g"
+    container_breakout_tools="$(
+      for tool in nsenter unshare chroot capsh setcap getcap docker kubectl ctr runc containerd crio podman lxc rkt nerdctl; do
+        command -v "$tool" 2>/dev/null
+      done
+    )"
+    print_list "Container escape tools present . "$NC
+    if [ "$container_breakout_tools" ]; then
+        printf "%s\n" "$container_breakout_tools" | sed -${E} "s,.*,${SED_RED}&,"
+    else
+        echo "No"
+    fi
     
     # Runtime vulnerabilities
     print_3title "Runtime Vulnerabilities" "T1611"
@@ -129,30 +146,32 @@ if [ "$inContainer" ]; then
         fi
     fi
     
-    # Mount escape vectors
-    print_3title "Breakout via mounts" "T1611"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation/sensitive-mounts.html"
+    # Mount, procfs and sysfs escape surfaces
+    print_3title "Mount, procfs & sysfs surfaces" "T1611"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/container-security/sensitive-host-mounts.html"
     
     checkProcSysBreakouts
-    print_list "/proc mounted? ................. $proc_mounted\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
-    print_list "/dev mounted? .................. $dev_mounted\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    root_mount_mode="$(awk '$5=="/"{print $6; exit}' /proc/self/mountinfo 2>/dev/null | cut -d',' -f1)"
+    print_list "/proc heavily populated ........ $proc_mounted\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "/dev heavily populated ......... $dev_mounted\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "Root filesystem mode ........... ${root_mount_mode:-unknown}\n" | sed -${E} "s,rw,${SED_RED_YELLOW}," | sed -${E} "s,ro,${SED_GREEN},"
     print_list "Run unshare .................... $run_unshare\n" | sed -${E} "s,Yes,${SED_RED},"
-    print_list "release_agent breakout 1........ $release_agent_breakout1\n" | sed -${E} "s,Yes,${SED_RED},"
-    print_list "release_agent breakout 2........ $release_agent_breakout2\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
-    print_list "release_agent breakout 3........ $release_agent_breakout3\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
-    print_list "core_pattern breakout .......... $core_pattern_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
-    print_list "binfmt_misc breakout ........... $binfmt_misc_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
-    print_list "uevent_helper breakout ......... $uevent_helper_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "release_agent surface 1 ........ $release_agent_breakout1\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "release_agent surface 2 ........ $release_agent_breakout2\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "release_agent surface 3 ........ $release_agent_breakout3\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "Writable core_pattern .......... $core_pattern_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "Writable binfmt_misc/register .. $binfmt_misc_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "Writable uevent_helper ......... $uevent_helper_breakout\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
     
     # Additional mount checks
-    print_list "Docker socket mounted? ......... "$NC
-    (mount | grep -E "docker.sock|/var/run/docker.sock" || echo "No") | sed -${E} "s,Yes|docker.sock,${SED_RED},"
+    print_list "Mounted runtime sockets ........ "$NC
+    (mount | grep -E "docker.sock|containerd.sock|crio.sock|podman.sock|buildkitd.sock|kubelet.sock|firecracker-containerd.sock" || echo "No") | sed -${E} "s,docker.sock|containerd.sock|crio.sock|podman.sock|buildkitd.sock|kubelet.sock|firecracker-containerd.sock,${SED_RED},g"
     
     print_list "Common host filesystem mounted?  "$NC
-    (mount | grep -E "host|/host|/mnt/host" || echo "No") | sed -${E} "s,Yes|host,${SED_RED},"
+    (mount | grep -E "host|/host|/mnt/host|/rootfs" || echo "No") | sed -${E} "s,host|/host|/mnt/host|/rootfs,${SED_RED},g"
     
     print_list "Interesting mounts ............. "$NC
-    mount | grep -E "docker|container|overlay|kubelet" | grep -v "proc" | sed -${E} "s,docker.sock|host|privileged,${SED_RED},g"
+    mount | grep -E "docker|container|overlay|kubelet|buildkit|crio|podman|/host|/rootfs" | grep -v "proc" | sed -${E} "s,docker.sock|containerd.sock|crio.sock|podman.sock|kubelet.sock|buildkitd.sock|host|rootfs|privileged,${SED_RED},g"
     
     # Check for writable mount points
     print_list "Writable mount points ......... "$NC
@@ -164,7 +183,7 @@ if [ "$inContainer" ]; then
     
     # Capability checks
     print_3title "Capability Checks" "T1611"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation/capabilities-abuse-escape.html"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/container-security/protections/capabilities.html"
     
     print_list "Dangerous capabilities ......... "$NC
     if [ "$(command -v capsh || echo -n '')" ]; then 
@@ -179,70 +198,67 @@ if [ "$inContainer" ]; then
     (grep "CapAmb:" /proc/self/status 2>/dev/null | grep -v "0000000000000000" | sed "s,CapAmb:.,," || echo "No") | sed -${E} "s,No,${SED_GREEN}," | sed -${E} "s,[0-9a-fA-F]\+,${SED_RED}&,"
     
     # Additional capability checks
-    print_list "Dangerous syscalls allowed ... "$NC
+    print_list "ptrace_scope (host) ........... "$NC
     if [ -f "/proc/sys/kernel/yama/ptrace_scope" ]; then
         (cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null || echo "Not found") | sed -${E} "s,0,${SED_RED},"
     else
         echo "Not found"
     fi
     
-    # Namespace checks
-    print_3title "Namespace Checks" "T1611"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/namespaces/index.html"
+    # Namespace checks. From inside a container we often cannot prove host namespace sharing directly,
+    # so prefer raw namespace handles and practical indicators over misleading "host namespace = yes/no" guesses.
+    print_3title "Namespaces & sharing indicators" "T1611"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/container-security/protections/namespaces/index.html"
     
     print_list "Current namespaces ............. "$NC
     ls -l /proc/self/ns/
     
-    print_list "Host network namespace? ........ "$NC
-    if [ "$(ip netns list 2>/dev/null)" ]; then
-        echo "Yes - Host network namespace accessible" | sed -${E} "s,Yes,${SED_RED},"
+    if ps -e -o pid= >/dev/null 2>&1; then
+        host_process_count="$(ps -e -o pid= 2>/dev/null | wc -l | tr -d ' ')"
+        host_process_indicators="$(ps -eo comm= 2>/dev/null | grep -E '^(systemd|init|kthreadd|dockerd|containerd|kubelet|sshd|udevd|NetworkManager|dbus-daemon)$' | sort -u)"
     else
-        echo "No"
+        host_process_count="$(ls -d /proc/[0-9]* 2>/dev/null | wc -l | tr -d ' ')"
+        host_process_indicators="$(for proc_comm in /proc/[0-9]*/comm; do cat "$proc_comm" 2>/dev/null; done | grep -E '^(systemd|init|kthreadd|dockerd|containerd|kubelet|sshd|udevd|NetworkManager|dbus-daemon)$' | sort -u)"
     fi
-    
-    # Additional namespace checks
-    print_list "Host IPC namespace? ........... "$NC
-    if [ "$(ls -l /proc/self/ns/ipc 2>/dev/null)" = "$(ls -l /proc/1/ns/ipc 2>/dev/null)" ]; then
-        echo "Yes - Host IPC namespace shared" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "Processes visible .............. $host_process_count\n" | sed -${E} "s,^[^0-9]*([5-9][0-9]|[1-9][0-9]{2,}).*,${SED_RED_YELLOW}&,"
+    print_list "Host-like processes visible .... "$NC
+    if [ "$host_process_indicators" ]; then
+        printf "%s\n" "$host_process_indicators" | sed -${E} "s,.*,${SED_RED_YELLOW}&,"
     else
-        echo "No"
+        echo "No obvious host daemons"
     fi
-    
-    print_list "Host PID namespace? ........... "$NC
-    if [ "$(ls -l /proc/self/ns/pid 2>/dev/null)" = "$(ls -l /proc/1/ns/pid 2>/dev/null)" ]; then
-        echo "Yes - Host PID namespace shared" | sed -${E} "s,Yes,${SED_RED},"
+
+    print_list "Network interfaces ............. "$NC
+    if command -v ip >/dev/null 2>&1; then
+        ip -o link show 2>/dev/null | awk -F': ' '{print $2}'
     else
-        echo "No"
+        ls /sys/class/net 2>/dev/null
     fi
-    
-    print_list "Host UTS namespace? ........... "$NC
-    if [ "$(ls -l /proc/self/ns/uts 2>/dev/null)" = "$(ls -l /proc/1/ns/uts 2>/dev/null)" ]; then
-        echo "Yes - Host UTS namespace shared" | sed -${E} "s,Yes,${SED_RED},"
-    else
-        echo "No"
-    fi
-    
-    
-    print_list "Looking and enumerating Docker Sockets (if any):\n"$NC
+
+    print_list "Namespace inode summary ........ "$NC
+    for ns in cgroup ipc mnt net pid time user uts; do
+        if [ -L "/proc/self/ns/$ns" ]; then
+            printf "%s -> %s\n" "$ns" "$(readlink "/proc/self/ns/$ns" 2>/dev/null)"
+        fi
+    done
+
+    print_list "Looking and enumerating runtime sockets:\n"$NC
     enumerateDockerSockets
     
     # Additional breakout vectors
-    print_3title "Additional Breakout Vectors" "T1611"
-    print_list "is modprobe present ............ $modprobe_present\n" | sed -${E} "s,/.*,${SED_RED},"
-    print_list "DoS via panic_on_oom ........... $panic_on_oom_dos\n" | sed -${E} "s,Yes,${SED_RED},"
-    print_list "DoS via panic_sys_fs ........... $panic_sys_fs_dos\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_3title "Writable kernel helper paths" "T1611"
+    print_list "modprobe helper binary ......... $modprobe_binary\n" | sed -${E} "s,/.*,${SED_RED},"
+    print_list "modprobe path writable ......... $modprobe_config_writable\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "panic_on_oom writable .......... $panic_on_oom_dos\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "suid_dumpable writable ......... $panic_sys_fs_dos\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "DoS via sysreq_trigger_dos ..... $sysreq_trigger_dos\n" | sed -${E} "s,Yes,${SED_RED},"
-    
-    # Check for container escape tools in PATH
-    print_list "Container escape tools in PATH . "$NC
-    (which nsenter 2>/dev/null || which unshare 2>/dev/null || which chroot 2>/dev/null || which capsh 2>/dev/null || which setcap 2>/dev/null || which getcap 2>/dev/null || echo "No") | sed -${E} "s,nsenter|unshare|chroot|capsh|setcap|getcap,${SED_RED},g"
 
-    print_3title "Extra Breakout Vectors" "T1611"
+    print_3title "Sensitive procfs/sysfs exposure" "T1611"
     print_list "/proc/config.gz readable ....... $proc_configgz_readable\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "/proc/sched_debug readable ..... $sched_debug_readable\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "/proc/*/mountinfo readable ..... $mountinfo_readable\n" | sed -${E} "s,Yes,${SED_RED},"
-    print_list "/sys/kernel/security present ... $security_present\n" | sed -${E} "s,Yes,${SED_RED},"
-    print_list "/sys/kernel/security writable .. $security_writable\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "/proc/keys readable ............ $proc_keys_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "/proc/timer_list readable ...... $proc_timer_list_readable\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "/proc/kmsg readable ............ $kmsg_readable\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "/proc/kallsyms readable ........ $kallsyms_readable\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "/proc/self/mem readable ........ $self_mem_readable\n" | sed -${E} "s,Yes,${SED_RED},"
@@ -251,6 +267,13 @@ if [ "$inContainer" ]; then
     print_list "/proc/kmem writable ............ $kmem_writable\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "/proc/mem readable ............. $mem_readable\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "/proc/mem writable ............. $mem_writable\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "/sys/firmware readable ......... $sys_firmware_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "/sys/kernel/debug present ...... $debugfs_present\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "/sys/kernel/debug readable ..... $debugfs_readable\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "/sys/class/thermal present ..... $thermal_present\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "/sys/class/thermal readable .... $thermal_readable\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "/sys/kernel/security present ... $security_present\n" | sed -${E} "s,Yes,${SED_RED},"
+    print_list "/sys/kernel/security writable .. $security_writable\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "/sys/kernel/vmcoreinfo readable  $vmcoreinfo_readable\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "/sys/firmware/efi/vars writable  $efi_vars_writable\n" | sed -${E} "s,Yes,${SED_RED},"
     print_list "/sys/firmware/efi/efivars writable $efi_efivars_writable\n" | sed -${E} "s,Yes,${SED_RED},"
@@ -270,10 +293,10 @@ if [ "$inContainer" ]; then
     
     # Additional container runtime checks
     print_list "Container runtime sockets .. "$NC
-    (find /var/run -name "*.sock" 2>/dev/null | grep -E "docker|containerd|crio|podman|lxc|rkt" || echo "No") | sed -${E} "s,docker|containerd|crio|podman|lxc|rkt,${SED_RED},g"
+    (find /var/run /run -name "*.sock" 2>/dev/null | grep -E "docker|containerd|crio|podman|lxc|rkt|kubelet|buildkit|firecracker" || echo "No") | sed -${E} "s,docker|containerd|crio|podman|lxc|rkt|kubelet|buildkit|firecracker,${SED_RED},g"
     
     print_list "Container runtime configs .. "$NC
-    (find /etc -name "*.conf" -o -name "*.json" 2>/dev/null | grep -E "docker|containerd|crio|podman|lxc|rkt" || echo "No") | sed -${E} "s,docker|containerd|crio|podman|lxc|rkt,${SED_RED},g"
+    (find /etc -name "*.conf" -o -name "*.json" 2>/dev/null | grep -E "docker|containerd|crio|podman|lxc|rkt|kubelet|buildkit|firecracker" || echo "No") | sed -${E} "s,docker|containerd|crio|podman|lxc|rkt|kubelet|buildkit|firecracker,${SED_RED},g"
     
     # Kubernetes specific checks
     if echo "$containerType" | grep -qi "kubernetes"; then

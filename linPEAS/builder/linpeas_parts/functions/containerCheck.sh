@@ -1,8 +1,8 @@
 # Title: Container - containerCheck
 # ID: containerCheck
 # Author: Carlos Polop
-# Last Update: 22-08-2023
-# Description: Check if we are inside a container
+# Last Update: 21-03-2026
+# Description: Check whether the current process appears to be running inside a Linux container and identify common runtime hints.
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: echo_no
@@ -21,7 +21,7 @@ containerCheck() {
   if [ -f "/.dockerenv" ] ||
     grep "/docker/" /proc/1/cgroup -qa 2>/dev/null ||
     grep -qai docker /proc/self/cgroup  2>/dev/null ||
-    [ "$(find / -maxdepth 3 -name '*dockerenv*' -exec ls -la {} \; 2>/dev/null)" ] ; then
+    [ -f "/run/.dockerenv" ] ; then
 
     inContainer="1"
     containerType="docker\n"
@@ -50,22 +50,31 @@ containerCheck() {
       grep "/lxc/" /proc/1/cgroup -qa 2>/dev/null; then
 
     inContainer="1"
-    containerType="lxc\n"
+    if echo "$containerType" | grep -qv "lxc"; then
+      if [ "$containerType" ] && [ "$containerType" != "$(echo_no)" ]; then containerType="$containerType (lxc)\n"
+      else containerType="lxc\n"
+      fi
+    fi
   fi
 
   # Are we inside podman?
-  if env | grep -qa "container=podman" 2>/dev/null ||
+  if [ -f "/run/.containerenv" ] ||
+      env | grep -qa "container=podman" 2>/dev/null ||
       grep -qa "container=podman" /proc/1/environ 2>/dev/null; then
 
     inContainer="1"
-    containerType="podman\n"
+    if echo "$containerType" | grep -qv "podman"; then
+      if [ "$containerType" ] && [ "$containerType" != "$(echo_no)" ]; then containerType="$containerType (podman)\n"
+      else containerType="podman\n"
+      fi
+    fi
   fi
 
   # Check for other container platforms that report themselves in PID 1 env
   if [ -z "$inContainer" ]; then
-    if grep -a 'container=' /proc/1/environ 2>/dev/null; then
+    if grep -qa 'container=' /proc/1/environ 2>/dev/null; then
       inContainer="1"
-      containerType="$(grep -a 'container=' /proc/1/environ | cut -d= -f2)\n"
+      containerType="$(tr '\000' '\n' < /proc/1/environ 2>/dev/null | awk -F= '/^container=/{print $2; exit}')\n"
     fi
   fi
 }
