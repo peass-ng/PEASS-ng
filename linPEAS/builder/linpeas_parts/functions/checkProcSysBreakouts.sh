@@ -8,7 +8,7 @@
 # Functions Used: checkCreateReleaseAgent
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $dev_mounted, $proc_mounted, $run_unshare, $release_agent_breakout1, $release_agent_breakout2, $core_pattern_breakout, $modprobe_binary, $modprobe_config_writable, $panic_on_oom_dos, $panic_on_oom, $panic_on, $panic_sys_fs_dos, $binfmt_misc_breakout, $proc_configgz_readable, $sysreq_trigger_dos, $kmsg_readable, $kallsyms_readable, $self_mem_readable, $mem_readable, $kmem_readable, $kmem_writable, $mem_writable, $sched_debug_readable, $mountinfo_readable, $uevent_helper_breakout, $vmcoreinfo_readable, $security_present, $security_writable, $efi_vars_writable, $efi_efivars_writable, $kcore_readable, $proc_keys_readable, $proc_timer_list_readable, $sys_firmware_readable, $debugfs_present, $debugfs_readable, $thermal_present, $thermal_readable
+# Generated Global Variables: $dev_mounted, $proc_mounted, $run_unshare, $release_agent_breakout1, $release_agent_breakout2, $core_pattern_breakout, $modprobe_binary, $modprobe_config_writable, $panic_on_oom_dos, $panic_on_oom, $panic_on, $panic_sys_fs_dos, $binfmt_misc_breakout, $proc_configgz_readable, $sysreq_trigger_dos, $kmsg_readable, $kallsyms_readable, $self_mem_readable, $mem_readable, $kmem_readable, $kmem_writable, $mem_writable, $sched_debug_readable, $mountinfo_readable, $mountinfo_file, $uevent_helper_breakout, $vmcoreinfo_readable, $security_present, $security_writable, $efi_vars_writable, $efi_efivars_writable, $kcore_readable, $proc_keys_readable, $proc_timer_list_readable, $sys_firmware_readable, $debugfs_present, $debugfs_readable, $thermal_present, $thermal_readable, $thermal_file
 # Fat linpeas: 0
 # Small linpeas: 1
 

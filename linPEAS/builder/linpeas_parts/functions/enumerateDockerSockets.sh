@@ -8,7 +8,7 @@
 # Functions Used: echo_not_found
 # Global Variables: $GREP_DOCKER_SOCK_INFOS, $GREP_DOCKER_SOCK_INFOS_IGNORE
 # Initial Functions:
-# Generated Global Variables: $SEARCHED_DOCKER_SOCKETS, $docker_enumerated, $dockerVersion, $int_sock, $sockInfoResponse
+# Generated Global Variables: $SEARCHED_DOCKER_SOCKETS, $docker_enumerated, $dockerVersion, $int_sock, $sockInfoResponse, $IFS, $OLDIFS
 # Fat linpeas: 0
 # Small linpeas: 1
 

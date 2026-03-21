@@ -9,7 +9,7 @@
 # Functions Used: checkContainerExploits, checkProcSysBreakouts, containerCheck, enumerateDockerSockets, print_2title, print_3title, print_info, print_list, warn_exec
 # Global Variables: $binfmt_misc_breakout, $containercapsB, $containerType, $core_pattern_breakout, $debugfs_present, $debugfs_readable, $dev_mounted, $efi_efivars_writable, $efi_vars_writable, $GREP_IGNORE_MOUNTS, $inContainer, $kallsyms_readable, $kcore_readable, $kmem_readable, $kmem_writable, $kmsg_readable, $mem_readable, $mem_writable, $modprobe_binary, $modprobe_config_writable, $mountinfo_readable, $panic_on_oom_dos, $panic_sys_fs_dos, $proc_configgz_readable, $proc_keys_readable, $proc_mounted, $proc_timer_list_readable, $release_agent_breakout1, $release_agent_breakout2, $release_agent_breakout3, $run_unshare, $sched_debug_readable, $security_present, $security_writable, $self_mem_readable, $sys_firmware_readable, $sysreq_trigger_dos, $thermal_present, $thermal_readable, $uevent_helper_breakout, $vmcoreinfo_readable, $VULN_CVE_2019_5021
 # Initial Functions: containerCheck
-# Generated Global Variables: $container_breakout_tools, $containerd_version, $gid_map_value, $host_process_count, $host_process_indicators, $no_new_privs_num, $root_mount_mode, $runc_version, $seccomp_mode_desc, $seccomp_mode_num, $selinux_context, $selinux_status, $setgroups_value, $uid_map_value
+# Generated Global Variables: $container_breakout_tools, $containerd_version, $defautl_docker_caps, $gid_map_value, $host_process_count, $host_process_indicators, $no_new_privs_num, $proc_comm, $root_mount_mode, $runc_version, $seccomp_mode_desc, $seccomp_mode_num, $selinux_context, $selinux_status, $setgroups_value, $tool, $uid_map_value
 # Fat linpeas: 0
 # Small linpeas: 0
 
