@@ -21,7 +21,7 @@ containerCheck
 if [ "$inContainer" ]; then
   echo ""
   print_2title "Container - Writable bind mounts w/o nosuid (SUID persistence risk)" "T1611"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation/index.html#writable-bind-mounts"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/container-security/privileged-containers.html#writable-bind-mounts"
 
   if [ -r /proc/self/mountinfo ]; then
     CT_RW_bind_mounts_matches=$(grep -E "(^| )bind( |$)" /proc/self/mountinfo 2>/dev/null | grep -E "(^|,)rw(,|$)" | grep -v "nosuid" || true)

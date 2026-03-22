@@ -1,14 +1,14 @@
 # Title: Container - enumerateDockerSockets
 # ID: enumerateDockerSockets
 # Author: Carlos Polop
-# Last Update: 22-08-2023
-# Description: Search Docker Sockets
+# Last Update: 21-03-2026
+# Description: Search interesting container runtime, orchestration, and build sockets that could expose high-impact APIs from inside a container.
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: echo_not_found
 # Global Variables: $GREP_DOCKER_SOCK_INFOS, $GREP_DOCKER_SOCK_INFOS_IGNORE
 # Initial Functions:
-# Generated Global Variables: $SEARCHED_DOCKER_SOCKETS, $docker_enumerated, $dockerVersion, $int_sock, $sockInfoResponse
+# Generated Global Variables: $SEARCHED_DOCKER_SOCKETS, $docker_enumerated, $dockerVersion, $int_sock, $sockInfoResponse, $IFS, $OLDIFS
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -17,6 +17,9 @@ enumerateDockerSockets() {
   dockerVersion="$(echo_not_found)"
   if ! [ "$SEARCHED_DOCKER_SOCKETS" ]; then
     SEARCHED_DOCKER_SOCKETS="1"
+    OLDIFS="$IFS"
+    IFS='
+'
     # NOTE: This is intentionally "lightweight" (checks common runtime socket names) and avoids
     # pseudo filesystems (/sys, /proc) to reduce noise and latency.
     for int_sock in $(find / \
@@ -25,9 +28,16 @@ enumerateDockerSockets() {
       -type s \( \
         -name "docker.sock" -o \
         -name "docker.socket" -o \
+        -name "cri-dockerd.sock" -o \
         -name "dockershim.sock" -o \
         -name "containerd.sock" -o \
+        -name "containerd.sock.ttrpc" -o \
         -name "crio.sock" -o \
+        -name "podman.sock" -o \
+        -name "kubelet.sock" -o \
+        -name "buildkitd.sock" -o \
+        -name "buildkit.sock" -o \
+        -name "firecracker-containerd.sock" -o \
         -name "frakti.sock" -o \
         -name "rktlet.sock" \
       \) -print 2>/dev/null); do
@@ -43,7 +53,7 @@ enumerateDockerSockets() {
         echo "You don't have write permissions over interesting socket $int_sock" | sed -${E} "s,$int_sock,${SED_GREEN},g"
       fi
 
-      # Validate whether this looks like a Docker Engine API socket (amicontained-style) when curl exists.
+      # Validate whether this looks like a Docker-compatible API socket (amicontained-style) when curl exists.
       docker_enumerated=""
       if [ "$(command -v curl 2>/dev/null || echo -n '')" ]; then
         sockInfoResponse="$(curl -s --max-time 2 --unix-socket "$int_sock" http://localhost/info 2>/dev/null)"
@@ -67,5 +77,6 @@ enumerateDockerSockets() {
         fi
       fi
     done
+    IFS="$OLDIFS"
   fi
 }

@@ -19,7 +19,7 @@ if echo "$containerType" | grep -qi "docker"; then
     print_2title "Docker Container details" "T1613"
     inDockerGroup
     print_list "Am I inside Docker group .......$NC $DOCKER_GROUP\n" | sed -${E} "s,Yes,${SED_RED_YELLOW},"
-    print_list "Looking and enumerating Docker Sockets (if any):\n"$NC
+    print_list "Looking and enumerating runtime sockets:\n"$NC
     enumerateDockerSockets
     print_list "Docker version .................$NC$dockerVersion"
     checkDockerVersionExploits
