@@ -19,7 +19,7 @@ print_2title "Actual Group Memberships via newgrp" "T1069.001"
 ActualGroup="|"
 
 while IFS=: read -r groupname _ gid _; do
-    result=$(timeout 1 sh -c "echo id | newgrp \"$groupname\"" 2>/dev/null)
+    result=$(timeout 1 sh -c 'echo id | newgrp "$1"' sh "$groupname" 2>/dev/null)
     if echo "$result" | grep -q "uid="; then
         if ! echo "${Groups}|" | grep -Fq "|${groupname}|"; then
             ActualGroup="${ActualGroup}${groupname}|"
