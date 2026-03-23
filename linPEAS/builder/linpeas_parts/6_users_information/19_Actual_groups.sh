@@ -16,16 +16,19 @@
 
 print_2title "Actual Group Memberships via newgrp" "T1069.001"
 
-ActualGroup="|"
+# Skip this probe when running as root to avoid root-only newgrp behavior
+if [ "${IAMROOT:-0}" != "1" ]; then
+    ActualGroup="|"
 
-while IFS=: read -r groupname _ gid _; do
-    result=$(timeout 1 sh -c 'echo id | newgrp "$1"' sh "$groupname" 2>/dev/null)
-    if echo "$result" | grep -q "uid="; then
-        if ! echo "${Groups}|" | grep -Fq "|${groupname}|"; then
-            ActualGroup="${ActualGroup}${groupname}|"
-            echo "Accessible group not shown in id: $groupname (gid=$gid)" | sed -${E} "s,$groupsVB,${SED_RED_YELLOW},g" | sed -${E} "s,$groupsB,${SED_RED},g"
+    while IFS=: read -r groupname _ gid _; do
+        result=$(timeout 1 sh -c "echo id | newgrp \"$groupname\"" 2>/dev/null)
+        if echo "$result" | grep -q "uid="; then
+            if ! echo "${Groups}|" | grep -Fq "|${groupname}|"; then
+                ActualGroup="${ActualGroup}${groupname}|"
+                echo "Accessible group not shown in id: $groupname (gid=$gid)" | sed -${E} "s,$groupsVB,${SED_RED_YELLOW},g" | sed -${E} "s,$groupsB,${SED_RED},g"
+            fi
         fi
-    fi
-done < /etc/group
+    done < /etc/group
 
-echo ""
+    echo ""
+fi
