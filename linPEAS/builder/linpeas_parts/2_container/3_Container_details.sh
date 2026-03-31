@@ -16,6 +16,37 @@
 print_2title "Container details" "T1613,T1611"
 print_list "Is this a container? ...........$NC $containerType"
 
+has_runtime_cli() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+print_runtime_info() {
+    if has_runtime_cli "$1"; then
+        print_list "$2$NC "
+        shift 2
+        warn_exec "$@"
+    fi
+}
+
+get_runtime_container_count() {
+    if has_runtime_cli "$1"; then
+        shift
+        "$@" 2>/dev/null | wc -l | tr -d ' '
+    else
+        echo "0"
+    fi
+}
+
+print_running_containers() {
+    if [ "$1" -ne "0" ]; then
+        echo "$2" | sed -${E} "s,.*,${SED_RED},"
+        shift
+        shift
+        "$@" 2>/dev/null
+        echo ""
+    fi
+}
+
 if [ -e "/proc/vz" ] && ! [ -e "/proc/bc" ]; then
     print_list "Container Runtime ..............$NC OpenVZ"
 fi
@@ -33,56 +64,18 @@ if [ -f "/.dockerenv" ]; then
 fi
 
 # Get container runtime info
-if [ "$(command -v docker || echo -n '')" ]; then
-    print_list "Docker version ...............$NC "
-    warn_exec docker version
-    print_list "Docker info .................$NC "
-    warn_exec docker info
-fi
-
-if [ "$(command -v podman || echo -n '')" ]; then
-    print_list "Podman version ..............$NC "
-    warn_exec podman version
-    print_list "Podman info ................$NC "
-    warn_exec podman info
-fi
-
-if [ "$(command -v lxc || echo -n '')" ]; then
-    print_list "LXC version ................$NC "
-    warn_exec lxc version
-    print_list "LXC info ...................$NC "
-    warn_exec lxc info
-fi
-
-if [ "$(command -v crio || echo -n '')" ]; then
-    print_list "CRI-O version ..............$NC "
-    warn_exec crio --version
-fi
-
-if [ "$(command -v runc || echo -n '')" ]; then
-    print_list "runc version ...............$NC "
-    warn_exec runc --version
-fi
-
-if [ "$(command -v crun || echo -n '')" ]; then
-    print_list "crun version ...............$NC "
-    warn_exec crun --version
-fi
-
-if [ "$(command -v nerdctl || echo -n '')" ]; then
-    print_list "nerdctl version ............$NC "
-    warn_exec nerdctl version
-fi
-
-if [ "$(command -v crictl || echo -n '')" ]; then
-    print_list "crictl version .............$NC "
-    warn_exec crictl version
-fi
-
-if [ "$(command -v ctr || echo -n '')" ]; then
-    print_list "ctr version ................$NC "
-    warn_exec ctr version
-fi
+print_runtime_info docker "Docker version ..............." docker version
+print_runtime_info docker "Docker info ................." docker info
+print_runtime_info podman "Podman version .............." podman version
+print_runtime_info podman "Podman info ................" podman info
+print_runtime_info lxc "LXC version ................" lxc version
+print_runtime_info lxc "LXC info ..................." lxc info
+print_runtime_info crio "CRI-O version ..............." crio --version
+print_runtime_info runc "runc version ..............." runc --version
+print_runtime_info crun "crun version ..............." crun --version
+print_runtime_info nerdctl "nerdctl version ............" nerdctl version
+print_runtime_info crictl "crictl version ............." crictl version
+print_runtime_info ctr "ctr version ................" ctr version
 
 print_list "Interesting runtime sockets ... "$NC
 enumerateDockerSockets
@@ -97,13 +90,13 @@ nerdctlcontainers=0
 crictlcontainers=0
 ctrcontainers=0
 
-if [ "$(command -v docker || echo -n '')" ]; then dockercontainers=$(docker ps --format "{{.Names}}" 2>/dev/null | wc -l | tr -d ' '); fi
-if [ "$(command -v podman || echo -n '')" ]; then podmancontainers=$(podman ps --format "{{.Names}}" 2>/dev/null | wc -l | tr -d ' '); fi
-if [ "$(command -v lxc || echo -n '')" ]; then lxccontainers=$(lxc list -c n --format csv 2>/dev/null | wc -l | tr -d ' '); fi
-if [ "$(command -v rkt || echo -n '')" ]; then rktcontainers=$(rkt list 2>/dev/null | tail -n +2  | wc -l | tr -d ' '); fi
-if [ "$(command -v nerdctl || echo -n '')" ]; then nerdctlcontainers=$(nerdctl ps --format "{{.Names}}" 2>/dev/null | wc -l | tr -d ' '); fi
-if [ "$(command -v crictl || echo -n '')" ]; then crictlcontainers=$(crictl ps -q 2>/dev/null | wc -l | tr -d ' '); fi
-if [ "$(command -v ctr || echo -n '')" ]; then ctrcontainers=$(ctr -n k8s.io containers list -q 2>/dev/null | wc -l | tr -d ' '); fi
+dockercontainers=$(get_runtime_container_count docker docker ps --format "{{.Names}}")
+podmancontainers=$(get_runtime_container_count podman podman ps --format "{{.Names}}")
+lxccontainers=$(get_runtime_container_count lxc lxc list -c n --format csv)
+rktcontainers=$(get_runtime_container_count rkt sh -c 'rkt list 2>/dev/null | tail -n +2')
+nerdctlcontainers=$(get_runtime_container_count nerdctl nerdctl ps --format "{{.Names}}")
+crictlcontainers=$(get_runtime_container_count crictl crictl ps -q)
+ctrcontainers=$(get_runtime_container_count ctr ctr -n k8s.io containers list -q)
 
 if [ "$dockercontainers" -eq "0" ] && [ "$lxccontainers" -eq "0" ] && [ "$rktcontainers" -eq "0" ] && [ "$podmancontainers" -eq "0" ] && [ "$nerdctlcontainers" -eq "0" ] && [ "$crictlcontainers" -eq "0" ] && [ "$ctrcontainers" -eq "0" ]; then
     echo_no
@@ -119,49 +112,13 @@ else
     echo "Yes $containerCounts" | sed -${E} "s,.*,${SED_RED},"
     
     # List any running containers with more details
-    if [ "$dockercontainers" -ne "0" ]; then 
-        echo "Running Docker Containers" | sed -${E} "s,.*,${SED_RED},"
-        docker ps -a 2>/dev/null
-        #echo "Docker Container Details" | sed -${E} "s,.*,${SED_RED},"
-        #docker inspect $(docker ps -q) 2>/dev/null | grep -E "Privileged|CapAdd|CapDrop|SecurityOpt|HostConfig" | sed -${E} "s,true|privileged|host,${SED_RED},g"
-        echo ""
-    fi
-    if [ "$podmancontainers" -ne "0" ]; then 
-        echo "Running Podman Containers" | sed -${E} "s,.*,${SED_RED},"
-        podman ps -a 2>/dev/null
-        #echo "Podman Container Details" | sed -${E} "s,.*,${SED_RED},"
-        #podman inspect $(podman ps -q) 2>/dev/null | grep -E "Privileged|CapAdd|CapDrop|SecurityOpt|HostConfig" | sed -${E} "s,true|privileged|host,${SED_RED},g"
-        echo ""
-    fi
-    if [ "$lxccontainers" -ne "0" ]; then 
-        echo "Running LXC Containers" | sed -${E} "s,.*,${SED_RED},"
-        lxc list 2>/dev/null
-        #echo "LXC Container Details" | sed -${E} "s,.*,${SED_RED},"
-        #lxc config show $(lxc list -c n --format csv) 2>/dev/null | grep -E "security.privileged|security.capabilities|security.syscalls" | sed -${E} "s,true|privileged|host,${SED_RED},g"
-        echo ""
-    fi
-    if [ "$rktcontainers" -ne "0" ]; then 
-        echo "Running RKT Containers" | sed -${E} "s,.*,${SED_RED},"
-        rkt list 2>/dev/null
-        #echo "RKT Container Details" | sed -${E} "s,.*,${SED_RED},"
-        #rkt status $(rkt list --format=json 2>/dev/null | jq -r '.[].id') 2>/dev/null | grep -E "privileged|capabilities|security" | sed -${E} "s,true|privileged|host,${SED_RED},g"
-        echo ""
-    fi
-    if [ "$nerdctlcontainers" -ne "0" ]; then
-        echo "Running nerdctl Containers" | sed -${E} "s,.*,${SED_RED},"
-        nerdctl ps -a 2>/dev/null
-        echo ""
-    fi
-    if [ "$crictlcontainers" -ne "0" ]; then
-        echo "Running CRI Containers" | sed -${E} "s,.*,${SED_RED},"
-        crictl ps -a 2>/dev/null
-        echo ""
-    fi
-    if [ "$ctrcontainers" -ne "0" ]; then
-        echo "Running ctr Containers (k8s.io namespace)" | sed -${E} "s,.*,${SED_RED},"
-        ctr -n k8s.io containers list 2>/dev/null
-        echo ""
-    fi
+    print_running_containers "$dockercontainers" "Running Docker Containers" docker ps -a
+    print_running_containers "$podmancontainers" "Running Podman Containers" podman ps -a
+    print_running_containers "$lxccontainers" "Running LXC Containers" lxc list
+    print_running_containers "$rktcontainers" "Running RKT Containers" rkt list
+    print_running_containers "$nerdctlcontainers" "Running nerdctl Containers" nerdctl ps -a
+    print_running_containers "$crictlcontainers" "Running CRI Containers" crictl ps -a
+    print_running_containers "$ctrcontainers" "Running ctr Containers (k8s.io namespace)" ctr -n k8s.io containers list
 fi
 
 
