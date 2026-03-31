@@ -169,19 +169,12 @@ namespace winPEAS.Checks
                     List<Dictionary<string, string>> flaggedSessions = new List<Dictionary<string, string>>();
                     foreach (Dictionary<string, string> rdpSes in rdp_sessions)
                     {
-                        rdpSes.TryGetValue("SessionID", out string sessionId);
-                        rdpSes.TryGetValue("pSessionName", out string sessionName);
-                        rdpSes.TryGetValue("pUserName", out string userName);
-                        rdpSes.TryGetValue("pDomainName", out string domainName);
-                        rdpSes.TryGetValue("State", out string state);
-                        rdpSes.TryGetValue("SourceIP", out string sourceIp);
-
-                        sessionId = sessionId ?? string.Empty;
-                        sessionName = sessionName ?? string.Empty;
-                        userName = userName ?? string.Empty;
-                        domainName = domainName ?? string.Empty;
-                        state = state ?? string.Empty;
-                        sourceIp = sourceIp ?? string.Empty;
+                        string sessionId = GetSessionValue(rdpSes, "SessionID");
+                        string sessionName = GetSessionValue(rdpSes, "pSessionName");
+                        string userName = GetSessionValue(rdpSes, "pUserName");
+                        string domainName = GetSessionValue(rdpSes, "pDomainName");
+                        string state = GetSessionValue(rdpSes, "State");
+                        string sourceIp = GetSessionValue(rdpSes, "SourceIP");
 
                         bool isHighPriv = UserInfoHelper.IsHighPrivilegeAccount(userName, domainName);
                         string highPrivLabel = isHighPriv ? "Yes" : "No";
@@ -200,15 +193,10 @@ namespace winPEAS.Checks
                         Beaprint.BadPrint("    [!] Disconnected high-privilege RDP sessions detected. Their credentials/tokens stay in LSASS until the user signs out.");
                         foreach (Dictionary<string, string> session in flaggedSessions)
                         {
-                            session.TryGetValue("pDomainName", out string flaggedDomain);
-                            session.TryGetValue("pUserName", out string flaggedUser);
-                            session.TryGetValue("SessionID", out string flaggedSessionId);
-                            session.TryGetValue("SourceIP", out string flaggedIp);
-
-                            flaggedDomain = flaggedDomain ?? string.Empty;
-                            flaggedUser = flaggedUser ?? string.Empty;
-                            flaggedSessionId = flaggedSessionId ?? string.Empty;
-                            flaggedIp = flaggedIp ?? string.Empty;
+                            string flaggedDomain = GetSessionValue(session, "pDomainName");
+                            string flaggedUser = GetSessionValue(session, "pUserName");
+                            string flaggedSessionId = GetSessionValue(session, "SessionID");
+                            string flaggedIp = GetSessionValue(session, "SourceIP");
 
                             string userDisplay = string.Format("{0}\\{1}", flaggedDomain, flaggedUser).Trim('\\');
                             string source = string.IsNullOrEmpty(flaggedIp) ? "local" : flaggedIp;
@@ -226,6 +214,16 @@ namespace winPEAS.Checks
             {
                 Beaprint.PrintException(ex.Message);
             }
+        }
+
+        private static string GetSessionValue(IReadOnlyDictionary<string, string> session, string key)
+        {
+            if (session.TryGetValue(key, out string value))
+            {
+                return value ?? string.Empty;
+            }
+
+            return string.Empty;
         }
 
         void PrintEverLoggedUsers()
