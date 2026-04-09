@@ -18,6 +18,15 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Capabilities" "T1548.001"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#capabilities"
   if [ "$(command -v capsh || echo -n '')" ]; then
+    is_hex_cap_value() {
+      case "$1" in
+        ""|*[!0-9a-fA-F]*)
+          return 1
+          ;;
+      esac
+      return 0
+    }
+
     print_3title "Current shell capabilities" "T1548.001"
     cat "/proc/$$/status" | grep Cap | while read -r cap_line; do
       cap_name=$(echo "$cap_line" | awk '{print $1}')
@@ -26,7 +35,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
         # Add validation check for cap_value
         # For more POSIX-compliant formatting, the following could be used instead:
         # if echo "$cap_value" | grep -E '^[0-9a-fA-F]+$' > /dev/null 2>&1; then
-        if [[ "$cap_value" =~ ^[0-9a-fA-F]+$ ]]; then
+        if is_hex_cap_value "$cap_value"; then
           # Memory errors can occur with certain values (e.g., ffffffffffffffff)
           # so we redirect stderr to prevent error propagation
           echo "$cap_name	 $(capsh --decode=0x"$cap_value" 2>/dev/null | sed -${E} "s,$capsB,${SED_RED_YELLOW},")"
@@ -35,7 +44,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
         fi
       else
         # Add validation check for cap_value
-        if [[ "$cap_value" =~ ^[0-9a-fA-F]+$ ]]; then
+        if is_hex_cap_value "$cap_value"; then
           # Memory errors can occur with certain values (e.g., ffffffffffffffff)
           # so we redirect stderr to prevent error propagation
           echo "$cap_name  $(capsh --decode=0x"$cap_value" 2>/dev/null | sed -${E} "s,$capsB,${SED_RED},")"
@@ -51,7 +60,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
       cap_value=$(echo "$cap_line" | awk '{print $2}')
       if [ "$cap_name" = "CapEff:" ]; then
         # Add validation check for cap_value
-        if [[ "$cap_value" =~ ^[0-9a-fA-F]+$ ]]; then
+        if is_hex_cap_value "$cap_value"; then
           # Memory errors can occur with certain values (e.g., ffffffffffffffff)
           # so we redirect stderr to prevent error propagation
           echo "$cap_name	 $(capsh --decode=0x"$cap_value" 2>/dev/null | sed -${E} "s,$capsB,${SED_RED_YELLOW},")"
@@ -60,7 +69,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
         fi
       else
         # Add validation check for cap_value
-        if [[ "$cap_value" =~ ^[0-9a-fA-F]+$ ]]; then
+        if is_hex_cap_value "$cap_value"; then
           # Memory errors can occur with certain values (e.g., ffffffffffffffff)
           # so we redirect stderr to prevent error propagation
           echo "$cap_name	 $(capsh --decode=0x"$cap_value" 2>/dev/null | sed -${E} "s,$capsB,${SED_RED},")"
