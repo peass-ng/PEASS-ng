@@ -31,7 +31,7 @@ if [ -n "$pkexec_bin" ]; then
   # Check polkit version for known vulnerabilities
   if command -v pkexec >/dev/null 2>&1; then
     pkexec --version 2>/dev/null
-    pkexec_version="$(pkexec --version 2>/dev/null | grep -oE '[0-9]+(\\.[0-9]+)+')"
+    pkexec_version="$(pkexec --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+')"
     if [ "$pkexec_version" ] && [ "$(printf '%s\n' "$pkexec_version" "0.120" | sort -V | head -n1)" = "$pkexec_version" ] && [ "$pkexec_version" != "0.120" ]; then
       echo "Potentially vulnerable to CVE-2021-4034 (PwnKit) - check distro patches" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     fi
