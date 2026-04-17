@@ -386,6 +386,7 @@ print_support () {
     ${GREEN}/---------------------------------------------------------------------------------\\
     |                             ${BLUE}Do you like PEASS?${GREEN}                                  |
     |---------------------------------------------------------------------------------|
+    |         ${YELLOW}Linux PE & Hardening${GREEN}    :     ${RED}https://hacktricks-training.com/courses/lhe/${GREEN} |
     |         ${YELLOW}Learn Cloud Hacking${GREEN}       :     ${RED}https://training.hacktricks.xyz ${GREEN}        |
     |         ${YELLOW}Follow on Twitter${GREEN}         :     ${RED}@hacktricks_live${GREEN}                        |
     |         ${YELLOW}Respect on HTB${GREEN}            :     ${RED}SirBroccoli            ${GREEN}                 |
@@ -406,6 +407,7 @@ echo ""
 printf ${YELLOW}"ADVISORY: ${BLUE}$ADVISORY\n$NC"
 echo ""
 printf ${BLUE}"Linux Privesc Checklist: ${YELLOW}https://book.hacktricks.wiki/en/linux-hardening/linux-privilege-escalation-checklist.html\n"$NC
+printf ${BLUE}"Best Linux PE & Hardening course: ${YELLOW}https://hacktricks-training.com/courses/lhe/\n"$NC
 echo " LEGEND:" | sed "s,LEGEND,${C}[1;4m&${C}[0m,"
 echo "  RED/YELLOW: 95% a PE vector" | sed "s,RED/YELLOW,${SED_RED_YELLOW},"
 echo "  RED: You should take a look into it" | sed "s,RED,${SED_RED},"

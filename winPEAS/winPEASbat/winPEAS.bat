@@ -58,6 +58,8 @@ CALL :ColorLine "   %E%41mWinPEAS should be used for authorized penetration test
 CALL :ColorLine "   %E%41mAny misuse of this software will not be the responsibility of the author or of any other collaborator.%E%40;97m"
 CALL :ColorLine "   %E%41mUse it at your own networks and/or with the network owner's permission.%E%40;97m"
 ECHO.
+ECHO.   [i] Best Linux PE and hardening course: https://hacktricks-training.com/courses/lhe/
+ECHO.
 
 :SystemInfo
 CALL :ColorLine "%E%32m[*]%E%97m BASIC SYSTEM INFO"

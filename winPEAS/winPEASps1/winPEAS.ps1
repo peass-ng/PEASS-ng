@@ -795,6 +795,7 @@ Write-Host -ForegroundColor Blue   "Indicates title"
 
 
 Write-Host "You can find a Windows local PE Checklist here: https://book.hacktricks.wiki/en/windows-hardening/checklist-windows-privilege-escalation.html" -ForegroundColor Yellow
+Write-Host "Best Linux PE & Hardening course: https://hacktricks-training.com/courses/lhe/" -ForegroundColor Yellow
 #write-host  "Creating Dynamic lists, this could take a while, please wait..."
 #write-host  "Loading sensitive_files yaml definitions file..."
 #write-host  "Loading regexes yaml definitions file..."
