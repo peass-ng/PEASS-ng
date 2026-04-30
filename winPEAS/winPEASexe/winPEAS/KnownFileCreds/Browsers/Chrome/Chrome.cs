@@ -27,7 +27,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
             try
             {
                 Beaprint.MainPrint("Looking for Chrome DBs");
-                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#browsers-history");
+                PrintBrowserHistoryLink();
                 Dictionary<string, string> chromeDBs = GetChromeDbs();
 
                 if (chromeDBs.ContainsKey("userChromeCookiesPath"))
@@ -59,35 +59,12 @@ namespace winPEAS.KnownFileCreds.Browsers.Chrome
             try
             {
                 Beaprint.MainPrint("Looking for GET credentials in Chrome history");
-                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#browsers-history");
+                PrintBrowserHistoryLink();
                 Dictionary<string, List<string>> chromeHistBook = GetChromeHistBook();
                 List<string> history = chromeHistBook["history"];
                 List<string> bookmarks = chromeHistBook["bookmarks"];
 
-                if (history.Count > 0)
-                {
-                    Dictionary<string, string> colorsB = new Dictionary<string, string>()
-                    {
-                        { Globals.PrintCredStrings, Beaprint.ansi_color_bad },
-                    };
-
-                    foreach (string url in history)
-                    {
-                        if (MyUtils.ContainsAnyRegex(url.ToUpper(), Browser.CredStringsRegex))
-                        {
-                            Beaprint.AnsiPrint("    " + url, colorsB);
-                        }
-                    }
-                    Console.WriteLine();
-
-                    int limit = 50;
-                    Beaprint.MainPrint($"Chrome history -- limit {limit}\n");
-                    Beaprint.ListPrint(history.Take(limit).ToList());
-                }
-                else
-                {
-                    Beaprint.NotFoundPrint();
-                }
+                PrintCredentialHistory(history, "Chrome");
 
                 Beaprint.MainPrint("Chrome bookmarks");
                 Beaprint.ListPrint(bookmarks);
