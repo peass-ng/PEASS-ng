@@ -11,6 +11,7 @@ permissions:
 jobs:
   update-definitions:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -27,7 +28,8 @@ jobs:
         run: python3 -m pip install --disable-pip-version-check openpyxl
 
       - name: Update windows version definitions
-        run: python3 build_lists/update_windows_version_defs.py
+        timeout-minutes: 50
+        run: python3 build_lists/update_windows_version_defs.py --verbose
 
       - name: Validate windows version definitions
         run: python3 build_lists/validate_windows_version_defs.py
