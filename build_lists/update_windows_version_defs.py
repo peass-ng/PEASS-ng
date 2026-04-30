@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import logging
 import os
@@ -159,7 +160,7 @@ def download_bytes(url: str, *, timeout: int, retries: int, accept: str | None =
                 if not payload:
                     raise ValueError(f"Received an empty response from {url}")
                 return payload
-        except (HTTPError, URLError, TimeoutError, ValueError) as exc:
+        except (HTTPError, URLError, TimeoutError, ValueError, http.client.IncompleteRead) as exc:
             if attempt == retries:
                 raise RuntimeError(f"Failed to download {url}: {exc}") from exc
             logging.warning(
