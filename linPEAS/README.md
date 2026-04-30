@@ -6,9 +6,11 @@
 
 Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks.wiki](https://book.hacktricks.wiki/en/linux-hardening/linux-privilege-escalation-checklist.html)**.
 
-> **Dec 2025 update:** linpeas now inspects Linux kernels for CVE-2025-38352 (POSIX CPU timers race) by combining CONFIG_POSIX_CPU_TIMERS_TASK_WORK state with kernel build information, so you immediately know if publicly available PoCs might succeed.
-
 [![asciicast](https://asciinema.org/a/250532.png)](https://asciinema.org/a/309566)
+
+## Linux Privesc official course to master LinPEAS
+
+**Check <https://hacktricks-training.com/courses/lhe/> to learn tens of linux privesc techniques and master LinPEAS**
 
 ## MacPEAS
 
