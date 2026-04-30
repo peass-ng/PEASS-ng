@@ -9,7 +9,7 @@
 # Functions Used:
 # Global Variables: $E, $SED_GREEN, $SED_RED, $SED_RED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $CF31_PY_TIMEOUT, $CF31_TMP_PY, $CF31_PY, $CF31_RC, $CF31_KERNEL_OS, $CF31_KERNEL_RELEASE, $CF31_KERNEL_VERSION, $CF31_CFG, $CF31_CFG_FILE, $CF31_CFG_LINE, $CF31_API, $CF31_BLOCKED, $CF31_FIXED_PKG, $CF31_PKG, $CF31_MAJ, $CF31_MIN, $CF31_PAT, $CF31_CANDIDATE, $CF31_KV
+# Generated Global Variables: $CF31_PY_TIMEOUT, $CF31_TMP_PY, $CF31_PY, $CF31_RC, $CF31_MSG, $CF31_KERNEL_OS, $CF31_KERNEL_RELEASE, $CF31_KERNEL_VERSION, $CF31_CFG, $CF31_CFG_FILE, $CF31_CFG_LINE, $CF31_API, $CF31_BLOCKED, $CF31_FIXED_PKG, $CF31_PKG, $CF31_MAJ, $CF31_MIN, $CF31_PAT, $CF31_CANDIDATE, $CF31_KV
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -256,10 +256,20 @@ checkCopyFail() {
 
         for CF31_CANDIDATE in python3 python; do
             if command -v "$CF31_CANDIDATE" >/dev/null 2>&1 && cf31_py_can_run_probe "$CF31_CANDIDATE"; then
-                cf31_run_python_probe "$CF31_CANDIDATE"
+                CF31_MSG=$(cf31_run_python_probe "$CF31_CANDIDATE")
                 CF31_RC=$?
                 case "$CF31_RC" in
-                    0|2) exit "$CF31_RC" ;;
+                    0)
+                        printf "%s\n" "$CF31_MSG" | sed -${E} "s,.*,${SED_GREEN},"
+                        exit 0
+                        ;;
+                    2)
+                        printf "%s\n" "$CF31_MSG" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+                        exit 2
+                        ;;
+                    1)
+                        [ -n "$CF31_MSG" ] && printf "%s\n" "$CF31_MSG" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+                        ;;
                 esac
                 echo "Python probe inconclusive; falling back to POSIX sh triage."
                 break
