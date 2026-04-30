@@ -35,7 +35,7 @@ jobs:
       - name: Validate windows version definitions
         run: python3 build_lists/validate_windows_version_defs.py
 
-      - name: Create update pull request
+      - name: Create and merge validated update pull request
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -66,3 +66,31 @@ jobs:
               --title "$title" \
               --body "Automated update of \`build_lists/windows_version_exploits.json\`. The generated JSON passed \`build_lists/validate_windows_version_defs.py\` before this PR was updated."
           fi
+
+          pr_number="$(gh pr list --state open --head "$branch" --base master --json number --jq '.[0].number')"
+          pr_json="$(gh pr view "$pr_number" --json title,baseRefName,headRefName,author,mergeable)"
+          pr_title="$(jq -r .title <<<"$pr_json")"
+          base_ref="$(jq -r .baseRefName <<<"$pr_json")"
+          head_ref="$(jq -r .headRefName <<<"$pr_json")"
+          author="$(jq -r .author.login <<<"$pr_json")"
+          mergeable="$(jq -r .mergeable <<<"$pr_json")"
+
+          if [ "$pr_title" != "$title" ] || [ "$base_ref" != "master" ] || [ "$head_ref" != "$branch" ]; then
+            echo "Refusing to merge unexpected PR #$pr_number: title=$pr_title base=$base_ref head=$head_ref"
+            exit 1
+          fi
+          if [ "$author" != "app/github-actions" ] && [ "$author" != "github-actions" ] && [ "$author" != "github-actions[bot]" ]; then
+            echo "Refusing to merge PR #$pr_number from unexpected author: $author"
+            exit 1
+          fi
+          if [ "$mergeable" != "MERGEABLE" ]; then
+            echo "Refusing to merge PR #$pr_number because mergeable=$mergeable"
+            exit 1
+          fi
+
+          gh api \
+            -X PUT \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/pulls/${pr_number}/merge" \
+            -f merge_method=squash \
+            -f commit_title="$title"
