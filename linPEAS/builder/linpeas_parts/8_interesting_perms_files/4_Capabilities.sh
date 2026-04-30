@@ -9,7 +9,7 @@
 # Functions Used: echo_not_found, print_2title, print_info, print_3title
 # Global Variables: $capsB, $capsVB, $IAMROOT, $SEARCH_IN_FOLDER
 # Initial Functions:
-# Generated Global Variables: $cap_name, $cap_value, $cap_line, $capVB, $capname, $capbins, $capsVB_vuln, $proc_status, $proc_pid, $proc_name, $proc_uid, $user_name, $proc_inh, $proc_prm, $proc_eff, $proc_bnd, $proc_amb, $proc_inh_dec, $proc_prm_dec, $proc_eff_dec, $proc_bnd_dec, $proc_amb_dec
+# Generated Global Variables: $cap_name, $cap_value, $cap_line, $cap_status_file, $cap_default_sep, $cap_sep, $cap_color, $capVB, $capname, $capbins, $capsVB_vuln, $proc_status, $proc_pid, $proc_name, $proc_uid, $user_name, $proc_inh, $proc_prm, $proc_eff, $proc_bnd, $proc_amb, $proc_inh_dec, $proc_prm_dec, $proc_eff_dec, $proc_bnd_dec, $proc_amb_dec
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -27,57 +27,36 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
       return 0
     }
 
+    print_cap_status() {
+      cap_status_file="$1"
+      cap_default_sep="$2"
+
+      cat "$cap_status_file" | grep Cap | while read -r cap_line; do
+        cap_name=$(echo "$cap_line" | awk '{print $1}')
+        cap_value=$(echo "$cap_line" | awk '{print $2}')
+        cap_sep="$cap_default_sep"
+        cap_color="$SED_RED"
+
+        if [ "$cap_name" = "CapEff:" ]; then
+          cap_sep="	 "
+          cap_color="$SED_RED_YELLOW"
+        fi
+
+        if is_hex_cap_value "$cap_value"; then
+          # Memory errors can occur with certain values (e.g., ffffffffffffffff)
+          # so we redirect stderr to prevent error propagation
+          echo "$cap_name$cap_sep$(capsh --decode=0x"$cap_value" 2>/dev/null | sed -${E} "s,$capsB,${cap_color},")"
+        else
+          echo "$cap_name$cap_sep[Invalid capability format]"
+        fi
+      done
+    }
+
     print_3title "Current shell capabilities" "T1548.001"
-    cat "/proc/$$/status" | grep Cap | while read -r cap_line; do
-      cap_name=$(echo "$cap_line" | awk '{print $1}')
-      cap_value=$(echo "$cap_line" | awk '{print $2}')
-      if [ "$cap_name" = "CapEff:" ]; then
-        # Add validation check for cap_value
-        # For more POSIX-compliant formatting, the following could be used instead:
-        # if echo "$cap_value" | grep -E '^[0-9a-fA-F]+$' > /dev/null 2>&1; then
-        if is_hex_cap_value "$cap_value"; then
-          # Memory errors can occur with certain values (e.g., ffffffffffffffff)
-          # so we redirect stderr to prevent error propagation
-          echo "$cap_name	 $(capsh --decode=0x"$cap_value" 2>/dev/null | sed -${E} "s,$capsB,${SED_RED_YELLOW},")"
-        else
-          echo "$cap_name	 [Invalid capability format]"
-        fi
-      else
-        # Add validation check for cap_value
-        if is_hex_cap_value "$cap_value"; then
-          # Memory errors can occur with certain values (e.g., ffffffffffffffff)
-          # so we redirect stderr to prevent error propagation
-          echo "$cap_name  $(capsh --decode=0x"$cap_value" 2>/dev/null | sed -${E} "s,$capsB,${SED_RED},")"
-        else
-          echo "$cap_name  [Invalid capability format]"
-        fi
-      fi
-    done
+    print_cap_status "/proc/$$/status" "  "
     echo ""
     print_info "Parent process capabilities"
-    cat "/proc/$PPID/status" | grep Cap | while read -r cap_line; do
-      cap_name=$(echo "$cap_line" | awk '{print $1}')
-      cap_value=$(echo "$cap_line" | awk '{print $2}')
-      if [ "$cap_name" = "CapEff:" ]; then
-        # Add validation check for cap_value
-        if is_hex_cap_value "$cap_value"; then
-          # Memory errors can occur with certain values (e.g., ffffffffffffffff)
-          # so we redirect stderr to prevent error propagation
-          echo "$cap_name	 $(capsh --decode=0x"$cap_value" 2>/dev/null | sed -${E} "s,$capsB,${SED_RED_YELLOW},")"
-        else
-          echo "$cap_name	 [Invalid capability format]"
-        fi
-      else
-        # Add validation check for cap_value
-        if is_hex_cap_value "$cap_value"; then
-          # Memory errors can occur with certain values (e.g., ffffffffffffffff)
-          # so we redirect stderr to prevent error propagation
-          echo "$cap_name	 $(capsh --decode=0x"$cap_value" 2>/dev/null | sed -${E} "s,$capsB,${SED_RED},")"
-        else
-          echo "$cap_name	 [Invalid capability format]"
-        fi
-      fi
-    done
+    print_cap_status "/proc/$PPID/status" "	 "
     echo ""
 
     print_3title "Processes with capability sets (non-zero CapEff/CapAmb, limit 40)" "T1548.001"
