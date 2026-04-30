@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   update-definitions:
@@ -34,16 +35,34 @@ jobs:
       - name: Validate windows version definitions
         run: python3 build_lists/validate_windows_version_defs.py
 
-      - name: Commit and push changes
+      - name: Create update pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if git diff --quiet -- build_lists/windows_version_exploits.json build_lists/validate_windows_version_defs.py; then
+          title="chore(winpeas): update windows version vulnerability definitions"
+          branch="bot/update-windows-version-definitions"
+
+          if git diff --quiet -- build_lists/windows_version_exploits.json; then
             echo "No windows version definition updates detected."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add build_lists/windows_version_exploits.json build_lists/validate_windows_version_defs.py
-          git commit -m "chore(winpeas): update windows version vulnerability definitions"
-          git pull --rebase origin master
-          git push origin HEAD:master
+          git checkout -B "$branch"
+          git add build_lists/windows_version_exploits.json
+          git commit -m "$title"
+          git push --force-with-lease origin "$branch"
+
+          pr_number="$(gh pr list --state open --head "$branch" --base master --json number --jq '.[0].number')"
+          if [ -z "$pr_number" ]; then
+            gh pr create \
+              --base master \
+              --head "$branch" \
+              --title "$title" \
+              --body "Automated update of \`build_lists/windows_version_exploits.json\`. The generated JSON passed \`build_lists/validate_windows_version_defs.py\` before this PR was created."
+          else
+            gh pr edit "$pr_number" \
+              --title "$title" \
+              --body "Automated update of \`build_lists/windows_version_exploits.json\`. The generated JSON passed \`build_lists/validate_windows_version_defs.py\` before this PR was updated."
+          fi
