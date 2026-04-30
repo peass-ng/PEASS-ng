@@ -111,6 +111,12 @@ def parse_args() -> argparse.Namespace:
         help="Maximum parallel downloads for MSRC CVRF documents.",
     )
     parser.add_argument(
+        "--nvd-max-workers",
+        type=int,
+        default=max(4, min(8, (os.cpu_count() or 4))),
+        help="Maximum parallel downloads for NVD yearly feeds.",
+    )
+    parser.add_argument(
         "--nvd-start-year",
         type=int,
         default=2002,
@@ -480,25 +486,46 @@ def extract_exploit_ids_from_feed(payload: bytes, *, year: int) -> set[str]:
     return exploit_ids
 
 
-def load_nvd_exploit_ids(*, start_year: int, end_year: int, timeout: int, retries: int) -> set[str]:
+def fetch_nvd_year(year: int, *, timeout: int, retries: int) -> set[str]:
+    url = NVD_FEED_URL_TEMPLATE.format(year=year)
+    logging.debug("Downloading NVD feed for %d", year)
+    payload = download_bytes(url, timeout=timeout, retries=retries)
+    return extract_exploit_ids_from_feed(payload, year=year)
+
+
+def load_nvd_exploit_ids(
+    *,
+    start_year: int,
+    end_year: int,
+    timeout: int,
+    retries: int,
+    max_workers: int,
+) -> set[str]:
     if start_year > end_year:
         raise ValueError(f"Invalid NVD year range: {start_year} > {end_year}")
 
     exploit_ids: set[str] = set()
-    total_years = end_year - start_year + 1
-    for offset, year in enumerate(range(start_year, end_year + 1), start=1):
-        url = NVD_FEED_URL_TEMPLATE.format(year=year)
-        logging.info("Downloading NVD feed %d/%d for %d", offset, total_years, year)
-        payload = download_bytes(url, timeout=timeout, retries=retries)
-        year_ids = extract_exploit_ids_from_feed(payload, year=year)
-        exploit_ids.update(year_ids)
-        logging.info(
-            "Processed NVD year %d/%d (%d CVEs with exploit references, %d cumulative)",
-            offset,
-            total_years,
-            len(year_ids),
-            len(exploit_ids),
-        )
+    years = list(range(start_year, end_year + 1))
+    logging.info("Downloading %d NVD yearly feeds with up to %d workers", len(years), max_workers)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_year = {
+            executor.submit(fetch_nvd_year, year, timeout=timeout, retries=retries): year
+            for year in years
+        }
+        completed = 0
+        for future in as_completed(future_to_year):
+            year = future_to_year[future]
+            year_ids = future.result()
+            exploit_ids.update(year_ids)
+            completed += 1
+            logging.info(
+                "Processed NVD year %d (%d/%d, %d CVEs with exploit references, %d cumulative)",
+                year,
+                completed,
+                len(years),
+                len(year_ids),
+                len(exploit_ids),
+            )
 
     return exploit_ids
 
@@ -602,6 +629,7 @@ def main() -> None:
         end_year=args.nvd_end_year,
         timeout=args.timeout,
         retries=args.retries,
+        max_workers=args.nvd_max_workers,
     )
 
     logging.info(
