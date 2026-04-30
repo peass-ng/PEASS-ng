@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   update-definitions:
@@ -16,6 +15,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          ref: master
 
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -28,18 +29,19 @@ jobs:
       - name: Update windows version definitions
         run: python3 build_lists/update_windows_version_defs.py
 
-      - name: Create pull request
-        id: create_pr
-        continue-on-error: true
-        uses: peter-evans/create-pull-request@v7
-        with:
-          commit-message: "chore(winpeas): update windows version vulnerability definitions"
-          title: "chore(winpeas): update windows version vulnerability definitions"
-          body: "Automated update of `build_lists/windows_version_exploits.json`."
-          branch: "bot/update-windows-version-definitions"
-          delete-branch: true
+      - name: Validate windows version definitions
+        run: python3 build_lists/validate_windows_version_defs.py
 
-      - name: Warn when PR creation is blocked by repo policy
-        if: steps.create_pr.outcome == 'failure'
+      - name: Commit and push changes
         run: |
-          echo "::warning::Branch update was pushed, but automatic PR creation failed. If logs show 'GitHub Actions is not permitted to create or approve pull requests', enable that repository setting or use a PAT token for PR creation."
+          if git diff --quiet -- build_lists/windows_version_exploits.json build_lists/validate_windows_version_defs.py; then
+            echo "No windows version definition updates detected."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add build_lists/windows_version_exploits.json build_lists/validate_windows_version_defs.py
+          git commit -m "chore(winpeas): update windows version vulnerability definitions"
+          git pull --rebase origin master
+          git push origin HEAD:master
