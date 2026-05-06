@@ -25,7 +25,7 @@
 
 
 print_2title "Checking for PackageKit Pack2TheRoot (CVE-2026-41651)" "T1068"
-print_info "https://github.security.telekom.com/2026/04/pack2theroot-cve-2026-41651.html"
+print_info "https://github.security.telekom.com/2026/04/pack2theroot-linux-local-privilege-escalation.html"
 
 pk_version=""
 if command -v dpkg >/dev/null 2>&1; then
