@@ -131,6 +131,9 @@ jobs:
           python3 -m builder.linpeas_builder --all-no-fat --output linpeas.sh
           python3 -m builder.linpeas_builder --small --output linpeas_small.sh
 
+      - name: Run linPEAS module metadata tests
+        run: python3 -m unittest linPEAS.tests.test_modules_metadata
+
       - name: Run linPEAS builder tests
         run: python3 -m unittest discover -s linPEAS/tests -p "test_*.py"
       
