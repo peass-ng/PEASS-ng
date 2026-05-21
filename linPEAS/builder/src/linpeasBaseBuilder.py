@@ -302,6 +302,19 @@ class LinpeasBaseBuilder:
     def enumerate_directory(self, path):
         """Given a directory get the paths to all the files inside it"""
         return sorted([os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))])
+
+    def selector_matches(self, selector, *values):
+        """Return whether a CLI include/exclude selector matches any module metadata."""
+        selector = selector.strip().lower()
+        if not selector:
+            return False
+        selector_flat = selector.replace("_", "").replace("-", "").replace(" ", "")
+        for value in values:
+            value = str(value).lower()
+            value_flat = value.replace("_", "").replace("-", "").replace(" ", "")
+            if selector == value or selector in value or selector_flat in value_flat:
+                return True
+        return False
     
     def get_modules(self, all_modules, all_no_fat_modules, no_network_scanning, small, include_modules, exclude_modules) -> LinpeasModuleList:
         """Get all the base, variable, function and specified modules to create the new linpeas"""
@@ -321,7 +334,7 @@ class LinpeasBaseBuilder:
         for module in LINPEAS_PARTS["modules"]:
             exclude = False
             for ex_module in exclude_modules:
-                if ex_module in module["folder_path"] or ex_module in [module["name"], module["name_check"]]:
+                if self.selector_matches(ex_module, module["folder_path"], module["name"], module["name_check"]):
                     exclude = True
                     break
             if exclude: continue
@@ -343,7 +356,7 @@ class LinpeasBaseBuilder:
                 continue
             
             # If explicitely excluded, skip
-            if m.id in exclude_modules:
+            if any(self.selector_matches(ex_module, m.path, m.id, m.title, m.section_info["name"], m.section_info["name_check"]) for ex_module in exclude_modules):
                 continue
             if all_no_fat_modules and m.is_fat:
                 continue
@@ -354,11 +367,8 @@ class LinpeasBaseBuilder:
             if all_modules or all_no_fat_modules or m.id in include_modules:
                 parsed_modules.append(m)
             for in_module in include_modules:
-                if in_module.lower() in os.path.basename(m.path).lower() or in_module.lower() == m.id.lower() or in_module in [m.section_info["name"], m.section_info["name_check"]]:
+                if self.selector_matches(in_module, m.path, os.path.basename(m.path), m.id, m.title, m.section_info["name"], m.section_info["name_check"]):
                     parsed_modules.append(m)
                     break
             
         return parsed_modules
-
-
-

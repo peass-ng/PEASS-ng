@@ -36,6 +36,23 @@ class LinpeasBuilderTests(unittest.TestCase):
             self.assertIn("Operative system", content)
             self.assertNotIn("Am I Containered?", content)
 
+    def test_exclude_matches_module_ids_case_insensitively(self):
+        """Regression: --exclude must match module IDs such as SY_Copy_Fail."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "linpeas_exclude_copyfail.sh"
+            self._run_builder(
+                [
+                    "--include",
+                    "SY_Copy_Fail",
+                    "--exclude",
+                    "SY_Copy_Fail,checkCopyFail",
+                ],
+                output_path,
+            )
+            content = output_path.read_text(encoding="utf-8", errors="ignore")
+            self.assertNotIn("Checking for Copy Fail", content)
+            self.assertNotIn("checkCopyFail", content)
+
     def test_threads_flag_present_in_getopts(self):
         """Regression: -z must appear in the getopts string so it is actually parsed."""
         with tempfile.TemporaryDirectory() as tmpdir:

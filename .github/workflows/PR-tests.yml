@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.head_ref || github.ref_name }}
       
       - name: Download regexes
         run: |
@@ -113,7 +113,7 @@ jobs:
       # Download repo
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.head_ref || github.ref_name }}
       
       # Setup go
       - uses: actions/setup-go@v6
@@ -173,7 +173,7 @@ jobs:
       # Download repo
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.head_ref || github.ref_name }}
       
       # Build linpeas (macpeas)
       - name: Build macpeas
