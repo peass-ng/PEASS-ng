@@ -55,6 +55,14 @@ class LinpeasModulesMetadataTests(unittest.TestCase):
         duplicates = {x for x in ids if x and ids.count(x) > 1}
         self.assertEqual(set(), duplicates, f"Duplicate module IDs found: {sorted(duplicates)}")
 
+    def test_sudo_l_check_is_bounded_for_non_interactive_runs(self):
+        sudo_l_module = self.parts_dir / "6_users_information" / "7_Sudo_l.sh"
+        content = sudo_l_module.read_text(encoding="utf-8")
+
+        self.assertIn('"$TIMEOUT" 15 sudo -S -l', content)
+        self.assertIn("sudo -n -l", content)
+        self.assertNotRegex(content, r"secure_path_line=\$\(sudo\s+-l\b")
+
 
 if __name__ == "__main__":
     unittest.main()

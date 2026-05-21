@@ -7,22 +7,44 @@
 # Version: 1.0
 # Mitre: T1548.003
 # Functions Used: echo_not_found, print_2title, print_info
-# Global Variables:$IAMROOT, $PASSWORD, $sudoB, $sudoG, $sudoVB1, $sudoVB2 
+# Global Variables:$IAMROOT, $PASSWORD, $TIMEOUT, $sudoB, $sudoG, $sudoVB1, $sudoVB2
 # Initial Functions:
-# Generated Global Variables: $secure_path_line
+# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $secure_path_line
 # Fat linpeas: 0
 # Small linpeas: 1
 
 
 print_2title "Checking 'sudo -l', /etc/sudoers, and /etc/sudoers.d" "T1548.003"
 print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sudo-and-suid"
-(echo '' | timeout 1 sudo -S -l | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,\!root,${SED_RED},") 2>/dev/null || echo_not_found "sudo"
-if [ "$PASSWORD" ]; then
-  (echo "$PASSWORD" | timeout 1 sudo -S -l | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g") 2>/dev/null  || echo_not_found "sudo"
-fi
-(sudo -n -l 2>/dev/null | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,\!root,${SED_RED},") 2>/dev/null || echo "No cached sudo token (sudo -n -l)"
 
-secure_path_line=$(sudo -l 2>/dev/null | grep -o "secure_path=[^,]*" | head -n 1 | cut -d= -f2)
+if [ "$(command -v sudo 2>/dev/null || echo -n '')" ]; then
+  if [ "$TIMEOUT" ]; then
+    sudo_l_output=$(printf '\n' | "$TIMEOUT" 15 sudo -S -l 2>/dev/null)
+  else
+    sudo_l_output=$(sudo -n -l 2>/dev/null)
+  fi
+  printf "%s\n" "$sudo_l_output" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,\!root,${SED_RED},"
+
+  if [ "$PASSWORD" ]; then
+    if [ "$TIMEOUT" ]; then
+      sudo_l_password_output=$(printf "%s\n" "$PASSWORD" | "$TIMEOUT" 15 sudo -S -l 2>/dev/null)
+    else
+      sudo_l_password_output=$(printf "%s\n" "$PASSWORD" | sudo -S -l 2>/dev/null)
+    fi
+    printf "%s\n" "$sudo_l_password_output" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g"
+  fi
+
+  sudo_l_cached_output=$(sudo -n -l 2>/dev/null)
+  if [ "$sudo_l_cached_output" ]; then
+    printf "%s\n" "$sudo_l_cached_output" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,\!root,${SED_RED},"
+  else
+    echo "No cached sudo token (sudo -n -l)"
+  fi
+else
+  echo_not_found "sudo"
+fi
+
+secure_path_line=$(printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" | grep -o "secure_path=[^,]*" | head -n 1 | cut -d= -f2)
 if [ "$secure_path_line" ]; then
   for p in $(echo "$secure_path_line" | tr ':' ' '); do
     if [ -w "$p" ]; then
