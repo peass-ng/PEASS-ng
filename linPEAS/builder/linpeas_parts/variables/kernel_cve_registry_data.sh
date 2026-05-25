@@ -1,7 +1,7 @@
 # Title: Variables - kernel_cve_registry_data
 # ID: kernel_cve_registry_data
 # Author: Carlos Polop
-# Last Update: 25-02-2026
+# Last Update: 25-05-2026
 # Description: Embedded kernel exploit matching datasets extracted from linux-exploit-suggester and linux-exploit-suggester-2 examples. Data is split across KERNEL_CVE_DATA_1..X with a maximum of 25 rows per env variable. This file also stores reference-only CVE tokens found in example repos when no explicit suggester matching rule exists.
 # License: GNU GPL
 # Version: 1.0
@@ -599,6 +599,13 @@ CVE-2021-4154	cgroup fsconfig type confusion	pkg=linux-kernel,ver=5.13.3		1	From
 CVE-2022-2588	route4_filter double-free	pkg=linux-kernel,ver=5.19.1,CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1		1	From kernel-exploit-factory detail section and exploit prerequisites
 CVE-2022-2639	openvswitch reserve_sfa_size integer overflow	pkg=linux-kernel,ver=5.17.4,cmd:grep -qi openvswitch /proc/modules		1	From kernel-exploit-factory detail section; openvswitch module required
 CVE-2025-21702	net/sched qdisc UAF	pkg=linux-kernel,ver=6.6.75,CONFIG_NET_SCHED=y		1	From kernel-exploit-factory detail section (test version Linux-6.6.75)
+CVE-2026-31431	Copy Fail	pkg=linux-kernel,ver>=4.14,ver<5.10.254,CONFIG_CRYPTO_USER_API_AEAD=[my],CONFIG_CRYPTO_AUTHENC=[my]		1	Upstream issue introduced in 4.14; fixed by stable backports and in mainline 7.0
+CVE-2026-31431	Copy Fail	pkg=linux-kernel,ver>=5.11,ver<5.15.204,CONFIG_CRYPTO_USER_API_AEAD=[my],CONFIG_CRYPTO_AUTHENC=[my]		1	Upstream issue introduced in 4.14; fixed by stable backports and in mainline 7.0
+CVE-2026-31431	Copy Fail	pkg=linux-kernel,ver>=5.16,ver<6.1.170,CONFIG_CRYPTO_USER_API_AEAD=[my],CONFIG_CRYPTO_AUTHENC=[my]		1	Upstream issue introduced in 4.14; fixed by stable backports and in mainline 7.0
+CVE-2026-31431	Copy Fail	pkg=linux-kernel,ver>=6.2,ver<6.6.137,CONFIG_CRYPTO_USER_API_AEAD=[my],CONFIG_CRYPTO_AUTHENC=[my]		1	Upstream issue introduced in 4.14; fixed by stable backports and in mainline 7.0
+CVE-2026-31431	Copy Fail	pkg=linux-kernel,ver>=6.7,ver<6.12.85,CONFIG_CRYPTO_USER_API_AEAD=[my],CONFIG_CRYPTO_AUTHENC=[my]		1	Upstream issue introduced in 4.14; fixed by stable backports and in mainline 7.0
+CVE-2026-31431	Copy Fail	pkg=linux-kernel,ver>=6.13,ver<6.18.22,CONFIG_CRYPTO_USER_API_AEAD=[my],CONFIG_CRYPTO_AUTHENC=[my]		1	Upstream issue introduced in 4.14; fixed by stable backports and in mainline 7.0
+CVE-2026-31431	Copy Fail	pkg=linux-kernel,ver>=6.19,ver<6.19.12,CONFIG_CRYPTO_USER_API_AEAD=[my],CONFIG_CRYPTO_AUTHENC=[my]		1	Upstream issue fixed in 6.19.12 and mainline 7.0
 CVE-2017-16994	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; appears as related bypass mention
 CVE-2020-27171	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; appears as related comment in exploit source
 CVE-2024-0193	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; appears as upstream source reference
