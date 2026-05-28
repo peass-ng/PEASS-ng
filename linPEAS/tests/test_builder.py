@@ -1,5 +1,6 @@
 import os
 import re
+import shlex
 import stat
 import subprocess
 import tempfile
@@ -52,6 +53,49 @@ class LinpeasBuilderTests(unittest.TestCase):
             content = output_path.read_text(encoding="utf-8", errors="ignore")
             self.assertNotIn("Checking for Copy Fail", content)
             self.assertNotIn("checkCopyFail", content)
+
+    def test_copyfail_python_probe_removes_temp_script(self):
+        """Regression: cf31_run_python_probe must remove its generated probe file."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            marker_path = tmp_path / "probe_path"
+            fake_python = tmp_path / "fake-python"
+            fake_python.write_text(
+                "#!/bin/sh\n"
+                "printf '%s\\n' \"$1\" > \"$CF31_PROBE_PATH_FILE\"\n"
+                "printf '%s\\n' probe-output\n"
+                "exit 2\n",
+                encoding="utf-8",
+            )
+            fake_python.chmod(0o755)
+
+            function_file = self.linpeas_dir / "builder" / "linpeas_parts" / "functions" / "checkCopyFail.sh"
+            script = "\n".join(
+                [
+                    f". {shlex.quote(str(function_file))}",
+                    "CF31_PY_TIMEOUT=5",
+                    f"export CF31_PROBE_PATH_FILE={shlex.quote(str(marker_path))}",
+                    f"CF31_MSG=$(cf31_run_python_probe {shlex.quote(str(fake_python))})",
+                    "CF31_RC=$?",
+                    f"CF31_PROBE_FILE=$(cat {shlex.quote(str(marker_path))})",
+                    'printf "rc=%s\\n" "$CF31_RC"',
+                    'printf "msg=%s\\n" "$CF31_MSG"',
+                    'printf "path=%s\\n" "$CF31_PROBE_FILE"',
+                    'if [ -e "$CF31_PROBE_FILE" ]; then echo "exists=yes"; else echo "exists=no"; fi',
+                ]
+            )
+
+            result = subprocess.run(
+                ["sh", "-c", script],
+                cwd=str(self.repo_root),
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("rc=2", result.stdout)
+            self.assertIn("msg=probe-output", result.stdout)
+            self.assertIn("exists=no", result.stdout)
 
     def test_threads_flag_present_in_getopts(self):
         """Regression: -z must appear in the getopts string so it is actually parsed."""

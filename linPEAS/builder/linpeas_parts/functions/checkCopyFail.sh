@@ -70,6 +70,7 @@ except Exception:
 cf31_run_python_probe() {
     CF31_PY="$1"
     CF31_TMP_PY=/tmp/cf31-probe-$$.py
+    trap 'rm -f "$CF31_TMP_PY"' EXIT HUP INT TERM
 
     cat > "$CF31_TMP_PY" <<'PY'
 import errno, os, signal, socket, struct, sys, tempfile, shutil
@@ -233,13 +234,19 @@ finally:
         pass
 PY
 
-    [ -s "$CF31_TMP_PY" ] || return 1
+    if [ ! -s "$CF31_TMP_PY" ]; then
+        rm -f "$CF31_TMP_PY"
+        return 1
+    fi
 
     if command -v timeout >/dev/null 2>&1; then
         timeout "$CF31_PY_TIMEOUT" "$CF31_PY" "$CF31_TMP_PY"
     else
         "$CF31_PY" "$CF31_TMP_PY"
     fi
+    CF31_RC=$?
+    rm -f "$CF31_TMP_PY"
+    return "$CF31_RC"
 }
 
 checkCopyFail() {
