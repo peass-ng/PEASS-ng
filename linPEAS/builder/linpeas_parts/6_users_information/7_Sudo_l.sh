@@ -17,13 +17,25 @@
 print_2title "Checking 'sudo -l', /etc/sudoers, and /etc/sudoers.d" "T1548.003"
 print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#sudo-and-suid"
 
+sudo_l_colorize() {
+  sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g"
+}
+
+sudo_l_colorize_output() {
+  printf "%s\n" "$1" | sudo_l_colorize | sed "s,\!root,${SED_RED},"
+}
+
+sudo_l_colorize_file() {
+  grep -Iv "^$" "$1" | grep -v "#" | sudo_l_colorize | sed "s,pwfeedback,${SED_RED},g"
+}
+
 if [ "$(command -v sudo 2>/dev/null || echo -n '')" ]; then
   if [ "$TIMEOUT" ]; then
     sudo_l_output=$(printf '\n' | "$TIMEOUT" 15 sudo -S -l 2>/dev/null)
   else
     sudo_l_output=$(sudo -n -l 2>/dev/null)
   fi
-  printf "%s\n" "$sudo_l_output" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,\!root,${SED_RED},"
+  sudo_l_colorize_output "$sudo_l_output"
 
   if [ "$PASSWORD" ]; then
     if [ "$TIMEOUT" ]; then
@@ -31,12 +43,12 @@ if [ "$(command -v sudo 2>/dev/null || echo -n '')" ]; then
     else
       sudo_l_password_output=$(printf "%s\n" "$PASSWORD" | sudo -S -l 2>/dev/null)
     fi
-    printf "%s\n" "$sudo_l_password_output" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g"
+    printf "%s\n" "$sudo_l_password_output" | sudo_l_colorize
   fi
 
   sudo_l_cached_output=$(sudo -n -l 2>/dev/null)
   if [ "$sudo_l_cached_output" ]; then
-    printf "%s\n" "$sudo_l_cached_output" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,\!root,${SED_RED},"
+    sudo_l_colorize_output "$sudo_l_cached_output"
   else
     echo "No cached sudo token (sudo -n -l)"
   fi
@@ -52,7 +64,7 @@ if [ "$secure_path_line" ]; then
     fi
   done
 fi
-( grep -Iv "^$" cat /etc/sudoers | grep -v "#" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,pwfeedback,${SED_RED},g" ) 2>/dev/null  || echo_not_found "/etc/sudoers"
+(sudo_l_colorize_file /etc/sudoers) 2>/dev/null || echo_not_found "/etc/sudoers"
 if ! [ "$IAMROOT" ] && [ -w '/etc/sudoers.d/' ]; then
   echo "You can create a file in /etc/sudoers.d/ and escalate privileges" | sed -${E} "s,.*,${SED_RED_YELLOW},"
 fi
@@ -62,7 +74,7 @@ for f in /etc/sudoers.d/*; do
   fi
   if [ -r "$f" ]; then
     echo "Sudoers file: $f is readable" | sed -${E} "s,.*,${SED_RED},g"
-    grep -Iv "^$" "$f" | grep -v "#" | sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g" | sed "s,pwfeedback,${SED_RED},g"
+    sudo_l_colorize_file "$f"
   fi
 done
 echo ""
