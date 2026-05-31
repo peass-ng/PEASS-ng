@@ -81,24 +81,8 @@ namespace winPEAS.Info.CloudInfo
                         {
                             // Ensure proper URL formatting.
                             string url = $"{containerBaseUrl}{(containerBaseUrl.EndsWith("/") ? "" : "/")}{tuple.Item2}";
-                            var headers = new WebHeaderCollection();
-                            string msiSecret = Environment.GetEnvironmentVariable("MSI_SECRET");
-                            if (!string.IsNullOrEmpty(msiSecret))
-                            {
-                                headers.Add("Secret", msiSecret);
-                            }
-                            string identitySecret = Environment.GetEnvironmentVariable("IDENTITY_HEADER");
-                            if (!string.IsNullOrEmpty(identitySecret))
-                            {
-                                headers.Add("X-IDENTITY-HEADER", identitySecret);
-                            }
-                            result = CreateMetadataAPIRequest(url, "GET", headers);
-                            _endpointDataList.Add(new EndpointData()
-                            {
-                                EndpointName = tuple.Item1,
-                                Data = result,
-                                IsAttackVector = tuple.Item3
-                            });
+                            result = CreateMetadataAPIRequest(url, "GET", CreateContainerHeaders());
+                            AddEndpointData(_endpointDataList, tuple.Item1, result, tuple.Item3);
                         }
                     }
                     else if (Directory.Exists(WINDOWS_AZURE_FOLDER))
@@ -117,13 +101,8 @@ namespace winPEAS.Info.CloudInfo
                         foreach (var tuple in endpoints)
                         {
                             string url = $"{AZURE_BASE_URL}{tuple.Item2}";
-                            result = CreateMetadataAPIRequest(url, "GET", new WebHeaderCollection() { { "Metadata", "true" } });
-                            _endpointDataList.Add(new EndpointData()
-                            {
-                                EndpointName = tuple.Item1,
-                                Data = result,
-                                IsAttackVector = tuple.Item3
-                            });
+                            result = CreateMetadataAPIRequest(url, "GET", CreateAzureVmHeaders());
+                            AddEndpointData(_endpointDataList, tuple.Item1, result, tuple.Item3);
                         }
 
                         AddAzureVmUserAssignedIdentityTokens(_endpointDataList);
@@ -133,30 +112,15 @@ namespace winPEAS.Info.CloudInfo
                         // If neither container nor VM, endpoints remain unset.
                         foreach (var endpoint in new List<Tuple<string, string, bool>>())
                         {
-                            _endpointDataList.Add(new EndpointData()
-                            {
-                                EndpointName = endpoint.Item1,
-                                Data = null,
-                                IsAttackVector = false
-                            });
+                            AddEndpointData(_endpointDataList, endpoint.Item1, null, false);
                         }
                     }
 
                     string hwsRun = DoesProcessExist("HybridWorkerService") ? "Yes" : "No";
-                    _endpointDataList.Add(new EndpointData()
-                    {
-                        EndpointName = "HybridWorkerService.exe Running",
-                        Data = hwsRun,
-                        IsAttackVector = true
-                    });
+                    AddEndpointData(_endpointDataList, "HybridWorkerService.exe Running", hwsRun, true);
 
                     string OSRun = DoesProcessExist("Orchestrator.Sandbox") ? "Yes" : "No";
-                    _endpointDataList.Add(new EndpointData()
-                    {
-                        EndpointName = "Orchestrator.Sandbox.exe Running",
-                        Data = OSRun,
-                        IsAttackVector = true
-                    });
+                    AddEndpointData(_endpointDataList, "Orchestrator.Sandbox.exe Running", OSRun, true);
 
                     _endpointData.Add("General", _endpointDataList);
                 }
@@ -171,33 +135,31 @@ namespace winPEAS.Info.CloudInfo
 
         private void AddAzureVmUserAssignedIdentityTokens(List<EndpointData> endpointDataList)
         {
-            endpointDataList.Add(new EndpointData()
-            {
-                EndpointName = "Managed identity discovery note",
-                Data = "winPEAS can request default managed identity tokens directly from IMDS. To discover every attached user-assigned identity, it tries to read the VM ARM identity block with the default Management token. If that token lacks Microsoft.Compute/virtualMachines/read, IMDS can still issue tokens for known client_id/object_id/msi_res_id values, but the full attached identity list cannot be discovered from IMDS alone.",
-                IsAttackVector = false
-            });
+            AddEndpointData(
+                endpointDataList,
+                "Managed identity discovery note",
+                "winPEAS can request default managed identity tokens directly from IMDS. To discover every attached user-assigned identity, it tries to read the VM ARM identity block with the default Management token. If that token lacks Microsoft.Compute/virtualMachines/read, IMDS can still issue tokens for known client_id/object_id/msi_res_id values, but the full attached identity list cannot be discovered from IMDS alone.",
+                false);
 
             string instanceJson = CreateMetadataAPIRequest(
                 $"{AZURE_BASE_URL}instance?api-version={API_VERSION}",
                 "GET",
-                new WebHeaderCollection() { { "Metadata", "true" } });
+                CreateAzureVmHeaders());
             string vmResourceId = GetJsonString(instanceJson, "compute", "resourceId");
 
             string managementTokenJson = CreateMetadataAPIRequest(
                 $"{AZURE_BASE_URL}identity/oauth2/token?api-version={API_VERSION}&resource=https://management.azure.com/",
                 "GET",
-                new WebHeaderCollection() { { "Metadata", "true" } });
+                CreateAzureVmHeaders());
             string managementToken = GetJsonString(managementTokenJson, "access_token");
 
             if (string.IsNullOrEmpty(vmResourceId) || string.IsNullOrEmpty(managementToken))
             {
-                endpointDataList.Add(new EndpointData()
-                {
-                    EndpointName = "Attached user-assigned managed identities",
-                    Data = "Could not obtain the VM resource ID or default Management token needed for ARM identity discovery.",
-                    IsAttackVector = false
-                });
+                AddEndpointData(
+                    endpointDataList,
+                    "Attached user-assigned managed identities",
+                    "Could not obtain the VM resource ID or default Management token needed for ARM identity discovery.",
+                    false);
                 AddAzureVmWireServerIdentityTokens(endpointDataList);
                 return;
             }
@@ -210,12 +172,11 @@ namespace winPEAS.Info.CloudInfo
 
             if (string.IsNullOrEmpty(vmJson))
             {
-                endpointDataList.Add(new EndpointData()
-                {
-                    EndpointName = "Attached user-assigned managed identities",
-                    Data = "Could not read the VM identity block from ARM with the default managed identity token.",
-                    IsAttackVector = false
-                });
+                AddEndpointData(
+                    endpointDataList,
+                    "Attached user-assigned managed identities",
+                    "Could not read the VM identity block from ARM with the default managed identity token.",
+                    false);
                 AddAzureVmWireServerIdentityTokens(endpointDataList);
                 return;
             }
@@ -227,12 +188,7 @@ namespace winPEAS.Info.CloudInfo
             }
             catch
             {
-                endpointDataList.Add(new EndpointData()
-                {
-                    EndpointName = "Attached user-assigned managed identities",
-                    Data = vmJson,
-                    IsAttackVector = false
-                });
+                AddEndpointData(endpointDataList, "Attached user-assigned managed identities", vmJson, false);
                 AddAzureVmWireServerIdentityTokens(endpointDataList);
                 return;
             }
@@ -240,12 +196,11 @@ namespace winPEAS.Info.CloudInfo
             JsonNode identityNode = root?["identity"];
             JsonObject userAssignedIdentities = identityNode?["userAssignedIdentities"] as JsonObject;
 
-            endpointDataList.Add(new EndpointData()
-            {
-                EndpointName = "VM ARM identity block",
-                Data = identityNode?.ToJsonString() ?? "No identity block found in ARM VM response.",
-                IsAttackVector = false
-            });
+            AddEndpointData(
+                endpointDataList,
+                "VM ARM identity block",
+                identityNode?.ToJsonString() ?? "No identity block found in ARM VM response.",
+                false);
 
             if (userAssignedIdentities == null || userAssignedIdentities.Count == 0)
             {
@@ -264,38 +219,18 @@ namespace winPEAS.Info.CloudInfo
                     continue;
                 }
 
-                endpointDataList.Add(new EndpointData()
-                {
-                    EndpointName = $"User-assigned MI {clientId}",
-                    Data = $"ResourceId: {identityResourceId}\nPrincipalId: {principalId}",
-                    IsAttackVector = false
-                });
-
-                foreach (var tokenEndpoint in GetAzureVmTokenEndpoints($"&client_id={Uri.EscapeDataString(clientId)}"))
-                {
-                    string result = CreateMetadataAPIRequest(
-                        $"{AZURE_BASE_URL}{tokenEndpoint.Item2}",
-                        "GET",
-                        new WebHeaderCollection() { { "Metadata", "true" } });
-
-                    endpointDataList.Add(new EndpointData()
-                    {
-                        EndpointName = $"{tokenEndpoint.Item1} for UAI {clientId}",
-                        Data = result,
-                        IsAttackVector = true
-                    });
-                }
+                AddEndpointData(endpointDataList, $"User-assigned MI {clientId}", $"ResourceId: {identityResourceId}\nPrincipalId: {principalId}", false);
+                AddAzureVmTokenResponses(endpointDataList, $"&client_id={Uri.EscapeDataString(clientId)}", $"for UAI {clientId}");
             }
         }
 
         private void AddAzureVmWireServerIdentityTokens(List<EndpointData> endpointDataList)
         {
-            endpointDataList.Add(new EndpointData()
-            {
-                EndpointName = "WireServer/HostGAPlugin managed identity fallback note",
-                Data = "ARM identity discovery failed or returned no user-assigned identities. Trying WireServer GoalState and HostGAPlugin /vmSettings for identity-looking selectors. These endpoints are environment-dependent and may expose no managed identity data.",
-                IsAttackVector = false
-            });
+            AddEndpointData(
+                endpointDataList,
+                "WireServer/HostGAPlugin managed identity fallback note",
+                "ARM identity discovery failed or returned no user-assigned identities. Trying WireServer GoalState and HostGAPlugin /vmSettings for identity-looking selectors. These endpoints are environment-dependent and may expose no managed identity data.",
+                false);
 
             string wireData = "";
             wireData += CreateMetadataAPIRequest(
@@ -314,12 +249,11 @@ namespace winPEAS.Info.CloudInfo
 
             if (string.IsNullOrEmpty(wireData))
             {
-                endpointDataList.Add(new EndpointData()
-                {
-                    EndpointName = "WireServer/HostGAPlugin managed identity fallback",
-                    Data = "WireServer/HostGAPlugin did not return data from this context.",
-                    IsAttackVector = false
-                });
+                AddEndpointData(
+                    endpointDataList,
+                    "WireServer/HostGAPlugin managed identity fallback",
+                    "WireServer/HostGAPlugin did not return data from this context.",
+                    false);
                 return;
             }
 
@@ -328,61 +262,65 @@ namespace winPEAS.Info.CloudInfo
 
             CollectWireServerIdentitySelectors(wireData, clientIds, resourceIds);
 
-            endpointDataList.Add(new EndpointData()
-            {
-                EndpointName = "WireServer/HostGAPlugin identity-looking hints",
-                Data = GetWireServerIdentityHints(wireData),
-                IsAttackVector = false
-            });
+            AddEndpointData(endpointDataList, "WireServer/HostGAPlugin identity-looking hints", GetWireServerIdentityHints(wireData), false);
 
             foreach (string clientId in clientIds)
             {
-                endpointDataList.Add(new EndpointData()
-                {
-                    EndpointName = $"WireServer-discovered client_id {clientId}",
-                    Data = "Trying IMDS tokens for this client_id.",
-                    IsAttackVector = false
-                });
-
-                foreach (var tokenEndpoint in GetAzureVmTokenEndpoints($"&client_id={Uri.EscapeDataString(clientId)}"))
-                {
-                    string result = CreateMetadataAPIRequest(
-                        $"{AZURE_BASE_URL}{tokenEndpoint.Item2}",
-                        "GET",
-                        new WebHeaderCollection() { { "Metadata", "true" } });
-
-                    endpointDataList.Add(new EndpointData()
-                    {
-                        EndpointName = $"{tokenEndpoint.Item1} for WireServer client_id {clientId}",
-                        Data = result,
-                        IsAttackVector = true
-                    });
-                }
+                AddEndpointData(endpointDataList, $"WireServer-discovered client_id {clientId}", "Trying IMDS tokens for this client_id.", false);
+                AddAzureVmTokenResponses(endpointDataList, $"&client_id={Uri.EscapeDataString(clientId)}", $"for WireServer client_id {clientId}");
             }
 
             foreach (string resourceId in resourceIds)
             {
-                endpointDataList.Add(new EndpointData()
-                {
-                    EndpointName = $"WireServer-discovered msi_res_id {resourceId}",
-                    Data = "Trying IMDS tokens for this msi_res_id.",
-                    IsAttackVector = false
-                });
+                AddEndpointData(endpointDataList, $"WireServer-discovered msi_res_id {resourceId}", "Trying IMDS tokens for this msi_res_id.", false);
+                AddAzureVmTokenResponses(endpointDataList, $"&msi_res_id={Uri.EscapeDataString(resourceId)}", "for WireServer msi_res_id");
+            }
+        }
 
-                foreach (var tokenEndpoint in GetAzureVmTokenEndpoints($"&msi_res_id={Uri.EscapeDataString(resourceId)}"))
-                {
-                    string result = CreateMetadataAPIRequest(
-                        $"{AZURE_BASE_URL}{tokenEndpoint.Item2}",
-                        "GET",
-                        new WebHeaderCollection() { { "Metadata", "true" } });
+        private static WebHeaderCollection CreateContainerHeaders()
+        {
+            var headers = new WebHeaderCollection();
 
-                    endpointDataList.Add(new EndpointData()
-                    {
-                        EndpointName = $"{tokenEndpoint.Item1} for WireServer msi_res_id",
-                        Data = result,
-                        IsAttackVector = true
-                    });
-                }
+            string msiSecret = Environment.GetEnvironmentVariable("MSI_SECRET");
+            if (!string.IsNullOrEmpty(msiSecret))
+            {
+                headers.Add("Secret", msiSecret);
+            }
+
+            string identitySecret = Environment.GetEnvironmentVariable("IDENTITY_HEADER");
+            if (!string.IsNullOrEmpty(identitySecret))
+            {
+                headers.Add("X-IDENTITY-HEADER", identitySecret);
+            }
+
+            return headers;
+        }
+
+        private static WebHeaderCollection CreateAzureVmHeaders()
+        {
+            return new WebHeaderCollection() { { "Metadata", "true" } };
+        }
+
+        private static void AddEndpointData(List<EndpointData> endpointDataList, string endpointName, string data, bool isAttackVector)
+        {
+            endpointDataList.Add(new EndpointData()
+            {
+                EndpointName = endpointName,
+                Data = data,
+                IsAttackVector = isAttackVector
+            });
+        }
+
+        private void AddAzureVmTokenResponses(List<EndpointData> endpointDataList, string selectorSuffix, string endpointNameSuffix)
+        {
+            foreach (var tokenEndpoint in GetAzureVmTokenEndpoints(selectorSuffix))
+            {
+                string result = CreateMetadataAPIRequest(
+                    $"{AZURE_BASE_URL}{tokenEndpoint.Item2}",
+                    "GET",
+                    CreateAzureVmHeaders());
+
+                AddEndpointData(endpointDataList, $"{tokenEndpoint.Item1} {endpointNameSuffix}", result, true);
             }
         }
 
@@ -518,23 +456,12 @@ namespace winPEAS.Info.CloudInfo
                                           Environment.GetEnvironmentVariable("IDENTITY_ENDPOINT");
                 if (string.IsNullOrEmpty(containerBaseUrl))
                     return false;
-                var headers = new WebHeaderCollection();
-                string msiSecret = Environment.GetEnvironmentVariable("MSI_SECRET");
-                if (!string.IsNullOrEmpty(msiSecret))
-                {
-                    headers.Add("Secret", msiSecret);
-                }
-                string identitySecret = Environment.GetEnvironmentVariable("IDENTITY_HEADER");
-                if (!string.IsNullOrEmpty(identitySecret))
-                {
-                    headers.Add("X-IDENTITY-HEADER", identitySecret);
-                }
-                return CreateMetadataAPIRequest(containerBaseUrl, "GET", headers) != null;
+                return CreateMetadataAPIRequest(containerBaseUrl, "GET", CreateContainerHeaders()) != null;
             }
             else
             {
                 // **Test connection for Azure VM**
-                return CreateMetadataAPIRequest(AZURE_BASE_URL, "GET", new WebHeaderCollection() { { "Metadata", "true" } }) != null;
+                return CreateMetadataAPIRequest(AZURE_BASE_URL, "GET", CreateAzureVmHeaders()) != null;
             }
         }
     }
