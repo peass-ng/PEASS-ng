@@ -56,6 +56,13 @@ az_vm_print_token() {
   echo ""
 }
 
+az_vm_print_standard_tokens() {
+  az_vm_print_token "Management token$1" "https://management.azure.com/" "$2"
+  az_vm_print_token "Graph token$1" "https://graph.microsoft.com/" "$2"
+  az_vm_print_token "Vault token$1" "https://vault.azure.net/" "$2"
+  az_vm_print_token "Storage token$1" "https://storage.azure.com/" "$2"
+}
+
 az_vm_request_wireserver() {
   _az_vm_wire_header="$1"
   _az_vm_wire_url="$2"
@@ -91,20 +98,14 @@ az_vm_try_wire_identity_tokens() {
       printf "%s" "$_az_vm_wire_data" | jq -r '.. | objects | to_entries[]? | select((.key|test("(?i)(clientId|IdentityClientId)$")) and (.value|type=="string")) | .value' 2>/dev/null | sort -u | while read -r _az_vm_wire_client_id; do
         if printf "%s" "$_az_vm_wire_client_id" | grep -Eq '^[0-9a-fA-F-]{36}$'; then
           print_info "Trying IMDS tokens for WireServer-discovered client_id=$_az_vm_wire_client_id"
-          az_vm_print_token "Management token for WireServer client_id $_az_vm_wire_client_id" "https://management.azure.com/" "client_id=$_az_vm_wire_client_id"
-          az_vm_print_token "Graph token for WireServer client_id $_az_vm_wire_client_id" "https://graph.microsoft.com/" "client_id=$_az_vm_wire_client_id"
-          az_vm_print_token "Vault token for WireServer client_id $_az_vm_wire_client_id" "https://vault.azure.net/" "client_id=$_az_vm_wire_client_id"
-          az_vm_print_token "Storage token for WireServer client_id $_az_vm_wire_client_id" "https://storage.azure.com/" "client_id=$_az_vm_wire_client_id"
+          az_vm_print_standard_tokens " for WireServer client_id $_az_vm_wire_client_id" "client_id=$_az_vm_wire_client_id"
         fi
       done
     fi
 
     printf "%s\n" "$_az_vm_wire_data" | grep -Eio '/subscriptions/[^"<>[:space:]]+/resourceGroups/[^"<>[:space:]]+/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/[^"<>[:space:]]+' | sort -u | while read -r _az_vm_wire_res_id; do
       print_info "Trying IMDS tokens for WireServer-discovered msi_res_id=$_az_vm_wire_res_id"
-      az_vm_print_token "Management token for WireServer msi_res_id" "https://management.azure.com/" "msi_res_id=$_az_vm_wire_res_id"
-      az_vm_print_token "Graph token for WireServer msi_res_id" "https://graph.microsoft.com/" "msi_res_id=$_az_vm_wire_res_id"
-      az_vm_print_token "Vault token for WireServer msi_res_id" "https://vault.azure.net/" "msi_res_id=$_az_vm_wire_res_id"
-      az_vm_print_token "Storage token for WireServer msi_res_id" "https://storage.azure.com/" "msi_res_id=$_az_vm_wire_res_id"
+      az_vm_print_standard_tokens " for WireServer msi_res_id" "msi_res_id=$_az_vm_wire_res_id"
     done
   else
     echo "WireServer/HostGAPlugin did not return data from this context."
@@ -180,10 +181,7 @@ if [ "$is_az_vm" = "Yes" ]; then
           printf "%s" "$_az_vm_arm_json" | jq -r '.identity.userAssignedIdentities // {} | to_entries[] | [.key, .value.clientId, .value.principalId] | @tsv' 2>/dev/null | while IFS="$(printf '\t')" read -r _az_vm_uai_id _az_vm_uai_client_id _az_vm_uai_principal_id; do
             if [ "$_az_vm_uai_client_id" ]; then
               print_info "Requesting tokens for UAI client_id=$_az_vm_uai_client_id principal_id=$_az_vm_uai_principal_id resource_id=$_az_vm_uai_id"
-              az_vm_print_token "Management token for UAI $_az_vm_uai_client_id" "https://management.azure.com/" "client_id=$_az_vm_uai_client_id"
-              az_vm_print_token "Graph token for UAI $_az_vm_uai_client_id" "https://graph.microsoft.com/" "client_id=$_az_vm_uai_client_id"
-              az_vm_print_token "Vault token for UAI $_az_vm_uai_client_id" "https://vault.azure.net/" "client_id=$_az_vm_uai_client_id"
-              az_vm_print_token "Storage token for UAI $_az_vm_uai_client_id" "https://storage.azure.com/" "client_id=$_az_vm_uai_client_id"
+              az_vm_print_standard_tokens " for UAI $_az_vm_uai_client_id" "client_id=$_az_vm_uai_client_id"
             fi
           done
         else
