@@ -10,6 +10,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: write
       pull-requests: write
 
@@ -93,17 +94,32 @@ jobs:
           COMMIT_TITLE: ${{ steps.bot_pr.outputs.title }}
         run: |
           if [ -z "$GH_TOKEN" ]; then
-            echo "CHACK_AGENT_FIXER_TOKEN is required to merge this PR because github.token merges do not trigger the release workflow."
+            echo "CHACK_AGENT_FIXER_TOKEN is required to merge this PR and dispatch the release workflow."
             exit 1
           fi
 
           for attempt in {1..6}; do
-            if gh api \
+            if response="$(gh api \
               -X PUT \
               -H "Accept: application/vnd.github+json" \
               "/repos/${{ github.repository }}/pulls/${PR_NUMBER}/merge" \
               -f merge_method=squash \
-              -f commit_title="$COMMIT_TITLE"; then
+              -f commit_title="$COMMIT_TITLE")"; then
+              merge_sha="$(jq -r '.sha // empty' <<<"$response")"
+              echo "Merged trusted windows definitions bot PR #$PR_NUMBER as $merge_sha."
+
+              for wait_attempt in {1..12}; do
+                master_sha="$(gh api "/repos/${{ github.repository }}/git/ref/heads/master" --jq .object.sha)"
+                if [ -z "$merge_sha" ] || [ "$master_sha" = "$merge_sha" ]; then
+                  break
+                fi
+
+                echo "Waiting for master to point at merge commit $merge_sha ($wait_attempt/12)."
+                sleep 5
+              done
+
+              gh workflow run CI-master_tests.yml --ref master
+              echo "Dispatched CI-master_test to build and publish the PEASS release."
               exit 0
             fi
 
