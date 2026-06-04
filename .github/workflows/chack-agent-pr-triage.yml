@@ -49,7 +49,6 @@ jobs:
           if [ "$pr_title" != "$title" ] ||
              [ "$base_ref" != "master" ] ||
              [ "$head_ref" != "$branch" ] ||
-             [ "$author" != "app/github-actions" ] ||
              [ "$is_cross_repository" != "false" ] ||
              [ "$file_count" != "1" ] ||
              [ "$files" != "$expected_file" ]; then
@@ -57,6 +56,24 @@ jobs:
             echo "should_merge=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+          if [ "$author" != "app/github-actions" ] &&
+             [ "$author" != "github-actions" ] &&
+             [ "$author" != "github-actions[bot]" ]; then
+            echo "PR #$pr_number is from unexpected author $author; skipping."
+            echo "should_merge=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          for attempt in {1..12}; do
+            if [ "$merge_state" = "CLEAN" ] || [ "$merge_state" = "HAS_HOOKS" ]; then
+              break
+            fi
+
+            echo "PR #$pr_number mergeStateStatus=$merge_state; waiting for GitHub to finish evaluating mergeability ($attempt/12)."
+            sleep 10
+            merge_state="$(gh pr view "$pr_number" --json mergeStateStatus --jq .mergeStateStatus)"
+          done
 
           if [ "$merge_state" != "CLEAN" ] && [ "$merge_state" != "HAS_HOOKS" ]; then
             echo "Refusing to merge PR #$pr_number because mergeStateStatus=$merge_state"
@@ -75,12 +92,22 @@ jobs:
           PR_NUMBER: ${{ steps.bot_pr.outputs.pr_number }}
           COMMIT_TITLE: ${{ steps.bot_pr.outputs.title }}
         run: |
-          gh api \
-            -X PUT \
-            -H "Accept: application/vnd.github+json" \
-            "/repos/${{ github.repository }}/pulls/${PR_NUMBER}/merge" \
-            -f merge_method=squash \
-            -f commit_title="$COMMIT_TITLE"
+          for attempt in {1..6}; do
+            if gh api \
+              -X PUT \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${{ github.repository }}/pulls/${PR_NUMBER}/merge" \
+              -f merge_method=squash \
+              -f commit_title="$COMMIT_TITLE"; then
+              exit 0
+            fi
+
+            echo "Merge attempt $attempt failed for PR #$PR_NUMBER; retrying."
+            sleep 10
+          done
+
+          echo "Failed to merge trusted windows definitions bot PR #$PR_NUMBER after retries."
+          exit 1
 
   chack_agent_triage:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
