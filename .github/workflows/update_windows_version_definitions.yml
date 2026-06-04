@@ -39,6 +39,7 @@ jobs:
       - name: Create validated update pull request
         env:
           GH_TOKEN: ${{ github.token }}
+          MERGE_TOKEN: ${{ secrets.CHACK_AGENT_FIXER_TOKEN || github.token }}
         run: |
           title="chore(winpeas): update windows version vulnerability definitions"
           branch="bot/update-windows-version-definitions"
@@ -76,7 +77,7 @@ jobs:
 
           gh workflow run PR-tests.yml --ref "$branch"
 
-          if gh pr merge "$pr_number" --squash --auto --subject "$title"; then
+          if GH_TOKEN="$MERGE_TOKEN" gh pr merge "$pr_number" --squash --auto --subject "$title"; then
             echo "Auto-merge enabled for PR #$pr_number."
           else
             echo "Could not enable GitHub auto-merge for PR #$pr_number; the PR-tests workflow_run merge job will still merge it after tests pass."
