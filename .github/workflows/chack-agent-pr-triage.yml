@@ -88,10 +88,15 @@ jobs:
       - name: Merge trusted bot PR
         if: ${{ steps.bot_pr.outputs.should_merge == 'true' }}
         env:
-          GH_TOKEN: ${{ secrets.CHACK_AGENT_FIXER_TOKEN || github.token }}
+          GH_TOKEN: ${{ secrets.CHACK_AGENT_FIXER_TOKEN }}
           PR_NUMBER: ${{ steps.bot_pr.outputs.pr_number }}
           COMMIT_TITLE: ${{ steps.bot_pr.outputs.title }}
         run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "CHACK_AGENT_FIXER_TOKEN is required to merge this PR because github.token merges do not trigger the release workflow."
+            exit 1
+          fi
+
           for attempt in {1..6}; do
             if gh api \
               -X PUT \
