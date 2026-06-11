@@ -1,14 +1,14 @@
 # Title: Variables - kernel_cve_registry_data
 # ID: kernel_cve_registry_data
 # Author: Carlos Polop
-# Last Update: 08-06-2026
+# Last Update: 11-06-2026
 # Description: Embedded kernel exploit matching datasets extracted from linux-exploit-suggester and linux-exploit-suggester-2 examples. Data is split across KERNEL_CVE_DATA_1..X with a maximum of 25 rows per env variable. This file also stores reference-only CVE tokens found in example repos when no explicit suggester matching rule exists.
 # License: GNU GPL
 # Version: 1.0
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $KERNEL_CVE_DATA_1, $KERNEL_CVE_DATA_2, $KERNEL_CVE_DATA_3, $KERNEL_CVE_DATA_4, $KERNEL_CVE_DATA_5, $KERNEL_CVE_DATA_6, $KERNEL_CVE_DATA_7, $KERNEL_CVE_DATA_8, $KERNEL_CVE_DATA_9, $KERNEL_CVE_DATA_10, $KERNEL_CVE_DATA_11, $KERNEL_CVE_DATA_12, $KERNEL_CVE_DATA_13, $KERNEL_CVE_DATA_14, $KERNEL_CVE_DATA_15, $KERNEL_CVE_DATA_16, $KERNEL_CVE_DATA_17, $KERNEL_CVE_DATA_18, $KERNEL_CVE_DATA_19, $KERNEL_CVE_DATA_20, $KERNEL_CVE_DATA_21
+# Generated Global Variables: $KERNEL_CVE_DATA_1, $KERNEL_CVE_DATA_2, $KERNEL_CVE_DATA_3, $KERNEL_CVE_DATA_4, $KERNEL_CVE_DATA_5, $KERNEL_CVE_DATA_6, $KERNEL_CVE_DATA_7, $KERNEL_CVE_DATA_8, $KERNEL_CVE_DATA_9, $KERNEL_CVE_DATA_10, $KERNEL_CVE_DATA_11, $KERNEL_CVE_DATA_12, $KERNEL_CVE_DATA_13, $KERNEL_CVE_DATA_14, $KERNEL_CVE_DATA_15, $KERNEL_CVE_DATA_16, $KERNEL_CVE_DATA_17, $KERNEL_CVE_DATA_18, $KERNEL_CVE_DATA_19, $KERNEL_CVE_DATA_20, $KERNEL_CVE_DATA_21, $KERNEL_CVE_DATA_22
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -614,4 +614,19 @@ CVE-2026-43500	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token
 CVE-2026-46243	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from official Red Hat CIFSwitch advisory; no stable matcher added
 CVE-2026-46300	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from official Ubuntu/Red Hat Fragnesia advisories; no stable matcher added
 EOF_DATA_21
+)"
+
+KERNEL_CVE_DATA_22="$(cat <<'EOF_DATA_22'
+CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=3.16.52,ver<3.17,sysctl:kernel.yama.ptrace_scope!=2		1	Upstream issue backported into 3.16 at 3.16.52
+CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=4.4.40,ver<4.5,sysctl:kernel.yama.ptrace_scope!=2		1	Upstream issue backported into 4.4 at 4.4.40
+CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=4.8.16,ver<4.9,sysctl:kernel.yama.ptrace_scope!=2		1	Upstream issue backported into 4.8 at 4.8.16
+CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=4.9.1,ver<4.10,sysctl:kernel.yama.ptrace_scope!=2		1	Upstream issue backported into 4.9 at 4.9.1
+CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=4.10,ver<5.10.256,sysctl:kernel.yama.ptrace_scope!=2		1	Upstream issue introduced in 4.10; fixed in 5.10.256
+CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=5.11,ver<5.15.207,sysctl:kernel.yama.ptrace_scope!=2		1	Upstream issue introduced in 4.10; fixed in 5.15.207
+CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=5.16,ver<6.1.173,sysctl:kernel.yama.ptrace_scope!=2		1	Upstream issue introduced in 4.10; fixed in 6.1.173
+CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=6.2,ver<6.6.139,sysctl:kernel.yama.ptrace_scope!=2		1	Upstream issue introduced in 4.10; fixed in 6.6.139
+CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=6.7,ver<6.12.89,sysctl:kernel.yama.ptrace_scope!=2		1	Upstream issue introduced in 4.10; fixed in 6.12.89
+CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=6.13,ver<6.18.31,sysctl:kernel.yama.ptrace_scope!=2		1	Upstream issue introduced in 4.10; fixed in 6.18.31
+CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=6.19,ver<7.0.8,sysctl:kernel.yama.ptrace_scope!=2		1	Upstream issue introduced in 4.10; fixed in 7.0.8
+EOF_DATA_22
 )"
