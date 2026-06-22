@@ -1,7 +1,7 @@
 # Title: Variables - kernel_cve_registry_data
 # ID: kernel_cve_registry_data
 # Author: Carlos Polop
-# Last Update: 08-06-2026
+# Last Update: 22-06-2026
 # Description: Embedded kernel exploit matching datasets extracted from linux-exploit-suggester and linux-exploit-suggester-2 examples. Data is split across KERNEL_CVE_DATA_1..X with a maximum of 25 rows per env variable. This file also stores reference-only CVE tokens found in example repos when no explicit suggester matching rule exists.
 # License: GNU GPL
 # Version: 1.0
@@ -610,8 +610,10 @@ CVE-2017-16994	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token
 CVE-2020-27171	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; appears as related comment in exploit source
 CVE-2024-0193	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; appears as upstream source reference
 CVE-2026-43284	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from official Ubuntu/Red Hat Dirty Frag advisories; no stable matcher added
+CVE-2026-43494	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from official Ubuntu PinTheft advisory; no stable matcher added
 CVE-2026-43500	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from official Ubuntu/Red Hat Dirty Frag advisories; no stable matcher added
 CVE-2026-46243	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from official Red Hat CIFSwitch advisory; no stable matcher added
 CVE-2026-46300	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from official Ubuntu/Red Hat Fragnesia advisories; no stable matcher added
+CVE-2026-46333	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from official Ubuntu/Red Hat ssh-keysign-pwn advisories; no stable matcher added
 EOF_DATA_21
 )"
