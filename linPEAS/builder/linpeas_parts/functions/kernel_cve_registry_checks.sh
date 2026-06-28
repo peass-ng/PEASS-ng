@@ -1,7 +1,7 @@
 # Title: Function - kernel_cve_registry_checks
 # ID: kernel_cve_registry_checks
 # Author: Carlos Polop
-# Last Update: 25-02-2026
+# Last Update: 28-06-2026
 # Description: Evaluate declared kernel CVE rules using kernel version, arch, kernel config, sysctl and command prerequisites.
 # Description: Data source chunks KERNEL_CVE_DATA_1..22 are capped to 25 rows each.
 # License: GNU GPL

@@ -6,7 +6,7 @@
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1613
-# Functions Used: checkDockerRootless, checkDockerVersionExploits, containerCheck, enumerateDockerSockets, inDockerGroup, print_2title, print_list
+# Functions Used: checkDockerRootless, checkDockerVersionExploits, containerCheck, enumerateDockerDesktopAPI, enumerateDockerSockets, inDockerGroup, print_2title, print_list
 # Global Variables: $containerType, $DOCKER_GROUP, $DOCKER_ROOTLESS, $dockerVersion, $inContainer, $VULN_CVE_2019_5736, $VULN_CVE_2019_13139, $VULN_CVE_2021_41091
 # Initial Functions: containerCheck
 # Generated Global Variables:
@@ -29,6 +29,8 @@ if echo "$containerType" | grep -qi "docker"; then
     if [ "$inContainer" ]; then
         checkDockerRootless
         print_list "Rootless Docker? ............... $DOCKER_ROOTLESS\n"$NC | sed -${E} "s,No,${SED_RED}," | sed -${E} "s,Yes,${SED_GREEN},"
+        print_list "Checking Docker Desktop internal Engine API (CVE-2025-9074):\n"$NC
+        enumerateDockerDesktopAPI
         echo ""
     fi
     if df -h | grep docker; then
