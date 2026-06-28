@@ -1,0 +1,39 @@
+name: zz-token-probe
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe candidate tokens
+        env:
+          CODEX_FIXER_TOKEN: ${{ secrets.CODEX_FIXER_TOKEN }}
+          PULL_REQUEST_TOKEN: ${{ secrets.PULL_REQUEST_TOKEN }}
+          CODEX_ACCESS_TOKEN: ${{ secrets.CODEX_ACCESS_TOKEN }}
+          CHACK_AGENT_FIXER_TOKEN: ${{ secrets.CHACK_AGENT_FIXER_TOKEN }}
+        run: |
+          probe() {
+            local name="$1" tok="$2"
+            echo "=================================================="
+            echo "TOKEN: $name"
+            if [ -z "$tok" ]; then
+              echo "  state: EMPTY / not set"
+              return
+            fi
+            echo "  state: present (len=${#tok})"
+            # Identity + classic scopes (header is only present for classic PATs)
+            hdrs="$(curl -sS -D - -o /tmp/body.json -H "Authorization: token $tok" https://api.github.com/user)"
+            login="$(jq -r '.login // "?"' /tmp/body.json 2>/dev/null)"
+            echo "  login: $login"
+            echo "  x-oauth-scopes: $(printf '%s' "$hdrs" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-oauth-scopes"{print $2}')"
+            # Repo permission for this token on PEASS-ng
+            perm="$(curl -sS -H "Authorization: token $tok" https://api.github.com/repos/peass-ng/PEASS-ng | jq -r '.permissions // {}' 2>/dev/null)"
+            echo "  repo permissions: $perm"
+          }
+          probe CODEX_FIXER_TOKEN       "$CODEX_FIXER_TOKEN"
+          probe PULL_REQUEST_TOKEN      "$PULL_REQUEST_TOKEN"
+          probe CODEX_ACCESS_TOKEN      "$CODEX_ACCESS_TOKEN"
+          probe CHACK_AGENT_FIXER_TOKEN "$CHACK_AGENT_FIXER_TOKEN"
+          echo "=================================================="
