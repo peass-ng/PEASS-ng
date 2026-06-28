@@ -13,7 +13,7 @@ permissions:
 jobs:
   update-definitions:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
       - name: Checkout
@@ -39,7 +39,7 @@ jobs:
       - name: Create validated update pull request
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_TESTS_DISPATCH_TOKEN: ${{ secrets.CODEX_FIXER_TOKEN }}
+          MERGE_TOKEN: ${{ secrets.CODEX_FIXER_TOKEN }}
         run: |
           title="chore(winpeas): update windows version vulnerability definitions"
           branch="bot/update-windows-version-definitions"
@@ -75,15 +75,74 @@ jobs:
             exit 1
           fi
 
-          # Dispatch PR-tests with a PAT instead of github.token. A workflow run that is
-          # owned by GITHUB_TOKEN does NOT emit a downstream `workflow_run` event, so a
-          # github.token-dispatched run never triggered the chack-agent-pr-triage auto-merge
-          # job. Dispatching with a PAT makes the run user-owned, so `workflow_run` fires and
-          # the trusted merge job runs once PR-tests pass.
-          if [ -z "$PR_TESTS_DISPATCH_TOKEN" ]; then
-            echo "CODEX_FIXER_TOKEN is required to dispatch PR-tests so the auto-merge workflow_run event fires."
+          # Run the winPEAS PR-tests build for the bot branch, wait for it, and merge on
+          # success. We dispatch with github.token (this workflow has `actions: write`) and
+          # then poll the dispatched run directly, instead of relying on a cross-workflow
+          # `workflow_run` trigger: runs owned by GITHUB_TOKEN do not emit `workflow_run`
+          # events, and the auto-created `pull_request` PR-tests run for a bot-authored PR is
+          # held in `action_required`. The merge itself is done with a PAT (see below).
+          if [ -z "$MERGE_TOKEN" ]; then
+            echo "CODEX_FIXER_TOKEN (MERGE_TOKEN) is required to merge the validated bot PR."
             exit 1
           fi
 
-          GH_TOKEN="$PR_TESTS_DISPATCH_TOKEN" gh workflow run PR-tests.yml --ref "$branch"
-          echo "PR-tests dispatched (via PAT) for PR #$pr_number. The trusted workflow_run merge job will merge it after tests pass."
+          dispatch_ts="$(date -u +%s)"
+          gh workflow run PR-tests.yml --ref "$branch"
+          echo "Dispatched PR-tests for $branch (PR #$pr_number); locating the run..."
+
+          run_id=""
+          for attempt in $(seq 1 18); do
+            row="$(gh run list --workflow=PR-tests.yml --branch "$branch" --event workflow_dispatch \
+              --limit 1 --json databaseId,createdAt --jq '.[0] | [.databaseId, .createdAt] | @tsv')"
+            cid="$(printf '%s' "$row" | cut -f1)"
+            cts_iso="$(printf '%s' "$row" | cut -f2)"
+            if [ -n "$cid" ]; then
+              cts="$(date -u -d "$cts_iso" +%s 2>/dev/null || echo 0)"
+              if [ "$cts" -ge "$((dispatch_ts - 60))" ]; then
+                run_id="$cid"
+                break
+              fi
+            fi
+            sleep 10
+          done
+
+          if [ -z "$run_id" ]; then
+            echo "Could not locate the dispatched PR-tests run."
+            exit 1
+          fi
+          echo "Watching PR-tests run $run_id until it completes..."
+
+          status=""
+          conclusion=""
+          for attempt in $(seq 1 70); do
+            status="$(gh run view "$run_id" --json status --jq .status)"
+            if [ "$status" = "completed" ]; then
+              conclusion="$(gh run view "$run_id" --json conclusion --jq .conclusion)"
+              break
+            fi
+            sleep 30
+          done
+
+          if [ "$conclusion" != "success" ]; then
+            echo "PR-tests run $run_id did not pass (status=$status conclusion=$conclusion); not merging PR #$pr_number."
+            exit 1
+          fi
+          echo "PR-tests passed. Squash-merging PR #$pr_number..."
+
+          # Merge with the PAT (not github.token) so the resulting push to master triggers
+          # CI-master_test -> Publish_release. A github.token-authored merge would not.
+          for attempt in $(seq 1 6); do
+            if GH_TOKEN="$MERGE_TOKEN" gh api -X PUT \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${{ github.repository }}/pulls/${pr_number}/merge" \
+              -f merge_method=squash \
+              -f commit_title="$title"; then
+              echo "Merged windows definitions PR #$pr_number. CI-master_test will build and publish the release."
+              exit 0
+            fi
+            echo "Merge attempt $attempt failed for PR #$pr_number; retrying."
+            sleep 10
+          done
+
+          echo "Failed to merge PR #$pr_number after retries."
+          exit 1
