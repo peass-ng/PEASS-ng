@@ -1,0 +1,35 @@
+name: zz-token-probe
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe CODEX_FIXER_TOKEN contents/PR write
+        env:
+          TOK: ${{ secrets.CODEX_FIXER_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          api() { curl -sS -o /tmp/out.json -w "%{http_code}" "$@"; }
+          master_sha="$(curl -sS -H "Authorization: token $TOK" "https://api.github.com/repos/$REPO/git/ref/heads/master" | jq -r .object.sha)"
+          echo "master sha: $master_sha"
+
+          echo "--- Contents:write test (create ref) ---"
+          code="$(api -X POST -H "Authorization: token $TOK" \
+            "https://api.github.com/repos/$REPO/git/refs" \
+            -d "{\"ref\":\"refs/heads/zz-codex-write-test\",\"sha\":\"$master_sha\"}")"
+          echo "create ref HTTP: $code"; cat /tmp/out.json | jq -r '.message // empty'
+
+          if [ "$code" = "201" ]; then
+            code="$(api -X DELETE -H "Authorization: token $TOK" \
+              "https://api.github.com/repos/$REPO/git/refs/heads/zz-codex-write-test")"
+            echo "delete ref HTTP: $code"
+          fi
+
+          echo "--- Pull requests:write test (no-op edit of PR #652 base->base) ---"
+          code="$(api -X PATCH -H "Authorization: token $TOK" \
+            "https://api.github.com/repos/$REPO/pulls/652" \
+            -d "{\"body\":\"Automated update of build_lists/windows_version_exploits.json (auto-merge pipeline test).\"}")"
+          echo "patch PR HTTP: $code"; cat /tmp/out.json | jq -r '.message // empty'
