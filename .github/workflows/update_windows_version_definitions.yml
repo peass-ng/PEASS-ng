@@ -39,7 +39,7 @@ jobs:
       - name: Create validated update pull request
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_TESTS_DISPATCH_TOKEN: ${{ secrets.CHACK_AGENT_FIXER_TOKEN }}
+          PR_TESTS_DISPATCH_TOKEN: ${{ secrets.CODEX_FIXER_TOKEN }}
         run: |
           title="chore(winpeas): update windows version vulnerability definitions"
           branch="bot/update-windows-version-definitions"
@@ -81,7 +81,7 @@ jobs:
           # job. Dispatching with a PAT makes the run user-owned, so `workflow_run` fires and
           # the trusted merge job runs once PR-tests pass.
           if [ -z "$PR_TESTS_DISPATCH_TOKEN" ]; then
-            echo "CHACK_AGENT_FIXER_TOKEN is required to dispatch PR-tests so the auto-merge workflow_run event fires."
+            echo "CODEX_FIXER_TOKEN is required to dispatch PR-tests so the auto-merge workflow_run event fires."
             exit 1
           fi
 

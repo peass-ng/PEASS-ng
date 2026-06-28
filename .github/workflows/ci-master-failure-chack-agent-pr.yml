@@ -21,7 +21,7 @@ jobs:
       TARGET_BRANCH: master
       FIX_BRANCH: chack-agent/ci-master-fix-${{ github.event.workflow_run.id }}
       CHACK_LOGS_HTTP_URL: ${{ secrets.CHACK_LOGS_HTTP_URL }}
-      CAN_PUSH_WORKFLOWS: ${{ secrets.CHACK_AGENT_FIXER_TOKEN != '' }}
+      CAN_PUSH_WORKFLOWS: ${{ secrets.CODEX_FIXER_TOKEN != '' }}
     steps:
       - name: Checkout failing commit
         uses: actions/checkout@v5
@@ -29,7 +29,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
           persist-credentials: true
-          token: ${{ secrets.CHACK_AGENT_FIXER_TOKEN || github.token }}
+          token: ${{ secrets.CODEX_FIXER_TOKEN || github.token }}
 
       - name: Configure git author
         run: |
@@ -300,7 +300,7 @@ jobs:
         if: ${{ steps.push_fix.outputs.pushed == 'true' }}
         id: create_pr
         env:
-          GH_TOKEN: ${{ secrets.CHACK_AGENT_FIXER_TOKEN || github.token }}
+          GH_TOKEN: ${{ secrets.CODEX_FIXER_TOKEN || github.token }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
           set +e

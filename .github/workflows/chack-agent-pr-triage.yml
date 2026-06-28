@@ -102,12 +102,12 @@ jobs:
       - name: Merge trusted bot PR
         if: ${{ steps.bot_pr.outputs.should_merge == 'true' }}
         env:
-          GH_TOKEN: ${{ secrets.CHACK_AGENT_FIXER_TOKEN }}
+          GH_TOKEN: ${{ secrets.CODEX_FIXER_TOKEN }}
           PR_NUMBER: ${{ steps.bot_pr.outputs.pr_number }}
           COMMIT_TITLE: ${{ steps.bot_pr.outputs.title }}
         run: |
           if [ -z "$GH_TOKEN" ]; then
-            echo "CHACK_AGENT_FIXER_TOKEN is required to merge this PR and dispatch the release workflow."
+            echo "CODEX_FIXER_TOKEN is required to merge this PR and dispatch the release workflow."
             exit 1
           fi
 
@@ -120,7 +120,7 @@ jobs:
               -f commit_title="$COMMIT_TITLE")"; then
               merge_sha="$(jq -r '.sha // empty' <<<"$response")"
               echo "Merged trusted windows definitions bot PR #$PR_NUMBER as $merge_sha."
-              # The squash-merge is performed with CHACK_AGENT_FIXER_TOKEN (a PAT, not
+              # The squash-merge is performed with CODEX_FIXER_TOKEN (a PAT, not
               # GITHUB_TOKEN), so the resulting push to master triggers CI-master_test via its
               # `push` trigger, which builds and publishes the PEASS release. We intentionally
               # do NOT also dispatch CI-master_test here, to avoid publishing two releases for
