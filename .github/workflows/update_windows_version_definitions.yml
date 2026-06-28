@@ -39,6 +39,7 @@ jobs:
       - name: Create validated update pull request
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_TESTS_DISPATCH_TOKEN: ${{ secrets.CHACK_AGENT_FIXER_TOKEN }}
         run: |
           title="chore(winpeas): update windows version vulnerability definitions"
           branch="bot/update-windows-version-definitions"
@@ -74,5 +75,15 @@ jobs:
             exit 1
           fi
 
-          gh workflow run PR-tests.yml --ref "$branch"
-          echo "PR-tests dispatched for PR #$pr_number. The trusted workflow_run merge job will merge it and dispatch CI-master_test after tests pass."
+          # Dispatch PR-tests with a PAT instead of github.token. A workflow run that is
+          # owned by GITHUB_TOKEN does NOT emit a downstream `workflow_run` event, so a
+          # github.token-dispatched run never triggered the chack-agent-pr-triage auto-merge
+          # job. Dispatching with a PAT makes the run user-owned, so `workflow_run` fires and
+          # the trusted merge job runs once PR-tests pass.
+          if [ -z "$PR_TESTS_DISPATCH_TOKEN" ]; then
+            echo "CHACK_AGENT_FIXER_TOKEN is required to dispatch PR-tests so the auto-merge workflow_run event fires."
+            exit 1
+          fi
+
+          GH_TOKEN="$PR_TESTS_DISPATCH_TOKEN" gh workflow run PR-tests.yml --ref "$branch"
+          echo "PR-tests dispatched (via PAT) for PR #$pr_number. The trusted workflow_run merge job will merge it after tests pass."

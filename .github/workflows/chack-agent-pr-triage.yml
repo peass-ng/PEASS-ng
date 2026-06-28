@@ -66,21 +66,34 @@ jobs:
             exit 0
           fi
 
+          # Accept UNSTABLE in addition to CLEAN/HAS_HOOKS. When the bot opens the PR, GitHub
+          # also queues a `pull_request` PR-tests run that sits in `action_required` (it needs
+          # manual approval and never runs), which keeps the PR permanently UNSTABLE. The
+          # meaningful tests already passed: this job only runs when the dispatched PR-tests
+          # workflow_run concluded `success`, and the PR identity is strictly validated above.
+          # We still wait out the transient UNKNOWN state and refuse hard blockers
+          # (DIRTY/BLOCKED/BEHIND/DRAFT).
           for attempt in {1..12}; do
-            if [ "$merge_state" = "CLEAN" ] || [ "$merge_state" = "HAS_HOOKS" ]; then
-              break
-            fi
+            case "$merge_state" in
+              CLEAN|HAS_HOOKS|UNSTABLE)
+                break
+                ;;
+            esac
 
             echo "PR #$pr_number mergeStateStatus=$merge_state; waiting for GitHub to finish evaluating mergeability ($attempt/12)."
             sleep 10
             merge_state="$(gh pr view "$pr_number" --json mergeStateStatus --jq .mergeStateStatus)"
           done
 
-          if [ "$merge_state" != "CLEAN" ] && [ "$merge_state" != "HAS_HOOKS" ]; then
-            echo "Refusing to merge PR #$pr_number because mergeStateStatus=$merge_state"
-            echo "should_merge=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
+          case "$merge_state" in
+            CLEAN|HAS_HOOKS|UNSTABLE)
+              ;;
+            *)
+              echo "Refusing to merge PR #$pr_number because mergeStateStatus=$merge_state"
+              echo "should_merge=false" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
 
           echo "should_merge=true" >> "$GITHUB_OUTPUT"
           echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
@@ -107,19 +120,11 @@ jobs:
               -f commit_title="$COMMIT_TITLE")"; then
               merge_sha="$(jq -r '.sha // empty' <<<"$response")"
               echo "Merged trusted windows definitions bot PR #$PR_NUMBER as $merge_sha."
-
-              for wait_attempt in {1..12}; do
-                master_sha="$(gh api "/repos/${{ github.repository }}/git/ref/heads/master" --jq .object.sha)"
-                if [ -z "$merge_sha" ] || [ "$master_sha" = "$merge_sha" ]; then
-                  break
-                fi
-
-                echo "Waiting for master to point at merge commit $merge_sha ($wait_attempt/12)."
-                sleep 5
-              done
-
-              gh workflow run CI-master_tests.yml --ref master
-              echo "Dispatched CI-master_test to build and publish the PEASS release."
+              # The squash-merge is performed with CHACK_AGENT_FIXER_TOKEN (a PAT, not
+              # GITHUB_TOKEN), so the resulting push to master triggers CI-master_test via its
+              # `push` trigger, which builds and publishes the PEASS release. We intentionally
+              # do NOT also dispatch CI-master_test here, to avoid publishing two releases for
+              # the same merge.
               exit 0
             fi
 
