@@ -1,13 +1,13 @@
 # Title: Function - kernel_cve_registry_checks
 # ID: kernel_cve_registry_checks
 # Author: Carlos Polop
-# Last Update: 25-02-2026
+# Last Update: 28-06-2026
 # Description: Evaluate declared kernel CVE rules using kernel version, arch, kernel config, sysctl and command prerequisites.
-# Description: Data source chunks KERNEL_CVE_DATA_1..21 are capped to 25 rows each.
+# Description: Data source chunks KERNEL_CVE_DATA_1..22 are capped to 25 rows each.
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: echo_not_found, print_3title, print_list
-# Global Variables: $E, $KERNEL_CVE_DATA_1, $KERNEL_CVE_DATA_2, $KERNEL_CVE_DATA_3, $KERNEL_CVE_DATA_4, $KERNEL_CVE_DATA_5, $KERNEL_CVE_DATA_6, $KERNEL_CVE_DATA_7, $KERNEL_CVE_DATA_8, $KERNEL_CVE_DATA_9, $KERNEL_CVE_DATA_10, $KERNEL_CVE_DATA_11, $KERNEL_CVE_DATA_12, $KERNEL_CVE_DATA_13, $KERNEL_CVE_DATA_14, $KERNEL_CVE_DATA_15, $KERNEL_CVE_DATA_16, $KERNEL_CVE_DATA_17, $KERNEL_CVE_DATA_18, $KERNEL_CVE_DATA_19, $KERNEL_CVE_DATA_20, $KERNEL_CVE_DATA_21, $SED_GREEN, $SED_RED_YELLOW
+# Global Variables: $E, $KERNEL_CVE_DATA_1, $KERNEL_CVE_DATA_2, $KERNEL_CVE_DATA_3, $KERNEL_CVE_DATA_4, $KERNEL_CVE_DATA_5, $KERNEL_CVE_DATA_6, $KERNEL_CVE_DATA_7, $KERNEL_CVE_DATA_8, $KERNEL_CVE_DATA_9, $KERNEL_CVE_DATA_10, $KERNEL_CVE_DATA_11, $KERNEL_CVE_DATA_12, $KERNEL_CVE_DATA_13, $KERNEL_CVE_DATA_14, $KERNEL_CVE_DATA_15, $KERNEL_CVE_DATA_16, $KERNEL_CVE_DATA_17, $KERNEL_CVE_DATA_18, $KERNEL_CVE_DATA_19, $KERNEL_CVE_DATA_20, $KERNEL_CVE_DATA_21, $KERNEL_CVE_DATA_22, $SED_GREEN, $SED_RED_YELLOW
 # Initial Functions: echo_not_found, print_3title, print_list
 # Generated Global Variables: $KERNEL_CVE_CFG_FILE, $KERNEL_CVE_CFG_SOURCE, $KERNEL_CVE_CFG_LINE, $KERNEL_CVE_CFG_KEY, $KERNEL_CVE_CFG_EXPR, $KERNEL_CVE_CFG_EXPECT, $KERNEL_CVE_CFG_OP, $KERNEL_CVE_CFG_CUR, $KERNEL_CVE_SYS_EXPR, $KERNEL_CVE_SYS_KEY, $KERNEL_CVE_SYS_OP, $KERNEL_CVE_SYS_VAL, $KERNEL_CVE_SYS_CUR, $KERNEL_CVE_REQS, $KERNEL_CVE_REQ, $KERNEL_CVE_REQ_LINES, $KERNEL_CVE_ID, $KERNEL_CVE_ID_NORM, $KERNEL_CVE_NAME, $KERNEL_CVE_TAGS, $KERNEL_CVE_RANK, $KERNEL_CVE_COMMENTS, $KERNEL_CVE_EXPL, $KERNEL_CVE_VERS, $KERNEL_CVE_VER_LINES, $KERNEL_CVE_ALT, $KERNEL_CVE_MIL, $KERNEL_CVE_TOKEN_OK, $KERNEL_CVE_MATCHES, $KERNEL_CVE_KERNEL_RELEASE, $KERNEL_CVE_KERNEL_VERSION, $KERNEL_CVE_KERNEL_ARCH, $KERNEL_CVE_KERNEL_OS, $KERNEL_CVE_VER, $KERNEL_CVE_OP, $KERNEL_CVE_REQVER, $KERNEL_CVE_CURVER, $KERNEL_CVE_CMP, $KERNEL_CVE_PRINT_ID, $KERNEL_CVE_PRINT_REASON, $KERNEL_CVE_ID_RAW, $KERNEL_CVE_ID_ITEM, $KERNEL_CVE_ID_OUT, $KERNEL_CVE_ALL_DATA, $KERNEL_CVE_PRINT_LINE
 # Fat linpeas: 0
@@ -257,17 +257,17 @@ kercve_run_registry() {
         fi
     done
 
-    KERNEL_CVE_ALL_DATA=$(printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" \
+    KERNEL_CVE_ALL_DATA=$(printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" \
         "$KERNEL_CVE_DATA_1" "$KERNEL_CVE_DATA_2" "$KERNEL_CVE_DATA_3" "$KERNEL_CVE_DATA_4" "$KERNEL_CVE_DATA_5" \
         "$KERNEL_CVE_DATA_6" "$KERNEL_CVE_DATA_7" "$KERNEL_CVE_DATA_8" "$KERNEL_CVE_DATA_9" "$KERNEL_CVE_DATA_10" \
         "$KERNEL_CVE_DATA_11" "$KERNEL_CVE_DATA_12" "$KERNEL_CVE_DATA_13" "$KERNEL_CVE_DATA_14" "$KERNEL_CVE_DATA_15" \
         "$KERNEL_CVE_DATA_16" "$KERNEL_CVE_DATA_17" "$KERNEL_CVE_DATA_18" "$KERNEL_CVE_DATA_19" "$KERNEL_CVE_DATA_20" \
-        "$KERNEL_CVE_DATA_21")
+        "$KERNEL_CVE_DATA_21" "$KERNEL_CVE_DATA_22")
 
     print_list "Operating system ............. $KERNEL_CVE_KERNEL_OS\n"
     print_list "Kernel release ............... $KERNEL_CVE_KERNEL_RELEASE\n"
     print_list "Comparable version ........... $KERNEL_CVE_KERNEL_VERSION\n"
-    print_list "Data chunk limit ............. max 25 rows per KERNEL_CVE_DATA_* variable (1..21)\n"
+    print_list "Data chunk limit ............. max 25 rows per KERNEL_CVE_DATA_* variable (1..22)\n"
     if [ -n "$KERNEL_CVE_CFG_SOURCE" ]; then
         print_list "Kernel config source ......... $KERNEL_CVE_CFG_SOURCE\n"
     else
