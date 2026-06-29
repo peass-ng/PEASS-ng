@@ -26,9 +26,9 @@
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1082
-# Functions Used: print_2title, print_info, warn_exec
+# Functions Used: print_2title, print_info, warn_exec, linpeas_start_host_checker_lookup
 # Global Variables: $MACPEAS, $kernelDCW_Ubuntu_Precise_1, $kernelB, $kernelDCW_Ubuntu_Precise_2, $kernelDCW_Ubuntu_Precise_3, $kernelDCW_Ubuntu_Precise_4, $kernelDCW_Ubuntu_Precise_5, $kernelDCW_Ubuntu_Precise_6, $kernelDCW_Rhel5_1, $kernelDCW_Rhel5_2, $kernelDCW_Rhel5_3, $kernelDCW_Rhel6_1, $kernelDCW_Rhel6_2, $kernelDCW_Rhel6_3, $kernelDCW_Rhel6_4, $kernelDCW_Rhel7, $kernelDCW_Ubuntu_Trusty_1, $kernelDCW_Ubuntu_Trusty_2, $kernelDCW_Ubuntu_Trusty_3, $kernelDCW_Ubuntu_Trusty_4, $kernelDCW_Ubuntu_Xenial
-# Initial Functions:
+# Initial Functions: linpeas_start_host_checker_lookup
 # Generated Global Variables:
 # Fat linpeas: 0
 # Small linpeas: 1
