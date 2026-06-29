@@ -20,7 +20,7 @@
 # Functions Used: print_2title, print_3title, print_info, echo_not_found
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $pk_full, $pk_version, $pk_pkg_manager, $pk_distro_id, $pk_distro_codename, $pk_fixed_version, $pk_fixed_label, $pk_min_vuln, $pk_max_vuln, $pk_lower, $pk_higher, $pk_vulnerable, $pk_ioc_count
+# Generated Global Variables: $pk_full, $pk_version, $pk_pkg_manager, $pk_distro_id, $pk_distro_codename, $pk_fixed_version, $pk_fixed_label, $pk_min_vuln, $pk_max_vuln, $pk_lower, $pk_higher, $pk_vulnerable, $pk_ioc_count, $VERSION_CODENAME, $Version
 # Fat linpeas: 0
 # Small linpeas: 1
 

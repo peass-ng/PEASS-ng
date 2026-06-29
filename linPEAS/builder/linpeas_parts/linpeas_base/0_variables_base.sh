@@ -8,7 +8,7 @@
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $VERSION, $ADVISORY, $IAMROOT, $MAXPATH_FIND_W, $C, $RED, $SED_RED, $GREEN, $SED_GREEN, $YELLOW, $SED_YELLOW, $RED_YELLOW, $SED_RED_YELLOW, $BLUE, $SED_BLUE, $ITALIC_BLUE, $LIGHT_MAGENTA, $SED_LIGHT_MAGENTA, $LIGHT_CYAN, $SED_LIGHT_CYAN, $LG, $SED_LG, $DG, $SED_DG, $NC, $UNDERLINED, $ITALIC, $MACPEAS, $FAST, $SUPERFAST, $DISCOVERY, $PORTS, $QUIET, $CHECKS, $MITRE_FILTER, $SEARCH_IN_FOLDER, $ROOT_FOLDER, $WAIT, $PASSWORD, $NOCOLOR, $DEBUG, $AUTO_NETWORK_SCAN, $EXTRA_CHECKS, $REGEXES, $PORT_FORWARD, $E, $PING, $FPING, $DISCOVER_BAN_BAD, $DISCOVER_BAN_GOOD, $SCAN_BAN_GOOD, $NMAP_GOOD, $SCRIPTNAME, $FOUND_BASH, $FOUND_NC, $HOMESEARCH, $GREPHOMESEARCH, $SCAN_BAN_BAD, $HOME, $THREADS, $opt, $HELP, $USER, $TOTAL_T1_TIME, $END_T1_TIME, $START_T1_TIME, $title, $title_len, $max_title_len, $rest_len, $CONT_THREADS, $wgroups, $SEDOVERFLOW, $Wfolders, $Wfolder, $grp, $END_T2_TIME, $TOTAL_T2_TIME, $START_T2_TIME, $_mitre_tag, $_mitre_filter, $_mitre_base, $_mitre_tags_left, $_mitre_filters_left
+# Generated Global Variables: $VERSION, $ADVISORY, $IAMROOT, $MAXPATH_FIND_W, $C, $RED, $SED_RED, $GREEN, $SED_GREEN, $YELLOW, $SED_YELLOW, $RED_YELLOW, $SED_RED_YELLOW, $BLUE, $SED_BLUE, $ITALIC_BLUE, $LIGHT_MAGENTA, $SED_LIGHT_MAGENTA, $LIGHT_CYAN, $SED_LIGHT_CYAN, $LG, $SED_LG, $DG, $SED_DG, $NC, $UNDERLINED, $ITALIC, $MACPEAS, $FAST, $SUPERFAST, $DISCOVERY, $PORTS, $QUIET, $CHECKS, $MITRE_FILTER, $SEARCH_IN_FOLDER, $ROOT_FOLDER, $WAIT, $PASSWORD, $NOCOLOR, $DEBUG, $AUTO_NETWORK_SCAN, $EXTRA_CHECKS, $REGEXES, $PORT_FORWARD, $NOT_CHECK_EXTERNAL_HOSTNAME, $ONLINE_VULN_CHECKS, $E, $PING, $FPING, $DISCOVER_BAN_BAD, $DISCOVER_BAN_GOOD, $SCAN_BAN_GOOD, $NMAP_GOOD, $SCRIPTNAME, $FOUND_BASH, $FOUND_NC, $HOMESEARCH, $GREPHOMESEARCH, $SCAN_BAN_BAD, $HOME, $THREADS, $opt, $HELP, $USER, $TOTAL_T1_TIME, $END_T1_TIME, $START_T1_TIME, $title, $title_len, $max_title_len, $rest_len, $CONT_THREADS, $wgroups, $SEDOVERFLOW, $Wfolders, $Wfolder, $grp, $END_T2_TIME, $TOTAL_T2_TIME, $START_T2_TIME, $_mitre_tag, $_mitre_filter, $_mitre_base, $_mitre_tags_left, $_mitre_filters_left
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -85,6 +85,7 @@ EXTRA_CHECKS=""
 REGEXES=""
 PORT_FORWARD=""
 NOT_CHECK_EXTERNAL_HOSTNAME=""
+ONLINE_VULN_CHECKS=""
 THREADS="$( ( (grep -c processor /proc/cpuinfo 2>/dev/null) || ( (command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n")"
 [ "$THREADS" -eq "$THREADS" ] 2>/dev/null && : || THREADS="2" #If THREADS is not a number, put number 2
 [ "$THREADS" -lt 1 ] 2>/dev/null && THREADS="2" #If THREADS is 0 or negative, put number 2 (avoids division-by-zero in eval_bckgrd)
@@ -97,6 +98,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
         ${YELLOW}    -s${BLUE} Stealth & faster (don't check some time consuming checks)
         ${YELLOW}    -e${BLUE} Perform extra enumeration
         ${YELLOW}    -r${BLUE} Enable Regexes (this can take from some mins to hours)
+        ${YELLOW}    -V${BLUE} Send package/kernel inventory to HackTricks for online vulnerability lookup
         ${YELLOW}    -P${BLUE} Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
         ${YELLOW}    -n${BLUE} Do not check hostname & IP in known malicious lists and leaks
 	${YELLOW}    -D${BLUE} Debug mode
@@ -123,10 +125,10 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
         ${YELLOW}    -N${BLUE} Do not use colours
         ${YELLOW}    -z <N>${BLUE} Set number of threads for background checks (default: auto-detected CPU count, fallback: 2; must be >= 1)$NC"
 
-while getopts ":h?asd:p:i:P:qo:T:LMwNDterf:F:z:" opt; do
+while getopts ":h?asd:p:i:P:qo:T:LMwNDterVf:F:z:" opt; do
   case "$opt" in
     h|\?) printf "%s\n\n" "$HELP$NC"; exit 0;;
-    a)  FAST="";EXTRA_CHECKS="1";;
+    a)  FAST="";EXTRA_CHECKS="1";ONLINE_VULN_CHECKS="1";;
     s)  SUPERFAST=1;;
     d)  DISCOVERY=$OPTARG;;
     p)  PORTS=$OPTARG;;
@@ -144,6 +146,7 @@ while getopts ":h?asd:p:i:P:qo:T:LMwNDterf:F:z:" opt; do
     t)  AUTO_NETWORK_SCAN="1";;
     e)  EXTRA_CHECKS="1";;
     r)  REGEXES="1";;
+    V)  ONLINE_VULN_CHECKS="1";;
     f)  SEARCH_IN_FOLDER=$OPTARG;
     	if ! [ "$(echo -n $SEARCH_IN_FOLDER | tail -c 1)" = "/" ]; then #Make sure firmware folder ends with "/"
         SEARCH_IN_FOLDER="${SEARCH_IN_FOLDER}/";

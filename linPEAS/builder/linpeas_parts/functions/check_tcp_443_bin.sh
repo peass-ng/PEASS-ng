@@ -8,19 +8,17 @@
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $url_lambda, $TIMEOUT_INTERNET_SECONDS_443_BIN
+# Generated Global Variables: $url_443, $TIMEOUT_INTERNET_SECONDS_443_BIN
 # Fat linpeas: 0
 # Small linpeas: 1
 
 
 check_tcp_443_bin () {
   local TIMEOUT_INTERNET_SECONDS_443_BIN=$1
-  local url_lambda="https://tools.hacktricks.wiki/api/host-checker"
+  local url_443="https://1.1.1.1"
 
   if command -v curl >/dev/null 2>&1; then
-    if curl -s --connect-timeout $TIMEOUT_INTERNET_SECONDS_443_BIN "$url_lambda" \
-         -H "User-Agent: linpeas" -H "Content-Type: application/json" \
-         -d "{\"hostname\":\"$(hostname)\"}" >/dev/null 2>&1
+    if curl -s -k --connect-timeout "$TIMEOUT_INTERNET_SECONDS_443_BIN" "$url_443" >/dev/null 2>&1
     then
       echo "Port 443 is accessible with curl"
       return 0                      # ✅ success
@@ -30,9 +28,7 @@ check_tcp_443_bin () {
     fi
 
   elif command -v wget >/dev/null 2>&1; then
-    if wget -q --timeout=$TIMEOUT_INTERNET_SECONDS_443_BIN -O - "$url_lambda" \
-         --header "User-Agent: linpeas" -H "Content-Type: application/json" \
-         --post-data "{\"hostname\":\"$(hostname)\"}" >/dev/null 2>&1
+    if wget -q --no-check-certificate --timeout="$TIMEOUT_INTERNET_SECONDS_443_BIN" -O - "$url_443" >/dev/null 2>&1
     then
       echo "Port 443 is accessible with wget"
       return 0
