@@ -94,6 +94,101 @@ jobs:
           } else {
             Write-Error "winPEAS.exe not found at $exePath"
           }
+
+      - name: Execute winPEAS online package vulnerability lookup with mock
+        shell: pwsh
+        run: |
+          $Configuration = "Release"
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/$Configuration/winPEAS.exe"
+          if (!(Test-Path $exePath)) {
+            Write-Error "winPEAS.exe not found at $exePath"
+          }
+
+          $serverPath = Join-Path $env:RUNNER_TEMP "mock_host_checker.py"
+          $bodyPath = Join-Path $env:RUNNER_TEMP "host_checker_body.json"
+          $countPath = Join-Path $env:RUNNER_TEMP "host_checker_count.txt"
+          @"
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+          import json
+          import sys
+
+          body_path = sys.argv[1]
+          count_path = sys.argv[2]
+
+          class Handler(BaseHTTPRequestHandler):
+              def do_POST(self):
+                  length = int(self.headers.get("content-length", "0"))
+                  body = self.rfile.read(length).decode("utf-8", "replace")
+                  with open(body_path, "w", encoding="utf-8") as f:
+                      f.write(body)
+                  with open(count_path, "w", encoding="utf-8") as f:
+                      f.write("1")
+                  vulns = []
+                  for i in range(1, 56):
+                      vulns.append({
+                          "name": f"pkg{i}",
+                          "version": f"1.{i}.0",
+                          "manager": "windows-registry",
+                          "vulns": [f"CVE-2026-{10000 + i}"],
+                      })
+                  response = {
+                      "malicious": False,
+                      "results": [],
+                      "package_vulnerabilities": {
+                          "checked": 300,
+                          "affected": 55,
+                          "vulnerable_packages": vulns,
+                      },
+                  }
+                  data = json.dumps(response).encode("utf-8")
+                  self.send_response(200)
+                  self.send_header("Content-Type", "application/json")
+                  self.send_header("Content-Length", str(len(data)))
+                  self.end_headers()
+                  self.wfile.write(data)
+
+              def log_message(self, fmt, *args):
+                  pass
+
+          HTTPServer(("127.0.0.1", 18768), Handler).handle_request()
+          "@ | Set-Content -Path $serverPath -Encoding utf8
+
+          $server = Start-Process python -ArgumentList "`"$serverPath`" `"$bodyPath`" `"$countPath`"" -PassThru -NoNewWindow
+          try {
+            Start-Sleep -Seconds 2
+            $env:HACKTRICKS_HOST_CHECKER_URL = "http://127.0.0.1:18768/api/host-checker"
+            $output = & $exePath applicationsinfo -vulnpackages notcolor 2>&1 | Out-String
+
+            if ($output -notmatch "Online package vulnerabilities found: 55 vulnerable package\(s\), checked 300\.") {
+              Write-Error "The package vulnerability summary was not printed as expected.`n$output"
+            }
+            $vulnLines = ([regex]::Matches($output, "(?m)^\s+- pkg\d+ ")).Count
+            if ($vulnLines -ne 50) {
+              Write-Error "Expected 50 vulnerable package lines, got $vulnLines.`n$output"
+            }
+            if ($output -notmatch "\.\.\. 5 more vulnerable package\(s\) not shown\.") {
+              Write-Error "The hidden vulnerable package count was not printed.`n$output"
+            }
+            if ($output -match "package_vulnerabilities") {
+              Write-Error "Raw package_vulnerabilities JSON leaked into the rendered output.`n$output"
+            }
+
+            $requestCount = Get-Content $countPath -Raw
+            if ([int]$requestCount.Trim() -ne 1) {
+              Write-Error "Expected exactly one host-checker request, got $requestCount"
+            }
+            $request = Get-Content $bodyPath -Raw | ConvertFrom-Json
+            if (!$request.hostname) {
+              Write-Error "The host-checker payload did not include hostname."
+            }
+            if (!$request.packages -or $request.packages.Count -lt 1) {
+              Write-Error "The host-checker payload did not include installed packages."
+            }
+          } finally {
+            if (!$server.HasExited) {
+              Stop-Process -Id $server.Id -Force
+            }
+          }
       
       - name: Execute winPEAS networkinfo
         shell: pwsh

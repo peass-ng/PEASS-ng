@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using winPEAS.Helpers;
 using winPEAS.Info.ApplicationInfo;
+using winPEAS.Info.NetworkInfo;
 
 namespace winPEAS.Checks
 {
@@ -17,10 +18,53 @@ namespace winPEAS.Checks
             {
                 PrintActiveWindow,
                 PrintInstalledApps,
+                PrintOnlinePackageVulnerabilities,
                 PrintAutoRuns,
                 PrintScheduled,
                 PrintDeviceDrivers,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
+        }
+
+        void PrintOnlinePackageVulnerabilities()
+        {
+            if (!Checks.CheckOnlineVulnPackages)
+            {
+                return;
+            }
+
+            try
+            {
+                Beaprint.MainPrint("Online package vulnerabilities", "T1518");
+                Beaprint.LinkPrint("", "Optional HackTricks online lookup enabled with -vulnpackages or all. Output is capped at 50 vulnerable packages.");
+
+                var summary = HackTricksHostChecker.GetPackageVulnerabilities(50);
+                if (!string.IsNullOrEmpty(summary.Error))
+                {
+                    Beaprint.PrintException("    " + summary.Error);
+                    return;
+                }
+
+                Beaprint.NoColorPrint($"    Online package vulnerabilities found: {summary.Affected} vulnerable package(s), checked {summary.Checked}.");
+                if (summary.Lines.Count == 0)
+                {
+                    Beaprint.GoodPrint("    No vulnerable packages found by the online lookup.");
+                    return;
+                }
+
+                foreach (var line in summary.Lines)
+                {
+                    Beaprint.BadPrint("    " + line);
+                }
+
+                if (summary.NotShown > 0)
+                {
+                    Beaprint.NoColorPrint($"    ... {summary.NotShown} more vulnerable package(s) not shown.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
         }
 
         void PrintActiveWindow()

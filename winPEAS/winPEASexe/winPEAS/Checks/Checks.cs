@@ -24,6 +24,7 @@ namespace winPEAS.Checks
         public static bool IsLinpeas = false;
         public static bool IsLolbas = false;
         public static bool IsNetworkScan = false;
+        public static bool CheckOnlineVulnPackages = false;
         public static bool SearchProgramFiles = false;
 
         public static IEnumerable<int> PortScannerPorts = null;
@@ -141,6 +142,7 @@ namespace winPEAS.Checks
                 if (string.Equals(arg, "all", StringComparison.CurrentCultureIgnoreCase))
                 {
                     print_fileanalysis_warn = false;
+                    CheckOnlineVulnPackages = true;
                 }
 
                 if (arg.StartsWith("log", StringComparison.CurrentCultureIgnoreCase))
@@ -182,6 +184,12 @@ namespace winPEAS.Checks
                 if (string.Equals(arg, "dont-check-hostname", StringComparison.CurrentCultureIgnoreCase))
                 {
                     DontCheckHostname = true;
+                }
+
+                if (string.Equals(arg, "-vulnpackages", StringComparison.CurrentCultureIgnoreCase) ||
+                    string.Equals(arg, "vulnpackages", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    CheckOnlineVulnPackages = true;
                 }
 
                 if (string.Equals(arg, "quiet", StringComparison.CurrentCultureIgnoreCase))
@@ -321,6 +329,11 @@ namespace winPEAS.Checks
                 _systemCheckSelectedKeysHashSet.Add("networkscan");
             }
 
+            if (CheckOnlineVulnPackages && !isAllChecks)
+            {
+                _systemCheckSelectedKeysHashSet.Add("applicationsinfo");
+            }
+
             if (isAllChecks)
             {
                 isFileSearchEnabled = true;
@@ -345,6 +358,10 @@ namespace winPEAS.Checks
                     Beaprint.PrintInit();
 
                     CheckRunner.Run(() => CreateDynamicLists(isFileSearchEnabled), IsDebug);
+
+                    Info.NetworkInfo.HackTricksHostChecker.Start(
+                        includeHostname: !DontCheckHostname,
+                        includePackages: CheckOnlineVulnPackages);
 
                     RunChecks(isAllChecks, wait);
 

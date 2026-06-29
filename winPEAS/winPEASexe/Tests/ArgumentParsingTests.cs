@@ -49,6 +49,7 @@ namespace winPEAS.Tests
             winPEAS.Checks.Checks.IsLinpeas           = false;
             winPEAS.Checks.Checks.IsLolbas            = false;
             winPEAS.Checks.Checks.IsNetworkScan       = false;
+            winPEAS.Checks.Checks.CheckOnlineVulnPackages = false;
             winPEAS.Checks.Checks.SearchProgramFiles  = false;
             winPEAS.Checks.Checks.NetworkScanOptions  = string.Empty;
             winPEAS.Checks.Checks.PortScannerPorts    = null;
@@ -239,6 +240,38 @@ namespace winPEAS.Tests
             ParseOnly("max-regex-file-size=500000");
             Assert.AreEqual(500000, winPEAS.Checks.Checks.MaxRegexFileSize,
                 "max-regex-file-size=500000 should set MaxRegexFileSize to 500000.");
+        }
+
+        [TestMethod]
+        public void VulnPackages_ArgParsed_Correctly()
+        {
+            ParseOnly("-vulnpackages");
+            Assert.IsTrue(winPEAS.Checks.Checks.CheckOnlineVulnPackages,
+                "-vulnpackages should enable the online package vulnerability lookup.");
+        }
+
+        [TestMethod]
+        public void All_EnablesOnlinePackageLookup()
+        {
+            ParseOnly("all");
+            Assert.IsTrue(winPEAS.Checks.Checks.CheckOnlineVulnPackages,
+                "all should enable the online package vulnerability lookup.");
+        }
+
+        [TestMethod]
+        public void PackageVulnerabilityFormatter_CapsAtFiftyLines()
+        {
+            var vulnerablePackages = string.Join(",", Enumerable.Range(1, 55).Select(i =>
+                $"{{\"name\":\"pkg{i}\",\"version\":\"1.{i}.0\",\"manager\":\"windows-registry\",\"vulns\":[\"CVE-2026-{10000 + i}\"]}}"));
+            var responseJson = "{\"malicious\":false,\"results\":[],\"package_vulnerabilities\":{\"checked\":300,\"affected\":55,\"vulnerable_packages\":[" + vulnerablePackages + "]}}";
+
+            var summary = winPEAS.Info.NetworkInfo.HackTricksHostChecker.ParsePackageVulnerabilities(responseJson, 50);
+
+            Assert.AreEqual(300, summary.Checked);
+            Assert.AreEqual(55, summary.Affected);
+            Assert.AreEqual(50, summary.Lines.Count);
+            Assert.AreEqual(5, summary.NotShown);
+            Assert.IsTrue(summary.Lines[0].StartsWith("- pkg1 1.1.0 [windows-registry]: CVE-2026-10001"));
         }
     }
 }

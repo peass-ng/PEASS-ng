@@ -1226,6 +1226,7 @@
     <Compile Include="Info\ApplicationInfo\ApplicationInfoHelper.cs" />
     <Compile Include="Info\ApplicationInfo\AutoRuns.cs" />
     <Compile Include="Info\ApplicationInfo\DeviceDrivers.cs" />
+    <Compile Include="Info\ApplicationInfo\InstalledPackageInventory.cs" />
     <Compile Include="Info\ApplicationInfo\SoapClientProxyAnalyzer.cs" />
     <Compile Include="Info\ApplicationInfo\InstalledApps.cs" />
     <Compile Include="Helpers\Beaprint.cs" />
@@ -1264,6 +1265,7 @@
     <Compile Include="Info\NetworkInfo\Enums\Protocol.cs" />
     <Compile Include="Info\NetworkInfo\Enums\TcpTableClass.cs" />
     <Compile Include="Info\NetworkInfo\Enums\UdpTableClass.cs" />
+    <Compile Include="Info\NetworkInfo\HackTricksHostChecker.cs" />
     <Compile Include="Info\NetworkInfo\HostnameResolution.cs" />
     <Compile Include="Info\NetworkInfo\InternetConnectivity.cs" />
     <Compile Include="Info\NetworkInfo\InternetSettings\InternetSettings.cs" />

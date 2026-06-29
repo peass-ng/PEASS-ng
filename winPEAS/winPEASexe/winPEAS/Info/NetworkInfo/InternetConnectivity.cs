@@ -1,11 +1,8 @@
 using System;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text;
-using System.Text.Json;
 using System.Threading;
 
 namespace winPEAS.Info.NetworkInfo
@@ -48,9 +45,6 @@ namespace winPEAS.Info.NetworkInfo
         // Public DNS resolvers for DNS + ICMP checks
         private static readonly string[] DNS_ICMP_IPS =
             { "1.1.1.1", "8.8.8.8" };
-
-        private const string LAMBDA_URL =
-            "https://tools.hacktricks.wiki/api/host-checker";
 
         // Shared HttpClient (kept for HTTP & Lambda checks)
         private static readonly HttpClient http = new HttpClient
@@ -115,32 +109,7 @@ namespace winPEAS.Info.NetworkInfo
 
         private static bool TryLambdaAccess(out string error)
         {
-            try
-            {
-                using var cts =
-                    new CancellationTokenSource(TimeSpan.FromMilliseconds(HTTP_TIMEOUT_MS));
-
-                var payload = new StringContent(
-                    JsonSerializer.Serialize(new { hostname = Environment.MachineName }),
-                    Encoding.UTF8,
-                    "application/json");
-                var req = new HttpRequestMessage(HttpMethod.Post, LAMBDA_URL);
-                req.Content = payload;
-                req.Headers.UserAgent.ParseAdd("winpeas");
-                req.Headers.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var resp = http.SendAsync(req, cts.Token).GetAwaiter().GetResult();
-
-                error = resp.IsSuccessStatusCode ? null :
-                        $"HTTP {(int)resp.StatusCode}";
-                return error == null;
-            }
-            catch (Exception ex)
-            {
-                error = ex.Message;
-                return false;
-            }
+            return TryWebRequest("https://example.com", out error);
         }
 
         private static bool TryDnsAccess(string ip, out string error)

@@ -509,7 +509,7 @@ namespace winPEAS.Checks
                 if (!string.IsNullOrEmpty(resolutionInfo.ExternalCheckResult))
                 {
                     Beaprint.GoodPrint($"    External Check Result:");
-                    Beaprint.NoColorPrint(resolutionInfo.ExternalCheckResult);
+                    Beaprint.NoColorPrint("    " + resolutionInfo.ExternalCheckResult.Replace("\n", "\n    "));
                 }
                 else if (!string.IsNullOrEmpty(resolutionInfo.Error))
                 {
