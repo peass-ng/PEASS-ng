@@ -1,6 +1,7 @@
 # Title: Software Information - PackageKit Pack2TheRoot (CVE-2026-41651)
 # ID: SI_PackageKit_Pack2TheRoot
 # Author: Samuel Monsempes
+# Contributor: Arjay Saguisa
 # Last Update: 29-06-2026
 # Description: Check for the Pack2TheRoot vulnerability (CVE-2026-41651) in PackageKit:
 #   - Cross-distro local privilege escalation in the PackageKit daemon
