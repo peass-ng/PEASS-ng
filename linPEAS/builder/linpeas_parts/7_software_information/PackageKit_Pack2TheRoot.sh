@@ -5,7 +5,7 @@
 # Last Update: 29-06-2026
 # Description: Check for the Pack2TheRoot vulnerability (CVE-2026-41651) in PackageKit:
 #   - Cross-distro local privilege escalation in the PackageKit daemon
-#   - Affects all PackageKit versions >= 1.0.2 and <= 1.3.4
+#   - Affects PackageKit versions >= 1.0.2 and <= 1.3.4 unless a distro fix was backported
 #   - Allows any unprivileged local user to install/remove packages and gain root
 #   - Confirmed on default installs of Ubuntu (18.04 - 26.04), Debian Trixie 13.4,
 #     RockyLinux 10.1, Fedora 43 (Desktop & Server). Cockpit installs may also be affected.
@@ -14,145 +14,128 @@
 #     * Achieve arbitrary root code execution from a low-privileged session
 #   - IOC: PackageKit daemon crashes with an "emitted_finished" assertion failure
 #     after successful exploitation (visible in journalctl).
-#   - Auto-verification: when network access and curl are available, queries
-#     https://api.osv.dev/v1/query with the installed package coordinates and
-#     greps the response for CVE-2026-41651. Falls back to a local version-range
-#     heuristic when offline or when curl is unavailable.
 # License: GNU GPL
 # Version: 1.1
 # Mitre: T1068
 # Functions Used: print_2title, print_3title, print_info, echo_not_found
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $pk_full, $pk_version, $pk_osv_eco, $pk_osv_resp, $pk_osv_status, $pk_debian_backport, $pk_deb_backported, $pk_min_vuln, $pk_max_vuln, $pk_lower, $pk_higher, $pk_ioc_count
+# Generated Global Variables: $pk_full, $pk_version, $pk_pkg_manager, $pk_distro_id, $pk_distro_codename, $pk_fixed_version, $pk_fixed_label, $pk_min_vuln, $pk_max_vuln, $pk_lower, $pk_higher, $pk_vulnerable, $pk_ioc_count
 # Fat linpeas: 0
 # Small linpeas: 1
 
+pk_dpkg_fixed_version() {
+  pk_fixed_version=""
+  pk_fixed_label=""
+
+  [ -r /etc/os-release ] || return
+  pk_distro_id=""
+  pk_distro_codename=""
+  # shellcheck disable=SC1091
+  . /etc/os-release
+  pk_distro_id="${ID:-}"
+  pk_distro_codename="${VERSION_CODENAME:-}"
+
+  case "${pk_distro_id}:${pk_distro_codename}" in
+    debian:bullseye|raspbian:bullseye)
+      pk_fixed_version="1.2.2-2+deb11u1"
+      pk_fixed_label="Debian/Raspbian bullseye fixed version"
+      ;;
+    debian:bookworm|raspbian:bookworm)
+      pk_fixed_version="1.2.6-5+deb12u1"
+      pk_fixed_label="Debian/Raspbian bookworm fixed version"
+      ;;
+    debian:trixie|raspbian:trixie)
+      pk_fixed_version="1.3.1-1+deb13u1"
+      pk_fixed_label="Debian/Raspbian trixie fixed version"
+      ;;
+    ubuntu:xenial)
+      pk_fixed_version="0.8.17-4ubuntu6~gcc5.4ubuntu1.5+esm1"
+      pk_fixed_label="Ubuntu 16.04 ESM fixed version"
+      ;;
+    ubuntu:bionic)
+      pk_fixed_version="1.1.9-1ubuntu2.18.04.6+esm1"
+      pk_fixed_label="Ubuntu 18.04 ESM fixed version"
+      ;;
+    ubuntu:focal)
+      pk_fixed_version="1.1.13-2ubuntu1.1+esm1"
+      pk_fixed_label="Ubuntu 20.04 ESM fixed version"
+      ;;
+    ubuntu:jammy)
+      pk_fixed_version="1.2.5-2ubuntu3.1"
+      pk_fixed_label="Ubuntu 22.04 fixed version"
+      ;;
+    ubuntu:noble)
+      pk_fixed_version="1.2.8-2ubuntu1.5"
+      pk_fixed_label="Ubuntu 24.04 fixed version"
+      ;;
+    ubuntu:questing)
+      pk_fixed_version="1.3.1-1ubuntu1.1"
+      pk_fixed_label="Ubuntu 25.10 fixed version"
+      ;;
+    ubuntu:resolute)
+      pk_fixed_version="1.3.4-3ubuntu1"
+      pk_fixed_label="Ubuntu 26.04 fixed version"
+      ;;
+  esac
+}
 
 print_2title "Checking for PackageKit Pack2TheRoot (CVE-2026-41651)" "T1068"
 print_info "https://github.security.telekom.com/2026/04/pack2theroot-linux-local-privilege-escalation.html"
 
 pk_full=""
 pk_version=""
-if command -v dpkg >/dev/null 2>&1; then
-  # Keep the full Debian version (including epoch, revision, +debNNu suffix) for backport detection
-  pk_full="$(dpkg -l 2>/dev/null | grep -iE '^ii\s+packagekit\s' | awk '{print $3}' | head -n1)"
-  pk_version="$(printf '%s' "$pk_full" | sed -E 's/^[0-9]+://; s/-.*$//')"
+pk_pkg_manager=""
+if command -v dpkg-query >/dev/null 2>&1; then
+  pk_full="$(dpkg-query -W -f='${Version}\n' packagekit 2>/dev/null | head -n1)"
+  if [ -n "$pk_full" ]; then
+    pk_pkg_manager="dpkg"
+    pk_version="$(printf '%s' "$pk_full" | sed -E 's/^[0-9]+://; s/[-+~].*$//')"
+  fi
 fi
 if [ -z "$pk_version" ] && command -v rpm >/dev/null 2>&1; then
   pk_full="$(rpm -qa 2>/dev/null | grep -iE '^PackageKit-[0-9]' | head -n1)"
-  pk_version="$(printf '%s' "$pk_full" | sed -E 's/^[Pp]ackage[Kk]it-([0-9.]+)-.*/\1/')"
+  if [ -n "$pk_full" ]; then
+    pk_pkg_manager="rpm"
+    pk_version="$(printf '%s' "$pk_full" | sed -E 's/^[Pp]ackage[Kk]it-([0-9.]+)-.*/\1/')"
+  fi
 fi
 
 if [ -z "$pk_version" ]; then
   echo_not_found "PackageKit"
 else
-  echo "PackageKit version detected: $pk_version"
+  echo "PackageKit version detected: ${pk_full:-$pk_version}"
 
-  # OSV.dev authoritative cross-check (network + curl required)
-  pk_osv_eco=""
-  pk_osv_resp=""
-  pk_osv_status="skipped"
+  pk_vulnerable="no"
 
-  # Auto-detect distro ecosystem for OSV.dev
-  if [ -r /etc/os-release ]; then
-    # shellcheck disable=SC1091
-    . /etc/os-release
-    case "${ID:-}:${VERSION_CODENAME:-}" in
-      debian:trixie|raspbian:trixie) pk_osv_eco="Debian:13" ;;
-      debian:bookworm|raspbian:bookworm) pk_osv_eco="Debian:12" ;;
-      debian:bullseye|raspbian:bullseye) pk_osv_eco="Debian:11" ;;
-      debian:*) pk_osv_eco="Debian:13" ;;
-      ubuntu:jammy) pk_osv_eco="Ubuntu:22.04" ;;
-      ubuntu:noble) pk_osv_eco="Ubuntu:24.04" ;;
-      ubuntu:*) pk_osv_eco="Ubuntu:24.04" ;;
-      fedora:*) pk_osv_eco="Fedora:43" ;;
-      rocky:*|almalinux:*|rhel:*|centos:*) pk_osv_eco="Red Hat Enterprise Linux:10" ;;
-    esac
-  fi
-
-  if [ -z "$pk_osv_eco" ] && command -v rpm >/dev/null 2>&1; then
-    # Fallback for RPM systems without an /etc/os-release ID we recognize
-    pk_osv_eco="Red Hat Enterprise Linux:10"
-  fi
-  if [ -z "$pk_osv_eco" ]; then
-    pk_osv_eco="Debian:13"
-  fi
-
-  # Direct OSV.dev query (5-second timeout). No caching, no python parsing -
-  # the response body is grep'd for CVE-2026-41651 only.
-  if command -v curl >/dev/null 2>&1; then
-    pk_osv_payload=$(printf '{"package":{"name":"packagekit","ecosystem":"%s"},"version":"%s"}' \
-      "$pk_osv_eco" "$pk_full")
-    pk_osv_resp=$(curl -sS --max-time 5 \
-      -H "Content-Type: application/json" \
-      -X POST \
-      --data "$pk_osv_payload" \
-      https://api.osv.dev/v1/query 2>/dev/null)
-    if [ -n "$pk_osv_resp" ] && printf '%s' "$pk_osv_resp" | grep -q '"vulns"'; then
-      pk_osv_status="queried"
-    else
-      pk_osv_resp=""
-      pk_osv_status="offline"
+  if [ "$pk_pkg_manager" = "dpkg" ] && command -v dpkg >/dev/null 2>&1; then
+    pk_dpkg_fixed_version
+    if [ -n "$pk_fixed_version" ]; then
+      if dpkg --compare-versions "$pk_full" ge "$pk_fixed_version"; then
+        echo "PackageKit $pk_full is at or above the ${pk_fixed_label}: $pk_fixed_version" | sed -${E} "s,.*,${SED_GREEN},"
+      else
+        echo "Vulnerable to CVE-2026-41651 (Pack2TheRoot) - PackageKit $pk_full is below the ${pk_fixed_label}: $pk_fixed_version" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+        pk_vulnerable="yes"
+      fi
     fi
-  else
-    pk_osv_status="no_curl"
   fi
 
-  # Emit OSV.dev status block
-  print_3title "OSV.dev cross-check"
-  case "$pk_osv_status" in
-    queried)
-      echo "OSV.dev query succeeded (ecosystem: ${pk_osv_eco}, version: ${pk_full})" | sed -${E} "s,.*,${SED_GREEN},"
-      ;;
-    offline)
-      echo "OSV.dev unreachable (network error or timeout); falling back to heuristic check" | sed -${E} "s,.*,${SED_YELLOW},"
-      ;;
-    no_curl)
-      echo "curl not available; OSV.dev cross-check skipped, falling back to heuristic check" | sed -${E} "s,.*,${SED_YELLOW},"
-      ;;
-  esac
+  if [ -z "$pk_fixed_version" ]; then
+    # Generic upstream range: >= 1.0.2 and <= 1.3.4. Distro backports are handled above.
+    pk_min_vuln="1.0.2"
+    pk_max_vuln="1.3.4"
+    pk_lower="$(printf '%s\n%s\n' "$pk_min_vuln" "$pk_version" | sort -V | head -n1)"
+    pk_higher="$(printf '%s\n%s\n' "$pk_version" "$pk_max_vuln" | sort -V | tail -n1)"
 
-  if [ "$pk_osv_status" = "queried" ]; then
-    # Bare-minimum cross-match: does the OSV response mention CVE-2026-41651?
-    if printf '%s' "$pk_osv_resp" | grep -q 'CVE-2026-41651'; then
-      echo "CVE-2026-41651 (Pack2TheRoot): VULNERABLE per OSV.dev" | sed -${E} "s,.*,${SED_RED},"
-      pk_osv_vulnerable="yes"
+    if [ "$pk_lower" = "$pk_min_vuln" ] && [ "$pk_higher" = "$pk_max_vuln" ]; then
+      echo "Vulnerable to CVE-2026-41651 (Pack2TheRoot) - PackageKit $pk_version is in the upstream vulnerable range >=1.0.2 <=1.3.4" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+      pk_vulnerable="yes"
     else
-      echo "CVE-2026-41651 (Pack2TheRoot): NOT VULNERABLE per OSV.dev (not in affected versions)" | sed -${E} "s,.*,${SED_GREEN},"
-      pk_osv_vulnerable="no"
+      echo "PackageKit $pk_version is not in the upstream vulnerable range for CVE-2026-41651" | sed -${E} "s,.*,${SED_GREEN},"
     fi
-  else
-    pk_osv_vulnerable="unknown"
   fi
 
-  # Daemon-reachability and IOC checks fire if EITHER the OSV cross-check or the
-  # local heuristic flags the host as vulnerable.
-  pk_heuristic_vulnerable="no"
-  pk_debian_backport="$(printf '%s' "$pk_full" | grep -Eo '\+deb[0-9]+u[0-9]+$' || true)"
-  pk_deb_backported=""
-  if [ -n "$pk_debian_backport" ]; then
-    pk_deb_backported="yes"
-  fi
-
-  # Vulnerable range: >= 1.0.2 and <= 1.3.4
-  pk_min_vuln="1.0.2"
-  pk_max_vuln="1.3.4"
-  pk_lower="$(printf '%s\n%s\n' "$pk_min_vuln" "$pk_version" | sort -V | head -n1)"
-  pk_higher="$(printf '%s\n%s\n' "$pk_version" "$pk_max_vuln" | sort -V | tail -n1)"
-
-  if [ "$pk_deb_backported" = "yes" ]; then
-    echo "PackageKit $pk_full carries a Debian security backport (${pk_debian_backport}); CVE-2026-41651 likely patched (heuristic - confirm via OSV.dev when online)." | sed -${E} "s,.*,${SED_GREEN},"
-  elif [ "$pk_lower" = "$pk_min_vuln" ] && [ "$pk_higher" = "$pk_max_vuln" ]; then
-    echo "Vulnerable to CVE-2026-41651 (Pack2TheRoot) - PackageKit $pk_version is in the vulnerable range >=1.0.2 <=1.3.4" | sed -${E} "s,.*,${SED_RED_YELLOW},"
-    pk_heuristic_vulnerable="yes"
-  else
-    echo "PackageKit $pk_version is not in the vulnerable range for CVE-2026-41651" | sed -${E} "s,.*,${SED_GREEN},"
-  fi
-
-  # Daemon reachability + IOC only matter when the host is actually vulnerable.
-  # OSV is authoritative when it succeeded; otherwise trust the heuristic.
-  if [ "$pk_osv_vulnerable" = "yes" ] || { [ "$pk_osv_vulnerable" = "unknown" ] && [ "$pk_heuristic_vulnerable" = "yes" ]; }; then
+  if [ "$pk_vulnerable" = "yes" ]; then
     echo ""
     print_3title "PackageKit daemon reachability"
     if command -v systemctl >/dev/null 2>&1 && systemctl status packagekit >/dev/null 2>&1; then
@@ -163,7 +146,6 @@ else
       echo "PackageKit daemon does not appear to be reachable from this session" | sed -${E} "s,.*,${SED_GREEN},"
     fi
 
-    # IOC: emitted_finished assertion failures
     echo ""
     print_3title "IOC: emitted_finished assertion failures"
     if command -v journalctl >/dev/null 2>&1; then
