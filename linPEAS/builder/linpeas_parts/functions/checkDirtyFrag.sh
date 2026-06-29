@@ -10,9 +10,44 @@
 # Functions Used:
 # Global Variables: $E, $SED_GREEN, $SED_YELLOW, $SED_RED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $DF43_KERNEL_OS, $DF43_KERNEL_RELEASE, $DF43_KBUILD, $DF43_ESP_MODS, $DF43_RXRPC_MODS, $DF43_LOADED_ESP, $DF43_LOADED_RXRPC, $DF43_AUTO_ESP, $DF43_AUTO_RXRPC, $DF43_MODDEP, $DF43_MOD, $DF43_BUILTIN_ESP, $DF43_BUILTIN_RXRPC, $DF43_KCFG, $DF43_KCAT, $DF43_C, $DF43_MITIG_ESP, $DF43_MITIG_RXRPC, $DF43_USERNS_OFF, $DF43_CAP_NET_ADMIN, $DF43_CAPEFF, $DF43_CAPLO, $DF43_OLDBUILD, $DF43_BDATE, $DF43_BE, $DF43_FE, $DF43_ESP_REACH, $DF43_RXRPC_REACH, $DF43_RC
+# Generated Global Variables: $DF43_KERNEL_OS, $DF43_KERNEL_RELEASE, $DF43_KERNEL_VERSION, $DF43_KBUILD, $DF43_VERSION_KNOWN, $DF43_ESP_AFFECTED, $DF43_RXRPC_AFFECTED, $DF43_ESP_MODS, $DF43_RXRPC_MODS, $DF43_LOADED_ESP, $DF43_LOADED_RXRPC, $DF43_AUTO_ESP, $DF43_AUTO_RXRPC, $DF43_MODDEP, $DF43_MOD, $DF43_BUILTIN_ESP, $DF43_BUILTIN_RXRPC, $DF43_KCFG, $DF43_KCAT, $DF43_C, $DF43_MITIG_ESP, $DF43_MITIG_RXRPC, $DF43_USERNS_OFF, $DF43_CAP_NET_ADMIN, $DF43_CAPEFF, $DF43_CAPLO, $DF43_OLDBUILD, $DF43_BDATE, $DF43_BE, $DF43_FE, $DF43_ESP_REACH, $DF43_RXRPC_REACH, $DF43_RC
 # Fat linpeas: 0
 # Small linpeas: 1
+
+df43_norm_ver() {
+    printf "%s" "$1" | tr '-' '.' | sed 's/[^0-9.].*$//' | sed 's/\.\./\./g' | sed 's/^\.//' | sed 's/\.$//'
+}
+
+df43_ver_cmp() {
+    DF43_CURVER=$(df43_norm_ver "$1")
+    DF43_REQVER=$(df43_norm_ver "$3")
+    DF43_OP="$2"
+
+    [ -z "$DF43_CURVER" ] && return 1
+    [ -z "$DF43_REQVER" ] && return 1
+
+    DF43_CMP=$(awk -v a="$DF43_CURVER" -v b="$DF43_REQVER" '
+    function clean(v){gsub(/[^0-9]/,"",v); if(v=="")v=0; return v+0}
+    BEGIN{
+      na=split(a,A,"."); nb=split(b,B,"."); n=(na>nb?na:nb);
+      for(i=1;i<=n;i++){
+        va=(i<=na?clean(A[i]):0); vb=(i<=nb?clean(B[i]):0);
+        if(va<vb){print -1; exit}
+        if(va>vb){print 1; exit}
+      }
+      print 0
+    }')
+
+    case "$DF43_OP" in
+        '>=') [ "$DF43_CMP" -ge 0 ] ;;
+        '<')  [ "$DF43_CMP" -lt 0 ] ;;
+        *) return 1 ;;
+    esac
+}
+
+df43_ver_range() {
+    df43_ver_cmp "$1" '>=' "$2" && df43_ver_cmp "$1" '<' "$3"
+}
 
 checkDirtyFrag() {
     (
@@ -23,7 +58,37 @@ checkDirtyFrag() {
         fi
 
         DF43_KERNEL_RELEASE=$(uname -r 2>/dev/null || echo unknown)
+        DF43_KERNEL_VERSION=$(df43_norm_ver "$DF43_KERNEL_RELEASE")
         DF43_KBUILD=$(uname -v 2>/dev/null || echo unknown)
+        DF43_VERSION_KNOWN=""
+        [ -n "$DF43_KERNEL_VERSION" ] && DF43_VERSION_KNOWN="yes"
+
+        DF43_ESP_AFFECTED="yes"
+        DF43_RXRPC_AFFECTED="yes"
+        if [ "$DF43_VERSION_KNOWN" = "yes" ]; then
+            DF43_ESP_AFFECTED=""
+            if df43_ver_range "$DF43_KERNEL_VERSION" 4.11 5.10.255 \
+                || df43_ver_range "$DF43_KERNEL_VERSION" 5.12 5.15.205 \
+                || df43_ver_range "$DF43_KERNEL_VERSION" 5.16 6.1.171 \
+                || df43_ver_range "$DF43_KERNEL_VERSION" 6.2 6.6.138 \
+                || df43_ver_range "$DF43_KERNEL_VERSION" 6.7 6.12.87 \
+                || df43_ver_range "$DF43_KERNEL_VERSION" 6.13 6.18.28 \
+                || df43_ver_range "$DF43_KERNEL_VERSION" 7.0 7.0.5; then
+                DF43_ESP_AFFECTED="yes"
+            fi
+
+            DF43_RXRPC_AFFECTED=""
+            if printf '%s' "$DF43_KERNEL_RELEASE" | grep -Eq '^5\.3(\.0)?-rc'; then
+                printf '%s' "$DF43_KERNEL_RELEASE" | grep -Eq '^5\.3(\.0)?-rc[78]([-.]|$)' && DF43_RXRPC_AFFECTED="yes"
+            else
+                if df43_ver_range "$DF43_KERNEL_VERSION" 5.3 6.18.29 \
+                    || df43_ver_range "$DF43_KERNEL_VERSION" 6.19 7.0.6 \
+                    || printf '%s' "$DF43_KERNEL_RELEASE" | grep -Eq '^7\.1(\.0)?-rc[12]([-.]|$)'; then
+                    DF43_RXRPC_AFFECTED="yes"
+                fi
+            fi
+        fi
+
         DF43_ESP_MODS="esp4 esp6 xfrm_user ipcomp4 ipcomp6"
         DF43_RXRPC_MODS="rxrpc"
 
@@ -119,7 +184,6 @@ checkDirtyFrag() {
         fi
 
         DF43_OLDBUILD=""
-        DF43_PATCHED_BY_DATE=""
         DF43_BDATE=$(printf '%s' "$DF43_KBUILD" | sed -nE 's/.*([A-Z][a-z]{2} [A-Z][a-z]{2} +[0-9]{1,2} [0-9:]+ (UTC )?[0-9]{4}).*/\1/p')
         if [ -z "$DF43_BDATE" ]; then
             DF43_BDATE=$(printf '%s' "$DF43_KBUILD" | sed -nE 's/.*\(([0-9]{4}-[0-9]{2}-[0-9]{2})\).*/\1/p')
@@ -130,26 +194,47 @@ checkDirtyFrag() {
             if [ -n "$DF43_BE" ] && [ -n "$DF43_FE" ] && [ "$DF43_BE" -lt "$DF43_FE" ]; then
                 DF43_OLDBUILD="yes"
             fi
-            if [ "$DF43_OLDBUILD" != "yes" ] && [ -n "$DF43_BE" ]; then
-                DF43_PATCHED_BY_DATE="yes"
-            fi
         fi
 
         if [ -n "$DF43_LOADED_ESP" ]; then
-            echo "CVE-2026-43284 (xfrm-ESP): loaded:$DF43_LOADED_ESP" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            if [ "$DF43_ESP_AFFECTED" = "yes" ]; then
+                echo "CVE-2026-43284 (xfrm-ESP): loaded:$DF43_LOADED_ESP" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            else
+                echo "CVE-2026-43284 (xfrm-ESP): loaded:$DF43_LOADED_ESP but kernel $DF43_KERNEL_RELEASE is outside known affected ranges" | sed -${E} "s,.*,${SED_GREEN},"
+            fi
         elif [ "$DF43_BUILTIN_ESP" = "yes" ]; then
-            echo "CVE-2026-43284 (xfrm-ESP): built into kernel (modprobe blacklist ineffective)" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            if [ "$DF43_ESP_AFFECTED" = "yes" ]; then
+                echo "CVE-2026-43284 (xfrm-ESP): built into kernel (modprobe blacklist ineffective)" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            else
+                echo "CVE-2026-43284 (xfrm-ESP): built into kernel, but kernel $DF43_KERNEL_RELEASE is outside known affected ranges" | sed -${E} "s,.*,${SED_GREEN},"
+            fi
         elif [ -n "$DF43_AUTO_ESP" ]; then
-            echo "CVE-2026-43284 (xfrm-ESP): autoloadable:$DF43_AUTO_ESP" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            if [ "$DF43_ESP_AFFECTED" = "yes" ]; then
+                echo "CVE-2026-43284 (xfrm-ESP): autoloadable:$DF43_AUTO_ESP" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            else
+                echo "CVE-2026-43284 (xfrm-ESP): autoloadable:$DF43_AUTO_ESP but kernel $DF43_KERNEL_RELEASE is outside known affected ranges" | sed -${E} "s,.*,${SED_GREEN},"
+            fi
         else
             echo "CVE-2026-43284 (xfrm-ESP): not reachable on this kernel" | sed -${E} "s,.*,${SED_GREEN},"
         fi
         if [ -n "$DF43_LOADED_RXRPC" ]; then
-            echo "CVE-2026-43500 (rxrpc): loaded:$DF43_LOADED_RXRPC" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            if [ "$DF43_RXRPC_AFFECTED" = "yes" ]; then
+                echo "CVE-2026-43500 (rxrpc): loaded:$DF43_LOADED_RXRPC" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            else
+                echo "CVE-2026-43500 (rxrpc): loaded:$DF43_LOADED_RXRPC but kernel $DF43_KERNEL_RELEASE is outside known affected ranges" | sed -${E} "s,.*,${SED_GREEN},"
+            fi
         elif [ "$DF43_BUILTIN_RXRPC" = "yes" ]; then
-            echo "CVE-2026-43500 (rxrpc): built into kernel (modprobe blacklist ineffective)" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            if [ "$DF43_RXRPC_AFFECTED" = "yes" ]; then
+                echo "CVE-2026-43500 (rxrpc): built into kernel (modprobe blacklist ineffective)" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            else
+                echo "CVE-2026-43500 (rxrpc): built into kernel, but kernel $DF43_KERNEL_RELEASE is outside known affected ranges" | sed -${E} "s,.*,${SED_GREEN},"
+            fi
         elif [ -n "$DF43_AUTO_RXRPC" ]; then
-            echo "CVE-2026-43500 (rxrpc): autoloadable:$DF43_AUTO_RXRPC" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            if [ "$DF43_RXRPC_AFFECTED" = "yes" ]; then
+                echo "CVE-2026-43500 (rxrpc): autoloadable:$DF43_AUTO_RXRPC" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            else
+                echo "CVE-2026-43500 (rxrpc): autoloadable:$DF43_AUTO_RXRPC but kernel $DF43_KERNEL_RELEASE is outside known affected ranges" | sed -${E} "s,.*,${SED_GREEN},"
+            fi
         else
             echo "CVE-2026-43500 (rxrpc): not reachable on this kernel" | sed -${E} "s,.*,${SED_GREEN},"
         fi
@@ -185,8 +270,8 @@ checkDirtyFrag() {
 
         DF43_RC=0
         if [ "$DF43_ESP_REACH" = "yes" ] && [ "$DF43_MITIG_ESP" != "yes" ]; then
-            if [ "$DF43_PATCHED_BY_DATE" = "yes" ]; then
-                echo "CVE-2026-43284 (xfrm-ESP): kernel built on/after 2026-05-08 carries the upstream fix; module reachability does not imply exploitability." | sed -${E} "s,.*,${SED_GREEN},"
+            if [ "$DF43_ESP_AFFECTED" != "yes" ]; then
+                :
             elif [ "$DF43_USERNS_OFF" = "yes" ]; then
                 echo "CVE-2026-43284 reachable but public PoC blocked by disabled user namespaces." | sed -${E} "s,.*,${SED_YELLOW},"
                 [ $DF43_RC -lt 1 ] && DF43_RC=1
@@ -196,8 +281,8 @@ checkDirtyFrag() {
             fi
         fi
         if [ "$DF43_RXRPC_REACH" = "yes" ] && [ "$DF43_MITIG_RXRPC" != "yes" ]; then
-            if [ "$DF43_PATCHED_BY_DATE" = "yes" ]; then
-                echo "CVE-2026-43500 (rxrpc): kernel built on/after 2026-05-08 carries the upstream fix; module reachability does not imply exploitability." | sed -${E} "s,.*,${SED_GREEN},"
+            if [ "$DF43_RXRPC_AFFECTED" != "yes" ]; then
+                :
             elif [ "$DF43_USERNS_OFF" = "yes" ]; then
                 echo "CVE-2026-43500 reachable but public PoC blocked by disabled user namespaces." | sed -${E} "s,.*,${SED_YELLOW},"
                 [ $DF43_RC -lt 1 ] && DF43_RC=1
