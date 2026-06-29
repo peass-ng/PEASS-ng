@@ -1,11 +1,12 @@
 # Title: Function - checkDirtyFrag
 # ID: checkDirtyFrag
 # Author: Samuel Monsempes
-# Last Update: 10-05-2026
+# Contributor: Arjay Saguisa
+# Last Update: 29-06-2026
 # Description: Check whether the current Linux kernel looks exposed to Dirty Frag (CVE-2026-43284 and CVE-2026-43500).
 # Description: Per-CVE module state (xfrm-ESP and rxrpc), built-in detection, modprobe.d blacklist, user-namespace mitigation, CAP_NET_ADMIN, kernel build-date heuristic.
 # License: GNU GPL
-# Version: 1.0
+# Version: 1.0.1
 # Functions Used:
 # Global Variables: $E, $SED_GREEN, $SED_YELLOW, $SED_RED_YELLOW
 # Initial Functions:
@@ -118,12 +119,19 @@ checkDirtyFrag() {
         fi
 
         DF43_OLDBUILD=""
+        DF43_PATCHED_BY_DATE=""
         DF43_BDATE=$(printf '%s' "$DF43_KBUILD" | sed -nE 's/.*([A-Z][a-z]{2} [A-Z][a-z]{2} +[0-9]{1,2} [0-9:]+ (UTC )?[0-9]{4}).*/\1/p')
+        if [ -z "$DF43_BDATE" ]; then
+            DF43_BDATE=$(printf '%s' "$DF43_KBUILD" | sed -nE 's/.*\(([0-9]{4}-[0-9]{2}-[0-9]{2})\).*/\1/p')
+        fi
         if [ -n "$DF43_BDATE" ]; then
             DF43_BE=$(date -d "$DF43_BDATE" +%s 2>/dev/null)
             DF43_FE=$(date -d '2026-05-08' +%s 2>/dev/null)
             if [ -n "$DF43_BE" ] && [ -n "$DF43_FE" ] && [ "$DF43_BE" -lt "$DF43_FE" ]; then
                 DF43_OLDBUILD="yes"
+            fi
+            if [ "$DF43_OLDBUILD" != "yes" ] && [ -n "$DF43_BE" ]; then
+                DF43_PATCHED_BY_DATE="yes"
             fi
         fi
 
@@ -177,7 +185,9 @@ checkDirtyFrag() {
 
         DF43_RC=0
         if [ "$DF43_ESP_REACH" = "yes" ] && [ "$DF43_MITIG_ESP" != "yes" ]; then
-            if [ "$DF43_USERNS_OFF" = "yes" ]; then
+            if [ "$DF43_PATCHED_BY_DATE" = "yes" ]; then
+                echo "CVE-2026-43284 (xfrm-ESP): kernel built on/after 2026-05-08 carries the upstream fix; module reachability does not imply exploitability." | sed -${E} "s,.*,${SED_GREEN},"
+            elif [ "$DF43_USERNS_OFF" = "yes" ]; then
                 echo "CVE-2026-43284 reachable but public PoC blocked by disabled user namespaces." | sed -${E} "s,.*,${SED_YELLOW},"
                 [ $DF43_RC -lt 1 ] && DF43_RC=1
             else
@@ -186,7 +196,9 @@ checkDirtyFrag() {
             fi
         fi
         if [ "$DF43_RXRPC_REACH" = "yes" ] && [ "$DF43_MITIG_RXRPC" != "yes" ]; then
-            if [ "$DF43_USERNS_OFF" = "yes" ]; then
+            if [ "$DF43_PATCHED_BY_DATE" = "yes" ]; then
+                echo "CVE-2026-43500 (rxrpc): kernel built on/after 2026-05-08 carries the upstream fix; module reachability does not imply exploitability." | sed -${E} "s,.*,${SED_GREEN},"
+            elif [ "$DF43_USERNS_OFF" = "yes" ]; then
                 echo "CVE-2026-43500 reachable but public PoC blocked by disabled user namespaces." | sed -${E} "s,.*,${SED_YELLOW},"
                 [ $DF43_RC -lt 1 ] && DF43_RC=1
             else
