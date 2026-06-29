@@ -9,7 +9,7 @@
 # Functions Used: check_dns, check_icmp, check_tcp_443, check_tcp_443_bin, check_tcp_80, print_2title, print_3title, print_info, check_external_hostname
 # Global Variables: $E
 # Initial Functions:
-# Generated Global Variables: $pid4, $pid2, $pid1, $pid3, $tcp443_bin_status, $NOT_CHECK_EXTERNAL_HOSTNAME, $TIMEOUT_INTERNET_SECONDS
+# Generated Global Variables: $pid4, $pid2, $pid1, $pid3, $tcp443_bin_status, $TIMEOUT_INTERNET_SECONDS
 # Fat linpeas: 0
 # Small linpeas: 0
 
