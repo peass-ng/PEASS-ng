@@ -34,7 +34,7 @@ namespace winPEAS.Checks
 
             try
             {
-                Beaprint.MainPrint("Online package vulnerabilities", "T1518");
+                Beaprint.MainPrint("Package Vulnerabilities", "T1518");
                 Beaprint.LinkPrint("", "Optional HackTricks online lookup enabled with -vulnpackages or all. Output is capped at 50 vulnerable packages.");
 
                 var summary = HackTricksHostChecker.GetPackageVulnerabilities(50);

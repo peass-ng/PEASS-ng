@@ -1,4 +1,4 @@
-# Title: System Information - Online package vulnerabilities
+# Title: System Information - Package Vulnerabilities
 # ID: SY_Online_package_vulnerabilities
 # Author: Carlos Polop
 # Last Update: 29-06-2026
@@ -14,7 +14,7 @@
 # Small linpeas: 1
 
 if [ "$ONLINE_VULN_CHECKS" ] && [ -z "$NOT_CHECK_EXTERNAL_HOSTNAME" ]; then
-  print_2title "Online package vulnerabilities" "T1082"
+  print_2title "Package Vulnerabilities" "T1082"
   print_info "This uses the optional HackTricks online lookup enabled with -V or -a. Output is capped at 50 vulnerable packages."
   linpeas_print_package_vulnerabilities
   echo ""
