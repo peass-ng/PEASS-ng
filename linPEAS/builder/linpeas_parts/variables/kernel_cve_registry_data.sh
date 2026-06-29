@@ -115,7 +115,6 @@ CVE-2022-32250	nft_object UAF (NFT_MSG_NEWSET)	pkg=linux-kernel,ver<5.18.1,CONFI
 CVE-2023-0386	OverlayFS suid smuggle	pkg=linux-kernel,ver>=5.11,ver<=6.2,CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1	ubuntu=22.04.1{kernel:5.15.0-57-generic}	1	CONFIG_USER_NS needs to be enabled && kernel.unprivileged_userns_clone=1 required
 CVE-2024-1086	double-free in nf_tables	pkg=linux-kernel,x86_64,ver>=5.14,ver<=6.6,CONFIG_NF_TABLES=y,CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1	debian=12,ubuntu=22.04	1	CONFIG_USER_NS and CONFIG_NF_TABLES need to be enabled && kernel.unprivileged_userns_clone=1 required
 CVE-2021-3560	Polkit race authentication bypass	cmd:sh -c "apt list --installed 2>/dev/null | grep -E 'polkit.*0\\.105-26' | grep -qEv 'ubuntu1\\.[1-9]' || yum list installed 2>/dev/null | grep -qE 'polkit.*\\(0\\.117-2\\|0\\.115-6\\|0\\.11[3-9]\\)' || rpm -qa 2>/dev/null | grep -qE 'polkit.*\\(0\\.117-2\\|0\\.115-6\\|0\\.11[3-9]\\)'"		1	Migrated from former standalone 1_system_information check
-CVE-2025-38236	AF_UNIX MSG_OOB UAF	pkg=linux-kernel,ver>=6.9.0,ver<6.16		1	Migrated from former standalone 1_system_information check
 CVE-2025-38352	POSIX CPU timers race	pkg=linux-kernel,ver>=6.12,ver<6.12.34,CONFIG_POSIX_CPU_TIMERS_TASK_WORK!=y		1	Migrated from former standalone 1_system_information check
 af_packet	2016-8655	4.4.0		http://www.exploit-db.com/exploits/40871
 american-sign-language	2010-4347	2.6.0,2.6.1,2.6.2,2.6.3,2.6.4,2.6.5,2.6.6,2.6.7,2.6.8,2.6.9,2.6.10,2.6.11,2.6.12,2.6.13,2.6.14,2.6.15,2.6.16,2.6.17,2.6.18,2.6.19,2.6.20,2.6.21,2.6.22,2.6.23,2.6.24,2.6.25,2.6.26,2.6.27,2.6.28,2.6.29,2.6.30,2.6.31,2.6.32,2.6.33,2.6.34,2.6.35,2.6.36		http://www.securityfocus.com/bid/45408
@@ -587,6 +586,10 @@ CVE-2025-40040	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token
 CVE-2025-6349	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2025-8045	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2025-8109	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
+CVE-2025-38236	AF_UNIX MSG_OOB UAF	pkg=linux-kernel,ver>=5.15,ver<6.1.143		1	Fixed in stable 6.1.143
+CVE-2025-38236	AF_UNIX MSG_OOB UAF	pkg=linux-kernel,ver>=6.2,ver<6.6.96		1	Fixed in stable 6.6.96
+CVE-2025-38236	AF_UNIX MSG_OOB UAF	pkg=linux-kernel,ver>=6.7,ver<6.12.36		1	Fixed in stable 6.12.36
+CVE-2025-38236	AF_UNIX MSG_OOB UAF	pkg=linux-kernel,ver>=6.13,ver<6.15.5		1	Fixed in stable 6.15.5
 CVE-2106-2504	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 EOF_DATA_20
 )"
@@ -600,6 +603,7 @@ CVE-2021-4154	cgroup fsconfig type confusion	pkg=linux-kernel,ver=5.13.3		1	From
 CVE-2022-2588	route4_filter double-free	pkg=linux-kernel,ver=5.19.1,CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1		1	From kernel-exploit-factory detail section and exploit prerequisites
 CVE-2022-2639	openvswitch reserve_sfa_size integer overflow	pkg=linux-kernel,ver=5.17.4,cmd:grep -qi openvswitch /proc/modules		1	From kernel-exploit-factory detail section; openvswitch module required
 CVE-2025-21702	net/sched qdisc UAF	pkg=linux-kernel,ver=6.6.75,CONFIG_NET_SCHED=y		1	From kernel-exploit-factory detail section (test version Linux-6.6.75)
+CVE-2025-38236	AF_UNIX MSG_OOB UAF	pkg=linux-kernel,ver>=6.16,ver<6.17,cmd:uname -r 2>/dev/null | grep -Eq '^6\.16\.0-rc[123]([-.]|$)'		1	Fixed in mainline 6.16-rc4
 CVE-2026-31431	Copy Fail	pkg=linux-kernel,ver>=4.14,ver<5.10.254,CONFIG_CRYPTO_USER_API_AEAD=[my],CONFIG_CRYPTO_AUTHENC=[my]		1	Upstream issue introduced in 4.14; fixed by stable backports and in mainline 7.0
 CVE-2026-31431	Copy Fail	pkg=linux-kernel,ver>=5.11,ver<5.15.204,CONFIG_CRYPTO_USER_API_AEAD=[my],CONFIG_CRYPTO_AUTHENC=[my]		1	Upstream issue introduced in 4.14; fixed by stable backports and in mainline 7.0
 CVE-2026-31431	Copy Fail	pkg=linux-kernel,ver>=5.16,ver<6.1.170,CONFIG_CRYPTO_USER_API_AEAD=[my],CONFIG_CRYPTO_AUTHENC=[my]		1	Upstream issue introduced in 4.14; fixed by stable backports and in mainline 7.0
