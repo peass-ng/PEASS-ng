@@ -34,7 +34,7 @@ pk_dpkg_fixed_version() {
   # shellcheck disable=SC1091
   . /etc/os-release
   pk_distro_id="${ID:-}"
-  pk_distro_codename="${VERSION_CODENAME:-}"
+  pk_distro_codename="$(sed -nE 's/^VERSION_CODENAME=\"?([^"]*)\"?$/\1/p' /etc/os-release | head -n1)"
 
   case "${pk_distro_id}:${pk_distro_codename}" in
     debian:bullseye|raspbian:bullseye)
@@ -87,7 +87,7 @@ pk_full=""
 pk_version=""
 pk_pkg_manager=""
 if command -v dpkg-query >/dev/null 2>&1; then
-  pk_full="$(dpkg-query -W -f='${Version}\n' packagekit 2>/dev/null | head -n1)"
+  pk_full="$(dpkg-query -W -f='$''{Version}\n' packagekit 2>/dev/null | head -n1)"
   if [ -n "$pk_full" ]; then
     pk_pkg_manager="dpkg"
     pk_version="$(printf '%s' "$pk_full" | sed -E 's/^[0-9]+://; s/[-+~].*$//')"
