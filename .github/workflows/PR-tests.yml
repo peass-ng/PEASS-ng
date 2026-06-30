@@ -125,10 +125,18 @@ jobs:
                       f.write("1")
                   vulns = []
                   for i in range(1, 56):
+                      severity = "low"
+                      if i % 10 == 0:
+                          severity = "critical"
+                      elif i % 10 == 1:
+                          severity = "high"
+                      elif i % 10 == 2:
+                          severity = "medium"
                       vulns.append({
                           "name": f"pkg{i}",
                           "version": f"1.{i}.0",
                           "manager": "windows-registry",
+                          "severity": severity,
                           "vulns": [f"CVE-2026-{10000 + i}"],
                       })
                   response = {
@@ -165,6 +173,15 @@ jobs:
             $vulnLines = ([regex]::Matches($output, "(?m)^\s+- pkg\d+ ")).Count
             if ($vulnLines -ne 50) {
               Write-Error "Expected 50 vulnerable package lines, got $vulnLines.`n$output"
+            }
+            $firstVulnLine = [regex]::Match($output, "(?m)^\s+- pkg\d+ .*$").Value
+            if ($firstVulnLine -notmatch "pkg10 .* \[Critical\]: CVE-2026-10010") {
+              Write-Error "Expected critical package vulnerabilities to be printed first, got: $firstVulnLine`n$output"
+            }
+            $criticalIndex = $output.IndexOf("pkg10")
+            $lowIndex = $output.IndexOf("- pkg3 ")
+            if ($criticalIndex -lt 0 -or $lowIndex -lt 0 -or $criticalIndex -gt $lowIndex) {
+              Write-Error "Expected critical packages to appear before low packages.`n$output"
             }
             if ($output -notmatch "\.\.\. 5 more vulnerable package\(s\) not shown\.") {
               Write-Error "The hidden vulnerable package count was not printed.`n$output"

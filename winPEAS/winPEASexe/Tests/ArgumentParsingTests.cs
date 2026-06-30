@@ -273,5 +273,43 @@ namespace winPEAS.Tests
             Assert.AreEqual(5, summary.NotShown);
             Assert.IsTrue(summary.Lines[0].StartsWith("- pkg1 1.1.0 [windows-registry]: CVE-2026-10001"));
         }
+
+        [TestMethod]
+        public void PackageVulnerabilityFormatter_SortsByCriticalityBeforeCapping()
+        {
+            var responseJson =
+                "{\"package_vulnerabilities\":{\"checked\":4,\"affected\":4,\"vulnerable_packages\":[" +
+                "{\"name\":\"lowpkg\",\"version\":\"1.0\",\"manager\":\"windows-registry\",\"severity\":\"low\",\"vulns\":[\"CVE-2026-10001\"]}," +
+                "{\"name\":\"criticalpkg\",\"version\":\"2.0\",\"manager\":\"windows-registry\",\"severity\":\"critical\",\"vulns\":[\"CVE-2026-10002\"]}," +
+                "{\"name\":\"highpkg\",\"version\":\"3.0\",\"manager\":\"windows-registry\",\"severity\":\"high\",\"vulns\":[\"CVE-2026-10003\"]}," +
+                "{\"name\":\"mediumpkg\",\"version\":\"4.0\",\"manager\":\"windows-registry\",\"severity\":\"medium\",\"vulns\":[\"CVE-2026-10004\"]}" +
+                "]}}";
+
+            var summary = winPEAS.Info.NetworkInfo.HackTricksHostChecker.ParsePackageVulnerabilities(responseJson, 3);
+
+            Assert.AreEqual(3, summary.Lines.Count);
+            Assert.AreEqual(1, summary.NotShown);
+            Assert.IsTrue(summary.Lines[0].StartsWith("- criticalpkg 2.0 [windows-registry] [Critical]: CVE-2026-10002"));
+            Assert.IsTrue(summary.Lines[1].StartsWith("- highpkg 3.0 [windows-registry] [High]: CVE-2026-10003"));
+            Assert.IsTrue(summary.Lines[2].StartsWith("- mediumpkg 4.0 [windows-registry] [Medium]: CVE-2026-10004"));
+        }
+
+        [TestMethod]
+        public void PackageVulnerabilityFormatter_UsesCvssCriticalityWhenSeverityMissing()
+        {
+            var responseJson =
+                "{\"package_vulnerabilities\":{\"checked\":3,\"affected\":3,\"vulnerable_packages\":[" +
+                "{\"name\":\"mediumcvss\",\"version\":\"1.0\",\"manager\":\"windows-registry\",\"cvss_score\":5.0,\"vulns\":[\"CVE-2026-10001\"]}," +
+                "{\"name\":\"criticalcvss\",\"version\":\"2.0\",\"manager\":\"windows-registry\",\"cvss_score\":9.8,\"vulns\":[\"CVE-2026-10002\"]}," +
+                "{\"name\":\"highobject\",\"version\":\"3.0\",\"manager\":\"windows-registry\",\"vulns\":[{\"id\":\"CVE-2026-10003\",\"severity\":\"high\",\"cvss_score\":8.1}]}" +
+                "]}}";
+
+            var summary = winPEAS.Info.NetworkInfo.HackTricksHostChecker.ParsePackageVulnerabilities(responseJson, 50);
+
+            Assert.AreEqual(3, summary.Lines.Count);
+            Assert.IsTrue(summary.Lines[0].StartsWith("- criticalcvss 2.0 [windows-registry] [Critical]: CVE-2026-10002"));
+            Assert.IsTrue(summary.Lines[1].StartsWith("- highobject 3.0 [windows-registry] [High]: CVE-2026-10003"));
+            Assert.IsTrue(summary.Lines[2].StartsWith("- mediumcvss 1.0 [windows-registry] [Medium]: CVE-2026-10001"));
+        }
     }
 }
