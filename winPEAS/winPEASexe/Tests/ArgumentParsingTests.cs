@@ -275,7 +275,7 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
-        public void PackageVulnerabilityFormatter_SortsByCriticalityBeforeCapping()
+        public void PackageVulnerabilityFormatter_SortsHackTricksCriticalityBeforeCapping()
         {
             var responseJson =
                 "{\"package_vulnerabilities\":{\"checked\":4,\"affected\":4,\"vulnerable_packages\":[" +
@@ -295,20 +295,20 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
-        public void PackageVulnerabilityFormatter_UsesCvssCriticalityWhenSeverityMissing()
+        public void PackageVulnerabilityFormatter_UsesHackTricksCvssWhenSeverityMissing()
         {
             var responseJson =
                 "{\"package_vulnerabilities\":{\"checked\":3,\"affected\":3,\"vulnerable_packages\":[" +
                 "{\"name\":\"mediumcvss\",\"version\":\"1.0\",\"manager\":\"windows-registry\",\"cvss_score\":5.0,\"vulns\":[\"CVE-2026-10001\"]}," +
                 "{\"name\":\"criticalcvss\",\"version\":\"2.0\",\"manager\":\"windows-registry\",\"cvss_score\":9.8,\"vulns\":[\"CVE-2026-10002\"]}," +
-                "{\"name\":\"highobject\",\"version\":\"3.0\",\"manager\":\"windows-registry\",\"vulns\":[{\"id\":\"CVE-2026-10003\",\"severity\":\"high\",\"cvss_score\":8.1}]}" +
+                "{\"name\":\"highcvss\",\"version\":\"3.0\",\"manager\":\"windows-registry\",\"cvss_score\":8.1,\"vulns\":[\"CVE-2026-10003\"]}" +
                 "]}}";
 
             var summary = winPEAS.Info.NetworkInfo.HackTricksHostChecker.ParsePackageVulnerabilities(responseJson, 50);
 
             Assert.AreEqual(3, summary.Lines.Count);
             Assert.IsTrue(summary.Lines[0].StartsWith("- criticalcvss 2.0 [windows-registry] [Critical]: CVE-2026-10002"));
-            Assert.IsTrue(summary.Lines[1].StartsWith("- highobject 3.0 [windows-registry] [High]: CVE-2026-10003"));
+            Assert.IsTrue(summary.Lines[1].StartsWith("- highcvss 3.0 [windows-registry] [High]: CVE-2026-10003"));
             Assert.IsTrue(summary.Lines[2].StartsWith("- mediumcvss 1.0 [windows-registry] [Medium]: CVE-2026-10001"));
         }
     }
