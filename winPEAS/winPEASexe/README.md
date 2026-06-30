@@ -66,6 +66,7 @@ winpeas.exe domain #enumerate also domain information
 winpeas.exe wait #wait for user input between tests
 winpeas.exe debug #display additional debug information
 winpeas.exe log #log output to out.txt instead of standard output
+winpeas.exe -vulnpackages #send installed package names/versions to the optional HackTricks online lookup to flag vulnerable packages
 winpeas.exe -linpeas=http://127.0.0.1/linpeas.sh #Execute also additional linpeas check (runs linpeas.sh in default WSL distribution) with custom linpeas.sh URL (if not provided, the default URL is: https://raw.githubusercontent.com/peass-ng/PEASS-ng/master/linPEAS/linpeas.sh)
 winpeas.exe -lolbas  #Execute also additional LOLBAS search check
 ```
@@ -176,6 +177,7 @@ Once you have installed and activated it you need to:
 - **Applications Information**
   - [x] Current Active Window
   - [x] Installed software
+  - [x] Optional online installed-package vulnerability lookup via HackTricks (`-vulnpackages` or `all`)
   - [x] AutoRuns
   - [x] Scheduled tasks
   - [x] Device drivers
@@ -189,6 +191,8 @@ Once you have installed and activated it you need to:
   - [x] Firewall rules
   - [x] DNS Cache (limit 70)
   - [x] Internet Settings
+  - [x] Internet connectivity probes
+  - [x] Optional external hostname resolution check
 
 - **Cloud Metadata Enumeration**
   - [x] AWS Metadata

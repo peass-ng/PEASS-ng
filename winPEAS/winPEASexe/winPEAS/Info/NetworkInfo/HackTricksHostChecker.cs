@@ -67,7 +67,7 @@ namespace winPEAS.Info.NetworkInfo
 
         public static HostCheckerResult GetResult()
         {
-            Start(includeHostname: !Checks.Checks.DontCheckHostname, includePackages: Checks.Checks.CheckOnlineVulnPackages);
+            EnsureStarted(Checks.Checks.CheckOnlineVulnPackages);
             try
             {
                 return lookupTask.GetAwaiter().GetResult();
@@ -80,7 +80,7 @@ namespace winPEAS.Info.NetworkInfo
 
         public static PackageVulnerabilitySummary GetPackageVulnerabilities(int maxLines)
         {
-            Start(includeHostname: !Checks.Checks.DontCheckHostname, includePackages: true);
+            EnsureStarted(includePackages: true);
             var result = GetResult();
             if (!string.IsNullOrEmpty(result.Error))
             {
@@ -155,6 +155,13 @@ namespace winPEAS.Info.NetworkInfo
             }
 
             return summary;
+        }
+
+        private static void EnsureStarted(bool includePackages)
+        {
+            Start(
+                includeHostname: !Checks.Checks.DontCheckHostname,
+                includePackages: includePackages);
         }
 
         private static HostCheckerResult ExecuteLookup(bool includeHostname, bool includePackages)
