@@ -1,7 +1,7 @@
 # Title: LinPeasBase - check_external_hostname
 # ID: check_external_hostname
 # Author: Carlos Polop
-# Last Update: 23-05-2025
+# Last Update: 30-06-2026
 # Description: This will check the public IP and hostname in known malicious lists and leaks to find any relevant information about the host.
 # License: GNU GPL
 # Version: 1.0
@@ -48,30 +48,31 @@ linpeas_os_package_ecosystem(){
   esac
 }
 
+linpeas_tabbed_packages_to_json_lines(){
+  awk -F '\t' -v manager="$1" -v ecosystem="$2" '
+    function esc(s) { gsub(/\\/,"\\\\",s); gsub(/"/,"\\\"",s); gsub(/\r/," ",s); return s }
+    $1 != "" && $2 != "" {
+      key=$1 "|" $2
+      if (seen[key]++) next
+      printf "{\"name\":\"%s\",\"version\":\"%s\",\"ecosystem\":\"%s\",\"manager\":\"%s\"}\n", esc($1), esc($2), esc(ecosystem), manager
+    }'
+}
+
 linpeas_print_package_json_lines(){
   _ecosystem="$(linpeas_os_package_ecosystem)"
 
   if command -v dpkg-query >/dev/null 2>&1; then
-    dpkg-query -W -f='${source:Package}\t${source:Version}\t${binary:Package}\t${Version}\n' 2>/dev/null | awk -F '\t' -v ecosystem="$_ecosystem" '
-      function esc(s) { gsub(/\\/,"\\\\",s); gsub(/"/,"\\\"",s); gsub(/\r/," ",s); return s }
+    dpkg-query -W -f='${source:Package}\t${source:Version}\t${binary:Package}\t${Version}\n' 2>/dev/null | awk -F '\t' '
       {
         name=$1; version=$2
         if (name == "" || name == "-") { name=$3; version=$4 }
         if (version == "" || version == "-") { version=$4 }
         sub(/^src:/, "", name)
         if (name == "" || version == "") next
-        key=name "|" version
-        if (seen[key]++) next
-        printf "{\"name\":\"%s\",\"version\":\"%s\",\"ecosystem\":\"%s\",\"manager\":\"dpkg\"}\n", esc(name), esc(version), esc(ecosystem)
-      }'
+        printf "%s\t%s\n", name, version
+      }' | linpeas_tabbed_packages_to_json_lines "dpkg" "$_ecosystem"
   elif command -v rpm >/dev/null 2>&1; then
-    rpm -qa --qf '%{NAME}\t%{VERSION}-%{RELEASE}\n' 2>/dev/null | awk -F '\t' -v ecosystem="$_ecosystem" '
-      function esc(s) { gsub(/\\/,"\\\\",s); gsub(/"/,"\\\"",s); gsub(/\r/," ",s); return s }
-      $1 != "" && $2 != "" {
-        key=$1 "|" $2
-        if (seen[key]++) next
-        printf "{\"name\":\"%s\",\"version\":\"%s\",\"ecosystem\":\"%s\",\"manager\":\"rpm\"}\n", esc($1), esc($2), esc(ecosystem)
-      }'
+    rpm -qa --qf '%{NAME}\t%{VERSION}-%{RELEASE}\n' 2>/dev/null | linpeas_tabbed_packages_to_json_lines "rpm" "$_ecosystem"
   elif command -v apk >/dev/null 2>&1; then
     apk info 2>/dev/null | while IFS= read -r _pkg_name; do
       [ "$_pkg_name" ] || continue
@@ -82,13 +83,7 @@ linpeas_print_package_json_lines(){
         "$(linpeas_json_escape "$_pkg_name")" "$(linpeas_json_escape "$_pkg_version")" "$(linpeas_json_escape "$_ecosystem")"
     done
   elif command -v pacman >/dev/null 2>&1; then
-    pacman -Q 2>/dev/null | awk -v ecosystem="$_ecosystem" '
-      function esc(s) { gsub(/\\/,"\\\\",s); gsub(/"/,"\\\"",s); gsub(/\r/," ",s); return s }
-      $1 != "" && $2 != "" {
-        key=$1 "|" $2
-        if (seen[key]++) next
-        printf "{\"name\":\"%s\",\"version\":\"%s\",\"ecosystem\":\"%s\",\"manager\":\"pacman\"}\n", esc($1), esc($2), esc(ecosystem)
-      }'
+    pacman -Q 2>/dev/null | linpeas_tabbed_packages_to_json_lines "pacman" "$_ecosystem"
   fi
 }
 
