@@ -2,7 +2,7 @@
 # ID: kernel_cve_registry_data
 # Author: Carlos Polop
 # Contributor: Arjay Saguisa
-# Last Update: 20-07-2026
+# Last Update: 06-07-2026
 # Description: Embedded kernel exploit matching datasets extracted from linux-exploit-suggester and linux-exploit-suggester-2 examples. Data is split across KERNEL_CVE_DATA_1..X with a maximum of 25 rows per env variable. This file also stores reference-only CVE tokens found in example repos when no explicit suggester matching rule exists.
 # License: GNU GPL
 # Version: 1.0
@@ -116,7 +116,6 @@ CVE-2023-0386	OverlayFS suid smuggle	pkg=linux-kernel,ver>=5.11,ver<=6.2,CONFIG_
 CVE-2024-1086	double-free in nf_tables	pkg=linux-kernel,x86_64,ver>=5.14,ver<=6.6,CONFIG_NF_TABLES=y,CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1	debian=12,ubuntu=22.04	1	CONFIG_USER_NS and CONFIG_NF_TABLES need to be enabled && kernel.unprivileged_userns_clone=1 required
 CVE-2021-3560	Polkit race authentication bypass	cmd:sh -c "apt list --installed 2>/dev/null | grep -E 'polkit.*0\\.105-26' | grep -qEv 'ubuntu1\\.[1-9]' || yum list installed 2>/dev/null | grep -qE 'polkit.*\\(0\\.117-2\\|0\\.115-6\\|0\\.11[3-9]\\)' || rpm -qa 2>/dev/null | grep -qE 'polkit.*\\(0\\.117-2\\|0\\.115-6\\|0\\.11[3-9]\\)'"		1	Migrated from former standalone 1_system_information check
 CVE-2025-38352	POSIX CPU timers race	pkg=linux-kernel,ver>=6.12,ver<6.12.34,CONFIG_POSIX_CPU_TIMERS_TASK_WORK!=y		1	Migrated from former standalone 1_system_information check
-CVE-2026-53359	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from official Ubuntu Januscape advisory; no stable matcher added
 af_packet	2016-8655	4.4.0		http://www.exploit-db.com/exploits/40871
 american-sign-language	2010-4347	2.6.0,2.6.1,2.6.2,2.6.3,2.6.4,2.6.5,2.6.6,2.6.7,2.6.8,2.6.9,2.6.10,2.6.11,2.6.12,2.6.13,2.6.14,2.6.15,2.6.16,2.6.17,2.6.18,2.6.19,2.6.20,2.6.21,2.6.22,2.6.23,2.6.24,2.6.25,2.6.26,2.6.27,2.6.28,2.6.29,2.6.30,2.6.31,2.6.32,2.6.33,2.6.34,2.6.35,2.6.36		http://www.securityfocus.com/bid/45408
 ave		2.4.19,2.4.20		
