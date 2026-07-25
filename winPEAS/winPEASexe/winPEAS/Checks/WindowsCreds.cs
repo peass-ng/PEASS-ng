@@ -29,6 +29,7 @@ namespace winPEAS.Checks
             {
                 PrintVaultCreds,
                 PrintCredentialManager,
+                PrintUWPPasswordVault,
                 PrintSavedRDPInfo,
                 PrintRDPSettings,
                 PrintRecentRunCommands,
@@ -110,6 +111,59 @@ namespace winPEAS.Checks
                 Beaprint.PrintException(ex.Message);
             }
         }
+
+        private static void PrintUWPPasswordVault()
+        {
+            try
+            {
+                Beaprint.MainPrint("Checking UWP PasswordVault / Credential Locker", "T1555.004");
+                Beaprint.LinkPrint("https://hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#uwp-passwordvault--credential-locker");
+
+                // WinRT API needs to be loaded to access PasswordVault entries
+                var vault = new Windows.Security.Credentials.PasswordVault();
+                var credentials = vault.RetrieveAll();
+
+                var colorsC = new Dictionary<string, string>()
+                {
+                    { "Resource.*|UserName.*|Password.*", Beaprint.ansi_color_bad },
+                };
+
+                if (credentials.Count == 0)
+                {
+                    Beaprint.AnsiPrint("    [-] No UWP credentials found in the locker.\n", colorsC);
+                    return;
+                }
+
+                foreach (var credential in credentials)
+                {
+                    try
+                    {
+                        // Explicitly call RetrievePassword() to populate the password property
+                        credential.RetrievePassword();
+
+                        var credData = new Dictionary<string, string>
+                        {
+                            { "Resource", credential.Resource },
+                            { "UserName", credential.UserName },
+                            { "Password", credential.Password }
+                        };
+
+                        Beaprint.DictPrint(credData, colorsC, true, true);
+                        Beaprint.PrintLineSeparator();
+                    }
+                    catch (Exception)
+                    {
+                        // Handle cases where specific credential reading is blocked
+                        continue;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
 
         static void PrintSavedRDPInfo()
         {
