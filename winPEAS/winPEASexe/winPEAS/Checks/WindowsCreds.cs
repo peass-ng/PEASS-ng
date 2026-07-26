@@ -117,45 +117,63 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Checking UWP PasswordVault / Credential Locker", "T1555.004");
-                Beaprint.LinkPrint("https://hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#uwp-passwordvault--credential-locker");
-
-                // WinRT API needs to be loaded to access PasswordVault entries
-                var vault = new Windows.Security.Credentials.PasswordVault();
-                var credentials = vault.RetrieveAll();
+                Beaprint.LinkPrint("https://hacktricks.wiki");
 
                 var colorsC = new Dictionary<string, string>()
-                {
-                    { "Resource.*|UserName.*|Password.*", Beaprint.ansi_color_bad },
-                };
+        {
+            { "Resource.*|UserName.*|Password.*", Beaprint.ansi_color_bad },
+        };
 
-                if (credentials.Count == 0)
+                Type vaultType = Type.GetType("Windows.Security.Credentials.PasswordVault, Windows, ContentType=WindowsRuntime");
+                if (vaultType == null)
+                {
+                    Beaprint.PrintException("Could not load WindowsRuntime PasswordVault type. Ensure you are running on Windows.");
+                    return;
+                }
+
+                object vaultInstance = Activator.CreateInstance(vaultType);
+                var retrieveAllMethod = vaultType.GetMethod("RetrieveAll");
+                var credentialsList = retrieveAllMethod.Invoke(vaultInstance, null) as System.Collections.IEnumerable;
+
+                if (credentialsList == null)
                 {
                     Beaprint.AnsiPrint("    [-] No UWP credentials found in the locker.\n", colorsC);
                     return;
                 }
 
-                foreach (var credential in credentials)
+                int count = 0;
+                foreach (object credential in credentialsList)
                 {
+                    count++;
                     try
                     {
-                        // Explicitly call RetrievePassword() to populate the password property
-                        credential.RetrievePassword();
+                        Type credType = credential.GetType();
+                        var retrievePasswordMethod = credType.GetMethod("RetrievePassword");
+                        retrievePasswordMethod.Invoke(credential, null);
+
+                        string resource = credType.GetProperty("Resource")?.GetValue(credential)?.ToString() ?? "";
+                        string userName = credType.GetProperty("UserName")?.GetValue(credential)?.ToString() ?? "";
+                        string password = credType.GetProperty("Password")?.GetValue(credential)?.ToString() ?? "";
 
                         var credData = new Dictionary<string, string>
-                        {
-                            { "Resource", credential.Resource },
-                            { "UserName", credential.UserName },
-                            { "Password", credential.Password }
-                        };
+                {
+                    { "Resource", resource },
+                    { "UserName", userName },
+                    { "Password", password }
+                };
 
                         Beaprint.DictPrint(credData, colorsC, true, true);
                         Beaprint.PrintLineSeparator();
                     }
                     catch (Exception)
                     {
-                        // Handle cases where specific credential reading is blocked
                         continue;
                     }
+                }
+
+                if (count == 0)
+                {
+                    Beaprint.AnsiPrint("    [-] No UWP credentials found in the locker.\n", colorsC);
                 }
             }
             catch (Exception ex)
@@ -163,7 +181,6 @@ namespace winPEAS.Checks
                 Beaprint.PrintException(ex.Message);
             }
         }
-
 
         static void PrintSavedRDPInfo()
         {
