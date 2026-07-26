@@ -540,6 +540,13 @@ cmdkey /list
 ECHO.
 CALL :T_Progress 2
 
+:UWPCredentialLocker
+CALL :ColorLine "%E%32m[*]%E%97m UWP PasswordVault / Credential Locker"
+ECHO.   [?] https://hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#uwp-passwordvault--credential-locker
+powershell -Command "[void][Windows.Security.Credentials.PasswordVault,Windows.Security.Credentials,ContentType=WindowsRuntime]; $v = New-Object Windows.Security.Credentials.PasswordVault; $v.RetrieveAll() | ForEach-Object { try { $_.RetrievePassword(); $_ } catch {} } | Select-Object Resource, UserName, Password | Format-List"
+ECHO.
+CALL :T_Progress 2
+
 :DPAPIMasterKeys
 CALL :ColorLine " %E%33m[+]%E%97m DPAPI MASTER KEYS"
 ECHO.   [i] Use the Mimikatz 'dpapi::masterkey' module with appropriate arguments (/rpc) to decrypt

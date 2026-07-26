@@ -1776,6 +1776,12 @@ Write-Host -ForegroundColor Blue "=========|| Cached Credentials Check"
 Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#windows-vault" -ForegroundColor Yellow 
 cmdkey.exe /list
 
+# Check for UWP PasswordVault / Credential Locker Check
+Write-Host ""
+if ($TimeStamp) { TimeElapsed }
+Write-Host -ForegroundColor Blue "=========|| UWP PasswordVault / Credential Locker Check"
+Write-Host "https://hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#uwp-passwordvault--credential-locker" -ForegroundColor Yellow 
+[void][Windows.Security.Credentials.PasswordVault,Windows.Security.Credentials,ContentType=WindowsRuntime]; $v = New-Object Windows.Security.Credentials.PasswordVault; $v.RetrieveAll() | ForEach-Object { try { $_.RetrievePassword(); $_ } catch {} } | Select-Object Resource, UserName, Password | Format-List
 
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
