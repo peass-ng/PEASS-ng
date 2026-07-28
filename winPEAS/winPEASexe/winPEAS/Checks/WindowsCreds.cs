@@ -29,6 +29,7 @@ namespace winPEAS.Checks
             {
                 PrintVaultCreds,
                 PrintCredentialManager,
+                PrintUWPPasswordVault,
                 PrintSavedRDPInfo,
                 PrintRDPSettings,
                 PrintRecentRunCommands,
@@ -103,6 +104,76 @@ namespace winPEAS.Checks
                 {
                     Beaprint.AnsiPrint(credential, colorsC);
                     Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintUWPPasswordVault()
+        {
+            try
+            {
+                Beaprint.MainPrint("Checking UWP PasswordVault / Credential Locker", "T1555.004");
+                Beaprint.LinkPrint("https://hacktricks.wiki");
+
+                var colorsC = new Dictionary<string, string>()
+        {
+            { "Resource.*|UserName.*|Password.*", Beaprint.ansi_color_bad },
+        };
+
+                Type vaultType = Type.GetType("Windows.Security.Credentials.PasswordVault, Windows, ContentType=WindowsRuntime");
+                if (vaultType == null)
+                {
+                    Beaprint.PrintException("Could not load WindowsRuntime PasswordVault type. Ensure you are running on Windows.");
+                    return;
+                }
+
+                object vaultInstance = Activator.CreateInstance(vaultType);
+                var retrieveAllMethod = vaultType.GetMethod("RetrieveAll");
+                var credentialsList = retrieveAllMethod.Invoke(vaultInstance, null) as System.Collections.IEnumerable;
+
+                if (credentialsList == null)
+                {
+                    Beaprint.AnsiPrint("    [-] No UWP credentials found in the locker.\n", colorsC);
+                    return;
+                }
+
+                int count = 0;
+                foreach (object credential in credentialsList)
+                {
+                    count++;
+                    try
+                    {
+                        Type credType = credential.GetType();
+                        var retrievePasswordMethod = credType.GetMethod("RetrievePassword");
+                        retrievePasswordMethod.Invoke(credential, null);
+
+                        string resource = credType.GetProperty("Resource")?.GetValue(credential)?.ToString() ?? "";
+                        string userName = credType.GetProperty("UserName")?.GetValue(credential)?.ToString() ?? "";
+                        string password = credType.GetProperty("Password")?.GetValue(credential)?.ToString() ?? "";
+
+                        var credData = new Dictionary<string, string>
+                {
+                    { "Resource", resource },
+                    { "UserName", userName },
+                    { "Password", password }
+                };
+
+                        Beaprint.DictPrint(credData, colorsC, true, true);
+                        Beaprint.PrintLineSeparator();
+                    }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
+                }
+
+                if (count == 0)
+                {
+                    Beaprint.AnsiPrint("    [-] No UWP credentials found in the locker.\n", colorsC);
                 }
             }
             catch (Exception ex)
