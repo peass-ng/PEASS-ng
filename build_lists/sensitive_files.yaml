@@ -994,92 +994,417 @@ search:
           - (env || set) | grep -Ei "kubernetes|kube" | grep -v "PSTORAGE_KUBERNETES|USEFUL_SOFTWARE" | sed -${E} "s,kubernetes|kube,${SED_RED},"
 
         files:
-          - name: "kubeconfig"
+          # Kubeconfigs contain bearer tokens, client-certificate data, exec
+          # credential plugins, and the endpoint used by administrators or nodes.
+          - name: "*kubeconfig*"
             value:
-                bad_regex: "server:|cluster:|namespace:|user:|exec:"
-            type: f
-            search_in: 
-              - common
-          
-          - name: "bootstrap-kubeconfig"
+                bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:|tokenFile:|exec:|command:|impersonate"
+                remove_empty_lines: True
+                type: f
+                search_in:
+                  - common
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
+          - name: "admin.conf"
             value:
-                bad_regex: "server:|cluster:|namespace:|user:|exec:"
-            type: f
-            search_in: 
-              - common
-          
-          - name: "kubelet-kubeconfig"
+                bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:|tokenFile:|exec:|command:"
+                remove_empty_lines: True
+                type: f
+                search_in:
+                  - common
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
+          - name: "bootstrap-kubelet.conf"
             value:
-                bad_regex: "server:|cluster:|namespace:|user:|exec:"
-            type: f
-            search_in: 
-              - common
-          
+                bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:|tokenFile:|exec:|command:"
+                remove_empty_lines: True
+                type: f
+                search_in:
+                  - common
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
           - name: "kubelet.conf"
             value:
-                bad_regex: "server:|cluster:|namespace:|user:|exec:"
-            type: f
-            search_in: 
-              - common
-            
-          - name: "psk.txt"
-            value:
+                bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:|tokenFile:|exec:|command:"
                 remove_empty_lines: True
-                bad_regex: ".*"
                 type: f
-                search_in: 
+                search_in:
                   - common
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
 
           - name: ".kube*"
-            value: 
+            value:
+                type: d
                 files:
                   - name: "config"
                     value:
-                        bad_regex: "server:|cluster:|namespace:|user:|exec:"
-                type: d
-                search_in: 
+                        bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:|tokenFile:|exec:|command:"
+                        remove_empty_lines: True
+                  - name: "*.conf"
+                    value:
+                        bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:|tokenFile:|exec:|command:"
+                        remove_empty_lines: True
+                search_in:
                   - common
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
 
+          # kubeadm control planes: static-Pod manifests, component kubeconfigs,
+          # and the PKI / etcd credentials that bypass ordinary user RBAC.
+          - name: "kubernetes"
+            value:
+                type: d
+                files:
+                  - name: "*.conf"
+                    value:
+                        bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:|tokenFile:|exec:|command:"
+                        remove_empty_lines: True
+                  - name: "manifests"
+                    value:
+                        type: d
+                        files:
+                          - name: "*.yaml"
+                            value:
+                                bad_regex: "--(advertise-address|anonymous-auth|authorization|authorization-config|audit|encryption-provider-config|service-account|client-ca-file|kubelet-client|etcd|secure-port)|hostPath:|hostNetwork:|privileged:|serviceAccountName:|image:|command:|mountPath:"
+                                remove_empty_lines: True
+                          - name: "*.yml"
+                            value:
+                                bad_regex: "--(advertise-address|anonymous-auth|authorization|authorization-config|audit|encryption-provider-config|service-account|client-ca-file|kubelet-client|etcd|secure-port)|hostPath:|hostNetwork:|privileged:|serviceAccountName:|image:|command:|mountPath:"
+                                remove_empty_lines: True
+                  - name: "pki"
+                    value:
+                        type: d
+                        files:
+                          - name: "*.key"
+                            value:
+                                just_list_file: True
+                          - name: "*.pem"
+                            value:
+                                just_list_file: True
+                          - name: "*.crt"
+                            value:
+                                just_list_file: True
+                  - name: "*.key"
+                    value:
+                        just_list_file: True
+                  - name: "*encryption*.yaml"
+                    value:
+                        bad_regex: "providers:|aescbc:|aesgcm:|secretbox:|kms:|key:|name:|endpoint:"
+                        remove_empty_lines: True
+                  - name: "*audit*.yaml"
+                    value:
+                        bad_regex: "level:|resources:|verbs:|users:|omitStages:|webhook:|path:"
+                        remove_empty_lines: True
+                  - name: "*webhook*.yaml"
+                    value:
+                        bad_regex: "server:|url:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:|exec:"
+                        remove_empty_lines: True
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
+          # Worker-node state: kubelet identity, bootstrap material, Pod volume
+          # staging paths, kube-proxy configuration, CNI, and CRI configuration.
           - name: "kubelet"
-            value: 
+            value:
+                type: d
                 files:
                   - name: "config.yaml"
                     value:
-                        bad_regex: "server:|cluster:|namespace:|user:|exec:"
+                        bad_regex: "authentication:|authorization:|anonymous:|webhook:|readOnlyPort:|tlsCertFile:|tlsPrivateKeyFile:|staticPodPath:|podPidsLimit:|featureGates:|serverTLSBootstrap:"
+                        remove_empty_lines: True
                   - name: "kubeadm-flags.env"
                     value:
+                        bad_regex: "--(bootstrap-kubeconfig|kubeconfig|config|container-runtime-endpoint|pod-infra-container-image|image-credential-provider-config|image-credential-provider-bin-dir)"
                         remove_empty_lines: True
-                type: d
-                search_in: 
-                  - ${ROOT_FOLDER}var
+                  - name: "*.conf"
+                    value:
+                        bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:|tokenFile:|exec:|command:"
+                        remove_empty_lines: True
+                  - name: "pki"
+                    value:
+                        type: d
+                        files:
+                          - name: "*.pem"
+                            value:
+                                just_list_file: True
+                          - name: "*.key"
+                            value:
+                                just_list_file: True
+                  - name: "kubernetes.io~secret"
+                    value:
+                        type: d
+                        files:
+                          - name: "*"
+                            value:
+                                bad_regex: ".*"
+                                remove_empty_lines: True
+                  - name: "kubernetes.io~projected"
+                    value:
+                        type: d
+                        files:
+                          - name: "*"
+                            value:
+                                bad_regex: ".*"
+                                remove_empty_lines: True
+                  - name: "kubernetes.io~csi"
+                    value:
+                        type: d
+                        files:
+                          - name: "*"
+                            value:
+                                bad_regex: ".*"
+                                remove_empty_lines: True
+                search_in:
                   - ${ROOT_FOLDER}etc
-          
+                  - ${ROOT_FOLDER}var
+
           - name: "kube-proxy"
-            value: 
-                type: d
-                search_in: 
-                  - ${ROOT_FOLDER}var
-                  - ${ROOT_FOLDER}etc
-          
-          - name: "kubernetes"
             value:
-                files:
-                  - name: "admin.conf"
-                    value:
-                        bad_regex: "server:|cluster:|namespace:|user:|exec:"
-                  
-                  - name: "controller-manager.conf"
-                    value:
-                        bad_regex: "server:|cluster:|namespace:|user:|exec:"
-                  
-                  - name: "scheduler.conf"
-                    value:
-                        bad_regex: "server:|cluster:|namespace:|user:|exec:"
-                      
                 type: d
+                files:
+                  - name: "config.conf"
+                    value:
+                        bad_regex: "clientConnection:|kubeconfig:|server:|certificate-authority:|token:|mode:|metricsBindAddress:|healthzBindAddress:"
+                        remove_empty_lines: True
+                  - name: "kubeconfig.conf"
+                    value:
+                        bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:|tokenFile:|exec:|command:"
+                        remove_empty_lines: True
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
+          - name: "kubernetes.io"
+            value:
+                type: d
+                files:
+                  - name: "serviceaccount"
+                    value:
+                        type: d
+                        files:
+                          - name: "token"
+                            value:
+                                bad_regex: ".*"
+                                remove_empty_lines: True
+                          - name: "namespace"
+                            value:
+                                bad_regex: ".*"
+                                remove_empty_lines: True
+                          - name: "ca.crt"
+                            value:
+                                just_list_file: True
+                search_in:
+                  - ${ROOT_FOLDER}run
+                  - ${ROOT_FOLDER}var
+
+          - name: "net.d"
+            value:
+                type: d
+                files:
+                  - name: "*.conf"
+                    value:
+                        bad_regex: "type|delegate|kubeconfig|token|certificate|key|endpoint|apiRoot|etcd"
+                        remove_empty_lines: True
+                  - name: "*.conflist"
+                    value:
+                        bad_regex: "type|delegate|kubeconfig|token|certificate|key|endpoint|apiRoot|etcd"
+                        remove_empty_lines: True
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
+          - name: "containerd"
+            value:
+                type: d
+                files:
+                  - name: "config.toml"
+                    value:
+                        bad_regex: "registry|auth|username|password|token|cert|key|endpoint|sandbox_image|privileged|plugins"
+                        remove_empty_lines: True
+                  - name: "hosts.toml"
+                    value:
+                        bad_regex: "server|capabilities|ca|client|skip_verify|auth"
+                        remove_empty_lines: True
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
+          - name: "crio"
+            value:
+                type: d
+                files:
+                  - name: "*.conf"
+                    value:
+                        bad_regex: "auth|username|password|token|cert|key|registry|endpoint|pause_image|pinns_path|conmon"
+                        remove_empty_lines: True
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
+          # etcd is normally local to a self-managed control plane. Database
+          # files and snapshots are listed, rather than decoded as text; TLS
+          # client keys are the credential material that grants database access.
+          - name: "etcd"
+            value:
+                type: d
+                files:
+                  - name: "*.key"
+                    value:
+                        just_list_file: True
+                  - name: "*.pem"
+                    value:
+                        just_list_file: True
+                  - name: "*.crt"
+                    value:
+                        just_list_file: True
+                  - name: "*.db"
+                    value:
+                        just_list_file: True
+                  - name: "db"
+                    value:
+                        just_list_file: True
+                  - name: "*.yaml"
+                    value:
+                        bad_regex: "listen-client-urls|listen-peer-urls|advertise-client-urls|cert-file|key-file|trusted-ca-file|client-cert-auth|auto-tls|peer-auto-tls"
+                        remove_empty_lines: True
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
+          # Legacy and distribution-specific layouts that are still common in
+          # assessments: OpenShift / origin and k0s store the same kinds of
+          # kubeconfigs, tokens, PKI, and control-plane configuration.
+          - name: "origin"
+            value:
+                type: d
+                files:
+                  - name: "*.kubeconfig"
+                    value:
+                        bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:|tokenFile:|exec:|command:"
+                        remove_empty_lines: True
+                  - name: "*.key"
+                    value:
+                        just_list_file: True
+                  - name: "*.pem"
+                    value:
+                        just_list_file: True
+                  - name: "*.yaml"
+                    value:
+                        bad_regex: "token:|server:|client-certificate-data:|client-key-data:|encryption|audit|etcd|service-account|hostPath:|privileged:|oauth"
+                        remove_empty_lines: True
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
+          - name: "k0s"
+            value:
+                type: d
+                files:
+                  - name: "*.conf"
+                    value:
+                        bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:|tokenFile:|exec:|command:"
+                        remove_empty_lines: True
+                  - name: "token"
+                    value:
+                        bad_regex: ".*"
+                        remove_empty_lines: True
+                  - name: "*.key"
+                    value:
+                        just_list_file: True
+                  - name: "*.pem"
+                    value:
+                        just_list_file: True
+                  - name: "*.yaml"
+                    value:
+                        bad_regex: "token:|server:|client-certificate-data:|client-key-data:|encryption|audit|etcd|service-account|hostPath:|privileged:"
+                        remove_empty_lines: True
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
+          # Common packaged distributions. Their data paths differ from kubeadm,
+          # but contain equivalent kubeconfigs, server credentials, and manifests.
+          - name: "k3s"
+            value:
+                type: d
+                files:
+                  - name: "k3s.yaml"
+                    value:
+                        bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:"
+                        remove_empty_lines: True
+                  - name: "token"
+                    value:
+                        bad_regex: ".*"
+                        remove_empty_lines: True
+                  - name: "*.key"
+                    value:
+                        just_list_file: True
+                  - name: "*.pem"
+                    value:
+                        just_list_file: True
+                  - name: "*.yaml"
+                    value:
+                        bad_regex: "token:|server:|client-certificate-data:|client-key-data:|encryption|audit|etcd|service-account|hostPath:|privileged:"
+                        remove_empty_lines: True
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
+          - name: "rke2"
+            value:
+                type: d
+                files:
+                  - name: "rke2.yaml"
+                    value:
+                        bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:"
+                        remove_empty_lines: True
+                  - name: "token"
+                    value:
+                        bad_regex: ".*"
+                        remove_empty_lines: True
+                  - name: "*.key"
+                    value:
+                        just_list_file: True
+                  - name: "*.pem"
+                    value:
+                        just_list_file: True
+                  - name: "*.yaml"
+                    value:
+                        bad_regex: "token:|server:|client-certificate-data:|client-key-data:|encryption|audit|etcd|service-account|hostPath:|privileged:"
+                        remove_empty_lines: True
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}var
+
+          - name: "microk8s"
+            value:
+                type: d
+                files:
+                  - name: "*.config"
+                    value:
+                        bad_regex: "server:|certificate-authority-data:|client-certificate-data:|client-key-data:|token:"
+                        remove_empty_lines: True
+                  - name: "known_tokens.csv"
+                    value:
+                        bad_regex: ".*"
+                        remove_empty_lines: True
+                  - name: "*.key"
+                    value:
+                        just_list_file: True
+                  - name: "*.crt"
+                    value:
+                        just_list_file: True
+                  - name: "*.yaml"
+                    value:
+                        bad_regex: "token:|server:|client-certificate-data:|client-key-data:|encryption|audit|etcd|service-account|hostPath:|privileged:"
+                        remove_empty_lines: True
                 search_in:
                   - ${ROOT_FOLDER}var
-                  - ${ROOT_FOLDER}etc
   - name: VNC
     value:
         config:

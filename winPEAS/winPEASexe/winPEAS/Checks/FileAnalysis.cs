@@ -38,6 +38,11 @@ namespace winPEAS.Checks
             {
                 @$"{systemDrive}inetpub",
                 @$"{systemDrive}usr\etc\snmp",
+                // Windows Kubernetes nodes commonly keep kubelet, kube-proxy,
+                // CNI, and runtime state below these Unix-like paths.
+                @$"{systemDrive}etc",
+                @$"{systemDrive}var",
+                @$"{systemDrive}run",
                 @$"{systemDrive}windows\temp",
                 @$"{systemDrive}xampp",
             };
