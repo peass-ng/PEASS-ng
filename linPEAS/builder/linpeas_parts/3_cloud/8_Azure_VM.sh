@@ -1,12 +1,12 @@
 # Title: Cloud - Azure VM
 # ID: CL_Azure_VM
 # Author: Carlos Polop
-# Last Update: 22-08-2023
+# Last Update: 31-07-2026
 # Description: Azure VM Enumeration
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1552.005,T1580
-# Functions Used: check_az_vm, exec_with_jq, print_2title, print_3title
+# Functions Used: check_az_vm, exec_with_jq, print_2title, print_3title, set_azure_request_command
 # Global Variables: $is_az_vm
 # Initial Functions: check_az_vm
 # Generated Global Variables: $API_VERSION, $HEADER, $az_req, $URL, $_az_vm_token_url, $_az_vm_instance_json, $_az_vm_resource_id, $_az_vm_mgmt_token_json, $_az_vm_mgmt_token, $_az_vm_arm_json, $_az_vm_uai_id, $_az_vm_uai_client_id, $_az_vm_uai_principal_id, $_az_vm_wire_data, $_az_vm_wire_client_id, $_az_vm_wire_res_id, $_az_vm_wire_header, $_az_vm_wire_url
@@ -119,14 +119,7 @@ if [ "$is_az_vm" = "Yes" ]; then
   URL="http://169.254.169.254/metadata"
   API_VERSION="2021-12-13" #https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service?tabs=linux#supported-api-versions
   
-  az_req=""
-  if [ "$(command -v curl || echo -n '')" ]; then
-      az_req="curl -s -f -L -H '$HEADER'"
-  elif [ "$(command -v wget || echo -n '')" ]; then
-      az_req="wget -q -O - --header '$HEADER'"
-  else 
-      echo "Neither curl nor wget were found, I can't enumerate the metadata service :("
-  fi
+  set_azure_request_command
 
   if [ "$az_req" ]; then
     print_3title "Instance details" "T1552.005,T1580"
