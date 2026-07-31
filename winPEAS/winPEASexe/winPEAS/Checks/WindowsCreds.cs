@@ -302,7 +302,7 @@ namespace winPEAS.Checks
                     "T1552.001",
                     RdcManLink,
                     RemoteDesktop.GetRDCManFiles,
-                    "Dump credentials from Remote Desktop Connection Manager");
+                    linkComment: "Dump credentials from Remote Desktop Connection Manager");
 
                 if (rdcFiles.Count > 0)
                 {
