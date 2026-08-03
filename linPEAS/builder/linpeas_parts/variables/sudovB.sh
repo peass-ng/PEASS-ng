@@ -1,7 +1,7 @@
 # Title: Variables - sudovB
 # ID: sudovB
 # Author: Carlos Polop
-# Last Update: 26-02-2026
+# Last Update: 03-08-2026
 # Description: Sudo version bad regex
 # License: GNU GPL
 # Version: 1.0
@@ -13,4 +13,4 @@
 # Small linpeas: 1
 
 
-sudovB="[01].[012345678].[0-9]+|1.9.[01234][^0-9]|1.9.[01234]$|1.9.5p1|1\.9\.[6-9]|1\.9\.1[0-6]|1\.9\.17([^p]|$)"
+sudovB="[01].[012345678].[0-9]+|1.9.[01234][^0-9]|1.9.[01234]$|1.9.5p1|1\.9\.[6-9]|1\.9\.1[0-6]|1\.9\.17($|[^0-9p]|p[12]([^0-9]|$))"
