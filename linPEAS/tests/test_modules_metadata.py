@@ -109,6 +109,22 @@ class LinpeasModulesMetadataTests(unittest.TestCase):
         self.assertIn("sudo -n -l", content)
         self.assertNotRegex(content, r"secure_path_line=\$\(sudo\s+-l\b")
 
+    def test_yaml_globals_uses_committed_regexes_without_downloading(self):
+        script = (
+            "import sys; "
+            f"sys.path.insert(0, {str(self.linpeas_dir)!r}); "
+            "import builder.src.yamlGlobals"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            cwd=str(self.repo_root),
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("Downloading regexes", result.stdout + result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
