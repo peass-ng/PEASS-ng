@@ -5,7 +5,9 @@ from pathlib import Path
 
 script_folder = Path(os.path.dirname(os.path.abspath(__file__)))
 target_file = script_folder / '..' / '..' / '..' / 'build_lists' / 'download_regexes.py'
-os.system(target_file)
+regexes_file = script_folder / '..' / '..' / '..' / 'build_lists' / 'regexes.yaml'
+if not regexes_file.exists():
+    os.system(target_file)
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -118,4 +120,3 @@ SUDOVB1_MARKUP = YAML_LOADED["sudoVB1_markup"]
 SUDOVB2_MARKUP = YAML_LOADED["sudoVB2_markup"]
 CAP_SETUID_MARKUP = YAML_LOADED["cap_setuid_markup"]
 CAP_SETGID_MARKUP = YAML_LOADED["cap_setgid_markup"]
-
