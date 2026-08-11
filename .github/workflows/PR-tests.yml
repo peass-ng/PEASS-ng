@@ -324,6 +324,9 @@ jobs:
       - name: Run linPEAS module metadata tests
         run: python3 -m unittest linPEAS.tests.test_modules_metadata
 
+      - name: Run PEASS parsers tests
+        run: python3 -m unittest discover -s parsers/tests -p "test_*.py"
+
       - name: Run linPEAS builder tests
         run: python3 -m unittest discover -s linPEAS/tests -p "test_*.py"
       

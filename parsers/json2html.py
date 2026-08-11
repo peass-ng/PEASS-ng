@@ -1,113 +1,136 @@
+import html
+import itertools
 import json
 import sys
-import random
+
+_section_ids = itertools.count(1)
 
 
-def parse_json(json_data : object) -> str:
+def parse_json(json_data: dict) -> str:
     """Parse the given json adding it to the HTML file"""
-    
+
     body = ""
-    i=1
+    i = 1
     for key, value in json_data.items():
-        body += """\t\t<button type="button" class="btn" data-toggle="collapse" data-target="#demo"""+ str(i) + "\"><b>" + key + """</button></b><br>\n
-        <div id="demo"""+ str(i)+ """\" class="collapse">\n"""
-        i=i+1
+        body += (
+            '\t\t<button type="button" class="btn" data-toggle="collapse" data-target="#demo'
+            + str(i)
+            + '"><b>'
+            + html.escape(key)
+            + "</b></button><br>\n"
+            f'        <div id="demo{i}" class="collapse">\n'
+        )
+        i = i + 1
         for key1, value1 in value.items():
-            
-            if(type(value1)==list):
-                body+=parse_list(value1)
-            
-            if((type(value1)==dict)):
-                body+=parse_dict(value1)
-        body+="\t\t\t</div>\n"
-    
+
+            if type(value1) == list:
+                body += parse_list(value1)
+
+            if type(value1) == dict:
+                body += parse_dict(value1)
+        body += "\t\t\t</div>\n"
+
     return body
 
 
 def parse_dict(json_dict: dict) -> str:
     """Parse the given dict from the given json adding it to the HTML file"""
 
-    dict_text=""
+    dict_text = ""
     for key, value in json_dict.items():
-        n=random.randint(0,999999)
+        n = next(_section_ids)
         infos = []
         for info in value["infos"]:
             if info.startswith("http"):
-                infos.append(f"<a href='{info}'>{info}</a><br>\n")
+                infos.append(f"<a href='{html.escape(info)}'>{html.escape(info)}</a><br>\n")
             else:
-                infos.append(str(info) + "<br>\n")
-                
-        dict_text += f'\t\t<button type="button" class="btn1" data-toggle="collapse" data-target="#lines{n}">{key}</button><br>\n'
-        dict_text += '<i>' + "".join(infos) + '</i>'
+                infos.append(html.escape(str(info)) + "<br>\n")
+
+        dict_text += (
+            f'\t\t<button type="button" class="btn1" data-toggle="collapse" data-target="#lines{n}">'
+            + html.escape(key)
+            + "</button><br>\n"
+        )
+        dict_text += "<i>" + "".join(infos) + "</i>"
         dict_text += f'<div id="lines{n}" class="collapse1">\n'
-        
+
         if value["lines"]:
-            dict_text+="\n" + parse_list(value["lines"]) + "\n"
+            dict_text += "\n" + parse_list(value["lines"]) + "\n"
 
         if value["sections"]:
-            dict_text+=parse_dict(value["sections"])
-            
+            dict_text += parse_dict(value["sections"])
+
+        dict_text += "\t\t\t</div>\n"
+
     return dict_text
 
 
 def parse_list(json_list: list) -> str:
     """Parse the given list from the given json adding it to the HTML file"""
-    color_text=""
-    color_class=""
+    color_text = ""
+    color_class = ""
 
     for i in json_list:
-        if "═══" not in i['clean_text']:
-            if(i['clean_text']):
-                color_text+= "<div class = \""
-                text = str(i['clean_text'])
-                for color in i['colors']:
-                    if(color=='BLUE'):
-                        style = "#0000FF"
-                        color_class = "blue"
-                    if(color=='LIGHT_GREY'):
-                        style = "#adadad"
-                        color_class = "light_grey"
-                    if(color=='REDYELLOW'):
-                        style = "#FF0000; background-color: #FFFF00;"
-                        color_class = "redyellow"
-                    if(color=='RED'):
-                        style = "#FF0000"
-                        color_class = "red"
-                    if(color=='GREEN'):
-                        style = "#008000"
-                        color_class = "green"
-                    if(color=='MAGENTA'):
-                        style = "#FF00FF"
-                        color_class = "magenta"
-                    if(color=='YELLOW'):
-                        style = "#FFFF00"
-                        color_class = "yellow"
-                    if(color=='DARKGREY'):
-                        style = "#A9A9A9"
-                        color_class = "darkgrey"
-                    if(color=='CYAN'):
-                        style = "#00FFFF"
-                        color_class = "cyan"
-                    for replacement in i['colors'][color]:
-                        text=text.replace(replacement," <b style=\"color:"+ style +"\">"+ replacement + "</b>")
-                        #class=\""+ color_class + "\" "+ "
-                        if "═╣" in text:
-                            text=text.replace("═╣","<li>")
-                            text+="</li>"
-                    color_text+=  "" + color_class + " " 
-                color_text +="no_color\" >"+ text + "<br></div>\n"                
-    return color_text + "\t\t\t</div>\n"
+        if "═══" in i["clean_text"]:
+            continue
+        if not i["clean_text"]:
+            continue
+
+        color_text += '<div class = "'
+        text = html.escape(str(i["clean_text"]))
+        style = ""
+        for color in i["colors"]:
+            if color == "BLUE":
+                style = "#0000FF"
+                color_class = "blue"
+            if color == "LIGHT_GREY":
+                style = "#adadad"
+                color_class = "light_grey"
+            if color == "REDYELLOW":
+                style = "#FF0000; background-color: #FFFF00;"
+                color_class = "redyellow"
+            if color == "RED":
+                style = "#FF0000"
+                color_class = "red"
+            if color == "GREEN":
+                style = "#008000"
+                color_class = "green"
+            if color == "MAGENTA":
+                style = "#FF00FF"
+                color_class = "magenta"
+            if color == "YELLOW":
+                style = "#FFFF00"
+                color_class = "yellow"
+            if color == "DARKGREY":
+                style = "#A9A9A9"
+                color_class = "darkgrey"
+            if color == "CYAN":
+                style = "#00FFFF"
+                color_class = "cyan"
+            for replacement in i["colors"][color]:
+                escaped = html.escape(replacement)
+                text = text.replace(
+                    escaped, f' <b style="color:{style}">{escaped}</b>'
+                )
+            color_text += "" + color_class + " "
+
+        if "═╣" in text:
+            text = text.replace("═╣", "<li>") + "</li>"
+        color_text += 'no_color" >' + text + "<br></div>\n"
+    return color_text
 
 
 def main():
+    global _section_ids
+    _section_ids = itertools.count(1)
     with open(JSON_PATH) as JSON_file:
         json_data = json.load(JSON_file)
         html = HTML_HEADER
         html += HTML_INIT_BODY
         html += parse_json(json_data)
         html += HTML_END
-    
-    with open(HTML_PATH, 'w') as f:
+
+    with open(HTML_PATH, "w") as f:
         f.write(html)
 
 
@@ -341,7 +364,7 @@ if __name__ == "__main__":
         JSON_PATH = sys.argv[1]
         HTML_PATH = sys.argv[2]
     except IndexError as err:
-        print("Error: Please pass the peas.json file and the path to save the html\npeas2html.py <json_file.json> <HTML_file.html>")
+        print("Error: Please pass the peas.json file and the path to save the html\njson2html.py <json_file.json> <HTML_file.html>")
         sys.exit(1)
     
     main()
