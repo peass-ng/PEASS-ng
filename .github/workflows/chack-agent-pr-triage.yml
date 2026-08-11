@@ -131,7 +131,8 @@ jobs:
       - name: Run Chack Agent
         id: run_chack
         if: ${{ steps.gate.outputs.should_run == 'true' && steps.gate.outputs.trusted_automerge != 'true' }}
-        uses: carlospolop/chack-agent@master
+        # Pin the action so dependency changes on its default branch cannot break PR triage.
+        uses: carlospolop/chack-agent@9fd38a0657ae7060cc9bb07329c0bde71d7ba0d9
         with:
           provider: codex
           model_primary: BEST_QUALITY
