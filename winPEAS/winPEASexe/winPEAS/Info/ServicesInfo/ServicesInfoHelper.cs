@@ -382,6 +382,326 @@ namespace winPEAS.Info.ServicesInfo
         }
 
 
+        internal class WritableServiceDllInfo
+        {
+            public string ServiceName { get; set; }
+            public string Account { get; set; }
+            public string ServiceDllPath { get; set; }
+            public bool FileExists { get; set; }
+            public List<string> FilePermissions { get; set; }
+            public List<string> DirectoryPermissions { get; set; }
+        }
+
+
+        //////////////////////////////////////////////////////
+        //////// Writable LocalSystem service DLLs ///////////
+        //////////////////////////////////////////////////////
+        public static List<WritableServiceDllInfo> GetWritableSystemServiceDlls(Dictionary<string, string> currentUserSids)
+        {
+            var results = new List<WritableServiceDllInfo>();
+            if (currentUserSids == null || currentUserSids.Count == 0)
+            {
+                return results;
+            }
+
+            string windowsDirectory = Environment.GetEnvironmentVariable("SystemRoot");
+            if (string.IsNullOrWhiteSpace(windowsDirectory))
+            {
+                windowsDirectory = Environment.GetEnvironmentVariable("windir");
+            }
+
+            foreach (string serviceName in RegistryHelper.GetRegSubkeys("HKLM", @"SYSTEM\CurrentControlSet\Services"))
+            {
+                try
+                {
+                    string servicePath = @"SYSTEM\CurrentControlSet\Services\" + serviceName;
+                    Dictionary<string, object> serviceValues = RegistryHelper.GetRegValues("HKLM", servicePath);
+                    if (serviceValues == null)
+                    {
+                        continue;
+                    }
+
+                    int? serviceType = GetRegistryInt(serviceValues, "Type");
+                    int? startType = GetRegistryInt(serviceValues, "Start");
+                    if (!serviceType.HasValue || !startType.HasValue ||
+                        (serviceType.Value & 0x20) == 0 || (serviceType.Value & 0xC0) != 0 ||
+                        startType.Value == 4)
+                    {
+                        continue;
+                    }
+
+                    string account = GetRegistryString(serviceValues, "ObjectName");
+                    if (!IsLocalSystemAccount(account))
+                    {
+                        continue;
+                    }
+
+                    string rawServiceDll = GetUnexpandedServiceDll(servicePath + @"\Parameters");
+                    string serviceDllPath = NormalizeServiceDllPath(rawServiceDll, windowsDirectory);
+                    if (string.IsNullOrWhiteSpace(serviceDllPath) || serviceDllPath.IndexOf('%') >= 0 ||
+                        !IsLocalDrivePath(serviceDllPath))
+                    {
+                        continue;
+                    }
+
+                    string accessPath = GetFileSystemAccessPath(
+                        serviceDllPath,
+                        windowsDirectory,
+                        Environment.Is64BitOperatingSystem,
+                        Environment.Is64BitProcess);
+                    bool fileExists = File.Exists(accessPath);
+
+                    List<string> filePermissions = fileExists
+                        ? GetWritableFilePermissions(accessPath, currentUserSids)
+                            .Where(IsFileReplacementPermission)
+                            .ToList()
+                        : new List<string>();
+
+                    string directoryPath = Path.GetDirectoryName(accessPath);
+                    List<string> directoryPermissions = string.IsNullOrWhiteSpace(directoryPath)
+                        ? new List<string>()
+                        : GetAllowedPermissions(PermissionsHelper.GetPermissionsFolder(directoryPath, currentUserSids, PermissionType.WRITEABLE_OR_EQUIVALENT));
+
+                    directoryPermissions = fileExists
+                        ? directoryPermissions.Where(IsDirectoryReplacementPermission).ToList()
+                        : directoryPermissions.Where(IsDirectoryPlantPermission).ToList();
+
+                    if (filePermissions.Count == 0 && directoryPermissions.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    results.Add(new WritableServiceDllInfo
+                    {
+                        ServiceName = serviceName,
+                        Account = string.IsNullOrWhiteSpace(account) ? "LocalSystem" : account,
+                        ServiceDllPath = serviceDllPath,
+                        FileExists = fileExists,
+                        FilePermissions = filePermissions,
+                        DirectoryPermissions = directoryPermissions
+                    });
+                }
+                catch
+                {
+                    // A malformed or inaccessible service entry must not stop enumeration.
+                }
+            }
+
+            return results.OrderBy(result => result.ServiceName, StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        internal static string NormalizeServiceDllPath(string rawPath, string windowsDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(rawPath))
+            {
+                return string.Empty;
+            }
+
+            string path = rawPath.Trim();
+            if (path.Length >= 2 && path[0] == '"' && path[path.Length - 1] == '"')
+            {
+                path = path.Substring(1, path.Length - 2).Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(windowsDirectory))
+            {
+                path = ReplaceWindowsDirectoryPrefix(path, "%SystemRoot%", windowsDirectory);
+                path = ReplaceWindowsDirectoryPrefix(path, "%windir%", windowsDirectory);
+                path = ReplaceWindowsDirectoryPrefix(path, @"\SystemRoot", windowsDirectory);
+            }
+
+            if (path.StartsWith(@"\??\", StringComparison.Ordinal))
+            {
+                path = path.Substring(4);
+            }
+            else if (path.StartsWith(@"\\?\", StringComparison.Ordinal))
+            {
+                path = path.Substring(4);
+            }
+
+            return path.Trim();
+        }
+
+        internal static bool IsLocalSystemAccount(string account)
+        {
+            if (string.IsNullOrWhiteSpace(account))
+            {
+                return true;
+            }
+
+            string normalized = account.Trim();
+            return normalized.Equals("LocalSystem", StringComparison.OrdinalIgnoreCase) ||
+                   normalized.Equals("SYSTEM", StringComparison.OrdinalIgnoreCase) ||
+                   normalized.Equals(@"NT AUTHORITY\SYSTEM", StringComparison.OrdinalIgnoreCase) ||
+                   normalized.Equals(@"NT AUTHORITY\LocalSystem", StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static string GetFileSystemAccessPath(string path, string windowsDirectory, bool is64BitOperatingSystem, bool is64BitProcess)
+        {
+            if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(windowsDirectory) ||
+                !is64BitOperatingSystem || is64BitProcess)
+            {
+                return path;
+            }
+
+            string system32Prefix = windowsDirectory.TrimEnd('\\', '/') + @"\System32\";
+            if (!path.StartsWith(system32Prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return path;
+            }
+
+            return windowsDirectory.TrimEnd('\\', '/') + @"\Sysnative\" + path.Substring(system32Prefix.Length);
+        }
+
+        private static string ReplaceWindowsDirectoryPrefix(string path, string prefix, string windowsDirectory)
+        {
+            if (!path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
+                (path.Length > prefix.Length && path[prefix.Length] != '\\' && path[prefix.Length] != '/'))
+            {
+                return path;
+            }
+
+            return windowsDirectory.TrimEnd('\\', '/') + path.Substring(prefix.Length);
+        }
+
+        private static bool IsLocalDrivePath(string path)
+        {
+            // Do not touch UNC ServiceDll paths: this check must never initiate network access.
+            if (path.Length < 3 || !char.IsLetter(path[0]) || path[1] != ':' ||
+                (path[2] != '\\' && path[2] != '/'))
+            {
+                return false;
+            }
+
+            try
+            {
+                DriveType driveType = new System.IO.DriveInfo(path.Substring(0, 3)).DriveType;
+                return driveType != DriveType.Network && driveType != DriveType.NoRootDirectory;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string GetUnexpandedServiceDll(string parametersPath)
+        {
+            try
+            {
+                using (RegistryKey parametersKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(parametersPath))
+                {
+                    object value = parametersKey?.GetValue(
+                        "ServiceDll",
+                        null,
+                        RegistryValueOptions.DoNotExpandEnvironmentNames);
+                    return value == null ? string.Empty : value.ToString();
+                }
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        private static int? GetRegistryInt(Dictionary<string, object> values, string name)
+        {
+            object value = GetRegistryValue(values, name);
+            if (value == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return Convert.ToInt32(value);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static string GetRegistryString(Dictionary<string, object> values, string name)
+        {
+            object value = GetRegistryValue(values, name);
+            return value == null ? string.Empty : value.ToString();
+        }
+
+        private static object GetRegistryValue(Dictionary<string, object> values, string name)
+        {
+            if (values == null)
+            {
+                return null;
+            }
+
+            foreach (KeyValuePair<string, object> entry in values)
+            {
+                if (entry.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return entry.Value;
+                }
+            }
+
+            return null;
+        }
+
+        private static List<string> GetAllowedPermissions(IEnumerable<string> permissions)
+        {
+            return permissions == null
+                ? new List<string>()
+                : permissions.Where(permission =>
+                    permission.IndexOf("[Allow:", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                    permission.IndexOf("[Deny:", StringComparison.OrdinalIgnoreCase) < 0).ToList();
+        }
+
+        private static List<string> GetWritableFilePermissions(string path, Dictionary<string, string> currentUserSids)
+        {
+            try
+            {
+                FileSecurity security = File.GetAccessControl(path);
+                return GetAllowedPermissions(PermissionsHelper.GetMyPermissionsF(
+                    security,
+                    currentUserSids,
+                    PermissionType.WRITEABLE_OR_EQUIVALENT));
+            }
+            catch
+            {
+                return new List<string>();
+            }
+        }
+
+        private static bool IsFileReplacementPermission(string permission)
+        {
+            return permission.IndexOf("AllAccess", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("GenericAll", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("FullControl", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("GenericWrite", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("WriteData/CreateFiles", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("Modify", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("Write", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("TakeOwnership", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("ChangePermissions", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsDirectoryReplacementPermission(string permission)
+        {
+            return permission.IndexOf("AllAccess", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("GenericAll", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("FullControl", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("Modify", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("TakeOwnership", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("ChangePermissions", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsDirectoryPlantPermission(string permission)
+        {
+            return IsDirectoryReplacementPermission(permission) ||
+                   permission.IndexOf("GenericWrite", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("WriteData/CreateFiles", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   permission.IndexOf("Write", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+
         //////////////////////////////////////
         ////////  PATH DLL Hijacking /////////
         //////////////////////////////////////

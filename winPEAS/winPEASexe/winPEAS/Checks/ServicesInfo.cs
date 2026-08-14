@@ -12,11 +12,11 @@ namespace winPEAS.Checks
     {
         Dictionary<string, string> modifiableServices = new Dictionary<string, string>();
 
-        public string[] MitreAttackIds { get; } = new[] { "T1007", "T1543.003", "T1574.001", "T1574.011", "T1014", "T1068" };
+        public string[] MitreAttackIds { get; } = new[] { "T1007", "T1543.003", "T1574.001", "T1574.010", "T1574.011", "T1014", "T1068" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Services Information", "T1007,T1543.003,T1574.001,T1574.011,T1014,T1068");
+            Beaprint.GreatPrint("Services Information", "T1007,T1543.003,T1574.001,T1574.010,T1574.011,T1014,T1068");
 
             /// Start finding Modifiable services so any function could use them
 
@@ -37,6 +37,7 @@ namespace winPEAS.Checks
                 PrintInterestingServices,
                 PrintModifiableServices,
                 PrintWritableRegServices,
+                PrintWritableSystemServiceDlls,
                 PrintPathDllHijacking,
                 PrintOemPrivilegedUtilities,
                 PrintLegacySignedKernelDrivers,
@@ -180,6 +181,49 @@ namespace winPEAS.Checks
                     foreach (Dictionary<string, string> writeServReg in regPerms)
                         Beaprint.AnsiPrint(string.Format("    {0} ({1})", writeServReg["Path"], writeServReg["Permissions"]), colorsWR);
 
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        void PrintWritableSystemServiceDlls()
+        {
+            try
+            {
+                Beaprint.MainPrint("Writable DLLs loaded by LocalSystem services", "T1574.010");
+                Beaprint.LinkPrint("https://attack.mitre.org/techniques/T1574/010/",
+                    "A writable service DLL or replacement-capable DLL directory can yield SYSTEM code execution when the service loads it");
+
+                List<ServicesInfoHelper.WritableServiceDllInfo> findings =
+                    ServicesInfoHelper.GetWritableSystemServiceDlls(Checks.CurrentUserSiDs);
+
+                if (findings.Count == 0)
+                {
+                    Beaprint.GoodPrint("    No writable DLL paths were found for enabled LocalSystem shared-process services.");
+                    return;
+                }
+
+                foreach (ServicesInfoHelper.WritableServiceDllInfo finding in findings)
+                {
+                    Beaprint.BadPrint($"    {finding.ServiceName} ({finding.Account})");
+                    Beaprint.NoColorPrint($"      ServiceDll : {finding.ServiceDllPath}");
+                    Beaprint.NoColorPrint($"      DLL exists : {finding.FileExists}");
+
+                    if (finding.FilePermissions.Count > 0)
+                    {
+                        Beaprint.BadPrint("      File ACL    : " + string.Join(", ", finding.FilePermissions));
+                    }
+
+                    if (finding.DirectoryPermissions.Count > 0)
+                    {
+                        string reason = finding.FileExists ? "replacement-capable directory ACL" : "writable directory can plant missing DLL";
+                        Beaprint.BadPrint($"      Folder ACL  : {string.Join(", ", finding.DirectoryPermissions)} ({reason})");
+                    }
+
+                    Beaprint.PrintLineSeparator();
                 }
             }
             catch (Exception ex)
