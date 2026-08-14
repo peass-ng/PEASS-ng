@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Win32.SafeHandles;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -96,6 +97,16 @@ namespace winPEAS.Native
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern unsafe int GetFullPathName(string lpFileName, int nBufferLength, [Out, MarshalAs(UnmanagedType.LPTStr)] StringBuilder lpBuffer, [Out, MarshalAs(UnmanagedType.LPTStr)] StringBuilder lpFilePart);
+
+        [DllImport("kernel32.dll", EntryPoint = "CreateFileW", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern SafeFileHandle CreateFile(
+            string fileName,
+            uint desiredAccess,
+            uint shareMode,
+            IntPtr securityAttributes,
+            uint creationDisposition,
+            uint flagsAndAttributes,
+            IntPtr templateFile);
 
     }
 }

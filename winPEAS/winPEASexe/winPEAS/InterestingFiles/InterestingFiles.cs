@@ -10,7 +10,7 @@ namespace winPEAS.InterestingFiles
 {
     internal static class InterestingFiles
     {
-        public static List<string> GetSAMBackups()
+        public static List<string> GetRegistryHiveBackups()
         {
             //From SharpUP
             var results = new List<string>();
@@ -18,15 +18,17 @@ namespace winPEAS.InterestingFiles
             try
             {
                 string systemRoot = Environment.GetEnvironmentVariable("SystemRoot");
-                string[] searchLocations =
-                {
-                    $@"{systemRoot}\repair\SAM",
-                    $@"{systemRoot}\System32\config\RegBack\SAM",
-                    //$@"{0}\System32\config\SAM"
-                    $@"{systemRoot}\repair\SYSTEM",
-                    //$@"{0}\System32\config\SYSTEM", systemRoot),
-                    $@"{systemRoot}\System32\config\RegBack\SYSTEM",
-                };
+                string systemDirectory = Environment.Is64BitOperatingSystem && !Environment.Is64BitProcess
+                    ? "Sysnative"
+                    : "System32";
+                string[] hiveNames = { "SAM", "SECURITY", "SYSTEM" };
+                string[] searchLocations = hiveNames
+                    .SelectMany(hiveName => new[]
+                    {
+                        $@"{systemRoot}\repair\{hiveName}",
+                        $@"{systemRoot}\{systemDirectory}\config\RegBack\{hiveName}",
+                    })
+                    .ToArray();
 
                 results.AddRange(searchLocations.Where(searchLocation => File.Exists(searchLocation)));
             }

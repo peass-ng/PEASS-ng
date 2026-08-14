@@ -1259,6 +1259,7 @@
     <Compile Include="Info\FilesInfo\Office\OfficeRecentFileInfo.cs" />
     <Compile Include="Info\FilesInfo\Office\OneDrive\CloudSyncProviderInfo.cs" />
     <Compile Include="Info\FilesInfo\Office\OneDrive\OneDriveSyncProviderInfo.cs" />
+    <Compile Include="Info\FilesInfo\RegistryHiveExposure.cs" />
     <Compile Include="Info\FilesInfo\WSL\WSLHelper.cs" />
     <Compile Include="Info\NetworkInfo\Enums\IPVersion.cs" />
     <Compile Include="Info\NetworkInfo\Enums\MibTcpState.cs" />
