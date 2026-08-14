@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 using winPEAS.Helpers.Search;
+using winPEAS.Info.FilesInfo;
 using winPEAS.Info.FilesInfo.Certificates;
 using winPEAS.Info.FilesInfo.McAfee;
 using winPEAS.Info.FilesInfo.Office;
@@ -113,11 +114,11 @@ namespace winPEAS.Checks
         };
 
 
-        public string[] MitreAttackIds { get; } = new[] { "T1083", "T1552.001", "T1552.002", "T1552.004", "T1552.006", "T1003.002", "T1564.001", "T1574.001", "T1059.004", "T1114.001", "T1218", "T1649" };
+        public string[] MitreAttackIds { get; } = new[] { "T1083", "T1552.001", "T1552.002", "T1552.004", "T1552.006", "T1003.002", "T1003.004", "T1564.001", "T1574.001", "T1059.004", "T1114.001", "T1218", "T1649" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Interesting files and registry", "T1083,T1552.001,T1552.002,T1552.004,T1552.006,T1003.002,T1564.001,T1574.001,T1059.004,T1114.001,T1218,T1649");
+            Beaprint.GreatPrint("Interesting files and registry", "T1083,T1552.001,T1552.002,T1552.004,T1552.006,T1003.002,T1003.004,T1564.001,T1574.001,T1059.004,T1114.001,T1218,T1649");
 
             new List<Action>
             {
@@ -197,17 +198,61 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking for common SAM & SYSTEM backups", "T1003.002");
-                List<string> sam_files = InterestingFiles.InterestingFiles.GetSAMBackups();
-                foreach (string path in sam_files)
-                {
-                    var permissions = PermissionsHelper.GetPermissionsFile(path, Checks.CurrentUserSiDs, PermissionType.READABLE_OR_WRITABLE);
+                Beaprint.MainPrint("Exposed SAM, SECURITY and SYSTEM registry hives", "T1003.002,T1003.004");
+                Beaprint.LinkPrint("https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-36934",
+                    "CVE-2021-36934 (HiveNightmare): unsafe hive ACLs plus a readable VSS copy can expose credentials and enable SYSTEM escalation");
 
-                    if (permissions.Any())
+                RegistryHiveExposureReport report = RegistryHiveExposure.GetReport(
+                    InterestingFiles.InterestingFiles.GetRegistryHiveBackups());
+
+                const int maxFindingsToPrint = 20;
+                foreach (RegistryHiveExposureFinding finding in report.Findings.Take(maxFindingsToPrint))
+                {
+                    if (finding.Kind == RegistryHiveExposureKind.UnsafeLiveAcl)
                     {
-                        Beaprint.BadPrint("    " + path);
-                        Beaprint.BadPrint("    File Permissions: " + string.Join(", ", permissions) + "\n");
+                        Beaprint.BadPrint($"    Unsafe live hive ACL: {finding.Path}");
+                        Beaprint.BadPrint($"      Read access granted to enabled SID: {finding.Trustee}");
+                        Beaprint.GrayPrint("      Existing or future shadow copies may make this locked hive readable.");
                     }
+                    else
+                    {
+                        string source = finding.Kind == RegistryHiveExposureKind.ReadableShadowCopy
+                            ? "VSS shadow copy"
+                            : "backup";
+                        Beaprint.BadPrint($"    Readable {finding.HiveName} {source}: {finding.Path}");
+                        if (!string.IsNullOrEmpty(finding.Trustee))
+                        {
+                            Beaprint.BadPrint($"      File-data read access granted to unprivileged SID: {finding.Trustee}");
+                            Beaprint.GrayPrint("      The ACL was inspected; no hive contents were read.");
+                        }
+                        else
+                        {
+                            Beaprint.GrayPrint("      Access was verified by opening a read-only handle; no hive contents were read.");
+                        }
+                    }
+                }
+
+                if (report.Findings.Count == 0)
+                {
+                    Beaprint.GoodPrint("    No unsafe live hive ACLs or readable registry hive copies were found.");
+                }
+                else if (report.Findings.Count > maxFindingsToPrint)
+                {
+                    Beaprint.GrayPrint($"    Showing {maxFindingsToPrint}/{report.Findings.Count} registry hive exposures.");
+                }
+
+                if (report.ShadowCopyEnumerationSucceeded)
+                {
+                    string limitSuffix = report.ShadowCopyLimitReached ? " (scan limit reached)" : "";
+                    Beaprint.GrayPrint($"    VSS shadow copies checked: {report.ShadowCopiesChecked}{limitSuffix}");
+                }
+                else if (report.ShadowDeviceProbeUsed)
+                {
+                    Beaprint.GrayPrint($"    VSS WMI enumeration unavailable; probed {report.ShadowCopiesChecked} bounded device IDs.");
+                }
+                else
+                {
+                    Beaprint.GrayPrint("    VSS shadow copies could not be enumerated in the current context.");
                 }
             }
             catch (Exception ex)
