@@ -21,6 +21,7 @@ namespace winPEAS.Checks
                 PrintOnlinePackageVulnerabilities,
                 PrintAutoRuns,
                 PrintScheduled,
+                PrintWritableSystemTaskTargets,
                 PrintDeviceDrivers,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
@@ -271,6 +272,49 @@ namespace winPEAS.Checks
                     };
                     Beaprint.AnsiPrint(string.Format(formString, sapp["Author"], sapp["Name"], sapp["Action"], string.Join(", ", fileRights), string.Join(", ", dirRights), sapp["Trigger"], sapp["Description"]), colorsS);
                     Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        void PrintWritableSystemTaskTargets()
+        {
+            try
+            {
+                Beaprint.MainPrint("Writable execution targets in enabled SYSTEM scheduled tasks", "T1053.005");
+                Beaprint.LinkPrint("https://attack.mitre.org/techniques/T1053/005/", "A writable executable or script launched by a SYSTEM task can provide privilege escalation when the task next runs.");
+
+                PrivilegedScheduledTaskReport report = PrivilegedScheduledTasks.GetReport();
+                if (report.Findings.Count == 0)
+                {
+                    Beaprint.GoodPrint($"    No writable targets found within {report.TasksInspected} inspected task(s).");
+                }
+
+                foreach (PrivilegedScheduledTaskFinding finding in report.Findings)
+                {
+                    Beaprint.BadPrint($"    Task: {finding.TaskPath} ({finding.Principal})");
+                    Beaprint.NoColorPrint($"    Action: {finding.Executable}");
+                    Beaprint.BadPrint($"    Writable target: {finding.TargetPath}");
+                    Beaprint.BadPrint($"    Access: {finding.AccessReason}");
+                    Beaprint.PrintLineSeparator();
+                }
+
+                if (report.TaskLimitReached)
+                {
+                    Beaprint.NoColorPrint($"    Task inspection stopped at the safety limit of {PrivilegedScheduledTasks.MaxTasks} tasks.");
+                }
+
+                if (report.FolderLimitReached)
+                {
+                    Beaprint.NoColorPrint($"    Folder inspection stopped at the safety limit of {PrivilegedScheduledTasks.MaxFolders} folders.");
+                }
+
+                if (report.FindingLimitReached)
+                {
+                    Beaprint.NoColorPrint($"    Findings were capped at {PrivilegedScheduledTasks.MaxFindings}.");
                 }
             }
             catch (Exception ex)
