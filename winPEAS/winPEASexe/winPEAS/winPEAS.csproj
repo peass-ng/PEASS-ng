@@ -1227,6 +1227,7 @@
     <Compile Include="Info\ApplicationInfo\AutoRuns.cs" />
     <Compile Include="Info\ApplicationInfo\DeviceDrivers.cs" />
     <Compile Include="Info\ApplicationInfo\InstalledPackageInventory.cs" />
+    <Compile Include="Info\ApplicationInfo\PrivilegedScheduledTasks.cs" />
     <Compile Include="Info\ApplicationInfo\SoapClientProxyAnalyzer.cs" />
     <Compile Include="Info\ApplicationInfo\InstalledApps.cs" />
     <Compile Include="Helpers\Beaprint.cs" />
