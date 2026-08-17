@@ -2,14 +2,14 @@
 # ID: kernel_cve_registry_data
 # Author: Carlos Polop
 # Contributor: Arjay Saguisa
-# Last Update: 06-07-2026
+# Last Update: 17-08-2026
 # Description: Embedded kernel exploit matching datasets extracted from linux-exploit-suggester and linux-exploit-suggester-2 examples. Data is split across KERNEL_CVE_DATA_1..X with a maximum of 25 rows per env variable. This file also stores reference-only CVE tokens found in example repos when no explicit suggester matching rule exists.
 # License: GNU GPL
 # Version: 1.0
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $KERNEL_CVE_DATA_1, $KERNEL_CVE_DATA_2, $KERNEL_CVE_DATA_3, $KERNEL_CVE_DATA_4, $KERNEL_CVE_DATA_5, $KERNEL_CVE_DATA_6, $KERNEL_CVE_DATA_7, $KERNEL_CVE_DATA_8, $KERNEL_CVE_DATA_9, $KERNEL_CVE_DATA_10, $KERNEL_CVE_DATA_11, $KERNEL_CVE_DATA_12, $KERNEL_CVE_DATA_13, $KERNEL_CVE_DATA_14, $KERNEL_CVE_DATA_15, $KERNEL_CVE_DATA_16, $KERNEL_CVE_DATA_17, $KERNEL_CVE_DATA_18, $KERNEL_CVE_DATA_19, $KERNEL_CVE_DATA_20, $KERNEL_CVE_DATA_21, $KERNEL_CVE_DATA_22
+# Generated Global Variables: $KERNEL_CVE_DATA_1, $KERNEL_CVE_DATA_2, $KERNEL_CVE_DATA_3, $KERNEL_CVE_DATA_4, $KERNEL_CVE_DATA_5, $KERNEL_CVE_DATA_6, $KERNEL_CVE_DATA_7, $KERNEL_CVE_DATA_8, $KERNEL_CVE_DATA_9, $KERNEL_CVE_DATA_10, $KERNEL_CVE_DATA_11, $KERNEL_CVE_DATA_12, $KERNEL_CVE_DATA_13, $KERNEL_CVE_DATA_14, $KERNEL_CVE_DATA_15, $KERNEL_CVE_DATA_16, $KERNEL_CVE_DATA_17, $KERNEL_CVE_DATA_18, $KERNEL_CVE_DATA_19, $KERNEL_CVE_DATA_20, $KERNEL_CVE_DATA_21, $KERNEL_CVE_DATA_22, $KERNEL_CVE_DATA_23
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -650,4 +650,27 @@ CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=6.7,ver<6.12.89,cmd:[ "$(c
 CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=6.13,ver<6.18.31,cmd:[ "$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null || echo 0)" -lt 2 ]		1	Upstream issue introduced in 4.10; fixed in 6.18.31; mitigated by kernel.yama.ptrace_scope >= 2
 CVE-2026-46333	ptrace exit-race	pkg=linux-kernel,ver>=6.19,ver<7.0.8,cmd:[ "$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null || echo 0)" -lt 2 ]		1	Upstream issue introduced in 4.10; fixed in 7.0.8; mitigated by kernel.yama.ptrace_scope >= 2
 EOF_DATA_22
+)"
+
+KERNEL_CVE_DATA_23="$(cat <<'EOF_DATA_23'
+CVE-2026-43499	GhostLock rtmutex UAF	pkg=linux-kernel,ver>=2.6.39,ver<5.10.261,CONFIG_FUTEX_PI=y		1	Fixed in stable 5.10.261; priority-inheritance futexes must be enabled
+CVE-2026-43499	GhostLock rtmutex UAF	pkg=linux-kernel,ver>=5.11,ver<5.15.212,CONFIG_FUTEX_PI=y		1	Fixed in stable 5.15.212; priority-inheritance futexes must be enabled
+CVE-2026-43499	GhostLock rtmutex UAF	pkg=linux-kernel,ver>=5.16,ver<6.1.175,CONFIG_FUTEX_PI=y		1	Fixed in stable 6.1.175; priority-inheritance futexes must be enabled
+CVE-2026-43499	GhostLock rtmutex UAF	pkg=linux-kernel,ver>=6.2,ver<6.6.140,CONFIG_FUTEX_PI=y		1	Fixed in stable 6.6.140; priority-inheritance futexes must be enabled
+CVE-2026-43499	GhostLock rtmutex UAF	pkg=linux-kernel,ver>=6.7,ver<6.12.86,CONFIG_FUTEX_PI=y		1	Fixed in stable 6.12.86; priority-inheritance futexes must be enabled
+CVE-2026-43499	GhostLock rtmutex UAF	pkg=linux-kernel,ver>=6.13,ver<6.18.27,CONFIG_FUTEX_PI=y		1	Fixed in stable 6.18.27; priority-inheritance futexes must be enabled
+CVE-2026-43499	GhostLock rtmutex UAF	pkg=linux-kernel,ver>=6.19,ver<7.0.4,CONFIG_FUTEX_PI=y		1	Fixed in stable 7.0.4 and mainline 7.1; priority-inheritance futexes must be enabled
+CVE-2026-53362	IPv6 fraggap out-of-bounds write	pkg=linux-kernel,ver>=6.0,ver<6.1.177,CONFIG_IPV6=[my]		1	Fixed in stable 6.1.177; IPv6 must be enabled
+CVE-2026-53362	IPv6 fraggap out-of-bounds write	pkg=linux-kernel,ver>=6.2,ver<6.6.144,CONFIG_IPV6=[my]		1	Fixed in stable 6.6.144; IPv6 must be enabled
+CVE-2026-53362	IPv6 fraggap out-of-bounds write	pkg=linux-kernel,ver>=6.7,ver<6.12.95,CONFIG_IPV6=[my]		1	Fixed in stable 6.12.95; IPv6 must be enabled
+CVE-2026-53362	IPv6 fraggap out-of-bounds write	pkg=linux-kernel,ver>=6.13,ver<6.18.38,CONFIG_IPV6=[my]		1	Fixed in stable 6.18.38; IPv6 must be enabled
+CVE-2026-53362	IPv6 fraggap out-of-bounds write	pkg=linux-kernel,ver>=6.19,ver<7.1.3,CONFIG_IPV6=[my]		1	Fixed in stable 7.1.3 and mainline 7.2-rc1; IPv6 must be enabled
+CVE-2026-64600	RefluXFS stale mapping race	pkg=linux-kernel,ver>=4.11,ver<5.15.212,CONFIG_XFS_FS=[my],cmd:grep -qw xfs /proc/mounts		1	Fixed in stable 5.15.212; requires an XFS filesystem with reflink enabled
+CVE-2026-64600	RefluXFS stale mapping race	pkg=linux-kernel,ver>=5.16,ver<6.1.178,CONFIG_XFS_FS=[my],cmd:grep -qw xfs /proc/mounts		1	Fixed in stable 6.1.178; requires an XFS filesystem with reflink enabled
+CVE-2026-64600	RefluXFS stale mapping race	pkg=linux-kernel,ver>=6.2,ver<6.6.145,CONFIG_XFS_FS=[my],cmd:grep -qw xfs /proc/mounts		1	Fixed in stable 6.6.145; requires an XFS filesystem with reflink enabled
+CVE-2026-64600	RefluXFS stale mapping race	pkg=linux-kernel,ver>=6.7,ver<6.12.96,CONFIG_XFS_FS=[my],cmd:grep -qw xfs /proc/mounts		1	Fixed in stable 6.12.96; requires an XFS filesystem with reflink enabled
+CVE-2026-64600	RefluXFS stale mapping race	pkg=linux-kernel,ver>=6.13,ver<6.18.39,CONFIG_XFS_FS=[my],cmd:grep -qw xfs /proc/mounts		1	Fixed in stable 6.18.39; requires an XFS filesystem with reflink enabled
+CVE-2026-64600	RefluXFS stale mapping race	pkg=linux-kernel,ver>=6.19,ver<7.1.4,CONFIG_XFS_FS=[my],cmd:grep -qw xfs /proc/mounts		1	Fixed in stable 7.1.4; requires an XFS filesystem with reflink enabled
+CVE-2026-64600	RefluXFS stale mapping race	pkg=linux-kernel,ver>=7.2,ver<7.3,CONFIG_XFS_FS=[my],cmd:uname -r 2>/dev/null | grep -Eq '^7\.2\.0-rc[123]([-.]|$)',cmd:grep -qw xfs /proc/mounts		1	Fixed in mainline 7.2-rc4; requires an XFS filesystem with reflink enabled
+EOF_DATA_23
 )"
