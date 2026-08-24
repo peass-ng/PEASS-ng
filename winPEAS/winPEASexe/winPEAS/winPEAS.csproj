@@ -1328,6 +1328,7 @@
     <Compile Include="Info\WindowsCreds\RDPServerSettings.cs" />
     <Compile Include="Info\WindowsCreds\RDPSettingsInfo.cs" />
     <Compile Include="Info\WindowsCreds\RemoteDesktop.cs" />
+    <Compile Include="Info\WindowsCreds\SccmNetworkAccessAccount.cs" />
     <Compile Include="InterestingFiles\GPP.cs" />
     <Compile Include="InterestingFiles\InterestingFiles.cs" />
     <Compile Include="InterestingFiles\Unattended.cs" />
