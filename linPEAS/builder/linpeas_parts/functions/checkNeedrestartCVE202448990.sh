@@ -9,7 +9,7 @@
 # Functions Used: print_3title, print_info
 # Global Variables: $E, $ROOT_FOLDER, $SED_GREEN, $SED_LIGHT_CYAN, $SED_RED_YELLOW, $SED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $nr48990_binary, $nr48990_codename, $nr48990_config, $nr48990_config_file, $nr48990_config_file_value, $nr48990_distro_id, $nr48990_dpkg_fixed, $nr48990_dpkg_record, $nr48990_full_version, $nr48990_interpscan, $nr48990_manager, $nr48990_os_release, $nr48990_root, $nr48990_status, $nr48990_ubuntu_codename, $nr48990_upstream_version
+# Generated Global Variables: $nr48990_binary, $nr48990_codename, $nr48990_config, $nr48990_config_file, $nr48990_config_file_value, $nr48990_distro_id, $nr48990_dpkg_fixed, $nr48990_dpkg_record, $nr48990_full_version, $nr48990_interpscan, $nr48990_manager, $nr48990_os_release, $nr48990_root, $nr48990_rpm_record, $nr48990_status, $nr48990_ubuntu_codename, $nr48990_upstream_version
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -91,8 +91,10 @@ checkNeedrestartCVE202448990() {
     esac
   fi
   if [ -z "$nr48990_full_version" ] && command -v rpm >/dev/null 2>&1; then
-    nr48990_full_version="$(rpm --root "$nr48990_root" -q --qf '%{VERSION}-%{RELEASE}\n' needrestart 2>/dev/null | head -n1)"
-    [ -n "$nr48990_full_version" ] && nr48990_manager="rpm"
+    if nr48990_rpm_record="$(rpm --root "$nr48990_root" -q --qf '%{VERSION}-%{RELEASE}\n' needrestart 2>/dev/null)"; then
+      nr48990_full_version="$(printf '%s\n' "$nr48990_rpm_record" | head -n1)"
+      [ -n "$nr48990_full_version" ] && nr48990_manager="rpm"
+    fi
   fi
   [ -n "$nr48990_binary" ] || [ -n "$nr48990_full_version" ] || return 0
 

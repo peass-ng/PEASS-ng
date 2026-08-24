@@ -58,6 +58,14 @@ class NeedrestartCVE202448990Tests(unittest.TestCase):
             encoding="utf-8",
         )
         dpkg.chmod(0o755)
+        rpm = bindir / "rpm"
+        rpm.write_text(
+            '#!/bin/sh\n'
+            'echo "package needrestart is not installed"\n'
+            'exit 1\n',
+            encoding="utf-8",
+        )
+        rpm.chmod(0o755)
 
         env = os.environ.copy()
         env.update(
