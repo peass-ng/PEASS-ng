@@ -31,6 +31,7 @@ jobs:
       head_sha: ${{ steps.gate.outputs.head_sha }}
       trusted_automerge: ${{ steps.gate.outputs.trusted_automerge }}
       trusted_automerge_reason: ${{ steps.gate.outputs.trusted_automerge_reason }}
+      fix_pushed: ${{ steps.push_fix.outputs.pushed }}
       decision: ${{ steps.parse.outputs.decision }}
       message: ${{ steps.parse.outputs.message }}
 
@@ -103,10 +104,11 @@ jobs:
           echo "trusted_automerge=$trusted_automerge" >> "$GITHUB_OUTPUT"
           echo "trusted_automerge_reason=$trusted_automerge_reason" >> "$GITHUB_OUTPUT"
 
-      - name: Checkout PR merge ref
+      - name: Checkout PR head
         uses: actions/checkout@v5
         with:
-          ref: refs/pull/${{ steps.gate.outputs.pr_number }}/merge
+          ref: ${{ steps.gate.outputs.head_sha }}
+          fetch-depth: 0
         if: ${{ steps.gate.outputs.should_run == 'true' && steps.gate.outputs.trusted_automerge != 'true' }}
 
       - name: Pre-fetch base and head refs
@@ -140,10 +142,12 @@ jobs:
           main_action: peass-ng-pr-traige
           sub_action: Chack-Agent PR Triage
           system_prompt: |
-            You are Chack Agent, an elite PR reviewer for PEASS-ng.
-            Be conservative: merge only if changes are simple, safe, and valuable accoding to the uers give guidelines.
-            If in doubt, comment with clear questions or concerns.
-            Remember taht you are an autonomouts agent, use the exec tool to run the needed commands to list, read, analyze, modify, test...
+            You are Chack Agent, an elite PR reviewer and fixer for PEASS-ng.
+            Inspect the PR carefully. When you find a problem that you can fix confidently,
+            implement the smallest safe correction in the working tree and retest it. Do not
+            merely describe fixable problems. Leave edits uncommitted because the workflow will
+            commit and push them. Choose comment only when you are genuinely unsure how to make
+            the change correct and working, or when the PR is fundamentally a bad idea to merge.
           tools_config_json: "{\"exec_enabled\": true}"
           session_config_json: "{\"long_term_memory_enabled\": false}"
           agent_config_json: "{\"self_critique_enabled\": false, \"require_task_steps_manager_init_first\": true}"
@@ -151,14 +155,22 @@ jobs:
           user_prompt: |
             You are reviewing PR #${{ steps.gate.outputs.pr_number }} for ${{ github.repository }}.
 
-            Decide whether to merge or comment. Merge only if all of the following are true:
+            Review the changes, proactively fix any issue you can resolve safely, and run the
+            relevant focused tests. Merge only if all of the following are true:
             - Changes are simple and safe (no DoS, no long operations, no backdoors).
             - Changes follow common PEASS syntax and style without breaking anything and add useful checks or value.
             - Changes simplify code or add new useful checks without breaking anything.
 
-            If you don't have any doubts, and all the previous conditions are met, decide to merge.
-            If you have serious doubts, choose "comment" and include your doubts or questions.
-            If you decide to merge, include a short rationale.
+            If you find a concrete defect, false positive, performance risk, missing test, or
+            similar problem and know how to correct it, edit the files, run the relevant tests,
+            and leave the corrected working tree ready for the workflow to commit. Do not commit
+            or push it yourself. Return "merge" when either the original PR or your corrected
+            working tree is ready. The workflow will push edits and let the full PR tests rerun
+            before a later review can merge them.
+
+            Return "comment" only if you cannot confidently fix or validate the problem, need a
+            human decision to determine the correct behavior, or believe the PR should not be
+            merged at all. Include the precise blocker in that case.
 
             Pull request title and body:
             ----
@@ -172,6 +184,47 @@ jobs:
             .github/chack-agent/pr-merge-schema.json
           codex_access_token: ${{ secrets.CODEX_ACCESS_TOKEN }}
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Commit and push Chack Agent fixes
+        id: push_fix
+        if: ${{ steps.gate.outputs.should_run == 'true' && steps.gate.outputs.trusted_automerge != 'true' }}
+        env:
+          TARGET_BRANCH: ${{ steps.gate.outputs.head_ref }}
+          PR_NUMBER: ${{ steps.gate.outputs.pr_number }}
+          ORIGINAL_HEAD_SHA: ${{ steps.gate.outputs.head_sha }}
+          PUSH_TOKEN: ${{ secrets.CODEX_FIXER_TOKEN }}
+        run: |
+          git config user.name "chack-agent"
+          git config user.email "chack-agent@users.noreply.github.com"
+
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+
+            # Never commit generated linPEAS artifacts refreshed by local tests.
+            git reset -- build_lists/regexes.yaml linpeas.sh linpeas_fat.sh || true
+            while IFS= read -r generated_file; do
+              git reset -- "$generated_file" || true
+            done < <(git diff --name-only --cached | grep -E '(^|/)(linpeas\.sh|linpeas_fat\.sh)$' || true)
+
+            git diff --cached --check
+            if ! git diff --cached --quiet; then
+              git commit -m "Apply Chack Agent review fixes for PR #${PR_NUMBER}"
+            fi
+          fi
+
+          if [ "$(git rev-parse HEAD)" = "$ORIGINAL_HEAD_SHA" ]; then
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -z "$PUSH_TOKEN" ]; then
+            echo "CODEX_FIXER_TOKEN is required to push Chack Agent fixes."
+            exit 1
+          fi
+
+          git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${{ github.repository }}.git"
+          git push origin "HEAD:${TARGET_BRANCH}"
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
 
       - name: Parse Chack Agent decision
         id: parse
@@ -205,7 +258,7 @@ jobs:
   merge_or_comment:
     runs-on: ubuntu-latest
     needs: chack_agent_triage
-    if: ${{ github.event.workflow_run.conclusion == 'success' && needs.chack_agent_triage.outputs.should_run == 'true' && (needs.chack_agent_triage.outputs.trusted_automerge == 'true' || needs.chack_agent_triage.outputs.decision != '') }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && needs.chack_agent_triage.outputs.should_run == 'true' && needs.chack_agent_triage.outputs.fix_pushed != 'true' && (needs.chack_agent_triage.outputs.trusted_automerge == 'true' || needs.chack_agent_triage.outputs.decision != '') }}
     permissions:
       contents: write
       pull-requests: write
