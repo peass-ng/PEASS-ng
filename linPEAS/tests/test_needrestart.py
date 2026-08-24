@@ -37,23 +37,36 @@ class NeedrestartCVE202448990Tests(unittest.TestCase):
             )
         return root
 
-    def _run_check(self, root, package_version):
+    def _run_check(self, root, package_version, package_status="install ok installed"):
         bindir = root.parent / "bin"
         bindir.mkdir()
         dpkg_query = bindir / "dpkg-query"
         dpkg_query.write_text(
-            '#!/bin/sh\nprintf "%s\\n" "$FAKE_NEEDRESTART_VERSION"\n',
+            '#!/bin/sh\nprintf "%s|%s\\n" "$FAKE_NEEDRESTART_STATUS" '
+            '"$FAKE_NEEDRESTART_VERSION"\n',
             encoding="utf-8",
         )
         dpkg_query.chmod(0o755)
         dpkg = bindir / "dpkg"
-        dpkg.write_text('#!/bin/sh\nexec /usr/bin/dpkg "$@"\n', encoding="utf-8")
+        dpkg.write_text(
+            '#!/bin/sh\n'
+            'if [ "$1" = "--compare-versions" ]; then\n'
+            '  [ "$FAKE_DPKG_VERSION_IS_OLDER" = "1" ]\n'
+            '  exit\n'
+            'fi\n'
+            'exit 1\n',
+            encoding="utf-8",
+        )
         dpkg.chmod(0o755)
 
         env = os.environ.copy()
         env.update(
             {
+                "FAKE_NEEDRESTART_STATUS": package_status,
                 "FAKE_NEEDRESTART_VERSION": package_version,
+                "FAKE_DPKG_VERSION_IS_OLDER": (
+                    "1" if package_version == "3.6-7ubuntu4.2" else "0"
+                ),
                 "PATH": f"{bindir}:{env['PATH']}",
             }
         )
@@ -97,6 +110,19 @@ class NeedrestartCVE202448990Tests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("is not vulnerable to CVE-2024-48990", result.stdout)
+        self.assertNotIn("VULNERABLE to CVE-2024-48990", result.stdout)
+
+    def test_removed_package_with_remaining_config_is_ignored(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = self._make_root(Path(tmpdir))
+            result = self._run_check(
+                root,
+                "3.6-7ubuntu4.2",
+                package_status="deinstall ok config-files",
+            )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("Needrestart interpreter-scanner LPE", result.stdout)
         self.assertNotIn("VULNERABLE to CVE-2024-48990", result.stdout)
 
     def test_conf_d_mitigation_overrides_main_configuration(self):

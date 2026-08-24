@@ -1,15 +1,15 @@
 # Title: Functions - checkNeedrestartCVE202448990
 # ID: checkNeedrestartCVE202448990
 # Author: Chack Agent
-# Last Update: 17-08-2026
+# Last Update: 24-08-2026
 # Description: Passively identify needrestart interpreter-scanner local privilege-escalation exposure, including CVE-2024-48990.
 # License: GNU GPL
-# Version: 1.0
+# Version: 1.1
 # Mitre: T1068
 # Functions Used: print_3title, print_info
 # Global Variables: $E, $ROOT_FOLDER, $SED_GREEN, $SED_LIGHT_CYAN, $SED_RED_YELLOW, $SED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $nr48990_binary, $nr48990_codename, $nr48990_config, $nr48990_config_file, $nr48990_config_file_value, $nr48990_distro_id, $nr48990_dpkg_fixed, $nr48990_full_version, $nr48990_interpscan, $nr48990_manager, $nr48990_os_release, $nr48990_root, $nr48990_status, $nr48990_ubuntu_codename, $nr48990_upstream_version
+# Generated Global Variables: $nr48990_binary, $nr48990_codename, $nr48990_config, $nr48990_config_file, $nr48990_config_file_value, $nr48990_distro_id, $nr48990_dpkg_fixed, $nr48990_dpkg_record, $nr48990_full_version, $nr48990_interpscan, $nr48990_manager, $nr48990_os_release, $nr48990_root, $nr48990_status, $nr48990_ubuntu_codename, $nr48990_upstream_version
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -82,14 +82,19 @@ checkNeedrestartCVE202448990() {
   nr48990_full_version=""
   nr48990_manager=""
   if command -v dpkg-query >/dev/null 2>&1; then
-    nr48990_full_version="$(dpkg-query --admindir="${nr48990_root}var/lib/dpkg" -W -f='$''{Version}\n' needrestart 2>/dev/null | head -n1)"
-    [ -n "$nr48990_full_version" ] && nr48990_manager="dpkg"
+    nr48990_dpkg_record="$(dpkg-query --admindir="${nr48990_root}var/lib/dpkg" -W -f='$''{Status}|$''{Version}\n' needrestart 2>/dev/null | head -n1)"
+    case "$nr48990_dpkg_record" in
+      "install ok installed|"*)
+        nr48990_full_version="${nr48990_dpkg_record#*|}"
+        [ -n "$nr48990_full_version" ] && nr48990_manager="dpkg"
+        ;;
+    esac
   fi
   if [ -z "$nr48990_full_version" ] && command -v rpm >/dev/null 2>&1; then
     nr48990_full_version="$(rpm --root "$nr48990_root" -q --qf '%{VERSION}-%{RELEASE}\n' needrestart 2>/dev/null | head -n1)"
     [ -n "$nr48990_full_version" ] && nr48990_manager="rpm"
   fi
-  [ -n "$nr48990_binary" ] || [ -n "$nr48990_full_version" ] || return
+  [ -n "$nr48990_binary" ] || [ -n "$nr48990_full_version" ] || return 0
 
   print_3title "Needrestart interpreter-scanner LPE (CVE-2024-48990)" "T1068"
   print_info "https://ubuntu.com/security/CVE-2024-48990"
