@@ -316,6 +316,16 @@ namespace winPEAS.Checks
                 {
                     Beaprint.NoColorPrint($"    Findings were capped at {PrivilegedScheduledTasks.MaxFindings}.");
                 }
+
+                if (report.TargetLimitReached)
+                {
+                    Beaprint.NoColorPrint($"    Filesystem probes stopped at the safety limit of {PrivilegedScheduledTasks.MaxTargets} targets.");
+                }
+
+                if (report.TimeLimitReached)
+                {
+                    Beaprint.NoColorPrint($"    Inspection stopped at the safety limit of {PrivilegedScheduledTasks.MaxInspectionMilliseconds / 1000} seconds.");
+                }
             }
             catch (Exception ex)
             {

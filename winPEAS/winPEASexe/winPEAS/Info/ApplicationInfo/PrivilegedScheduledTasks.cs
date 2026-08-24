@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -27,7 +28,11 @@ namespace winPEAS.Info.ApplicationInfo
         public int TasksInspected { get; set; }
         public bool FolderLimitReached { get; set; }
         public bool TaskLimitReached { get; set; }
+        public bool TargetLimitReached { get; set; }
+        public bool TimeLimitReached { get; set; }
         public bool FindingLimitReached { get; set; }
+        public int TargetsInspected { get; set; }
+        internal Stopwatch InspectionTimer { get; } = Stopwatch.StartNew();
     }
 
     internal static class PrivilegedScheduledTasks
@@ -35,6 +40,8 @@ namespace winPEAS.Info.ApplicationInfo
         internal const int MaxTasks = 2048;
         internal const int MaxFindings = 64;
         internal const int MaxFolders = 1024;
+        internal const int MaxTargets = 2048;
+        internal const int MaxInspectionMilliseconds = 15000;
         private const int MaxFolderDepth = 32;
         private const int MaxTargetsPerAction = 16;
         private const int MaxArgumentLength = 8192;
@@ -47,20 +54,39 @@ namespace winPEAS.Info.ApplicationInfo
         private const uint GenericWrite = 0x40000000;
         private const uint GenericAll = 0x10000000;
 
-        private static readonly Regex AbsoluteFileReference = new Regex(
-            @"(?i)(?:[a-z]:\\|\\\\)[^""'\r\n]*?\.(?:exe|com|dll|ps1|psm1|bat|cmd|vbs|vbe|js|jse|wsf|wsh|hta|py|pl|rb|jar)(?=$|[\s,""';)&|])",
-            RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
         private static readonly HashSet<string> ReplaceableScriptExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             ".ps1", ".psm1", ".bat", ".cmd", ".vbs", ".vbe", ".js", ".jse",
             ".wsf", ".wsh", ".hta", ".py", ".pl", ".rb",
         };
 
-        private static readonly HashSet<string> ExecutableOrScriptExtensions = new HashSet<string>(ReplaceableScriptExtensions, StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> HtaExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            ".exe", ".com", ".dll", ".jar",
+            ".hta",
         };
+
+        private static readonly HashSet<string> PowerShellScriptExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".ps1", ".psm1",
+        };
+
+        private static readonly HashSet<string> CmdTargetExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".exe", ".com", ".bat", ".cmd",
+        };
+
+        private static readonly HashSet<string> WindowsScriptHostExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".vbs", ".vbe", ".js", ".jse", ".wsf", ".wsh",
+        };
+
+        private static readonly HashSet<string> PythonScriptExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".py" };
+        private static readonly HashSet<string> PerlScriptExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".pl" };
+        private static readonly HashSet<string> RubyScriptExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".rb" };
+        private static readonly HashSet<string> JarExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jar" };
+        private static readonly HashSet<string> DllExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".dll" };
+        private static readonly HashSet<string> PythonInlineSwitches = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "-c", "-m", "-" };
+        private static readonly HashSet<string> PerlRubyInlineSwitches = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "-e", "-E", "-" };
 
         public static PrivilegedScheduledTaskReport GetReport()
         {
@@ -88,8 +114,7 @@ namespace winPEAS.Info.ApplicationInfo
             ISet<string> unprivilegedSids,
             PrivilegedScheduledTaskReport report)
         {
-            if (folder == null || depth > MaxFolderDepth || report.FolderLimitReached ||
-                report.TaskLimitReached || report.FindingLimitReached)
+            if (folder == null || depth > MaxFolderDepth || ShouldStop(report))
             {
                 return;
             }
@@ -110,6 +135,11 @@ namespace winPEAS.Info.ApplicationInfo
                     {
                         using (task)
                         {
+                            if (ShouldStop(report))
+                            {
+                                return;
+                            }
+
                             if (report.TasksInspected >= MaxTasks)
                             {
                                 report.TaskLimitReached = true;
@@ -118,7 +148,7 @@ namespace winPEAS.Info.ApplicationInfo
 
                             report.TasksInspected++;
                             ProcessTask(task, unprivilegedSids, report);
-                            if (report.FindingLimitReached)
+                            if (ShouldStop(report))
                             {
                                 return;
                             }
@@ -142,7 +172,7 @@ namespace winPEAS.Info.ApplicationInfo
                             ProcessFolder(subFolder, depth + 1, unprivilegedSids, report);
                         }
 
-                        if (report.FolderLimitReached || report.TaskLimitReached || report.FindingLimitReached)
+                        if (ShouldStop(report))
                         {
                             return;
                         }
@@ -162,7 +192,7 @@ namespace winPEAS.Info.ApplicationInfo
         {
             try
             {
-                if (task == null || !task.Enabled)
+                if (task == null || !task.Enabled || ShouldStop(report))
                 {
                     return;
                 }
@@ -184,6 +214,11 @@ namespace winPEAS.Info.ApplicationInfo
                     {
                         foreach (TaskAction action in actions)
                         {
+                            if (ShouldStop(report))
+                            {
+                                return;
+                            }
+
                             using (action)
                             {
                                 var execAction = action as TaskAction.ExecAction;
@@ -193,7 +228,7 @@ namespace winPEAS.Info.ApplicationInfo
                                 }
                             }
 
-                            if (report.FindingLimitReached)
+                            if (ShouldStop(report))
                             {
                                 return;
                             }
@@ -225,7 +260,7 @@ namespace winPEAS.Info.ApplicationInfo
                 targets.Add(resolvedExecutable);
             }
 
-            foreach (string referencedPath in ExtractReferencedFilePaths(arguments, workingDirectory))
+            foreach (string referencedPath in ExtractReferencedFilePaths(executable, arguments, workingDirectory))
             {
                 if (targets.Count >= MaxTargetsPerAction)
                 {
@@ -237,6 +272,12 @@ namespace winPEAS.Info.ApplicationInfo
 
             foreach (string target in targets)
             {
+                if (ShouldStop(report))
+                {
+                    return;
+                }
+
+                report.TargetsInspected++;
                 string accessReason = GetWritableTargetReason(target, unprivilegedSids);
                 if (string.IsNullOrEmpty(accessReason))
                 {
@@ -274,7 +315,10 @@ namespace winPEAS.Info.ApplicationInfo
                 normalized.Equals(@"NT AUTHORITY\SYSTEM", StringComparison.OrdinalIgnoreCase);
         }
 
-        internal static List<string> ExtractReferencedFilePaths(string arguments, string workingDirectory)
+        internal static List<string> ExtractReferencedFilePaths(
+            string executable,
+            string arguments,
+            string workingDirectory)
         {
             var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             string expandedArguments = ExpandAndTrim(arguments);
@@ -289,50 +333,164 @@ namespace winPEAS.Info.ApplicationInfo
                 expandedArguments = expandedArguments.Substring(0, MaxArgumentLength);
             }
 
-            foreach (Match match in AbsoluteFileReference.Matches(expandedArguments))
-            {
-                string candidate = CleanCandidatePath(match.Value);
-                if (IsLocalAbsolutePath(candidate))
-                {
-                    paths.Add(candidate);
-                }
+            List<string> tokens = new List<string>(TokenizeArguments(expandedArguments));
+            string executableName = GetFileName(executable).ToLowerInvariant();
 
-                if (paths.Count >= MaxTargetsPerAction)
-                {
-                    return new List<string>(paths);
-                }
+            if (executableName == "powershell.exe" || executableName == "powershell" ||
+                executableName == "pwsh.exe" || executableName == "pwsh")
+            {
+                AddSwitchValue(tokens, new[] { "-file", "-f" }, PowerShellScriptExtensions, expandedWorkingDirectory, paths);
+            }
+            else if (executableName == "cmd.exe" || executableName == "cmd")
+            {
+                AddCommandShellTarget(tokens, expandedWorkingDirectory, paths);
+            }
+            else if (executableName == "wscript.exe" || executableName == "wscript" ||
+                executableName == "cscript.exe" || executableName == "cscript")
+            {
+                AddFirstPositional(tokens, WindowsScriptHostExtensions, expandedWorkingDirectory, paths, null);
+            }
+            else if (executableName == "mshta.exe" || executableName == "mshta")
+            {
+                AddFirstPositional(tokens, HtaExtensions, expandedWorkingDirectory, paths, null);
+            }
+            else if (executableName == "python.exe" || executableName == "python" ||
+                executableName == "pythonw.exe" || executableName == "pythonw" ||
+                Regex.IsMatch(executableName, @"^python\d+(?:\.\d+)?(?:w)?(?:\.exe)?$", RegexOptions.CultureInvariant))
+            {
+                AddFirstPositional(tokens, PythonScriptExtensions, expandedWorkingDirectory, paths, PythonInlineSwitches);
+            }
+            else if (executableName == "perl.exe" || executableName == "perl")
+            {
+                AddFirstPositional(tokens, PerlScriptExtensions, expandedWorkingDirectory, paths, PerlRubyInlineSwitches);
+            }
+            else if (executableName == "ruby.exe" || executableName == "ruby")
+            {
+                AddFirstPositional(tokens, RubyScriptExtensions, expandedWorkingDirectory, paths, PerlRubyInlineSwitches);
+            }
+            else if (executableName == "java.exe" || executableName == "java" ||
+                executableName == "javaw.exe" || executableName == "javaw")
+            {
+                AddSwitchValue(tokens, new[] { "-jar" }, JarExtensions, expandedWorkingDirectory, paths);
+            }
+            else if (executableName == "rundll32.exe" || executableName == "rundll32" ||
+                executableName == "regsvr32.exe" || executableName == "regsvr32")
+            {
+                AddFirstPositional(tokens, DllExtensions, expandedWorkingDirectory, paths, null);
             }
 
-            if (!IsLocalAbsolutePath(expandedWorkingDirectory))
-            {
-                return new List<string>(paths);
-            }
+            return new List<string>(paths);
+        }
 
-            foreach (string token in TokenizeArguments(expandedArguments))
+        private static void AddSwitchValue(
+            IList<string> tokens,
+            IEnumerable<string> switchNames,
+            ISet<string> allowedExtensions,
+            string workingDirectory,
+            ISet<string> paths)
+        {
+            var switches = new HashSet<string>(switchNames, StringComparer.OrdinalIgnoreCase);
+            for (int index = 0; index < tokens.Count; index++)
             {
-                string candidate = CleanCandidatePath(token);
-                if (string.IsNullOrEmpty(candidate) || IsWindowsAbsolutePath(candidate) ||
-                    !ExecutableOrScriptExtensions.Contains(Path.GetExtension(candidate)))
+                string token = tokens[index];
+                if (switches.Contains(token) && index + 1 < tokens.Count)
+                {
+                    AddExecutionCandidate(tokens[index + 1], allowedExtensions, workingDirectory, paths);
+                    return;
+                }
+
+                foreach (string switchName in switches)
+                {
+                    string prefix = switchName + ":";
+                    if (token.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    {
+                        AddExecutionCandidate(token.Substring(prefix.Length), allowedExtensions, workingDirectory, paths);
+                        return;
+                    }
+                }
+            }
+        }
+
+        private static void AddCommandShellTarget(
+            IList<string> tokens,
+            string workingDirectory,
+            ISet<string> paths)
+        {
+            for (int index = 0; index + 1 < tokens.Count; index++)
+            {
+                if (!tokens[index].Equals("/c", StringComparison.OrdinalIgnoreCase) &&
+                    !tokens[index].Equals("/k", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                try
+                int candidateIndex = index + 1;
+                if (tokens[candidateIndex].Equals("call", StringComparison.OrdinalIgnoreCase) &&
+                    candidateIndex + 1 < tokens.Count)
                 {
-                    paths.Add(Path.GetFullPath(Path.Combine(expandedWorkingDirectory, candidate)));
-                }
-                catch
-                {
-                    // Ignore malformed relative paths.
+                    candidateIndex++;
                 }
 
-                if (paths.Count >= MaxTargetsPerAction)
+                AddExecutionCandidate(tokens[candidateIndex].TrimStart('&'), CmdTargetExtensions, workingDirectory, paths);
+                return;
+            }
+        }
+
+        private static void AddFirstPositional(
+            IEnumerable<string> tokens,
+            ISet<string> allowedExtensions,
+            string workingDirectory,
+            ISet<string> paths,
+            ISet<string> terminatingSwitches)
+        {
+            foreach (string token in tokens)
+            {
+                if (terminatingSwitches != null && terminatingSwitches.Contains(token))
                 {
-                    break;
+                    return;
                 }
+
+                if (token.StartsWith("-", StringComparison.Ordinal) || token.StartsWith("/", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                AddExecutionCandidate(token.Split(',')[0], allowedExtensions, workingDirectory, paths);
+                return;
+            }
+        }
+
+        private static void AddExecutionCandidate(
+            string value,
+            ISet<string> allowedExtensions,
+            string workingDirectory,
+            ISet<string> paths)
+        {
+            string candidate = CleanCandidatePath(value);
+            if (string.IsNullOrEmpty(candidate) || !allowedExtensions.Contains(Path.GetExtension(candidate)))
+            {
+                return;
             }
 
-            return new List<string>(paths);
+            if (IsLocalAbsolutePath(candidate))
+            {
+                paths.Add(candidate);
+                return;
+            }
+
+            if (!IsLocalAbsolutePath(workingDirectory))
+            {
+                return;
+            }
+
+            try
+            {
+                paths.Add(Path.GetFullPath(Path.Combine(workingDirectory, candidate)));
+            }
+            catch
+            {
+                // Ignore malformed relative paths.
+            }
         }
 
         private static IEnumerable<string> TokenizeArguments(string arguments)
@@ -405,7 +563,7 @@ namespace winPEAS.Info.ApplicationInfo
 
         private static string GetWritableTargetReason(string displayPath, ISet<string> unprivilegedSids)
         {
-            if (!IsLocalAbsolutePath(displayPath) || unprivilegedSids == null || unprivilegedSids.Count == 0)
+            if (!IsPathOnLocalDrive(displayPath) || unprivilegedSids == null || unprivilegedSids.Count == 0)
             {
                 return null;
             }
@@ -670,6 +828,13 @@ namespace winPEAS.Info.ApplicationInfo
             return value.Trim().Trim('"', '\'').Replace('/', '\\');
         }
 
+        private static string GetFileName(string path)
+        {
+            string candidate = CleanCandidatePath(path) ?? string.Empty;
+            int separator = Math.Max(candidate.LastIndexOf('\\'), candidate.LastIndexOf('/'));
+            return separator >= 0 ? candidate.Substring(separator + 1) : candidate;
+        }
+
         private static bool IsWindowsAbsolutePath(string path)
         {
             return !string.IsNullOrEmpty(path) &&
@@ -680,6 +845,62 @@ namespace winPEAS.Info.ApplicationInfo
         private static bool IsLocalAbsolutePath(string path)
         {
             return IsWindowsAbsolutePath(path) && !path.StartsWith(@"\\", StringComparison.Ordinal);
+        }
+
+        private static bool IsPathOnLocalDrive(string path)
+        {
+            if (!IsLocalAbsolutePath(path))
+            {
+                return false;
+            }
+
+            try
+            {
+                string root = Path.GetPathRoot(path);
+                return !string.IsNullOrEmpty(root) && IsAllowedDriveType(new DriveInfo(root).DriveType);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        internal static bool IsAllowedDriveType(DriveType driveType)
+        {
+            return driveType != DriveType.Network &&
+                driveType != DriveType.NoRootDirectory &&
+                driveType != DriveType.Unknown;
+        }
+
+        private static bool ShouldStop(PrivilegedScheduledTaskReport report)
+        {
+            if (report == null)
+            {
+                return true;
+            }
+
+            return ApplySafetyLimits(report, report.InspectionTimer.ElapsedMilliseconds);
+        }
+
+        internal static bool ApplySafetyLimits(PrivilegedScheduledTaskReport report, long elapsedMilliseconds)
+        {
+            if (report == null)
+            {
+                return true;
+            }
+
+            if (elapsedMilliseconds >= MaxInspectionMilliseconds)
+            {
+                report.TimeLimitReached = true;
+            }
+
+            if (report.TargetsInspected >= MaxTargets)
+            {
+                report.TargetLimitReached = true;
+            }
+
+            return report.FolderLimitReached || report.TaskLimitReached ||
+                report.TargetLimitReached || report.TimeLimitReached || report.FindingLimitReached;
         }
 
     }
