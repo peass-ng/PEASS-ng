@@ -9,7 +9,7 @@
 # Functions Used: print_3title, print_info
 # Global Variables: $E, $ROOT_FOLDER, $SED_GREEN, $SED_LIGHT_CYAN, $SED_RED_YELLOW, $SED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $nr48990_binary, $nr48990_codename, $nr48990_config, $nr48990_config_file, $nr48990_config_file_value, $nr48990_distro_id, $nr48990_dpkg_fixed, $nr48990_dpkg_record, $nr48990_full_version, $nr48990_interpscan, $nr48990_manager, $nr48990_os_release, $nr48990_root, $nr48990_rpm_record, $nr48990_status, $nr48990_ubuntu_codename, $nr48990_upstream_version
+# Generated Global Variables: $nr48990_binary, $nr48990_binary_candidate, $nr48990_codename, $nr48990_config, $nr48990_config_file, $nr48990_config_file_value, $nr48990_distro_id, $nr48990_dpkg_fixed, $nr48990_dpkg_record, $nr48990_full_version, $nr48990_interpscan, $nr48990_manager, $nr48990_os_release, $nr48990_root, $nr48990_rpm_record, $nr48990_status, $nr48990_ubuntu_codename, $nr48990_upstream_version
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -78,7 +78,17 @@ checkNeedrestartCVE202448990() {
     *) nr48990_root="${nr48990_root}/" ;;
   esac
 
-  nr48990_binary="$(command -v needrestart 2>/dev/null)"
+  nr48990_binary=""
+  if [ "$nr48990_root" = "/" ]; then
+    nr48990_binary="$(command -v needrestart 2>/dev/null)"
+  else
+    for nr48990_binary_candidate in usr/sbin/needrestart usr/bin/needrestart sbin/needrestart bin/needrestart; do
+      if [ -f "${nr48990_root}${nr48990_binary_candidate}" ]; then
+        nr48990_binary="${nr48990_root}${nr48990_binary_candidate}"
+        break
+      fi
+    done
+  fi
   nr48990_full_version=""
   nr48990_manager=""
   if command -v dpkg-query >/dev/null 2>&1; then
