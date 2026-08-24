@@ -4,6 +4,12 @@ on:
   workflow_run:
     workflows: ["PR-tests"]
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to review after an automated retest
+        required: true
+        type: string
 
 jobs:
   # NOTE: The windows-definitions bot PR is built, waited on and merged inline by
@@ -13,11 +19,12 @@ jobs:
   # emit a `workflow_run` event, so a job here could never reliably fire for it.
 
   chack_agent_triage:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
+      actions: write
     env:
       CHACK_LOGS_HTTP_URL: ${{ secrets.CHACK_LOGS_HTTP_URL }}
     outputs:
@@ -32,6 +39,10 @@ jobs:
       trusted_automerge: ${{ steps.gate.outputs.trusted_automerge }}
       trusted_automerge_reason: ${{ steps.gate.outputs.trusted_automerge_reason }}
       fix_pushed: ${{ steps.push_fix.outputs.pushed }}
+      retest_passed: ${{ steps.push_fix.outputs.retest_passed }}
+      retest_url: ${{ steps.push_fix.outputs.retest_url }}
+      retest_conclusion: ${{ steps.push_fix.outputs.retest_conclusion }}
+      validated_head_sha: ${{ steps.push_fix.outputs.validated_head_sha || steps.gate.outputs.head_sha }}
       decision: ${{ steps.parse.outputs.decision }}
       message: ${{ steps.parse.outputs.message }}
 
@@ -39,7 +50,7 @@ jobs:
       - name: Resolve PR context
         id: gate
         env:
-          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number || inputs.pr_number }}
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
@@ -193,6 +204,7 @@ jobs:
           PR_NUMBER: ${{ steps.gate.outputs.pr_number }}
           ORIGINAL_HEAD_SHA: ${{ steps.gate.outputs.head_sha }}
           PUSH_TOKEN: ${{ secrets.CODEX_FIXER_TOKEN }}
+          WORKFLOW_TOKEN: ${{ github.token }}
         run: |
           git config user.name "chack-agent"
           git config user.email "chack-agent@users.noreply.github.com"
@@ -224,8 +236,31 @@ jobs:
 
           git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${{ github.repository }}.git"
           git push origin "HEAD:${TARGET_BRANCH}"
-          GH_TOKEN="$PUSH_TOKEN" gh workflow run PR-tests.yml --ref "$TARGET_BRANCH"
+          echo "validated_head_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+          retest_url="$(GH_TOKEN="$WORKFLOW_TOKEN" gh workflow run PR-tests.yml --ref "$TARGET_BRANCH")"
+          retest_id="${retest_url##*/}"
+          echo "retest_url=$retest_url" >> "$GITHUB_OUTPUT"
+
+          retest_conclusion="timed_out"
+          for attempt in $(seq 1 180); do
+            run_state="$(GH_TOKEN="$WORKFLOW_TOKEN" gh run view "$retest_id" --json status,conclusion --jq '[.status, (.conclusion // "")] | @tsv' 2>/dev/null || true)"
+            status="${run_state%%$'\t'*}"
+            conclusion="${run_state#*$'\t'}"
+            if [ "$status" = "completed" ]; then
+              retest_conclusion="$conclusion"
+              break
+            fi
+            sleep 15
+          done
+
           echo "pushed=true" >> "$GITHUB_OUTPUT"
+          echo "retest_conclusion=$retest_conclusion" >> "$GITHUB_OUTPUT"
+          if [ "$retest_conclusion" = "success" ]; then
+            echo "retest_passed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "retest_passed=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Parse Chack Agent decision
         id: parse
@@ -259,18 +294,19 @@ jobs:
   merge_or_comment:
     runs-on: ubuntu-latest
     needs: chack_agent_triage
-    if: ${{ github.event.workflow_run.conclusion == 'success' && needs.chack_agent_triage.outputs.should_run == 'true' && needs.chack_agent_triage.outputs.fix_pushed != 'true' && (needs.chack_agent_triage.outputs.trusted_automerge == 'true' || needs.chack_agent_triage.outputs.decision != '') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success') && needs.chack_agent_triage.outputs.should_run == 'true' && (needs.chack_agent_triage.outputs.trusted_automerge == 'true' || needs.chack_agent_triage.outputs.decision != '') }}
     permissions:
       contents: write
       pull-requests: write
     steps:
       - name: Merge PR when approved
-        if: ${{ needs.chack_agent_triage.outputs.trusted_automerge == 'true' || needs.chack_agent_triage.outputs.decision == 'merge' }}
+        if: ${{ (needs.chack_agent_triage.outputs.fix_pushed != 'true' || needs.chack_agent_triage.outputs.retest_passed == 'true') && (needs.chack_agent_triage.outputs.trusted_automerge == 'true' || needs.chack_agent_triage.outputs.decision == 'merge') }}
         env:
           GH_TOKEN: ${{ secrets.CODEX_FIXER_TOKEN || github.token }}
           PR_NUMBER: ${{ needs.chack_agent_triage.outputs.pr_number }}
           TRUSTED_AUTOMERGE: ${{ needs.chack_agent_triage.outputs.trusted_automerge }}
           TRUSTED_AUTOMERGE_REASON: ${{ needs.chack_agent_triage.outputs.trusted_automerge_reason }}
+          VALIDATED_HEAD_SHA: ${{ needs.chack_agent_triage.outputs.validated_head_sha }}
         run: |
           if [ "$TRUSTED_AUTOMERGE" = "true" ]; then
             echo "Auto-merging trusted generated PR #${PR_NUMBER}: ${TRUSTED_AUTOMERGE_REASON}"
@@ -280,10 +316,11 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             /repos/${{ github.repository }}/pulls/${PR_NUMBER}/merge \
             -f merge_method=squash \
-            -f commit_title="Auto-merge PR #${PR_NUMBER} (Chack Agent)"
+            -f commit_title="Auto-merge PR #${PR_NUMBER} (Chack Agent)" \
+            -f sha="$VALIDATED_HEAD_SHA"
 
       - name: Comment with doubts
-        if: ${{ needs.chack_agent_triage.outputs.trusted_automerge != 'true' && needs.chack_agent_triage.outputs.decision == 'comment' }}
+        if: ${{ needs.chack_agent_triage.outputs.fix_pushed != 'true' && needs.chack_agent_triage.outputs.trusted_automerge != 'true' && needs.chack_agent_triage.outputs.decision == 'comment' }}
         uses: actions/github-script@v7
         env:
           PR_NUMBER: ${{ needs.chack_agent_triage.outputs.pr_number }}
@@ -296,4 +333,22 @@ jobs:
               repo: context.repo.repo,
               issue_number: Number(process.env.PR_NUMBER),
               body: process.env.CHACK_MESSAGE,
+            });
+
+      - name: Comment when a Chack fix does not pass the full retest
+        if: ${{ needs.chack_agent_triage.outputs.fix_pushed == 'true' && needs.chack_agent_triage.outputs.retest_passed != 'true' }}
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ needs.chack_agent_triage.outputs.pr_number }}
+          RETEST_URL: ${{ needs.chack_agent_triage.outputs.retest_url }}
+          RETEST_CONCLUSION: ${{ needs.chack_agent_triage.outputs.retest_conclusion }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const body = `Chack Agent applied a fix, but the full PR retest finished with \`${process.env.RETEST_CONCLUSION}\`. I could not validate this fix for merge.\n\nRetest: ${process.env.RETEST_URL}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(process.env.PR_NUMBER),
+              body,
             });

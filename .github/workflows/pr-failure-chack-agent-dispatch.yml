@@ -192,6 +192,7 @@ jobs:
           PR_NUMBER: ${{ needs.resolve_pr_context.outputs.number }}
           ORIGINAL_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           PUSH_TOKEN: ${{ secrets.CODEX_FIXER_TOKEN }}
+          WORKFLOW_TOKEN: ${{ github.token }}
         run: |
           rm -f chack_failure_summary.txt chack_prompt.txt
 
@@ -241,8 +242,37 @@ jobs:
             echo "pushed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          GH_TOKEN="$PUSH_TOKEN" gh workflow run PR-tests.yml --ref "$TARGET_BRANCH"
+
+          retest_url="$(GH_TOKEN="$WORKFLOW_TOKEN" gh workflow run PR-tests.yml --ref "$TARGET_BRANCH")"
+          retest_id="${retest_url##*/}"
+          echo "retest_url=$retest_url" >> "$GITHUB_OUTPUT"
+
+          retest_conclusion="timed_out"
+          for attempt in $(seq 1 180); do
+            run_state="$(GH_TOKEN="$WORKFLOW_TOKEN" gh run view "$retest_id" --json status,conclusion --jq '[.status, (.conclusion // "")] | @tsv' 2>/dev/null || true)"
+            status="${run_state%%$'\t'*}"
+            conclusion="${run_state#*$'\t'}"
+            if [ "$status" = "completed" ]; then
+              retest_conclusion="$conclusion"
+              break
+            fi
+            sleep 15
+          done
+
           echo "pushed=true" >> "$GITHUB_OUTPUT"
+          echo "retest_conclusion=$retest_conclusion" >> "$GITHUB_OUTPUT"
+          if [ "$retest_conclusion" = "success" ]; then
+            echo "retest_passed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "retest_passed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Dispatch Chack review after a successful retest
+        if: ${{ steps.push_fix.outputs.retest_passed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.resolve_pr_context.outputs.number }}
+        run: gh workflow run chack-agent-pr-triage.yml -f pr_number="$PR_NUMBER"
 
       - name: Comment only when Chack Agent could not produce a fix
         if: ${{ steps.push_fix.outputs.pushed != 'true' && steps.run_chack.outputs.final-message != '' }}
@@ -258,4 +288,22 @@ jobs:
               repo: context.repo.repo,
               issue_number: Number(process.env.PR_NUMBER),
               body: process.env.CHACK_MESSAGE,
+            });
+
+      - name: Comment when the Chack CI fix does not pass its retest
+        if: ${{ steps.push_fix.outputs.pushed == 'true' && steps.push_fix.outputs.retest_passed != 'true' }}
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ needs.resolve_pr_context.outputs.number }}
+          RETEST_URL: ${{ steps.push_fix.outputs.retest_url }}
+          RETEST_CONCLUSION: ${{ steps.push_fix.outputs.retest_conclusion }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const body = `Chack Agent applied a CI fix, but its full retest finished with \`${process.env.RETEST_CONCLUSION}\`. I could not validate this fix for review or merge.\n\nRetest: ${process.env.RETEST_URL}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(process.env.PR_NUMBER),
+              body,
             });
