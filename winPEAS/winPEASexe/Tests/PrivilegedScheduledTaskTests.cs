@@ -121,5 +121,20 @@ namespace winPEAS.Tests
                 "S-1-5-32-545",
                 PrivilegedScheduledTasks.FindDirectoryReplacementTrustee(replace, StandardUserSids));
         }
+
+        [TestMethod]
+        public void CombinesReplacementRightsAcrossTokenGroups()
+        {
+            var standardTokenSids = new HashSet<string>
+            {
+                "S-1-1-0",
+                "S-1-5-32-545",
+            };
+            var replace = new RawSecurityDescriptor("O:BAG:SYD:(A;;0x2;;;WD)(A;;0x40;;;BU)");
+
+            Assert.AreEqual(
+                "S-1-1-0 and S-1-5-32-545",
+                PrivilegedScheduledTasks.FindDirectoryReplacementTrustee(replace, standardTokenSids));
+        }
     }
 }

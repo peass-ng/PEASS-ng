@@ -633,17 +633,16 @@ namespace winPEAS.Info.ApplicationInfo
                 return controlTrustee;
             }
 
-            foreach (string sid in unprivilegedSids)
+            string createTrustee = FindWriteTrustee(descriptor, unprivilegedSids, FileWriteData);
+            string deleteTrustee = FindWriteTrustee(descriptor, unprivilegedSids, FileDeleteChild);
+            if (string.IsNullOrEmpty(createTrustee) || string.IsNullOrEmpty(deleteTrustee))
             {
-                var singleSid = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { sid };
-                if (!string.IsNullOrEmpty(FindWriteTrustee(descriptor, singleSid, FileWriteData)) &&
-                    !string.IsNullOrEmpty(FindWriteTrustee(descriptor, singleSid, FileDeleteChild)))
-                {
-                    return sid;
-                }
+                return null;
             }
 
-            return null;
+            return createTrustee.Equals(deleteTrustee, StringComparison.OrdinalIgnoreCase)
+                ? createTrustee
+                : createTrustee + " and " + deleteTrustee;
         }
 
         internal static string FindWriteTrustee(
