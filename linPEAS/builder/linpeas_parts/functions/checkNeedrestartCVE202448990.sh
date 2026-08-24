@@ -40,6 +40,7 @@ nr48990_fixed_dpkg_version() {
   case "$1:$2" in
     debian:bullseye|raspbian:bullseye) echo "3.5-4+deb11u4" ;;
     debian:bookworm|raspbian:bookworm) echo "3.6-4+deb12u2" ;;
+    debian:trixie|debian:forky|debian:sid) echo "3.7-3.1" ;;
     ubuntu:xenial) echo "2.6-1ubuntu0.1~esm1" ;;
     ubuntu:bionic) echo "3.1-1ubuntu0.1+esm1" ;;
     ubuntu:focal) echo "3.4-6ubuntu0.1+esm1" ;;

@@ -120,6 +120,18 @@ class NeedrestartCVE202448990Tests(unittest.TestCase):
         self.assertIn("is not vulnerable to CVE-2024-48990", result.stdout)
         self.assertNotIn("VULNERABLE to CVE-2024-48990", result.stdout)
 
+    def test_vendor_fixed_debian_backport_is_not_flagged(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = self._make_root(Path(tmpdir))
+            (root / "etc" / "os-release").write_text(
+                "ID=debian\nVERSION_CODENAME=trixie\n", encoding="utf-8"
+            )
+            result = self._run_check(root, "3.7-3.1")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("is not vulnerable to CVE-2024-48990", result.stdout)
+        self.assertNotIn("Potentially vulnerable to CVE-2024-48990", result.stdout)
+
     def test_removed_package_with_remaining_config_is_ignored(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = self._make_root(Path(tmpdir))
