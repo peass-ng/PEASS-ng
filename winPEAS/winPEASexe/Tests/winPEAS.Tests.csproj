@@ -99,6 +99,7 @@
   <ItemGroup>
     <Compile Include="ArgumentParsingTests.cs" />
     <Compile Include="RegistryHiveExposureTests.cs" />
+    <Compile Include="SccmNetworkAccessAccountTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SmokeTests.cs" />
   </ItemGroup>

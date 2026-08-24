@@ -8,6 +8,7 @@ using System.Xml;
 using winPEAS.Helpers;
 using winPEAS.Helpers.CredentialManager;
 using winPEAS.Helpers.Registry;
+using winPEAS.Info.WindowsCreds;
 using winPEAS.Info.WindowsCreds.AppCmd;
 using winPEAS.KnownFileCreds;
 using winPEAS.KnownFileCreds.Kerberos;
@@ -488,6 +489,9 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Enumerating SSCM - System Center Configuration Manager settings", "T1552.001");
+                Beaprint.LinkPrint(
+                    "https://specterops.io/blog/2022/06/28/the-phantom-credentials-of-sccm-why-the-naa-wont-die/",
+                    "Network Access Account policies place recoverable domain credential material on SCCM clients; prefer Enhanced HTTP and least privilege.");
 
                 var server = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\CCMSetup", "LastValidMP");
                 var siteCode = RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Microsoft\SMS\Mobile Client", "AssignedSiteCode");
@@ -500,6 +504,28 @@ namespace winPEAS.Checks
                                                  $"     Site code:                         {siteCode}\n" +
                                                  $"     Product version:                   {productVersion}\n" +
                                                  $"     Last Successful Install Params:    {lastSuccessfulInstallParams}\n");
+                }
+
+                SccmNetworkAccessAccountReport naaReport = SccmNetworkAccessAccount.GetReport();
+                switch (naaReport.Status)
+                {
+                    case SccmNetworkAccessAccountStatus.Configured:
+                        string count = naaReport.LimitReached
+                            ? $"{naaReport.AccountCount} or more"
+                            : naaReport.AccountCount.ToString();
+                        Beaprint.BadPrint($"     SCCM Network Access Account credential policies cached in WMI: {count}");
+                        Beaprint.GrayPrint("       Only non-secret instance metadata was queried; credential blobs were not read or displayed.");
+                        Beaprint.BadPrint("       A local administrator or SYSTEM can recover these domain credentials. Remove or disable unused accounts and review their rights.");
+                        break;
+                    case SccmNetworkAccessAccountStatus.NotConfigured:
+                        Beaprint.GoodPrint("     No active SCCM Network Access Account credential policy is exposed through WMI.");
+                        break;
+                    case SccmNetworkAccessAccountStatus.AccessDenied:
+                        Beaprint.GrayPrint("     SCCM policy WMI access was denied; an elevated context is required to determine whether Network Access Account credentials are cached.");
+                        break;
+                    default:
+                        Beaprint.GrayPrint("     SCCM Network Access Account policy could not be queried in the current environment.");
+                        break;
                 }
             }
             catch (Exception ex)
