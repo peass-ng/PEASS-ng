@@ -224,6 +224,7 @@ jobs:
 
           git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${{ github.repository }}.git"
           git push origin "HEAD:${TARGET_BRANCH}"
+          GH_TOKEN="$PUSH_TOKEN" gh workflow run PR-tests.yml --ref "$TARGET_BRANCH"
           echo "pushed=true" >> "$GITHUB_OUTPUT"
 
       - name: Parse Chack Agent decision

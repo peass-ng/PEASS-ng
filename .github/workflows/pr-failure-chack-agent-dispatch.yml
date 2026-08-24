@@ -191,6 +191,7 @@ jobs:
           TARGET_BRANCH: ${{ needs.resolve_pr_context.outputs.head_branch }}
           PR_NUMBER: ${{ needs.resolve_pr_context.outputs.number }}
           ORIGINAL_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          PUSH_TOKEN: ${{ secrets.CODEX_FIXER_TOKEN }}
         run: |
           rm -f chack_failure_summary.txt chack_prompt.txt
 
@@ -230,11 +231,17 @@ jobs:
             exit 0
           fi
 
+          if [ -z "$PUSH_TOKEN" ]; then
+            echo "CODEX_FIXER_TOKEN is required to push and retest Chack Agent fixes."
+            exit 1
+          fi
+
           if ! git push origin HEAD:${TARGET_BRANCH}; then
             echo "Push failed (likely token workflow permission limits); leaving run successful without push."
             echo "pushed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          GH_TOKEN="$PUSH_TOKEN" gh workflow run PR-tests.yml --ref "$TARGET_BRANCH"
           echo "pushed=true" >> "$GITHUB_OUTPUT"
 
       - name: Comment only when Chack Agent could not produce a fix
