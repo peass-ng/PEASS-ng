@@ -211,7 +211,7 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Saved RDP connections", "T1552.002");
 
-                List<Dictionary<string, string>> rdps_info = RemoteDesktop.GetSavedRDPConnections();
+                List<Dictionary<string, string>> rdps_info = KnownFileCreds.RemoteDesktop.GetSavedRDPConnections();
                 if (rdps_info.Count > 0)
                     Beaprint.NoColorPrint(string.Format("    {0,-20}{1,-55}{2}", "Host", "Username Hint", "User SID"));
                 else
@@ -302,7 +302,7 @@ namespace winPEAS.Checks
                     "Checking for RDCMan Settings Files",
                     "T1552.001",
                     RdcManLink,
-                    RemoteDesktop.GetRDCManFiles,
+                    KnownFileCreds.RemoteDesktop.GetRDCManFiles,
                     linkComment: "Dump credentials from Remote Desktop Connection Manager");
 
                 if (rdcFiles.Count > 0)
