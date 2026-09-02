@@ -23,14 +23,28 @@ def parse_json(json_data: dict) -> str:
         i = i + 1
         for key1, value1 in value.items():
 
-            if type(value1) == list:
+            if key1 == "infos":
+                body += "<i>" + parse_infos(value1) + "</i>"
+            elif type(value1) == list:
                 body += parse_list(value1)
 
-            if type(value1) == dict:
+            elif type(value1) == dict:
                 body += parse_dict(value1)
         body += "\t\t\t</div>\n"
 
     return body
+
+
+def parse_infos(json_infos: list) -> str:
+    """Parse the given list of info strings from the given json adding them to the HTML file"""
+
+    infos = []
+    for info in json_infos:
+        if info.startswith("http"):
+            infos.append(f"<a href='{html.escape(info)}'>{html.escape(info)}</a><br>\n")
+        else:
+            infos.append(html.escape(str(info)) + "<br>\n")
+    return "".join(infos)
 
 
 def parse_dict(json_dict: dict) -> str:
@@ -39,19 +53,12 @@ def parse_dict(json_dict: dict) -> str:
     dict_text = ""
     for key, value in json_dict.items():
         n = next(_section_ids)
-        infos = []
-        for info in value["infos"]:
-            if info.startswith("http"):
-                infos.append(f"<a href='{html.escape(info)}'>{html.escape(info)}</a><br>\n")
-            else:
-                infos.append(html.escape(str(info)) + "<br>\n")
-
         dict_text += (
             f'\t\t<button type="button" class="btn1" data-toggle="collapse" data-target="#lines{n}">'
             + html.escape(key)
             + "</button><br>\n"
         )
-        dict_text += "<i>" + "".join(infos) + "</i>"
+        dict_text += "<i>" + parse_infos(value["infos"]) + "</i>"
         dict_text += f'<div id="lines{n}" class="collapse1">\n'
 
         if value["lines"]:
