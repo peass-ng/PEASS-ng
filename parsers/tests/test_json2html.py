@@ -78,6 +78,39 @@ class Json2HtmlTests(unittest.TestCase):
         self.assertEqual(first.count('id="lines1"'), 1)
         self.assertNotIn('id="lines0"', first)
 
+    def test_top_level_infos_are_rendered(self):
+        """Main sections carry infos in real linpeas output (╚ reference links) and
+        must be rendered instead of being passed to parse_list as line objects."""
+        data = {
+            "Users Info": {
+                "sections": {},
+                "lines": [
+                    {
+                        "raw_text": "user1:x:1000:1000::/home/user1:/bin/bash",
+                        "clean_text": "user1:x:1000:1000::/home/user1:/bin/bash",
+                        "colors": {},
+                    }
+                ],
+                "infos": ["https://book.hacktricks.xyz/privilege-escalation?x=1&y=2"],
+            },
+        }
+        html = self._render(data)
+        self.assertIn("https://book.hacktricks.xyz/privilege-escalation?x=1&amp;y=2", html)
+        self.assertNotIn("https://book.hacktricks.xyz/privilege-escalation?x=1&y=2", html)
+
+    def test_infos_with_markup_are_escaped_everywhere(self):
+        data = {
+            "Users Info": {
+                "sections": {},
+                "lines": [],
+                "infos": ["run <script>alert(1)</script> now"],
+            },
+        }
+        html = self._render(data)
+        self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", html)
+        self.assertNotIn("<script>alert(1)</script>", html)
+
+
     def test_divs_are_balanced(self):
         html = self._render(SAMPLE_JSON)
         self.assertEqual(html.count("<div"), html.count("</div>"))
