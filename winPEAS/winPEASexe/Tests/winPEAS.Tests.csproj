@@ -103,6 +103,7 @@
     <Compile Include="SccmNetworkAccessAccountTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SmokeTests.cs" />
+    <Compile Include="WritableServiceDllTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
