@@ -86,11 +86,19 @@ def build_main_section(section, title, level=1):
     # Print info if any
     if show_section and has_links:
         for info in section["infos"]:
-            words = info.split() 
+            words = info.split()
             # Join all lines and encode any links that might be present.
-            words = map(lambda word: f'<a href="{word}" color="blue">{word}</a>' if "http" in word else word, words)
+            # Every word must be escaped before it reaches the Paragraph,
+            # reportlab parses the text as mini-HTML and unescaped angle
+            # brackets or quotes from the scanned output break the document.
+            words = map(
+                lambda word: f'<a href="{html.escape(word)}" color="blue">{html.escape(word)}</a>'
+                if "http" in word
+                else html.escape(word),
+                words,
+            )
             words = " ".join(words)
-            elements.append(Paragraph(words, style=styles["info"] ))
+            elements.append(Paragraph(words, style=styles["info"]))
 
   # Print lines if any
     if "lines" in section.keys() and len(section["lines"]) > 1:

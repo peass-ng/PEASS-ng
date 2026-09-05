@@ -61,7 +61,7 @@ def get_colors(line: str) -> dict:
                 # For each potential color, find the string before any possible color terminatio
                 for potential_color_str in split_color:
                     color_str1 = potential_color_str.split('\x1b')[0]
-                    color_str2 = potential_color_str.split("\[0")[0]
+                    color_str2 = potential_color_str.split('\x1b[0')[0]
                     color_str = color_str1 if len(color_str1) < len(color_str2) else color_str2
 
                     if color_str:
