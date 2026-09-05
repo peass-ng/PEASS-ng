@@ -2,7 +2,7 @@
 # ID: SY_Mounts
 # Author: Carlos Polop
 # Last Update: 07-03-2024
-# Description: Check for mount point misconfigurations that could lead to privilege escalation:
+# Description: Check for mount point misconfigurations that could lead to privilege escalation and udisks2 CVE-2026-7867 exposure:
 #   - Unmounted filesystems
 #   - Mount point permissions
 #   - Mount options
@@ -24,15 +24,19 @@
 #       - Mount option exploitation
 #       - Shared mount abuse
 # License: GNU GPL
-# Version: 1.0
-# Mitre: T1082,T1120
-# Functions Used: print_2title, print_info
-# Global Variables: $DEBUG, $mountG, $mountpermsB, $mountpermsG, $notmounted, $Wfolders, $mounted
+# Version: 1.1
+# Mitre: T1068,T1082,T1120
+# Functions Used: checkUDisksCVE20267867, print_2title, print_info
+# Global Variables: $DEBUG, $SEARCH_IN_FOLDER, $mountG, $mountpermsB, $mountpermsG, $notmounted, $Wfolders, $mounted
 # Initial Functions:
 # Generated Global Variables:
 # Fat linpeas: 0
 # Small linpeas: 1
 
+
+if ! [ "$SEARCH_IN_FOLDER" ]; then
+    checkUDisksCVE20267867
+fi
 
 if [ -f "/etc/fstab" ] || [ "$DEBUG" ]; then
     print_2title "Unmounted file-system?" "T1082,T1120"
