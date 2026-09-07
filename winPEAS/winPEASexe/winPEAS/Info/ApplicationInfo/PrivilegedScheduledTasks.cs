@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security.AccessControl;
-using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
+using winPEAS.Helpers;
 using winPEAS.TaskScheduler;
 using ScheduledTask = winPEAS.TaskScheduler.Task;
 using TaskAction = winPEAS.TaskScheduler.Action;
@@ -91,7 +91,7 @@ namespace winPEAS.Info.ApplicationInfo
         public static PrivilegedScheduledTaskReport GetReport()
         {
             var report = new PrivilegedScheduledTaskReport();
-            HashSet<string> unprivilegedSids = GetUnprivilegedTokenSids();
+            HashSet<string> unprivilegedSids = PermissionsHelper.GetUnprivilegedTokenSids();
 
             try
             {
@@ -734,58 +734,6 @@ namespace winPEAS.Info.ApplicationInfo
             return binaryDescriptor == null || binaryDescriptor.Length == 0
                 ? null
                 : new RawSecurityDescriptor(binaryDescriptor, 0);
-        }
-
-        private static HashSet<string> GetUnprivilegedTokenSids()
-        {
-            var sids = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "S-1-1-0",      // Everyone
-                "S-1-5-4",      // Interactive
-                "S-1-5-11",     // Authenticated Users
-                "S-1-5-32-545", // BUILTIN\Users
-            };
-
-            try
-            {
-                using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
-                {
-                    var principal = new WindowsPrincipal(identity);
-                    var administratorsSid = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
-                    bool privileged = principal.IsInRole(administratorsSid) ||
-                        (identity.User != null && IsPrivilegedServiceSid(identity.User.Value));
-                    if (!privileged && identity.User != null)
-                    {
-                        sids.Add(identity.User.Value);
-                    }
-
-                    if (identity.Groups != null)
-                    {
-                        foreach (IdentityReference group in identity.Groups)
-                        {
-                            var sid = group as SecurityIdentifier;
-                            if (sid != null && principal.IsInRole(sid) && !sid.Equals(administratorsSid) &&
-                                !IsPrivilegedServiceSid(sid.Value))
-                            {
-                                sids.Add(sid.Value);
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                // Well-known low-privilege principals still provide useful configuration auditing.
-            }
-
-            return sids;
-        }
-
-        private static bool IsPrivilegedServiceSid(string sid)
-        {
-            return string.Equals(sid, "S-1-5-18", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(sid, "S-1-5-19", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(sid, "S-1-5-20", StringComparison.OrdinalIgnoreCase);
         }
 
         private static string GetAccessPath(string displayPath)
