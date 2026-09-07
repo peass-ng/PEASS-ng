@@ -38,6 +38,7 @@ namespace winPEAS.Checks
                 PrintModifiableServices,
                 PrintWritableRegServices,
                 PrintWritableSystemServiceDlls,
+                PrintWritableSystemRecoveryCommands,
                 PrintPathDllHijacking,
                 PrintOemPrivilegedUtilities,
                 PrintLegacySignedKernelDrivers,
@@ -220,6 +221,50 @@ namespace winPEAS.Checks
                 if (report.FindingLimitReached)
                 {
                     Beaprint.GrayPrint($"    Findings were capped at {ServicesInfoHelper.MaxServiceDllFindings}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        void PrintWritableSystemRecoveryCommands()
+        {
+            try
+            {
+                Beaprint.MainPrint("Writable LocalSystem service recovery command targets", "T1543.003");
+                Beaprint.LinkPrint(
+                    "https://learn.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_failure_actionsw",
+                    "A replaceable target used by an SC_ACTION_RUN_COMMAND recovery action executes under the service account when recovery fires.");
+
+                WritableServiceRecoveryCommandReport report =
+                    ServicesInfoHelper.GetWritableSystemRecoveryCommands(Checks.CurrentUserSiDs);
+                if (report.Findings.Count == 0)
+                {
+                    Beaprint.GoodPrint($"    No replaceable recovery command targets found in {report.ServicesInspected} inspected service(s).");
+                }
+
+                foreach (WritableServiceRecoveryCommandInfo finding in report.Findings)
+                {
+                    Beaprint.BadPrint($"    {finding.ServiceName} ({finding.Account})");
+                    Beaprint.NoColorPrint($"      Target exists : {finding.TargetExists}");
+                    Beaprint.NoColorPrint($"      Target path   : {finding.TargetPath}");
+                    Beaprint.BadPrint($"      Evidence      : {finding.AccessReason}");
+                    Beaprint.PrintLineSeparator();
+                }
+
+                if (report.Findings.Count > 0)
+                {
+                    Beaprint.GrayPrint("    Recovery actions run only after a qualifying service failure; this check does not stop, start, or crash services.");
+                }
+                if (report.ServiceLimitReached)
+                {
+                    Beaprint.GrayPrint($"    Service inspection stopped at the safety limit of {ServicesInfoHelper.MaxRecoveryCommandServices}.");
+                }
+                if (report.FindingLimitReached)
+                {
+                    Beaprint.GrayPrint($"    Findings were capped at {ServicesInfoHelper.MaxRecoveryCommandFindings}.");
                 }
             }
             catch (Exception ex)

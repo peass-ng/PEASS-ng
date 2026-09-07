@@ -15,6 +15,7 @@ using System.ServiceProcess;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
+using winPEAS.Info.ApplicationInfo;
 using winPEAS.Native;
 
 namespace winPEAS.Info.ServicesInfo
@@ -36,14 +37,40 @@ namespace winPEAS.Info.ServicesInfo
         public bool FindingLimitReached { get; set; }
     }
 
+    internal sealed class WritableServiceRecoveryCommandInfo
+    {
+        public string ServiceName { get; set; }
+        public string Account { get; set; }
+        public string TargetPath { get; set; }
+        public bool TargetExists { get; set; }
+        public string AccessReason { get; set; }
+    }
+
+    internal sealed class WritableServiceRecoveryCommandReport
+    {
+        public List<WritableServiceRecoveryCommandInfo> Findings { get; } = new List<WritableServiceRecoveryCommandInfo>();
+        public int ServicesInspected { get; set; }
+        public bool ServiceLimitReached { get; set; }
+        public bool FindingLimitReached { get; set; }
+    }
+
     class ServicesInfoHelper
     {
         internal const int MaxServiceDllServices = 4096;
         internal const int MaxServiceDllFindings = 64;
+        internal const int MaxRecoveryCommandServices = 4096;
+        internal const int MaxRecoveryCommandFindings = 64;
 
+        private const int ServiceWin32OwnProcess = 0x10;
         private const int ServiceWin32ShareProcess = 0x20;
         private const int ServiceWin32TypeMask = 0x30;
         private const int ServiceDisabled = 0x4;
+        private const uint ScManagerConnect = 0x0001;
+        private const uint ServiceQueryConfig = 0x0001;
+        private const uint ServiceConfigFailureActions = 2;
+        private const int ScActionRunCommand = 3;
+        private const uint ErrorInsufficientBuffer = 122;
+        private const uint MaxServiceConfigBuffer = 8192;
         private const int FileWriteData = 0x00000002;
         private const int FileAddFile = 0x00000002;
         private const int FileDeleteChild = 0x00000040;
@@ -58,6 +85,23 @@ namespace winPEAS.Info.ServicesInfo
         private const int GenericExecute = 0x20000000;
         private const int GenericWrite = 0x40000000;
         private const int GenericRead = unchecked((int)0x80000000);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ServiceFailureActions
+        {
+            public uint ResetPeriod;
+            public IntPtr RebootMessage;
+            public IntPtr Command;
+            public uint ActionCount;
+            public IntPtr Actions;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ServiceFailureAction
+        {
+            public int Type;
+            public uint Delay;
+        }
 
         ///////////////////////////////////////////////
         //// Non Standard Services (Non Microsoft) ////
@@ -577,6 +621,373 @@ namespace winPEAS.Info.ServicesInfo
                    normalized.Equals(@"NT AUTHORITY\LocalSystem", StringComparison.OrdinalIgnoreCase);
         }
 
+        //////////////////////////////////////////////////////
+        ////// Writable LocalSystem recovery commands ////////
+        //////////////////////////////////////////////////////
+        public static WritableServiceRecoveryCommandReport GetWritableSystemRecoveryCommands(
+            Dictionary<string, string> currentUserSids)
+        {
+            var report = new WritableServiceRecoveryCommandReport();
+            if (currentUserSids == null || currentUserSids.Count == 0)
+            {
+                return report;
+            }
+
+            string windowsDirectory = Environment.GetEnvironmentVariable("SystemRoot");
+            if (string.IsNullOrWhiteSpace(windowsDirectory))
+            {
+                windowsDirectory = Environment.GetEnvironmentVariable("windir");
+            }
+            if (string.IsNullOrWhiteSpace(windowsDirectory))
+            {
+                return report;
+            }
+
+            var tokenSids = new HashSet<string>(currentUserSids.Keys, StringComparer.OrdinalIgnoreCase);
+            IntPtr serviceManager = IntPtr.Zero;
+            try
+            {
+                serviceManager = Advapi32.OpenSCManager(null, null, ScManagerConnect);
+                if (serviceManager == IntPtr.Zero)
+                {
+                    return report;
+                }
+
+                using (RegistryKey servicesKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services"))
+                {
+                    if (servicesKey == null)
+                    {
+                        return report;
+                    }
+
+                    foreach (string serviceName in servicesKey.GetSubKeyNames())
+                    {
+                        if (report.ServicesInspected >= MaxRecoveryCommandServices)
+                        {
+                            report.ServiceLimitReached = true;
+                            break;
+                        }
+                        if (report.Findings.Count >= MaxRecoveryCommandFindings)
+                        {
+                            report.FindingLimitReached = true;
+                            break;
+                        }
+
+                        report.ServicesInspected++;
+                        try
+                        {
+                            using (RegistryKey serviceKey = servicesKey.OpenSubKey(serviceName))
+                            {
+                                if (serviceKey == null || !IsEligibleRecoveryService(
+                                    GetRegistryInt(serviceKey, "Type"),
+                                    GetRegistryInt(serviceKey, "Start"),
+                                    GetRegistryInt(serviceKey, "LaunchProtected"),
+                                    GetRegistryString(serviceKey, "ObjectName")))
+                                {
+                                    continue;
+                                }
+
+                                string command = GetRegistryString(serviceKey, "FailureCommand");
+                                if (string.IsNullOrWhiteSpace(command) || command.Length > 32767 ||
+                                    !HasRunCommandFailureAction(serviceManager, serviceName))
+                                {
+                                    continue;
+                                }
+
+                                foreach (string target in GetRecoveryCommandTargets(command, windowsDirectory))
+                                {
+                                    if (report.Findings.Count >= MaxRecoveryCommandFindings)
+                                    {
+                                        report.FindingLimitReached = true;
+                                        break;
+                                    }
+
+                                    string accessPath = GetFileSystemAccessPath(
+                                        target,
+                                        windowsDirectory,
+                                        Environment.Is64BitOperatingSystem,
+                                        Environment.Is64BitProcess);
+                                    if (string.IsNullOrWhiteSpace(accessPath) || !IsLocalDrivePath(accessPath))
+                                    {
+                                        continue;
+                                    }
+
+                                    bool targetExists = File.Exists(accessPath);
+                                    string directoryPath = Path.GetDirectoryName(accessPath);
+                                    if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
+                                    {
+                                        continue;
+                                    }
+
+                                    RawSecurityDescriptor targetSecurity = targetExists
+                                        ? GetSecurityDescriptor(accessPath, false)
+                                        : null;
+                                    RawSecurityDescriptor directorySecurity = GetSecurityDescriptor(directoryPath, true);
+                                    string accessReason = GetTargetReplacementReason(
+                                        targetSecurity,
+                                        directorySecurity,
+                                        targetExists,
+                                        tokenSids,
+                                        "recovery command target");
+                                    if (string.IsNullOrEmpty(accessReason))
+                                    {
+                                        continue;
+                                    }
+
+                                    report.Findings.Add(new WritableServiceRecoveryCommandInfo
+                                    {
+                                        ServiceName = serviceName,
+                                        Account = GetDisplayAccount(GetRegistryString(serviceKey, "ObjectName")),
+                                        TargetPath = target,
+                                        TargetExists = targetExists,
+                                        AccessReason = accessReason,
+                                    });
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // A malformed or inaccessible service entry must not stop enumeration.
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Service configuration or registry enumeration may be restricted.
+            }
+            finally
+            {
+                if (serviceManager != IntPtr.Zero)
+                {
+                    Advapi32.CloseServiceHandle(serviceManager);
+                }
+            }
+
+            return report;
+        }
+
+        internal static bool IsEligibleRecoveryService(
+            int? serviceType,
+            int? startType,
+            int? launchProtected,
+            string account)
+        {
+            if (!serviceType.HasValue || !startType.HasValue ||
+                startType.Value == ServiceDisabled ||
+                (launchProtected.HasValue && launchProtected.Value != 0) ||
+                !IsLocalSystemAccount(account))
+            {
+                return false;
+            }
+
+            int win32Type = serviceType.Value & ServiceWin32TypeMask;
+            return win32Type == ServiceWin32OwnProcess || win32Type == ServiceWin32ShareProcess;
+        }
+
+        internal static List<string> GetRecoveryCommandTargets(string rawCommand, string windowsDirectory)
+        {
+            var targets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string executable;
+            string arguments;
+            if (!TryParseRecoveryCommand(rawCommand, windowsDirectory, out executable, out arguments))
+            {
+                return new List<string>();
+            }
+
+            targets.Add(executable);
+            foreach (string referencedPath in PrivilegedScheduledTasks.ExtractReferencedFilePaths(
+                executable,
+                arguments,
+                windowsDirectory.TrimEnd('\\', '/') + @"\System32"))
+            {
+                if (targets.Count >= 8)
+                {
+                    break;
+                }
+                targets.Add(referencedPath);
+            }
+
+            return new List<string>(targets);
+        }
+
+        internal static bool TryParseRecoveryCommand(
+            string rawCommand,
+            string windowsDirectory,
+            out string executable,
+            out string arguments)
+        {
+            executable = string.Empty;
+            arguments = string.Empty;
+            if (string.IsNullOrWhiteSpace(rawCommand) || string.IsNullOrWhiteSpace(windowsDirectory))
+            {
+                return false;
+            }
+
+            string command = ExpandWindowsPath(rawCommand, windowsDirectory);
+            if (string.IsNullOrWhiteSpace(command) || command.IndexOf('%') >= 0 || command.Length > 32767)
+            {
+                return false;
+            }
+            command = command.Trim();
+
+            int argumentOffset;
+            if (command[0] == '"')
+            {
+                int closingQuote = command.IndexOf('"', 1);
+                if (closingQuote <= 1)
+                {
+                    return false;
+                }
+                executable = command.Substring(1, closingQuote - 1).Trim();
+                argumentOffset = closingQuote + 1;
+            }
+            else
+            {
+                bool startsWithAbsolutePath = command.Length >= 3 &&
+                    char.IsLetter(command[0]) && command[1] == ':' &&
+                    (command[2] == '\\' || command[2] == '/');
+                int whitespace = command.IndexOfAny(new[] { ' ', '\t', '\r', '\n' });
+                int extension = command.IndexOf(".exe", StringComparison.OrdinalIgnoreCase);
+                if (!startsWithAbsolutePath && whitespace >= 0 && extension > whitespace)
+                {
+                    extension = -1;
+                }
+                if (extension >= 0)
+                {
+                    argumentOffset = extension + 4;
+                    executable = command.Substring(0, argumentOffset).Trim();
+                }
+                else
+                {
+                    argumentOffset = whitespace < 0 ? command.Length : whitespace;
+                    executable = command.Substring(0, argumentOffset).Trim();
+                }
+            }
+
+            executable = NormalizeRecoveryExecutable(executable, windowsDirectory);
+            if (string.IsNullOrWhiteSpace(executable) || executable.Length > 32767 ||
+                executable.IndexOf('%') >= 0 || !IsAbsoluteLocalPathSyntax(executable))
+            {
+                executable = string.Empty;
+                return false;
+            }
+
+            arguments = argumentOffset < command.Length
+                ? command.Substring(argumentOffset).Trim()
+                : string.Empty;
+            return true;
+        }
+
+        private static string NormalizeRecoveryExecutable(string executable, string windowsDirectory)
+        {
+            string normalized = StripWin32DevicePrefix(executable.Trim()).Replace('/', '\\');
+            if (normalized.IndexOf('\\') < 0 && normalized.IndexOf(':') < 0)
+            {
+                if (normalized.IndexOf('.') < 0)
+                {
+                    normalized += ".exe";
+                }
+                normalized = windowsDirectory.TrimEnd('\\', '/') + @"\System32\" + normalized;
+            }
+            return StripWin32DevicePrefix(normalized);
+        }
+
+        private static bool IsAbsoluteLocalPathSyntax(string path)
+        {
+            return !string.IsNullOrWhiteSpace(path) && path.Length >= 3 &&
+                   char.IsLetter(path[0]) && path[1] == ':' &&
+                   (path[2] == '\\' || path[2] == '/');
+        }
+
+        private static bool HasRunCommandFailureAction(IntPtr serviceManager, string serviceName)
+        {
+            IntPtr service = IntPtr.Zero;
+            IntPtr buffer = IntPtr.Zero;
+            try
+            {
+                service = Advapi32.OpenService(serviceManager, serviceName, ServiceQueryConfig);
+                if (service == IntPtr.Zero)
+                {
+                    return false;
+                }
+
+                uint bytesNeeded;
+                bool initialResult = Advapi32.QueryServiceConfig2(
+                    service,
+                    ServiceConfigFailureActions,
+                    IntPtr.Zero,
+                    0,
+                    out bytesNeeded);
+                if (initialResult || (uint)Marshal.GetLastWin32Error() != ErrorInsufficientBuffer ||
+                    bytesNeeded < Marshal.SizeOf(typeof(ServiceFailureActions)) ||
+                    bytesNeeded > MaxServiceConfigBuffer)
+                {
+                    return false;
+                }
+
+                uint bufferSize = bytesNeeded;
+                buffer = Marshal.AllocHGlobal((int)bufferSize);
+                if (!Advapi32.QueryServiceConfig2(
+                    service,
+                    ServiceConfigFailureActions,
+                    buffer,
+                    bufferSize,
+                    out bytesNeeded) || bytesNeeded > bufferSize)
+                {
+                    return false;
+                }
+
+                var failureActions = (ServiceFailureActions)Marshal.PtrToStructure(
+                    buffer,
+                    typeof(ServiceFailureActions));
+                if (failureActions.ActionCount == 0 || failureActions.ActionCount > 64 ||
+                    failureActions.Actions == IntPtr.Zero)
+                {
+                    return false;
+                }
+
+                int actionSize = Marshal.SizeOf(typeof(ServiceFailureAction));
+                long bufferStart = buffer.ToInt64();
+                long bufferEnd = bufferStart + bufferSize;
+                long actionsStart = failureActions.Actions.ToInt64();
+                long actionsLength = (long)failureActions.ActionCount * actionSize;
+                if (actionsStart < bufferStart || actionsStart > bufferEnd - actionsLength)
+                {
+                    return false;
+                }
+
+                for (uint index = 0; index < failureActions.ActionCount; index++)
+                {
+                    IntPtr actionPointer = new IntPtr(actionsStart + (long)index * actionSize);
+                    var action = (ServiceFailureAction)Marshal.PtrToStructure(
+                        actionPointer,
+                        typeof(ServiceFailureAction));
+                    if (action.Type == ScActionRunCommand)
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+                // Inaccessible or malformed service configuration is not a finding.
+            }
+            finally
+            {
+                if (buffer != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(buffer);
+                }
+                if (service != IntPtr.Zero)
+                {
+                    Advapi32.CloseServiceHandle(service);
+                }
+            }
+
+            return false;
+        }
+
         internal static bool IsSystemSvchostImage(string rawImagePath, string windowsDirectory)
         {
             if (string.IsNullOrWhiteSpace(rawImagePath) || string.IsNullOrWhiteSpace(windowsDirectory))
@@ -660,6 +1071,21 @@ namespace winPEAS.Info.ServicesInfo
             bool fileExists,
             ISet<string> tokenSids)
         {
+            return GetTargetReplacementReason(
+                fileSecurity,
+                directorySecurity,
+                fileExists,
+                tokenSids,
+                "service DLL");
+        }
+
+        private static string GetTargetReplacementReason(
+            RawSecurityDescriptor fileSecurity,
+            RawSecurityDescriptor directorySecurity,
+            bool fileExists,
+            ISet<string> tokenSids,
+            string targetDescription)
+        {
             if (directorySecurity == null || tokenSids == null || tokenSids.Count == 0)
             {
                 return string.Empty;
@@ -671,24 +1097,24 @@ namespace winPEAS.Info.ServicesInfo
             {
                 if (HasEffectiveAccess(directorySecurity, tokenSids, FileAddFile))
                 {
-                    return "FILE_ADD_FILE on the parent directory can plant the missing service DLL";
+                    return "FILE_ADD_FILE on the parent directory can plant the missing " + targetDescription;
                 }
                 if (canControlDirectory)
                 {
-                    return "WRITE_DAC or WRITE_OWNER on the parent directory can grant DLL creation rights";
+                    return "WRITE_DAC or WRITE_OWNER on the parent directory can grant target creation rights";
                 }
                 return string.Empty;
             }
 
             if (fileSecurity != null && HasEffectiveAccess(fileSecurity, tokenSids, FileWriteData))
             {
-                return "FILE_WRITE_DATA is granted on the configured service DLL";
+                return "FILE_WRITE_DATA is granted on the configured " + targetDescription;
             }
             if (fileSecurity != null &&
                 (HasEffectiveAccess(fileSecurity, tokenSids, WriteDac) ||
                  HasEffectiveAccess(fileSecurity, tokenSids, WriteOwner)))
             {
-                return "WRITE_DAC or WRITE_OWNER on the service DLL can grant overwrite rights";
+                return "WRITE_DAC or WRITE_OWNER on the " + targetDescription + " can grant overwrite rights";
             }
             if (canControlDirectory)
             {
@@ -698,11 +1124,11 @@ namespace winPEAS.Info.ServicesInfo
             bool canCreate = HasEffectiveAccess(directorySecurity, tokenSids, FileAddFile);
             if (canCreate && HasEffectiveAccess(directorySecurity, tokenSids, FileDeleteChild))
             {
-                return "FILE_ADD_FILE and FILE_DELETE_CHILD on the parent directory permit DLL replacement";
+                return "FILE_ADD_FILE and FILE_DELETE_CHILD on the parent directory permit target replacement";
             }
             if (canCreate && fileSecurity != null && HasEffectiveAccess(fileSecurity, tokenSids, Delete))
             {
-                return "DELETE on the DLL plus FILE_ADD_FILE on its parent permit DLL replacement";
+                return "DELETE on the target plus FILE_ADD_FILE on its parent permit replacement";
             }
 
             return string.Empty;
