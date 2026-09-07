@@ -97,6 +97,26 @@ jobs:
                 trusted_automerge=true
                 trusted_automerge_reason="trusted HackTricks-Feed winPEAS autoimprover PR"
                 ;;
+              wordlist-updater/linpeas/[0-9]*:"wordlist-updater: refresh linpeas vulnerability lists")
+                trusted_automerge=true
+                trusted_automerge_reason="trusted HackTricks-Feed linPEAS wordlist updater PR"
+                ;;
+              new-check/linpeas/[0-9]*-[0-9]*:"new-check(linpeas): add high-impact vulnerability detection")
+                trusted_automerge=true
+                trusted_automerge_reason="trusted HackTricks-Feed linPEAS new-check PR"
+                ;;
+              new-check/winpeas/[0-9]*-[0-9]*:"new-check(winpeas): add high-impact vulnerability detection")
+                trusted_automerge=true
+                trusted_automerge_reason="trusted HackTricks-Feed winPEAS new-check PR"
+                ;;
+              peass_linpeas_*:"[LINPEAS] Add privilege escalation check: "*)
+                trusted_automerge=true
+                trusted_automerge_reason="trusted HackTricks-Feed news-derived linPEAS PR"
+                ;;
+              peass_winpeas_*:"[WINPEAS] Add privilege escalation check: "*)
+                trusted_automerge=true
+                trusted_automerge_reason="trusted HackTricks-Feed news-derived winPEAS PR"
+                ;;
             esac
           fi
 
