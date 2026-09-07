@@ -18,6 +18,8 @@ class NeedrestartCVE202448990Tests(unittest.TestCase):
             / "functions"
             / "checkNeedrestartCVE202448990.sh"
         )
+        cls.extract_version_helper = cls.function_file.parent / "lp_extract_upstream_version.sh"
+        cls.version_lt_helper = cls.function_file.parent / "lp_version_lt.sh"
 
     def _make_root(self, base, main_value=None, snippet_value=None):
         root = base / "root"
@@ -88,6 +90,8 @@ class NeedrestartCVE202448990Tests(unittest.TestCase):
                 "SED_YELLOW='&'",
                 'print_3title() { echo "TITLE: $1"; }',
                 "print_info() { :; }",
+                f". {shlex.quote(str(self.extract_version_helper))}",
+                f". {shlex.quote(str(self.version_lt_helper))}",
                 f". {shlex.quote(str(self.function_file))}",
                 "checkNeedrestartCVE202448990",
             ]
@@ -158,9 +162,9 @@ class NeedrestartCVE202448990Tests(unittest.TestCase):
     def test_upstream_version_comparison_handles_double_digit_components(self):
         body = "\n".join(
             [
-                f". {shlex.quote(str(self.function_file))}",
-                "nr48990_version_lt 3.7 3.8 && echo old=yes",
-                "nr48990_version_lt 3.10 3.8 || echo new=yes",
+                f". {shlex.quote(str(self.version_lt_helper))}",
+                "lp_version_lt 3.7 3.8 && echo old=yes",
+                "lp_version_lt 3.10 3.8 || echo new=yes",
             ]
         )
         result = subprocess.run(

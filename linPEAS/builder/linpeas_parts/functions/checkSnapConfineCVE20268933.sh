@@ -1,22 +1,17 @@
 # Title: Functions - checkSnapConfineCVE20268933
 # ID: checkSnapConfineCVE20268933
 # Author: Chack Agent
-# Last Update: 14-08-2026
+# Last Update: 07-09-2026
 # Description: Passively identify set-capabilities snap-confine binaries exposed to CVE-2026-8933.
 # License: GNU GPL
-# Version: 1.0
+# Version: 1.1
 # Mitre: T1068
-# Functions Used: print_3title, print_info
+# Functions Used: lp_extract_upstream_version, print_3title, print_info
 # Global Variables: $E, $ROOT_FOLDER, $SED_GREEN, $SED_LIGHT_CYAN, $SED_RED_YELLOW
 # Initial Functions:
 # Generated Global Variables: $sc8933_caps, $sc8933_fixed, $sc8933_kind, $sc8933_os_id, $sc8933_os_release, $sc8933_path, $sc8933_reported, $sc8933_root, $sc8933_upstream, $sc8933_version, $sc8933_yaml
 # Fat linpeas: 0
 # Small linpeas: 1
-
-
-sc8933_extract_upstream_version() {
-  printf '%s' "$1" | sed -E 's/^[0-9]+://; s/^[^0-9]*//; s/[^0-9.].*$//'
-}
 
 sc8933_version_ge() {
   [ -n "$1" ] && [ -n "$2" ] || return 1
@@ -40,7 +35,7 @@ sc8933_version_is_vulnerable() {
   sc8933_version="$1"
   sc8933_kind="$2"
   sc8933_os_release="$3"
-  sc8933_upstream="$(sc8933_extract_upstream_version "$sc8933_version")"
+  sc8933_upstream="$(lp_extract_upstream_version "$sc8933_version")"
 
   # The upstream affected range is >= 2.75.0 and < 2.76.1. Ubuntu fixed
   # 2.76 with release-specific backports, so compare the complete dpkg version.

@@ -18,6 +18,7 @@ class SnapConfineCVE20268933Tests(unittest.TestCase):
             / "functions"
             / "checkSnapConfineCVE20268933.sh"
         )
+        cls.extract_version_helper = cls.function_file.parent / "lp_extract_upstream_version.sh"
 
     def _make_root(self, base, release="24.04", snap_version=None):
         root = base / "root"
@@ -81,6 +82,7 @@ class SnapConfineCVE20268933Tests(unittest.TestCase):
                 "SED_GREEN='&'",
                 'print_3title() { echo "TITLE: $1"; }',
                 "print_info() { :; }",
+                f". {shlex.quote(str(self.extract_version_helper))}",
                 f". {shlex.quote(str(self.function_file))}",
                 "checkSnapConfineCVE20268933",
             ]
@@ -125,7 +127,11 @@ class SnapConfineCVE20268933Tests(unittest.TestCase):
                 f"echo {version}=yes || echo {version}=no"
             )
         body = "\n".join(
-            [f". {shlex.quote(str(self.function_file))}"] + checks
+            [
+                f". {shlex.quote(str(self.extract_version_helper))}",
+                f". {shlex.quote(str(self.function_file))}",
+            ]
+            + checks
         )
         result = subprocess.run(
             ["sh", "-c", body],

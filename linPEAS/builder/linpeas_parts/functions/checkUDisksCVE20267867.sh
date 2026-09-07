@@ -1,38 +1,17 @@
 # Title: Functions - checkUDisksCVE20267867
 # ID: checkUDisksCVE20267867
 # Author: Chack Agent
-# Last Update: 05-09-2026
+# Last Update: 07-09-2026
 # Description: Passively identify complete udisks2 as-user authorization-bypass exposure (CVE-2026-7867).
 # License: GNU GPL
-# Version: 1.0
+# Version: 1.1
 # Mitre: T1068
-# Functions Used: print_3title, print_info
+# Functions Used: lp_extract_upstream_version, lp_version_lt, print_3title, print_info
 # Global Variables: $E, $ROOT_FOLDER, $SED_LIGHT_CYAN, $SED_RED_YELLOW
 # Initial Functions:
 # Generated Global Variables: $ud7867_binary, $ud7867_binary_candidate, $ud7867_codename, $ud7867_distro_id, $ud7867_dpkg_fixed, $ud7867_dpkg_record, $ud7867_fstab, $ud7867_fstab_matches, $ud7867_full_version, $ud7867_manager, $ud7867_os_release, $ud7867_root, $ud7867_rpm_record, $ud7867_service_file, $ud7867_status, $ud7867_ubuntu_codename, $ud7867_upstream_version
 # Fat linpeas: 0
 # Small linpeas: 1
-
-
-ud7867_extract_upstream_version() {
-  printf '%s' "$1" | sed -E 's/^[0-9]+://; s/^[^0-9]*//; s/[^0-9.].*$//'
-}
-
-ud7867_version_lt() {
-  [ -n "$1" ] && [ -n "$2" ] || return 1
-  awk -v ud7867_a="$1" -v ud7867_b="$2" 'BEGIN {
-    ud7867_na = split(ud7867_a, ud7867_av, ".")
-    ud7867_nb = split(ud7867_b, ud7867_bv, ".")
-    ud7867_n = ud7867_na > ud7867_nb ? ud7867_na : ud7867_nb
-    for (ud7867_i = 1; ud7867_i <= ud7867_n; ud7867_i++) {
-      ud7867_ai = ud7867_av[ud7867_i] + 0
-      ud7867_bi = ud7867_bv[ud7867_i] + 0
-      if (ud7867_ai < ud7867_bi) exit 0
-      if (ud7867_ai > ud7867_bi) exit 1
-    }
-    exit 1
-  }'
-}
 
 ud7867_fixed_dpkg_version() {
   # Known vendor backports from Debian DSA-6414-1 and Ubuntu USN-8701-1.
@@ -111,7 +90,7 @@ checkUDisksCVE20267867() {
     ud7867_codename="$ud7867_ubuntu_codename"
   fi
 
-  ud7867_upstream_version="$(ud7867_extract_upstream_version "$ud7867_full_version")"
+  ud7867_upstream_version="$(lp_extract_upstream_version "$ud7867_full_version")"
   ud7867_dpkg_fixed=""
   ud7867_status="unknown"
 
@@ -134,9 +113,9 @@ checkUDisksCVE20267867() {
   fi
 
   if [ "$ud7867_status" = "unknown" ] && [ -n "$ud7867_upstream_version" ]; then
-    if ud7867_version_lt "$ud7867_upstream_version" "2.10.0"; then
+    if lp_version_lt "$ud7867_upstream_version" "2.10.0"; then
       ud7867_status="fixed"
-    elif ud7867_version_lt "$ud7867_upstream_version" "2.11.2"; then
+    elif lp_version_lt "$ud7867_upstream_version" "2.11.2"; then
       ud7867_status="potential"
     else
       ud7867_status="fixed"
