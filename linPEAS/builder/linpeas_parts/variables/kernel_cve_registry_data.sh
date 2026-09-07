@@ -2,7 +2,7 @@
 # ID: kernel_cve_registry_data
 # Author: Carlos Polop
 # Contributor: Arjay Saguisa
-# Last Update: 05-09-2026
+# Last Update: 07-09-2026
 # Description: Embedded kernel exploit matching datasets extracted from linux-exploit-suggester and linux-exploit-suggester-2 examples. Data is split across KERNEL_CVE_DATA_1..X with a maximum of 25 rows per env variable. This file also stores reference-only CVE tokens found in example repos when no explicit suggester matching rule exists.
 # License: GNU GPL
 # Version: 1.0
@@ -676,27 +676,27 @@ EOF_DATA_23
 )"
 
 KERNEL_CVE_DATA_24="$(cat <<'EOF_DATA_24'
-CVE-2026-64531\tOVSwrap Open vSwitch nested-action overflow\tpkg=linux-kernel,ver>=5.15.180,ver<5.15.212,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1\t\t1\tFixed in stable 5.15.212; public exploit requires Open vSwitch and unprivileged network namespaces
-CVE-2026-64531\tOVSwrap Open vSwitch nested-action overflow\tpkg=linux-kernel,ver>=6.1.132,ver<6.1.178,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1\t\t1\tFixed in stable 6.1.178; public exploit requires Open vSwitch and unprivileged network namespaces
-CVE-2026-64531\tOVSwrap Open vSwitch nested-action overflow\tpkg=linux-kernel,ver>=6.6.84,ver<6.6.145,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1\t\t1\tFixed in stable 6.6.145; public exploit requires Open vSwitch and unprivileged network namespaces
-CVE-2026-64531\tOVSwrap Open vSwitch nested-action overflow\tpkg=linux-kernel,ver>=6.12.20,ver<6.12.97,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1\t\t1\tFixed in stable 6.12.97; public exploit requires Open vSwitch and unprivileged network namespaces
-CVE-2026-64531\tOVSwrap Open vSwitch nested-action overflow\tpkg=linux-kernel,ver>=6.13.8,ver<6.14,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1\t\t1\tAffected stable 6.13 range; public exploit requires Open vSwitch and unprivileged network namespaces
-CVE-2026-64531\tOVSwrap Open vSwitch nested-action overflow\tpkg=linux-kernel,ver>=6.14,ver<6.18.40,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1\t\t1\tFixed in stable 6.18.40; public exploit requires Open vSwitch and unprivileged network namespaces
-CVE-2026-64531\tOVSwrap Open vSwitch nested-action overflow\tpkg=linux-kernel,ver>=6.19,ver<7.1.5,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1\t\t1\tFixed in stable 7.1.5 and mainline 7.2; public exploit requires Open vSwitch and unprivileged network namespaces
-CVE-2026-64564\tSCTPhantom SCTP ASCONF transport UAF\tpkg=linux-kernel,ver>=2.6.25,ver<5.10.265,CONFIG_IP_SCTP=[my]\t\t1\tFixed in stable 5.10.265; SCTP support is required and public exploit targets may require adaptation
-CVE-2026-64564\tSCTPhantom SCTP ASCONF transport UAF\tpkg=linux-kernel,ver>=5.11,ver<5.15.216,CONFIG_IP_SCTP=[my]\t\t1\tFixed in stable 5.15.216; SCTP support is required and public exploit targets may require adaptation
-CVE-2026-64564\tSCTPhantom SCTP ASCONF transport UAF\tpkg=linux-kernel,ver>=5.16,ver<6.1.183,CONFIG_IP_SCTP=[my]\t\t1\tFixed in stable 6.1.183; SCTP support is required and public exploit targets may require adaptation
-CVE-2026-64564\tSCTPhantom SCTP ASCONF transport UAF\tpkg=linux-kernel,ver>=6.2,ver<6.6.148,CONFIG_IP_SCTP=[my]\t\t1\tFixed in stable 6.6.148; SCTP support is required and public exploit targets may require adaptation
-CVE-2026-64564\tSCTPhantom SCTP ASCONF transport UAF\tpkg=linux-kernel,ver>=6.7,ver<6.12.101,CONFIG_IP_SCTP=[my]\t\t1\tFixed in stable 6.12.101; SCTP support is required and public exploit targets may require adaptation
-CVE-2026-64564\tSCTPhantom SCTP ASCONF transport UAF\tpkg=linux-kernel,ver>=6.13,ver<6.18.42,CONFIG_IP_SCTP=[my]\t\t1\tFixed in stable 6.18.42; SCTP support is required and public exploit targets may require adaptation
-CVE-2026-64564\tSCTPhantom SCTP ASCONF transport UAF\tpkg=linux-kernel,ver>=6.19,ver<7.1.6,CONFIG_IP_SCTP=[my]\t\t1\tFixed in stable 7.1.6 and mainline 7.2; SCTP support is required and public exploit targets may require adaptation
-CVE-2026-53365\tVsockDrop virtio-vsock zerocopy refcount flaw\tpkg=linux-kernel,ver>=6.7,ver<6.12.97,CONFIG_VSOCKETS=[my],CONFIG_VIRTIO_VSOCKETS=[my],CONFIG_IO_URING=y\t\t1\tFixed in stable 6.12.97; public exploit uses io_uring and AF_VSOCK
-CVE-2026-53365\tVsockDrop virtio-vsock zerocopy refcount flaw\tpkg=linux-kernel,ver>=6.13,ver<6.18.34,CONFIG_VSOCKETS=[my],CONFIG_VIRTIO_VSOCKETS=[my],CONFIG_IO_URING=y\t\t1\tFixed in stable 6.18.34; public exploit uses io_uring and AF_VSOCK
-CVE-2026-53365\tVsockDrop virtio-vsock zerocopy refcount flaw\tpkg=linux-kernel,ver>=6.19,ver<7.0.11,CONFIG_VSOCKETS=[my],CONFIG_VIRTIO_VSOCKETS=[my],CONFIG_IO_URING=y\t\t1\tFixed in stable 7.0.11 and mainline 7.1; public exploit uses io_uring and AF_VSOCK
-CVE-2026-53361\tBadGarbage AF_UNIX garbage-collector race\tpkg=linux-kernel,ver>=6.1.141,ver<6.1.183\t\t1\tFixed in stable 6.1.183; public exploit can provide local root and container escape
-CVE-2026-53361\tBadGarbage AF_UNIX garbage-collector race\tpkg=linux-kernel,ver>=6.6.93,ver<6.6.144\t\t1\tFixed in stable 6.6.144; public exploit can provide local root and container escape
-CVE-2026-53361\tBadGarbage AF_UNIX garbage-collector race\tpkg=linux-kernel,ver>=6.9,ver<6.12.95\t\t1\tFixed in stable 6.12.95; public exploit can provide local root and container escape
-CVE-2026-53361\tBadGarbage AF_UNIX garbage-collector race\tpkg=linux-kernel,ver>=6.13,ver<6.18.38\t\t1\tFixed in stable 6.18.38; public exploit can provide local root and container escape
-CVE-2026-53361\tBadGarbage AF_UNIX garbage-collector race\tpkg=linux-kernel,ver>=6.19,ver<7.1\t\t1\tFixed in mainline 7.1; public exploit can provide local root and container escape
+CVE-2026-64531	OVSwrap Open vSwitch nested-action overflow	pkg=linux-kernel,ver>=5.15.180,ver<5.15.212,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1		1	Fixed in stable 5.15.212; public exploit requires Open vSwitch and unprivileged network namespaces
+CVE-2026-64531	OVSwrap Open vSwitch nested-action overflow	pkg=linux-kernel,ver>=6.1.132,ver<6.1.178,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1		1	Fixed in stable 6.1.178; public exploit requires Open vSwitch and unprivileged network namespaces
+CVE-2026-64531	OVSwrap Open vSwitch nested-action overflow	pkg=linux-kernel,ver>=6.6.84,ver<6.6.145,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1		1	Fixed in stable 6.6.145; public exploit requires Open vSwitch and unprivileged network namespaces
+CVE-2026-64531	OVSwrap Open vSwitch nested-action overflow	pkg=linux-kernel,ver>=6.12.20,ver<6.12.97,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1		1	Fixed in stable 6.12.97; public exploit requires Open vSwitch and unprivileged network namespaces
+CVE-2026-64531	OVSwrap Open vSwitch nested-action overflow	pkg=linux-kernel,ver>=6.13.8,ver<6.14,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1		1	Affected stable 6.13 range; public exploit requires Open vSwitch and unprivileged network namespaces
+CVE-2026-64531	OVSwrap Open vSwitch nested-action overflow	pkg=linux-kernel,ver>=6.14,ver<6.18.40,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1		1	Fixed in stable 6.18.40; public exploit requires Open vSwitch and unprivileged network namespaces
+CVE-2026-64531	OVSwrap Open vSwitch nested-action overflow	pkg=linux-kernel,ver>=6.19,ver<7.1.5,x86_64,CONFIG_OPENVSWITCH=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1		1	Fixed in stable 7.1.5 and mainline 7.2; public exploit requires Open vSwitch and unprivileged network namespaces
+CVE-2026-64564	SCTPhantom SCTP ASCONF transport UAF	pkg=linux-kernel,ver>=2.6.25,ver<5.10.265,CONFIG_IP_SCTP=[my]		1	Fixed in stable 5.10.265; SCTP support is required and public exploit targets may require adaptation
+CVE-2026-64564	SCTPhantom SCTP ASCONF transport UAF	pkg=linux-kernel,ver>=5.11,ver<5.15.216,CONFIG_IP_SCTP=[my]		1	Fixed in stable 5.15.216; SCTP support is required and public exploit targets may require adaptation
+CVE-2026-64564	SCTPhantom SCTP ASCONF transport UAF	pkg=linux-kernel,ver>=5.16,ver<6.1.183,CONFIG_IP_SCTP=[my]		1	Fixed in stable 6.1.183; SCTP support is required and public exploit targets may require adaptation
+CVE-2026-64564	SCTPhantom SCTP ASCONF transport UAF	pkg=linux-kernel,ver>=6.2,ver<6.6.148,CONFIG_IP_SCTP=[my]		1	Fixed in stable 6.6.148; SCTP support is required and public exploit targets may require adaptation
+CVE-2026-64564	SCTPhantom SCTP ASCONF transport UAF	pkg=linux-kernel,ver>=6.7,ver<6.12.101,CONFIG_IP_SCTP=[my]		1	Fixed in stable 6.12.101; SCTP support is required and public exploit targets may require adaptation
+CVE-2026-64564	SCTPhantom SCTP ASCONF transport UAF	pkg=linux-kernel,ver>=6.13,ver<6.18.42,CONFIG_IP_SCTP=[my]		1	Fixed in stable 6.18.42; SCTP support is required and public exploit targets may require adaptation
+CVE-2026-64564	SCTPhantom SCTP ASCONF transport UAF	pkg=linux-kernel,ver>=6.19,ver<7.1.6,CONFIG_IP_SCTP=[my]		1	Fixed in stable 7.1.6 and mainline 7.2; SCTP support is required and public exploit targets may require adaptation
+CVE-2026-53365	VsockDrop virtio-vsock zerocopy refcount flaw	pkg=linux-kernel,ver>=6.7,ver<6.12.97,CONFIG_VSOCKETS=[my],CONFIG_VIRTIO_VSOCKETS=[my],CONFIG_IO_URING=y		1	Fixed in stable 6.12.97; public exploit uses io_uring and AF_VSOCK
+CVE-2026-53365	VsockDrop virtio-vsock zerocopy refcount flaw	pkg=linux-kernel,ver>=6.13,ver<6.18.34,CONFIG_VSOCKETS=[my],CONFIG_VIRTIO_VSOCKETS=[my],CONFIG_IO_URING=y		1	Fixed in stable 6.18.34; public exploit uses io_uring and AF_VSOCK
+CVE-2026-53365	VsockDrop virtio-vsock zerocopy refcount flaw	pkg=linux-kernel,ver>=6.19,ver<7.0.11,CONFIG_VSOCKETS=[my],CONFIG_VIRTIO_VSOCKETS=[my],CONFIG_IO_URING=y		1	Fixed in stable 7.0.11 and mainline 7.1; public exploit uses io_uring and AF_VSOCK
+CVE-2026-53361	BadGarbage AF_UNIX garbage-collector race	pkg=linux-kernel,ver>=6.1.141,ver<6.1.183		1	Fixed in stable 6.1.183; public exploit can provide local root and container escape
+CVE-2026-53361	BadGarbage AF_UNIX garbage-collector race	pkg=linux-kernel,ver>=6.6.93,ver<6.6.144		1	Fixed in stable 6.6.144; public exploit can provide local root and container escape
+CVE-2026-53361	BadGarbage AF_UNIX garbage-collector race	pkg=linux-kernel,ver>=6.9,ver<6.12.95		1	Fixed in stable 6.12.95; public exploit can provide local root and container escape
+CVE-2026-53361	BadGarbage AF_UNIX garbage-collector race	pkg=linux-kernel,ver>=6.13,ver<6.18.38		1	Fixed in stable 6.18.38; public exploit can provide local root and container escape
+CVE-2026-53361	BadGarbage AF_UNIX garbage-collector race	pkg=linux-kernel,ver>=6.19,ver<7.1		1	Fixed in mainline 7.1; public exploit can provide local root and container escape
 EOF_DATA_24
 )"
