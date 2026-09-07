@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Management;
 using System.Security.AccessControl;
-using System.Security.Principal;
+using winPEAS.Helpers;
 using winPEAS.Native;
 
 namespace winPEAS.Info.FilesInfo
@@ -55,7 +55,7 @@ namespace winPEAS.Info.FilesInfo
             }
 
             bool isPrivilegedContext;
-            HashSet<string> unprivilegedSids = GetUnprivilegedTokenSids(out isPrivilegedContext);
+            HashSet<string> unprivilegedSids = PermissionsHelper.GetUnprivilegedTokenSids(out isPrivilegedContext);
             CheckLiveHiveAcls(systemRoot, unprivilegedSids, report);
             CheckBackupHives(backupPaths, unprivilegedSids, isPrivilegedContext, report);
             CheckShadowCopies(systemRoot, unprivilegedSids, isPrivilegedContext, report);
@@ -282,58 +282,6 @@ namespace winPEAS.Info.FilesInfo
             {
                 return null;
             }
-        }
-
-        private static HashSet<string> GetUnprivilegedTokenSids(out bool isPrivilegedContext)
-        {
-            var unprivilegedSids = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "S-1-1-0",      // Everyone
-                "S-1-5-4",      // Interactive
-                "S-1-5-11",     // Authenticated Users
-                "S-1-5-32-545", // BUILTIN\Users (the vulnerable CVE-2021-36934 ACE)
-            };
-            isPrivilegedContext = true;
-            try
-            {
-                using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
-                {
-                    var principal = new WindowsPrincipal(identity);
-                    var administratorsSid = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
-                    isPrivilegedContext = principal.IsInRole(administratorsSid) ||
-                        (identity.User != null && IsPrivilegedServiceSid(identity.User.Value));
-                    if (!isPrivilegedContext && identity.User != null)
-                    {
-                        unprivilegedSids.Add(identity.User.Value);
-                    }
-
-                    if (identity.Groups != null)
-                    {
-                        foreach (IdentityReference group in identity.Groups)
-                        {
-                            var sid = group as SecurityIdentifier;
-                            if (sid != null && principal.IsInRole(sid) && !IsPrivilegedServiceSid(sid.Value) &&
-                                !sid.Equals(administratorsSid))
-                            {
-                                unprivilegedSids.Add(sid.Value);
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                // Keep the well-known unprivileged principals and avoid current-token open tests.
-            }
-
-            return unprivilegedSids;
-        }
-
-        private static bool IsPrivilegedServiceSid(string sid)
-        {
-            return string.Equals(sid, "S-1-5-18", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(sid, "S-1-5-19", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(sid, "S-1-5-20", StringComparison.OrdinalIgnoreCase);
         }
 
         internal static string FindReadTrustee(RawSecurityDescriptor descriptor, ISet<string> enabledSids)

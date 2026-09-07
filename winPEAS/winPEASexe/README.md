@@ -172,6 +172,7 @@ Once you have installed and activated it you need to:
   - [x] Interesting services (non Microsoft) information
   - [x] Modifiable services
   - [x] Writable service registry binpath
+  - [x] Writable DLLs loaded by enabled LocalSystem services
   - [x] PATH Dll Hijacking
 
 - **Applications Information**
@@ -180,6 +181,7 @@ Once you have installed and activated it you need to:
   - [x] Optional online installed-package vulnerability lookup via HackTricks (`-vulnpackages` or `all`)
   - [x] AutoRuns
   - [x] Scheduled tasks
+  - [x] Writable execution targets in enabled SYSTEM scheduled tasks
   - [x] Device drivers
 
 - **Network Information**
@@ -213,6 +215,7 @@ Once you have installed and activated it you need to:
   - [x] AppCmd.exe
   - [x] SSClient.exe
   - [x] SCCM
+  - [x] Cached SCCM Network Access Account credential policies
   - [x] Security Package Credentials
   - [x] AlwaysInstallElevated
   - [x] WSUS (HTTP downgrade + CVE-2025-59287 exposure)
@@ -236,6 +239,7 @@ Once you have installed and activated it you need to:
   - [x] Cloud credentials
   - [x] Check for unattended files
   - [x] Check for SAM & SYSTEM backups
+  - [x] Check for exposed SAM, SECURITY and SYSTEM hives in live ACLs, backups and shadow copies
   - [x] Check for cached GPP Passwords
   - [x] Check for and extract creds from McAffe SiteList.xml files
   - [x] Possible registries with credentials
