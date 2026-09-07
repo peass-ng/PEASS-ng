@@ -1,38 +1,17 @@
 # Title: Functions - checkNeedrestartCVE202448990
 # ID: checkNeedrestartCVE202448990
 # Author: Chack Agent
-# Last Update: 24-08-2026
+# Last Update: 07-09-2026
 # Description: Passively identify needrestart interpreter-scanner local privilege-escalation exposure, including CVE-2024-48990.
 # License: GNU GPL
-# Version: 1.1
+# Version: 1.2
 # Mitre: T1068
-# Functions Used: print_3title, print_info
+# Functions Used: lp_extract_upstream_version, lp_version_lt, print_3title, print_info
 # Global Variables: $E, $ROOT_FOLDER, $SED_GREEN, $SED_LIGHT_CYAN, $SED_RED_YELLOW, $SED_YELLOW
 # Initial Functions:
 # Generated Global Variables: $nr48990_binary, $nr48990_binary_candidate, $nr48990_codename, $nr48990_config, $nr48990_config_file, $nr48990_config_file_value, $nr48990_distro_id, $nr48990_dpkg_fixed, $nr48990_dpkg_record, $nr48990_full_version, $nr48990_interpscan, $nr48990_manager, $nr48990_os_release, $nr48990_root, $nr48990_rpm_record, $nr48990_status, $nr48990_ubuntu_codename, $nr48990_upstream_version
 # Fat linpeas: 0
 # Small linpeas: 1
-
-
-nr48990_extract_upstream_version() {
-  printf '%s' "$1" | sed -E 's/^[0-9]+://; s/^[^0-9]*//; s/[^0-9.].*$//'
-}
-
-nr48990_version_lt() {
-  [ -n "$1" ] && [ -n "$2" ] || return 1
-  awk -v nr48990_a="$1" -v nr48990_b="$2" 'BEGIN {
-    nr48990_na = split(nr48990_a, nr48990_av, ".")
-    nr48990_nb = split(nr48990_b, nr48990_bv, ".")
-    nr48990_n = nr48990_na > nr48990_nb ? nr48990_na : nr48990_nb
-    for (nr48990_i = 1; nr48990_i <= nr48990_n; nr48990_i++) {
-      nr48990_ai = nr48990_av[nr48990_i] + 0
-      nr48990_bi = nr48990_bv[nr48990_i] + 0
-      if (nr48990_ai < nr48990_bi) exit 0
-      if (nr48990_ai > nr48990_bi) exit 1
-    }
-    exit 1
-  }'
-}
 
 nr48990_fixed_dpkg_version() {
   # Vendor backports from Ubuntu CVE-2024-48990 and Debian DSA-5815-1 /
@@ -121,7 +100,7 @@ checkNeedrestartCVE202448990() {
     nr48990_codename="$nr48990_ubuntu_codename"
   fi
 
-  nr48990_upstream_version="$(nr48990_extract_upstream_version "$nr48990_full_version")"
+  nr48990_upstream_version="$(lp_extract_upstream_version "$nr48990_full_version")"
   nr48990_interpscan="$(nr48990_effective_interpscan "$nr48990_root")"
   nr48990_dpkg_fixed=""
   nr48990_status="unknown"
@@ -137,7 +116,7 @@ checkNeedrestartCVE202448990() {
     fi
   fi
   if [ "$nr48990_status" = "unknown" ] && [ -n "$nr48990_upstream_version" ]; then
-    if nr48990_version_lt "$nr48990_upstream_version" "3.8"; then
+    if lp_version_lt "$nr48990_upstream_version" "3.8"; then
       nr48990_status="potential"
     else
       nr48990_status="fixed"

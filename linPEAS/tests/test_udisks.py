@@ -18,6 +18,8 @@ class UDisksCVE20267867Tests(unittest.TestCase):
             / "functions"
             / "checkUDisksCVE20267867.sh"
         )
+        cls.extract_version_helper = cls.function_file.parent / "lp_extract_upstream_version.sh"
+        cls.version_lt_helper = cls.function_file.parent / "lp_version_lt.sh"
 
     def _make_root(self, base, options="defaults,user"):
         root = base / "root"
@@ -92,6 +94,8 @@ class UDisksCVE20267867Tests(unittest.TestCase):
                 "SED_RED_YELLOW='&'",
                 'print_3title() { echo "TITLE: $1"; }',
                 "print_info() { :; }",
+                f". {shlex.quote(str(self.extract_version_helper))}",
+                f". {shlex.quote(str(self.version_lt_helper))}",
                 f". {shlex.quote(str(self.function_file))}",
                 "checkUDisksCVE20267867",
             ]
@@ -163,9 +167,9 @@ class UDisksCVE20267867Tests(unittest.TestCase):
     def test_version_comparison_handles_double_digit_components(self):
         body = "\n".join(
             [
-                f". {shlex.quote(str(self.function_file))}",
-                "ud7867_version_lt 2.10.91 2.11.2 && echo old=yes",
-                "ud7867_version_lt 2.11.10 2.11.2 || echo new=yes",
+                f". {shlex.quote(str(self.version_lt_helper))}",
+                "lp_version_lt 2.10.91 2.11.2 && echo old=yes",
+                "lp_version_lt 2.11.10 2.11.2 || echo new=yes",
             ]
         )
         result = subprocess.run(
