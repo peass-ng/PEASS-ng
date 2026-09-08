@@ -15,7 +15,7 @@
 
 
 print_2title "Files with ACLs (limited to 50)" "T1222"
-print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#acls"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#acls"
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   ( (getfacl -t -s -R -p /bin /etc $HOMESEARCH /opt /sbin /usr /tmp /root 2>/dev/null) || echo_not_found "files with acls in searched folders" ) | head -n 70 | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED}," | sed -${E} "s,$writeVB,${SED_RED_YELLOW},g" | sed -${E} "s,$writeB,${SED_RED},g"
 else

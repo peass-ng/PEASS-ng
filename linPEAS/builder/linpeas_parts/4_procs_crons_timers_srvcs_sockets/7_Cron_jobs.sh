@@ -15,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Check for vulnerable cron jobs" "T1053.003"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#scheduledcron-jobs"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#scheduledcron-jobs"
 
   print_3title "Cron jobs list" "T1053.003"
   command -v crontab 2>/dev/null || echo_not_found "crontab"
@@ -262,7 +262,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   #fi
 else
   print_2title "Cron jobs" "T1053.003"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#scheduledcron-jobs"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#scheduledcron-jobs"
   find "$SEARCH_IN_FOLDER" '(' -type d -or -type f ')' '(' -name "cron*" -or -name "anacron" -or -name "anacrontab" -or -name "incron.d" -or -name "incron" -or -name "at" -or -name "periodic" ')' -exec echo {} \; -exec ls -lR {} \;
 fi
 echo ""

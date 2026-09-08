@@ -46,7 +46,7 @@ done
 
 if [ -n "$doas_bin" ] || [ "$doas_conf_found" = "yes" ]; then
   print_2title "Doas/OpenDoas configuration and vulnerabilities" "T1548.003"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#doas"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#doas"
 
   if [ -n "$doas_bin" ]; then
     print_3title "Doas binary and version" "T1548.003"

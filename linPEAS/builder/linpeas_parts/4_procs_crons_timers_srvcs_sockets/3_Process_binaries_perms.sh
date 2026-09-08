@@ -16,7 +16,7 @@
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   if [ "$NOUSEPS" ]; then
     print_2title "Binary processes permissions (non 'root root' and not belonging to current user)" "T1574,T1554"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#processes"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#processes"
     
     # Get list of writable binaries
     binW=""

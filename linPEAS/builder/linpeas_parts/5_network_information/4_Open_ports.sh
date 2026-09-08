@@ -108,7 +108,7 @@ parse_proc_net_ports() {
 # Function to get open ports information
 get_open_ports() {
     print_2title "Active Ports" "T1049"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#open-ports"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#open-ports"
 
     # Try standard tools first
     if command -v netstat >/dev/null 2>&1; then
