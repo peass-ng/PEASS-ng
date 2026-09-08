@@ -16,7 +16,7 @@
 if [ "$inContainer" ]; then
     echo ""
     print_2title "Container & breakout enumeration" "T1611"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/container-security/index.html"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/container-security/index.html"
     
     # Basic container info
     print_list "Container ID ...................$NC $(cat /etc/hostname && echo -n '\n')"
@@ -148,7 +148,7 @@ if [ "$inContainer" ]; then
     
     # Mount, procfs and sysfs escape surfaces
     print_3title "Mount, procfs & sysfs surfaces" "T1611"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/container-security/sensitive-host-mounts.html"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/container-security/sensitive-host-mounts.html"
     
     checkProcSysBreakouts
     root_mount_mode="$(awk '$5=="/"{print $6; exit}' /proc/self/mountinfo 2>/dev/null | cut -d',' -f1)"
@@ -183,7 +183,7 @@ if [ "$inContainer" ]; then
     
     # Capability checks
     print_3title "Capability Checks" "T1611"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/container-security/protections/capabilities.html"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/container-security/protections/capabilities.html"
     
     print_list "Dangerous capabilities ......... "$NC
     if [ "$(command -v capsh || echo -n '')" ]; then 
@@ -208,7 +208,7 @@ if [ "$inContainer" ]; then
     # Namespace checks. From inside a container we often cannot prove host namespace sharing directly,
     # so prefer raw namespace handles and practical indicators over misleading "host namespace = yes/no" guesses.
     print_3title "Namespaces & sharing indicators" "T1611"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/container-security/protections/namespaces/index.html"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/container-security/protections/namespaces/index.html"
     
     print_list "Current namespaces ............. "$NC
     ls -l /proc/self/ns/
