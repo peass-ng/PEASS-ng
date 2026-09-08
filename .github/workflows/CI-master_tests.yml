@@ -156,10 +156,20 @@ jobs:
           path: winPEAS\winPEASexe\binaries\x86\Release\winPEASx86.exe
       
       - name: Upload winpeasany
+        id: upload_winpeasany
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: winPEASany.exe
           path: winPEAS\winPEASexe\binaries\Release\winPEASany.exe
+
+      - name: Retry upload winpeasany
+        if: ${{ steps.upload_winpeasany.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: winPEASany.exe
+          path: winPEAS\winPEASexe\binaries\Release\winPEASany.exe
+          overwrite: true
       
       - name: Upload winpeasx64ofs
         uses: actions/upload-artifact@v4
