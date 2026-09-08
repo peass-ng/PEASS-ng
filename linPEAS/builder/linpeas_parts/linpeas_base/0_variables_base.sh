@@ -409,7 +409,7 @@ printf ${BLUE}"          $SCRIPTNAME-$VERSION ${YELLOW}by carlospolop\n"$NC;
 echo ""
 printf ${YELLOW}"ADVISORY: ${BLUE}$ADVISORY\n$NC"
 echo ""
-printf ${BLUE}"Linux Privesc Checklist: ${YELLOW}https://book.hacktricks.wiki/en/linux-hardening/linux-privilege-escalation-checklist.html\n"$NC
+printf ${BLUE}"Linux Privesc Checklist: ${YELLOW}https://book.hacktricks.wiki/en/linux-hardening/main-system-information/linux-privilege-escalation-checklist.html\n"$NC
 printf ${BLUE}"Best Linux PE & Hardening course: ${YELLOW}https://hacktricks-training.com/courses/lhe/\n"$NC
 echo " LEGEND:" | sed "s,LEGEND,${C}[1;4m&${C}[0m,"
 echo "  RED/YELLOW: 95% a PE vector" | sed "s,RED/YELLOW,${SED_RED_YELLOW},"
