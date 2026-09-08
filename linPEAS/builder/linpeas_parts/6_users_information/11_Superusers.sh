@@ -15,7 +15,7 @@
 
 
 print_2title "Superusers and UID 0 Users" "T1087.001"
-print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/interesting-groups-linux-pe/index.html"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/interesting-groups-linux-pe/index.html"
 
 # Check /etc/passwd for UID 0 users
 echo ""

@@ -18,7 +18,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   if [ "$NOUSEPS" ]; then
     printf ${BLUE}"[i]$GREEN Looks like ps is not finding processes, going to read from /proc/ and not going to monitor 1min of processes\n"$NC
   fi
-  print_info "Check weird & unexpected processes run by root: https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#processes"
+  print_info "Check weird & unexpected processes run by root: https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#processes"
 
   if [ -f "/etc/fstab" ] && cat /etc/fstab | grep -q "hidepid=2"; then
     echo "Looks like /etc/fstab has hidepid=2, so ps will not show processes of other users"

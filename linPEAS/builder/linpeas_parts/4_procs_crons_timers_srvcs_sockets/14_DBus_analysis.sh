@@ -21,7 +21,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
     print_2title "D-Bus Analysis" "T1559.001"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#d-bus"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#d-bus"
 
 
     # Function to check for dangerous methods

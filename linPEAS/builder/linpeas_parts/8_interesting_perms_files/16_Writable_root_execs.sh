@@ -15,7 +15,7 @@
 
 if ! [ "$IAMROOT" ]; then
   print_2title "Writable root-owned executables I can modify (max 200)" "T1574.009,T1574.010"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#writable-files"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#writable-files"
 
   writable_root_execs=$(
     find "$ROOT_FOLDER" -type f -user root -perm -u=x \

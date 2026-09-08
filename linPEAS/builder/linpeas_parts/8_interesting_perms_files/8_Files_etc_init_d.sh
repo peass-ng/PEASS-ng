@@ -16,7 +16,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
 print_2title "Permissions in init, init.d, systemd, and rc.d" "T1543.002"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#init-initd-systemd-and-rcd"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#init-initd-systemd-and-rcd"
   if [ ! "$MACPEAS" ] && ! [ "$IAMROOT" ]; then #Those folders don´t exist on a MacOS
     check_critial_root_path "/etc/init/"
     check_critial_root_path "/etc/init.d/"

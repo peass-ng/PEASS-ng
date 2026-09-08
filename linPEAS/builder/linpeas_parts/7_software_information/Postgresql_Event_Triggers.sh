@@ -16,7 +16,7 @@
 
 if [ "$DEBUG" ] || { [ "$TIMEOUT" ] && [ "$(command -v psql 2>/dev/null || echo -n '')" ]; }; then
   print_2title "PostgreSQL event trigger ownership & postgres_fdw hooks" "T1505.001"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#postgresql-event-triggers"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#postgresql-event-triggers"
 
   psql_bin="$(command -v psql 2>/dev/null || echo -n '')"
   if [ "$TIMEOUT" ] && [ "$psql_bin" ]; then

@@ -14,7 +14,7 @@
 # Small linpeas: 1
 
 print_2title "Browser Profiles" "T1539,T1217"
-print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#browser-data"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#browser-data"
 
 echo ""
 

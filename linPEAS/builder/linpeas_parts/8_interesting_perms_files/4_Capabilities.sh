@@ -16,7 +16,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Capabilities" "T1548.001"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#capabilities"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#capabilities"
   if [ "$(command -v capsh || echo -n '')" ]; then
     is_hex_cap_value() {
       case "$1" in

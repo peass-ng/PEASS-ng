@@ -32,7 +32,7 @@
 
 
 print_2title "PATH" "T1574.007"
-print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#writable-path-abuses"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#writable-path-abuses"
 if ! [ "$IAMROOT" ]; then
     echo "$OLDPATH" 2>/dev/null | sed -${E} "s,$Wfolders|\./|\.:|:\.,${SED_RED_YELLOW},g"
 fi

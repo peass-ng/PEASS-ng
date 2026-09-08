@@ -21,7 +21,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   crictl_cli=$(command -v crictl || echo -n '')
   if [ "$containerd" ] || [ "$containerd_cli" ] || [ "$nerdctl_cli" ] || [ "$crictl_cli" ] || [ "$DEBUG" ]; then
     print_2title "Checking if containerd/CRI tooling is available" "T1613"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/container-security/runtime-api-and-daemon-exposure.html"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/container-security/runtime-api-and-daemon-exposure.html"
     if [ "$containerd" ]; then
       echo "containerd was found in $containerd" | sed -${E} "s,.*,${SED_RED},"
     fi

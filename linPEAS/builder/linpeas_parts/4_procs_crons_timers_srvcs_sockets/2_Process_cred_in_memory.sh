@@ -15,7 +15,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Processes with credentials in memory (root req)" "T1003.007"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#credentials-from-process-memory"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#credentials-from-process-memory"
 
   # Common credential-storing processes
   cred_processes="gdm-password gnome-keyring-daemon lightdm vsftpd apache2 sshd: mysql postgres redis-server mongod memcached elasticsearch jenkins tomcat nginx php-fpm supervisord vncserver xrdp teamviewer"

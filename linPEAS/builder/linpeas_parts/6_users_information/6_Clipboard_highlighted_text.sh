@@ -16,7 +16,7 @@
 
 if [ "$(command -v xclip 2>/dev/null || echo -n '')" ] || [ "$(command -v xsel 2>/dev/null || echo -n '')" ] || [ "$(command -v pbpaste 2>/dev/null || echo -n '')" ] || [ "$(command -v wl-paste 2>/dev/null || echo -n '')" ] || [ "$DEBUG" ]; then
   print_2title "Clipboard and Highlighted Text" "T1115"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#clipboard"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#clipboard"
 
   # Function to check clipboard content
   check_clipboard() {

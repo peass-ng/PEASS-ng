@@ -24,7 +24,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
     print_2title "Systemd Information" "T1543.002"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#systemd-path---relative-paths"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#systemd-path---relative-paths"
 
     # Function to check if systemctl is available
     check_systemctl() {
@@ -163,7 +163,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     echo ""
 
     print_2title "Systemd PATH" "T1543.002"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#systemd-path---relative-paths"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#systemd-path---relative-paths"
     if check_systemctl; then
         systemctl show-environment 2>/dev/null | 
         grep "PATH" | 

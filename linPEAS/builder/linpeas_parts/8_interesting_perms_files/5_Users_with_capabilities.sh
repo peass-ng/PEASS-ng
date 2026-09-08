@@ -16,7 +16,7 @@
 
 if [ -f "/etc/security/capability.conf" ] || [ "$DEBUG" ] || grep -Rqs "pam_cap\.so" /etc/pam.d /etc/pam.conf 2>/dev/null; then
   print_2title "Users with capabilities" "T1548.001"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#capabilities"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#capabilities"
   if [ -f "/etc/security/capability.conf" ]; then
     grep -v '^#\|none\|^$' /etc/security/capability.conf 2>/dev/null | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_RED}," | sed -${E} "s,$capsB,${SED_RED},g"
   else echo_not_found "/etc/security/capability.conf"

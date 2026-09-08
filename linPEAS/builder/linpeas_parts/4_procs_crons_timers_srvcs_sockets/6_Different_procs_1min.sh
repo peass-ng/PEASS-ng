@@ -17,7 +17,7 @@
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   if ! [ "$FAST" ] && ! [ "$SUPERFAST" ]; then
     print_2title "Different processes executed during 1 min (interesting is low number of repetitions)" "T1057"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#frequent-cron-jobs"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#frequent-cron-jobs"
     temp_file=$(mktemp)
     if [ "$(ps -e -o user,command 2>/dev/null)" ]; then 
       for i in $(seq 1 1210); do 
