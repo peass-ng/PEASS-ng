@@ -158,7 +158,7 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("RDP Sessions", "T1563.002");
-                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/credentials-mgmt/rdp-sessions", "Disconnected high-privilege RDP sessions keep reusable tokens inside LSASS.");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/rdp-sessions-abuse.html", "Disconnected high-privilege RDP sessions keep reusable tokens inside LSASS.");
                 List<Dictionary<string, string>> rdp_sessions = UserInfoHelper.GetRDPSessions();
                 if (rdp_sessions.Count > 0)
                 {
@@ -202,7 +202,7 @@ namespace winPEAS.Checks
                             string source = string.IsNullOrEmpty(flaggedIp) ? "local" : flaggedIp;
                             Beaprint.BadPrint(string.Format("        -> Session {0} ({1}) from {2}", flaggedSessionId, userDisplay, source));
                         }
-                        Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/credentials-mgmt/rdp-sessions", "Dump LSASS / steal tokens (e.g., comsvcs.dll, LsaLogonSessions, custom SSPs) to reuse those privileges.");
+                        Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/rdp-sessions-abuse.html", "Dump LSASS / steal tokens (e.g., comsvcs.dll, LsaLogonSessions, custom SSPs) to reuse those privileges.");
                     }
                 }
                 else

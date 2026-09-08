@@ -1425,7 +1425,7 @@ namespace winPEAS.Checks
                         {
                             if (!anyFinding)
                             {
-                                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/gpo-abuse.html", "Why it matters");
+                                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/index.html", "Why it matters");
                             }
                             anyFinding = true;
                             Beaprint.BadPrint($"    [!] Writable applied GPO detected");

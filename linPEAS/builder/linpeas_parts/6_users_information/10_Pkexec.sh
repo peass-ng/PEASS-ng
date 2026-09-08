@@ -15,7 +15,7 @@
 
 
 print_2title "Checking Pkexec and Polkit" "T1548.003,T1548.004,T1068"
-print_info "https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/interesting-groups-linux-pe/index.html#pe---method-2"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/user-information/interesting-groups-linux-pe/index.html#pe---method-2"
 
 echo ""
 print_3title "Polkit Binary" "T1548.003,T1068"

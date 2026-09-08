@@ -19,7 +19,7 @@ These tools search for possible **local privilege escalation paths** that you co
 - Check the **Local Windows Privilege Escalation checklist** from **[book.hacktricks.wiki](https://book.hacktricks.wiki/en/windows-hardening/checklist-windows-privilege-escalation.html)**
 - **[WinPEAS](https://github.com/peass-ng/PEASS-ng/tree/master/winPEAS) - Windows local Privilege Escalation Awesome Script (C#.exe and .bat)**
 
-- Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks.wiki](https://book.hacktricks.wiki/en/linux-hardening/linux-privilege-escalation-checklist.html)**
+- Check the **Local Linux Privilege Escalation checklist** from **[book.hacktricks.wiki](https://book.hacktricks.wiki/en/linux-hardening/main-system-information/linux-privilege-escalation-checklist.html)**
 - **[LinPEAS](https://github.com/peass-ng/PEASS-ng/tree/master/linPEAS) - Linux local Privilege Escalation Awesome Script (.sh)**
 
 ## Quick Start

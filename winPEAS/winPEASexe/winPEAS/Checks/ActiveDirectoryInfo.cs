@@ -673,7 +673,7 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("gMSA readable managed passwords", "T1003");
                 Beaprint.LinkPrint(
-                    "https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/gmsa.html",
+                    "https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/golden-dmsa-gmsa.html",
                     "Look for Group Managed Service Accounts you can read (msDS-ManagedPassword)");
 
                 if (!Checks.IsPartOfDomain)
