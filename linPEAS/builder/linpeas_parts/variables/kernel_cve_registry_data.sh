@@ -2,7 +2,7 @@
 # ID: kernel_cve_registry_data
 # Author: Carlos Polop
 # Contributor: Arjay Saguisa
-# Last Update: 07-09-2026
+# Last Update: 14-09-2026
 # Description: Embedded kernel exploit matching datasets extracted from linux-exploit-suggester and linux-exploit-suggester-2 examples. Data is split across KERNEL_CVE_DATA_1..X with a maximum of 25 rows per env variable. This file also stores reference-only CVE tokens found in example repos when no explicit suggester matching rule exists.
 # License: GNU GPL
 # Version: 1.0
@@ -529,7 +529,7 @@ CVE-2024-38399	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token
 CVE-2024-38402	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2024-41003	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2024-41009	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
-CVE-2024-41010	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
+CVE-2024-41010	tcx_entry mini-qdisc UAF	pkg=linux-kernel,ver>=6.6,ver<6.6.41,x86_64,CONFIG_NET_SCHED=y,CONFIG_NET_SCH_INGRESS=[my],CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1		1	Fixed in stable 6.6.41; public exploit targets 6.6.35 and requires unprivileged network namespaces
 CVE-2024-43047	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2024-43882	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2024-44068	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
