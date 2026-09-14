@@ -98,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArgumentParsingTests.cs" />
+    <Compile Include="ClfsAuthenticationTests.cs" />
     <Compile Include="PrivilegedScheduledTaskTests.cs" />
     <Compile Include="RegistryHiveExposureTests.cs" />
     <Compile Include="SccmNetworkAccessAccountTests.cs" />

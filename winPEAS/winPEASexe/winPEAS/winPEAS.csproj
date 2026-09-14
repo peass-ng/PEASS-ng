@@ -1293,6 +1293,7 @@
     <Compile Include="Info\SystemInfo\AuditPolicies\AuditPolicies.cs" />
     <Compile Include="Info\SystemInfo\AuditPolicies\AuditPolicyGPOInfo.cs" />
     <Compile Include="Info\SystemInfo\AuditPolicies\AuditType.cs" />
+    <Compile Include="Info\SystemInfo\ClfsAuthentication.cs" />
     <Compile Include="Info\SystemInfo\CredentialGuard.cs" />
     <Compile Include="Info\SystemInfo\DotNet\DotNet.cs" />
     <Compile Include="Info\SystemInfo\DotNet\DotNetInfo.cs" />
