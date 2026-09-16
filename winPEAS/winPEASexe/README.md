@@ -133,6 +133,7 @@ Once you have installed and activated it you need to:
   - [x] Enumerate Microsoft updates
   - [x] PS, Audit, WEF and LAPS Settings
   - [x] LSA protection
+  - [x] CLFS logfile authentication mitigation status
   - [x] Credential Guard
   - [x] WDigest
   - [x] Number of cached cred
@@ -173,6 +174,7 @@ Once you have installed and activated it you need to:
   - [x] Modifiable services
   - [x] Writable service registry binpath
   - [x] Writable DLLs loaded by enabled LocalSystem services
+  - [x] Writable LocalSystem service recovery command targets
   - [x] PATH Dll Hijacking
 
 - **Applications Information**
