@@ -1,12 +1,12 @@
 # Title: Processes & Cron & Services & Timers - Services and Service Files
 # ID: PR_Services
 # Author: Carlos Polop
-# Last Update: 2024-03-19
-# Description: Services and service files analysis with privilege escalation vectors
+# Last Update: 16-09-2026
+# Description: Services and service files analysis with privilege escalation vectors, including replaceable root-service executables.
 # License: GNU GPL
-# Version: 1.2
-# Mitre: T1543.002,T1007
-# Functions Used: echo_not_found, print_2title, print_info, print_3title
+# Version: 1.3
+# Mitre: T1543.002,T1574.010,T1007
+# Functions Used: checkSystemdWritableExecPaths, echo_not_found, print_2title, print_info, print_3title
 # Global Variables: $EXTRA_CHECKS, $IAMROOT, $SEARCH_IN_FOLDER, $TIMEOUT, $WRITABLESYSTEMDPATH
 # Initial Functions:
 # Generated Global Variables: $service_unit, $service_path, $service_content, $finding, $findings, $service_file, $exec_path, $exec_paths, $service, $line, $target_file, $target_exec, $relpath1, $relpath2
@@ -16,6 +16,8 @@
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Services and Service Files" "T1543.002,T1007"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#services"
+
+  checkSystemdWritableExecPaths
 
   # Function to check service content for privilege escalation vectors
   check_service_content() {
