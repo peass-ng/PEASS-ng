@@ -1223,6 +1223,7 @@
     <Compile Include="Helpers\Search\Patterns.cs" />
     <Compile Include="Helpers\YamlConfig\YamlConfig.cs" />
     <Compile Include="Helpers\YamlConfig\YamlConfigHelper.cs" />
+    <Compile Include="Info\ActiveDirectoryInfo\LapsPasswordExposure.cs" />
     <Compile Include="Info\ApplicationInfo\ApplicationInfoHelper.cs" />
     <Compile Include="Info\ApplicationInfo\AutoRuns.cs" />
     <Compile Include="Info\ApplicationInfo\DeviceDrivers.cs" />

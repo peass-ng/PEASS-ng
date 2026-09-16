@@ -8,6 +8,7 @@ using System.Security.Principal;
 using System.Text;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
+using winPEAS.Info.ActiveDirectoryInfo;
 
 namespace winPEAS.Checks
 {
@@ -22,6 +23,7 @@ namespace winPEAS.Checks
 
             new List<Action>
             {
+                PrintCurrentComputerLapsPasswordExposure,
                 PrintGmsaReadableByCurrentPrincipal,
                 PrintKerberoastableServiceAccounts,
                 PrintAdObjectControlPaths,
@@ -664,6 +666,85 @@ namespace winPEAS.Checks
             public string Impact { get; set; }
             public string Detail { get; set; }
             public int Score { get; set; }
+        }
+
+        private void PrintCurrentComputerLapsPasswordExposure()
+        {
+            try
+            {
+                Beaprint.MainPrint("Current computer LAPS password readable from AD", "T1003");
+                Beaprint.LinkPrint(
+                    "https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-scenarios-windows-server-active-directory#query-extended-rights-permissions",
+                    "A readable cleartext LAPS attribute exposes this computer's managed local administrator credential. Password values are redacted.");
+
+                if (!Checks.IsPartOfDomain)
+                {
+                    Beaprint.GrayPrint("  [-] Host is not domain-joined. Skipping.");
+                    return;
+                }
+
+                string defaultNC = GetRootDseProp("defaultNamingContext");
+                if (string.IsNullOrEmpty(defaultNC))
+                {
+                    Beaprint.GrayPrint("  [-] Could not resolve defaultNamingContext.");
+                    return;
+                }
+
+                string computerAccount = LapsPasswordExposure.EscapeLdapFilterValue(Environment.MachineName + "$");
+                using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
+                using (var searcher = new DirectorySearcher(baseDe))
+                {
+                    searcher.SearchScope = SearchScope.Subtree;
+                    searcher.SizeLimit = 1;
+                    searcher.ClientTimeout = TimeSpan.FromSeconds(5);
+                    searcher.ServerTimeLimit = TimeSpan.FromSeconds(5);
+                    searcher.Filter = "(&(objectCategory=computer)(sAMAccountName=" + computerAccount + "))";
+                    searcher.PropertiesToLoad.Add("distinguishedName");
+                    searcher.PropertiesToLoad.Add("ms-Mcs-AdmPwd");
+                    searcher.PropertiesToLoad.Add("msLAPS-Password");
+
+                    SearchResult result = searcher.FindOne();
+                    if (result == null)
+                    {
+                        Beaprint.GrayPrint("  [-] Could not find this computer's Active Directory object.");
+                        return;
+                    }
+
+                    // Presence in the LDAP response proves the current identity can
+                    // read a populated value. Never materialize or print the value.
+                    bool legacyPasswordReturned = result.Properties.Contains("ms-Mcs-AdmPwd")
+                        && result.Properties["ms-Mcs-AdmPwd"].Count > 0;
+                    bool windowsLapsPasswordReturned = result.Properties.Contains("msLAPS-Password")
+                        && result.Properties["msLAPS-Password"].Count > 0;
+                    LapsPasswordExposureReport report = LapsPasswordExposure.Evaluate(
+                        legacyPasswordReturned,
+                        windowsLapsPasswordReturned);
+
+                    if (!report.IsExposed)
+                    {
+                        Beaprint.GrayPrint("  [-] No populated cleartext LAPS password attribute was readable for this computer by the current domain identity.");
+                        return;
+                    }
+
+                    Beaprint.BadPrint("  [!] The current domain identity can read this computer's managed local administrator password (value redacted).");
+                    Beaprint.GrayPrint("      Computer: " + Environment.MachineName);
+                    Beaprint.GrayPrint("      AD object: " + (GetProp(result, "distinguishedName") ?? "<unknown>"));
+
+                    if (report.WindowsLapsPasswordReadable)
+                    {
+                        Beaprint.BadPrint("      Readable attribute: msLAPS-Password (Windows LAPS cleartext password)");
+                    }
+
+                    if (report.LegacyPasswordReadable)
+                    {
+                        Beaprint.BadPrint("      Readable attribute: ms-Mcs-AdmPwd (legacy Microsoft LAPS cleartext password)");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("  [-] LAPS password exposure check failed: " + ex.Message);
+            }
         }
 
         // Detect gMSA objects where the current principal (or one of its groups) can retrieve the managed password

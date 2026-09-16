@@ -99,6 +99,7 @@
   <ItemGroup>
     <Compile Include="ArgumentParsingTests.cs" />
     <Compile Include="ClfsAuthenticationTests.cs" />
+    <Compile Include="LapsPasswordExposureTests.cs" />
     <Compile Include="PrivilegedScheduledTaskTests.cs" />
     <Compile Include="RegistryHiveExposureTests.cs" />
     <Compile Include="SccmNetworkAccessAccountTests.cs" />
