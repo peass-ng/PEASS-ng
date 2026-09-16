@@ -1,34 +1,17 @@
 # Title: Functions - checkXFSTangoCVE202680530
 # ID: checkXFSTangoCVE202680530
 # Author: Chack Agent
-# Last Update: 07-09-2026
+# Last Update: 16-09-2026
 # Description: Passively identify mounted XFS filesystems exposed to the XFSTango reflink local privilege-escalation condition (CVE-2026-80530).
 # License: GNU GPL
-# Version: 1.0
+# Version: 1.1
 # Mitre: T1068
-# Functions Used: print_3title, print_info
+# Functions Used: lp_version_lt, print_3title, print_info
 # Global Variables: $E, $SED_GREEN, $SED_LIGHT_CYAN, $SED_RED_YELLOW, $SED_YELLOW, $TIMEOUT
 # Initial Functions:
 # Generated Global Variables: $xft80530_distro_id, $xft80530_distro_version, $xft80530_info, $xft80530_kernel, $xft80530_mount_file, $xft80530_mountpoint, $xft80530_mountpoint_escaped, $xft80530_mounts, $xft80530_os_release, $xft80530_rc, $xft80530_reflink_enabled, $xft80530_reflink_status, $xft80530_reflink_unknown, $xft80530_status, $xft80530_version
 # Fat linpeas: 0
 # Small linpeas: 1
-
-
-xft80530_version_lt() {
-  [ -n "$1" ] && [ -n "$2" ] || return 1
-  awk -v xft80530_a="$1" -v xft80530_b="$2" 'BEGIN {
-    xft80530_na = split(xft80530_a, xft80530_av, ".")
-    xft80530_nb = split(xft80530_b, xft80530_bv, ".")
-    xft80530_n = xft80530_na > xft80530_nb ? xft80530_na : xft80530_nb
-    for (xft80530_i = 1; xft80530_i <= xft80530_n; xft80530_i++) {
-      xft80530_ai = xft80530_av[xft80530_i] + 0
-      xft80530_bi = xft80530_bv[xft80530_i] + 0
-      if (xft80530_ai < xft80530_bi) exit 0
-      if (xft80530_ai > xft80530_bi) exit 1
-    }
-    exit 1
-  }'
-}
 
 xft80530_kernel_status() {
   case "$1" in
@@ -45,28 +28,28 @@ xft80530_kernel_status() {
   xft80530_version="$(printf '%s' "$1" | sed -nE 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')"
   if [ -z "$xft80530_version" ]; then
     echo "unknown"
-  elif xft80530_version_lt "$xft80530_version" "6.10.0"; then
+  elif lp_version_lt "$xft80530_version" "6.10.0"; then
     echo "predates"
-  elif ! xft80530_version_lt "$xft80530_version" "7.2.0"; then
+  elif ! lp_version_lt "$xft80530_version" "7.2.0"; then
     echo "fixed"
   else
     case "$xft80530_version" in
       6.12.*)
-        if ! xft80530_version_lt "$xft80530_version" "6.12.105"; then
+        if ! lp_version_lt "$xft80530_version" "6.12.105"; then
           echo "fixed"
         else
           echo "affected"
         fi
         ;;
       6.18.*)
-        if ! xft80530_version_lt "$xft80530_version" "6.18.46"; then
+        if ! lp_version_lt "$xft80530_version" "6.18.46"; then
           echo "fixed"
         else
           echo "affected"
         fi
         ;;
       7.1.*)
-        if ! xft80530_version_lt "$xft80530_version" "7.1.10"; then
+        if ! lp_version_lt "$xft80530_version" "7.1.10"; then
           echo "fixed"
         else
           echo "affected"
