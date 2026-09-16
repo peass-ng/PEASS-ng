@@ -18,6 +18,7 @@ class XFSTangoCVE202680530Tests(unittest.TestCase):
             / "functions"
             / "checkXFSTangoCVE202680530.sh"
         )
+        cls.version_lt_helper = cls.function_file.parent / "lp_version_lt.sh"
 
     def _run_check(
         self,
@@ -74,6 +75,7 @@ class XFSTangoCVE202680530Tests(unittest.TestCase):
                     "SED_YELLOW='&'",
                     'print_3title() { echo "TITLE: $1"; }',
                     "print_info() { :; }",
+                    f". {shlex.quote(str(self.version_lt_helper))}",
                     f". {shlex.quote(str(self.function_file))}",
                     "checkXFSTangoCVE202680530 "
                     f"{shlex.quote(kernel)} {shlex.quote(str(mounts))} "
@@ -166,7 +168,11 @@ class XFSTangoCVE202680530Tests(unittest.TestCase):
             for version in cases
         ]
         body = "\n".join(
-            [f". {shlex.quote(str(self.function_file))}"] + checks
+            [
+                f". {shlex.quote(str(self.version_lt_helper))}",
+                f". {shlex.quote(str(self.function_file))}",
+            ]
+            + checks
         )
         result = subprocess.run(
             ["sh", "-c", body],
