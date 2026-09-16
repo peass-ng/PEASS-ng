@@ -135,6 +135,7 @@ Once you have installed and activated it you need to:
   - [x] LSA protection
   - [x] CLFS logfile authentication mitigation status
   - [x] Credential Guard
+  - [x] Hardware and DMA security (Kernel DMA Protection, Device Guard DMA/IOMMU capability, UEFI/Secure Boot, VBS, BitLocker protectors and external DMA-capable interfaces)
   - [x] WDigest
   - [x] Number of cached cred
   - [x] Environment Variables
