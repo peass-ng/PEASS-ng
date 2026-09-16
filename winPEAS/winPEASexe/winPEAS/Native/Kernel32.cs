@@ -108,5 +108,9 @@ namespace winPEAS.Native
             uint flagsAndAttributes,
             IntPtr templateFile);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool GetFirmwareType(out uint firmwareType);
+
     }
 }
