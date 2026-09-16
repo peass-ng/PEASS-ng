@@ -2,14 +2,14 @@
 # ID: kernel_cve_registry_data
 # Author: Carlos Polop
 # Contributor: Arjay Saguisa
-# Last Update: 14-09-2026
+# Last Update: 16-09-2026
 # Description: Embedded kernel exploit matching datasets extracted from linux-exploit-suggester and linux-exploit-suggester-2 examples. Data is split across KERNEL_CVE_DATA_1..X with a maximum of 25 rows per env variable. This file also stores reference-only CVE tokens found in example repos when no explicit suggester matching rule exists.
 # License: GNU GPL
 # Version: 1.0
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $KERNEL_CVE_DATA_1, $KERNEL_CVE_DATA_2, $KERNEL_CVE_DATA_3, $KERNEL_CVE_DATA_4, $KERNEL_CVE_DATA_5, $KERNEL_CVE_DATA_6, $KERNEL_CVE_DATA_7, $KERNEL_CVE_DATA_8, $KERNEL_CVE_DATA_9, $KERNEL_CVE_DATA_10, $KERNEL_CVE_DATA_11, $KERNEL_CVE_DATA_12, $KERNEL_CVE_DATA_13, $KERNEL_CVE_DATA_14, $KERNEL_CVE_DATA_15, $KERNEL_CVE_DATA_16, $KERNEL_CVE_DATA_17, $KERNEL_CVE_DATA_18, $KERNEL_CVE_DATA_19, $KERNEL_CVE_DATA_20, $KERNEL_CVE_DATA_21, $KERNEL_CVE_DATA_22, $KERNEL_CVE_DATA_23, $KERNEL_CVE_DATA_24
+# Generated Global Variables: $KERNEL_CVE_DATA_1, $KERNEL_CVE_DATA_2, $KERNEL_CVE_DATA_3, $KERNEL_CVE_DATA_4, $KERNEL_CVE_DATA_5, $KERNEL_CVE_DATA_6, $KERNEL_CVE_DATA_7, $KERNEL_CVE_DATA_8, $KERNEL_CVE_DATA_9, $KERNEL_CVE_DATA_10, $KERNEL_CVE_DATA_11, $KERNEL_CVE_DATA_12, $KERNEL_CVE_DATA_13, $KERNEL_CVE_DATA_14, $KERNEL_CVE_DATA_15, $KERNEL_CVE_DATA_16, $KERNEL_CVE_DATA_17, $KERNEL_CVE_DATA_18, $KERNEL_CVE_DATA_19, $KERNEL_CVE_DATA_20, $KERNEL_CVE_DATA_21, $KERNEL_CVE_DATA_22, $KERNEL_CVE_DATA_23, $KERNEL_CVE_DATA_24, $KERNEL_CVE_DATA_25, $KERNEL_CVE_DATA_26
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -699,4 +699,41 @@ CVE-2026-53361	BadGarbage AF_UNIX garbage-collector race	pkg=linux-kernel,ver>=6
 CVE-2026-53361	BadGarbage AF_UNIX garbage-collector race	pkg=linux-kernel,ver>=6.13,ver<6.18.38		1	Fixed in stable 6.18.38; public exploit can provide local root and container escape
 CVE-2026-53361	BadGarbage AF_UNIX garbage-collector race	pkg=linux-kernel,ver>=6.19,ver<7.1		1	Fixed in mainline 7.1; public exploit can provide local root and container escape
 EOF_DATA_24
+)"
+
+KERNEL_CVE_DATA_25="$(cat <<'EOF_DATA_25'
+CVE-2026-43502	ZcopyReaper RDS zerocopy cleanup UAF	pkg=linux-kernel,ver>=4.17,ver<5.10.258,x86_64,CONFIG_INET=y,CONFIG_AIO=y,CONFIG_RDS=[my],CONFIG_RDS_TCP=[my]		1	Fixed in stable 5.10.258; public exploit targets openSUSE 6.4 and requires RDS over TCP
+CVE-2026-43502	ZcopyReaper RDS zerocopy cleanup UAF	pkg=linux-kernel,ver>=5.11,ver<5.15.209,x86_64,CONFIG_INET=y,CONFIG_AIO=y,CONFIG_RDS=[my],CONFIG_RDS_TCP=[my]		1	Fixed in stable 5.15.209; public exploit targets openSUSE 6.4 and requires RDS over TCP
+CVE-2026-43502	ZcopyReaper RDS zerocopy cleanup UAF	pkg=linux-kernel,ver>=5.16,ver<6.1.175,x86_64,CONFIG_INET=y,CONFIG_AIO=y,CONFIG_RDS=[my],CONFIG_RDS_TCP=[my]		1	Fixed in stable 6.1.175; public exploit targets openSUSE 6.4 and requires RDS over TCP
+CVE-2026-43502	ZcopyReaper RDS zerocopy cleanup UAF	pkg=linux-kernel,ver>=6.2,ver<6.6.140,x86_64,CONFIG_INET=y,CONFIG_AIO=y,CONFIG_RDS=[my],CONFIG_RDS_TCP=[my]		1	Fixed in stable 6.6.140; public exploit targets openSUSE 6.4 and requires RDS over TCP
+CVE-2026-43502	ZcopyReaper RDS zerocopy cleanup UAF	pkg=linux-kernel,ver>=6.7,ver<6.12.88,x86_64,CONFIG_INET=y,CONFIG_AIO=y,CONFIG_RDS=[my],CONFIG_RDS_TCP=[my]		1	Fixed in stable 6.12.88; public exploit targets openSUSE 6.4 and requires RDS over TCP
+CVE-2026-43502	ZcopyReaper RDS zerocopy cleanup UAF	pkg=linux-kernel,ver>=6.13,ver<6.18.30,x86_64,CONFIG_INET=y,CONFIG_AIO=y,CONFIG_RDS=[my],CONFIG_RDS_TCP=[my]		1	Fixed in stable 6.18.30; public exploit targets openSUSE 6.4 and requires RDS over TCP
+CVE-2026-43502	ZcopyReaper RDS zerocopy cleanup UAF	pkg=linux-kernel,ver>=6.19,ver<7.0.7,x86_64,CONFIG_INET=y,CONFIG_AIO=y,CONFIG_RDS=[my],CONFIG_RDS_TCP=[my]		1	Fixed in stable 7.0.7 and mainline 7.1; public exploit targets openSUSE 6.4 and requires RDS over TCP
+CVE-2026-23274	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-31659	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-31678	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-43042	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-43074	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-43501	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-52912	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-52923	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-52924	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-52929	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-52933	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-63834	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-64265	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from an official Linux kernel local privilege-escalation advisory; no public matcher added
+CVE-2026-64560	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-68162	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-68376	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-72137	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-72255	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+EOF_DATA_25
+)"
+
+KERNEL_CVE_DATA_26="$(cat <<'EOF_DATA_26'
+CVE-2026-74480	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-74581	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-74597	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-80714	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+EOF_DATA_26
 )"
