@@ -476,11 +476,7 @@ namespace winPEAS.Info.ServicesInfo
                 return report;
             }
 
-            string windowsDirectory = Environment.GetEnvironmentVariable("SystemRoot");
-            if (string.IsNullOrWhiteSpace(windowsDirectory))
-            {
-                windowsDirectory = Environment.GetEnvironmentVariable("windir");
-            }
+            string windowsDirectory = GetWindowsDirectory();
             if (string.IsNullOrWhiteSpace(windowsDirectory))
             {
                 return report;
@@ -540,28 +536,19 @@ namespace winPEAS.Info.ServicesInfo
                                     continue;
                                 }
 
+                                bool fileExists;
+                                string accessReason;
                                 string accessPath = GetFileSystemAccessPath(
                                     serviceDllPath,
                                     windowsDirectory,
                                     Environment.Is64BitOperatingSystem,
                                     Environment.Is64BitProcess);
-                                bool fileExists = File.Exists(accessPath);
-                                string directoryPath = Path.GetDirectoryName(accessPath);
-                                if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
-                                {
-                                    continue;
-                                }
-
-                                RawSecurityDescriptor fileSecurity = fileExists
-                                    ? GetSecurityDescriptor(accessPath, false)
-                                    : null;
-                                RawSecurityDescriptor directorySecurity = GetSecurityDescriptor(directoryPath, true);
-                                string accessReason = GetReplacementReason(
-                                    fileSecurity,
-                                    directorySecurity,
-                                    fileExists,
-                                    tokenSids);
-                                if (string.IsNullOrEmpty(accessReason))
+                                if (!TryGetReplacementDetails(
+                                    accessPath,
+                                    tokenSids,
+                                    "service DLL",
+                                    out fileExists,
+                                    out accessReason))
                                 {
                                     continue;
                                 }
@@ -599,11 +586,9 @@ namespace winPEAS.Info.ServicesInfo
             string imagePath,
             string windowsDirectory)
         {
-            return serviceType.HasValue && startType.HasValue &&
+            return serviceType.HasValue &&
                    (serviceType.Value & ServiceWin32TypeMask) == ServiceWin32ShareProcess &&
-                   startType.Value != ServiceDisabled &&
-                   (!launchProtected.HasValue || launchProtected.Value == 0) &&
-                   IsLocalSystemAccount(account) &&
+                   IsEligibleUnprotectedSystemService(serviceType, startType, launchProtected, account) &&
                    IsSystemSvchostImage(imagePath, windowsDirectory);
         }
 
@@ -633,11 +618,7 @@ namespace winPEAS.Info.ServicesInfo
                 return report;
             }
 
-            string windowsDirectory = Environment.GetEnvironmentVariable("SystemRoot");
-            if (string.IsNullOrWhiteSpace(windowsDirectory))
-            {
-                windowsDirectory = Environment.GetEnvironmentVariable("windir");
-            }
+            string windowsDirectory = GetWindowsDirectory();
             if (string.IsNullOrWhiteSpace(windowsDirectory))
             {
                 return report;
@@ -702,6 +683,8 @@ namespace winPEAS.Info.ServicesInfo
                                         break;
                                     }
 
+                                    bool targetExists;
+                                    string accessReason;
                                     string accessPath = GetFileSystemAccessPath(
                                         target,
                                         windowsDirectory,
@@ -712,24 +695,12 @@ namespace winPEAS.Info.ServicesInfo
                                         continue;
                                     }
 
-                                    bool targetExists = File.Exists(accessPath);
-                                    string directoryPath = Path.GetDirectoryName(accessPath);
-                                    if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
-                                    {
-                                        continue;
-                                    }
-
-                                    RawSecurityDescriptor targetSecurity = targetExists
-                                        ? GetSecurityDescriptor(accessPath, false)
-                                        : null;
-                                    RawSecurityDescriptor directorySecurity = GetSecurityDescriptor(directoryPath, true);
-                                    string accessReason = GetTargetReplacementReason(
-                                        targetSecurity,
-                                        directorySecurity,
-                                        targetExists,
+                                    if (!TryGetReplacementDetails(
+                                        accessPath,
                                         tokenSids,
-                                        "recovery command target");
-                                    if (string.IsNullOrEmpty(accessReason))
+                                        "recovery command target",
+                                        out targetExists,
+                                        out accessReason))
                                     {
                                         continue;
                                     }
@@ -773,16 +744,25 @@ namespace winPEAS.Info.ServicesInfo
             int? launchProtected,
             string account)
         {
-            if (!serviceType.HasValue || !startType.HasValue ||
-                startType.Value == ServiceDisabled ||
-                (launchProtected.HasValue && launchProtected.Value != 0) ||
-                !IsLocalSystemAccount(account))
+            if (!IsEligibleUnprotectedSystemService(serviceType, startType, launchProtected, account))
             {
                 return false;
             }
 
             int win32Type = serviceType.Value & ServiceWin32TypeMask;
             return win32Type == ServiceWin32OwnProcess || win32Type == ServiceWin32ShareProcess;
+        }
+
+        private static bool IsEligibleUnprotectedSystemService(
+            int? serviceType,
+            int? startType,
+            int? launchProtected,
+            string account)
+        {
+            return serviceType.HasValue && startType.HasValue &&
+                   startType.Value != ServiceDisabled &&
+                   (!launchProtected.HasValue || launchProtected.Value == 0) &&
+                   IsLocalSystemAccount(account);
         }
 
         internal static List<string> GetRecoveryCommandTargets(string rawCommand, string windowsDirectory)
@@ -1079,6 +1059,36 @@ namespace winPEAS.Info.ServicesInfo
                 "service DLL");
         }
 
+        private static bool TryGetReplacementDetails(
+            string accessPath,
+            ISet<string> tokenSids,
+            string targetDescription,
+            out bool targetExists,
+            out string accessReason)
+        {
+            targetExists = false;
+            accessReason = string.Empty;
+
+            targetExists = File.Exists(accessPath);
+            string directoryPath = Path.GetDirectoryName(accessPath);
+            if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
+            {
+                return false;
+            }
+
+            RawSecurityDescriptor targetSecurity = targetExists
+                ? GetSecurityDescriptor(accessPath, false)
+                : null;
+            RawSecurityDescriptor directorySecurity = GetSecurityDescriptor(directoryPath, true);
+            accessReason = GetTargetReplacementReason(
+                targetSecurity,
+                directorySecurity,
+                targetExists,
+                tokenSids,
+                targetDescription);
+            return !string.IsNullOrEmpty(accessReason);
+        }
+
         private static string GetTargetReplacementReason(
             RawSecurityDescriptor fileSecurity,
             RawSecurityDescriptor directorySecurity,
@@ -1272,6 +1282,14 @@ namespace winPEAS.Info.ServicesInfo
         private static string GetDisplayAccount(string account)
         {
             return string.IsNullOrWhiteSpace(account) ? "LocalSystem (default)" : account;
+        }
+
+        private static string GetWindowsDirectory()
+        {
+            string windowsDirectory = Environment.GetEnvironmentVariable("SystemRoot");
+            return string.IsNullOrWhiteSpace(windowsDirectory)
+                ? Environment.GetEnvironmentVariable("windir")
+                : windowsDirectory;
         }
 
         private static string ExpandWindowsPath(string path, string windowsDirectory)
