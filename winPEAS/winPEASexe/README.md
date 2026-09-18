@@ -184,6 +184,7 @@ Once you have installed and activated it you need to:
   - [x] Optional online installed-package vulnerability lookup via HackTricks (`-vulnpackages` or `all`)
   - [x] AutoRuns
   - [x] Scheduled tasks
+  - [x] Microsoft Recall PolicyConfiguration task exposure (CVE-2025-60710 / CVE-2026-20941)
   - [x] Writable execution targets in enabled SYSTEM scheduled tasks
   - [x] Device drivers
 
