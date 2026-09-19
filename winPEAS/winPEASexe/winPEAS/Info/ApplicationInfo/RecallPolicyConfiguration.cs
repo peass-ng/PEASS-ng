@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Xml;
 using Microsoft.Win32;
 using winPEAS.Helpers;
+using winPEAS.Helpers.Registry;
 using winPEAS.TaskScheduler;
 using ScheduledTask = winPEAS.TaskScheduler.Task;
 
