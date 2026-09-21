@@ -22,7 +22,7 @@ namespace winPEAS.Checks
                 PrintAutoRuns,
                 PrintScheduled,
                 PrintRecallPolicyConfigurationExposure,
-                PrintWritableSystemTaskTargets,
+                PrintControllableSystemTasks,
                 PrintDeviceDrivers,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
@@ -281,17 +281,24 @@ namespace winPEAS.Checks
             }
         }
 
-        void PrintWritableSystemTaskTargets()
+        void PrintControllableSystemTasks()
         {
             try
             {
-                Beaprint.MainPrint("Writable execution targets in enabled SYSTEM scheduled tasks", "T1053.005");
-                Beaprint.LinkPrint("https://attack.mitre.org/techniques/T1053/005/", "A writable executable or script launched by a SYSTEM task can provide privilege escalation when the task next runs.");
+                Beaprint.MainPrint("Low-privilege control of enabled SYSTEM scheduled tasks", "T1053.005");
+                Beaprint.LinkPrint("https://learn.microsoft.com/en-us/windows/win32/taskschd/security-contexts-for-running-tasks", "A writable action target or task DACL can let a low-privilege principal replace what the task runs as SYSTEM.");
 
                 PrivilegedScheduledTaskReport report = PrivilegedScheduledTasks.GetReport();
-                if (report.Findings.Count == 0)
+                if (report.ControlFindings.Count == 0 && report.Findings.Count == 0)
                 {
-                    Beaprint.GoodPrint($"    No writable targets found within {report.TasksInspected} inspected task(s).");
+                    Beaprint.GoodPrint($"    No controllable task definitions or writable targets found within {report.TasksInspected} inspected task(s).");
+                }
+
+                foreach (PrivilegedScheduledTaskControlFinding finding in report.ControlFindings)
+                {
+                    Beaprint.BadPrint($"    Task: {finding.TaskPath} ({finding.Principal})");
+                    Beaprint.BadPrint($"    Task control: {finding.AccessReason}");
+                    Beaprint.PrintLineSeparator();
                 }
 
                 foreach (PrivilegedScheduledTaskFinding finding in report.Findings)
