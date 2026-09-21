@@ -21,9 +21,17 @@ namespace winPEAS.Info.ApplicationInfo
         public string AccessReason { get; set; }
     }
 
+    internal sealed class PrivilegedScheduledTaskControlFinding
+    {
+        public string TaskPath { get; set; }
+        public string Principal { get; set; }
+        public string AccessReason { get; set; }
+    }
+
     internal sealed class PrivilegedScheduledTaskReport
     {
         public List<PrivilegedScheduledTaskFinding> Findings { get; } = new List<PrivilegedScheduledTaskFinding>();
+        public List<PrivilegedScheduledTaskControlFinding> ControlFindings { get; } = new List<PrivilegedScheduledTaskControlFinding>();
         public int FoldersInspected { get; set; }
         public int TasksInspected { get; set; }
         public bool FolderLimitReached { get; set; }
@@ -210,6 +218,12 @@ namespace winPEAS.Info.ApplicationInfo
                         return;
                     }
 
+                    ProcessTaskSecurity(task, principalName, unprivilegedSids, report);
+                    if (ShouldStop(report))
+                    {
+                        return;
+                    }
+
                     using (ActionCollection actions = definition.Actions)
                     {
                         foreach (TaskAction action in actions)
@@ -239,6 +253,47 @@ namespace winPEAS.Info.ApplicationInfo
             catch
             {
                 // Definitions and individual actions can be access-restricted or malformed.
+            }
+        }
+
+        private static void ProcessTaskSecurity(
+            ScheduledTask task,
+            string principal,
+            ISet<string> unprivilegedSids,
+            PrivilegedScheduledTaskReport report)
+        {
+            try
+            {
+                string sddl = task.GetSecurityDescriptorSddlForm(
+                    SecurityInfos.Owner | SecurityInfos.DiscretionaryAcl);
+                if (string.IsNullOrWhiteSpace(sddl))
+                {
+                    return;
+                }
+
+                string accessReason = FindTaskControlReason(
+                    new RawSecurityDescriptor(sddl),
+                    unprivilegedSids);
+                if (string.IsNullOrEmpty(accessReason))
+                {
+                    return;
+                }
+
+                report.ControlFindings.Add(new PrivilegedScheduledTaskControlFinding
+                {
+                    TaskPath = task.Path,
+                    Principal = principal,
+                    AccessReason = accessReason,
+                });
+
+                if (GetFindingCount(report) >= MaxFindings)
+                {
+                    report.FindingLimitReached = true;
+                }
+            }
+            catch
+            {
+                // Reading a task DACL can be denied independently of reading its definition.
             }
         }
 
@@ -293,7 +348,7 @@ namespace winPEAS.Info.ApplicationInfo
                     AccessReason = accessReason,
                 });
 
-                if (report.Findings.Count >= MaxFindings)
+                if (GetFindingCount(report) >= MaxFindings)
                 {
                     report.FindingLimitReached = true;
                     return;
@@ -694,6 +749,41 @@ namespace winPEAS.Info.ApplicationInfo
             return null;
         }
 
+        internal static string FindTaskControlReason(
+            RawSecurityDescriptor descriptor,
+            ISet<string> enabledSids)
+        {
+            if (descriptor == null || enabledSids == null || enabledSids.Count == 0)
+            {
+                return null;
+            }
+
+            string trustee = FindWriteTrustee(descriptor, enabledSids, FileWriteData);
+            if (!string.IsNullOrEmpty(trustee))
+            {
+                return "task definition is writable by " + trustee;
+            }
+
+            trustee = FindWriteTrustee(descriptor, enabledSids, WriteDac);
+            if (!string.IsNullOrEmpty(trustee))
+            {
+                return "task permissions can be changed by " + trustee;
+            }
+
+            trustee = FindWriteTrustee(descriptor, enabledSids, WriteOwner);
+            if (!string.IsNullOrEmpty(trustee))
+            {
+                return "task ownership can be changed by " + trustee;
+            }
+
+            if (descriptor.Owner != null && enabledSids.Contains(descriptor.Owner.Value))
+            {
+                return "task is owned by " + descriptor.Owner.Value + " (the owner can change its permissions)";
+            }
+
+            return null;
+        }
+
         private static IEnumerable<uint> IndividualRights(uint rights)
         {
             uint[] candidates = { FileWriteData, FileAppendData, FileDeleteChild, WriteDac, WriteOwner };
@@ -827,6 +917,11 @@ namespace winPEAS.Info.ApplicationInfo
             }
 
             return ApplySafetyLimits(report, report.InspectionTimer.ElapsedMilliseconds);
+        }
+
+        private static int GetFindingCount(PrivilegedScheduledTaskReport report)
+        {
+            return report.Findings.Count + report.ControlFindings.Count;
         }
 
         internal static bool ApplySafetyLimits(PrivilegedScheduledTaskReport report, long elapsedMilliseconds)

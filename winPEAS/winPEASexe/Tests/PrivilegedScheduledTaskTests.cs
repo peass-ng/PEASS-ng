@@ -111,6 +111,36 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void DetectsTaskDefinitionAndPermissionControl()
+        {
+            var writable = new RawSecurityDescriptor("O:BAG:SYD:(A;;GW;;;BU)");
+            var changePermissions = new RawSecurityDescriptor("O:BAG:SYD:(A;;0x40000;;;BU)");
+            var changeOwner = new RawSecurityDescriptor("O:BAG:SYD:(A;;0x80000;;;BU)");
+
+            Assert.AreEqual(
+                "task definition is writable by S-1-5-32-545",
+                PrivilegedScheduledTasks.FindTaskControlReason(writable, StandardUserSids));
+            Assert.AreEqual(
+                "task permissions can be changed by S-1-5-32-545",
+                PrivilegedScheduledTasks.FindTaskControlReason(changePermissions, StandardUserSids));
+            Assert.AreEqual(
+                "task ownership can be changed by S-1-5-32-545",
+                PrivilegedScheduledTasks.FindTaskControlReason(changeOwner, StandardUserSids));
+        }
+
+        [TestMethod]
+        public void DetectsUnprivilegedTaskOwnerButIgnoresReadOnlyAccess()
+        {
+            var owned = new RawSecurityDescriptor("O:BUG:SYD:(A;;FR;;;BU)");
+            var readOnly = new RawSecurityDescriptor("O:BAG:SYD:(A;;FR;;;BU)");
+
+            Assert.AreEqual(
+                "task is owned by S-1-5-32-545 (the owner can change its permissions)",
+                PrivilegedScheduledTasks.FindTaskControlReason(owned, StandardUserSids));
+            Assert.IsNull(PrivilegedScheduledTasks.FindTaskControlReason(readOnly, StandardUserSids));
+        }
+
+        [TestMethod]
         public void RequiresCreateAndDeleteChildForExistingFileReplacement()
         {
             var createOnly = new RawSecurityDescriptor("O:BAG:SYD:(A;;0x2;;;BU)");
