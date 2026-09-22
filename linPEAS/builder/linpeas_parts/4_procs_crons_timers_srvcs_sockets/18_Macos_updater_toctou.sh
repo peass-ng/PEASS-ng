@@ -106,7 +106,7 @@ if [ "$MACPEAS" ] && ! [ "$SEARCH_IN_FOLDER" ] && ! [ "$IAMROOT" ]; then
       while IFS= read -r mupt_candidate; do
         mupt_pid="$(printf '%s\n' "$mupt_candidate" | awk '{print $2}')"
         printf '%s\n' "$mupt_candidate" |
-          grep -Eo '/[^[:space:]",;)]+' 2>/dev/null |
+          grep -Eo '/[^[:space:]",;\)]+' 2>/dev/null |
           sort -u |
           while IFS= read -r mupt_path; do
             mupt_check_path "PID $mupt_pid" "root updater command line" "$mupt_path"
