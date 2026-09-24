@@ -6,7 +6,7 @@
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{AD9F3A60-C492-4823-8F24-6F4854E7CBF5}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>YamlSerializer</RootNamespace>
     <AssemblyName>YamlSerializer</AssemblyName>
@@ -41,9 +41,6 @@
     <DocumentationFile>bin\Release\YamlSerializer.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>YamlSerializerProgram.Program</StartupObject>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -60,13 +57,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ObjectExtensions.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="RehashableDictionary.cs" />
     <Compile Include="YamlDoubleQuoteEscaping.cs" />
     <Compile Include="EasyTypeConverter.cs" />
     <Compile Include="ObjectMemberAccessor.cs" />
     <Compile Include="Parser.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypeUtils.cs" />
     <Compile Include="UriEncoding.cs" />
     <Compile Include="YamlAnchorDictionary.cs" />
