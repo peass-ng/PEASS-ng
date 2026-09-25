@@ -104,6 +104,8 @@ This script doesn't have any dependency.
 
 ### Recent updates
 
+- **Sep 2026**: Expanded Kubernetes container-escape enumeration with cgroup-v2-aware pod detection, non-disclosing projected-token metadata, host namespace/mount and pod-security indicators, and opt-in (`-a`/`-e`) read-only RBAC checks for privileged-pod attack chains.
+
 - **Sep 2026**: Added explicit detection for root-equivalent `lxd` group membership, writable LXD control sockets, and Ubuntu's `root:lxd` on-demand `lxd-installer` socket/service chain.
 
 - **Sep 2026**: SUID/SGID enumeration now highlights privileged files in user-writable or unusual locations, replaceable parent directories, non-root ownership, and recent changes in unusual locations. High-risk file-capability combinations now include common interpreters and DAC-bypass tools.
