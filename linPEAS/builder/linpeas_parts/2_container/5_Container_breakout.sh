@@ -1,15 +1,15 @@
 # Title: Container - Container & breakout enumeration
 # ID: CT_Container_breakout
-# Author: Carlos Polop
-# Last Update: 21-03-2026
-# Description: Enumerate container hardening, breakout surfaces, runtime exposure, and high-impact escape vectors from inside a container.
+# Author: Carlos Polop, HT Bot
+# Last Update: 25-09-2026
+# Description: Enumerate container hardening, breakout surfaces, runtime exposure, Kubernetes RBAC, and high-impact escape vectors from inside a container.
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1611
 # Functions Used: checkContainerExploits, checkProcSysBreakouts, containerCheck, enumerateDockerSockets, print_2title, print_3title, print_info, print_list, warn_exec
-# Global Variables: $binfmt_misc_breakout, $containercapsB, $containerType, $core_pattern_breakout, $debugfs_present, $debugfs_readable, $dev_mounted, $efi_efivars_writable, $efi_vars_writable, $GREP_IGNORE_MOUNTS, $inContainer, $kallsyms_readable, $kcore_readable, $kmem_readable, $kmem_writable, $kmsg_readable, $mem_readable, $mem_writable, $modprobe_binary, $modprobe_config_writable, $mountinfo_readable, $panic_on_oom_dos, $panic_sys_fs_dos, $proc_configgz_readable, $proc_keys_readable, $proc_mounted, $proc_timer_list_readable, $release_agent_breakout1, $release_agent_breakout2, $release_agent_breakout3, $run_unshare, $sched_debug_readable, $security_present, $security_writable, $self_mem_readable, $sys_firmware_readable, $sysreq_trigger_dos, $thermal_present, $thermal_readable, $uevent_helper_breakout, $vmcoreinfo_readable, $VULN_CVE_2019_5021
+# Global Variables: $binfmt_misc_breakout, $containercapsB, $containerType, $core_pattern_breakout, $debugfs_present, $debugfs_readable, $dev_mounted, $efi_efivars_writable, $efi_vars_writable, $EXTRA_CHECKS, $GREP_IGNORE_MOUNTS, $inContainer, $kallsyms_readable, $kcore_readable, $kmem_readable, $kmem_writable, $kmsg_readable, $mem_readable, $mem_writable, $modprobe_binary, $modprobe_config_writable, $mountinfo_readable, $panic_on_oom_dos, $panic_sys_fs_dos, $proc_configgz_readable, $proc_keys_readable, $proc_mounted, $proc_timer_list_readable, $release_agent_breakout1, $release_agent_breakout2, $release_agent_breakout3, $run_unshare, $sched_debug_readable, $security_present, $security_writable, $self_mem_readable, $sys_firmware_readable, $sysreq_trigger_dos, $thermal_present, $thermal_readable, $uevent_helper_breakout, $vmcoreinfo_readable, $VULN_CVE_2019_5021
 # Initial Functions: containerCheck
-# Generated Global Variables: $container_breakout_tools, $containerd_version, $defautl_docker_caps, $gid_map_value, $host_process_count, $host_process_indicators, $no_new_privs_num, $proc_comm, $root_mount_mode, $runc_version, $seccomp_mode_desc, $seccomp_mode_num, $selinux_context, $selinux_status, $setgroups_value, $tool, $uid_map_value
+# Generated Global Variables: $container_breakout_tools, $containerd_version, $defautl_docker_caps, $gid_map_value, $host_process_count, $host_process_indicators, $k8s_api_base, $k8s_api_host, $k8s_can_create_pods, $k8s_can_exec_pods, $k8s_can_read_secrets, $k8s_can_request_tokens, $k8s_chain_risk, $k8s_host_mounts, $k8s_namespace, $k8s_pod_name, $k8s_pod_json, $k8s_pod_risks, $k8s_sa_ca, $k8s_sa_dir, $k8s_sa_token, $k8s_service_account, $k8s_ssrr_request, $k8s_ssrr_response, $k8s_ssrr_rules, $k8s_token_payload, $k8s_token_payload_b64, $no_new_privs_num, $proc_comm, $root_mount_mode, $runc_version, $seccomp_mode_desc, $seccomp_mode_num, $selinux_context, $selinux_status, $setgroups_value, $tool, $uid_map_value
 # Fat linpeas: 0
 # Small linpeas: 0
 
@@ -298,41 +298,157 @@ if [ "$inContainer" ]; then
     print_list "Container runtime configs .. "$NC
     (find /etc -name "*.conf" -o -name "*.json" 2>/dev/null | grep -E "docker|containerd|crio|podman|lxc|rkt|kubelet|buildkit|firecracker" || echo "No") | sed -${E} "s,docker|containerd|crio|podman|lxc|rkt|kubelet|buildkit|firecracker,${SED_RED},g"
     
-    # Kubernetes specific checks
+    # Kubernetes-specific checks. API requests are opt-in (-a/-e), read-only,
+    # short-lived, and never print the projected bearer token.
     if echo "$containerType" | grep -qi "kubernetes"; then
-        print_3title "Kubernetes Specific Checks" "T1611"
+        print_3title "Kubernetes container escape checks" "T1611"
         print_info "https://cloud.hacktricks.wiki/en/pentesting-cloud/kubernetes-security/attacking-kubernetes-from-inside-a-pod.html"
-        
-        print_list "Kubernetes namespace ...........$NC $(cat /run/secrets/kubernetes.io/serviceaccount/namespace /var/run/secrets/kubernetes.io/serviceaccount/namespace /secrets/kubernetes.io/serviceaccount/namespace 2>/dev/null)\n"
-        print_list "Kubernetes token ...............$NC $(cat /run/secrets/kubernetes.io/serviceaccount/token /var/run/secrets/kubernetes.io/serviceaccount/token /secrets/kubernetes.io/serviceaccount/token 2>/dev/null)\n"
-        
-        print_list "Kubernetes service account folder" | sed -${E} "s,.*,${SED_RED},"
-        ls -lR /run/secrets/kubernetes.io/ /var/run/secrets/kubernetes.io/ /secrets/kubernetes.io/ 2>/dev/null
-        
-        print_list "Kubernetes env vars" | sed -${E} "s,.*,${SED_RED},"
-        (env | set) | grep -Ei "kubernetes|kube" | grep -Ev "^WF=|^Wfolders=|^mounted=|^USEFUL_SOFTWARE='|^INT_HIDDEN_FILES=|^containerType="
-        
-        print_list "Current sa user k8s permissions" | sed -${E} "s,.*,${SED_RED},"
-        kubectl auth can-i --list 2>/dev/null || curl -s -k -d "$(echo \"eyJraW5kIjoiU2VsZlN1YmplY3RSdWxlc1JldmlldyIsImFwaVZlcnNpb24iOiJhdXRob3JpemF0aW9uLms4cy5pby92MSIsIm1ldGFkYXRhIjp7ImNyZWF0aW9uVGltZXN0YW1wIjpudWxsfSwic3BlYyI6eyJuYW1lc3BhY2UiOiJlZXZlZSJ9LCJzdGF0dXMiOnsicmVzb3VyY2VSdWxlcyI6bnVsbCwibm9uUmVzb3VyY2VSdWxlcyI6bnVsbCwiaW5jb21wbGV0ZSI6ZmFsc2V9fQo=\"|base64 -d)" \
-          "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT_HTTPS}/apis/authorization.k8s.io/v1/selfsubjectrulesreviews" \
-            -X 'POST' -H 'Content-Type: application/json' \
-            --header "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" | sed "s,secrets|exec|create|patch|impersonate|\"*\",${SED_RED},"
-        
-        # Additional Kubernetes checks
-        print_list "Kubernetes API server ...... "$NC
-        (curl -s -k https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT_HTTPS}/version 2>/dev/null || echo "Not accessible") | sed -${E} "s,Not accessible,${SED_GREEN},"
-        
-        print_list "Kubernetes secrets ......... "$NC
-        (kubectl get secrets 2>/dev/null || echo "Not accessible") | sed -${E} "s,Not accessible,${SED_GREEN},"
-        
-        print_list "Kubernetes pods ............ "$NC
-        (kubectl get pods 2>/dev/null || echo "Not accessible") | sed -${E} "s,Not accessible,${SED_GREEN},"
-        
-        print_list "Kubernetes services ........ "$NC
-        (kubectl get services 2>/dev/null || echo "Not accessible") | sed -${E} "s,Not accessible,${SED_GREEN},"
-        
-        print_list "Kubernetes nodes ........... "$NC
-        (kubectl get nodes 2>/dev/null || echo "Not accessible") | sed -${E} "s,Not accessible,${SED_GREEN},"
+
+        k8s_sa_dir=""
+        for k8s_sa_dir in /var/run/secrets/kubernetes.io/serviceaccount /run/secrets/kubernetes.io/serviceaccount /secrets/kubernetes.io/serviceaccount; do
+            if [ -r "$k8s_sa_dir/token" ]; then break; fi
+        done
+        k8s_sa_token="$k8s_sa_dir/token"
+        k8s_sa_ca="$k8s_sa_dir/ca.crt"
+        k8s_namespace="$(cat "$k8s_sa_dir/namespace" 2>/dev/null)"
+        k8s_pod_name=""
+        k8s_service_account=""
+
+        # Bound service-account tokens contain pod and service-account names in
+        # their local JWT payload. Decode only the payload and never display it.
+        if [ -r "$k8s_sa_token" ] && command -v base64 >/dev/null 2>&1; then
+            k8s_token_payload_b64="$(cut -d. -f2 < "$k8s_sa_token" 2>/dev/null | tr '_-' '/+')"
+            case $((${#k8s_token_payload_b64} % 4)) in
+                2) k8s_token_payload_b64="${k8s_token_payload_b64}==" ;;
+                3) k8s_token_payload_b64="${k8s_token_payload_b64}=" ;;
+            esac
+            k8s_token_payload="$(printf "%s" "$k8s_token_payload_b64" | base64 -d 2>/dev/null)"
+            k8s_pod_name="$(printf "%s" "$k8s_token_payload" | grep -o '"pod"[[:space:]]*:[[:space:]]*{[^}]*}' | sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+            k8s_service_account="$(printf "%s" "$k8s_token_payload" | grep -o '"serviceaccount"[[:space:]]*:[[:space:]]*{[^}]*}' | sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+            if [ -z "$k8s_service_account" ]; then
+                k8s_service_account="$(printf "%s" "$k8s_token_payload" | sed -n 's/.*"sub"[[:space:]]*:[[:space:]]*"system:serviceaccount:[^:"]*:\([^"]*\)".*/\1/p')"
+            fi
+            k8s_token_payload=""
+            k8s_token_payload_b64=""
+        fi
+        if [ -z "$k8s_pod_name" ]; then k8s_pod_name="$(hostname 2>/dev/null)"; fi
+
+        print_list "Namespace ...................... ${k8s_namespace:-unknown}\n"
+        print_list "Pod name ....................... ${k8s_pod_name:-unknown}\n"
+        if [ -r "$k8s_sa_token" ]; then
+            print_list "Projected API token ............ present and readable (contents suppressed)\n" | sed -${E} "s,present and readable,${SED_RED_YELLOW},"
+        else
+            print_list "Projected API token ............ not readable\n" | sed -${E} "s,not readable,${SED_GREEN},"
+        fi
+        if [ -r "$k8s_sa_ca" ]; then
+            print_list "Projected cluster CA ........... present and readable\n"
+        else
+            print_list "Projected cluster CA ........... not readable\n"
+        fi
+
+        k8s_api_host="${KUBERNETES_SERVICE_HOST:-}"
+        case "$k8s_api_host" in *:*) k8s_api_host="[$k8s_api_host]" ;; esac
+        if [ "$k8s_api_host" ]; then
+            k8s_api_base="https://${k8s_api_host}:${KUBERNETES_SERVICE_PORT_HTTPS:-443}"
+            print_list "Cluster API endpoint ........... $k8s_api_base\n"
+        else
+            k8s_api_base=""
+            print_list "Cluster API endpoint ........... unknown\n"
+        fi
+
+        k8s_host_mounts="$(awk '$4=="/" && ($5=="/host" || $5=="/rootfs" || $5=="/mnt/host") {print $5 " (" $6 ")"}' /proc/self/mountinfo 2>/dev/null)"
+        print_list "Possible host-root mounts ...... "$NC
+        if [ "$k8s_host_mounts" ]; then
+            printf "%s\n" "$k8s_host_mounts" | sed -${E} "s,.*,${SED_RED}&,"
+        else
+            echo "None at common mount points"
+        fi
+
+        k8s_can_create_pods="Unknown"
+        k8s_can_exec_pods="Unknown"
+        k8s_can_read_secrets="Unknown"
+        k8s_can_request_tokens="Unknown"
+        k8s_pod_risks=""
+        k8s_chain_risk=""
+
+        if [ "$dev_mounted" = "Yes" ]; then k8s_pod_risks="${k8s_pod_risks}hostDevices "; fi
+        if command -v capsh >/dev/null 2>&1 && capsh --print 2>/dev/null | grep '^Current:' | grep -qw 'cap_sys_admin'; then
+            k8s_pod_risks="${k8s_pod_risks}CAP_SYS_ADMIN "
+        fi
+
+        if [ "$EXTRA_CHECKS" ] && command -v curl >/dev/null 2>&1 && [ -r "$k8s_sa_token" ] && [ -r "$k8s_sa_ca" ] && [ "$k8s_api_base" ] && [ "$k8s_namespace" ]; then
+            k8s_api_curl() {
+                printf 'header = "Authorization: Bearer %s"\n' "$(tr -d '\r\n' < "$k8s_sa_token")" |
+                    curl -sS --connect-timeout 1 --max-time 3 --cacert "$k8s_sa_ca" --config - "$@" 2>/dev/null
+            }
+            k8s_rules_allow() {
+                printf "%s\n" "$k8s_ssrr_rules" |
+                    grep -E "\"resources\"[[:space:]]*:[[:space:]]*\[[^]]*\"($1|\\*)\"([[:space:]]*,|[[:space:]]*\])" |
+                    grep -E '"apiGroups"[[:space:]]*:[[:space:]]*\[[^]]*"(\*)?"' |
+                    grep -E "\"verbs\"[[:space:]]*:[[:space:]]*\[[^]]*\"($2)\"" >/dev/null 2>&1
+            }
+
+            # SelfSubjectRulesReview evaluates permissions without creating,
+            # modifying, or requesting any workload or credential.
+            k8s_ssrr_request="{\"apiVersion\":\"authorization.k8s.io/v1\",\"kind\":\"SelfSubjectRulesReview\",\"spec\":{\"namespace\":\"$k8s_namespace\"}}"
+            k8s_ssrr_response="$(k8s_api_curl -X POST -H 'Content-Type: application/json' --data "$k8s_ssrr_request" "$k8s_api_base/apis/authorization.k8s.io/v1/selfsubjectrulesreviews")"
+            if printf "%s" "$k8s_ssrr_response" | grep -q '"resourceRules"[[:space:]]*:'; then
+                # ResourceRule JSON objects begin with "verbs" in Kubernetes'
+                # response. Split them before matching so verbs from one rule
+                # cannot be combined with resources from another rule.
+                k8s_ssrr_rules="$(printf "%s" "$k8s_ssrr_response" | tr '\n' ' ' | sed -${E} 's/}[[:space:]]*,[[:space:]]*\{[[:space:]]*"verbs"/}|{"verbs"/g' | tr '|' '\n')"
+                if k8s_rules_allow "pods" 'create|\*'; then k8s_can_create_pods="Yes"; else k8s_can_create_pods="No"; fi
+                if k8s_rules_allow "pods/(exec|\\*)" 'create|\*'; then k8s_can_exec_pods="Yes"; else k8s_can_exec_pods="No"; fi
+                if k8s_rules_allow "secrets" 'get|list|watch|\*'; then k8s_can_read_secrets="Yes"; else k8s_can_read_secrets="No"; fi
+                if k8s_rules_allow "serviceaccounts/token" 'create|\*'; then k8s_can_request_tokens="Yes"; else k8s_can_request_tokens="No"; fi
+            fi
+
+            # Fetch only this pod to inspect the submitted security context.
+            if [ "$k8s_pod_name" ]; then
+                k8s_pod_json="$(k8s_api_curl "$k8s_api_base/api/v1/namespaces/$k8s_namespace/pods/$k8s_pod_name")"
+                if printf "%s" "$k8s_pod_json" | grep -q '"kind"[[:space:]]*:[[:space:]]*"Pod"'; then
+                    if [ -z "$k8s_service_account" ]; then
+                        k8s_service_account="$(printf "%s" "$k8s_pod_json" | sed -n 's/.*"serviceAccountName"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+                    fi
+                    if printf "%s" "$k8s_pod_json" | grep -Eq '"hostPID"[[:space:]]*:[[:space:]]*true'; then k8s_pod_risks="${k8s_pod_risks}hostPID "; fi
+                    if printf "%s" "$k8s_pod_json" | grep -Eq '"hostIPC"[[:space:]]*:[[:space:]]*true'; then k8s_pod_risks="${k8s_pod_risks}hostIPC "; fi
+                    if printf "%s" "$k8s_pod_json" | grep -Eq '"hostNetwork"[[:space:]]*:[[:space:]]*true'; then k8s_pod_risks="${k8s_pod_risks}hostNetwork "; fi
+                    if printf "%s" "$k8s_pod_json" | grep -Eq '"privileged"[[:space:]]*:[[:space:]]*true'; then k8s_pod_risks="${k8s_pod_risks}privileged "; fi
+                    if printf "%s" "$k8s_pod_json" | grep -Eq '"allowPrivilegeEscalation"[[:space:]]*:[[:space:]]*true'; then k8s_pod_risks="${k8s_pod_risks}allowPrivilegeEscalation "; fi
+                    if printf "%s" "$k8s_pod_json" | grep -Eq '"add"[[:space:]]*:[[:space:]]*\[[^]]*"SYS_ADMIN"' && ! printf "%s" "$k8s_pod_risks" | grep -q 'CAP_SYS_ADMIN'; then k8s_pod_risks="${k8s_pod_risks}CAP_SYS_ADMIN "; fi
+                    if printf "%s" "$k8s_pod_json" | grep -Eq '"hostPath"[[:space:]]*:[[:space:]]*\{[^}]*"path"[[:space:]]*:[[:space:]]*"/"'; then
+                        k8s_pod_risks="${k8s_pod_risks}hostPath:/ "
+                    elif printf "%s" "$k8s_pod_json" | grep -Eq '"hostPath"[[:space:]]*:[[:space:]]*\{[^}]*"path"[[:space:]]*:[[:space:]]*"/(etc|proc|sys|dev|var/run|var/lib/kubelet)(/|\")'; then
+                        k8s_pod_risks="${k8s_pod_risks}sensitiveHostPath "
+                    elif printf "%s" "$k8s_pod_json" | grep -Eq '"hostPath"[[:space:]]*:[[:space:]]*\{'; then
+                        k8s_pod_risks="${k8s_pod_risks}hostPath "
+                    fi
+                fi
+            fi
+        else
+            print_list "API permission/pod checks ...... skipped (use -a or -e; requires curl, token and CA)\n"
+        fi
+
+        print_list "Service account ................ ${k8s_service_account:-unknown}\n"
+        print_list "RBAC create pods ............... $k8s_can_create_pods\n" | sed -${E} "s,Yes,${SED_RED_YELLOW}," | sed -${E} "s,No,${SED_GREEN},"
+        print_list "RBAC create pods/exec .......... $k8s_can_exec_pods\n" | sed -${E} "s,Yes,${SED_RED_YELLOW}," | sed -${E} "s,No,${SED_GREEN},"
+        print_list "RBAC read secrets .............. $k8s_can_read_secrets\n" | sed -${E} "s,Yes,${SED_RED_YELLOW}," | sed -${E} "s,No,${SED_GREEN},"
+        print_list "RBAC create serviceaccounts/token $k8s_can_request_tokens\n" | sed -${E} "s,Yes,${SED_RED_YELLOW}," | sed -${E} "s,No,${SED_GREEN},"
+        print_list "Current pod escape settings .... "$NC
+        if [ "$k8s_pod_risks" ]; then
+            printf "%s\n" "$k8s_pod_risks" | sed -${E} "s,.*,${SED_RED}&,"
+        else
+            echo "None found or pod object is not readable"
+        fi
+
+        if { [ "$k8s_pod_risks" ] || [ "$k8s_host_mounts" ]; } && { [ "$k8s_can_create_pods" = "Yes" ] || [ "$k8s_can_exec_pods" = "Yes" ]; }; then
+            k8s_chain_risk="HIGH - dangerous pod/host exposure combined with workload-control RBAC"
+        elif [ "$k8s_can_create_pods" = "Yes" ] && { [ "$k8s_can_exec_pods" = "Yes" ] || [ "$k8s_can_read_secrets" = "Yes" ] || [ "$k8s_can_request_tokens" = "Yes" ]; }; then
+            k8s_chain_risk="Dangerous RBAC chain; admission controls still determine privileged-pod creation"
+        fi
+        if [ "$k8s_chain_risk" ]; then
+            print_list "Kubernetes escape chain ........ $k8s_chain_risk\n" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+        fi
     fi
     
     # Interesting files and mounts
