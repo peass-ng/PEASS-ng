@@ -1,7 +1,7 @@
 # Title: System Information - Kernel Modules
 # ID: SY_Kernel_Modules
 # Author: Carlos Polop
-# Last Update: 21-09-2026
+# Last Update: 25-09-2026
 # Description: Check for kernel module vulnerabilities and misconfigurations that could lead to privilege escalation:
 #   - Loaded kernel modules with known vulnerabilities
 #   - Kernel modules with weak permissions that could be modified
@@ -9,15 +9,16 @@
 #   - Missing kernel module signing requirements
 #   - CIFSwitch (CVE-2026-46243) attack-chain exposure
 #   - DiagSpill (CVE-2026-74469) SCTP diagnostic exposure
+#   - CVE-2026-53264 net/sched action UAF exposure
 #   - Exploitation methods:
 #     * Vulnerable modules: Use known exploits for vulnerable kernel modules
 #     * Weak permissions: Modify kernel modules to inject malicious code
 #     * Module loading: Load malicious kernel modules to get root access
 #     * Common vulnerable modules: nf_tables, eBPF, overlayfs, etc.
 # License: GNU GPL
-# Version: 1.2
+# Version: 1.3
 # Mitre: T1547.006,T1068
-# Functions Used: checkCIFSwitchCVE202646243, checkDiagSpillCVE202674469, print_2title, print_3title
+# Functions Used: checkCIFSwitchCVE202646243, checkDiagSpillCVE202674469, checkNetSchedCVE202653264, print_2title, print_3title
 # Global Variables: 
 # Initial Functions:
 # Generated Global Variables:
@@ -28,6 +29,7 @@ echo ""
 print_2title "Kernel Modules Information" "T1547.006"
 checkCIFSwitchCVE202646243
 checkDiagSpillCVE202674469
+checkNetSchedCVE202653264
 # List loaded kernel modules
 if [ "$EXTRA_CHECKS" ] || [ "$DEBUG" ]; then
     print_3title "Loaded kernel modules" "T1547.006"
