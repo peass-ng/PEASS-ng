@@ -154,10 +154,6 @@ namespace winPEAS.KnownFileCreds.SecurityPackages
                     throw new Exception($"InitializeSecurityContext (client) failed. Error: 0x{result:x8}");
                 }
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
             finally
             {
                 clientToken.Dispose();

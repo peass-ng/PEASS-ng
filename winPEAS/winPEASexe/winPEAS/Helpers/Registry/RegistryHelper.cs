@@ -31,26 +31,28 @@ namespace winPEAS.Helpers.Registry
                 RegistryKey regKey;
                 if (hive == "HKCU")
                 {
-                    regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(path);
+                    regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(path, true);
                 }
                 else if (hive == "HKU")
                 {
-                    regKey = Microsoft.Win32.Registry.Users.OpenSubKey(path);
-
+                    regKey = Microsoft.Win32.Registry.Users.OpenSubKey(path, true);
                 }
                 else
                 {
-                    regKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(path);
+                    regKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(path, true);
                 }
 
-                if (regKey == null)
+                using (regKey)
                 {
-                    return false;
-                }
+                    if (regKey == null)
+                    {
+                        return false;
+                    }
 
-                regKey.SetValue(keyName, value, RegistryValueKind.String);
+                    regKey.SetValue(keyName, value, RegistryValueKind.String);
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
