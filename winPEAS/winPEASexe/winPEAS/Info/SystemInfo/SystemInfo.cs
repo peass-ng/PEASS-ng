@@ -106,7 +106,10 @@ namespace winPEAS.Info.SystemInfo
                 string ProductName = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "ProductName");
                 string EditionID = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "EditionID");
                 string ReleaseId = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "ReleaseId");
+                string DisplayVersion = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "DisplayVersion");
                 string BuildBranch = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "BuildBranch");
+                string CurrentBuild = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentBuild");
+                string UpdateBuildRevision = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "UBR");
                 string CurrentMajorVersionNumber = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentMajorVersionNumber");
                 string CurrentVersion = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentVersion");
 
@@ -148,7 +151,10 @@ namespace winPEAS.Info.SystemInfo
                         results.Add("ProductName", ProductName);
                         results.Add("EditionID", EditionID);
                         results.Add("ReleaseId", ReleaseId);
+                        results.Add("DisplayVersion", DisplayVersion);
                         results.Add("BuildBranch", BuildBranch);
+                        results.Add("CurrentBuild", CurrentBuild);
+                        results.Add("UpdateBuildRevision", UpdateBuildRevision);
                         results.Add("CurrentMajorVersionNumber", CurrentMajorVersionNumber);
                         results.Add("CurrentVersion", CurrentVersion);
                         results.Add("Architecture", arch);

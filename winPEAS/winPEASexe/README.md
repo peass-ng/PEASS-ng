@@ -196,7 +196,7 @@ Once you have installed and activated it you need to:
   - [x] Listening ports
   - [x] Firewall rules
   - [x] DNS Cache (limit 70)
-  - [x] Internet Settings
+  - [x] WinINet, WinHTTP, policy and environment HTTP proxy settings (including ZDI-26-708 exposure indicators)
   - [x] Internet connectivity probes
   - [x] Optional external hostname resolution check
 

@@ -408,6 +408,35 @@ namespace winPEAS.Checks
                     Beaprint.NoColorPrint($"  {i.Hive,-10}  {i.ValueName,-40}  {i.Value}");
                 }
 
+                Beaprint.ColorPrint("\n  HTTP Proxy Exposure Sources", Beaprint.LBLUE);
+                Beaprint.LinkPrint("https://www.zerodayinitiative.com/advisories/ZDI-26-708/", "Review unexpected proxy destinations for the Windows HTTP proxy machine-account NTLM disclosure path");
+
+                if (info.ProxySettings.Count == 0)
+                {
+                    Beaprint.NoColorPrint("  No explicit WinINet, WinHTTP, policy or environment proxy settings found");
+                }
+                else
+                {
+                    foreach (var proxySetting in info.ProxySettings)
+                    {
+                        string source = $"{proxySetting.Hive}\\{proxySetting.Path}";
+                        Beaprint.NoColorPrint($"  Source         : {source}");
+                        Beaprint.NoColorPrint($"  Setting        : {proxySetting.ValueName} = {proxySetting.Value}");
+                        Beaprint.NoColorPrint($"  Classification : {proxySetting.Interpretation}\n");
+                    }
+
+                    bool hasRemoteDestination = info.ProxySettings.Any(setting =>
+                        !string.IsNullOrEmpty(setting.Interpretation) &&
+                        setting.Interpretation.Contains("remote destination"));
+
+                    if (hasRemoteDestination)
+                    {
+                        Beaprint.BadPrint("  Potential machine-account NTLM disclosure path: a remote proxy/PAC destination is configured. Risk requires the destination to be effective and attacker-controlled or otherwise untrusted.");
+                    }
+                }
+
+                Beaprint.InfoPrint("  Exposure-oriented only: organization approval/external control and affected Windows builds cannot be determined. Correlate with the NTLM outbound restriction settings reported by winPEAS; no authentication is triggered by this check.");
+
                 Beaprint.ColorPrint("\n  Zone Maps", Beaprint.LBLUE);
 
                 if (info.ZoneMaps.Count == 0)
@@ -439,6 +468,7 @@ namespace winPEAS.Checks
             }
             catch (Exception ex)
             {
+                Beaprint.PrintException(ex.Message);
             }
         }
 
