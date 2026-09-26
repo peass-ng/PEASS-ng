@@ -407,14 +407,6 @@ namespace winPEAS.Info.NetworkInfo
                     }
                 }
             }
-            catch (OutOfMemoryException outOfMemoryException)
-            {
-                throw outOfMemoryException;
-            }
-            catch (Exception exception)
-            {
-                throw exception;
-            }
             finally
             {
                 Marshal.FreeHGlobal(tcpTableRecordsPtr);
@@ -504,14 +496,6 @@ namespace winPEAS.Info.NetworkInfo
                         tableRowPtr = (IntPtr)((long)tableRowPtr + Marshal.SizeOf(udpRow));
                     }
                 }
-            }
-            catch (OutOfMemoryException outOfMemoryException)
-            {
-                throw outOfMemoryException;
-            }
-            catch (Exception exception)
-            {
-                throw exception;
             }
             finally
             {
