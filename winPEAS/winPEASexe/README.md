@@ -209,6 +209,7 @@ Once you have installed and activated it you need to:
   - [x] Windows Vault
   - [x] Credential Manager
   - [x] Saved RDP settings
+  - [x] Passive sethc.exe/Utilman.exe integrity checks and RDP/NLA exposure context
   - [x] Recently run commands
   - [x] Default PS transcripts files
   - [x] DPAPI Masterkeys

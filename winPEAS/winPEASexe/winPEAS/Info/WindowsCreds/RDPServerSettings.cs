@@ -2,6 +2,7 @@
 {
     internal class RDPServerSettings
     {
+        public bool? RemoteDesktopEnabled { get; }
         public uint? NetworkLevelAuthentication { get; }
         public uint? BlockClipboardRedirection { get; }
         public uint? BlockComPortRedirection { get; }
@@ -12,6 +13,7 @@
         public uint? BlockPrinterRedirection { get; }
 
         public RDPServerSettings(
+            bool? remoteDesktopEnabled,
             uint? networkLevelAuthentication,
             uint? blockClipboardRedirection,
             uint? blockComPortRedirection,
@@ -21,6 +23,7 @@
             uint? blockPnPDeviceRedirection,
             uint? blockPrinterRedirection)
         {
+            RemoteDesktopEnabled = remoteDesktopEnabled;
             NetworkLevelAuthentication = networkLevelAuthentication;
             BlockClipboardRedirection = blockClipboardRedirection;
             BlockComPortRedirection = blockComPortRedirection;

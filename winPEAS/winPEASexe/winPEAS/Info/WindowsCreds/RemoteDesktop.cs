@@ -15,7 +15,20 @@ namespace winPEAS.Info.WindowsCreds
             var disablePwSaving = RegistryHelper.GetDwordValue("HKLM", termServKey, "DisablePasswordSaving");
 
             // Server settings
-            var nla = RegistryHelper.GetDwordValue("HKLM", termServKey, "UserAuthentication");
+            var denyConnections = RegistryHelper.GetDwordValue(
+                "HKLM",
+                @"SYSTEM\CurrentControlSet\Control\Terminal Server",
+                "fDenyTSConnections");
+            bool? remoteDesktopEnabled = denyConnections.HasValue
+                ? (bool?)(denyConnections.Value == 0)
+                : null;
+
+            var nlaPolicy = RegistryHelper.GetDwordValue("HKLM", termServKey, "UserAuthentication");
+            var nlaLocal = RegistryHelper.GetDwordValue(
+                "HKLM",
+                @"SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp",
+                "UserAuthentication");
+            var nla = nlaPolicy ?? nlaLocal;
             var blockClipboard = RegistryHelper.GetDwordValue("HKLM", termServKey, "fDisableClip");
             var blockComPort = RegistryHelper.GetDwordValue("HKLM", termServKey, "fDisableCcm");
             var blockDrives = RegistryHelper.GetDwordValue("HKLM", termServKey, "fDisableCdm");
@@ -31,6 +44,7 @@ namespace winPEAS.Info.WindowsCreds
                     serverAuthLevel,
                     disablePwSaving == null || disablePwSaving == 1),
                 new RDPServerSettings(
+                        remoteDesktopEnabled,
                         nla,
                         blockClipboard,
                         blockComPort,
