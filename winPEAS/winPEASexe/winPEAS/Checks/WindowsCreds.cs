@@ -25,11 +25,11 @@ namespace winPEAS.Checks
         private const string DpapiLink = "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#dpapi";
         private const string RdcManLink = "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#remote-desktop-credential-manager";
 
-        public string[] MitreAttackIds { get; } = new[] { "T1552.001", "T1552.002", "T1555.003", "T1555.004", "T1558", "T1547.005", "T1563.002" };
+        public string[] MitreAttackIds { get; } = new[] { "T1552.001", "T1552.002", "T1555.003", "T1555.004", "T1558", "T1547.005", "T1546.008", "T1563.002" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Windows Credentials", "T1552.001,T1552.002,T1555.003,T1555.004,T1558,T1547.005,T1563.002");
+            Beaprint.GreatPrint("Windows Credentials", "T1552.001,T1552.002,T1555.003,T1555.004,T1558,T1547.005,T1546.008,T1563.002");
 
             new List<Action>
             {
@@ -38,6 +38,7 @@ namespace winPEAS.Checks
                 PrintUWPPasswordVault,
                 PrintSavedRDPInfo,
                 PrintRDPSettings,
+                PrintAccessibilityBinaryIntegrity,
                 PrintRecentRunCommands,
                 PrintDPAPIMasterKeys,
                 PrintDpapiCredFiles,
@@ -575,7 +576,8 @@ namespace winPEAS.Checks
 
                 var server = info.ServerSettings;
                 Beaprint.ColorPrint("  RDP Server Settings", Beaprint.LBLUE);
-                Beaprint.NoColorPrint($"    Network Level Authentication            :       {server.NetworkLevelAuthentication}\n" +
+                Beaprint.NoColorPrint($"    Remote Desktop Enabled                  :       {server.RemoteDesktopEnabled}\n" +
+                                             $"    Network Level Authentication            :       {server.NetworkLevelAuthentication}\n" +
                                              $"    Block Clipboard Redirection             :       {server.BlockClipboardRedirection}\n" +
                                              $"    Block COM Port Redirection              :       {server.BlockComPortRedirection}\n" +
                                              $"    Block Drive Redirection                 :       {server.BlockDriveRedirection}\n" +
@@ -606,7 +608,68 @@ namespace winPEAS.Checks
             }
             catch (Exception ex)
             {
+                Beaprint.PrintException(ex.Message);
             }
+        }
+
+        private static void PrintAccessibilityBinaryIntegrity()
+        {
+            Beaprint.MainPrint("Accessibility Binary Integrity (sethc.exe/utilman.exe)", "T1546.008");
+            Beaprint.LinkPrint(
+                "https://www.praetorian.com/blog/credential-testing-brutus/",
+                "Detect logon-screen accessibility binaries replaced with a SYSTEM shell");
+
+            var server = Info.WindowsCreds.RemoteDesktop.GetRDPSettingsInfo().ServerSettings;
+            string rdpContext =
+                $"RDP exposure context: enabled={FormatNullableBoolean(server.RemoteDesktopEnabled)}, " +
+                $"NLA enabled={FormatEnabledSetting(server.NetworkLevelAuthentication)}";
+            if (server.RemoteDesktopEnabled == true && server.NetworkLevelAuthentication == 0)
+            {
+                Beaprint.BadPrint(rdpContext + " (accessibility backdoors may be remotely reachable pre-authentication)");
+            }
+            else
+            {
+                Beaprint.InfoPrint(rdpContext);
+            }
+
+            foreach (AccessibilityBinaryInfo binary in AccessibilityBinaryIntegrity.GetBinaryInfo())
+            {
+                string finding = binary.Path + (binary.IsSuspicious
+                    ? " -> suspicious: " + string.Join("; ", binary.Issues)
+                    : " -> no integrity indicators found");
+
+                if (binary.IsSuspicious)
+                {
+                    Beaprint.BadPrint(finding);
+                }
+                else
+                {
+                    Beaprint.GoodPrint(finding);
+                }
+
+                Beaprint.NoColorPrint(
+                    $"    SHA-256          : {binary.Sha256}\n" +
+                    $"    Size              : {binary.Size}\n" +
+                    $"    Last write (UTC)  : {binary.LastWriteTimeUtc}\n" +
+                    $"    Original filename : {binary.OriginalFileName}\n" +
+                    $"    File version      : {binary.FileVersion}\n" +
+                    $"    Signature         : {binary.SignatureStatus}\n" +
+                    $"    Signer            : {binary.Signer}\n" +
+                    $"    Owner             : {binary.Owner}\n" +
+                    $"    Attributes        : {binary.Attributes}\n" +
+                    $"    Hard-link count   : {binary.HardLinkCount}\n" +
+                    $"    Low-priv write ACEs: {string.Join(" | ", binary.LowPrivilegeWriteAces)}");
+            }
+        }
+
+        private static string FormatEnabledSetting(uint? value)
+        {
+            return value.HasValue ? (value.Value != 0).ToString() : "Unknown";
+        }
+
+        private static string FormatNullableBoolean(bool? value)
+        {
+            return value.HasValue ? value.Value.ToString() : "Unknown";
         }
 
         private static string GetDescriptionByType(uint? type)
