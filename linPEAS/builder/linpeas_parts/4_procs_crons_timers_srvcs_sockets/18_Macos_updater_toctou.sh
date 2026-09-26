@@ -91,7 +91,10 @@ if [ "$MACPEAS" ] && ! [ "$SEARCH_IN_FOLDER" ] && ! [ "$IAMROOT" ]; then
   }
 
   mupt_launchdaemons_dir="${ROOT_FOLDER:-}/Library/LaunchDaemons"
-  mupt_records="$({
+  # Keep the collector body outside command-substitution syntax. macOS still
+  # ships Bash 3.2, whose parser can miscount parentheses inside quoted EREs
+  # when they appear directly in a multiline $(...) body.
+  mupt_collect_records() {
     # System LaunchDaemons run as root unless UserName says otherwise. Ignore
     # user-writable plists because existing launchd checks already report that
     # stronger, direct privilege-escalation condition.
@@ -129,13 +132,15 @@ if [ "$MACPEAS" ] && ! [ "$SEARCH_IN_FOLDER" ] && ! [ "$IAMROOT" ]; then
       while IFS= read -r mupt_candidate; do
         mupt_pid="$(printf '%s\n' "$mupt_candidate" | awk '{print $2}')"
         printf '%s\n' "$mupt_candidate" |
-          grep -Eo '/[^[:space:]",;)]+' 2>/dev/null |
+          grep -Eo '/[^()[:space:]",;]+' 2>/dev/null |
           sort -u |
           while IFS= read -r mupt_path; do
             mupt_check_path "PID $mupt_pid" "root updater command line" "$mupt_path"
           done
       done
-  } | sort -u)"
+  }
+
+  mupt_records="$(mupt_collect_records | sort -u)"
 
   if [ -n "$mupt_records" ]; then
     print_3title "Potential privileged updater TOCTOU paths" "T1574"
