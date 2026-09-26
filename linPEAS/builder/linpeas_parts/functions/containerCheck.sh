@@ -1,7 +1,7 @@
 # Title: Container - containerCheck
 # ID: containerCheck
-# Author: Carlos Polop
-# Last Update: 21-03-2026
+# Author: Carlos Polop, HT Bot
+# Last Update: 25-09-2026
 # Description: Check whether the current process appears to be running inside a Linux container and identify common runtime hints.
 # License: GNU GPL
 # Version: 1.0
@@ -27,12 +27,18 @@ containerCheck() {
     containerType="docker\n"
   fi
 
-  # Are we inside kubenetes?
+  # Are we inside Kubernetes? Service-account mounts and the API service
+  # environment are useful on cgroup v2/containerd systems where cgroups may
+  # not expose a kubepods path.
   if grep "/kubepod" /proc/1/cgroup -qa 2>/dev/null ||
-    grep -qai kubepods /proc/self/cgroup 2>/dev/null; then
+    grep -qai kubepods /proc/self/cgroup 2>/dev/null ||
+    [ -d "/var/run/secrets/kubernetes.io/serviceaccount" ] ||
+    [ -d "/run/secrets/kubernetes.io/serviceaccount" ] ||
+    [ -n "${KUBERNETES_SERVICE_HOST:-}" ]; then
 
     inContainer="1"
-    if [ "$containerType" ]; then containerType="$containerType (kubernetes)\n"
+    if echo "$containerType" | grep -qi "kubernetes"; then :
+    elif [ "$containerType" ] && [ "$containerType" != "$(echo_no)" ]; then containerType="$containerType (kubernetes)\n"
     else containerType="kubernetes\n"
     fi
   fi

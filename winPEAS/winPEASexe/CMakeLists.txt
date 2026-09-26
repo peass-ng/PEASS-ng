@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(winPEAS_dotnet NONE)
 
-set(PROJECT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/winPEAS.csproj")
+set(PROJECT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/winPEAS/winPEAS.csproj")
 
 find_program(DOTNET_EXECUTABLE dotnet)
 find_program(MSBUILD_EXECUTABLE msbuild)
