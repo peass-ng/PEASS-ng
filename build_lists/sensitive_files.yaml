@@ -2216,6 +2216,20 @@ search:
           exec:
             - '( redis-server --version || echo_not_found "redis-server") 2>/dev/null'
             - redis_info="$(if [ "$TIMEOUT" ]; then $TIMEOUT 2 redis-cli INFO 2>/dev/null; else redis-cli INFO 2>/dev/null; fi)"; if [ "$redis_info" ] && ! echo "$redis_info" | grep -i NOAUTH; then echo "Redis isn't password protected" | sed -${E} "s,.*,${SED_RED},"; fi
+            - >-
+              redis_cron_dir_response="$(if [ "$TIMEOUT" ]; then $TIMEOUT 2 redis-cli --raw CONFIG GET dir 2>/dev/null; else redis-cli --raw CONFIG GET dir 2>/dev/null; fi)";
+              redis_cron_dir="$(printf "%s\n" "$redis_cron_dir_response" | tail -n 1 | tr -d '\r')";
+              if [ "$redis_info" ] && [ "$redis_cron_dir" ] && ! printf "%s\n" "$redis_cron_dir_response" | grep -Eqi "NOAUTH|NOPERM|ERR|unknown command"; then
+                redis_cron_pid="$(printf "%s\n" "$redis_info" | sed -n 's/^process_id:\([0-9][0-9]*\)\r*$/\1/p' | head -n 1)";
+                redis_cron_uid="$(ps -o uid= -p "$redis_cron_pid" 2>/dev/null | tr -d ' ')";
+                echo "Redis effective UID: ${redis_cron_uid:-unknown}; persistence dir: $redis_cron_dir";
+                if [ "$redis_cron_uid" = "0" ]; then
+                  echo "Potential Redis-to-root file/cron rewrite: Redis runs as root and the current connection can query CONFIG (CONFIG SET may still be ACL-restricted; no write attempted)" | sed -${E} "s,.*,${SED_RED_YELLOW},";
+                  for redis_cron_path in /etc/cron.d /var/spool/cron /var/spool/cron/crontabs; do
+                    if [ -d "$redis_cron_path" ]; then ls -ld "$redis_cron_path" 2>/dev/null; fi;
+                  done;
+                fi;
+              fi
 
         files:
           - name: "redis.conf"
