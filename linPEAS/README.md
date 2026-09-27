@@ -104,6 +104,8 @@ This script doesn't have any dependency.
 
 ### Recent updates
 
+- **Sep 2026**: Added a read-only check for the Open vSwitch forwarded-SKB page-cache LPE chain (CVE-2026-80977, CVE-2026-89487, and CVE-2026-90049), correlating fixed kernel releases with OVS, ESP/XFRM, user-namespace, module-mitigation, and setuid-target prerequisites.
+
 - **Sep 2026**: Expanded Kubernetes container-escape enumeration with cgroup-v2-aware pod detection, non-disclosing projected-token metadata, host namespace/mount and pod-security indicators, and opt-in (`-a`/`-e`) read-only RBAC checks for privileged-pod attack chains.
 
 - **Sep 2026**: Added explicit detection for root-equivalent `lxd` group membership, writable LXD control sockets, and Ubuntu's `root:lxd` on-demand `lxd-installer` socket/service chain.
