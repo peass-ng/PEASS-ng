@@ -2,7 +2,7 @@
 # ID: kernel_cve_registry_data
 # Author: Carlos Polop
 # Contributor: Arjay Saguisa
-# Last Update: 16-09-2026
+# Last Update: 28-09-2026
 # Description: Embedded kernel exploit matching datasets extracted from linux-exploit-suggester and linux-exploit-suggester-2 examples. Data is split across KERNEL_CVE_DATA_1..X with a maximum of 25 rows per env variable. This file also stores reference-only CVE tokens found in example repos when no explicit suggester matching rule exists.
 # License: GNU GPL
 # Version: 1.0
@@ -731,9 +731,19 @@ EOF_DATA_25
 )"
 
 KERNEL_CVE_DATA_26="$(cat <<'EOF_DATA_26'
+CVE-2026-53264	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public net/sched privilege-escalation exploit; dedicated LinPEAS check handles prerequisites
+CVE-2026-68121	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public PPPoE privilege-escalation exploit; no stable matcher added
+CVE-2026-74469	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public SCTP diagnostics privilege-escalation exploit; dedicated LinPEAS check handles prerequisites
 CVE-2026-74480	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
 CVE-2026-74581	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
 CVE-2026-74597	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-80530	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public XFS privilege-escalation exploit; dedicated LinPEAS check handles filesystem prerequisites
 CVE-2026-80714	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-80844	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public AH6/XFRM privilege-escalation exploit; no stable matcher added
+CVE-2026-80977	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token in a public Open vSwitch page-cache privilege-escalation chain; dedicated LinPEAS check handles prerequisites
+CVE-2026-81000	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public TUN/TAP privilege-escalation exploit; no stable matcher added
+CVE-2026-89487	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token in a public Open vSwitch page-cache privilege-escalation chain; dedicated LinPEAS check handles prerequisites
+CVE-2026-89775	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token for a KVM/arm64 guest-to-host escape and local privilege escalation; no stable matcher added
+CVE-2026-90049	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token in a public Open vSwitch page-cache privilege-escalation chain; dedicated LinPEAS check handles prerequisites
 EOF_DATA_26
 )"
