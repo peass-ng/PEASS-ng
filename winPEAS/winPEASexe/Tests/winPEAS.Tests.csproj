@@ -102,6 +102,7 @@
     <Compile Include="ClfsAuthenticationTests.cs" />
     <Compile Include="LapsPasswordExposureTests.cs" />
     <Compile Include="PrivilegedScheduledTaskTests.cs" />
+    <Compile Include="PrivilegedWmiEventConsumerTests.cs" />
     <Compile Include="RegistryHiveExposureTests.cs" />
     <Compile Include="SccmNetworkAccessAccountTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
