@@ -588,7 +588,7 @@ namespace winPEAS.Info.ApplicationInfo
             return tokens;
         }
 
-        private static string ResolveActionPath(string executable, string workingDirectory)
+        internal static string ResolveActionPath(string executable, string workingDirectory)
         {
             if (string.IsNullOrEmpty(executable))
             {
@@ -616,7 +616,7 @@ namespace winPEAS.Info.ApplicationInfo
             }
         }
 
-        private static string GetWritableTargetReason(string displayPath, ISet<string> unprivilegedSids)
+        internal static string GetWritableTargetReason(string displayPath, ISet<string> unprivilegedSids)
         {
             if (!IsPathOnLocalDrive(displayPath) || unprivilegedSids == null || unprivilegedSids.Count == 0)
             {

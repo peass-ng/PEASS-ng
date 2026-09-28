@@ -8,11 +8,11 @@ namespace winPEAS.Checks
 {
     internal class ApplicationsInfo : ISystemCheck
     {
-        public string[] MitreAttackIds { get; } = new[] { "T1518", "T1547.001", "T1053.005", "T1068", "T1010", "T1014" };
+        public string[] MitreAttackIds { get; } = new[] { "T1518", "T1547.001", "T1053.005", "T1546.003", "T1068", "T1010", "T1014" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Applications Information", "T1518,T1547.001,T1053.005,T1068,T1010,T1014");
+            Beaprint.GreatPrint("Applications Information", "T1518,T1547.001,T1053.005,T1546.003,T1068,T1010,T1014");
 
             new List<Action>
             {
@@ -23,6 +23,7 @@ namespace winPEAS.Checks
                 PrintScheduled,
                 PrintRecallPolicyConfigurationExposure,
                 PrintControllableSystemTasks,
+                PrintPrivilegedWmiEventConsumers,
                 PrintDeviceDrivers,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
@@ -333,6 +334,65 @@ namespace winPEAS.Checks
                 if (report.TimeLimitReached)
                 {
                     Beaprint.NoColorPrint($"    Inspection stopped at the safety limit of {PrivilegedScheduledTasks.MaxInspectionMilliseconds / 1000} seconds.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        void PrintPrivilegedWmiEventConsumers()
+        {
+            try
+            {
+                Beaprint.MainPrint("Writable payloads in privileged WMI event consumers", "T1546.003");
+                Beaprint.LinkPrint(
+                    "https://learn.microsoft.com/en-us/windows/win32/wmisdk/commandlineeventconsumer",
+                    "Microsoft warns that CommandLineEventConsumer runs as LocalSystem and that unsecured payloads can be replaced. File-backed ActiveScript consumers are checked too.");
+
+                PrivilegedWmiEventConsumerReport report = PrivilegedWmiEventConsumers.GetReport();
+                if (!string.IsNullOrEmpty(report.Error))
+                {
+                    Beaprint.InfoPrint("    Inspection incomplete: " + report.Error);
+                }
+
+                if (report.Findings.Count == 0 && string.IsNullOrEmpty(report.Error))
+                {
+                    Beaprint.GoodPrint($"    No writable payloads found in {report.BoundConsumersInspected} bound privileged consumer(s).");
+                }
+
+                foreach (PrivilegedWmiEventConsumerFinding finding in report.Findings)
+                {
+                    Beaprint.BadPrint($"    Consumer: {finding.ConsumerName} ({finding.ConsumerType})");
+                    Beaprint.BadPrint($"    Writable target: {finding.TargetPath}");
+                    Beaprint.BadPrint($"    Access: {finding.AccessReason}");
+                    Beaprint.PrintLineSeparator();
+                }
+
+                if (report.BindingLimitReached)
+                {
+                    Beaprint.NoColorPrint($"    Binding inspection was capped at {PrivilegedWmiEventConsumers.MaxBindings}.");
+                }
+
+                if (report.ConsumerLimitReached)
+                {
+                    Beaprint.NoColorPrint($"    Bound-consumer inspection was capped at {PrivilegedWmiEventConsumers.MaxConsumers}.");
+                }
+
+                if (report.TargetLimitReached)
+                {
+                    Beaprint.NoColorPrint($"    Filesystem probes were capped at {PrivilegedWmiEventConsumers.MaxTargets} targets.");
+                }
+
+                if (report.FindingLimitReached)
+                {
+                    Beaprint.NoColorPrint($"    Findings were capped at {PrivilegedWmiEventConsumers.MaxFindings}.");
+                }
+
+                if (report.TimeLimitReached)
+                {
+                    Beaprint.NoColorPrint($"    Inspection stopped at the safety limit of {PrivilegedWmiEventConsumers.MaxInspectionMilliseconds / 1000} seconds.");
                 }
             }
             catch (Exception ex)
