@@ -389,6 +389,7 @@ namespace winPEAS.Checks
             }
             catch (Exception e)
             {
+                Beaprint.PrintException(e.Message);
             }
         }
 
