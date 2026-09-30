@@ -1,15 +1,15 @@
 # Title: Interesting Permissions Files - SGID
 # ID: IP_SGID
 # Author: Carlos Polop, HT Bot
-# Last Update: 25-09-2026
+# Last Update: 30-09-2026
 # Description: SGID - Check easy privesc, write perms, and risky file placement
 # License: GNU GPL
-# Version: 1.1
+# Version: 1.2
 # Mitre: T1548.001
-# Functions Used: print_2title, print_info
+# Functions Used: check_privileged_file_location, print_2title, print_info
 # Global Variables: $cfuncs, $IAMROOT, $LDD, $READELF, $ROOT_FOLDER, $sidB, $sidG1, $sidG2, $sidG3, $sidG4, $sidVB, $sidVB2, $STRACE, $STRINGS, $TIMEOUT, $Wfolders
 # Initial Functions:
-# Generated Global Variables: $sgids_files, $sfile, $sname, $sowner, $sparent, $sunusual, $sline_first, $sline, $LD_LIBRARY_PATH, $OLD_LD_LIBRARY_PATH
+# Generated Global Variables: $sgids_files, $sfile, $sname, $sowner, $sline_first, $sline, $LD_LIBRARY_PATH, $OLD_LD_LIBRARY_PATH
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -96,25 +96,7 @@ printf "%s\n" "$sgids_files" | while IFS= read -r sfile; do
     fi
   fi
 
-  # A privileged file in a user-controlled location is especially suspicious.
-  # Reuse the SGID enumeration above instead of performing another filesystem scan.
-  sunusual=""
-  case "$sname" in
-    "${ROOT_FOLDER}tmp/"*|"${ROOT_FOLDER}var/tmp/"*|"${ROOT_FOLDER}dev/shm/"*|"${ROOT_FOLDER}run/user/"*|"${ROOT_FOLDER}var/run/user/"*|"${ROOT_FOLDER}home/"*)
-      echo "SGID file in a user-writable or unusual location: $sname" | sed -${E} "s,.*,${SED_RED_YELLOW},"
-      sunusual="1"
-      ;;
-  esac
-
-  sparent="$(dirname "$sname")"
-  if ! [ "$IAMROOT" ] && [ -d "$sparent" ] && [ -w "$sparent" ] && [ -x "$sparent" ] && ! [ -k "$sparent" ]; then
-    echo "You can replace entries in the SGID file's parent directory: $sparent" | sed -${E} "s,.*,${SED_RED_YELLOW},"
-  fi
-  if [ "$sowner" ] && [ "$sowner" != "root" ]; then
-    echo "SGID file is owned by non-root user $sowner: $sname" | sed -${E} "s,.*,${SED_RED},"
-  fi
-  if [ "$sunusual" ] && find "$sname" -mtime -7 -print 2>/dev/null | grep -q .; then
-    echo "SGID file in an unusual location was modified in the last 7 days: $sname" | sed -${E} "s,.*,${SED_RED},"
-  fi
+  # Reuse this enumeration for the shared privileged-file placement checks.
+  check_privileged_file_location "SGID" "$sname" "$sowner"
 done;
 echo ""
