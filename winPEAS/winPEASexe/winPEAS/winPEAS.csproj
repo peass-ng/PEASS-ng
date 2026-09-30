@@ -1319,6 +1319,7 @@
     <Compile Include="Info\SystemInfo\SysMon\SysmonInfo.cs" />
     <Compile Include="Info\SystemInfo\SysMon\SysmonOptions.cs" />
     <Compile Include="Info\SystemInfo\WindowsVersionVulns.cs" />
+    <Compile Include="Info\SystemInfo\WindowsInstallerCve27727.cs" />
     <Compile Include="Info\SystemInfo\WindowsDefender\AsrRule.cs" />
     <Compile Include="Info\SystemInfo\WindowsDefender\AsrSettings.cs" />
     <Compile Include="Info\SystemInfo\WindowsDefender\WindowsDefender.cs" />
