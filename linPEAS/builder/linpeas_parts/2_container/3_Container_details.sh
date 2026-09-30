@@ -17,7 +17,22 @@ print_2title "Container details" "T1613,T1611"
 print_list "Is this a container? ...........$NC $containerType"
 
 has_runtime_cli() {
-    command -v "$1" >/dev/null 2>&1
+    command -v "$1" >/dev/null 2>&1 || return 1
+
+    # Ubuntu's lxd-installer owns an lxc shim that installs the LXD snap on use.
+    # Do not execute it during enumeration, even for a version check.
+    if [ "$1" = "lxc" ] && command -v dpkg-query >/dev/null 2>&1; then
+        case "$(command -v lxc)" in
+            /sbin/lxc|/usr/sbin/lxc)
+                # dpkg may record /sbin/lxc while PATH resolves /usr/sbin/lxc.
+                if dpkg-query -S /sbin/lxc /usr/sbin/lxc 2>/dev/null | grep -q '^lxd-installer:'; then
+                    return 1
+                fi
+                ;;
+        esac
+    fi
+
+    return 0
 }
 
 print_runtime_info() {
