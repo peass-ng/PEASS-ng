@@ -55,15 +55,7 @@ namespace winPEAS.Info.CloudInfo
                     }
                     else
                     {
-                        _endpointData.Add("General Info", new List<EndpointData>()
-                        {
-                            new EndpointData()
-                            {
-                                EndpointName = "",
-                                Data = null,
-                                IsAttackVector = false
-                            }
-                        });
+                        _endpointData.Add("General Info", CreateUnavailableEndpointData());
                     }
                 }
                 catch (Exception ex)

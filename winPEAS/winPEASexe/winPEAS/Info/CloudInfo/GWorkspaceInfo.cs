@@ -66,20 +66,7 @@ namespace winPEAS.Info.CloudInfo
             workspaceRegValues.Add("Chrome Enrollment Token", Helpers.Registry.RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Policies\Google\Chrome", @"CloudManagementEnrollmentToken"));
             workspaceRegValues.Add("Workspace Enrollment Token", Helpers.Registry.RegistryHelper.GetRegValue("HKLM", @"SOFTWARE\Policies\Google\CloudManagement", @"EnrollmentToken"));
 
-            // Format the info in expected CloudInfo format
-            List<EndpointData> _endpointDataList = new List<EndpointData>();
-
-            foreach (var kvp in workspaceRegValues)
-            {
-                _endpointDataList.Add(new EndpointData()
-                {
-                    EndpointName = kvp.Key,
-                    Data = kvp.Value?.Trim(),
-                    IsAttackVector = false
-                });
-            }
-
-            return _endpointDataList;
+            return CreateEndpointData(workspaceRegValues);
         }
 
         static string DecryptRegRefreshToken(string registryPath)
@@ -138,15 +125,7 @@ namespace winPEAS.Info.CloudInfo
                     }
                     else
                     {
-                        _endpointData.Add("General Info", new List<EndpointData>()
-                        {
-                            new EndpointData()
-                            {
-                                EndpointName = "",
-                                Data = null,
-                                IsAttackVector = false
-                            }
-                        });
+                        _endpointData.Add("General Info", CreateUnavailableEndpointData());
                     }
                 }
                 catch (Exception ex)

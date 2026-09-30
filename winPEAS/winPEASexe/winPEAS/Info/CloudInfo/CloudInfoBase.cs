@@ -17,6 +17,36 @@ namespace winPEAS.Info.CloudInfo
 
         public abstract bool TestConnection();
 
+        protected static List<EndpointData> CreateEndpointData(IEnumerable<KeyValuePair<string, string>> values)
+        {
+            var endpointData = new List<EndpointData>();
+
+            foreach (KeyValuePair<string, string> value in values)
+            {
+                endpointData.Add(new EndpointData
+                {
+                    EndpointName = value.Key,
+                    Data = value.Value?.Trim(),
+                    IsAttackVector = false
+                });
+            }
+
+            return endpointData;
+        }
+
+        protected static List<EndpointData> CreateUnavailableEndpointData()
+        {
+            return new List<EndpointData>
+            {
+                new EndpointData
+                {
+                    EndpointName = "",
+                    Data = null,
+                    IsAttackVector = false
+                }
+            };
+        }
+
         private bool? _isAvailable;
         public bool IsAvailable
         {
