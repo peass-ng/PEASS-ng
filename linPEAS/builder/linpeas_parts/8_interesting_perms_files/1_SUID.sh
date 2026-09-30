@@ -1,15 +1,15 @@
 # Title: Interesting Permissions Files - SUID
 # ID: IP_SUID
 # Author: Carlos Polop, HT Bot
-# Last Update: 25-09-2026
+# Last Update: 30-09-2026
 # Description: SUID - Check easy privesc, exploits, write perms, and risky file placement
 # License: GNU GPL
-# Version: 1.1
+# Version: 1.2
 # Mitre: T1548.001
-# Functions Used: echo_not_found, print_2title, print_info
+# Functions Used: check_privileged_file_location, echo_not_found, print_2title, print_info
 # Global Variables: $IAMROOT, $LDD, $ROOT_FOLDER, $READELF, $sidB, $sidG1, $sidG2, $sidG3, $sidG4, $sidVB, $sidVB2, $STRACE, $STRINGS, $TIMEOUT, $Wfolders, $cfuncs
 # Initial Functions:
-# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sparent, $sunusual, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH
+# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -102,25 +102,7 @@ printf "%s\n" "$suids_files" | while IFS= read -r sfile; do
     fi
   fi
 
-  # A privileged file in a user-controlled location is especially suspicious.
-  # Reuse the SUID enumeration above instead of performing another filesystem scan.
-  sunusual=""
-  case "$sname" in
-    "${ROOT_FOLDER}tmp/"*|"${ROOT_FOLDER}var/tmp/"*|"${ROOT_FOLDER}dev/shm/"*|"${ROOT_FOLDER}run/user/"*|"${ROOT_FOLDER}var/run/user/"*|"${ROOT_FOLDER}home/"*)
-      echo "SUID file in a user-writable or unusual location: $sname" | sed -${E} "s,.*,${SED_RED_YELLOW},"
-      sunusual="1"
-      ;;
-  esac
-
-  sparent="$(dirname "$sname")"
-  if ! [ "$IAMROOT" ] && [ -d "$sparent" ] && [ -w "$sparent" ] && [ -x "$sparent" ] && ! [ -k "$sparent" ]; then
-    echo "You can replace entries in the SUID file's parent directory: $sparent" | sed -${E} "s,.*,${SED_RED_YELLOW},"
-  fi
-  if [ "$sowner" ] && [ "$sowner" != "root" ]; then
-    echo "SUID file is owned by non-root user $sowner: $sname" | sed -${E} "s,.*,${SED_RED},"
-  fi
-  if [ "$sunusual" ] && find "$sname" -mtime -7 -print 2>/dev/null | grep -q .; then
-    echo "SUID file in an unusual location was modified in the last 7 days: $sname" | sed -${E} "s,.*,${SED_RED},"
-  fi
+  # Reuse this enumeration for the shared privileged-file placement checks.
+  check_privileged_file_location "SUID" "$sname" "$sowner"
 done;
 echo ""
