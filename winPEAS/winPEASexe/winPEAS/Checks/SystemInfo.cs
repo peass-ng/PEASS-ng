@@ -61,6 +61,7 @@ namespace winPEAS.Checks
             {
                 PrintBasicSystemInfo,
                 PrintWindowsVersionVulnerabilities,
+                PrintWindowsInstallerCve27727,
                 PrintMicrosoftUpdatesCOM,
                 PrintSystemLastShutdownTime,
                 PrintUserEV,
@@ -180,6 +181,122 @@ namespace winPEAS.Checks
                 }
 
                 Beaprint.InfoPrint("This check applies version matching with installed/superseded KB filtering.");
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintWindowsInstallerCve27727()
+        {
+            try
+            {
+                Beaprint.MainPrint("Windows Installer CVE-2025-27727", "T1068");
+                Beaprint.LinkPrint("https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-27727", "Microsoft advisory and security updates");
+                Beaprint.LinkPrint("https://blog.exodusintel.com/2026/07/06/microsoft-windows-installer-folder-delete-privilege-escalation/", "Technical details");
+                Beaprint.InfoPrint("Passive/read-only check; it does not invoke the MSI COM interface or alter installer state.");
+
+                var basicInfo = _basicSystemInfo ?? Info.SystemInfo.SystemInfo.GetBasicOSInfo();
+                WindowsInstallerReport report = WindowsInstallerCve27727.GetReport(basicInfo);
+
+                Beaprint.NoColorPrint("    Product: " + report.ProductName);
+                Beaprint.NoColorPrint("    Architecture: " + report.Architecture);
+                Beaprint.NoColorPrint("    OS build: " + (string.IsNullOrEmpty(report.BuildVersion) ? "unknown" : report.BuildVersion));
+                if (!string.IsNullOrEmpty(report.FixedVersion))
+                {
+                    Beaprint.NoColorPrint("    First fixed build: " + report.FixedVersion + " (April 2025 KB" + report.ApplicableKb + ")");
+                    string[] applicableKbs = report.ApplicableKb.Split('/');
+                    bool aprilKbFound = applicableKbs.Any(kb => report.InstalledHotfixes.IndexOf("KB" + kb, StringComparison.OrdinalIgnoreCase) >= 0);
+                    Beaprint.NoColorPrint("    Applicable April 2025 KB directly present in hotfix inventory: " + aprilKbFound +
+                        " (a later cumulative update may supersede it)");
+                }
+
+                switch (report.VersionStatus)
+                {
+                    case WindowsInstallerVersionStatus.Susceptible:
+                        Beaprint.BadPrint("The running OS build is below Microsoft's fixed build for CVE-2025-27727.");
+                        break;
+                    case WindowsInstallerVersionStatus.Patched:
+                        Beaprint.GoodPrint("The running OS build is at or above Microsoft's fixed build for CVE-2025-27727.");
+                        break;
+                    case WindowsInstallerVersionStatus.NotListed:
+                        Beaprint.InfoPrint("This OS build line is not in the Microsoft/NVD affected-build list for CVE-2025-27727.");
+                        break;
+                    default:
+                        Beaprint.InfoPrint("Unable to determine CVE-2025-27727 patch status from the OS build.");
+                        break;
+                }
+
+                Beaprint.NoColorPrint("    msi.dll: " + (string.IsNullOrEmpty(report.MsiDllPath) ? "not found" : report.MsiDllPath));
+                if (!string.IsNullOrEmpty(report.MsiDllFileVersion))
+                {
+                    Beaprint.NoColorPrint("    msi.dll file/product version: " + report.MsiDllFileVersion + " / " + report.MsiDllProductVersion);
+                    Beaprint.NoColorPrint("    msi.dll company/size/last write UTC: " + report.MsiDllCompany + " / " + report.MsiDllSize + " bytes / " + report.MsiDllLastWriteUtc.ToString("u"));
+                }
+
+                if (report.TempPackagesTotal == 0)
+                {
+                    Beaprint.GoodPrint("No values found in HKLM\\" + WindowsInstallerCve27727.TempPackagesKey + ".");
+                }
+                else
+                {
+                    Beaprint.InfoPrint("TempPackages values (showing " + report.TempPackages.Count + "/" + report.TempPackagesTotal + "):");
+                    foreach (TempPackageEntry entry in report.TempPackages)
+                    {
+                        string details = entry.Kind + "=" + entry.Data + (entry.IsFolder ? ", folder" : "");
+                        if (entry.IsConfigMsi)
+                        {
+                            Beaprint.BadPrint("    " + entry.Path + " (" + details + ", Config.Msi cleanup entry)");
+                        }
+                        else if (entry.IsOutsideCommonInstallerLocations)
+                        {
+                            Beaprint.InfoPrint("    " + entry.Path + " (" + details + ", outside common installer locations)");
+                        }
+                        else
+                        {
+                            Beaprint.NoColorPrint("    " + entry.Path + " (" + details + ")");
+                        }
+                    }
+                }
+
+                Beaprint.NoColorPrint("    Installer\\Folders contains Config.Msi: " + report.InstallerFoldersHasConfigMsi);
+                Beaprint.NoColorPrint("    " + report.ConfigMsiPath + " exists: " + report.ConfigMsiExists);
+                if (report.ConfigMsiExists)
+                {
+                    Beaprint.NoColorPrint("    Config.Msi owner: " + report.ConfigMsiOwner);
+                    Beaprint.NoColorPrint("    Config.Msi created/last write UTC: " + report.ConfigMsiCreationUtc.ToString("u") + " / " + report.ConfigMsiLastWriteUtc.ToString("u"));
+                    if (report.ConfigMsiNullDacl)
+                    {
+                        Beaprint.BadPrint("Config.Msi has a NULL DACL (all users receive full access).");
+                    }
+                    if (report.ConfigMsiUnusualOwner)
+                    {
+                        Beaprint.BadPrint("Config.Msi has an unexpected non-system owner.");
+                    }
+                    foreach (string acl in report.ConfigMsiDangerousAcls)
+                    {
+                        Beaprint.BadPrint("    Potentially dangerous Config.Msi ACL: " + acl);
+                    }
+                    if (report.ConfigMsiRecentlyChanged)
+                    {
+                        Beaprint.InfoPrint("Config.Msi changed within the last seven days; correlate with legitimate installations.");
+                    }
+                    foreach (string rollbackFile in report.RollbackFiles)
+                    {
+                        Beaprint.BadPrint("    Rollback artifact: " + rollbackFile);
+                    }
+                }
+
+                if (report.InstallerFoldersHasConfigMsi && !report.ConfigMsiExists)
+                {
+                    Beaprint.InfoPrint("Config.Msi is absent while Installer\\Folders metadata remains (stale metadata alone can be normal).");
+                }
+
+                foreach (string error in report.CollectionErrors)
+                {
+                    Beaprint.InfoPrint("Collection note: " + error);
+                }
             }
             catch (Exception ex)
             {
