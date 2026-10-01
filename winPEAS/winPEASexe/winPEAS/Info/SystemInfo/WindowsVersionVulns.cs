@@ -75,6 +75,19 @@ namespace winPEAS.Info.SystemInfo
             return report;
         }
 
+        internal static bool IsHotfixInstalledOrSuperseded(Dictionary<string, string> basicInfo, string hotfix)
+        {
+            if (string.IsNullOrWhiteSpace(hotfix))
+            {
+                return false;
+            }
+
+            var definitions = LoadDefinitions();
+            var installedHotfixes = GetInstalledHotfixes(basicInfo);
+            var suppressed = ExpandSupersededHotfixes(installedHotfixes, definitions?.kb_supersedes);
+            return suppressed.Contains(hotfix.Replace("KB", "").Trim());
+        }
+
         private static void AddProductMatches(
             Dictionary<string, List<WindowsVersionVulnEntry>> products,
             string candidate,
