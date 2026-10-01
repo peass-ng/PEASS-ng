@@ -1313,6 +1313,7 @@
     <Compile Include="Info\SystemInfo\PowerShell\PowerShellSessionSettingsInfo.cs" />
     <Compile Include="Info\SystemInfo\Printers\PrinterInfo.cs" />
     <Compile Include="Info\SystemInfo\Printers\Printers.cs" />
+    <Compile Include="Info\SystemInfo\PrintSpoolerCve38028.cs" />
     <Compile Include="Info\SystemInfo\SysMon\SysMon.cs" />
     <Compile Include="Info\SystemInfo\SysMon\SysmonEventInfo.cs" />
     <Compile Include="Info\SystemInfo\SysMon\SysmonHashAlgorithm.cs" />

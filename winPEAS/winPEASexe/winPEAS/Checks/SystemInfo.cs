@@ -61,6 +61,7 @@ namespace winPEAS.Checks
             {
                 PrintBasicSystemInfo,
                 PrintWindowsVersionVulnerabilities,
+                PrintSpoolerCve38028,
                 PrintStorvspVsmbCves,
                 PrintWindowsInstallerCve27727,
                 PrintMicrosoftUpdatesCOM,
@@ -182,6 +183,70 @@ namespace winPEAS.Checks
                 }
 
                 Beaprint.InfoPrint("This check applies version matching with installed/superseded KB filtering.");
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintSpoolerCve38028()
+        {
+            try
+            {
+                Beaprint.MainPrint("Print Spooler LPE (CVE-2022-38028 / GooseEgg)", "T1068");
+                Beaprint.LinkPrint("https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-38028", "Microsoft advisory and security updates");
+                Beaprint.LinkPrint("https://www.microsoft.com/en-us/security/blog/2024/04/22/analyzing-forest-blizzards-custom-post-compromise-tool-for-exploiting-cve-2022-38028-to-obtain-credentials/", "Microsoft GooseEgg analysis");
+                Beaprint.InfoPrint("Passive/read-only exposure check; it does not interact with the spooler, submit a print job, or search for actor-specific files.");
+
+                var basicInfo = _basicSystemInfo ?? Info.SystemInfo.SystemInfo.GetBasicOSInfo();
+                PrintSpoolerCve38028Report report = winPEAS.Info.SystemInfo.PrintSpoolerCve38028.GetReport(basicInfo);
+
+                Beaprint.NoColorPrint("    Product/version/architecture: " + report.ProductName + " / " + report.DisplayVersion + " / " + report.Architecture);
+                Beaprint.NoColorPrint("    OS build: " + (string.IsNullOrEmpty(report.BuildVersion) ? "unknown" : report.BuildVersion));
+                if (report.BuildApplicable)
+                {
+                    Beaprint.NoColorPrint("    First fixed level: " + report.FixedVersion + " (KB" + string.Join(" or KB", report.ApplicableKbs) + ")");
+                    Beaprint.NoColorPrint("    Applicable/superseded fix found: " + !string.IsNullOrEmpty(report.MatchedFixKb) +
+                        (string.IsNullOrEmpty(report.MatchedFixKb) ? "" : " (KB" + report.MatchedFixKb + ")"));
+                }
+
+                string registryStart = report.RegistryStart.HasValue ? report.RegistryStart.Value.ToString() : "unknown";
+                Beaprint.NoColorPrint("    Spooler present/available/running: " + report.ServiceExists + " / " + report.ServiceAvailable + " / " + report.Started);
+                Beaprint.NoColorPrint("    WMI path/account/start/state: " + report.PathName + " / " + report.StartName + " / " + report.StartMode + " / " + report.State);
+                Beaprint.NoColorPrint("    Registry image/account/start: " + report.RegistryImagePath + " / " + report.RegistryObjectName + " / " + registryStart);
+                Beaprint.NoColorPrint("    Spooler registry writable by broad low-privilege principal: " + report.RegistryWritableByLowPrivilegePrincipal);
+                if (report.RegistryWritableByLowPrivilegePrincipal)
+                {
+                    Beaprint.BadPrint("    Registry ACL principals/rights: " + string.Join(", ", report.RegistryWritablePrincipals) + " / " + string.Join(", ", report.RegistryWritableRights));
+                }
+
+                if (report.HighPriorityFinding)
+                {
+                    Beaprint.BadPrint("HIGH: The Windows build is missing the CVE-2022-38028 fix and the Print Spooler is available. " + report.PatchEvidence);
+                    Beaprint.BadPrint("Install the applicable October 2022 update or a later cumulative update. Disable the Print Spooler where it is not required.");
+                }
+                else if (report.PatchStatus == PrintSpoolerPatchStatus.Susceptible)
+                {
+                    Beaprint.InfoPrint("The Windows build appears unpatched, but the Print Spooler is absent or disabled, so the CVE is not reported as currently exposed. " + report.PatchEvidence);
+                }
+                else if (report.PatchStatus == PrintSpoolerPatchStatus.Patched)
+                {
+                    Beaprint.GoodPrint("The running system is at or above Microsoft's fixed level for CVE-2022-38028. " + report.PatchEvidence);
+                }
+                else if (report.PatchStatus == PrintSpoolerPatchStatus.NotAffected)
+                {
+                    Beaprint.GoodPrint("Microsoft does not list this Windows build as affected by CVE-2022-38028.");
+                }
+                else
+                {
+                    Beaprint.InfoPrint("Unable to determine the CVE-2022-38028 patch state. " + report.PatchEvidence);
+                }
+
+                foreach (string error in report.CollectionErrors)
+                {
+                    Beaprint.GrayPrint("    Collection note: " + error);
+                }
             }
             catch (Exception ex)
             {
