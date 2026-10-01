@@ -104,6 +104,8 @@ This script doesn't have any dependency.
 
 ### Recent updates
 
+- **Oct 2026**: Added a passive nftables catchall verdict-map UAF check for CVE-2026-23111, correlating exact upstream affected/fixed kernel ranges and vendor package evidence with `nf_tables`/pipapo availability, namespace controls, and AppArmor, SELinux, seccomp, and capability context.
+
 - **Sep 2026**: Added a passive Android Qualcomm KGSL check for CVE-2024-23380, correlating the `/dev/kgsl-3d0` and sysfs attack surface, Qualcomm/Adreno properties, device-node access, kernel/driver details, and the July 5, 2024 platform/vendor security patch level.
 
 - **Sep 2026**: Added a passive Android Binder LPE check for CVE-2023-20938 and the incomplete-fix follow-up CVE-2023-21255, correlating Android/GKI 5.4 or 5.10 evidence, platform and vendor security patch levels, and current-context access to Binder devices.
