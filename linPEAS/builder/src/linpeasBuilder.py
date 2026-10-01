@@ -371,6 +371,8 @@ class LinpeasBuilder:
         sudoVB = []
         suidVB = []
         capsVB = []
+        # sudoers aliases and sudo -l may list several commands on one line.
+        sudo_command_boundary = "([[:space:]]*[,]|$)"
 
         for b in bins:
             try:
@@ -382,9 +384,10 @@ class LinpeasBuilder:
                     rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}", timeout=5)
             if "sudo:" in rb.text:
                 if len(b) <= 3:
-                    sudoVB.append("[^a-zA-Z0-9]"+b+"$") # Less false possitives applied to small names
+                    # Reduce false positives for short names.
+                    sudoVB.append("[^a-zA-Z0-9]" + b + sudo_command_boundary)
                 else:
-                    sudoVB.append(b+"$")
+                    sudoVB.append(b + sudo_command_boundary)
             if "suid:" in rb.text:
                 suidVB.append("/"+b+"$")
             if "capabilities:" in rb.text:
