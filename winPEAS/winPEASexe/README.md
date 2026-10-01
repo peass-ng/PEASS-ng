@@ -130,6 +130,7 @@ Once you have installed and activated it you need to:
 - **System Information**
   - [x] Basic System info information
   - [x] Use embedded definitions to flag known exploitable vulnerabilities for the running Windows version (version-based)
+  - [x] Passive Storage VSP/vSMB CVE-2025-59517 and CVE-2025-64673 assessment (OS/driver fixed build, update inventory, Virtual Machine Platform, `storvsp` registration, signature, and `STORVSP` device link)
   - [x] Passive Windows Installer CVE-2025-27727 build and artifact assessment (`msi.dll`, `TempPackages`, `Installer\Folders`, and `C:\Config.Msi` ACL/rollback state)
   - [x] Enumerate Microsoft updates
   - [x] PS, Audit, WEF and LAPS Settings

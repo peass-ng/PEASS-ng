@@ -61,6 +61,7 @@ namespace winPEAS.Checks
             {
                 PrintBasicSystemInfo,
                 PrintWindowsVersionVulnerabilities,
+                PrintStorvspVsmbCves,
                 PrintWindowsInstallerCve27727,
                 PrintMicrosoftUpdatesCOM,
                 PrintSystemLastShutdownTime,
@@ -181,6 +182,95 @@ namespace winPEAS.Checks
                 }
 
                 Beaprint.InfoPrint("This check applies version matching with installed/superseded KB filtering.");
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintStorvspVsmbCves()
+        {
+            try
+            {
+                Beaprint.MainPrint("Storage VSP vSMB LPE (CVE-2025-59517 / CVE-2025-64673)", "T1068");
+                Beaprint.LinkPrint("https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-59517", "Microsoft advisory for CVE-2025-59517");
+                Beaprint.LinkPrint("https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-64673", "Microsoft advisory for CVE-2025-64673");
+                Beaprint.LinkPrint("https://blog.exodusintel.com/2026/07/27/from-virtual-share-to-physical-shell-leveraging-windows-inconsistent-access-control-for-lpe/", "Technical details");
+                Beaprint.InfoPrint("Passive/read-only check; it does not open a vSMB share, send IOCTL 0x240330, replace files, or activate COM objects.");
+
+                var basicInfo = _basicSystemInfo ?? Info.SystemInfo.SystemInfo.GetBasicOSInfo();
+                StorvspVsmbReport report = StorvspVsmbCves.GetReport(basicInfo);
+
+                Beaprint.NoColorPrint("    Product/architecture: " + report.ProductName + " / " + report.Architecture);
+                Beaprint.NoColorPrint("    OS build: " + (string.IsNullOrEmpty(report.BuildVersion) ? "unknown" : report.BuildVersion));
+                if (report.BuildApplicable)
+                {
+                    Beaprint.NoColorPrint("    First regular fixed build: " + report.FixedVersion + " (KB" + report.ApplicableKb + ")");
+                    if (!string.IsNullOrEmpty(report.HotpatchKb))
+                    {
+                        Beaprint.NoColorPrint("    December 2025 hotpatch: " + report.Build + "." + report.HotpatchRevision + " (KB" + report.HotpatchKb + ")");
+                    }
+                    Beaprint.NoColorPrint("    Applicable fix KB directly present: " + report.DirectFixInstalled +
+                        " (later cumulative updates are also recognized by build/driver version)");
+                }
+
+                Beaprint.NoColorPrint("    Virtual Machine Platform: " + report.VirtualMachinePlatformState);
+                Beaprint.NoColorPrint("    storvsp driver registered/started: " + report.DriverRegistered + " / " + report.DriverStarted);
+                if (report.DriverRegistered)
+                {
+                    string registryState = report.DriverStart.HasValue ? report.DriverStart.Value.ToString() : "unknown";
+                    string driverType = report.DriverType.HasValue ? report.DriverType.Value.ToString() : "unknown";
+                    Beaprint.NoColorPrint("    storvsp registry image/start/type: " + report.DriverImagePath + " / " + registryState + " / " + driverType);
+                    Beaprint.NoColorPrint("    storvsp WMI path/start mode/state: " + report.DriverWmiPath + " / " + report.DriverStartMode + " / " + report.DriverState);
+                }
+
+                Beaprint.NoColorPrint("    storvsp.sys: " + report.DriverPath + " (exists: " + report.DriverExists + ")");
+                if (report.DriverExists)
+                {
+                    Beaprint.NoColorPrint("    storvsp.sys file/product version: " + report.DriverFileVersion + " / " + report.DriverProductVersion);
+                    Beaprint.NoColorPrint("    storvsp.sys company/signer: " + report.DriverCompany + " / " + report.DriverSigner);
+                    Beaprint.NoColorPrint("    storvsp.sys Authenticode: " + report.DriverSignatureStatus);
+                    if (report.DriverLastWriteUtc.HasValue)
+                    {
+                        Beaprint.NoColorPrint("    storvsp.sys last write UTC: " + report.DriverLastWriteUtc.Value.ToString("u"));
+                    }
+                }
+
+                Beaprint.NoColorPrint("    \\.\\STORVSP DOS device link: " + report.DeviceLinkPresent +
+                    (string.IsNullOrEmpty(report.DeviceLinkTarget) ? "" : " -> " + report.DeviceLinkTarget));
+                Beaprint.NoColorPrint("    Relevant vSMB attack surface enabled: " + report.AttackSurfaceEnabled);
+
+                if (report.HighPriorityFinding)
+                {
+                    Beaprint.BadPrint("HIGH: The unpatched build and enabled STORVSP/vSMB attack surface match the low-privileged-to-SYSTEM chain (CVE-2025-59517 + CVE-2025-64673). " + report.PatchEvidence);
+                    Beaprint.BadPrint("Install KB" + report.ApplicableKb + " or a later cumulative update. If Virtual Machine Platform is unnecessary, disable it to remove this attack surface.");
+                }
+                else if (report.PatchStatus == StorvspPatchStatus.Susceptible)
+                {
+                    Beaprint.InfoPrint("The OS build is susceptible to both CVEs, but an enabled STORVSP/vSMB attack surface was not observed. " + report.PatchEvidence);
+                }
+                else if (report.PatchStatus == StorvspPatchStatus.Patched)
+                {
+                    Beaprint.GoodPrint("The running system is at or above Microsoft's fixed level for both Storage VSP vulnerabilities. " + report.PatchEvidence);
+                }
+                else if (report.OnlyCve59517Applicable)
+                {
+                    Beaprint.InfoPrint("CVE-2025-59517 applies to this build, but Microsoft does not list CVE-2025-64673; this two-CVE chain is not reported as applicable.");
+                }
+                else if (report.PatchStatus == StorvspPatchStatus.NotAffected)
+                {
+                    Beaprint.GoodPrint("Microsoft does not list this OS build as affected by both CVEs in the vSMB chain.");
+                }
+                else
+                {
+                    Beaprint.InfoPrint("Unable to determine the Storage VSP patch state. " + report.PatchEvidence);
+                }
+
+                foreach (string error in report.CollectionErrors)
+                {
+                    Beaprint.GrayPrint("    Collection note: " + error);
+                }
             }
             catch (Exception ex)
             {
