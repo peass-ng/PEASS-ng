@@ -61,6 +61,7 @@ namespace winPEAS.Checks
             {
                 PrintBasicSystemInfo,
                 PrintWindowsVersionVulnerabilities,
+                PrintCloudFilesCve55680,
                 PrintStorvspVsmbCves,
                 PrintWindowsInstallerCve27727,
                 PrintMicrosoftUpdatesCOM,
@@ -121,6 +122,96 @@ namespace winPEAS.Checks
                 };
                 Beaprint.DictPrint(basicDictSystem, colorsSI, false);
                 Console.WriteLine();
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintCloudFilesCve55680()
+        {
+            try
+            {
+                Beaprint.MainPrint("Cloud Files Minifilter LPE (CVE-2025-55680)", "T1068");
+                Beaprint.LinkPrint("https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-55680", "Microsoft advisory and security updates");
+                Beaprint.LinkPrint("https://blog.exodusintel.com/2025/10/20/microsoft-windows-cloud-files-minifilter-toctou-privilege-escalation/", "Technical details");
+                Beaprint.InfoPrint("Passive/read-only check; it does not register a sync root, create a junction, issue Cloud Files IOCTLs, or attempt the race.");
+
+                var basicInfo = _basicSystemInfo ?? Info.SystemInfo.SystemInfo.GetBasicOSInfo();
+                CloudFilesReport report = CloudFilesCve55680.GetReport(basicInfo);
+
+                Beaprint.NoColorPrint("    Product/architecture: " + report.ProductName + " / " + report.Architecture);
+                Beaprint.NoColorPrint("    OS build: " + (string.IsNullOrEmpty(report.BuildVersion) ? "unknown" : report.BuildVersion));
+                if (report.BuildApplicable)
+                {
+                    Beaprint.NoColorPrint("    First fixed build: " + report.FixedVersion + " (KB" + report.ApplicableKb + ")");
+                    Beaprint.NoColorPrint("    Applicable fix KB directly present: " + report.DirectFixInstalled +
+                        " (later cumulative updates are recognized by OS build)");
+                }
+
+                Beaprint.NoColorPrint("    CldFlt driver registered/started: " + report.DriverRegistered + " / " + report.DriverStarted);
+                if (report.DriverRegistered)
+                {
+                    string registryStart = report.DriverStart.HasValue ? report.DriverStart.Value.ToString() : "unknown";
+                    string registryType = report.DriverType.HasValue ? report.DriverType.Value.ToString() : "unknown";
+                    Beaprint.NoColorPrint("    CldFlt registry image/start/type: " + report.DriverImagePath + " / " + registryStart + " / " + registryType);
+                    Beaprint.NoColorPrint("    CldFlt WMI path/start mode/state: " + report.DriverWmiPath + " / " + report.DriverStartMode + " / " + report.DriverState);
+                }
+
+                Beaprint.NoColorPrint("    cldflt.sys: " + report.DriverPath + " (exists: " + report.DriverExists + ")");
+                if (report.DriverExists)
+                {
+                    Beaprint.NoColorPrint("    cldflt.sys file/product version: " + report.DriverFileVersion + " / " + report.DriverProductVersion);
+                    Beaprint.NoColorPrint("    cldflt.sys company/signer: " + report.DriverCompany + " / " + report.DriverSigner);
+                    Beaprint.NoColorPrint("    cldflt.sys Authenticode: " + report.DriverSignatureStatus);
+                    if (report.BuildApplicable)
+                    {
+                        Beaprint.NoColorPrint("    Driver version at/above OS fixed-build tuple: " + report.DriverVersionAtOrAboveOsFix +
+                            " (supporting evidence only; MSRC publishes OS build/KB as the patch test)");
+                    }
+                    if (report.DriverLastWriteUtc.HasValue)
+                    {
+                        Beaprint.NoColorPrint("    cldflt.sys last write UTC: " + report.DriverLastWriteUtc.Value.ToString("u"));
+                    }
+                    if (!report.DriverSignatureValid)
+                    {
+                        Beaprint.BadPrint("Unexpected cldflt.sys signature state: " + report.DriverSignatureStatus);
+                    }
+                }
+
+                Beaprint.NoColorPrint("    Cloud Files attack surface installed/registered: " + report.AttackSurfacePresent);
+
+                if (report.HighPriorityFinding)
+                {
+                    Beaprint.BadPrint("HIGH: The OS is below Microsoft's fixed level and the CldFlt driver is loaded. The host is potentially vulnerable to CVE-2025-55680. " + report.PatchEvidence);
+                    Beaprint.BadPrint("Install KB" + report.ApplicableKb + " or a later cumulative update.");
+                }
+                else if (report.PotentiallyVulnerable)
+                {
+                    Beaprint.BadPrint("The OS is below Microsoft's fixed level and the Cloud Files driver is installed/registered, although it was not observed loaded. The host is potentially vulnerable if Cloud Files is activated. " + report.PatchEvidence);
+                }
+                else if (report.PatchStatus == CloudFilesPatchStatus.Susceptible)
+                {
+                    Beaprint.InfoPrint("The OS build is susceptible, but cldflt.sys was not found or registered. " + report.PatchEvidence);
+                }
+                else if (report.PatchStatus == CloudFilesPatchStatus.Patched)
+                {
+                    Beaprint.GoodPrint("The running system is at or above Microsoft's fixed level for CVE-2025-55680. " + report.PatchEvidence);
+                }
+                else if (report.PatchStatus == CloudFilesPatchStatus.NotAffected)
+                {
+                    Beaprint.GoodPrint(report.PatchEvidence);
+                }
+                else
+                {
+                    Beaprint.InfoPrint("Unable to determine the CVE-2025-55680 patch state. " + report.PatchEvidence);
+                }
+
+                foreach (string error in report.CollectionErrors)
+                {
+                    Beaprint.GrayPrint("    Collection note: " + error);
+                }
             }
             catch (Exception ex)
             {
