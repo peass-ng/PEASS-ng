@@ -51,11 +51,11 @@ namespace winPEAS.Checks
             { "be9ba2d9-53ea-4cdc-84e5-9b1eeee46550" , "Block executable content from email client and webmail"},
         };
 
-        public string[] MitreAttackIds { get; } = new[] { "T1082", "T1068", "T1548.002", "T1003.001", "T1003.004", "T1003.005", "T1059.001", "T1552.001", "T1552.002", "T1562.001", "T1562.002", "T1518.001", "T1557.001", "T1558", "T1559", "T1134.001", "T1547.005", "T1484.001", "T1613", "T1654", "T1072", "T1187", "T1200" };
+        public string[] MitreAttackIds { get; } = new[] { "T1082", "T1068", "T1546.015", "T1548.002", "T1003.001", "T1003.004", "T1003.005", "T1059.001", "T1552.001", "T1552.002", "T1562.001", "T1562.002", "T1518.001", "T1557.001", "T1558", "T1559", "T1134.001", "T1547.005", "T1484.001", "T1613", "T1654", "T1072", "T1187", "T1200" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("System Information", "T1082,T1068,T1548.002,T1003.001,T1003.004,T1003.005,T1059.001,T1552.001,T1552.002,T1562.001,T1562.002,T1518.001,T1557.001,T1558,T1559,T1134.001,T1547.005,T1484.001,T1613,T1654,T1072,T1187,T1200");
+            Beaprint.GreatPrint("System Information", "T1082,T1068,T1546.015,T1548.002,T1003.001,T1003.004,T1003.005,T1059.001,T1552.001,T1552.002,T1562.001,T1562.002,T1518.001,T1557.001,T1558,T1559,T1134.001,T1547.005,T1484.001,T1613,T1654,T1072,T1187,T1200");
 
             new List<Action>
             {
@@ -64,6 +64,7 @@ namespace winPEAS.Checks
                 PrintSpoolerCve38028,
                 PrintStorvspVsmbCves,
                 PrintWindowsInstallerCve27727,
+                PrintCrossDeviceComCve66804,
                 PrintMicrosoftUpdatesCOM,
                 PrintSystemLastShutdownTime,
                 PrintUserEV,
@@ -451,6 +452,116 @@ namespace winPEAS.Checks
                 foreach (string error in report.CollectionErrors)
                 {
                     Beaprint.InfoPrint("Collection note: " + error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintCrossDeviceComCve66804()
+        {
+            try
+            {
+                Beaprint.MainPrint("CrossDevice dangling COM LPE (CVE-2026-66804)", "T1068,T1546.015");
+                Beaprint.LinkPrint("https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-66804", "Microsoft advisory and security updates");
+                Beaprint.LinkPrint("https://projectzero.google/2026/09/windows-dangling-com.html", "Project Zero technical analysis");
+                Beaprint.InfoPrint("Passive/read-only check; it does not create files/events, load registered DLLs, start the task, activate COM, or inspect combase internals.");
+
+                var basicInfo = _basicSystemInfo ?? Info.SystemInfo.SystemInfo.GetBasicOSInfo();
+                CrossDeviceComReport report = CrossDeviceComCve66804.GetReport(basicInfo);
+
+                Beaprint.NoColorPrint("    Product/architecture: " + report.ProductName + " / " + report.Architecture);
+                Beaprint.NoColorPrint("    OS build: " + (string.IsNullOrEmpty(report.BuildVersion) ? "unknown" : report.BuildVersion));
+                if (report.BuildApplicable)
+                {
+                    Beaprint.NoColorPrint("    First fixed build: " + report.FixedVersion + " (KB" + report.ApplicableKb + ")");
+                    Beaprint.NoColorPrint("    Applicable fix KB directly present: " + report.DirectFixInstalled +
+                        " (later cumulative updates are recognized by build revision)");
+                }
+
+                foreach (CrossDeviceComRegistration registration in report.CrossDeviceRegistrations)
+                {
+                    if (!registration.Present)
+                    {
+                        Beaprint.NoColorPrint("    " + registration.RegistryView + " CrossDevice InprocServer32: not present");
+                        continue;
+                    }
+
+                    Beaprint.NoColorPrint("    " + registration.RegistryView + " CrossDevice InprocServer32: " + registration.RawServerPath);
+                    Beaprint.NoColorPrint("        Resolved path: " + registration.ResolvedServerPath);
+                    Beaprint.NoColorPrint("        Expected path / DLL exists: " + registration.MatchesExpectedPath + " / " + registration.ServerExists);
+                    if (!string.IsNullOrEmpty(registration.NearestExistingParent))
+                    {
+                        Beaprint.NoColorPrint("        Nearest existing parent: " + registration.NearestExistingParent);
+                    }
+                    if (!string.IsNullOrEmpty(registration.PathControlReason))
+                    {
+                        Beaprint.BadPrint("        Path control: " + registration.PathControlReason);
+                    }
+                    if (!string.IsNullOrEmpty(registration.ParentAclSddl))
+                    {
+                        Beaprint.NoColorPrint("        Relevant file/parent DACL: " + registration.ParentAclSddl);
+                    }
+                    if (!string.IsNullOrEmpty(registration.CollectionError))
+                    {
+                        Beaprint.GrayPrint("        Collection note: " + registration.CollectionError);
+                    }
+                }
+
+                Beaprint.NoColorPrint("    Shell Create Object Handler present/view: " +
+                    report.ShellClassPresent + " / " + report.ShellClassRegistryView);
+                if (report.ShellClassPresent)
+                {
+                    Beaprint.NoColorPrint("        Name/AppID/RunAs: " + report.ShellClassName + " / " +
+                        report.ShellAppId + " / " + report.ShellRunAs);
+                    Beaprint.NoColorPrint("        Configured to run as SYSTEM: " + report.ShellRunsAsSystem);
+                }
+
+                Beaprint.NoColorPrint("    " + CrossDeviceComCve66804.CreateObjectTaskPath +
+                    " present/enabled/state: " + report.TaskPresent + " / " + report.TaskEnabled + " / " + report.TaskState);
+                if (report.TaskPresent)
+                {
+                    Beaprint.NoColorPrint("        Principal / runs as SYSTEM: " + report.TaskPrincipal + " / " + report.TaskRunsAsSystem);
+                    Beaprint.NoColorPrint("        Execute DACL readable / runnable by low privilege: " +
+                        report.TaskExecuteAclKnown + " / " + report.TaskRunnableByLowPrivilege);
+                    if (report.TaskRunnableByLowPrivilege)
+                    {
+                        Beaprint.BadPrint("        Task execute access granted by: " + report.TaskExecuteTrustee);
+                    }
+                    if (!string.IsNullOrEmpty(report.TaskAclSddl))
+                    {
+                        Beaprint.NoColorPrint("        Task DACL: " + report.TaskAclSddl);
+                    }
+                }
+
+                if (report.CompleteStaticChain)
+                {
+                    Beaprint.BadPrint("HIGH: The unpatched build, writable dangling CrossDevice COM path, SYSTEM COM registration, and user-executable CreateObjectTask match the static CVE-2026-66804 chain.");
+                    Beaprint.BadPrint("Install KB" + report.ApplicableKb + " or a later cumulative update. Treat any unexpected DLL at the registered ProgramData path as suspicious.");
+                }
+                else if (report.PatchStatus == CrossDevicePatchStatus.Susceptible && report.HasControllableRegistration)
+                {
+                    Beaprint.BadPrint("The build is susceptible and the dangling COM server path is controllable, but every prerequisite for the documented trigger chain was not confirmed. " + report.PatchEvidence);
+                }
+                else if (report.PatchStatus == CrossDevicePatchStatus.Patched)
+                {
+                    Beaprint.GoodPrint("The running system is at or above Microsoft's fixed level for CVE-2026-66804. " + report.PatchEvidence);
+                }
+                else if (report.PatchStatus == CrossDevicePatchStatus.NotAffected)
+                {
+                    Beaprint.GoodPrint(report.PatchEvidence);
+                }
+                else
+                {
+                    Beaprint.InfoPrint("No complete static CVE-2026-66804 chain was confirmed. " + report.PatchEvidence);
+                }
+
+                Beaprint.InfoPrint("Custom-marshaling policy is not inferred: EOAC_NO_CUSTOM_MARSHAL or COMGLB_UNMARSHALING_POLICY_STRONG can block exploitation.");
+                foreach (string error in report.CollectionErrors)
+                {
+                    Beaprint.GrayPrint("    Collection note: " + error);
                 }
             }
             catch (Exception ex)
