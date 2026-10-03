@@ -30,6 +30,7 @@ MSRC_CVRF_ACCEPT = "application/json"
 NVD_FEED_URL_TEMPLATE = "https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{year}.json.zip"
 USER_AGENT = "PEASS-ng windows_version_definitions updater"
 KB_PATTERN = re.compile(r"\b(\d{6,7})\b")
+CVE_PATTERN = re.compile(r"CVE-\d{4}-\d{4,}")
 WINDOWS_TOKEN = "windows"
 LEGACY_PRODUCT_ALIASES: dict[str, tuple[tuple[str, ...], frozenset[str]]] = {
     "Microsoft Windows XP Service Pack 2": (
@@ -582,7 +583,9 @@ def build_definitions(entries: list[RawEntry], exploit_cves: set[str], generated
                 if superseded:
                     kb_supersedes[kb].add(superseded)
 
-        if not entry.cve or entry.cve not in exploit_cves:
+        # MSRC and NVD also contain advisory identifiers (e.g. ADV160008).
+        # The output schema's cve field accepts CVEs only.
+        if not CVE_PATTERN.fullmatch(entry.cve) or entry.cve not in exploit_cves:
             continue
 
         vuln_key = entry.cve or f"KB{kb}"
