@@ -92,7 +92,7 @@ if [ "$sudo_python_scripts" ]; then
       printf "%s\n" "$python_loader_path_lines" | grep -Eo "['\"]/[^'\"]+['\"]" 2>/dev/null | tr -d "'\""
       printf "%s\n" "$python_loader_path_lines" | sed -nE "s/.*[(\/=][[:space:]]*['\"]([^'\"]+)['\"].*/\1/p" | while IFS= read -r python_loader_literal; do
         case "$python_loader_literal" in
-          /*|*://*) ;;
+          /*|*://*) : ;;
           *) printf "%s/%s\n" "$python_script_dir" "$python_loader_literal" ;;
         esac
       done
