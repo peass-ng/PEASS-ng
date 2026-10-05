@@ -107,6 +107,19 @@ k8s_scan_mountinfo() {
   done
 }
 
+k8s_scan_kernel_mounts() {
+  [ -r "$1" ] || return
+  awk '$0 ~ / - proc / {print $5}' "$1" 2>/dev/null | head -n 20 |
+  while IFS= read -r k8s_mount; do
+    k8s_show_file "$k8s_mount/sys/kernel/core_pattern"
+  done
+  awk '$0 ~ / - cgroup / {print $5}' "$1" 2>/dev/null | head -n 20 |
+  while IFS= read -r k8s_mount; do
+    k8s_show_file "$k8s_mount/release_agent"
+    k8s_show_file "$k8s_mount/notify_on_release"
+  done
+}
+
 k8s_scan_sockets() {
   k8s_docker_host="$(env | sed -n 's/^DOCKER_HOST=//p' | head -n 1)"
   case "$k8s_docker_host" in
@@ -180,10 +193,11 @@ if k8s_context_present; then
 
   print_3title 'Host filesystem and log mounts' 'T1611'
   k8s_scan_mountinfo /proc/self/mountinfo
+  k8s_scan_kernel_mounts /proc/self/mountinfo
   [ -d /proc/1/root ] && k8s_show_file /proc/1/root
   [ -r /proc/self/status ] &&
     grep -E '^(Uid|CapEff):' /proc/self/status 2>/dev/null
-  for k8s_file in /sys/kernel/core_pattern /sys/fs/cgroup/*/release_agent \
+  for k8s_file in /proc/sys/kernel/core_pattern /sys/fs/cgroup/*/release_agent \
     /sys/fs/cgroup/*/notify_on_release; do
     [ -e "$k8s_file" ] && k8s_show_file "$k8s_file"
   done

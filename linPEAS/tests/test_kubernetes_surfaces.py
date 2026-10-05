@@ -66,6 +66,25 @@ class KubernetesSurfacesTests(unittest.TestCase):
         result = self.run_shell('containerType=No; k8s_context_present && echo found', env=env)
         self.assertEqual("found\n", result)
 
+    def test_alternate_procfs_and_cgroup_mounts_are_found(self):
+        with tempfile.TemporaryDirectory() as root:
+            proc_mount = Path(root) / "hostproc"
+            cgroup_mount = Path(root) / "hostcgroup"
+            (proc_mount / "sys/kernel").mkdir(parents=True)
+            cgroup_mount.mkdir()
+            (proc_mount / "sys/kernel/core_pattern").write_text("core")
+            (cgroup_mount / "release_agent").write_text("agent")
+            (cgroup_mount / "notify_on_release").write_text("0")
+            mountinfo = Path(root) / "mountinfo"
+            mountinfo.write_text(
+                f"44 33 0:1 / {proc_mount} rw - proc proc rw\n"
+                f"45 33 0:2 / {cgroup_mount} rw - cgroup cgroup rw\n"
+            )
+            result = self.run_shell('k8s_scan_kernel_mounts "$1"', mountinfo)
+            self.assertIn(str(proc_mount / "sys/kernel/core_pattern"), result)
+            self.assertIn(str(cgroup_mount / "release_agent"), result)
+            self.assertIn(str(cgroup_mount / "notify_on_release"), result)
+
 
 if __name__ == "__main__":
     unittest.main()
