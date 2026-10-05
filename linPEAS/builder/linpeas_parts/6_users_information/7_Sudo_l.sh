@@ -73,7 +73,8 @@ sudo_python_scripts=$(printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_pas
   /python[0-9.]*/ && /\((root|ALL)([[:space:]:,)]|$)/ && !/!root/ {
     for (i = 1; i <= NF; i++) {
       token = $i
-      gsub(/^["'"'']|["'"'',:]$/, "", token)
+      quote = sprintf("%c", 39)
+      gsub("^[\"" quote "]|[\"" quote ",:]$", "", token)
       if (token ~ /^\/.*\.py$/) print token
     }
   }
@@ -91,10 +92,10 @@ if [ "$sudo_python_scripts" ]; then
     python_loader_roots=$(
       printf "%s\n" "$python_loader_path_lines" | grep -Eo "['\"]/[^'\"]+['\"]" 2>/dev/null | tr -d "'\""
       printf "%s\n" "$python_loader_path_lines" | sed -nE "s/.*[(\/=][[:space:]]*['\"]([^'\"]+)['\"].*/\1/p" | while IFS= read -r python_loader_literal; do
-        case "$python_loader_literal" in
-          /*|*://*) : ;;
-          *) printf "%s/%s\n" "$python_script_dir" "$python_loader_literal" ;;
-        esac
+        if [ "${python_loader_literal#/}" = "$python_loader_literal" ] &&
+           ! printf "%s" "$python_loader_literal" | grep -q '://'; then
+          printf "%s/%s\n" "$python_script_dir" "$python_loader_literal"
+        fi
       done
     )
     # Fall back to the script tree only when static path extraction is not
