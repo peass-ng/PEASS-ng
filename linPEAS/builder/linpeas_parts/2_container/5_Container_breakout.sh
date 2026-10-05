@@ -9,7 +9,7 @@
 # Functions Used: checkContainerExploits, checkProcSysBreakouts, containerCheck, enumerateDockerSockets, print_2title, print_3title, print_info, print_list, warn_exec
 # Global Variables: $binfmt_misc_breakout, $containercapsB, $containerType, $core_pattern_breakout, $debugfs_present, $debugfs_readable, $dev_mounted, $efi_efivars_writable, $efi_vars_writable, $EXTRA_CHECKS, $GREP_IGNORE_MOUNTS, $inContainer, $kallsyms_readable, $kcore_readable, $kmem_readable, $kmem_writable, $kmsg_readable, $mem_readable, $mem_writable, $modprobe_binary, $modprobe_config_writable, $mountinfo_readable, $panic_on_oom_dos, $panic_sys_fs_dos, $proc_configgz_readable, $proc_keys_readable, $proc_mounted, $proc_timer_list_readable, $release_agent_breakout1, $release_agent_breakout2, $release_agent_breakout3, $run_unshare, $sched_debug_readable, $security_present, $security_writable, $self_mem_readable, $sys_firmware_readable, $sysreq_trigger_dos, $thermal_present, $thermal_readable, $uevent_helper_breakout, $vmcoreinfo_readable, $VULN_CVE_2019_5021
 # Initial Functions: containerCheck
-# Generated Global Variables: $container_breakout_tools, $containerd_version, $defautl_docker_caps, $gid_map_value, $host_process_count, $host_process_indicators, $k8s_api_base, $k8s_api_host, $k8s_can_create_pods, $k8s_can_exec_pods, $k8s_can_read_secrets, $k8s_can_request_tokens, $k8s_chain_risk, $k8s_host_mounts, $k8s_namespace, $k8s_pod_name, $k8s_pod_json, $k8s_pod_risks, $k8s_sa_ca, $k8s_sa_dir, $k8s_sa_token, $k8s_service_account, $k8s_ssrr_request, $k8s_ssrr_response, $k8s_ssrr_rules, $k8s_token_payload, $k8s_token_payload_b64, $no_new_privs_num, $proc_comm, $root_mount_mode, $runc_version, $seccomp_mode_desc, $seccomp_mode_num, $selinux_context, $selinux_status, $setgroups_value, $tool, $uid_map_value
+# Generated Global Variables: $container_breakout_tools, $containerd_version, $defautl_docker_caps, $gid_map_value, $host_process_count, $host_process_indicators, $k8s_api_base, $k8s_api_host, $k8s_can_create_pods, $k8s_can_exec_pods, $k8s_can_list_pods, $k8s_can_proxy_nodes, $k8s_can_read_secrets, $k8s_can_request_tokens, $k8s_chain_risk, $k8s_host_mounts, $k8s_namespace, $k8s_pod_name, $k8s_pod_json, $k8s_pod_risks, $k8s_sa_ca, $k8s_sa_dir, $k8s_sa_token, $k8s_service_account, $k8s_ssrr_request, $k8s_ssrr_response, $k8s_ssrr_rules, $k8s_token_payload, $k8s_token_payload_b64, $no_new_privs_num, $proc_comm, $root_mount_mode, $runc_version, $seccomp_mode_desc, $seccomp_mode_num, $selinux_context, $selinux_status, $setgroups_value, $tool, $uid_map_value
 # Fat linpeas: 0
 # Small linpeas: 0
 
@@ -366,6 +366,8 @@ if [ "$inContainer" ]; then
 
         k8s_can_create_pods="Unknown"
         k8s_can_exec_pods="Unknown"
+        k8s_can_list_pods="Unknown"
+        k8s_can_proxy_nodes="Unknown"
         k8s_can_read_secrets="Unknown"
         k8s_can_request_tokens="Unknown"
         k8s_pod_risks=""
@@ -399,6 +401,8 @@ if [ "$inContainer" ]; then
                 k8s_ssrr_rules="$(printf "%s" "$k8s_ssrr_response" | tr '\n' ' ' | sed -${E} 's/}[[:space:]]*,[[:space:]]*\{[[:space:]]*"verbs"/}|{"verbs"/g' | tr '|' '\n')"
                 if k8s_rules_allow "pods" 'create|\*'; then k8s_can_create_pods="Yes"; else k8s_can_create_pods="No"; fi
                 if k8s_rules_allow "pods/(exec|\\*)" 'create|\*'; then k8s_can_exec_pods="Yes"; else k8s_can_exec_pods="No"; fi
+                if k8s_rules_allow "pods" 'list|\*'; then k8s_can_list_pods="Yes"; else k8s_can_list_pods="No"; fi
+                if k8s_rules_allow "nodes/(proxy|\\*)" 'get|\*'; then k8s_can_proxy_nodes="Yes"; else k8s_can_proxy_nodes="No"; fi
                 if k8s_rules_allow "secrets" 'get|list|watch|\*'; then k8s_can_read_secrets="Yes"; else k8s_can_read_secrets="No"; fi
                 if k8s_rules_allow "serviceaccounts/token" 'create|\*'; then k8s_can_request_tokens="Yes"; else k8s_can_request_tokens="No"; fi
             fi
@@ -432,6 +436,8 @@ if [ "$inContainer" ]; then
         print_list "Service account ................ ${k8s_service_account:-unknown}\n"
         print_list "RBAC create pods ............... $k8s_can_create_pods\n" | sed -${E} "s,Yes,${SED_RED_YELLOW}," | sed -${E} "s,No,${SED_GREEN},"
         print_list "RBAC create pods/exec .......... $k8s_can_exec_pods\n" | sed -${E} "s,Yes,${SED_RED_YELLOW}," | sed -${E} "s,No,${SED_GREEN},"
+        print_list "RBAC list pods ................. $k8s_can_list_pods\n" | sed -${E} "s,Yes,${SED_RED_YELLOW}," | sed -${E} "s,No,${SED_GREEN},"
+        print_list "RBAC get nodes/proxy ........... $k8s_can_proxy_nodes\n" | sed -${E} "s,Yes,${SED_RED_YELLOW}," | sed -${E} "s,No,${SED_GREEN},"
         print_list "RBAC read secrets .............. $k8s_can_read_secrets\n" | sed -${E} "s,Yes,${SED_RED_YELLOW}," | sed -${E} "s,No,${SED_GREEN},"
         print_list "RBAC create serviceaccounts/token $k8s_can_request_tokens\n" | sed -${E} "s,Yes,${SED_RED_YELLOW}," | sed -${E} "s,No,${SED_GREEN},"
         print_list "Current pod escape settings .... "$NC
@@ -448,6 +454,20 @@ if [ "$inContainer" ]; then
         fi
         if [ "$k8s_chain_risk" ]; then
             print_list "Kubernetes escape chain ........ $k8s_chain_risk\n" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+        fi
+
+        # Mirror Peirates' read-only object and hostPath discovery when the
+        # operator requested network checks. kubectl uses its current context.
+        if [ "$EXTRA_CHECKS" ] && [ "$k8s_namespace" ] && command -v kubectl >/dev/null 2>&1; then
+            print_list "Current kubectl context objects (names only):\n"
+            kubectl --request-timeout=5s get pods,services,serviceaccounts,secrets \
+                -n "$k8s_namespace" --ignore-not-found 2>/dev/null | head -n 60
+            print_list "Accessible node names:\n"
+            kubectl --request-timeout=5s get nodes -o name 2>/dev/null | head -n 30
+            print_list "Pod hostPath sources in namespace:\n"
+            kubectl --request-timeout=5s get pods -n "$k8s_namespace" \
+                -o 'jsonpath={range .items[*]}{.metadata.name}{": "}{range .spec.volumes[*]}{.hostPath.path}{" "}{end}{"\n"}{end}' \
+                2>/dev/null | grep -E ': /' | head -n 60
         fi
     fi
     
