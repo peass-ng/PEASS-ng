@@ -20,7 +20,7 @@
 
 if ! [ "$IAMROOT" ]; then
     print_2title "Analyzing .socket files" "T1559"
-    print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#sockets"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/network-information/local-network-and-socket-triage.html#unix-socket-interaction-and-command-injection"
 
     # Function to check if path is relative
     is_relative_path() {

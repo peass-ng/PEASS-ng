@@ -15,7 +15,7 @@
 
 
 print_2title "SUID - Check easy privesc, exploits and write perms" "T1548.001"
-print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#sudo-and-suid"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/interesting-files-permissions/suid-sgid-and-acl-triage.html#enumerate-privileged-executables"
 if ! [ "$STRINGS" ]; then
   echo_not_found "strings"
 fi

@@ -15,7 +15,7 @@
 
 
 print_2title "PGP Keys and Related Files" "T1552.004"
-print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#pgp-keys"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/user-information/user-and-session-triage.html#review-user-artifacts"
 
 # Check for GPG
 echo "GPG:" | sed -${E} "s,.*,${SED_LIGHT_CYAN},g"

@@ -15,7 +15,7 @@
 
 
 print_2title "SGID" "T1548.001"
-print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#sudo-and-suid"
+print_info "https://book.hacktricks.wiki/en/linux-hardening/interesting-files-permissions/suid-sgid-and-acl-triage.html#enumerate-privileged-executables"
 sgids_files=$(find $ROOT_FOLDER -perm -2000 -type f ! -path "/dev/*" 2>/dev/null)
 printf "%s\n" "$sgids_files" | while IFS= read -r sfile; do
   [ -z "$sfile" ] && continue
