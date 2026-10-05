@@ -18,7 +18,7 @@
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Crontab UI (root) misconfiguration checks" "T1053.003"
-  print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#scheduledcron-jobs"
+  print_info "https://book.hacktricks.wiki/en/linux-hardening/processes-crontab-systemd-dbus/cron-and-systemd-timers.html#enumerate-schedules"
 
   # Collect candidate services referencing crontab-ui
   candidates=""

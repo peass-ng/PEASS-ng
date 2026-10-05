@@ -21,7 +21,7 @@
 if ! [ "$IAMROOT" ]; then
     if ! [ "$SEARCH_IN_FOLDER" ]; then
         print_2title "Unix Sockets Analysis" "T1571,T1049"
-        print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#sockets"
+        print_info "https://book.hacktricks.wiki/en/linux-hardening/network-information/local-network-and-socket-triage.html#unix-socket-interaction-and-command-injection"
 
 
         # Function to get socket permissions
