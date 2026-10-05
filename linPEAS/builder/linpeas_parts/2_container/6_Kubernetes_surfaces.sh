@@ -6,7 +6,7 @@
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1613,T1611,T1552.007
-# Functions Used: print_2title, print_3title, print_info
+# Functions Used: print_2title, print_3title
 # Global Variables: $containerType, $EXTRA_CHECKS
 # Initial Functions: containerCheck
 # Generated Global Variables: $k8s_aws_bucket, $k8s_cap_eff, $k8s_cap_low, $k8s_cfg, $k8s_cfg_env, $k8s_context_name, $k8s_count, $k8s_current_context, $k8s_dir, $k8s_direct_base, $k8s_direct_ca, $k8s_direct_host, $k8s_direct_port, $k8s_direct_token, $k8s_direct_token_file, $k8s_docker_host, $k8s_file, $k8s_gcs_bucket, $k8s_mount, $k8s_mount_options, $k8s_mount_root, $k8s_namespace, $k8s_node_address, $k8s_node_addresses, $k8s_node_name, $k8s_ns_one, $k8s_ns_self, $k8s_pid, $k8s_probe_host, $k8s_probe_port, $k8s_probe_scheme, $k8s_probe_status, $k8s_rc, $k8s_readable, $k8s_root, $k8s_root_count, $k8s_runc_version, $k8s_socket, $k8s_writable
