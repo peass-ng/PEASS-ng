@@ -456,19 +456,6 @@ if [ "$inContainer" ]; then
             print_list "Kubernetes escape chain ........ $k8s_chain_risk\n" | sed -${E} "s,.*,${SED_RED_YELLOW},"
         fi
 
-        # Mirror Peirates' read-only object and hostPath discovery when the
-        # operator requested network checks. kubectl uses its current context.
-        if [ "$EXTRA_CHECKS" ] && [ "$k8s_namespace" ] && command -v kubectl >/dev/null 2>&1; then
-            print_list "Current kubectl context objects (names only):\n"
-            kubectl --request-timeout=5s get pods,services,serviceaccounts,secrets \
-                -n "$k8s_namespace" --ignore-not-found 2>/dev/null | head -n 60
-            print_list "Accessible node names:\n"
-            kubectl --request-timeout=5s get nodes -o name 2>/dev/null | head -n 30
-            print_list "Pod hostPath sources in namespace:\n"
-            kubectl --request-timeout=5s get pods -n "$k8s_namespace" \
-                -o 'jsonpath={range .items[*]}{.metadata.name}{": "}{range .spec.volumes[*]}{.hostPath.path}{" "}{end}{"\n"}{end}' \
-                2>/dev/null | grep -E ': /' | head -n 60
-        fi
     fi
     
     # Interesting files and mounts
