@@ -364,8 +364,9 @@ k8s_direct_api_ready() {
 }
 
 k8s_sa_api_get() {
+  # Ignore curlrc: inherited tracing or credentials must not affect discovery.
   printf 'header = "Authorization: Bearer %s"\n' "$k8s_direct_token" |
-    curl --config - -fsS --connect-timeout 2 --max-time 5 \
+    curl -q --config - -fsS --connect-timeout 2 --max-time 5 \
       --cacert "$k8s_direct_ca" -H 'Accept: application/json' \
       "$k8s_direct_base$1" 2>/dev/null
 }
@@ -378,7 +379,7 @@ k8s_scan_sa_api() {
   k8s_sa_api_get "/api/v1/namespaces/$k8s_namespace/pods?limit=100" |
     jq -r '.items[]? | (
       "\(.metadata.name) sa=\(.spec.serviceAccountName // "default") hostPID=\(.spec.hostPID // false) hostIPC=\(.spec.hostIPC // false) hostNetwork=\(.spec.hostNetwork // false)",
-      (.spec.containers[]? | "  container \(.name) privileged=\(.securityContext.privileged // false) allowPE=\(.securityContext.allowPrivilegeEscalation // "default") caps=\((.securityContext.capabilities.add // []) | join(","))"),
+      (.spec.containers[]? | "  container \(.name) privileged=\(.securityContext.privileged // false) allowPE=\((.securityContext.allowPrivilegeEscalation | if . == null then "default" else . end)) caps=\((.securityContext.capabilities.add // []) | join(","))"),
       (.spec.volumes[]? | select(.hostPath.path != null) | "  hostPath \(.hostPath.path)")
     )' 2>/dev/null | head -n 100 | sed 's/^/    pod: /'
   for k8s_file in services serviceaccounts secrets; do
@@ -391,59 +392,66 @@ k8s_scan_sa_api() {
   k8s_direct_token=''
 }
 
+k8s_kubectl() {
+  # Request timeouts do not bound credential plugins or all paginated requests.
+  # Skip kubectl when a process-wide deadline cannot be enforced.
+  command -v timeout >/dev/null 2>&1 || return 1
+  timeout -s KILL 5 kubectl "$@"
+}
+
 k8s_scan_kubectl() {
   if ! command -v kubectl >/dev/null 2>&1; then
     [ "$EXTRA_CHECKS" ] && k8s_scan_sa_api
     return 0
   fi
   echo '  Local kubeconfig contexts:'
-  kubectl config get-contexts -o name 2>/dev/null | head -n 30 | sed 's/^/    /'
+  k8s_kubectl config get-contexts -o name 2>/dev/null | head -n 30 | sed 's/^/    /'
   [ "$EXTRA_CHECKS" ] || return 0
 
-  k8s_current_context="$(kubectl config current-context 2>/dev/null | head -n 1)"
+  k8s_current_context="$(k8s_kubectl config current-context 2>/dev/null | head -n 1)"
   if [ ! "$k8s_current_context" ] && k8s_direct_api_ready; then
     k8s_direct_token=''
     k8s_scan_sa_api
     return 0
   fi
-  k8s_context_name="$(kubectl config view --minify -o 'jsonpath={..namespace}' 2>/dev/null | head -c 200)"
+  k8s_context_name="$(k8s_kubectl config view --minify -o 'jsonpath={..namespace}' 2>/dev/null | head -c 200)"
   [ "$k8s_context_name" ] && k8s_namespace="$k8s_context_name"
   [ "$k8s_namespace" ] || k8s_namespace=default
 
   echo '  Current context authorization rules:'
-  kubectl --request-timeout=5s auth can-i --list -n "$k8s_namespace" \
+  k8s_kubectl --request-timeout=5s auth can-i --list -n "$k8s_namespace" \
     2>/dev/null | head -n 80
   echo '  Other configured context authorization rules (up to five):'
-  kubectl config get-contexts -o name 2>/dev/null | head -n 5 |
+  k8s_kubectl config get-contexts -o name 2>/dev/null | head -n 5 |
   while IFS= read -r k8s_context_name; do
     [ "$k8s_context_name" = "$k8s_current_context" ] && continue
     printf '    Context: %s\n' "$k8s_context_name"
-    kubectl --context="$k8s_context_name" --request-timeout=5s auth can-i --list \
+    k8s_kubectl --context="$k8s_context_name" --request-timeout=5s auth can-i --list \
       2>/dev/null | head -n 40 | sed 's/^/      /'
   done
   echo '  Accessible namespace names:'
-  kubectl --request-timeout=5s get namespaces -o name 2>/dev/null | head -n 40
+  k8s_kubectl --request-timeout=5s get namespaces -o name 2>/dev/null | head -n 40
   printf '  Accessible object names in namespace %s:\n' "$k8s_namespace"
-  kubectl --request-timeout=5s get pods,services,serviceaccounts,secrets \
+  k8s_kubectl --request-timeout=5s get pods,services,serviceaccounts,secrets \
     -n "$k8s_namespace" -o name 2>/dev/null | head -n 80
   echo '  Accessible node names:'
-  kubectl --request-timeout=5s get nodes -o name 2>/dev/null | head -n 40
+  k8s_kubectl --request-timeout=5s get nodes -o name 2>/dev/null | head -n 40
   echo '  Node-specific get nodes/proxy authorization (up to eight nodes):'
-  kubectl --request-timeout=5s get nodes -o name 2>/dev/null | head -n 8 |
+  k8s_kubectl --request-timeout=5s get nodes -o name 2>/dev/null | head -n 8 |
   while IFS= read -r k8s_node_name; do
     case "$k8s_node_name" in node/*|nodes/*) k8s_node_name="${k8s_node_name#*/}" ;; *) continue ;; esac
-    k8s_probe_status="$(kubectl --request-timeout=5s auth can-i get \
+    k8s_probe_status="$(k8s_kubectl --request-timeout=5s auth can-i get \
       "nodes/$k8s_node_name" --subresource=proxy 2>/dev/null)"
     case "$k8s_probe_status" in
       yes|no) printf '    %s: %s\n' "$k8s_node_name" "$k8s_probe_status" ;;
     esac
   done
   echo '  Pod service accounts, host namespaces and container security settings:'
-  kubectl --request-timeout=5s get pods -n "$k8s_namespace" \
+  k8s_kubectl --request-timeout=5s get pods -n "$k8s_namespace" \
     -o 'jsonpath={range .items[*]}{.metadata.name}{" sa="}{.spec.serviceAccountName}{" hostPID="}{.spec.hostPID}{" hostIPC="}{.spec.hostIPC}{" hostNetwork="}{.spec.hostNetwork}{" containers="}{range .spec.containers[*]}{.name}{"(privileged="}{.securityContext.privileged}{",allowPE="}{.securityContext.allowPrivilegeEscalation}{",caps="}{.securityContext.capabilities.add}{") "}{end}{"\n"}{end}' \
     2>/dev/null | head -n 60
   echo '  Pod hostPath sources:'
-  kubectl --request-timeout=5s get pods -n "$k8s_namespace" \
+  k8s_kubectl --request-timeout=5s get pods -n "$k8s_namespace" \
     -o 'jsonpath={range .items[*]}{.metadata.name}{": "}{range .spec.volumes[*]}{.hostPath.path}{" "}{end}{"\n"}{end}' \
     2>/dev/null | grep -E ': /' | head -n 60
 }
@@ -458,7 +466,7 @@ k8s_probe_kubelet() {
     [ "$k8s_probe_port" = 10255 ] && k8s_probe_scheme=http
     # No credentials are sent. An HTTP status only establishes reachability;
     # it does not prove kubelet authentication or authorization.
-    k8s_probe_status="$(curl -ksS --noproxy '*' --connect-timeout 1 --max-time 2 \
+    k8s_probe_status="$(curl -q -ksS --noproxy '*' --connect-timeout 1 --max-time 2 \
       -o /dev/null -w '%{http_code}' \
       "$k8s_probe_scheme://$k8s_probe_host:$k8s_probe_port/healthz" 2>/dev/null)"
     case "$k8s_probe_status" in
@@ -474,7 +482,7 @@ k8s_scan_kubelet_network() {
   echo '  Reachability of node kubelet ports (up to eight addresses; status only):'
   k8s_node_addresses=''
   if command -v kubectl >/dev/null 2>&1; then
-    k8s_node_addresses="$(kubectl --request-timeout=5s get nodes \
+    k8s_node_addresses="$(k8s_kubectl --request-timeout=5s get nodes \
       -o 'jsonpath={range .items[*]}{range .status.addresses[*]}{.address}{"\n"}{end}{end}' \
       2>/dev/null)"
   fi
@@ -500,14 +508,14 @@ k8s_scan_kops_storage() {
   command -v timeout >/dev/null 2>&1 || return
   if command -v aws >/dev/null 2>&1; then
     echo '  Accessible S3 buckets (up to 10) and candidate kOps Secret keys (first 100 objects each):'
-    AWS_MAX_ATTEMPTS=1 timeout 12 aws s3api list-buckets \
+    AWS_MAX_ATTEMPTS=1 timeout -s KILL 12 aws s3api list-buckets \
       --max-items 10 --query 'Buckets[].Name' --output text \
       --cli-connect-timeout 2 --cli-read-timeout 5 \
       2>/dev/null | tr '\t' '\n' | head -n 10 |
     while IFS= read -r k8s_aws_bucket; do
       case "$k8s_aws_bucket" in ''|*[!a-z0-9.-]*) continue ;; esac
       printf '    s3://%s\n' "$k8s_aws_bucket"
-      AWS_MAX_ATTEMPTS=1 timeout 12 aws s3api list-objects-v2 \
+      AWS_MAX_ATTEMPTS=1 timeout -s KILL 12 aws s3api list-objects-v2 \
         --bucket "$k8s_aws_bucket" --max-items 100 \
         --query 'Contents[].Key' --output text \
         --cli-connect-timeout 2 --cli-read-timeout 5 \
@@ -517,13 +525,13 @@ k8s_scan_kops_storage() {
   fi
   if command -v gcloud >/dev/null 2>&1; then
     echo '  Accessible GCS buckets (up to 10) and candidate kOps Secret objects (first 100 each):'
-    timeout 12 gcloud --quiet storage buckets list --limit=10 \
+    timeout -s KILL 12 gcloud --quiet storage buckets list --limit=10 \
       --format='value(name)' 2>/dev/null | head -n 10 |
     while IFS= read -r k8s_gcs_bucket; do
       k8s_gcs_bucket="${k8s_gcs_bucket#gs://}"
       case "$k8s_gcs_bucket" in ''|*[!a-z0-9._-]*) continue ;; esac
       printf '    gs://%s\n' "$k8s_gcs_bucket"
-      timeout 12 gcloud --quiet storage objects list \
+      timeout -s KILL 12 gcloud --quiet storage objects list \
         "gs://$k8s_gcs_bucket/**" --limit=100 --format='value(name)' \
         2>/dev/null | grep -E '(^|/)secrets/' | head -n 20 |
         sed 's/^/      candidate object: /'

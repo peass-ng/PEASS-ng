@@ -1,6 +1,9 @@
+import json
 import os
+import shutil
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -25,6 +28,7 @@ class KubernetesSurfacesTests(unittest.TestCase):
             capture_output=True,
             text=True,
             env=env,
+            timeout=15,
         ).stdout
 
     def test_projected_and_legacy_volumes_report_paths_without_values(self):
@@ -237,6 +241,54 @@ class KubernetesSurfacesTests(unittest.TestCase):
             self.assertNotIn("SENSITIVE_SECRET_VALUE", output)
             self.assertNotIn("SENSITIVE_TOKEN_VALUE", calls.read_text())
             self.assertTrue(all("--max-time 5" in call for call in calls.read_text().splitlines()))
+            self.assertTrue(all(call.startswith("-q ") for call in calls.read_text().splitlines()))
+
+    def test_service_account_api_preserves_explicit_false_security_setting(self):
+        with tempfile.TemporaryDirectory() as root:
+            fixture = Path(root) / "pods.json"
+            fixture.write_text(json.dumps({"items": [{
+                "metadata": {"name": "example"},
+                "spec": {"containers": [
+                    {"name": "restricted", "securityContext": {"allowPrivilegeEscalation": False}},
+                    {"name": "allowed", "securityContext": {"allowPrivilegeEscalation": True}},
+                    {"name": "unspecified"},
+                ]},
+            }]}))
+            output = self.run_shell(
+                'fixture="$1"; '
+                'k8s_direct_api_ready() { return 0; }; '
+                'k8s_sa_api_get() { case "$1" in '
+                '*/pods\\?*) cat "$fixture" ;; '
+                '*) echo \'{"items":[]}\' ;; esac; }; '
+                'k8s_scan_sa_api',
+                fixture,
+            )
+            self.assertIn("container restricted privileged=false allowPE=false", output)
+            self.assertIn("container allowed privileged=false allowPE=true", output)
+            self.assertIn("container unspecified privileged=false allowPE=default", output)
+
+    @unittest.skipUnless(shutil.which("timeout"), "timeout is required")
+    def test_kubectl_has_process_deadline_not_only_request_timeout(self):
+        with tempfile.TemporaryDirectory() as root:
+            kubectl = Path(root) / "kubectl"
+            kubectl.write_text("#!/bin/sh\nsleep 30\n")
+            kubectl.chmod(0o755)
+            env = os.environ.copy()
+            env["PATH"] = f"{root}:{env['PATH']}"
+            started = time.monotonic()
+            output = self.run_shell(
+                "k8s_kubectl config current-context || echo bounded", env=env
+            )
+            self.assertEqual("bounded\n", output)
+            self.assertLess(time.monotonic() - started, 10)
+
+    def test_kubectl_is_skipped_without_deadline_tool(self):
+        output = self.run_shell(
+            'command() { return 1; }; '
+            'kubectl() { echo SHOULD_NOT_RUN; }; '
+            'k8s_kubectl config current-context || echo skipped'
+        )
+        self.assertEqual("skipped\n", output)
 
     def test_escape_capability_bits_are_decoded(self):
         result = self.run_shell(
@@ -296,12 +348,17 @@ class KubernetesSurfacesTests(unittest.TestCase):
             self.assertEqual(2, len(calls))
             self.assertTrue(all("--max-time 2" in call for call in calls))
             self.assertTrue(all("Authorization" not in call for call in calls))
+            self.assertTrue(all(call.startswith("-q ") for call in calls))
 
     def test_kops_storage_lists_candidate_names_without_reading_objects(self):
         with tempfile.TemporaryDirectory() as root:
             calls = Path(root) / "cloud-calls"
             timeout = Path(root) / "timeout"
-            timeout.write_text('#!/bin/sh\nshift\n"$@"\n')
+            timeout.write_text(
+                '#!/bin/sh\n'
+                'printf "%s\\n" "$*" >> "$TIMEOUT_CALLS"\n'
+                '[ "$1" = -s ] && shift 2\nshift\n"$@"\n'
+            )
             timeout.chmod(0o755)
             aws = Path(root) / "aws"
             aws.write_text(
@@ -326,6 +383,8 @@ class KubernetesSurfacesTests(unittest.TestCase):
             env = os.environ.copy()
             env["PATH"] = f"{root}:{env['PATH']}"
             env["CLOUD_CALLS"] = str(calls)
+            deadlines = Path(root) / "timeout-calls"
+            env["TIMEOUT_CALLS"] = str(deadlines)
 
             output = self.run_shell("k8s_scan_kops_storage", env=env)
             self.assertIn("s3://kops-state", output)
@@ -334,6 +393,7 @@ class KubernetesSurfacesTests(unittest.TestCase):
             self.assertIn("candidate object: cluster/secrets/sa-token", output)
             self.assertNotIn("config.yaml", output)
             self.assertTrue(all("list" in call for call in calls.read_text().splitlines()))
+            self.assertTrue(all(call.startswith("-s KILL 12 ") for call in deadlines.read_text().splitlines()))
 
 
 if __name__ == "__main__":
