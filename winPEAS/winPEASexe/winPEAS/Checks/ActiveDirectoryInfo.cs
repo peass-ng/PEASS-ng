@@ -15,6 +15,14 @@ namespace winPEAS.Checks
     // Lightweight AD-oriented checks for common escalation paths (gMSA readable password, AD CS template control)
     internal class ActiveDirectoryInfo : ISystemCheck
     {
+        internal enum MachineAccountQuotaStatus { Unavailable, Zero, Positive }
+
+        internal static MachineAccountQuotaStatus AssessMachineAccountQuota(int? quota)
+        {
+            if (!quota.HasValue || quota.Value < 0) return MachineAccountQuotaStatus.Unavailable;
+            return quota.Value == 0 ? MachineAccountQuotaStatus.Zero : MachineAccountQuotaStatus.Positive;
+        }
+
         internal enum Esc11RegistryStatus
         {
             Unknown,
@@ -122,6 +130,7 @@ namespace winPEAS.Checks
                 PrintGmsaReadableByCurrentPrincipal,
                 PrintDmsaCreationRights,
                 PrintKerberoastableServiceAccounts,
+                PrintMachineAccountQuota,
                 PrintAdObjectControlPaths,
                 PrintAdcsMisconfigurations
             }.ForEach(action => CheckRunner.Run(action, isDebug));
@@ -356,6 +365,48 @@ namespace winPEAS.Checks
 
             // A matching deny makes the result uncertain; omit it instead of asserting access.
             return allowed && !denied;
+        }
+
+        private void PrintMachineAccountQuota()
+        {
+            Beaprint.MainPrint("Domain machine-account quota", "T1136.002");
+            if (!Checks.IsPartOfDomain)
+            {
+                Beaprint.GrayPrint("  [-] Host is not domain-joined. Skipping.");
+                return;
+            }
+
+            var defaultNc = GetRootDseProp("defaultNamingContext");
+            if (string.IsNullOrEmpty(defaultNc))
+            {
+                Beaprint.InfoPrint("  ms-DS-MachineAccountQuota: unavailable (domain root not resolved).");
+                return;
+            }
+
+            try
+            {
+                using (var domain = new DirectoryEntry("LDAP://" + defaultNc))
+                {
+                    domain.RefreshCache(new[] { "ms-DS-MachineAccountQuota" });
+                    var quota = GetDirectoryEntryInt(domain, "ms-DS-MachineAccountQuota");
+                    switch (AssessMachineAccountQuota(quota))
+                    {
+                        case MachineAccountQuotaStatus.Zero:
+                            Beaprint.InfoPrint("  ms-DS-MachineAccountQuota: 0 (quota path unavailable; delegated rights or an existing account may still apply).");
+                            break;
+                        case MachineAccountQuotaStatus.Positive:
+                            Beaprint.InfoPrint("  ms-DS-MachineAccountQuota: " + quota.Value + " (domain setting only; current caller's remaining quota and creation rights are unverified).");
+                            break;
+                        default:
+                            Beaprint.InfoPrint("  ms-DS-MachineAccountQuota: unavailable (missing or invalid value).");
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.InfoPrint("  ms-DS-MachineAccountQuota: unavailable (LDAP read failed: " + ex.Message + ").");
+            }
         }
 
         // Highlight objects where the current principal already has useful write/control rights
@@ -950,6 +1001,7 @@ namespace winPEAS.Checks
 
         private void PrintCurrentComputerLapsPasswordExposure()
         {
+            bool rbcdPrinted = false;
             try
             {
                 Beaprint.MainPrint("Current computer LAPS password readable from AD", "T1003");
@@ -967,6 +1019,8 @@ namespace winPEAS.Checks
                 if (string.IsNullOrEmpty(defaultNC))
                 {
                     Beaprint.GrayPrint("  [-] Could not resolve defaultNamingContext.");
+                    PrintCurrentComputerRbcd(null);
+                    rbcdPrinted = true;
                     return;
                 }
 
@@ -982,13 +1036,19 @@ namespace winPEAS.Checks
                     searcher.PropertiesToLoad.Add("distinguishedName");
                     searcher.PropertiesToLoad.Add("ms-Mcs-AdmPwd");
                     searcher.PropertiesToLoad.Add("msLAPS-Password");
+                    searcher.PropertiesToLoad.Add("msDS-AllowedToActOnBehalfOfOtherIdentity");
 
                     SearchResult result = searcher.FindOne();
                     if (result == null)
                     {
                         Beaprint.GrayPrint("  [-] Could not find this computer's Active Directory object.");
+                        PrintCurrentComputerRbcd(null);
+                        rbcdPrinted = true;
                         return;
                     }
+
+                    PrintCurrentComputerRbcd(result);
+                    rbcdPrinted = true;
 
                     // Presence in the LDAP response proves the current identity can
                     // read a populated value. Never materialize or print the value.
@@ -1024,6 +1084,59 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.GrayPrint("  [-] LAPS password exposure check failed: " + ex.Message);
+                if (!rbcdPrinted)
+                    PrintCurrentComputerRbcd(null);
+            }
+        }
+
+        private static void PrintCurrentComputerRbcd(SearchResult result)
+        {
+            Beaprint.MainPrint("Current computer resource-based constrained delegation state", "T1484.001");
+            if (result == null)
+            {
+                Beaprint.GrayPrint("  [-] Inaccessible: current computer AD object could not be read.");
+                return;
+            }
+
+            const string attribute = "msDS-AllowedToActOnBehalfOfOtherIdentity";
+            try
+            {
+                CurrentComputerRbcdReport report;
+                if (!result.Properties.Contains(attribute) || result.Properties[attribute].Count == 0)
+                    report = CurrentComputerRbcd.Evaluate(null);
+                else
+                {
+                    var bytes = result.Properties[attribute][0] as byte[];
+                    report = bytes == null
+                        ? new CurrentComputerRbcdReport { Status = CurrentComputerRbcdStatus.Malformed }
+                        : CurrentComputerRbcd.Evaluate(bytes);
+                }
+
+                switch (report.Status)
+                {
+                    case CurrentComputerRbcdStatus.Absent:
+                        Beaprint.GrayPrint("  [-] Attribute not returned for this computer (absent or not readable by the current identity).");
+                        break;
+                    case CurrentComputerRbcdStatus.Oversized:
+                        Beaprint.GrayPrint("  [?] Descriptor exceeds 16384 bytes; skipped parsing.");
+                        break;
+                    case CurrentComputerRbcdStatus.Malformed:
+                        Beaprint.GrayPrint("  [?] Descriptor is malformed or has no readable DACL; delegation state unknown.");
+                        break;
+                    case CurrentComputerRbcdStatus.Present:
+                        Beaprint.GrayPrint("  [i] Delegation descriptor present (" + report.AceCount + " ACEs). Presence alone does not establish exploitability.");
+                        foreach (string sid in report.TrusteeSids)
+                            Beaprint.GrayPrint("      DACL trustee SID: " + sid);
+                        if (report.TrusteeSids.Count == 0)
+                            Beaprint.GrayPrint("      No DACL trustee SIDs in the inspected ACEs.");
+                        if (report.Truncated)
+                            Beaprint.GrayPrint("      Trustee output truncated (first 128 ACEs, at most 16 distinct SIDs).");
+                        break;
+                }
+            }
+            catch (Exception)
+            {
+                Beaprint.GrayPrint("  [-] Inaccessible: could not read this computer's delegation attribute.");
             }
         }
 
@@ -1120,7 +1233,9 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Kerberoasting / service ticket risks", "T1558.003");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/kerberoast.html",
-                    "Enumerate weak SPN accounts and legacy Kerberos crypto");
+                    "Review service-user SPNs and Kerberos encryption hints");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/silver-ticket.html",
+                    "A service key has separate implications; an SPN does not show key possession");
 
                 if (!Checks.IsPartOfDomain)
                 {
@@ -1471,21 +1586,30 @@ namespace winPEAS.Checks
 
         private void EnumerateKerberoastCandidates(string defaultNc)
         {
+            const int searchLimit = 201;
+            const int displayLimit = 20;
             int checkedAccounts = 0;
             int highTotal = 0;
             int mediumTotal = 0;
+            int otherTotal = 0;
+            int unknownEligibility = 0;
+            bool truncated = false;
+            bool elapsedLimit = false;
             var high = new List<KerberoastCandidate>();
             var medium = new List<KerberoastCandidate>();
+            var other = new List<KerberoastCandidate>();
 
             try
             {
                 using (var baseDe = new DirectoryEntry("LDAP://" + defaultNc))
                 using (var ds = new DirectorySearcher(baseDe))
                 {
-                    ds.PageSize = 500;
-                    ds.Filter = "(servicePrincipalName=*)";
+                    ds.PageSize = 100;
+                    ds.SizeLimit = searchLimit;
+                    ds.ClientTimeout = TimeSpan.FromSeconds(5);
+                    ds.ServerTimeLimit = TimeSpan.FromSeconds(5);
+                    ds.Filter = "(&(objectClass=user)(servicePrincipalName=*))";
                     ds.PropertiesToLoad.Add("sAMAccountName");
-                    ds.PropertiesToLoad.Add("displayName");
                     ds.PropertiesToLoad.Add("distinguishedName");
                     ds.PropertiesToLoad.Add("servicePrincipalName");
                     ds.PropertiesToLoad.Add("msDS-SupportedEncryptionTypes");
@@ -1494,94 +1618,92 @@ namespace winPEAS.Checks
                     ds.PropertiesToLoad.Add("memberOf");
                     ds.PropertiesToLoad.Add("objectClass");
 
-                    foreach (SearchResult r in ds.FindAll())
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    using (var results = ds.FindAll())
+                    foreach (SearchResult r in results)
                     {
+                        if (watch.Elapsed > TimeSpan.FromSeconds(5))
+                        {
+                            elapsedLimit = true;
+                            break;
+                        }
                         checkedAccounts++;
+                        if (checkedAccounts == searchLimit)
+                        {
+                            truncated = true;
+                            break;
+                        }
                         var candidate = BuildKerberoastCandidate(r);
                         if (candidate == null)
                         {
+                            if (!GetIntProp(r, "userAccountControl").HasValue &&
+                                !IsComputerObject(r) && !IsManagedServiceAccount(r)) unknownEligibility++;
                             continue;
                         }
 
-                        if (candidate.IsHighRisk)
+                        if (candidate.Priority == 2)
                         {
                             highTotal++;
-                            if (high.Count < 15) high.Add(candidate);
+                            high.Add(candidate);
                         }
-                        else
+                        else if (candidate.Priority == 1)
                         {
                             mediumTotal++;
-                            if (medium.Count < 12) medium.Add(candidate);
+                            medium.Add(candidate);
                         }
+                        else { otherTotal++; other.Add(candidate); }
                     }
                 }
 
-                Beaprint.InfoPrint($"Checked {checkedAccounts} SPN-bearing accounts. High-risk RC4/privileged targets: {highTotal}, long-lived AES-only targets: {mediumTotal}.");
+                int processed = Math.Min(checkedAccounts, searchLimit - 1);
+                Beaprint.InfoPrint($"Inspected {processed} SPN-bearing objects; enabled service-user SPNs: {highTotal + mediumTotal + otherTotal} (priority: {highTotal} high, {mediumTotal} review, {otherTotal} other); eligibility unknown: {unknownEligibility}.");
+                if (truncated)
+                    Beaprint.GrayPrint("  [*] LDAP sample capped at 200 objects; further account counts and priority are unknown.");
+                if (elapsedLimit)
+                    Beaprint.GrayPrint("  [?] LDAP elapsed limit reached; further account counts and priority are unknown.");
+                if (unknownEligibility > 0)
+                    Beaprint.GrayPrint("  [*] Missing account-control data leaves some enabled states unknown.");
 
-                if (highTotal == 0 && mediumTotal == 0)
+                if (highTotal + mediumTotal + otherTotal == 0)
                 {
-                    Beaprint.GoodPrint("  No obvious Kerberoastable service accounts detected with current visibility.");
+                    Beaprint.GrayPrint("  No enabled service-user SPNs observed in this bounded sample.");
                     return;
                 }
 
-                if (high.Count > 0)
-                {
-                    Beaprint.BadPrint("  [!] RC4-enabled or privileged SPN accounts:");
-                    foreach (var c in high)
-                    {
-                        Beaprint.ColorPrint($"      - {c.Label} | SPNs: {c.SpnSummary} | Enc: {c.Encryption} | {c.Reason}", Beaprint.LRED);
-                    }
-                    if (highTotal > high.Count)
-                    {
-                        Beaprint.GrayPrint($"      ... {highTotal - high.Count} additional high-risk accounts omitted.");
-                    }
-                }
-
-                if (medium.Count > 0)
-                {
-                    Beaprint.ColorPrint("  [~] Long-lived SPN accounts (still Kerberoastable via AES tickets):", Beaprint.YELLOW);
-                    foreach (var c in medium)
-                    {
-                        Beaprint.ColorPrint($"      - {c.Label} | SPNs: {c.SpnSummary} | Enc: {c.Encryption} | {c.Reason}", Beaprint.YELLOW);
-                    }
-                    if (mediumTotal > medium.Count)
-                    {
-                        Beaprint.GrayPrint($"      ... {mediumTotal - medium.Count} additional medium-risk accounts omitted.");
-                    }
-                }
+                var shown = high.OrderBy(c => c.Label, StringComparer.OrdinalIgnoreCase).Take(8)
+                    .Concat(medium.OrderBy(c => c.Label, StringComparer.OrdinalIgnoreCase).Take(4))
+                    .Concat(other.OrderByDescending(c => c.HasSqlSpn).ThenBy(c => c.Label, StringComparer.OrdinalIgnoreCase).Take(8))
+                    .Take(displayLimit).ToList();
+                foreach (var c in shown)
+                    Beaprint.ColorPrint($"      - [{c.PriorityLabel}] {c.Label} | SPNs: {c.SpnSummary} | Enc flags: {c.Encryption} | {c.Reason}", c.Priority == 2 ? Beaprint.LRED : Beaprint.YELLOW);
+                int omitted = highTotal + mediumTotal + otherTotal - shown.Count;
+                if (omitted > 0) Beaprint.GrayPrint($"  [*] {omitted} additional enabled service-user SPN account(s) omitted from display.");
+                Beaprint.GrayPrint("  [*] SPN/encryption flags do not prove a weak password, issued ticket type, or service-key possession.");
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint("  [-] LDAP error while enumerating SPNs: " + ex.Message);
+                Beaprint.GrayPrint("  [?] SPN visibility unknown: LDAP search failed or timed out: " + ex.Message);
             }
         }
 
         private KerberoastCandidate BuildKerberoastCandidate(SearchResult r)
         {
             var sam = GetProp(r, "sAMAccountName");
-            var displayName = GetProp(r, "displayName");
             var dn = GetProp(r, "distinguishedName");
-
-            if (IsComputerObject(r) || IsManagedServiceAccount(r))
-                return null;
-
             var uac = GetIntProp(r, "userAccountControl");
-            if (uac.HasValue && (uac.Value & 0x2) != 0)
+            if (IsComputerObject(r) || IsManagedServiceAccount(r) || !uac.HasValue || (uac.Value & 0x2) != 0)
                 return null;
 
             var encValue = GetIntProp(r, "msDS-SupportedEncryptionTypes");
-            bool rc4Allowed = IsRc4Allowed(encValue);
-            bool aesPresent = HasAes(encValue);
+            bool rc4Flag = encValue.HasValue && encValue.Value != 0 && (encValue.Value & EncFlagRc4) != 0;
             bool passwordNeverExpires = uac.HasValue && (uac.Value & 0x10000) != 0;
             DateTime? pwdLastSet = GetFileTimeProp(r, "pwdLastSet");
             bool stalePassword = pwdLastSet.HasValue && pwdLastSet.Value < DateTime.UtcNow.AddDays(-365);
             var privilegeHits = GetPrivilegedGroups(r);
             var reasons = new List<string>();
 
-            if (rc4Allowed)
-                reasons.Add("RC4 allowed");
-            else if (!aesPresent)
-                reasons.Add("No AES flag");
+            if (rc4Flag)
+                reasons.Add("RC4 flag set");
             if (passwordNeverExpires)
                 reasons.Add("PasswordNeverExpires");
             if (stalePassword)
@@ -1589,27 +1711,37 @@ namespace winPEAS.Checks
             if (privilegeHits.Count > 0)
                 reasons.Add("Privileged: " + string.Join("/", privilegeHits));
 
-            if (reasons.Count == 0)
-                return null;
-
-            bool isHigh = rc4Allowed || privilegeHits.Count > 0;
-            if (!isHigh && !(passwordNeverExpires || stalePassword))
-                return null;
+            int priority = AssessSpnPriority(uac, IsComputerObject(r), IsManagedServiceAccount(r), encValue,
+                passwordNeverExpires, stalePassword, privilegeHits.Count > 0);
 
             var label = !string.IsNullOrEmpty(sam) ? sam : dn;
-            if (!string.IsNullOrEmpty(displayName) && !string.Equals(displayName, sam, StringComparison.OrdinalIgnoreCase))
-            {
-                label = string.IsNullOrEmpty(sam) ? displayName : $"{sam} ({displayName})";
-            }
-
             return new KerberoastCandidate
             {
                 Label = label ?? "<unknown>",
                 SpnSummary = BuildSpnSummary(r),
                 Encryption = DescribeEncTypes(encValue),
-                Reason = string.Join("; ", reasons),
-                IsHighRisk = isHigh
+                Reason = reasons.Count > 0 ? string.Join("; ", reasons) : "No priority flag observed",
+                Priority = priority,
+                HasSqlSpn = HasSpnPrefix(r, "MSSQLSvc/")
             };
+        }
+
+        internal static int AssessSpnPriority(int? uac, bool isComputer, bool isManagedServiceAccount,
+            int? encryptionFlags, bool passwordNeverExpires, bool stalePassword, bool privileged)
+        {
+            if (isComputer || isManagedServiceAccount || !uac.HasValue || (uac.Value & 0x2) != 0)
+                return -1;
+            if ((encryptionFlags.HasValue && encryptionFlags.Value != 0 && (encryptionFlags.Value & EncFlagRc4) != 0) || privileged)
+                return 2;
+            return passwordNeverExpires || stalePassword ? 1 : 0;
+        }
+
+        private static bool HasSpnPrefix(SearchResult r, string prefix)
+        {
+            if (!r.Properties.Contains("servicePrincipalName")) return false;
+            foreach (var value in r.Properties["servicePrincipalName"])
+                if (value != null && value.ToString().StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return true;
+            return false;
         }
 
         private static string BuildSpnSummary(SearchResult r)
@@ -1618,19 +1750,21 @@ namespace winPEAS.Checks
                 return "<none>";
 
             var values = r.Properties["servicePrincipalName"];
-            var list = new List<string>();
-            int limit = values.Count < 3 ? values.Count : 3;
-            for (int i = 0; i < limit; i++)
-            {
-                var spn = values[i]?.ToString();
-                if (!string.IsNullOrEmpty(spn))
-                    list.Add(spn);
-            }
+            var all = new List<string>();
+            foreach (var value in values)
+                if (value != null && !string.IsNullOrEmpty(value.ToString())) all.Add(value.ToString());
+            var list = PrioritizeSpns(all).Take(3).ToList();
 
             string summary = list.Count > 0 ? string.Join(", ", list) : "<none>";
-            if (values.Count > limit)
-                summary += $" (+{values.Count - limit} more)";
+            if (all.Count > list.Count)
+                summary += $" (+{all.Count - list.Count} more)";
             return summary;
+        }
+
+        internal static IEnumerable<string> PrioritizeSpns(IEnumerable<string> spns)
+        {
+            return spns.OrderByDescending(spn => spn.StartsWith("MSSQLSvc/", StringComparison.OrdinalIgnoreCase))
+                .ThenBy(spn => spn, StringComparer.OrdinalIgnoreCase);
         }
 
         private static List<string> GetPrivilegedGroups(SearchResult r)
@@ -1791,7 +1925,7 @@ namespace winPEAS.Checks
         private static string DescribeEncTypes(int? encValue)
         {
             if (!encValue.HasValue || encValue.Value == 0)
-                return "Unspecified (inherits defaults / RC4 compatible)";
+                return "Unspecified (effective ticket type unknown)";
 
             var parts = new List<string>();
             if ((encValue.Value & EncFlagDesCrc) != 0) parts.Add("DES-CBC-CRC");
@@ -1810,7 +1944,9 @@ namespace winPEAS.Checks
             public string SpnSummary { get; set; }
             public string Encryption { get; set; }
             public string Reason { get; set; }
-            public bool IsHighRisk { get; set; }
+            public int Priority { get; set; }
+            public string PriorityLabel { get { return Priority == 2 ? "higher priority" : Priority == 1 ? "review" : "other service account"; } }
+            public bool HasSqlSpn { get; set; }
         }
 
         private static readonly string[] PrivilegedGroupKeywords = new[]

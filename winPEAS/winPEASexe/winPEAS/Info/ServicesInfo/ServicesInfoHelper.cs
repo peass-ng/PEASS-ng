@@ -16,10 +16,28 @@ using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 using winPEAS.Info.ApplicationInfo;
+using winPEAS.Info.UserInfo.Token;
 using winPEAS.Native;
 
 namespace winPEAS.Info.ServicesInfo
 {
+    internal sealed class SqlServicePrivilegeInfo
+    {
+        public string Name { get; set; }
+        public string Account { get; set; }
+        public string State { get; set; }
+        public string[] RequiredPrivileges { get; set; }
+        public string Context { get; set; }
+    }
+
+    internal sealed class SqlServicePrivilegeReport
+    {
+        public List<SqlServicePrivilegeInfo> Services { get; } = new List<SqlServicePrivilegeInfo>();
+        public int Omitted { get; set; }
+        public bool TimeLimitReached { get; set; }
+        public bool Unavailable { get; set; }
+    }
+
     internal sealed class WritableServiceDllInfo
     {
         public string ServiceName { get; set; }
@@ -56,6 +74,106 @@ namespace winPEAS.Info.ServicesInfo
 
     class ServicesInfoHelper
     {
+        internal const int MaxSqlServiceContextServices = 10;
+        private const int SqlServiceContextMilliseconds = 2000;
+
+        internal static bool IsSqlServiceName(string name)
+        {
+            return !string.IsNullOrEmpty(name) && Regex.IsMatch(name,
+                @"^(MSSQLSERVER|SQLSERVERAGENT|MSSQL\$.+|SQLAgent\$.+)$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        }
+
+        internal static bool IsCurrentServiceAccount(string serviceAccount, string currentIdentity, string computerName)
+        {
+            if (string.IsNullOrWhiteSpace(serviceAccount) || string.IsNullOrWhiteSpace(currentIdentity))
+                return false;
+            string account = serviceAccount.Trim();
+            if (account.StartsWith(@".\", StringComparison.Ordinal))
+                account = computerName + account.Substring(1);
+            return string.Equals(account, currentIdentity.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static string FormatSqlServiceValue(string value)
+        {
+            if (value == null) return "unknown";
+            string clean = Regex.Replace(value, @"[\x00-\x1f\x7f]", " ");
+            return clean.Length > 80 ? clean.Substring(0, 80) + "..." : clean;
+        }
+
+        internal static string ClassifySqlServicePrivilegeContext(
+            string serviceAccount, string currentIdentity, string computerName,
+            string[] requiredPrivileges, bool? currentTokenHasImpersonate)
+        {
+            if (string.IsNullOrWhiteSpace(serviceAccount) || string.IsNullOrWhiteSpace(currentIdentity))
+                return "service account or current process identity unavailable; no token comparison";
+            if (!IsCurrentServiceAccount(serviceAccount, currentIdentity, computerName))
+                return "service account does not match this process identity; no token comparison";
+            if (requiredPrivileges == null)
+                return "RequiredPrivileges unavailable; no token comparison";
+            bool configured = requiredPrivileges.Any(p => string.Equals(
+                p, "SeImpersonatePrivilege", StringComparison.OrdinalIgnoreCase));
+            if (!configured)
+                return "SeImpersonatePrivilege not listed in configured RequiredPrivileges; original service token unknown";
+            if (!currentTokenHasImpersonate.HasValue)
+                return "current process token privileges unavailable; no token comparison";
+            return currentTokenHasImpersonate.Value
+                ? "SeImpersonatePrivilege also present in current process token; original service token unknown"
+                : "configured SeImpersonatePrivilege differs from current process token; another token may differ; unverified";
+        }
+
+        internal static SqlServicePrivilegeReport GetSqlServicePrivilegeContext()
+        {
+            var report = new SqlServicePrivilegeReport();
+            var timer = Stopwatch.StartNew();
+            string identity = null;
+            bool? hasImpersonate = null;
+            try
+            {
+                using (WindowsIdentity current = WindowsIdentity.GetCurrent())
+                    identity = current.Name;
+                Dictionary<string, string> privileges = Token.GetTokenGroupPrivs();
+                if (privileges.Count > 0)
+                    hasImpersonate = privileges.Keys.Any(p => string.Equals(
+                        p, "SeImpersonatePrivilege", StringComparison.OrdinalIgnoreCase));
+            }
+            catch (Exception) { /* Identity and token comparison remain unknown. */ }
+
+            try
+            {
+                using (RegistryKey services = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services"))
+                {
+                    if (services == null) { report.Unavailable = true; return report; }
+                    foreach (string name in services.GetSubKeyNames().Where(IsSqlServiceName).OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+                    {
+                        if (report.Services.Count >= MaxSqlServiceContextServices) { report.Omitted++; continue; }
+                        if (timer.ElapsedMilliseconds >= SqlServiceContextMilliseconds)
+                        { report.TimeLimitReached = true; break; }
+                        var entry = new SqlServicePrivilegeInfo { Name = name, State = "unknown" };
+                        try
+                        {
+                            using (RegistryKey key = services.OpenSubKey(name))
+                            {
+                                if (key != null)
+                                {
+                                    entry.Account = key.GetValue("ObjectName") as string;
+                                    entry.RequiredPrivileges = key.GetValue("RequiredPrivileges") as string[];
+                                }
+                            }
+                            using (var controller = new ServiceController(name))
+                                entry.State = controller.Status.ToString();
+                        }
+                        catch (Exception) { /* Keep readable configuration when SCM access fails. */ }
+                        entry.Context = ClassifySqlServicePrivilegeContext(entry.Account, identity,
+                            Environment.MachineName, entry.RequiredPrivileges, hasImpersonate);
+                        report.Services.Add(entry);
+                    }
+                }
+            }
+            catch (Exception) { report.Unavailable = true; }
+            return report;
+        }
+
         internal const int MaxServiceDllServices = 4096;
         internal const int MaxServiceDllFindings = 64;
         internal const int MaxRecoveryCommandServices = 4096;

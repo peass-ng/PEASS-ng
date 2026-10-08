@@ -1224,6 +1224,7 @@
     <Compile Include="Helpers\YamlConfig\YamlConfig.cs" />
     <Compile Include="Helpers\YamlConfig\YamlConfigHelper.cs" />
     <Compile Include="Info\ActiveDirectoryInfo\LapsPasswordExposure.cs" />
+    <Compile Include="Info\ActiveDirectoryInfo\CurrentComputerRbcd.cs" />
     <Compile Include="Info\ApplicationInfo\ApplicationInfoHelper.cs" />
     <Compile Include="Info\ApplicationInfo\AutoRuns.cs" />
     <Compile Include="Info\ApplicationInfo\DeviceDrivers.cs" />
@@ -1264,6 +1265,9 @@
     <Compile Include="Info\FilesInfo\Office\OneDrive\CloudSyncProviderInfo.cs" />
     <Compile Include="Info\FilesInfo\Office\OneDrive\OneDriveSyncProviderInfo.cs" />
     <Compile Include="Info\FilesInfo\RegistryHiveExposure.cs" />
+    <Compile Include="Info\FilesInfo\HMailServerExposure.cs" />
+    <Compile Include="Info\FilesInfo\IisServedRootPermissions.cs" />
+    <Compile Include="Info\FilesInfo\ZipNtdsBackupIndicator.cs" />
     <Compile Include="Info\FilesInfo\WSL\WSLHelper.cs" />
     <Compile Include="Info\NetworkInfo\Enums\IPVersion.cs" />
     <Compile Include="Info\NetworkInfo\Enums\MibTcpState.cs" />

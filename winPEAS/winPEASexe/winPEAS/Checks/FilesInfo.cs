@@ -128,9 +128,12 @@ namespace winPEAS.Checks
                 PrintCloudCreds,
                 PrintUnattendFiles,
                 PrintSAMBackups,
+                PrintNtdsZipBackups,
+                PrintIisServedRoots,
                 PrintMcAffeSitelistFiles,
                 PrintCachedGPPPassword,
                 PrintPossCredsRegs,
+                HMailServerExposure.PrintInfo,
                 PrintUserCredsFiles,
                 PrintOracleSQLDeveloperConfigFiles,
                 Slack.PrintInfo,
@@ -259,6 +262,65 @@ namespace winPEAS.Checks
             {
                 Beaprint.PrintException(ex.Message);
             }
+        }
+
+        void PrintNtdsZipBackups()
+        {
+            Beaprint.MainPrint("ZIP-wrapped NTDS backup exposure indicators", "T1003.003");
+            ZipNtdsBackupReport report = ZipNtdsBackupIndicator.Scan();
+            foreach (ZipNtdsBackupFinding finding in report.Findings)
+            {
+                Beaprint.BadPrint($"    Backup exposure indicator: {finding.Path}");
+                Beaprint.GrayPrint($"      ZIP members: {finding.NtdsMember}, {finding.SystemMember}");
+                Beaprint.GrayPrint("      Readable archive metadata only; this does not establish usable credentials or exploitability.");
+            }
+            foreach (string path in report.UnknownPaths)
+            {
+                Beaprint.GrayPrint($"    Inspection unknown (inaccessible, corrupt, encrypted, truncated, or over limit): {path}");
+            }
+            if (report.LimitReached)
+            {
+                Beaprint.GrayPrint("    Inspection incomplete: archive count or time limit reached; at least one candidate may be skipped.");
+            }
+            if (report.Findings.Count == 0 && report.UnknownPaths.Count == 0 && !report.LimitReached)
+            {
+                Beaprint.GoodPrint("    No matching ZIP backup metadata found in the inspected locations.");
+            }
+        }
+
+        void PrintIisServedRoots()
+        {
+            IisServedRootReport report = IisServedRootPermissions.Scan();
+            if (report.Roots.Count == 0 && !report.ConfigReadable && report.Note == null) return; // IIS absent.
+            Beaprint.MainPrint("IIS served-root create-file permissions", "T1505.003");
+            Beaprint.LinkPrint("https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-web/iis-internet-information-services");
+            foreach (IisServedRoot root in report.Roots)
+            {
+                Beaprint.NoColorPrint($"    {root.Path}");
+                if (!root.Configured)
+                {
+                    Beaprint.GrayPrint("      Default inetpub candidate only; no active site mapping evidence. Manual review.");
+                    continue;
+                }
+                Beaprint.GrayPrint($"      Site: {root.Site}; application: {root.Application}; pool: {root.Pool ?? "unspecified"} (auto-start {(root.AutoStartConfigured ? "enabled" : "disabled")}; runtime state unverified)");
+                if (root.CreateFileAcl == IisCreateFileAcl.ManualReview)
+                {
+                    Beaprint.GrayPrint($"      Effective current-token create-file: manual review. {root.Reason}");
+                    if (!string.IsNullOrEmpty(root.Trustee))
+                        Beaprint.GrayPrint($"      Matching enabled-token SID Allow: {root.Trustee}");
+                }
+                else if (root.CreateFileAcl == IisCreateFileAcl.Denied)
+                    Beaprint.GrayPrint("      Create-file denied by matching ACL entry.");
+                else
+                    Beaprint.GrayPrint("      No matching create-file Allow in inspected ACL.");
+                Beaprint.GrayPrint(root.AspxHandlerConfigured
+                    ? "      ASPX handler configured in applicationHost.config; per-path overrides and execution unverified."
+                    : "      Served content; server-side execution unverified.");
+            }
+            if (!string.IsNullOrEmpty(report.Note)) Beaprint.GrayPrint("    " + report.Note);
+            if (report.LimitReached) Beaprint.GrayPrint("    IIS inspection incomplete: path, configuration, or time limit reached.");
+            if (report.Roots.Count == 0 && report.ConfigReadable && !report.LimitReached)
+                Beaprint.GoodPrint("    No eligible local physical roots in the inspected IIS configuration.");
         }
 
         private static void PrintMcAffeSitelistFiles()

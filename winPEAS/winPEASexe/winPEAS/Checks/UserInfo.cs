@@ -110,7 +110,8 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Current Token privileges", "T1134.001");
+                Beaprint.MainPrint("Current process token privileges", "T1134.001");
+                Beaprint.InfoPrint("These privileges belong to this winPEAS process token; another logon or service token for the same account may differ.");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#token-manipulation", "Check if you can escalate privilege using some enabled token");
                 Dictionary<string, string> tokenPrivs = Token.GetTokenGroupPrivs();
                 Beaprint.DictPrint(tokenPrivs, ColorsU(), false);

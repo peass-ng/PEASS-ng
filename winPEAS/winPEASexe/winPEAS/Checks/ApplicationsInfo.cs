@@ -110,6 +110,7 @@ namespace winPEAS.Checks
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#applications", "Check if you can modify installed software");
                 PrintDockerDesktopVersionRisk();
                 PrintCheckmkAgentVersionRisk();
+                PrintVeeamBackupVersionRisk();
                 SortedDictionary<string, Dictionary<string, string>> installedAppsPerms = InstalledApps.GetInstalledAppsPerms();
                 string format = "    ==>  {0} ({1})";
 
@@ -334,6 +335,158 @@ namespace winPEAS.Checks
                 catch (Exception)
                 {
                     // Unsupported or unreadable registry views are optional.
+                }
+            }
+        }
+
+        internal enum VeeamBackupVersionStatus
+        {
+            Unknown,
+            Candidate,
+            Fixed
+        }
+
+        internal static bool IsVeeamBackupProduct(string displayName)
+        {
+            return !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= 128 && Regex.IsMatch(
+                displayName.Trim(),
+                @"^Veeam Backup (?:&|and) Replication(?: (?:Server|[0-9]+(?:a)?(?: P[0-9]{8})?))?$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        }
+
+        internal static VeeamBackupVersionStatus ClassifyVeeamBackupVersion(string versionText)
+        {
+            // KB4424 fixes require the patch token. KB2680 lists the same four-part
+            // 11a and 12 builds both before and after those patches.
+            if (string.IsNullOrWhiteSpace(versionText) || versionText.Length > 64)
+            {
+                return VeeamBackupVersionStatus.Unknown;
+            }
+
+            Match match = Regex.Match(versionText.Trim(),
+                @"^([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,5})(?: +P([0-9]{8}))?$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            if (!match.Success)
+            {
+                return VeeamBackupVersionStatus.Unknown;
+            }
+
+            int major, minor, update, build;
+            if (!int.TryParse(match.Groups[1].Value, out major) ||
+                !int.TryParse(match.Groups[2].Value, out minor) ||
+                !int.TryParse(match.Groups[3].Value, out update) ||
+                !int.TryParse(match.Groups[4].Value, out build))
+            {
+                return VeeamBackupVersionStatus.Unknown;
+            }
+
+            string patch = match.Groups[5].Value;
+            if (patch.Length != 0)
+            {
+                DateTime patchDate;
+                if (!DateTime.TryParseExact(patch, "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out patchDate))
+                {
+                    return VeeamBackupVersionStatus.Unknown;
+                }
+            }
+
+            if (major < 11)
+            {
+                return major >= 5 ? VeeamBackupVersionStatus.Candidate : VeeamBackupVersionStatus.Unknown;
+            }
+            if (major == 11)
+            {
+                if (minor == 0 && update == 0)
+                {
+                    return VeeamBackupVersionStatus.Candidate;
+                }
+                if (minor != 0 || update != 1)
+                {
+                    return VeeamBackupVersionStatus.Unknown;
+                }
+                if (build < 1261)
+                {
+                    return VeeamBackupVersionStatus.Candidate;
+                }
+                if (build != 1261)
+                {
+                    return VeeamBackupVersionStatus.Unknown;
+                }
+                return patch.Length == 0 ? VeeamBackupVersionStatus.Unknown :
+                    string.CompareOrdinal(patch, "20230227") >= 0 ? VeeamBackupVersionStatus.Fixed : VeeamBackupVersionStatus.Candidate;
+            }
+            if (major == 12)
+            {
+                if (minor > 0)
+                {
+                    return VeeamBackupVersionStatus.Fixed;
+                }
+                if (update != 0)
+                {
+                    return VeeamBackupVersionStatus.Unknown;
+                }
+                if (build < 1420)
+                {
+                    return VeeamBackupVersionStatus.Candidate;
+                }
+                if (build != 1420 || patch.Length == 0)
+                {
+                    return VeeamBackupVersionStatus.Unknown;
+                }
+                return string.CompareOrdinal(patch, "20230223") >= 0 ? VeeamBackupVersionStatus.Fixed : VeeamBackupVersionStatus.Candidate;
+            }
+            return major >= 13 ? VeeamBackupVersionStatus.Fixed : VeeamBackupVersionStatus.Unknown;
+        }
+
+        private static void PrintVeeamBackupVersionRisk()
+        {
+            const string uninstallPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+            var versions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (RegistryView view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+            {
+                try
+                {
+                    using (var hive = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view))
+                    using (var uninstall = hive.OpenSubKey(uninstallPath))
+                    {
+                        if (uninstall == null) continue;
+                        string[] subkeys = uninstall.GetSubKeyNames();
+                        for (int i = 0; i < subkeys.Length && i < 4096; i++)
+                        {
+                            try
+                            {
+                                using (var app = uninstall.OpenSubKey(subkeys[i]))
+                                {
+                                    if (app == null || !IsVeeamBackupProduct(Convert.ToString(app.GetValue("DisplayName")))) continue;
+                                    string version = (Convert.ToString(app.GetValue("DisplayVersion")) ?? "").Trim();
+                                    if (!versions.Add(version)) continue;
+                                    switch (ClassifyVeeamBackupVersion(version))
+                                    {
+                                        case VeeamBackupVersionStatus.Candidate:
+                                            Beaprint.BadPrint("    Veeam Backup & Replication " + version + ": CVE-2023-27532 version candidate. Confirm the installed patch and Veeam.Backup.Service.exe on TCP 9401.");
+                                            break;
+                                        case VeeamBackupVersionStatus.Fixed:
+                                            Beaprint.GoodPrint("    Veeam Backup & Replication " + version + ": registry reports a release at or beyond the CVE-2023-27532 fixed floor; verify the installed patch on the backup server.");
+                                            break;
+                                        default:
+                                            Beaprint.InfoPrint("    Veeam Backup & Replication registry version " + (version.Length == 0 ? "missing" : version.Length > 64 ? "unparsable" : version.Replace('\r', ' ').Replace('\n', ' ')) + ": CVE-2023-27532 patch status unknown; verify the full build and patch on the backup server.");
+                                            break;
+                                    }
+                                    Beaprint.LinkPrint("https://www.veeam.com/kb4424", "Veeam CVE-2023-27532 patch advisory");
+                                    Beaprint.LinkPrint("https://www.veeam.com/kb2680", "Veeam Backup & Replication build and patch history");
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                // One inaccessible uninstall entry must not hide the others.
+                            }
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Missing or unreadable registry views are optional.
                 }
             }
         }

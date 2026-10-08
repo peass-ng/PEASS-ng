@@ -35,6 +35,7 @@ namespace winPEAS.Checks
             new List<Action>
             {
                 PrintInterestingServices,
+                PrintSqlServicePrivilegeContext,
                 PrintModifiableServices,
                 PrintWritableRegServices,
                 PrintWritableSystemServiceDlls,
@@ -44,6 +45,32 @@ namespace winPEAS.Checks
                 PrintLegacySignedKernelDrivers,
                 PrintKernelQuickIndicators,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
+        }
+
+        void PrintSqlServicePrivilegeContext()
+        {
+            Beaprint.MainPrint("SQL service privilege configuration and this process token", "T1007");
+            SqlServicePrivilegeReport report = ServicesInfoHelper.GetSqlServicePrivilegeContext();
+            if (report.Unavailable)
+                Beaprint.GrayPrint("    Local service configuration unavailable or incomplete.");
+            if (report.Services.Count == 0 && !report.Unavailable)
+                Beaprint.GrayPrint("    No configured SQL-named services found.");
+            foreach (SqlServicePrivilegeInfo service in report.Services)
+            {
+                string privileges = service.RequiredPrivileges == null ? "unavailable or not configured"
+                    : service.RequiredPrivileges.Length == 0 ? "empty"
+                    : string.Join(", ", service.RequiredPrivileges.Take(16).Select(p =>
+                        ServicesInfoHelper.FormatSqlServiceValue(p))) +
+                        (service.RequiredPrivileges.Length > 16 ? ", ..." : "");
+                Beaprint.NoColorPrint($"    {ServicesInfoHelper.FormatSqlServiceValue(service.Name)}: state={service.State}; run-as={ServicesInfoHelper.FormatSqlServiceValue(service.Account)}");
+                Beaprint.NoColorPrint($"      Registry RequiredPrivileges: {privileges}");
+                Beaprint.GrayPrint($"      {service.Context}");
+            }
+            if (report.Omitted > 0)
+                Beaprint.GrayPrint($"    {report.Omitted} additional SQL-named service(s) omitted.");
+            if (report.TimeLimitReached)
+                Beaprint.GrayPrint("    SQL service inspection stopped at its 2-second limit; remaining services unknown.");
+            Beaprint.GrayPrint("    RequiredPrivileges is configuration, not a captured service token. No original token or exploitability is inferred.");
         }
 
         void PrintInterestingServices()
