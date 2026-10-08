@@ -270,29 +270,26 @@ namespace winPEAS.Checks
             try
             {
                 Beaprint.MainPrint("Looking for AutoLogon credentials", "T1552.002");
-                bool ban = false;
                 Dictionary<string, string> autologon = UserInfoHelper.GetAutoLogon();
-                if (autologon.Count > 0)
+                AutoLogonFinding finding = UserInfoHelper.ClassifyAutoLogon(autologon);
+                if (finding == AutoLogonFinding.PlaintextPassword)
                 {
-                    foreach (KeyValuePair<string, string> entry in autologon)
-                    {
-                        if (!string.IsNullOrEmpty(entry.Value))
-                        {
-                            if (!ban)
-                            {
-                                Beaprint.BadPrint("    Some AutoLogon credentials were found");
-                                ban = true;
-                            }
-                            Beaprint.AnsiPrint(string.Format("    {0,-30}:  {1}", entry.Key, entry.Value), ColorsU());
-                        }
-                    }
+                    Beaprint.BadPrint("    Plaintext AutoLogon password found in Winlogon registry values");
+                }
+                else if (finding == AutoLogonFinding.EnabledWithoutPlaintextPassword)
+                {
+                    Beaprint.GrayPrint("    AutoAdminLogon=1 with no readable plaintext password; possible LSA-backed autologon storage (unverified, no secret read)");
+                }
 
-                    if (!ban)
+                foreach (KeyValuePair<string, string> entry in autologon)
+                {
+                    if (!string.IsNullOrEmpty(entry.Value))
                     {
-                        Beaprint.NotFoundPrint();
+                        Beaprint.AnsiPrint(string.Format("    {0,-30}:  {1}", entry.Key, entry.Value), ColorsU());
                     }
                 }
-                else
+
+                if (finding == AutoLogonFinding.None)
                 {
                     Beaprint.NotFoundPrint();
                 }

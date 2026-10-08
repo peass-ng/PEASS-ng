@@ -1019,6 +1019,9 @@ namespace winPEAS.Checks
                 string policyPath = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate";
                 string policyAUPath = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU";
                 string wsusPolicyValue = RegistryHelper.GetRegValue("HKLM", policyPath, "WUServer");
+                string wuStatusServerValue = RegistryHelper.GetRegValue("HKLM", policyPath, "WUStatusServer");
+                string alternateUpdateServerValue = RegistryHelper.GetRegValue("HKLM", policyPath, "UpdateServiceUrlAlternate");
+                string acceptTrustedPublisherCertsValue = RegistryHelper.GetRegValue("HKLM", policyPath, "AcceptTrustedPublisherCerts");
                 string useWUServerValue = RegistryHelper.GetRegValue("HKLM", policyAUPath, "UseWUServer");
 
                 if (!string.IsNullOrEmpty(wsusPolicyValue) && wsusPolicyValue.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
@@ -1037,8 +1040,17 @@ namespace winPEAS.Checks
                     if (string.IsNullOrEmpty(wsusPolicyValue))
                         Beaprint.NotFoundPrint();
                     else
-                        Beaprint.GoodPrint("    WSUS value: " + wsusPolicyValue);
+                        Beaprint.InfoPrint("    WSUS value: " + wsusPolicyValue);
                 }
+
+                if (!string.IsNullOrEmpty(wuStatusServerValue))
+                    Beaprint.InfoPrint("    WUStatusServer: " + wuStatusServerValue);
+                if (!string.IsNullOrEmpty(alternateUpdateServerValue))
+                    Beaprint.InfoPrint("    UpdateServiceUrlAlternate: " + alternateUpdateServerValue);
+                if (acceptTrustedPublisherCertsValue == "1")
+                    Beaprint.InfoPrint("    AcceptTrustedPublisherCerts=1: updates from an intranet update service may be signed by a certificate in the local computer's Trusted Publishers store.");
+                if (!string.IsNullOrEmpty(wsusPolicyValue) && wsusPolicyValue.StartsWith("https://", StringComparison.OrdinalIgnoreCase) && useWUServerValue == "1")
+                    Beaprint.InfoPrint("    HTTPS WSUS still depends on DNS and TLS certificate trust for this endpoint; review control of the configured name and issuing CA.");
 
                 if (!string.IsNullOrEmpty(wsusPolicyValue))
                 {

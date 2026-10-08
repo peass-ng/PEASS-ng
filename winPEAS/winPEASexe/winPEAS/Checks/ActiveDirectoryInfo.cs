@@ -15,6 +15,101 @@ namespace winPEAS.Checks
     // Lightweight AD-oriented checks for common escalation paths (gMSA readable password, AD CS template control)
     internal class ActiveDirectoryInfo : ISystemCheck
     {
+        internal enum Esc11RegistryStatus
+        {
+            Unknown,
+            Candidate,
+            Protected
+        }
+
+        internal enum GmsaAccessStatus { Unknown, NoMatch, Denied, Candidate }
+        internal enum Esc16RegistryStatus { Unknown, Present, Absent }
+        internal enum Esc6RegistryStatus { Unknown, Candidate, Absent }
+
+        internal static GmsaAccessStatus AssessGmsaMembership(byte[] descriptorBytes, ISet<string> currentSids)
+        {
+            if (descriptorBytes == null || descriptorBytes.Length == 0 || currentSids == null || currentSids.Count == 0)
+                return GmsaAccessStatus.Unknown;
+
+            try
+            {
+                var descriptor = new RawSecurityDescriptor(descriptorBytes, 0);
+                if ((descriptor.ControlFlags & ControlFlags.DiscretionaryAclPresent) == 0 || descriptor.DiscretionaryAcl == null)
+                    return GmsaAccessStatus.Unknown;
+
+                bool allowed = false;
+                bool uncertain = false;
+                foreach (GenericAce ace in descriptor.DiscretionaryAcl)
+                {
+                    var qualified = ace as QualifiedAce;
+                    if (qualified == null || (ace.AceFlags & AceFlags.InheritOnly) != 0 ||
+                        !currentSids.Contains(qualified.SecurityIdentifier.Value))
+                        continue;
+
+                    // AD checks RIGHT_DS_READ_PROPERTY against this descriptor.
+                    const int readProperty = 0x10;
+                    const int genericRead = unchecked((int)0x80000000);
+                    const int genericAll = 0x10000000;
+                    if ((qualified.AccessMask & (readProperty | genericRead | genericAll)) == 0)
+                        continue;
+
+                    if (qualified.AceQualifier == AceQualifier.AccessDenied)
+                        return GmsaAccessStatus.Denied;
+
+                    if (qualified.AceQualifier == AceQualifier.AccessAllowed)
+                    {
+                        // Conditional or object-specific ACEs need a full AD access check.
+                        var common = qualified as CommonAce;
+                        if (common != null && !common.IsCallback)
+                            allowed = true;
+                        else
+                            uncertain = true;
+                    }
+                }
+                return uncertain ? GmsaAccessStatus.Unknown : allowed ? GmsaAccessStatus.Candidate : GmsaAccessStatus.NoMatch;
+            }
+            catch (Exception)
+            {
+                return GmsaAccessStatus.Unknown;
+            }
+        }
+
+        internal static Esc16RegistryStatus AssessEsc16(object disableExtensionList)
+        {
+            var values = disableExtensionList as string[];
+            if (values == null)
+                return Esc16RegistryStatus.Unknown;
+            return values.Any(value => string.Equals(value, "1.3.6.1.4.1.311.25.2", StringComparison.Ordinal))
+                ? Esc16RegistryStatus.Present : Esc16RegistryStatus.Absent;
+        }
+
+        internal static Esc6RegistryStatus AssessEsc6(uint? editFlags)
+        {
+            return !editFlags.HasValue ? Esc6RegistryStatus.Unknown
+                : (editFlags.Value & 0x40000) != 0 ? Esc6RegistryStatus.Candidate : Esc6RegistryStatus.Absent;
+        }
+
+        internal sealed class AdcsLocalRegistryAssessment
+        {
+            internal bool CheckDcMappings { get; set; }
+            internal bool CheckCaSettings { get; set; }
+            internal Esc11RegistryStatus Esc11Status { get; set; }
+        }
+
+        internal static AdcsLocalRegistryAssessment AssessLocalAdcsRegistry(bool isDomainController, string caName, uint? interfaceFlags)
+        {
+            return new AdcsLocalRegistryAssessment
+            {
+                CheckDcMappings = isDomainController,
+                CheckCaSettings = !string.IsNullOrWhiteSpace(caName),
+                Esc11Status = !interfaceFlags.HasValue
+                    ? Esc11RegistryStatus.Unknown
+                    : (interfaceFlags.Value & 0x200) == 0
+                        ? Esc11RegistryStatus.Candidate
+                        : Esc11RegistryStatus.Protected
+            };
+        }
+
         public string[] MitreAttackIds { get; } = new[] { "T1018", "T1087.002", "T1558.003", "T1484.001", "T1649", "T1003" };
 
         public void PrintInfo(bool isDebug)
@@ -25,6 +120,7 @@ namespace winPEAS.Checks
             {
                 PrintCurrentComputerLapsPasswordExposure,
                 PrintGmsaReadableByCurrentPrincipal,
+                PrintDmsaCreationRights,
                 PrintKerberoastableServiceAccounts,
                 PrintAdObjectControlPaths,
                 PrintAdcsMisconfigurations
@@ -33,6 +129,10 @@ namespace winPEAS.Checks
 
         private const int SampleObjectLimit = 120;
         private const int MaxFindingsToPrint = 40;
+        private const int DmsaOuSampleLimit = 120;
+        private const int GmsaSampleLimit = 120;
+        private static readonly TimeSpan GmsaSearchTimeout = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan DmsaSearchTimeout = TimeSpan.FromSeconds(5);
         private static readonly Dictionary<Guid, string> GuidNameCache = new Dictionary<Guid, string>();
         private static readonly object GuidCacheLock = new object();
 
@@ -76,6 +176,186 @@ namespace winPEAS.Checks
             return (r.Properties.Contains(name) && r.Properties[name].Count > 0)
                 ? r.Properties[name][0]?.ToString()
                 : null;
+        }
+
+        // BadSuccessor prerequisite: direct CreateChild rights for the dMSA class on an OU.
+        // This is an ACL candidate check, not an exploit or a test of DC patch state.
+        private void PrintDmsaCreationRights()
+        {
+            Beaprint.MainPrint("dMSA creation rights on OUs (BadSuccessor prerequisite)", "T1484.001");
+            Beaprint.InfoPrint("  Check whether the current domain identity may create a delegated Managed Service Account in an OU.");
+
+            if (!Checks.IsPartOfDomain)
+            {
+                Beaprint.GrayPrint("  [-] Host is not domain-joined. Skipping.");
+                return;
+            }
+
+            try
+            {
+                var defaultNc = GetRootDseProp("defaultNamingContext");
+                var schemaNc = GetRootDseProp("schemaNamingContext");
+                if (string.IsNullOrEmpty(defaultNc) || string.IsNullOrEmpty(schemaNc))
+                {
+                    Beaprint.GrayPrint("  [-] Could not resolve AD naming contexts.");
+                    return;
+                }
+
+                Guid dmsaClassGuid;
+                using (var schema = new DirectoryEntry("LDAP://" + schemaNc))
+                using (var searcher = new DirectorySearcher(schema))
+                {
+                    searcher.Filter = "(&(objectClass=classSchema)(lDAPDisplayName=msDS-DelegatedManagedServiceAccount))";
+                    searcher.SearchScope = SearchScope.Subtree;
+                    searcher.SizeLimit = 1;
+                    searcher.ClientTimeout = DmsaSearchTimeout;
+                    searcher.ServerTimeLimit = DmsaSearchTimeout;
+                    searcher.PropertiesToLoad.Add("schemaIDGUID");
+                    var classResult = searcher.FindOne();
+                    var guidBytes = classResult != null && classResult.Properties["schemaIDGUID"].Count > 0
+                        ? classResult.Properties["schemaIDGUID"][0] as byte[]
+                        : null;
+                    if (guidBytes == null || guidBytes.Length != 16)
+                    {
+                        Beaprint.GrayPrint("  [-] dMSA class is unavailable or its schema GUID cannot be read. Skipping OU ACLs.");
+                        return;
+                    }
+                    dmsaClassGuid = new Guid(guidBytes);
+                }
+
+                var currentSids = GetCurrentSidSet();
+                if (currentSids.Count == 0)
+                {
+                    Beaprint.GrayPrint("  [-] Could not identify the current security token.");
+                    return;
+                }
+
+                int checkedOus = 0, candidateOus = 0, unreadableOus = 0;
+                bool sampleTruncated = false;
+                using (var domain = new DirectoryEntry("LDAP://" + defaultNc))
+                using (var searcher = new DirectorySearcher(domain))
+                {
+                    searcher.Filter = "(objectClass=organizationalUnit)";
+                    searcher.SearchScope = SearchScope.Subtree;
+                    searcher.SizeLimit = DmsaOuSampleLimit + 1;
+                    searcher.SecurityMasks = SecurityMasks.Dacl;
+                    searcher.ClientTimeout = DmsaSearchTimeout;
+                    searcher.ServerTimeLimit = DmsaSearchTimeout;
+                    searcher.PropertiesToLoad.Add("distinguishedName");
+                    searcher.PropertiesToLoad.Add("ntSecurityDescriptor");
+
+                    using (var results = searcher.FindAll())
+                    {
+                        foreach (SearchResult result in results)
+                        {
+                            if (checkedOus == DmsaOuSampleLimit)
+                            {
+                                sampleTruncated = true;
+                                break;
+                            }
+                            checkedOus++;
+
+                            var descriptorBytes = result.Properties["ntSecurityDescriptor"]?.Count > 0
+                                ? result.Properties["ntSecurityDescriptor"][0] as byte[]
+                                : null;
+                            if (descriptorBytes == null)
+                            {
+                                unreadableOus++;
+                                continue;
+                            }
+
+                            try
+                            {
+                                var security = new ActiveDirectorySecurity();
+                                security.SetSecurityDescriptorBinaryForm(descriptorBytes);
+                                if (!HasDmsaCreateChildCandidate(security, currentSids, dmsaClassGuid))
+                                {
+                                    continue;
+                                }
+                            }
+                            catch
+                            {
+                                unreadableOus++;
+                                continue;
+                            }
+
+                            candidateOus++;
+                            if (candidateOus <= MaxFindingsToPrint)
+                            {
+                                Beaprint.BadPrint("  [!] Candidate OU: " + (GetProp(result, "distinguishedName") ?? "<unknown>"));
+                            }
+                        }
+                    }
+                }
+
+                if (candidateOus == 0)
+                {
+                    Beaprint.GrayPrint($"  [-] No direct dMSA CreateChild candidate in {checkedOus} sampled OUs.");
+                }
+                else
+                {
+                    Beaprint.GrayPrint($"  [*] {candidateOus} candidate OU(s) in {checkedOus} sampled. Effective rights and DC patch state need verification.");
+                    if (candidateOus > MaxFindingsToPrint)
+                    {
+                        Beaprint.GrayPrint($"  [*] {candidateOus - MaxFindingsToPrint} additional candidate OU(s) omitted.");
+                    }
+                }
+
+                if (sampleTruncated)
+                {
+                    Beaprint.GrayPrint($"  [*] OU sample limited to {DmsaOuSampleLimit}; other OUs were not checked.");
+                }
+                if (unreadableOus > 0)
+                {
+                    Beaprint.GrayPrint($"  [*] {unreadableOus} OU DACL(s) could not be evaluated.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("  [-] dMSA OU ACL check failed: " + ex.Message);
+            }
+        }
+
+        private static bool HasDmsaCreateChildCandidate(ActiveDirectorySecurity security, HashSet<string> currentSids, Guid dmsaClassGuid)
+        {
+            bool allowed = false;
+            bool denied = false;
+            foreach (ActiveDirectoryAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+            {
+                var sid = rule.IdentityReference as SecurityIdentifier;
+                if (sid == null || !currentSids.Contains(sid.Value))
+                {
+                    continue;
+                }
+                if ((rule.PropagationFlags & PropagationFlags.InheritOnly) != 0)
+                {
+                    continue;
+                }
+
+                var rights = rule.ActiveDirectoryRights;
+                if ((rights & ActiveDirectoryRights.CreateChild) != ActiveDirectoryRights.CreateChild &&
+                    (rights & ActiveDirectoryRights.GenericAll) != ActiveDirectoryRights.GenericAll)
+                {
+                    continue;
+                }
+
+                if (rule.ObjectType != Guid.Empty && rule.ObjectType != dmsaClassGuid)
+                {
+                    continue;
+                }
+
+                if (rule.AccessControlType == AccessControlType.Deny)
+                {
+                    denied = true;
+                }
+                else if (rule.AccessControlType == AccessControlType.Allow)
+                {
+                    allowed = true;
+                }
+            }
+
+            // A matching deny makes the result uncertain; omit it instead of asserting access.
+            return allowed && !denied;
         }
 
         // Highlight objects where the current principal already has useful write/control rights
@@ -755,7 +1035,7 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("gMSA readable managed passwords", "T1003");
                 Beaprint.LinkPrint(
                     "https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/golden-dmsa-gmsa.html",
-                    "Look for Group Managed Service Accounts you can read (msDS-ManagedPassword)");
+                    "Look for Group Managed Service Account password access candidates");
 
                 if (!Checks.IsPartOfDomain)
                 {
@@ -771,64 +1051,62 @@ namespace winPEAS.Checks
                 }
 
                 var currentSidSet = GetCurrentSidSet();
-                int total = 0, readable = 0;
+                if (currentSidSet.Count == 0)
+                {
+                    Beaprint.GrayPrint("  [-] Current token SIDs unavailable; gMSA access status UNKNOWN.");
+                    return;
+                }
+                int total = 0, candidates = 0, unknown = 0, denied = 0;
+                bool sampleTruncated = false;
 
                 using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
                 using (var ds = new DirectorySearcher(baseDe))
                 {
-                    ds.PageSize = 300;
+                    ds.PageSize = 0;
+                    ds.SizeLimit = GmsaSampleLimit + 1;
+                    ds.ClientTimeout = GmsaSearchTimeout;
+                    ds.ServerTimeLimit = GmsaSearchTimeout;
                     ds.Filter = "(&(objectClass=msDS-GroupManagedServiceAccount))";
                     ds.PropertiesToLoad.Add("sAMAccountName");
                     ds.PropertiesToLoad.Add("distinguishedName");
-                    // Who can read the managed password
-                    ds.PropertiesToLoad.Add("PrincipalsAllowedToRetrieveManagedPassword");
+                    ds.PropertiesToLoad.Add("msDS-GroupMSAMembership");
 
-                    foreach (SearchResult r in ds.FindAll())
+                    using (var results = ds.FindAll())
                     {
-                        total++;
-                        var name = GetProp(r, "sAMAccountName") ?? GetProp(r, "distinguishedName") ?? "<unknown>";
-                        var dn = GetProp(r, "distinguishedName") ?? "";
-
-                        bool canRead = false;
-                        // Attribute may be absent or empty
-                        var allowedDns = r.Properties["principalsallowedtoretrievemanagedpassword"];
-                        if (allowedDns != null)
+                        foreach (SearchResult r in results)
                         {
-                            foreach (var val in allowedDns)
+                            if (total == GmsaSampleLimit)
                             {
-                                try
-                                {
-                                    using (var de = new DirectoryEntry("LDAP://" + val.ToString()))
-                                    {
-                                        var sidObj = de.Properties["objectSid"]?.Value as byte[];
-                                        if (sidObj == null) continue;
-                                        var sid = new SecurityIdentifier(sidObj, 0).Value;
-                                        if (currentSidSet.Contains(sid))
-                                        {
-                                            canRead = true;
-                                        }
-                                    }
-                                }
-                                catch { /* ignore DN resolution issues */ }
+                                sampleTruncated = true;
+                                break;
                             }
-                        }
+                            total++;
+                            var name = GetProp(r, "sAMAccountName") ?? GetProp(r, "distinguishedName") ?? "<unknown>";
+                            var dn = GetProp(r, "distinguishedName") ?? "";
+                            var descriptorBytes = r.Properties.Contains("msDS-GroupMSAMembership") &&
+                                r.Properties["msDS-GroupMSAMembership"].Count > 0
+                                ? r.Properties["msDS-GroupMSAMembership"][0] as byte[] : null;
+                            var status = AssessGmsaMembership(descriptorBytes, currentSidSet);
 
-                        if (canRead)
-                        {
-                            readable++;
-                            Beaprint.BadPrint($"  You can retrieve managed password for gMSA: {name}  (DN: {dn})");
+                            if (status == GmsaAccessStatus.Candidate)
+                            {
+                                candidates++;
+                                if (candidates <= MaxFindingsToPrint)
+                                    Beaprint.BadPrint($"  Managed password access candidate for gMSA: {name}  (DN: {dn})");
+                            }
+                            else if (status == GmsaAccessStatus.Unknown)
+                                unknown++;
+                            else if (status == GmsaAccessStatus.Denied)
+                                denied++;
                         }
                     }
                 }
 
-                if (readable == 0)
-                {
-                    Beaprint.GrayPrint($"  [-] No gMSA with readable managed password found (checked {total}).");
-                }
-                else
-                {
-                    Beaprint.GrayPrint($"  [*] Hint: If such gMSA is member of Builtin\\Remote Management Users on a target, WinRM may be allowed.");
-                }
+                Beaprint.GrayPrint($"  [*] Checked {total} gMSA(s): {candidates} access candidate(s), {denied} matching deny(s), {unknown} unknown descriptor(s). Effective access requires verification.");
+                if (candidates > MaxFindingsToPrint)
+                    Beaprint.GrayPrint($"  [*] {candidates - MaxFindingsToPrint} additional candidate(s) omitted.");
+                if (sampleTruncated)
+                    Beaprint.GrayPrint($"  [*] gMSA sample limited to {GmsaSampleLimit}; other accounts were not checked.");
             }
             catch (Exception ex)
             {
@@ -881,9 +1159,35 @@ namespace winPEAS.Checks
                     return;
                 }
 
-                Beaprint.InfoPrint("Check for ADCS misconfigurations in the local DC registry");
-                bool IsDomainController = RegistryHelper.GetReg("HKLM", @"SYSTEM\CurrentControlSet\Services\NTDS")?.ValueCount > 0;
-                if (IsDomainController)
+                Beaprint.InfoPrint("Check local AD CS and domain controller registry settings");
+                bool IsDomainController = false;
+                bool dcRegistryReadable = true;
+                try
+                {
+                    using (var ntdsKey = RegistryHelper.GetReg("HKLM", @"SYSTEM\CurrentControlSet\Services\NTDS"))
+                    {
+                        IsDomainController = ntdsKey?.ValueCount > 0;
+                    }
+                }
+                catch
+                {
+                    dcRegistryReadable = false;
+                    Beaprint.GrayPrint("  [-] DC registry status unreadable. Skipping DC certificate mapping checks.");
+                }
+                // We take the active local CA configuration when one is installed.
+                string caName = null;
+                bool caRegistryReadable = true;
+                try
+                {
+                    caName = RegistryHelper.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration", "Active");
+                }
+                catch
+                {
+                    caRegistryReadable = false;
+                    Beaprint.GrayPrint("  [-] Local CA configuration unreadable.");
+                }
+                var localAssessment = AssessLocalAdcsRegistry(IsDomainController, caName, null);
+                if (localAssessment.CheckDcMappings)
                 {
                     // For StrongBinding and CertificateMapping, More details in KB014754 - Registry key information:
                     // https://support.microsoft.com/en-us/topic/kb5014754-certificate-based-authentication-changes-on-windows-domain-controllers-ad2c23b0-15d8-4340-a468-4d4f3b188f16
@@ -913,41 +1217,100 @@ namespace winPEAS.Checks
                     else
                         Beaprint.GoodPrint($"  CertificateMappingMethods: {certMapping} — Strong Certificate mapping enabled.");
 
-                    // We take the Active CA, can they be several?
-                    string caName = RegistryHelper.GetRegValue("HKLM", $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration", "Active");
-                    if (!string.IsNullOrWhiteSpace(caName))
-                    {
-                        // Obscure Source for InterfaceFlag Enum:
-                        // https://www.sysadmins.lv/apidocs/pki/html/T_PKI_CertificateServices_Flags_InterfaceFlagEnum.htm
-                        uint? interfaceFlags = RegistryHelper.GetDwordValue("HKLM", $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\{caName}", "InterfaceFlags");
-                        if (!interfaceFlags.HasValue || (interfaceFlags & 512) == 0)
-                            Beaprint.BadPrint("  IF_ENFORCEENCRYPTICERTREQUEST not set in InterfaceFlags — vulnerable to ESC11.");
-                        else
-                            Beaprint.GoodPrint("  IF_ENFORCEENCRYPTICERTREQUEST set in InterfaceFlags — not vulnerable to ESC11.");
+                }
+                else if (dcRegistryReadable)
+                {
+                    Beaprint.GrayPrint("  [-] Host is not a domain controller. Skipping DC certificate mapping checks.");
+                }
 
-                        string policyModule = RegistryHelper.GetRegValue("HKLM", $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\{caName}\PolicyModules", "Active");
-                        if (!string.IsNullOrWhiteSpace(policyModule))
+                // CA configuration is local to the CA host, which may be a member server.
+                if (localAssessment.CheckCaSettings)
+                {
+                    string caPath = $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\{caName}";
+                    uint? interfaceFlags;
+                    try
+                    {
+                        interfaceFlags = RegistryHelper.GetDwordValue("HKLM", caPath, "InterfaceFlags");
+                    }
+                    catch
+                    {
+                        interfaceFlags = null;
+                    }
+
+                    var assessment = AssessLocalAdcsRegistry(IsDomainController, caName, interfaceFlags);
+                    switch (assessment.Esc11Status)
+                    {
+                        case Esc11RegistryStatus.Candidate:
+                            Beaprint.BadPrint("  IF_ENFORCEENCRYPTICERTREQUEST (0x200) clear in InterfaceFlags — ESC11 candidate; requires reachable RPC enrollment, coercion, and a usable certificate template.");
+                            break;
+                        case Esc11RegistryStatus.Protected:
+                            Beaprint.GoodPrint("  IF_ENFORCEENCRYPTICERTREQUEST (0x200) set in InterfaceFlags — RPC enrollment packet privacy enforced; protected from ESC11 relay via this interface.");
+                            break;
+                        default:
+                            Beaprint.GrayPrint("  [-] InterfaceFlags missing or unreadable — ESC11 status UNKNOWN; effective behavior may depend on defaults and backports.");
+                            break;
+                    }
+
+                    string policyModule = null;
+                    try
+                    {
+                        policyModule = RegistryHelper.GetRegValue("HKLM", $@"{caPath}\PolicyModules", "Active");
+                    }
+                    catch { /* report unknown below */ }
+                    if (!string.IsNullOrWhiteSpace(policyModule))
+                    {
+                        string policyPath = $@"{caPath}\PolicyModules\{policyModule}";
+                        object disableExtensionList = null;
+                        uint? editFlags = null;
+                        try
                         {
-                            string disableExtensionList = RegistryHelper.GetRegValue("HKLM", $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\{caName}\PolicyModules\{policyModule}", "DisableExtensionList");
-                            // zOID_NTDS_CA_SECURITY_EXT (OID 1.3.6.1.4.1.311.25.2) 
-                            if (disableExtensionList?.Contains("1.3.6.1.4.1.311.25.2") == true)
-                                Beaprint.BadPrint("  szOID_NTDS_CA_SECURITY_EXT disabled for the entire CA — vulnerable to ESC16.");
-                            else
-                                Beaprint.GoodPrint("  szOID_NTDS_CA_SECURITY_EXT not disabled for the CA — not vulnerable to ESC16.");
+                            using (var policyKey = RegistryHelper.GetReg("HKLM", policyPath))
+                            {
+                                if (policyKey != null)
+                                {
+                                    disableExtensionList = policyKey.GetValue("DisableExtensionList");
+                                    var editFlagsValue = policyKey.GetValue("EditFlags");
+                                    if (editFlagsValue is int)
+                                        editFlags = unchecked((uint)(int)editFlagsValue);
+                                }
+                            }
                         }
-                        else
+                        catch { /* missing or unreadable registry data stays unknown */ }
+
+                        switch (AssessEsc16(disableExtensionList))
                         {
-                            Beaprint.GrayPrint("  [-] Policy Module not found. Skipping.");
+                            case Esc16RegistryStatus.Present:
+                                Beaprint.BadPrint("  szOID_NTDS_CA_SECURITY_EXT disabled for the entire CA — ESC16 candidate.");
+                                break;
+                            case Esc16RegistryStatus.Absent:
+                                Beaprint.GoodPrint("  szOID_NTDS_CA_SECURITY_EXT absent from DisableExtensionList — no local ESC16 indicator.");
+                                break;
+                            default:
+                                Beaprint.GrayPrint("  [-] DisableExtensionList missing or unreadable — ESC16 status UNKNOWN.");
+                                break;
+                        }
+
+                        switch (AssessEsc6(editFlags))
+                        {
+                            case Esc6RegistryStatus.Candidate:
+                                Beaprint.BadPrint("  EDITF_ATTRIBUTESUBJECTALTNAME2 (0x40000) set in EditFlags — ESC6 candidate.");
+                                break;
+                            case Esc6RegistryStatus.Absent:
+                                Beaprint.GoodPrint("  EDITF_ATTRIBUTESUBJECTALTNAME2 (0x40000) clear in EditFlags — no local ESC6 indicator.");
+                                break;
+                            default:
+                                Beaprint.GrayPrint("  [-] EditFlags missing or unreadable — ESC6 status UNKNOWN.");
+                                break;
                         }
                     }
                     else
                     {
-                        Beaprint.GrayPrint("  [-] Certificate Authority not found. Skipping.");
+                        Beaprint.GrayPrint("  [-] Policy Module missing or unreadable — ESC16 and ESC6 status UNKNOWN.");
                     }
                 }
-                else
+                else if (caRegistryReadable)
                 {
-                    Beaprint.GrayPrint("  [-] Host is not a domain controller. Skipping ADCS Registry check");
+                    Beaprint.GrayPrint("  [-] Certificate Authority not found. Skipping.");
                 }
 
                 // Detect AD CS certificate templates where current principal has dangerous control rights(ESC4 - style)

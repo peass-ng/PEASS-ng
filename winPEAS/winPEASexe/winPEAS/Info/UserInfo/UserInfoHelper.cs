@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using winPEAS.Helpers;
-using winPEAS.Helpers.Registry;
 using winPEAS.Info.UserInfo.SAM;
 using winPEAS.Native;
 using winPEAS.Native.Enums;
@@ -15,8 +15,26 @@ using winPEAS.Native.Enums;
 
 namespace winPEAS.Info.UserInfo
 {
+    internal enum AutoLogonFinding
+    {
+        None,
+        EnabledWithoutPlaintextPassword,
+        PlaintextPassword
+    }
+
     class UserInfoHelper
     {
+        private const string WinlogonKeyPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon";
+        private static readonly string[] AutoLogonValueNames =
+        {
+            "AutoAdminLogon",
+            "DefaultDomainName",
+            "DefaultUserName",
+            "DefaultPassword",
+            "AltDefaultDomainName",
+            "AltDefaultUserName",
+            "AltDefaultPassword"
+        };
         private const int ClipboardReadTimeoutMs = 1500;
         private static readonly Dictionary<string, bool> _highPrivAccountCache = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         private static readonly string[] _highPrivGroupIndicators = new string[]
@@ -325,16 +343,46 @@ namespace winPEAS.Info.UserInfo
 
         public static Dictionary<string, string> GetAutoLogon()
         {
-            Dictionary<string, string> results = new Dictionary<string, string>
+            var results = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            using (RegistryKey winlogon = Registry.LocalMachine.OpenSubKey(WinlogonKeyPath))
             {
-                ["DefaultDomainName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultDomainName"),
-                ["DefaultUserName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultUserName"),
-                ["DefaultPassword"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultPassword"),
-                ["AltDefaultDomainName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultDomainName"),
-                ["AltDefaultUserName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultUserName"),
-                ["AltDefaultPassword"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultPassword")
-            };
+                if (winlogon != null)
+                {
+                    foreach (string valueName in AutoLogonValueNames)
+                    {
+                        object value = winlogon.GetValue(valueName);
+                        bool isPassword = valueName == "DefaultPassword" || valueName == "AltDefaultPassword";
+                        results[valueName] = isPassword
+                            ? value as string ?? string.Empty
+                            : value == null ? string.Empty : value.ToString();
+                    }
+                }
+            }
             return results;
+        }
+
+        internal static AutoLogonFinding ClassifyAutoLogon(IDictionary<string, string> values)
+        {
+            if (values == null)
+            {
+                return AutoLogonFinding.None;
+            }
+
+            string password;
+            string alternatePassword;
+            if ((values.TryGetValue("DefaultPassword", out password) && !string.IsNullOrEmpty(password)) ||
+                (values.TryGetValue("AltDefaultPassword", out alternatePassword) && !string.IsNullOrEmpty(alternatePassword)))
+            {
+                return AutoLogonFinding.PlaintextPassword;
+            }
+
+            string enabled;
+            if (values.TryGetValue("AutoAdminLogon", out enabled) && enabled == "1")
+            {
+                return AutoLogonFinding.EnabledWithoutPlaintextPassword;
+            }
+
+            return AutoLogonFinding.None;
         }
 
         // From: https://stackoverflow.com/questions/35867427/read-text-from-clipboard

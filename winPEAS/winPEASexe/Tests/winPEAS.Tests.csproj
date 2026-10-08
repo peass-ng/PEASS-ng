@@ -97,9 +97,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdcsLocalRegistryTests.cs" />
     <Compile Include="ArgumentParsingTests.cs" />
+    <Compile Include="AutoLogonTests.cs" />
     <Compile Include="ChecksArgumentEdgeCasesTests.cs" />
+    <Compile Include="CheckmkAgentVersionTests.cs" />
     <Compile Include="ClfsAuthenticationTests.cs" />
+    <Compile Include="GmsaAndAdcsIndicatorsTests.cs" />
     <Compile Include="LapsPasswordExposureTests.cs" />
     <Compile Include="PrivilegedScheduledTaskTests.cs" />
     <Compile Include="PrivilegedWmiEventConsumerTests.cs" />
