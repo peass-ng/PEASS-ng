@@ -371,10 +371,14 @@ namespace winPEAS.Info.ApplicationInfo
             for (int index = 0; index < tokens.Count; index++)
             {
                 string token = tokens[index];
-                if (token.Equals("-Command", StringComparison.OrdinalIgnoreCase) ||
-                    token.Equals("-c", StringComparison.OrdinalIgnoreCase) ||
-                    token.Equals("-EncodedCommand", StringComparison.OrdinalIgnoreCase) ||
-                    token.Equals("-enc", StringComparison.OrdinalIgnoreCase))
+                // Inline command modes accept abbreviated switches. Do not mistake
+                // a -File token inside their command text for a host file action.
+                if ((token.Length > 1 && token[0] == '-' &&
+                    ("-Command".StartsWith(token, StringComparison.OrdinalIgnoreCase) ||
+                     "-EncodedCommand".StartsWith(token, StringComparison.OrdinalIgnoreCase) ||
+                     "-CommandWithArgs".StartsWith(token, StringComparison.OrdinalIgnoreCase))) ||
+                    token.Equals("-ec", StringComparison.OrdinalIgnoreCase) ||
+                    token.Equals("-cwa", StringComparison.OrdinalIgnoreCase))
                 {
                     return null;
                 }
@@ -384,14 +388,6 @@ namespace winPEAS.Info.ApplicationInfo
                     token.Equals("-f", StringComparison.OrdinalIgnoreCase))
                 {
                     candidate = index + 1 < tokens.Count ? tokens[index + 1] : null;
-                }
-                else if (token.StartsWith("-File:", StringComparison.OrdinalIgnoreCase))
-                {
-                    candidate = token.Substring(6);
-                }
-                else if (token.StartsWith("-f:", StringComparison.OrdinalIgnoreCase))
-                {
-                    candidate = token.Substring(3);
                 }
 
                 if (candidate != null)
@@ -938,7 +934,13 @@ namespace winPEAS.Info.ApplicationInfo
                 }
                 if (qualifiedAce.AceQualifier == AceQualifier.AccessAllowed)
                 {
-                    allowedTrustee = qualifiedAce.SecurityIdentifier.Value;
+                    // Conditional and object-specific grants require a full access
+                    // check; they do not establish unconditional task execute access.
+                    var commonAce = qualifiedAce as CommonAce;
+                    if (commonAce != null && !commonAce.IsCallback)
+                    {
+                        allowedTrustee = qualifiedAce.SecurityIdentifier.Value;
+                    }
                 }
             }
 

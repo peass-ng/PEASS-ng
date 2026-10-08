@@ -49,7 +49,7 @@ namespace winPEAS.Tests
                 @"C:\Jobs\nightly.psm1",
                 PrivilegedScheduledTasks.GetPowerShellFileScriptPath(
                     true,
-                    "pwsh.exe", @"-f:C:\Jobs\nightly.psm1", null));
+                    "pwsh.exe", @"-f C:\Jobs\nightly.psm1", null));
             Assert.IsNull(PrivilegedScheduledTasks.GetPowerShellFileScriptPath(
                 true, "powershell.exe", @"-Command ""C:\Jobs\nightly.ps1""", null));
             Assert.IsNull(PrivilegedScheduledTasks.GetPowerShellFileScriptPath(
@@ -60,6 +60,20 @@ namespace winPEAS.Tests
                 true, "powershell.exe", "-File -", null));
             Assert.IsNull(PrivilegedScheduledTasks.GetPowerShellFileScriptPath(
                 false, "powershell.exe", @"-File C:\Jobs\nightly.ps1", null));
+        }
+
+        [TestMethod]
+        public void DemandStartReviewRejectsInlineCommandAliasesAndInvalidFileSwitches()
+        {
+            foreach (string commandSwitch in new[] { "-co", "-com", "-ec", "-en", "-cwa", "-CommandWithArgs" })
+            {
+                Assert.IsNull(PrivilegedScheduledTasks.GetPowerShellFileScriptPath(
+                    true, "pwsh.exe", commandSwitch + @" Write-Output -File C:\Jobs\nightly.ps1", null), commandSwitch);
+            }
+            Assert.IsNull(PrivilegedScheduledTasks.GetPowerShellFileScriptPath(
+                true, "pwsh.exe", @"-File:C:\Jobs\nightly.ps1", null));
+            Assert.IsNull(PrivilegedScheduledTasks.GetPowerShellFileScriptPath(
+                true, "pwsh.exe", @"-f:C:\Jobs\nightly.ps1", null));
         }
 
         [TestMethod]
@@ -150,6 +164,24 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void ConditionalAndObjectSpecificTaskAllowsDoNotAssertExecuteAccess()
+        {
+            var sid = new System.Security.Principal.SecurityIdentifier("S-1-5-32-545");
+            var conditional = new CommonAce(AceFlags.None, AceQualifier.AccessAllowed, 0x20, sid, true, null);
+            var objectSpecific = new ObjectAce(AceFlags.None, AceQualifier.AccessAllowed, 0x20, sid,
+                ObjectAceFlags.ObjectAceTypePresent, System.Guid.NewGuid(), System.Guid.Empty, false, null);
+
+            foreach (GenericAce ace in new GenericAce[] { conditional, objectSpecific })
+            {
+                var acl = new RawAcl(GenericAcl.AclRevisionDS, 1);
+                acl.InsertAce(0, ace);
+                var descriptor = new RawSecurityDescriptor(ControlFlags.DiscretionaryAclPresent, null, null, null, acl);
+
+                Assert.IsNull(PrivilegedScheduledTasks.FindTaskExecuteTrustee(descriptor, StandardUserSids));
+            }
+        }
+
+        [TestMethod]
         public void DeniedTaskExecuteAcrossTokenGroupsOverridesAllow()
         {
             var tokenSids = new HashSet<string> { "S-1-1-0", "S-1-5-32-545" };
@@ -164,7 +196,8 @@ namespace winPEAS.Tests
         public void ReadOnlyTaskAccessDoesNotPermitDemandStart()
         {
             var readOnly = new RawSecurityDescriptor("O:BAG:SYD:(A;;FR;;;BU)");
-            var emptyDacl = new RawSecurityDescriptor("O:BAG:SYD:");
+            var emptyDacl = new RawSecurityDescriptor(
+                ControlFlags.DiscretionaryAclPresent, null, null, null, new RawAcl(GenericAcl.AclRevision, 0));
 
             Assert.IsNull(PrivilegedScheduledTasks.FindTaskExecuteTrustee(readOnly, StandardUserSids));
             Assert.IsNull(PrivilegedScheduledTasks.FindTaskExecuteTrustee(emptyDacl, StandardUserSids));
