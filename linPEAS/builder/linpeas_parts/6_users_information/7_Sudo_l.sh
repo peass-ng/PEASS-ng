@@ -1,15 +1,15 @@
 # Title: Users Information - Sudo -l
 # ID: UG_Sudo_l
 # Author: Carlos Polop
-# Last Update: 08-10-2026
-# Description: Checking 'sudo -l', sudoers files, needrestart config authorization, and privileged Python paths, caches, and archive extraction
+# Last Update: 09-10-2026
+# Description: Checking 'sudo -l', sudoers files, privileged config authorization, and privileged Python imports, paths, caches, and archive extraction
 # License: GNU GPL
-# Version: 1.2
+# Version: 1.3
 # Mitre: T1548.003
-# Functions Used: echo_not_found, print_2title, print_info
+# Functions Used: check_sudo_terraform_override, echo_not_found, print_2title, print_info
 # Global Variables:$IAMROOT, $PASSWORD, $TIMEOUT, $ROOT_FOLDER, $TMPDIR, $sudoB, $sudoG, $sudoVB1, $sudoVB2
 # Initial Functions:
-# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $secure_path_line, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size
+# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -56,14 +56,56 @@ else
   echo_not_found "sudo"
 fi
 
-secure_path_line=$(printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" | grep -o "secure_path=[^,]*" | head -n 1 | cut -d= -f2)
-if [ "$secure_path_line" ]; then
-  for p in $(echo "$secure_path_line" | tr ':' ' '); do
-    if [ -w "$p" ]; then
-      echo "Writable secure_path entry: $p" | sed -${E} "s,.*,${SED_RED},g"
-    fi
-  done
+if command -v check_sudo_terraform_override >/dev/null 2>&1; then
+  check_sudo_terraform_override "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output"
 fi
+
+# sudo -l can show several Defaults scopes and repeated output from different
+# authentication attempts. These are candidates, not necessarily the effective
+# command-specific policy. Bound both candidate values and entries per value.
+printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" | awk '
+  /^Matching Defaults entries for / { defaults = 1; next }
+  /^[[:space:]]*User .* may run the following commands/ { defaults = 0 }
+  defaults && /^[[:space:]]*$/ { defaults = 0 }
+  defaults || /^[[:space:]]*Defaults([[:space:]:!>@]|$)/ {
+    line = $0
+    while (match(line, /secure_path=[^,[:space:]]+/)) {
+      value = substr(line, RSTART + 12, RLENGTH - 12)
+      line = substr(line, RSTART + RLENGTH)
+      if (length(value) > 1024 || seen[value]++ || count >= 8) continue
+      count++
+      gsub(/\\:/, ":", value)
+      entries = split(value, paths, ":")
+      for (i = 1; i <= entries && i <= 16; i++)
+        if (length(paths[i]) <= 512 && paths[i] ~ /^\// &&
+            paths[i] !~ /[\\|[:space:]]/)
+          print count "|" i "|" paths[i]
+    }
+  }
+' | while IFS='|' read -r secure_path_candidate secure_path_index secure_path_entry; do
+  case "$secure_path_entry" in *'//'*|*'/./'*|*'/../'*|*'/.'|*'/..') continue ;; esac
+  secure_path_remaining=${secure_path_entry#/}
+  secure_path_walk=
+  secure_path_symlink=
+  while [ "$secure_path_remaining" ]; do
+    secure_path_part=${secure_path_remaining%%/*}
+    secure_path_walk="$secure_path_walk/$secure_path_part"
+    if [ -L "$secure_path_walk" ]; then
+      secure_path_symlink=$secure_path_walk
+      break
+    fi
+    case "$secure_path_remaining" in
+      */*) secure_path_remaining=${secure_path_remaining#*/} ;;
+      *) break ;;
+    esac
+  done
+  if [ "$secure_path_symlink" ]; then
+    echo "Sudo secure_path candidate $secure_path_candidate entry $secure_path_index has symlink component $secure_path_symlink; target access is ambiguous"
+  elif [ -d "$secure_path_entry" ] && [ -w "$secure_path_entry" ] && [ -x "$secure_path_entry" ]; then
+    echo "Writable/traversable sudo secure_path candidate $secure_path_candidate entry $secure_path_index: $secure_path_entry (current user; verify effective Defaults for the permitted command)" |
+      sed -${E} "s,.*,${SED_RED},g"
+  fi
+done
 
 # A bare sudoers command permits arbitrary arguments; sudoers "" permits none.
 # Ask sudo to authorize the exact -c invocation as root so argument restrictions,
@@ -94,6 +136,70 @@ if { [ -z "$ROOT_FOLDER" ] || [ "$ROOT_FOLDER" = / ]; } &&
       else
         echo "sudo needrestart -c authorization unverified (timeout unavailable)"
       fi
+    fi
+  fi
+fi
+
+# Only an exact, argument-free command in a root-capable rule is a candidate.
+# Reject ambiguous quoting, escaped spaces, and fixed arguments. Sudo resolves
+# the full policy, including later negations, for the exact proposed invocation.
+if { [ -z "$ROOT_FOLDER" ] || [ "$ROOT_FOLDER" = / ]; } &&
+   [ "$(command -v sudo 2>/dev/null)" ]; then
+  sudo_npbackup_rules=$(printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" | awk '
+    /\([^)]*\)/ && /\/npbackup-cli/ {
+      line = $0
+      runas = line
+      sub(/^[^(]*\(/, "", runas)
+      sub(/\).*/, "", runas)
+      split(runas, runas_parts, ":")
+      users = runas_parts[1]
+      if (users ~ /!root/ || users !~ /(^|[[:space:],])(root|ALL)([[:space:],]|$)/) next
+      sub(/^.*\)/, "", line)
+      n = split(line, commands, ",")
+      for (i = 1; i <= n; i++) {
+        command = commands[i]
+        sub(/^[[:space:]]*/, "", command)
+        while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/) {
+          sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+        }
+        sub(/[[:space:]]*$/, "", command)
+        if (command ~ /^\/[A-Za-z0-9_.\/-]*\/npbackup-cli$/ && !seen[command]++ && ++count <= 10)
+          print command
+      }
+    }
+  ')
+  if [ "$sudo_npbackup_rules" ]; then
+    sudo_npbackup_dir=${TMPDIR:-/tmp}
+    sudo_npbackup_timeout=${TIMEOUT:-$(command -v timeout 2>/dev/null)}
+    if [ -d "$sudo_npbackup_dir" ] && [ -w "$sudo_npbackup_dir" ] &&
+       [ -x "$sudo_npbackup_dir" ] && [ ! -L "$sudo_npbackup_dir" ]; then
+      sudo_npbackup_count=0
+      sudo_npbackup_started=$(date +%s 2>/dev/null)
+      printf '%s\n' "$sudo_npbackup_rules" | while IFS= read -r sudo_npbackup_command; do
+        if [ "$sudo_npbackup_started" ]; then
+          sudo_npbackup_now=$(date +%s 2>/dev/null)
+          [ "$sudo_npbackup_now" ] && [ $((sudo_npbackup_now - sudo_npbackup_started)) -lt 5 ] || break
+        fi
+        sudo_npbackup_count=$((sudo_npbackup_count + 1))
+        sudo_npbackup_config="$sudo_npbackup_dir/linpeas-npbackup-$$-$sudo_npbackup_count.conf"
+        [ ! -e "$sudo_npbackup_config" ] && [ ! -L "$sudo_npbackup_config" ] || continue
+        if [ "$sudo_npbackup_timeout" ]; then
+          if [ "$PASSWORD" ]; then
+            sudo_npbackup_query=$(printf '%s\n' "$PASSWORD" |
+              "$sudo_npbackup_timeout" 5 sudo -S -l -u root -- "$sudo_npbackup_command" -c "$sudo_npbackup_config" -b 2>&1)
+          else
+            sudo_npbackup_query=$("$sudo_npbackup_timeout" 5 sudo -n -l -u root -- "$sudo_npbackup_command" -c "$sudo_npbackup_config" -b 2>&1)
+          fi
+          if [ "$?" -eq 0 ]; then
+            echo "Root-capable backup client accepts caller-selected config: $sudo_npbackup_command; review repo access, backup paths, and read/restore options" |
+              sed -${E} "s,.*,${SED_RED_YELLOW},"
+          else
+            echo "sudo backup-client -c authorization unverified for $sudo_npbackup_command (policy denied or authentication unavailable)"
+          fi
+        else
+          echo "sudo backup-client -c authorization unverified for $sudo_npbackup_command (timeout unavailable)"
+        fi
+      done
     fi
   fi
 fi
@@ -181,6 +287,155 @@ if [ "$sudo_python_scripts" ]; then
         done
         echo ""
       done
+    done
+  done
+fi
+
+# Review literal imports in exact sudo-permitted Python entry points, including
+# commands run as another non-root user. Only existing local files are reported.
+# This is static evidence: Python search paths and the reachable action can differ.
+sudo_python_import_rules=$(printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" | awk '
+  /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+    rule = $0
+    sub(/^[[:space:]]*\(/, "", rule)
+    runas = rule
+    sub(/\).*/, "", runas)
+    split(runas, users, /[[:space:],:]+/)
+    runas = users[1]
+    if (runas == "" || runas ~ /[!|]/) next
+    sub(/^[^)]*\)[[:space:]]*/, "", rule)
+    sub(/^([^[:space:]:]+:[[:space:]]*)*/, "", rule)
+    if (rule ~ /^!/) next
+    command_count = split(rule, commands, /,[[:space:]]*/)
+    for (i = 1; i <= command_count; i++) {
+      command = commands[i]
+      sub(/^[[:space:]]*/, "", command)
+      denied = (command ~ /^!/)
+      if (denied) sub(/^![[:space:]]*/, "", command)
+      split(command, words, /[[:space:]]+/)
+      path = words[1]
+      if (path ~ /^\/[^[:space:]*?\[\],!|]+\.py$/ &&
+          path !~ /\/\.\.?\// && path !~ /\/\// &&
+          command !~ /[*!?\[\]]/) {
+        key = runas "|" path
+        if (denied) negated[key] = 1
+        else if (!seen[key]++) ordered[++total] = key
+      }
+    }
+  }
+  END {
+    for (i = 1; i <= total; i++)
+      if (!negated[ordered[i]]) print ordered[i]
+  }
+' | head -n 10)
+
+# Reject symlink components, so a displayed same-directory path is not an
+# alias into another tree. All candidates share the checked script directory.
+sudo_python_import_plain_path() {
+  case "$1" in /*) ;; *) return 1 ;; esac
+  sudo_python_import_walk=
+  sudo_python_import_remaining=${1#/}
+  while [ "$sudo_python_import_remaining" ]; do
+    sudo_python_import_part=${sudo_python_import_remaining%%/*}
+    sudo_python_import_walk="$sudo_python_import_walk/$sudo_python_import_part"
+    [ ! -L "$sudo_python_import_walk" ] || return 1
+    case "$sudo_python_import_remaining" in
+      */*) sudo_python_import_remaining=${sudo_python_import_remaining#*/} ;;
+      *) break ;;
+    esac
+  done
+}
+
+sudo_python_import_check_candidate() {
+  [ "$sudo_python_import_probe_count" -lt 40 ] || return
+  sudo_python_import_probe_count=$((sudo_python_import_probe_count + 1))
+  sudo_python_import_candidate="$sudo_python_import_dir/$1"
+  [ -f "$sudo_python_import_candidate" ] &&
+    sudo_python_import_plain_path "$sudo_python_import_candidate" || return
+  sudo_python_import_access=
+  if [ -w "$sudo_python_import_candidate" ]; then
+    sudo_python_import_access="file is writable"
+  else
+    sudo_python_import_parent=${sudo_python_import_candidate%/*}
+    if [ -w "$sudo_python_import_parent" ] && [ -x "$sudo_python_import_parent" ]; then
+      sudo_python_import_sticky=$(ls -ld "$sudo_python_import_parent" 2>/dev/null | awk '{print substr($1, 10, 1)}')
+      case "$sudo_python_import_sticky" in
+        t|T) ;;
+        *) sudo_python_import_access="parent permits replacement" ;;
+      esac
+    fi
+  fi
+  [ "$sudo_python_import_access" ] || return
+  echo "Sudo Python import review: $sudo_python_import_script as $sudo_python_import_runas" |
+    sed -${E} "s,.*,${SED_RED_YELLOW},"
+  echo "Literal import at line $sudo_python_import_line: $sudo_python_import_statement"
+  echo "Caller-writable local import candidate: $sudo_python_import_candidate ($sudo_python_import_access)" |
+    sed -${E} "s,.*,${SED_RED_YELLOW},"
+  echo "Review Python import resolution and the permitted action."
+  echo ""
+}
+
+if [ "$sudo_python_import_rules" ]; then
+  printf "%s\n" "$sudo_python_import_rules" | while IFS='|' read -r sudo_python_import_runas sudo_python_import_script; do
+    [ -f "$sudo_python_import_script" ] && [ -r "$sudo_python_import_script" ] &&
+      [ -x "$sudo_python_import_script" ] &&
+      sudo_python_import_plain_path "$sudo_python_import_script" || continue
+    sudo_python_import_size=$(stat -c %s "$sudo_python_import_script" 2>/dev/null) ||
+      sudo_python_import_size=$(stat -f %z "$sudo_python_import_script" 2>/dev/null) || continue
+    case "$sudo_python_import_size" in ''|*[!0-9]*) continue ;; esac
+    [ "$sudo_python_import_size" -le 65536 ] || continue
+    sudo_python_import_shebang=$(sed -n '1p;1q' "$sudo_python_import_script" 2>/dev/null)
+    printf "%s\n" "$sudo_python_import_shebang" |
+      grep -Eq '^#![[:space:]]*/([^[:space:]]*/)?python([0-9]+(\.[0-9]+)?)?([[:space:]]|$)|^#![[:space:]]*/usr/bin/env[[:space:]]+python([0-9]+(\.[0-9]+)?)?([[:space:]]|$)' ||
+      continue
+    sudo_python_import_dir=${sudo_python_import_script%/*}
+    sudo_python_import_probe_count=0
+    sed -n '1,400p;401q' "$sudo_python_import_script" 2>/dev/null | awk '
+      /^import[[:space:]]+[A-Za-z_][A-Za-z_0-9]*(\.[A-Za-z_][A-Za-z_0-9]*)?([[:space:],#]|$)/ {
+        name = $2
+        sub(/[,#].*$/, "", name)
+        if (name ~ /^[A-Za-z_][A-Za-z_0-9]*(\.[A-Za-z_][A-Za-z_0-9]*)?$/)
+          print NR "|import|" name "|"
+        if (++count == 20) exit
+      }
+      /^from[[:space:]]+[A-Za-z_][A-Za-z_0-9]*[[:space:]]+import[[:space:]]+[A-Za-z_][A-Za-z_0-9]*([[:space:],#]|$)/ {
+        name = $2
+        member = $4
+        sub(/[,#].*$/, "", member)
+        if (member ~ /^[A-Za-z_][A-Za-z_0-9]*$/)
+          print NR "|from|" name "|" member
+        if (++count == 20) exit
+      }
+    ' | while IFS='|' read -r sudo_python_import_line sudo_python_import_kind sudo_python_import_name sudo_python_import_member; do
+      sudo_python_import_statement="$sudo_python_import_kind $sudo_python_import_name${sudo_python_import_member:+ import $sudo_python_import_member}"
+      if [ "$sudo_python_import_kind" = from ]; then
+        [ -f "$sudo_python_import_dir/$sudo_python_import_name/__init__.py" ] ||
+          sudo_python_import_check_candidate "$sudo_python_import_name.py"
+        sudo_python_import_check_candidate "$sudo_python_import_name/__init__.py"
+        if [ -f "$sudo_python_import_dir/$sudo_python_import_name/__init__.py" ] ||
+           [ ! -f "$sudo_python_import_dir/$sudo_python_import_name.py" ]; then
+          sudo_python_import_check_candidate "$sudo_python_import_name/$sudo_python_import_member.py"
+          sudo_python_import_check_candidate "$sudo_python_import_name/$sudo_python_import_member/__init__.py"
+        fi
+      else
+        case "$sudo_python_import_name" in
+          *.*)
+            sudo_python_import_member=${sudo_python_import_name#*.}
+            sudo_python_import_name=${sudo_python_import_name%%.*}
+            if [ -f "$sudo_python_import_dir/$sudo_python_import_name/__init__.py" ] ||
+               [ ! -f "$sudo_python_import_dir/$sudo_python_import_name.py" ]; then
+              sudo_python_import_check_candidate "$sudo_python_import_name/__init__.py"
+              sudo_python_import_check_candidate "$sudo_python_import_name/$sudo_python_import_member.py"
+              sudo_python_import_check_candidate "$sudo_python_import_name/$sudo_python_import_member/__init__.py"
+            fi
+            ;;
+          *)
+            [ -f "$sudo_python_import_dir/$sudo_python_import_name/__init__.py" ] ||
+              sudo_python_import_check_candidate "$sudo_python_import_name.py"
+            sudo_python_import_check_candidate "$sudo_python_import_name/__init__.py"
+            ;;
+        esac
+      fi
     done
   done
 fi

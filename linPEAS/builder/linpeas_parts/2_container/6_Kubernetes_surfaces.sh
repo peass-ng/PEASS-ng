@@ -9,7 +9,7 @@
 # Functions Used: print_2title, print_3title
 # Global Variables: $containerType, $EXTRA_CHECKS
 # Initial Functions: containerCheck
-# Generated Global Variables: $k8s_aws_bucket, $k8s_cap_eff, $k8s_cap_low, $k8s_cfg, $k8s_cfg_env, $k8s_context_name, $k8s_count, $k8s_current_context, $k8s_dir, $k8s_direct_base, $k8s_direct_ca, $k8s_direct_host, $k8s_direct_port, $k8s_direct_token, $k8s_direct_token_file, $k8s_docker_host, $k8s_file, $k8s_gcs_bucket, $k8s_mount, $k8s_mount_options, $k8s_mount_root, $k8s_namespace, $k8s_node_address, $k8s_node_addresses, $k8s_node_name, $k8s_ns_one, $k8s_ns_self, $k8s_pid, $k8s_probe_host, $k8s_probe_port, $k8s_probe_scheme, $k8s_probe_status, $k8s_rc, $k8s_readable, $k8s_root, $k8s_root_count, $k8s_runc_version, $k8s_socket, $k8s_writable
+# Generated Global Variables: $k8s_aws_bucket, $k8s_cap_eff, $k8s_cap_low, $k8s_cfg, $k8s_cfg_env, $k8s_context_name, $k8s_count, $k8s_current_context, $k8s_dir, $k8s_direct_base, $k8s_direct_ca, $k8s_direct_host, $k8s_direct_port, $k8s_direct_token, $k8s_direct_token_file, $k8s_docker_host, $k8s_file, $k8s_gcs_bucket, $k8s_mount, $k8s_mount_options, $k8s_mount_root, $k8s_namespace, $k8s_node_address, $k8s_node_addresses, $k8s_node_name, $k8s_ns_one, $k8s_ns_self, $k8s_pid, $k8s_probe_host, $k8s_probe_port, $k8s_probe_scheme, $k8s_probe_status, $k8s_rc, $k8s_readable, $k8s_root, $k8s_root_count, $k8s_runc_version, $k8s_secret_response, $k8s_secret_exit, $k8s_secret_http, $k8s_secret_json, $k8s_secret_summary, $k8s_socket, $k8s_writable, $count, $keys, $continued
 # Fat linpeas: 0
 # Small linpeas: 0
 
@@ -371,7 +371,59 @@ k8s_sa_api_get() {
       "$k8s_direct_base$1" 2>/dev/null
 }
 
+k8s_scan_sa_secrets() {
+  # The API response contains values; keep it in memory and emit only selected metadata.
+  # curl's size limit bounds the response even when the server ignores ?limit=100.
+  k8s_secret_response="$(printf 'header = "Authorization: Bearer %s"\n' "$k8s_direct_token" |
+    curl -q --config - -fsS --connect-timeout 2 --max-time 5 --max-filesize 1048576 \
+      --cacert "$k8s_direct_ca" -H 'Accept: application/json' -w '\n%{http_code}' \
+      "$k8s_direct_base/api/v1/namespaces/$k8s_namespace/secrets?limit=40" 2>/dev/null)"
+  k8s_secret_exit=$?
+  if [ "${#k8s_secret_response}" -gt 1048580 ]; then
+    echo '    secrets: response exceeded 1 MiB; inventory skipped'
+    return
+  fi
+  k8s_secret_http="$(printf '%s' "$k8s_secret_response" | tail -c 3)"
+  case "$k8s_secret_exit:$k8s_secret_http" in
+    0:200) ;;
+    22:403) echo '    secrets: access denied (RBAC)' ; return ;;
+    22:401) echo '    secrets: authentication denied' ; return ;;
+    22:404) echo '    secrets: namespace unavailable' ; return ;;
+    28:*) echo '    secrets: request timed out' ; return ;;
+    63:*) echo '    secrets: response exceeded 1 MiB; inventory skipped' ; return ;;
+    *) echo '    secrets: API request failed or returned an unexpected status' ; return ;;
+  esac
+  k8s_secret_json="${k8s_secret_response%????}"
+  k8s_secret_summary="$(printf '%s' "$k8s_secret_json" | jq -r '
+    if type != "object" or (.items | type) != "array" or
+       any(.items[]; type != "object" or (.metadata.name | type) != "string" or
+           ((.type // "") | type) != "string" or
+           ((.data // {}) | type) != "object" or
+           ((.stringData // {}) | type) != "object")
+    then error("invalid Secret list")
+    else
+      (.items | length) as $count |
+      ((.metadata["continue"] // "") != "") as $continued |
+      if $count == 0 then "    secrets: none (accessible list)"
+      else
+        .items[:40][] |
+        ((.data // {} | keys) + (.stringData // {} | keys) | unique) as $keys |
+        "    secrets: name=\(.metadata.name | @json) type=\((.type // "unknown") | @json) keys=\($keys[:20] | @json)\(if ($keys | length) > 20 then " (additional keys omitted)" else "" end)"
+      end,
+      if $count > 40 or $continued then "    secrets: additional results omitted (40 shown; no pagination)" else empty end
+    end
+  ' 2>/dev/null)" || {
+    echo '    secrets: malformed API response; inventory unknown'
+    return
+  }
+  printf '%s\n' "$k8s_secret_summary"
+}
+
 k8s_scan_sa_api() {
+  if ! command -v curl >/dev/null 2>&1 || ! command -v jq >/dev/null 2>&1; then
+    echo '  Kubernetes API discovery skipped (curl or jq unavailable)'
+    return
+  fi
   k8s_direct_api_ready "$@" || return
   echo '  Kubernetes API discovery with mounted service account (names and settings only):'
   k8s_sa_api_get '/api/v1/namespaces?limit=100' |
@@ -382,11 +434,12 @@ k8s_scan_sa_api() {
       (.spec.containers[]? | "  container \(.name) privileged=\(.securityContext.privileged // false) allowPE=\((.securityContext.allowPrivilegeEscalation | if . == null then "default" else . end)) caps=\((.securityContext.capabilities.add // []) | join(","))"),
       (.spec.volumes[]? | select(.hostPath.path != null) | "  hostPath \(.hostPath.path)")
     )' 2>/dev/null | head -n 100 | sed 's/^/    pod: /'
-  for k8s_file in services serviceaccounts secrets; do
+  for k8s_file in services serviceaccounts; do
     k8s_sa_api_get "/api/v1/namespaces/$k8s_namespace/$k8s_file?limit=100" |
       jq -r '.items[]? | .metadata.name // empty' 2>/dev/null | head -n 40 |
       sed "s/^/    $k8s_file: /"
   done
+  k8s_scan_sa_secrets
   k8s_sa_api_get '/api/v1/nodes?limit=100' |
     jq -r '.items[]?.metadata.name // empty' 2>/dev/null | head -n 40 | sed 's/^/    node: /'
   k8s_direct_token=''

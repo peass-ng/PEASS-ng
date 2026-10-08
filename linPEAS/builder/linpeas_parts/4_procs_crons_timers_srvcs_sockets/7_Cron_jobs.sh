@@ -6,8 +6,8 @@
 # License: GNU GPL
 # Version: 1.2
 # Mitre: T1053.003
-# Functions Used: echo_not_found, print_2title, print_info
-# Global Variables: $cronjobsG, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders, $cronjobsB, $PATH
+# Functions Used: check_pg_basebackup_boundary, echo_not_found, print_2title, print_info
+# Global Variables: $cronjobsG, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders, $cronjobsB, $PATH, $PG_BASEBACKUP_DESTS
 # Initial Functions:
 # Generated Global Variables: $cmd, $VAR, $file, $path, $user_crontab, $username, $job_id, $cron_dir, $crontab, $findings, $line, $finding, $bin
 # Fat linpeas: 0
@@ -26,6 +26,8 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/* /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
   grep -Hn '^PATH=' /etc/crontab /etc/cron.d/* 2>/dev/null | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
   grep -RInE 'pg_basebackup|run-parts|crontab-ui' /etc/crontab /etc/cron.d /etc/anacrontab /var/spool/cron/crontabs /etc/incron.d /var/spool/incron 2>/dev/null | sed -${E} "s,$cronjobsB,${SED_RED},g" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
+  PG_BASEBACKUP_DESTS=
+  check_pg_basebackup_boundary
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
   ls -lR /usr/lib/cron/tabs/ /private/var/at/jobs /var/at/tabs/ /etc/periodic/ 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g" #MacOS paths
   atq 2>/dev/null

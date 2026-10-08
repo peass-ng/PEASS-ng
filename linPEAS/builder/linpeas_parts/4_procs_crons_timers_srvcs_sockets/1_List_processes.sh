@@ -6,7 +6,7 @@
 # License: GNU GPL
 # Version: 1.4
 # Mitre: T1057
-# Functions Used: print_2title, print_info, print_ps
+# Functions Used: print_2title, print_info, print_ps, checkRootWritableProcessPaths
 # Global Variables: $capsB, $knw_usrs, $nosh_usrs, $NOUSEPS, $processesB, $processesDump, $processesVB, $rootcommon, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders
 # Initial Functions:
 # Generated Global Variables: $pslist, $cpid, $caphex, $psline, $pid, $selinux_ctx, $current_env_vars, $env_findings, $apparmor_profile, $mount, $mount_findings, $fd_findings, $proc_cmd, $proc_user, $mount_point, $current_mounts, $fd_target, $var, $findings, $sec_findings, $proc_env_vars, $fd_count, $proc_mounts, $$escaped_var
@@ -232,6 +232,8 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     pslist=$(ps auxwww)
     echo ""
   fi
+
+  checkRootWritableProcessPaths
 
   # Additional checks for each process
   print_2title "Processes with unusual configurations" "T1057"

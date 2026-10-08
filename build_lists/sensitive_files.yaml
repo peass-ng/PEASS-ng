@@ -706,6 +706,21 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  - name: Guacamole
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "guacamole.properties"
+            value:
+                check_extra_path: '(^|/)guacamole/guacamole\.properties$'
+                line_grep: "'^[[:space:]]*(mysql|postgresql|sqlserver)-(hostname|database|username|password)[[:space:]]*=[[:space:]]*[^[:space:]]' | head -n 20"
+                bad_regex: "^[[:space:]]*(mysql|postgresql|sqlserver)-password[[:space:]]*=[[:space:]]*[^[:space:]]"
+                type: f
+                search_in:
+                  - common
   
   - name: Mongo
     value:
@@ -965,6 +980,20 @@ search:
           auto_check: True
 
         files:
+          - name: ".terraformrc"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "terraform.rc"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
           - name: "*.tfstate"
             value: 
                 bad_regex: "secret.*"
@@ -1213,8 +1242,7 @@ search:
                         files:
                           - name: "token"
                             value:
-                                bad_regex: ".*"
-                                remove_empty_lines: True
+                                just_list_file: True
                           - name: "namespace"
                             value:
                                 bad_regex: ".*"
@@ -4647,16 +4675,35 @@ search:
           auto_check: False
 
         files:
+          - name: "npbackup.conf"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
           - name: "backup"
             value: 
                 type: f
                 search_in: 
+                  - common
+
+          - name: "backup"
+            value:
+                type: d
+                search_in:
                   - common
       
           - name: "backups"
             value: 
                 type: f
                 search_in: 
+                  - common
+
+          - name: "backups"
+            value:
+                type: d
+                search_in:
                   - common
 
   - name: Password Files
