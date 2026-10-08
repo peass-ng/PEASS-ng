@@ -1,12 +1,12 @@
 # Title: Processes & Cron & Services & Timers - Services and Service Files
 # ID: PR_Services
 # Author: Carlos Polop
-# Last Update: 16-09-2026
-# Description: Services and service files analysis with privilege escalation vectors, including replaceable root-service executables.
+# Last Update: 08-10-2026
+# Description: Services and service files analysis with privilege escalation vectors, including replaceable executables and writable root-service drop-ins.
 # License: GNU GPL
-# Version: 1.3
+# Version: 1.4
 # Mitre: T1543.002,T1574.010,T1007
-# Functions Used: checkSystemdWritableExecPaths, echo_not_found, print_2title, print_info, print_3title
+# Functions Used: checkSystemdWritableExecPaths, checkSystemdWritableDropins, echo_not_found, print_2title, print_info, print_3title
 # Global Variables: $EXTRA_CHECKS, $IAMROOT, $SEARCH_IN_FOLDER, $TIMEOUT, $WRITABLESYSTEMDPATH
 # Initial Functions:
 # Generated Global Variables: $service_unit, $service_path, $service_content, $finding, $findings, $service_file, $exec_path, $exec_paths, $service, $line, $target_file, $target_exec, $relpath1, $relpath2
@@ -18,6 +18,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_info "https://book.hacktricks.wiki/en/linux-hardening/processes-crontab-systemd-dbus/process-enumeration-and-service-paths.html#follow-the-service-execution-chain"
 
   checkSystemdWritableExecPaths
+  checkSystemdWritableDropins
 
   # Function to check service content for privilege escalation vectors
   check_service_content() {

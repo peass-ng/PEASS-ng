@@ -2,7 +2,7 @@
 # ID: SY_Systemd
 # Author: Carlos Polop
 # Last Update: 2024-03-19
-# Description: Check for systemd vulnerabilities and misconfigurations that could lead to privilege escalation:
+# Description: Check for systemd vulnerabilities, misconfigurations, and readable service environment files:
 #   - Systemd version vulnerabilities (CVE-2021-4034, CVE-2021-33910, etc.)
 #   - Services running as root that could be exploited
 #   - Services with dangerous capabilities that could be abused
@@ -14,13 +14,98 @@
 #     * Writable paths: Replace executables in writable paths to get code execution
 # License: GNU GPL
 # Version: 1.1
-# Mitre: T1543.002
+# Mitre: T1543.002,T1552.001
 # Functions Used: print_2title, print_list, echo_not_found
-# Global Variables: $SEARCH_IN_FOLDER, $Wfolders, $SED_RED, $SED_RED_YELLOW, $NC
+# Global Variables: $SEARCH_IN_FOLDER, $IAMROOT, $Wfolders, $SED_RED, $SED_RED_YELLOW, $NC
 # Initial Functions:
-# Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $exec_value, $cmd, $cmd_path, $svc_path_entry, $svc_writable_path
+# Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $exec_value, $cmd, $cmd_path, $svc_path_entry, $svc_writable_path, $running_services, $env_file_findings, $env_file_path, $env_file_size, $env_key_names
 # Fat linpeas: 0
 # Small linpeas: 1
+
+# Inspect only literal EnvironmentFile paths in a service unit. This is an
+# indicator of readable credential-like assignments, not evidence that a key
+# is used for authentication or provides privilege escalation.
+systemd_envfile_candidates() {
+    [ -f "$1" ] && [ -r "$1" ] || return
+    awk '
+        function add_path(value, path, quoted, optional) {
+            sub(/^[[:space:]]*/, "", value)
+            sub(/[[:space:]]*$/, "", value)
+            if (value == "") { count = 0; return }
+            optional = 0
+            if (substr(value, 1, 1) == "-") { value = substr(value, 2); optional = 1 }
+            quoted = 0
+            if ((substr(value, 1, 1) == "\"" && substr(value, length(value), 1) == "\"") ||
+                (substr(value, 1, 1) == sprintf("%c", 39) && substr(value, length(value), 1) == sprintf("%c", 39))) {
+                quoted = 1
+                value = substr(value, 2, length(value) - 2)
+            }
+            if (!optional && substr(value, 1, 1) == "-") value = substr(value, 2)
+            # Skip globs, escapes, unquoted whitespace, and relative paths.
+            if (!quoted && value ~ /[[:space:]]/) return
+            if (value !~ /^\// || value ~ /[*?\[\]{}\\%$"\047]/ || value ~ /[\r\n]/) return
+            for (path = 1; path <= count; path++) if (paths[path] == value) return
+            paths[++count] = value
+        }
+        /^[[:space:]]*\[/ {
+            section = $0
+            sub(/^[[:space:]]*/, "", section)
+            sub(/[[:space:]]*$/, "", section)
+            next
+        }
+        section == "[Service]" && /^[[:space:]]*EnvironmentFile[[:space:]]*=/ {
+            value = $0
+            sub(/^[[:space:]]*EnvironmentFile[[:space:]]*=/, "", value)
+            add_path(value)
+        }
+        END { for (i = 1; i <= count && i <= 4; i++) print paths[i] }
+    ' "$1" 2>/dev/null
+}
+
+systemd_envfile_key_names() {
+    awk '
+        /^[[:space:]]*[#;]/ { next }
+        /^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=/ {
+            line = $0
+            sub(/=.*/, "", line)
+            gsub(/[[:space:]]/, "", line)
+            value = $0
+            sub(/^[^=]*=[[:space:]]*/, "", value)
+            if (value == "" || value == "\"\"" || value == sprintf("%c%c", 39, 39)) next
+            upper = toupper(line)
+            if (upper !~ /(^|_)(SECRET|TOKEN|PASSWORD|PASSWD|APIKEY|KEY)($|_)/) next
+            if (seen[line]++) next
+            if (found >= 20) exit
+            if (found++) printf ","
+            printf "%s", line
+        }
+        END { if (found) printf "\n" }
+    ' "$1" 2>/dev/null
+}
+
+systemd_envfile_active_units() {
+    awk '
+        {
+            unit = $1
+            if (unit == "●") unit = $2
+            if (unit !~ /^[A-Za-z0-9_.@-]+[.]service$/ || unit ~ /[.][.]/) next
+            print unit
+            if (++count >= 200) exit
+        }
+    '
+}
+
+systemd_envfile_findings_for_unit() {
+    systemd_envfile_candidates "$1" | while IFS= read -r env_file_path; do
+        [ -f "$env_file_path" ] && [ -r "$env_file_path" ] || continue
+        env_file_size=$(stat -c %s "$env_file_path" 2>/dev/null) ||
+            env_file_size=$(stat -f %z "$env_file_path" 2>/dev/null) || continue
+        case "$env_file_size" in ''|*[!0-9]*) continue ;; esac
+        [ "$env_file_size" -le 65536 ] || continue
+        env_key_names=$(systemd_envfile_key_names "$env_file_path")
+        [ "$env_key_names" ] && printf '%s: %s\n' "$env_file_path" "$env_key_names"
+    done
+}
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
     print_2title "Systemd Information" "T1543.002"
@@ -44,7 +129,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     get_service_file() {
         local service="$1"
         local file=""
-        for path in "/etc/systemd/system/$service" "/lib/systemd/system/$service"; do
+        for path in "/etc/systemd/system/$service" "/run/systemd/system/$service" "/usr/lib/systemd/system/$service" "/lib/systemd/system/$service"; do
             if [ -f "$path" ]; then
                 file="$path"
                 break
@@ -59,6 +144,12 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
         echo "$caps" | grep -qE '(CAP_SYS_ADMIN|CAP_DAC_OVERRIDE|CAP_DAC_READ_SEARCH|CAP_SETUID|CAP_SETGID|CAP_NET_ADMIN)'
         return $?
     }
+
+    # Reuse one active-unit listing without changing the scope of older checks.
+    running_services=""
+    if check_systemctl; then
+        running_services=$(list_running_services)
+    fi
 
     # Check systemd version and known vulnerabilities
     print_list "Systemd version and vulnerabilities? .............. "$NC
@@ -81,7 +172,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     # Check for systemd services running as root
     print_list "Services running as root? ..... "$NC
     if check_systemctl; then
-        list_running_services | 
+        printf '%s\n' "$running_services" |
         grep -E "root|0:0" | 
         while read -r line; do
             service=$(echo "$line" | awk '{print $1}')
@@ -96,7 +187,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     # Check for systemd services with dangerous capabilities
     print_list "Running services with dangerous capabilities? ... "$NC
     if check_systemctl; then
-        list_running_services | 
+        printf '%s\n' "$running_services" |
         grep -E "\.service" | 
         while read -r line; do
             service=$(echo "$line" | awk '{print $1}')
@@ -113,7 +204,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     # Check for systemd services with writable paths
     print_list "Services with writable paths? . "$NC
     if check_systemctl; then
-        list_running_services | 
+        printf '%s\n' "$running_services" |
         grep -E "\.service" | 
         while read -r line; do
             service=$(echo "$line" | awk '{print $1}')
@@ -161,6 +252,23 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     fi
 
     echo ""
+
+    # Unit files may point at files outside the usual .env naming convention.
+    # Keep this passive and print key names only, never environment values.
+    if ! [ "$IAMROOT" ]; then
+        env_file_findings=$(
+            printf '%s\n' "$running_services" | systemd_envfile_active_units | while IFS= read -r service; do
+                service_file=$(get_service_file "$service")
+                [ "$service_file" ] || continue
+                systemd_envfile_findings_for_unit "$service_file"
+            done | sort -u
+        )
+        if [ "$env_file_findings" ]; then
+            print_2title "Readable systemd EnvironmentFile credential-like keys (possible exposure)" "T1552.001"
+            printf '%s\n' "$env_file_findings"
+            echo ""
+        fi
+    fi
 
     print_2title "Systemd PATH" "T1543.002"
     print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#systemd-path---relative-paths"

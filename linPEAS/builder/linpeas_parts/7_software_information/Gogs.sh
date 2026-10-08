@@ -41,7 +41,7 @@ if ! [ "$SEARCH_IN_FOLDER" ] && ! [ "$MACPEAS" ]; then
 
   if [ "$gogs_processes" ] || [ "$gogs_bin" ] || [ -r /etc/gogs/conf/app.ini ] || [ -r /etc/gogs/app.ini ] || [ "$DEBUG" ]; then
     print_2title "Gogs privileged file-write checks" "T1068"
-    print_info "Gogs <= 0.13.3 is vulnerable to authenticated symlink-based file writes through the PutContents API (CVE-2025-8110): https://github.com/gogs/gogs/security/advisories/GHSA-gg64-xxr9-qhjp"
+    print_info "Gogs <= 0.13.3 is vulnerable to authenticated symlink-based file writes through the PutContents API (CVE-2025-8110): https://github.com/advisories/GHSA-mq8m-42gh-wq7r"
 
     gogs_root_process="$(printf "%s\n" "$gogs_processes" | awk '$1 == "root" { print "yes"; exit }')"
     if [ "$gogs_processes" ]; then

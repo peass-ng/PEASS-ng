@@ -9,7 +9,7 @@
 # Functions Used: print_2title, print_3title, warn_exec, echo_not_found
 # Global Variables: $EXTRA_CHECKS, $E, $SED_RED, $SED_GREEN, $SED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $inetd_service, $log_file, $cmd, $service_name, $conf_file, $service_dir, $service_file, $inetd_file
+# Generated Global Variables: $inetd_service, $log_file, $cmd, $service_name, $conf_file, $service_dir, $service_file, $file, $inetd_command, $inetd_telnet_probe_count, $service, $socket, $protocol, $user, $server, $checked_binary, $version_output, $version, $major, $minor, $patch, $rest
 # Fat linpeas: 0
 # Small linpeas: 0
 
@@ -24,23 +24,92 @@ check_command() {
     return 1
 }
 
+inetd_telnet_upstream_affected() {
+    local major=$1 minor=$2 patch=$3
+    if [ "$major" -eq 1 ]; then
+        [ "$minor" -gt 9 ] || { [ "$minor" -eq 9 ] && [ "$patch" -ge 3 ]; }
+    elif [ "$major" -eq 2 ]; then
+        [ "$minor" -lt 7 ] || { [ "$minor" -eq 7 ] && [ "$patch" -eq 0 ]; }
+    else
+        return 1
+    fi
+}
+
+# Inspect only configured root telnet stanzas. A version is an upstream hint,
+# not proof that a downstream package is unpatched or that a listener is active.
+inetd_telnet_cve_hint() {
+    local conf_file=$1 service socket protocol wait_mode user server arguments
+    local checked_binary='' version_output='' version='' major minor patch rest
+
+    [ -f "$conf_file" ] || return 0
+    while read -r service socket protocol wait_mode user server arguments || [ -n "$service" ]; do
+        [ "$service" = telnet ] && [ "$socket" = stream ] || continue
+        case "$protocol" in tcp*) ;; *) continue ;; esac
+        case "$user" in root|root:*|root.*|0|0:*|0.*) ;; *) continue ;; esac
+        [ -n "$server" ] || continue
+
+        if [ "$server" != "$checked_binary" ]; then
+            checked_binary=$server
+            version_output=''
+            # A non-GNU daemon may not support --version; never run it unbounded.
+            case "$server" in
+                /*) if [ -x "$server" ] && [ "${inetd_telnet_probe_count:-0}" -lt 4 ] && command -v timeout >/dev/null 2>&1; then
+                        inetd_telnet_probe_count=$((inetd_telnet_probe_count + 1))
+                        version_output=$(timeout 1 "$server" --version 2>&1)
+                    fi ;;
+            esac
+        fi
+
+        if printf '%s\n' "$version_output" | grep -qi 'GNU inetutils'; then
+            version=$(printf '%s\n' "$version_output" | sed -n 's/.*[Ii]netutils[^0-9]*\([0-9][0-9.]*\).*/\1/p' | head -n 1)
+            case "$version" in *.*) ;; *) version='' ;; esac
+            case "$version" in *[!0-9.]*) version='' ;; esac
+            if [ -n "$version" ]; then
+                major=${version%%.*}
+                rest=${version#*.}
+                minor=${rest%%.*}
+                patch=0
+                [ "$rest" = "$minor" ] || patch=${rest#*.}
+                case "$major:$minor:$patch" in *[!0-9:]*|*::*|:*|*:) version='' ;; esac
+            fi
+            if [ -n "$version" ] && inetd_telnet_upstream_affected "$major" "$minor" "$patch"; then
+                echo "CVE-2026-24061: GNU Inetutils telnetd $version in upstream affected range (1.9.3-2.7), root inetd stanza in $conf_file; confirm package patches and active listener."
+            elif [ -n "$version" ]; then
+                echo "CVE-2026-24061: GNU Inetutils telnetd $version outside upstream affected range, root inetd stanza in $conf_file."
+            else
+                echo "CVE-2026-24061: GNU Inetutils telnetd version unknown, root inetd stanza in $conf_file; inspect package and listener."
+            fi
+        elif printf '%s\n' "$version_output" | grep -qiE 'BusyBox|NetKit|OpenBSD|FreeBSD|BSD telnetd'; then
+            echo "CVE-2026-24061: configured telnetd appears non-GNU, root inetd stanza in $conf_file."
+        else
+            echo "CVE-2026-24061: telnetd implementation/version unknown, root inetd stanza in $conf_file; inspect package and listener."
+        fi
+    done < "$conf_file"
+}
+
 # Function to analyze inetd services
 analyze_inetd() {
+    local inetd_command
+    inetd_telnet_probe_count=0
     echo ""
     print_3title "Inetd Services" "T1049"
     # Check if inetd is installed
-    if ! check_command inetd; then
+    if check_command inetd; then
+        inetd_command=inetd
+    elif check_command inetutils-inetd; then
+        inetd_command=inetutils-inetd
+    else
         echo_not_found "inetd"
         return
     fi
     
     # Check if inetd is running
-    if ! pgrep -x inetd >/dev/null 2>&1; then
+    if ! pgrep -x inetd >/dev/null 2>&1 && ! pgrep -x inetutils-inetd >/dev/null 2>&1; then
         echo "inetd is not running" | sed -${E} "s,.*,${SED_YELLOW},g"
     fi
     
     # Get inetd version
-    warn_exec inetd -v 2>/dev/null
+    warn_exec "$inetd_command" -v 2>/dev/null
     
     # Check main configuration file
     if [ -f "/etc/inetd.conf" ]; then
@@ -61,6 +130,11 @@ analyze_inetd() {
             echo "Found configuration in $conf_file:"
             warn_exec cat "$conf_file" | grep -v "^$" | grep -Ev "\W+\#|^#" 2>/dev/null
         fi
+    done
+
+    # Keep the existing configuration output and add a local, passive CVE hint.
+    for conf_file in /etc/inetd.conf /etc/inetd.d/* /etc/inet/*.conf; do
+        inetd_telnet_cve_hint "$conf_file"
     done
 }
 
@@ -174,9 +248,9 @@ analyze_inetd_services() {
         # Check for inetd/xinetd related files
         echo -e "\nChecking for related files..."
         for file in /etc/init.d/inetd /etc/init.d/xinetd /etc/default/inetd /etc/default/xinetd; do
-            if [ -f "$inetd_file" ]; then
-                echo "Found file: $inetd_file" | sed -${E} "s,.*,${SED_GREEN},g"
-                warn_exec cat "$inetd_file" | grep -v "^$" | grep -Ev "\W+\#|^#" 2>/dev/null
+            if [ -f "$file" ]; then
+                echo "Found file: $file" | sed -${E} "s,.*,${SED_GREEN},g"
+                warn_exec cat "$file" | grep -v "^$" | grep -Ev "\W+\#|^#" 2>/dev/null
             fi
         done
     fi

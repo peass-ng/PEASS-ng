@@ -599,6 +599,19 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  - name: PHP service credential configuration
+    value:
+        config:
+          auto_check: True
+        files:
+          - name: "conf.php"
+            value:
+                check_extra_path: '/cfg/conf\.php$'
+                line_grep: '"(pwd|passwd|password|db[_-]?(user|pass)|dsn)[[:space:]]*[:=]" | head -n 20'
+                type: f
+                search_in:
+                  - common
   
   - name: Apache-Airflow
     value:
@@ -1516,6 +1529,20 @@ search:
             value: 
                 type: f
                 search_in: 
+                  - common
+
+          - name: "*id_ed25519*"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "id_ecdsa*"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
                   - common
 
           - name: "known_hosts"
@@ -3947,6 +3974,55 @@ search:
                 type: d
                 search_in: 
                   - common
+
+  - name: Cobbler
+    value:
+        config:
+          auto_check: True
+          exec:
+            - 'if grep -Eq "^[[:space:]]*(module[[:space:]]*[:=]|authentication[[:space:]]*:)[[:space:]]*authn_ldap([[:space:]]|$)" /etc/cobbler/modules.conf /etc/cobbler/settings /etc/cobbler/settings.yaml 2>/dev/null && [ -f /etc/cobbler/ldap.conf ]; then ls -ld /etc/cobbler/ldap.conf; fi'
+            - 'if [ -f /var/lib/cobbler/web.ss ]; then ls -ld /var/lib/cobbler/web.ss; fi'
+
+        files:
+          - name: "modules.conf"
+            value:
+                check_extra_path: '^/etc/cobbler/modules\.conf$'
+                line_grep: '"^[[:space:]]*(\\[(authentication|authorization)\\]|module[[:space:]]*=[[:space:]]*auth(n|z)_[[:alnum:]_]+)" | head -n 20'
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "settings"
+            value:
+                check_extra_path: '^/etc/cobbler/settings$'
+                line_grep: '"^[[:space:]]*(authentication|authorization|xmlrpc_(port|host|protocol|listen|enabled|ssl_enabled)|client_use_https)[[:space:]]*:|^[[:space:]]*module[[:space:]]*:[[:space:]]*auth(n|z)_[[:alnum:]_]+" | head -n 30'
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "settings.yaml"
+            value:
+                check_extra_path: '^/etc/cobbler/settings\.yaml$'
+                line_grep: '"^[[:space:]]*(authentication|authorization|xmlrpc_(port|host|protocol|listen|enabled|ssl_enabled)|client_use_https)[[:space:]]*:|^[[:space:]]*module[[:space:]]*:[[:space:]]*auth(n|z)_[[:alnum:]_]+" | head -n 30'
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "users.digest"
+            value:
+                check_extra_path: '^/etc/cobbler/users\.digest$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "users.conf"
+            value:
+                check_extra_path: '^/etc/cobbler/users\.conf$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
   
   - name: Passbolt
     value:
