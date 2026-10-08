@@ -19,7 +19,7 @@ class SystemdWritableDropinsTests(unittest.TestCase):
             / "checkSystemdWritableDropins.sh"
         )
 
-    def _run_check(self, properties=None, directory_count=1, iamroot=""):
+    def _run_check(self, properties=None, directory_count=1, iamroot="", timeout_available=True):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             system_dir = root / "system"
@@ -48,7 +48,7 @@ class SystemdWritableDropinsTests(unittest.TestCase):
             env = os.environ.copy()
             env.update(
                 {
-                    "PATH": f"{bindir}:{env['PATH']}",
+                    "PATH": f"{bindir}:{env['PATH']}" if timeout_available else str(bindir),
                     "FAKE_CALL_LOG": str(log),
                     "FAKE_PROPERTIES": properties
                     if properties is not None
@@ -68,7 +68,7 @@ class SystemdWritableDropinsTests(unittest.TestCase):
                 ]
             )
             result = subprocess.run(
-                ["sh", "-c", script],
+                ["/bin/sh", "-c", script],
                 cwd=str(self.repo_root),
                 env=env,
                 capture_output=True,
@@ -85,6 +85,12 @@ class SystemdWritableDropinsTests(unittest.TestCase):
         self.assertIn(f"demo00.service: {system_dir}/demo00.service.d", result.stdout)
         self.assertEqual(1, len(calls))
         self.assertIn("demo00.service", calls[0])
+
+    def test_missing_timeout_does_not_query_systemctl(self):
+        result, calls, _ = self._run_check(timeout_available=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(calls, [])
 
     def test_non_root_service_is_suppressed(self):
         properties = "LoadState=loaded\nActiveState=active\nUser=daemon\nDynamicUser=no"

@@ -2,6 +2,7 @@
 
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -30,6 +31,7 @@ class SudoVersionTests(unittest.TestCase):
                 directory.mkdir()
                 version_command = (
                     "sleep 10\n" if version == "stall" else
+                    "trap '' TERM\nsleep 10\n" if version == "ignore-term" else
                     f"printf '%s\\n' 'Sudo version {version}'\n"
                 )
                 (directory / "sudo").write_text(
@@ -120,6 +122,14 @@ class SudoVersionTests(unittest.TestCase):
         output, log = self.run_case(versions, setuid=tuple(versions))
         self.assertEqual(log, list(versions)[:24])
         self.assertEqual(output.count("No CVE-2025-32462/32463 upstream candidate"), 24)
+
+    def test_version_query_kills_a_binary_ignoring_sigterm(self):
+        started = time.monotonic()
+        output, log = self.run_case({"first": "ignore-term"}, setuid=("first",))
+        # Allow container startup overhead, but not the fixture's ten-second sleep.
+        self.assertLess(time.monotonic() - started, 8)
+        self.assertEqual(log, ["first"])
+        self.assertIn("version unavailable or query timed out", output)
 
 
 if __name__ == "__main__":

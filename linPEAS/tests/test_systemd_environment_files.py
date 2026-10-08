@@ -29,6 +29,17 @@ class SystemdEnvironmentFilesTests(unittest.TestCase):
         )
         return subprocess.run(["sh", "-c", body], capture_output=True, text=True)
 
+    def test_oversized_unit_is_not_scanned(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            env_file = root / "secret.env"
+            env_file.write_text("API_TOKEN=never-print-this-value\n")
+            unit_file = root / "oversized.service"
+            unit_file.write_text(f"[Service]\nEnvironmentFile={env_file}\n" + "#" * 65536)
+            result = self._run_helper(unit_file)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
+
     def test_quoted_optional_path_reports_keys_without_values(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)

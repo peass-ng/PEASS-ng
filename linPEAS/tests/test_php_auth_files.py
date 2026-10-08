@@ -5,6 +5,22 @@ from pathlib import Path
 
 
 class PhpAuthFilesTests(unittest.TestCase):
+    def test_folder_search_does_not_scan_host_webroot(self):
+        module = (
+            Path(__file__).resolve().parents[1]
+            / "builder/linpeas_parts/9_interesting_files/22_Passwords_php_files.sh"
+        ).read_text()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            marker = Path(tmpdir) / "host-scan"
+            shell = (
+                "print_2title() { :; }; E=E; SED_RED=''; SEARCH_IN_FOLDER=/fixture;\n"
+                f"find() {{ touch {marker}; }};\n" + module
+            )
+            result = subprocess.run(["bash", "-c", shell], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertFalse(marker.exists(), "folder search scanned the host webroot")
+            self.assertEqual(result.stdout, "")
+
     def test_bounded_webroot_scan_includes_login_and_auth_scripts(self):
         module = (
             Path(__file__).resolve().parents[1]

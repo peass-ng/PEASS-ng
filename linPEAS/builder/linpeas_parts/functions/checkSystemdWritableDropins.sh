@@ -19,6 +19,7 @@ checkSystemdWritableDropins() {
   [ -z "${IAMROOT:-}" ] || return 0
   [ "$(id -u 2>/dev/null)" != "0" ] || return 0
   command -v systemctl >/dev/null 2>&1 || return 0
+  command -v timeout >/dev/null 2>&1 || return 0
 
   # The optional directory argument lets tests use a fixture without touching
   # the host's systemd tree. Normal calls inspect only the system unit path.
@@ -37,17 +38,10 @@ checkSystemdWritableDropins() {
     sdwdd_checked=$((sdwdd_checked + 1))
     sdwdd_unit=${sdwdd_dir##*/}
     sdwdd_unit=${sdwdd_unit%.d}
-    if command -v timeout >/dev/null 2>&1; then
-      sdwdd_properties=$(timeout 2 systemctl show \
-        -p LoadState -p ActiveState -p User -p DynamicUser \
-        -p RootDirectory -p RootImage -p PrivateUsers \
-        -- "$sdwdd_unit" 2>/dev/null) || continue
-    else
-      sdwdd_properties=$(systemctl show \
-        -p LoadState -p ActiveState -p User -p DynamicUser \
-        -p RootDirectory -p RootImage -p PrivateUsers \
-        -- "$sdwdd_unit" 2>/dev/null) || continue
-    fi
+    sdwdd_properties=$(timeout -k 1 2 systemctl show \
+      -p LoadState -p ActiveState -p User -p DynamicUser \
+      -p RootDirectory -p RootImage -p PrivateUsers \
+      -- "$sdwdd_unit" 2>/dev/null) || continue
 
     sdwdd_active=""
     sdwdd_loaded=""

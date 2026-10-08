@@ -47,7 +47,7 @@ ${sudo_identity}"
     printf '  %s: root-owned setuid; version query skipped (timeout unavailable)\n' "$sudo_candidate"
     return 0
   fi
-  sudo_line=$("$sudo_timeout" 2 "$sudo_candidate" -V 2>/dev/null | head -c 256 | head -n 1)
+  sudo_line=$("$sudo_timeout" -k 1 2 "$sudo_candidate" -V 2>/dev/null | head -c 256 | head -n 1)
   sudo_version=$(printf '%s\n' "$sudo_line" | awk '$1 == "Sudo" && $2 == "version" { print $3 }')
   if [ -z "$sudo_version" ]; then
     printf '  %s: root-owned setuid; version unavailable or query timed out\n' "$sudo_candidate"

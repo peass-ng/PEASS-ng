@@ -18,7 +18,7 @@
 # Functions Used: print_2title, print_list, echo_not_found
 # Global Variables: $SEARCH_IN_FOLDER, $IAMROOT, $Wfolders, $SED_RED, $SED_RED_YELLOW, $NC
 # Initial Functions:
-# Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $exec_value, $cmd, $cmd_path, $svc_path_entry, $svc_writable_path, $running_services, $env_file_findings, $env_file_path, $env_file_size, $env_key_names
+# Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $exec_value, $cmd, $cmd_path, $svc_path_entry, $svc_writable_path, $running_services, $env_file_findings, $env_file_path, $env_file_size, $env_key_names, $env_unit_size
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -27,6 +27,11 @@
 # is used for authentication or provides privilege escalation.
 systemd_envfile_candidates() {
     [ -f "$1" ] && [ -r "$1" ] || return
+    local env_unit_size
+    env_unit_size=$(stat -c %s "$1" 2>/dev/null) ||
+        env_unit_size=$(stat -f %z "$1" 2>/dev/null) || return
+    case "$env_unit_size" in ''|*[!0-9]*) return ;; esac
+    [ "$env_unit_size" -le 65536 ] || return
     awk '
         function add_path(value, path, quoted, optional) {
             sub(/^[[:space:]]*/, "", value)
