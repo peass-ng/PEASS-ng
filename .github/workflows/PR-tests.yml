@@ -95,6 +95,22 @@ jobs:
             Write-Error "winPEAS.exe not found at $exePath"
           }
 
+      - name: Smoke test changed enumeration sections
+        shell: pwsh
+        timeout-minutes: 3
+        run: |
+          $exePath = "winPEAS/winPEASexe/winPEAS/bin/Release/winPEAS.exe"
+          if (!(Test-Path $exePath)) {
+            throw "winPEAS.exe not found at $exePath"
+          }
+          $logPath = Join-Path $env:RUNNER_TEMP "winpeas-enumeration-smoke.log"
+          & $exePath userinfo applicationsinfo registryinfo activedirectoryinfo *> $logPath
+          if ($LASTEXITCODE -ne 0) {
+            Get-Content $logPath -Tail 100
+            throw "Enumeration smoke test exited with code $LASTEXITCODE"
+          }
+          Get-Content $logPath -Tail 20
+
       - name: Execute winPEAS online package vulnerability lookup with mock
         shell: pwsh
         run: |

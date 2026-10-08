@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Info.ApplicationInfo;
 using winPEAS.Info.NetworkInfo;
@@ -106,6 +108,8 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Installed Applications --Via Program Files/Uninstall registry--", "T1518");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#applications", "Check if you can modify installed software");
+                PrintDockerDesktopVersionRisk();
+                PrintCheckmkAgentVersionRisk();
                 SortedDictionary<string, Dictionary<string, string>> installedAppsPerms = InstalledApps.GetInstalledAppsPerms();
                 string format = "    ==>  {0} ({1})";
 
@@ -143,6 +147,194 @@ namespace winPEAS.Checks
             catch (Exception e)
             {
                 Beaprint.PrintException(e.Message);
+            }
+        }
+
+        private static void PrintDockerDesktopVersionRisk()
+        {
+            // CVE-2025-9074 was fixed in Docker Desktop 4.44.3. The uninstall
+            // entries are a fast host-side clue; only a container can confirm
+            // whether it can reach the Docker Engine API on the Desktop subnet.
+            var locations = new[]
+            {
+                Tuple.Create(RegistryHive.LocalMachine, RegistryView.Registry64),
+                Tuple.Create(RegistryHive.LocalMachine, RegistryView.Registry32),
+                Tuple.Create(RegistryHive.CurrentUser, RegistryView.Default)
+            };
+
+            var versions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var location in locations)
+            {
+                try
+                {
+                    using (var hive = RegistryKey.OpenBaseKey(location.Item1, location.Item2))
+                    using (var app = hive.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Docker Desktop"))
+                    {
+                        if (app == null)
+                        {
+                            continue;
+                        }
+
+                        var versionText = Convert.ToString(app.GetValue("DisplayVersion"))?.Trim();
+                        if (string.IsNullOrEmpty(versionText))
+                        {
+                            if (versions.Add("unknown"))
+                            {
+                                Beaprint.InfoPrint("    Docker Desktop is installed, but its registry version is missing; check CVE-2025-9074.");
+                            }
+                            continue;
+                        }
+
+                        if (!versions.Add(versionText))
+                        {
+                            continue;
+                        }
+
+                        Version version;
+                        if (!Version.TryParse(versionText, out version))
+                        {
+                            Beaprint.InfoPrint("    Docker Desktop version " + versionText + ": check CVE-2025-9074; registry version could not be compared.");
+                        }
+                        else if (version.CompareTo(new Version(4, 44, 3)) < 0)
+                        {
+                            Beaprint.BadPrint("    Docker Desktop " + versionText + " predates the CVE-2025-9074 fix (4.44.3). Running Linux containers may reach the Engine API and access host files; confirm exposure from a container.");
+                            Beaprint.LinkPrint("https://book.hacktricks.wiki/en/network-services-pentesting/2375-pentesting-docker.html", "Docker Engine API exposure and verification");
+                        }
+                        else
+                        {
+                            Beaprint.GoodPrint("    Docker Desktop " + versionText + " includes the CVE-2025-9074 fix.");
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Missing or unreadable registry views should not interrupt enumeration.
+                }
+            }
+        }
+
+        internal enum CheckmkVersionStatus
+        {
+            Unknown,
+            Candidate,
+            Fixed
+        }
+
+        internal static bool IsCheckmkAgentProduct(string displayName)
+        {
+            // MSI product names include a branch on some releases (for example,
+            // "Check MK Agent 2.1"). Keep this anchored to the agent product.
+            return !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= 128 && Regex.IsMatch(
+                displayName.Trim(),
+                @"^(?:Check[_ ]MK|Checkmk) Agent(?: 2\.[0-9]+(?:\.[0-9]+(?:[pb][0-9]+)?)?)?$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        }
+
+        internal static CheckmkVersionStatus ClassifyCheckmkAgentVersion(string versionText)
+        {
+            // A bare branch such as 2.1 or 2.1.0 cannot establish the patch level.
+            if (versionText == null || versionText.Length > 64)
+            {
+                return CheckmkVersionStatus.Unknown;
+            }
+            Match match = Regex.Match(versionText.Trim(),
+                @"^2\.([0-9]+)\.0([pb])([0-9]+)$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            int branch;
+            int patch;
+            if (!match.Success || !int.TryParse(match.Groups[1].Value, out branch) ||
+                !int.TryParse(match.Groups[3].Value, out patch))
+            {
+                return CheckmkVersionStatus.Unknown;
+            }
+
+            bool isPatch = string.Equals(match.Groups[2].Value, "p", StringComparison.OrdinalIgnoreCase);
+            if (branch == 0)
+            {
+                // The vendor lists the 2.0 branch as affected and publishes no fix for it.
+                return CheckmkVersionStatus.Candidate;
+            }
+            if (branch == 1 || branch == 2)
+            {
+                int fixedPatch = branch == 1 ? 40 : 23;
+                return isPatch && patch >= fixedPatch ? CheckmkVersionStatus.Fixed : CheckmkVersionStatus.Candidate;
+            }
+            if (branch == 3 || branch == 4)
+            {
+                // The fix was already present in 2.3.0b1 and 2.4.0b1.
+                return patch >= 1 || isPatch ? CheckmkVersionStatus.Fixed : CheckmkVersionStatus.Unknown;
+            }
+            return CheckmkVersionStatus.Unknown;
+        }
+
+        private static void PrintCheckmkAgentVersionRisk()
+        {
+            const string uninstallPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+            var locations = new[]
+            {
+                Tuple.Create(RegistryHive.LocalMachine, RegistryView.Registry64),
+                Tuple.Create(RegistryHive.LocalMachine, RegistryView.Registry32),
+                Tuple.Create(RegistryHive.CurrentUser, RegistryView.Registry64),
+                Tuple.Create(RegistryHive.CurrentUser, RegistryView.Registry32)
+            };
+            var reportedVersions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var location in locations)
+            {
+                try
+                {
+                    using (var hive = RegistryKey.OpenBaseKey(location.Item1, location.Item2))
+                    using (var uninstall = hive.OpenSubKey(uninstallPath))
+                    {
+                        if (uninstall == null)
+                        {
+                            continue;
+                        }
+
+                        string[] subkeys = uninstall.GetSubKeyNames();
+                        for (int i = 0; i < subkeys.Length && i < 4096; i++)
+                        {
+                            try
+                            {
+                                using (var app = uninstall.OpenSubKey(subkeys[i]))
+                                {
+                                    if (app == null || !IsCheckmkAgentProduct(Convert.ToString(app.GetValue("DisplayName"))))
+                                    {
+                                        continue;
+                                    }
+
+                                    string version = Convert.ToString(app.GetValue("DisplayVersion"));
+                                    version = version == null ? "" : version.Trim();
+                                    if (!reportedVersions.Add(version))
+                                    {
+                                        continue;
+                                    }
+
+                                    switch (ClassifyCheckmkAgentVersion(version))
+                                    {
+                                        case CheckmkVersionStatus.Candidate:
+                                            Beaprint.BadPrint("    Checkmk Windows agent registry version " + version + " predates the CVE-2024-0670 fix; candidate only. Confirm the installed agent and conditions before treating this as exploitable.");
+                                            break;
+                                        case CheckmkVersionStatus.Fixed:
+                                            Beaprint.GoodPrint("    Checkmk Windows agent registry version " + version + " is at or above the CVE-2024-0670 fixed floor; verify the installed agent version.");
+                                            break;
+                                        default:
+                                            Beaprint.InfoPrint("    Checkmk Windows agent registry version " + (version.Length == 0 ? "missing" : version.Length > 64 ? "unparsable" : version) + ": CVE-2024-0670 status unknown; verify the full agent patch level.");
+                                            break;
+                                    }
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                // One unreadable uninstall entry must not hide other entries.
+                            }
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Unsupported or unreadable registry views are optional.
+                }
             }
         }
 
@@ -286,11 +478,11 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Low-privilege control of enabled SYSTEM scheduled tasks", "T1053.005");
+                Beaprint.MainPrint("Low-privilege control and demand-start review of enabled SYSTEM scheduled tasks", "T1053.005");
                 Beaprint.LinkPrint("https://learn.microsoft.com/en-us/windows/win32/taskschd/security-contexts-for-running-tasks", "A writable action target or task DACL can let a low-privilege principal replace what the task runs as SYSTEM.");
 
                 PrivilegedScheduledTaskReport report = PrivilegedScheduledTasks.GetReport();
-                if (report.ControlFindings.Count == 0 && report.Findings.Count == 0)
+                if (report.ControlFindings.Count == 0 && report.Findings.Count == 0 && report.DemandStartFindings.Count == 0)
                 {
                     Beaprint.GoodPrint($"    No controllable task definitions or writable targets found within {report.TasksInspected} inspected task(s).");
                 }
@@ -308,6 +500,15 @@ namespace winPEAS.Checks
                     Beaprint.NoColorPrint($"    Action: {finding.Executable}");
                     Beaprint.BadPrint($"    Writable target: {finding.TargetPath}");
                     Beaprint.BadPrint($"    Access: {finding.AccessReason}");
+                    Beaprint.PrintLineSeparator();
+                }
+
+                foreach (PrivilegedScheduledTaskDemandStartFinding finding in report.DemandStartFindings)
+                {
+                    Beaprint.InfoPrint($"    Review on-demand SYSTEM task: {finding.TaskPath} ({finding.Principal})");
+                    Beaprint.NoColorPrint($"    Full action: {finding.Action}");
+                    Beaprint.NoColorPrint($"    Script path: {finding.ScriptPath}");
+                    Beaprint.NoColorPrint($"    Task execute access: {finding.Trustee}; verify whether the script trusts caller-controlled input before treating this as an escalation path.");
                     Beaprint.PrintLineSeparator();
                 }
 
