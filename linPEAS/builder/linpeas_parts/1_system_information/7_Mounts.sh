@@ -26,7 +26,7 @@
 # License: GNU GPL
 # Version: 1.2
 # Mitre: T1068,T1082,T1120
-# Functions Used: checkUDisksCVE20267867, checkXFSTangoCVE202680530, print_2title, print_info
+# Functions Used: checkLibblockdevCVE20256019, checkUDisksCVE20267867, checkXFSTangoCVE202680530, print_2title, print_info
 # Global Variables: $DEBUG, $SEARCH_IN_FOLDER, $mountG, $mountpermsB, $mountpermsG, $notmounted, $Wfolders, $mounted
 # Initial Functions:
 # Generated Global Variables:
@@ -35,6 +35,7 @@
 
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
+    checkLibblockdevCVE20256019
     checkUDisksCVE20267867
     checkXFSTangoCVE202680530
 fi

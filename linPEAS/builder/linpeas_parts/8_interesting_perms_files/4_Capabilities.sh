@@ -2,11 +2,11 @@
 # ID: IP_Capabilities
 # Author: Carlos Polop
 # Last Update: 14-08-2026
-# Description: Capabilities, including set-capabilities snap-confine exposure to CVE-2026-8933
+# Description: Capabilities, including snap-confine race prerequisites and CVE-2026-8933
 # License: GNU GPL
 # Version: 1.1
 # Mitre: T1548.001,T1068
-# Functions Used: checkSnapConfineCVE20268933, echo_not_found, print_2title, print_info, print_3title
+# Functions Used: checkSnapConfineCVE20263888, checkSnapConfineCVE20268933, echo_not_found, print_2title, print_info, print_3title
 # Global Variables: $capsB, $capsVB, $IAMROOT, $SEARCH_IN_FOLDER
 # Initial Functions:
 # Generated Global Variables: $cap_name, $cap_value, $cap_line, $cap_status_file, $cap_default_sep, $cap_sep, $cap_color, $capVB, $capname, $capbins, $capsVB_vuln, $proc_status, $proc_pid, $proc_name, $proc_uid, $user_name, $proc_inh, $proc_prm, $proc_eff, $proc_bnd, $proc_amb, $proc_inh_dec, $proc_prm_dec, $proc_eff_dec, $proc_bnd_dec, $proc_amb_dec
@@ -126,4 +126,5 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   done
   echo ""
   checkSnapConfineCVE20268933
+  checkSnapConfineCVE20263888
 fi

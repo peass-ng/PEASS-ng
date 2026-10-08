@@ -6,8 +6,8 @@
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1556.003
-# Functions Used: print_2title
-# Global Variables: $DEBUG
+# Functions Used: checkPamAllowActiveCVE20256018, print_2title
+# Global Variables: $DEBUG, $SEARCH_IN_FOLDER
 # Initial Functions:
 # Generated Global Variables: $pamdpass
 # Fat linpeas: 0
@@ -19,4 +19,8 @@ if [ "$pamdpass" ] || [ "$DEBUG" ]; then
   print_2title "Passwords inside pam.d" "T1556.003"
   grep -Ri "passwd"  ${ROOT_FOLDER}etc/pam.d/ 2>/dev/null | grep -v ":#" | sed "s,passwd,${SED_RED},"
   echo ""
+fi
+
+if ! [ "$SEARCH_IN_FOLDER" ]; then
+  checkPamAllowActiveCVE20256018
 fi

@@ -1,15 +1,15 @@
 # Title: Users Information - Sudo -l
 # ID: UG_Sudo_l
 # Author: Carlos Polop
-# Last Update: 04-10-2026
-# Description: Checking 'sudo -l', /etc/sudoers, /etc/sudoers.d, and privileged Python scripts that load code from writable paths
+# Last Update: 08-10-2026
+# Description: Checking 'sudo -l', sudoers files, needrestart config authorization, and privileged Python paths, caches, and archive extraction
 # License: GNU GPL
-# Version: 1.1
+# Version: 1.2
 # Mitre: T1548.003
 # Functions Used: echo_not_found, print_2title, print_info
-# Global Variables:$IAMROOT, $PASSWORD, $TIMEOUT, $sudoB, $sudoG, $sudoVB1, $sudoVB2
+# Global Variables:$IAMROOT, $PASSWORD, $TIMEOUT, $ROOT_FOLDER, $TMPDIR, $sudoB, $sudoG, $sudoVB1, $sudoVB2
 # Initial Functions:
-# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $secure_path_line, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir
+# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $secure_path_line, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -63,6 +63,39 @@ if [ "$secure_path_line" ]; then
       echo "Writable secure_path entry: $p" | sed -${E} "s,.*,${SED_RED},g"
     fi
   done
+fi
+
+# A bare sudoers command permits arbitrary arguments; sudoers "" permits none.
+# Ask sudo to authorize the exact -c invocation as root so argument restrictions,
+# negations, and run-as rules are resolved by sudo itself. The config is never
+# created and needrestart is never executed. This is separate from CVE-2024-48990.
+if { [ -z "$ROOT_FOLDER" ] || [ "$ROOT_FOLDER" = / ]; } &&
+   printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" |
+     grep -Eq '(^|[[:space:],!])/usr/sbin/needrestart([[:space:],]|$)'; then
+  sudo_needrestart_dir=${TMPDIR:-/tmp}
+  if [ -d "$sudo_needrestart_dir" ] && [ -x "$sudo_needrestart_dir" ] &&
+     [ -w "$sudo_needrestart_dir" ]; then
+    sudo_needrestart_config="$sudo_needrestart_dir/linpeas-needrestart-$$.conf"
+    if [ ! -e "$sudo_needrestart_config" ] && [ ! -L "$sudo_needrestart_config" ]; then
+      sudo_needrestart_timeout=${TIMEOUT:-$(command -v timeout 2>/dev/null)}
+      if [ "$sudo_needrestart_timeout" ]; then
+        if [ "$PASSWORD" ]; then
+          sudo_needrestart_query=$(printf '%s\n' "$PASSWORD" |
+            "$sudo_needrestart_timeout" 5 sudo -S -l -u root -- /usr/sbin/needrestart -c "$sudo_needrestart_config" 2>&1)
+        else
+          sudo_needrestart_query=$("$sudo_needrestart_timeout" 5 sudo -n -l -u root -- /usr/sbin/needrestart -c "$sudo_needrestart_config" 2>&1)
+        fi
+        if [ "$?" -eq 0 ]; then
+          echo "sudo permits root needrestart with a caller-controlled -c config; Perl config may execute as root: $sudo_needrestart_config" |
+            sed -${E} "s,.*,${SED_RED_YELLOW},"
+        else
+          echo "sudo needrestart -c authorization unverified (policy denied or authentication unavailable)"
+        fi
+      else
+        echo "sudo needrestart -c authorization unverified (timeout unavailable)"
+      fi
+    fi
+  fi
 fi
 
 # Correlate root-capable sudo Python commands with dynamic import/site-directory
@@ -148,6 +181,210 @@ if [ "$sudo_python_scripts" ]; then
         done
         echo ""
       done
+    done
+  done
+fi
+
+# Correlate direct root sudo rules with an existing cache for a top-level,
+# same-directory import. Only a bounded prefix of each script is read. The
+# interpreter is queried for its version, but the sudo target is never run.
+# A matching filename and permissions are review evidence, not proof that
+# Python will accept the bytecode header or that the import will be reached.
+sudo_python_cache_scripts=$(printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" | awk '
+  /^[[:space:]]*\((root|ALL)([[:space:]:,)]|$)/ && !/!root/ {
+    sub(/^[^)]*\)[[:space:]]*/, "")
+    sub(/^[^:]*:[[:space:]]*/, "")
+    if ($1 ~ /^\/[^[:space:]*?,\[\]]*\.py$/) print $1
+  }
+' | sort -u | head -n 10)
+
+if [ "$sudo_python_cache_scripts" ]; then
+  printf "%s\n" "$sudo_python_cache_scripts" | while IFS= read -r sudo_python_cache_script; do
+    [ -f "$sudo_python_cache_script" ] && [ -r "$sudo_python_cache_script" ] &&
+      [ -x "$sudo_python_cache_script" ] &&
+      [ ! -L "$sudo_python_cache_script" ] || continue
+    sudo_python_cache_size=$(stat -c %s "$sudo_python_cache_script" 2>/dev/null) ||
+      sudo_python_cache_size=$(stat -f %z "$sudo_python_cache_script" 2>/dev/null) || continue
+    case "$sudo_python_cache_size" in ''|*[!0-9]*) continue ;; esac
+    [ "$sudo_python_cache_size" -le 65536 ] || continue
+
+    sudo_python_cache_shebang=$(sed -n '1p;1q' "$sudo_python_cache_script" 2>/dev/null)
+    case "$sudo_python_cache_shebang" in '#!'/*) ;; *) continue ;; esac
+    sudo_python_cache_interpreter=${sudo_python_cache_shebang#'#!'}
+    sudo_python_cache_interpreter=${sudo_python_cache_interpreter%%[[:space:]]*}
+    case "${sudo_python_cache_interpreter##*/}" in
+      python3|python3.[0-9]|python3.[0-9][0-9]) ;;
+      *) continue ;;
+    esac
+    [ -x "$sudo_python_cache_interpreter" ] || continue
+    if [ "$TIMEOUT" ]; then
+      sudo_python_cache_version=$("$TIMEOUT" 2 "$sudo_python_cache_interpreter" -I -S --version 2>&1)
+    elif command -v timeout >/dev/null 2>&1; then
+      sudo_python_cache_version=$(timeout 2 "$sudo_python_cache_interpreter" -I -S --version 2>&1)
+    else
+      continue
+    fi
+    sudo_python_cache_tag=$(printf "%s\n" "$sudo_python_cache_version" | awk '
+      NF == 2 && $1 == "Python" && $2 ~ /^3\.[0-9]+\.[0-9]+$/ {
+        split($2, v, ".")
+        if (v[2] <= 99) print "cpython-3" v[2]
+        exit
+      }
+    ')
+    [ "$sudo_python_cache_tag" ] || continue
+
+    sudo_python_cache_dir=$(dirname "$sudo_python_cache_script")
+    [ -x "$sudo_python_cache_dir" ] || continue
+    sudo_python_cache_dir="$sudo_python_cache_dir/__pycache__"
+    [ -d "$sudo_python_cache_dir" ] && [ -x "$sudo_python_cache_dir" ] &&
+      [ ! -L "$sudo_python_cache_dir" ] || continue
+    sudo_python_cache_sticky=$(ls -ld "$sudo_python_cache_dir" 2>/dev/null | awk '{print substr($1, 10, 1)}')
+
+    sed -n '1,400p;401q' "$sudo_python_cache_script" 2>/dev/null | awk '
+      /^import[[:space:]]+[A-Za-z_][A-Za-z_0-9]*([[:space:],#]|$)/ {
+        module = $2
+        sub(/[,#].*$/, "", module)
+      }
+      /^from[[:space:]]+[A-Za-z_][A-Za-z_0-9]*[[:space:]]+import[[:space:]]+/ {
+        module = $2
+      }
+      module != "" && !seen[module]++ {
+        print NR "|" module
+        if (++count == 20) exit
+      }
+      { module = "" }
+    ' | while IFS='|' read -r sudo_python_cache_line sudo_python_cache_module; do
+      sudo_python_cache_source="${sudo_python_cache_dir%/__pycache__}/$sudo_python_cache_module.py"
+      sudo_python_cache_pyc="$sudo_python_cache_dir/$sudo_python_cache_module.$sudo_python_cache_tag.pyc"
+      [ -f "$sudo_python_cache_source" ] && [ -r "$sudo_python_cache_source" ] &&
+        [ -f "$sudo_python_cache_pyc" ] && [ -r "$sudo_python_cache_pyc" ] &&
+        [ ! -L "$sudo_python_cache_pyc" ] || continue
+
+      sudo_python_cache_access=""
+      if [ -w "$sudo_python_cache_pyc" ]; then
+        sudo_python_cache_access="bytecode file is writable"
+      elif [ -w "$sudo_python_cache_dir" ]; then
+        # Sticky directories only permit replacing a file owned by this user.
+        case "$sudo_python_cache_sticky" in
+          t|T)
+            sudo_python_cache_owner=$(stat -c %u "$sudo_python_cache_pyc" 2>/dev/null) ||
+              sudo_python_cache_owner=$(stat -f %u "$sudo_python_cache_pyc" 2>/dev/null)
+            [ "$sudo_python_cache_owner" = "$(id -u)" ] &&
+              sudo_python_cache_access="bytecode file is owned by this user in writable sticky cache"
+            ;;
+          *) sudo_python_cache_access="cache directory permits bytecode replacement" ;;
+        esac
+      fi
+      [ "$sudo_python_cache_access" ] || continue
+      echo "Privileged sudo Python bytecode cache review: $sudo_python_cache_script" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+      echo "Top-level import at line $sudo_python_cache_line: $sudo_python_cache_module ($sudo_python_cache_source)"
+      echo "Matching $sudo_python_cache_tag bytecode: $sudo_python_cache_pyc ($sudo_python_cache_access)" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+      echo "Check the bytecode header and source validity before treating this as exploitable."
+      echo ""
+    done
+  done
+fi
+
+# CVE-2025-4517: correlate a user-selected archive, a writable archive
+# directory, and extraction by the same tarfile handle. This only reads a
+# bounded script; it never runs the sudo-authorized command. Upstream fixes
+# shipped in CPython 3.9.23, 3.10.18, 3.11.13, 3.12.11, and 3.13.4.
+# Vendor backports may make an older version safe, so this is a review candidate.
+# https://discuss.python.org/t/python-3-13-4-3-12-11-3-11-13-3-10-18-and-3-9-23-are-now-available/94367
+sudo_python_tar_commands=$(printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" | awk '
+  /^[[:space:]]*\((root|ALL)([[:space:]:,)]|$)/ && !/!root/ {
+    sub(/^[^)]*\)[[:space:]]*/, "")
+    sub(/^[^:]*:[[:space:]]*/, "")
+    if ($1 ~ /^\/[^[:space:]]*\/python3(\.(9|10|11|12|13))?$/ &&
+        $2 ~ /^\/[^[:space:]]*\.py$/ && $3 == "*") print $1 "|" $2
+  }
+' | sort -u | head -n 10)
+
+if [ "$sudo_python_tar_commands" ]; then
+  printf "%s\n" "$sudo_python_tar_commands" | while IFS= read -r sudo_python_tar_command; do
+    sudo_python_binary=${sudo_python_tar_command%%|*}
+    python_sudo_script=${sudo_python_tar_command#*|}
+    [ -x "$sudo_python_binary" ] && [ -f "$python_sudo_script" ] && [ -r "$python_sudo_script" ] || continue
+    # Keep inspection bounded and never run the sudo-authorized script.
+    sudo_python_tar_size=$(stat -c %s "$python_sudo_script" 2>/dev/null) ||
+      sudo_python_tar_size=$(stat -f %z "$python_sudo_script" 2>/dev/null) || continue
+    case "$sudo_python_tar_size" in ''|*[!0-9]*) continue ;; esac
+    [ "$sudo_python_tar_size" -le 65536 ] || continue
+    if [ "$TIMEOUT" ]; then
+      sudo_python_version=$("$TIMEOUT" 2 "$sudo_python_binary" -I -S --version 2>&1)
+    elif command -v timeout >/dev/null 2>&1; then
+      sudo_python_version=$(timeout 2 "$sudo_python_binary" -I -S --version 2>&1)
+    else
+      continue
+    fi
+    sudo_python_version=$(printf "%s\n" "$sudo_python_version" | awk '
+      NF == 2 && $1 == "Python" && $2 ~ /^3\.(9|10|11|12|13)\.[0-9]+$/ {
+        split($2, v, ".")
+        if ((v[2] == 9 && v[3] < 23) || (v[2] == 10 && v[3] < 18) ||
+            (v[2] == 11 && v[3] < 13) || (v[2] == 12 && v[3] < 11) ||
+            (v[2] == 13 && v[3] < 4)) {
+          print $2
+          exit
+        }
+      }
+    ')
+    [ "$sudo_python_version" ] || continue
+
+    sed -n '1,400p;401q' "$python_sudo_script" 2>/dev/null | awk '
+      {
+        line = $0
+        sub(/^[[:space:]]*/, "", line)
+        indent = length($0) - length(line)
+        if (active && line !~ /^(#|$)/ && indent <= active_indent) active = 0
+        if (active && line ~ ("^" handle "[.]extractall[[:space:]]*[(]") &&
+            line ~ /filter[[:space:]]*=[[:space:]]*["\047]data["\047]/) {
+          print active_dir
+          active = 0
+        }
+        if (line ~ /^[A-Za-z_][A-Za-z_0-9]*[[:space:]]*=/) {
+          name = line
+          sub(/[[:space:]]*=.*/, "", name)
+          if (active && name == handle) active = 0
+          delete dirs[name]
+          delete archives[name]
+          rhs = line
+          sub(/^[^=]*=[[:space:]]*/, "", rhs)
+          quote = substr(rhs, 1, 1)
+          if (quote == "\"" || quote == sprintf("%c", 39)) {
+            end = index(substr(rhs, 2), quote)
+            path = substr(rhs, 2, end - 1)
+            rest = substr(rhs, end + 2)
+            if (end > 1 && substr(path, 1, 1) == "/" && rest ~ /^[[:space:]]*(#.*)?$/)
+              dirs[name] = path
+          }
+          if (rhs ~ /^os[.]path[.]join[[:space:]]*[(][[:space:]]*[A-Za-z_][A-Za-z_0-9]*[[:space:]]*,[[:space:]]*args[.][A-Za-z_][A-Za-z_0-9]*[[:space:]]*[)]/) {
+            base = rhs
+            sub(/^os[.]path[.]join[[:space:]]*[(][[:space:]]*/, "", base)
+            sub(/[[:space:],].*/, "", base)
+            if (base in dirs) archives[name] = dirs[base]
+          }
+        }
+        if (line ~ /^with[[:space:]]+tarfile[.]open[[:space:]]*[(][[:space:]]*[A-Za-z_][A-Za-z_0-9]*[[:space:],)]/ &&
+            line ~ /[[:space:]]as[[:space:]]+[A-Za-z_][A-Za-z_0-9]*[[:space:]]*:[[:space:]]*(#.*)?$/) {
+          archive = line
+          sub(/^with[[:space:]]+tarfile[.]open[[:space:]]*[(][[:space:]]*/, "", archive)
+          sub(/[[:space:],)].*/, "", archive)
+          if (archive in archives) {
+            handle = line
+            sub(/^.*[[:space:]]as[[:space:]]+/, "", handle)
+            sub(/[[:space:]]*:.*$/, "", handle)
+            active_dir = archives[archive]
+            active_indent = indent
+            active = 1
+          }
+        }
+      }
+    ' | sort -u | while IFS= read -r sudo_python_tar_dir; do
+      [ -d "$sudo_python_tar_dir" ] && [ -w "$sudo_python_tar_dir" ] || continue
+      echo "Privileged sudo Python archive extraction review: $python_sudo_script ($sudo_python_version)" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+      echo "Writable archive directory: $sudo_python_tar_dir; tarfile.extractall(filter=\"data\") may allow CVE-2025-4517 on unpatched CPython" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+      echo "Check vendor patches before treating the version as vulnerable."
+      echo ""
     done
   done
 fi

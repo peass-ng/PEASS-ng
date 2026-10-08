@@ -12,9 +12,9 @@
 # Version: 1.1
 # Mitre: T1571,T1049
 # Functions Used: print_2title, print_info
-# Global Variables: $EXTRA_CHECKS, $groupsB, $groupsVB, $IAMROOT, $idB, $knw_grps, $knw_usrs, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $SED_RED, $SED_GREEN, $SED_RED_YELLOW, $NC, $RED
+# Global Variables: $EXTRA_CHECKS, $groupsB, $groupsVB, $IAMROOT, $idB, $knw_grps, $knw_usrs, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $SED_RED, $SED_GREEN
 # Initial Functions:
-# Generated Global Variables: $unix_scks_list, $unix_scks_list2, $perms, $owner, $owner_info, $response, $socket, $cmd, $mode, $group
+# Generated Global Variables: $unix_scks_list, $unix_scks_list2, $ss_metadata, $socket_listing, $socket_info, $perms, $owner, $owner_info, $owner_uid, $response, $socket, $cmd, $mode, $group, $read_access, $write_access, $listener_info, $listener_pid, $listener_uid, $listener_is_active
 # Fat linpeas: 0
 # Small linpeas: 0
 
@@ -27,15 +27,18 @@ if ! [ "$IAMROOT" ]; then
         # Function to get socket permissions
         get_socket_perms() {
             local socket="$1"
+            local mode="$2"
+            local read_access="$3"
+            local write_access="$4"
             local perms=""
             
             # Check read permission
-            if [ -r "$socket" ]; then
+            if [ "$read_access" = "yes" ]; then
                 perms="Read "
             fi
             
             # Check write permission
-            if [ -w "$socket" ]; then
+            if [ "$write_access" = "yes" ]; then
                 perms="${perms}Write "
             fi
             
@@ -44,8 +47,6 @@ if ! [ "$IAMROOT" ]; then
                 perms="${perms}Execute "
             fi
             
-            # Check socket mode
-            local mode=$(stat -c "%a" "$socket" 2>/dev/null)
             if [ "$mode" = "777" ] || [ "$mode" = "666" ]; then
                 perms="${perms}(Weak Permissions: $mode) "
             fi
@@ -87,24 +88,33 @@ if ! [ "$IAMROOT" ]; then
             fi
         }
 
-        # Function to get socket owner and group
-        get_socket_owner() {
-            local socket="$1"
-            local owner=""
-            local group=""
-            
-            if [ -e "$socket" ]; then
-                owner=$(ls -l "$socket" 2>/dev/null | awk '{print $3}')
-                group=$(ls -l "$socket" 2>/dev/null | awk '{print $4}')
-                echo "$owner:$group"
-            fi
-        }
-
         # Collect listening sockets using multiple methods
         unix_scks_list=""
+        ss_metadata=""
         for cmd in "ss -xlp -H state listening" "ss -l -p -A 'unix'" "netstat -a -p --unix"; do
             if [ -z "$unix_scks_list" ]; then
-                unix_scks_list=$($cmd 2>/dev/null | grep -Eo "/[a-zA-Z0-9\._/\-]+" | grep -v " " | sort -u)
+                case "$cmd" in
+                    ss\ *)
+                        socket_listing=$($cmd 2>/dev/null)
+                        unix_scks_list=$(printf '%s\n' "$socket_listing" | grep -Eo "/[a-zA-Z0-9\._/\-]+" | grep -v " " | sort -u)
+                        if [ -n "$unix_scks_list" ]; then
+                            # Reuse the ss output already collected; never query processes per socket.
+                            ss_metadata=$(printf '%s\n' "$socket_listing" | awk '
+                                match($0, /\/[a-zA-Z0-9._\/-]+/) {
+                                    path = substr($0, RSTART, RLENGTH)
+                                    pid = ""; uid = ""
+                                    if (match($0, /pid=[0-9]+/)) pid = substr($0, RSTART + 4, RLENGTH - 4)
+                                    if (match($0, /uid[:=][0-9]+/)) uid = substr($0, RSTART + 4, RLENGTH - 4)
+                                    print path "|" pid "|" uid
+                                }')
+                            ss_metadata="
+$ss_metadata"
+                        fi
+                        ;;
+                    *)
+                        unix_scks_list=$($cmd 2>/dev/null | grep -Eo "/[a-zA-Z0-9\._/\-]+" | grep -v " " | sort -u)
+                        ;;
+                esac
             fi
         done
 
@@ -124,29 +134,69 @@ if ! [ "$IAMROOT" ]; then
         (printf "%s\n" "$unix_scks_list" && printf "%s\n" "$unix_scks_list2") | sort -u | while read -r socket; do
             if [ -n "$socket" ] && [ -e "$socket" ]; then
                 # Get socket information
-                perms=$(get_socket_perms "$socket")
-                perms=$(check_socket_connectivity "$socket" "$perms")
-                owner_info=$(get_socket_owner "$socket")
-                
-                # Print socket information
-                if [ -z "$perms" ]; then
-                    echo "$socket" | sed -${E} "s,$socket,${SED_GREEN},g"
+                socket_info=$(stat -c '%a|%U|%G|%u' "$socket" 2>/dev/null)
+                [ -n "$socket_info" ] || socket_info=$(stat -f '%Lp|%Su|%Sg|%u' "$socket" 2>/dev/null)
+                if [ -n "$socket_info" ]; then
+                    mode=${socket_info%%|*}
+                    socket_info=${socket_info#*|}
+                    owner=${socket_info%%|*}
+                    socket_info=${socket_info#*|}
+                    group=${socket_info%%|*}
+                    owner_uid=${socket_info#*|}
                 else
-                    echo "$socket" | sed -${E} "s,$socket,${SED_RED},g"
-                    echo "  └─(${RED}${perms}${NC})" | sed -${E} "s,Cannot Connect,${SED_GREEN},g"
-                    
-                    # Analyze socket protocol if we can connect
-                    if echo "$perms" | grep -q "Can Connect"; then
-                        analyze_socket_protocol "$socket" "$owner_info"
-                    fi
-                    
-                    # Highlight dangerous ownership
-                    if echo "$owner_info" | grep -q "root"; then
-                        echo "  └─(${RED}Owned by root${NC})"
-                        if echo "$perms" | grep -q "Write"; then
-                            echo "  └─High risk: root-owned and writable Unix socket" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
-                        fi
-                    fi
+                    mode="unknown"
+                    owner="unknown"
+                    group="unknown"
+                    owner_uid=""
+                fi
+                owner_info="$owner:$group"
+                read_access="no"
+                write_access="no"
+                [ -r "$socket" ] && read_access="yes"
+                [ -w "$socket" ] && write_access="yes"
+                perms=$(get_socket_perms "$socket" "$mode" "$read_access" "$write_access")
+                perms=$(check_socket_connectivity "$socket" "$perms")
+
+                echo "Path: $socket"
+                echo "  └─ Mode: $mode; Owner/Group: $owner_info"
+                echo "  └─ Current user access: read=$read_access, write=$write_access"
+                if [ -n "$perms" ]; then
+                    echo "  └─ $perms" | sed -${E} "s,Cannot Connect,${SED_GREEN},g"
+                fi
+
+                # A discovered socket file can remain after its listener exits.
+                listener_is_active=no
+                case "
+$unix_scks_list
+" in
+                    *"
+$socket
+"*) listener_is_active=yes ;;
+                esac
+
+                # Only display listener details that came with the existing ss listing.
+                case "$ss_metadata" in
+                    *"
+$socket|"*)
+                        listener_info=${ss_metadata#*"
+$socket|"}
+                        listener_info=${listener_info%%"
+"*}
+                        listener_pid=${listener_info%%|*}
+                        listener_uid=${listener_info#*|}
+                        [ -n "$listener_pid" ] && echo "  └─ ss listener PID: $listener_pid"
+                        [ -n "$listener_uid" ] && echo "  └─ ss socket UID: $listener_uid"
+                        ;;
+                esac
+
+                # Access alone does not establish what a service executes.
+                if [ "$listener_is_active" = "yes" ] && [ "$owner_uid" = "0" ] && [ "$write_access" = "yes" ]; then
+                    echo "  └─ Review lead: current user can write to a root-owned Unix socket; inspect service behavior and privileges."
+                fi
+
+                # Preserve the optional protocol check when EXTRA_CHECKS found connectivity.
+                if echo "$perms" | grep -q "Can Connect"; then
+                    analyze_socket_protocol "$socket" "$owner_info"
                 fi
             fi
         done

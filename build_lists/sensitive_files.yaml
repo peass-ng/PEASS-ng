@@ -497,9 +497,9 @@ search:
             
             - name: "php.ini"
               value: 
-                bad_regex: "On"
+                bad_regex: "^[[:space:]]*allow_[[:alnum:]_]*[[:space:]]*=[[:space:]]*On"
                 remove_regex: "^;"
-                line_grep: "allow_"
+                line_grep: "'^[[:space:]]*(allow_[[:alnum:]_]*|disable_functions|open_basedir)[[:space:]]*='"
                 type: f
                 search_in: 
                     - common
@@ -829,11 +829,22 @@ search:
           - name: "hostapd.conf"
             value: 
               bad_regex: "passphrase.*"
+              # Keep the existing config matches when the EAP file path filter is applied.
+              check_extra_path: '(^|/)hostapd\.conf$'
               remove_regex: '^#'
               remove_empty_lines: True
               type: f
               search_in: 
                 - common
+
+          - name: "*.eap_user"
+            value:
+              # Quoted phase-2 passwords are EAP credentials, not evidence of local account access.
+              check_extra_path: '^/etc/hostapd/[^/]*\.eap_user$'
+              line_grep: '''^[[:space:]]*"[^"]+"[[:space:]]+[[:alnum:],-]+[[:space:]]+"[^"]+"[[:space:]]+\[2\]([[:space:]]*#.*)?$'' | head -n 20'
+              type: f
+              search_in:
+                - ${ROOT_FOLDER}etc
   
   - name: Wifi Connections
     value:
