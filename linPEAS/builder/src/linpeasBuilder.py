@@ -1,13 +1,11 @@
 import gzip
 import io
-import json
 import re
 import requests
 import base64
 import os
 import tarfile
 import zlib
-from pathlib import Path
 
 from .peasLoaded import PEASLoaded
 from .peassRecord import PEASRecord
@@ -354,9 +352,8 @@ class LinpeasBuilder:
     
     def __get_gtfobins_lists(self) -> tuple:
         # One repository archive replaces a directory listing and hundreds of
-        # sequential raw-file requests. The bundled snapshot keeps builds
-        # complete and deterministic when GitHub is slow or unavailable.
-        archive_url = "https://api.github.com/repos/GTFOBins/GTFOBins.github.io/tarball/master"
+        # sequential raw-file requests. Every build uses the current archive.
+        archive_url = "https://codeload.github.com/GTFOBins/GTFOBins.github.io/tar.gz/refs/heads/master"
         try:
             response = requests.get(archive_url, timeout=(3, 8), stream=True)
             try:
@@ -370,12 +367,10 @@ class LinpeasBuilder:
                 response.close()
             categories = self.__gtfobins_archive_categories(content)
             self.__validate_gtfobins_categories(categories)
-        except (requests.RequestException, tarfile.TarError, OSError, ValueError, EOFError, zlib.error):
-            print("[+] GTFOBins archive unavailable; using bundled capability snapshot")
-            snapshot = Path(__file__).resolve().parents[1] / "gtfobins_snapshot.json"
-            with snapshot.open(encoding="utf-8") as handle:
-                categories = json.load(handle)
-            self.__validate_gtfobins_categories(categories)
+        except (requests.RequestException, tarfile.TarError, OSError, ValueError, EOFError, zlib.error) as exc:
+            raise RuntimeError(
+                "Cannot build GTFOBins lists: failed to download or validate the current archive"
+            ) from exc
 
         # sudoers aliases and sudo -l may list several commands on one line.
         sudo_command_boundary = "([[:space:]]*[,]|$)"

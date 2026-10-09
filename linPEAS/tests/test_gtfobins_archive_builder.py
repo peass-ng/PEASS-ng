@@ -1,8 +1,7 @@
-"""One-download GTFOBins builder and offline completeness fixtures."""
+"""One-download GTFOBins builder with synthetic archive fixtures."""
 
 import gzip
 import io
-import json
 import sys
 import tarfile
 import unittest
@@ -39,13 +38,16 @@ class FakeResponse:
 class GtfobinsArchiveBuilderTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        with (LINPEAS / "builder/gtfobins_snapshot.json").open() as handle:
-            cls.snapshot = json.load(handle)
+        cls.categories = {
+            "sudo": sorted(["R"] + [f"sudo-tool-{index:03}" for index in range(250)]),
+            "suid": [f"suid-tool-{index:03}" for index in range(186)],
+            "capabilities": [f"cap-tool-{index:03}" for index in range(3)],
+        }
 
-    def archive_from_snapshot(self):
+    def archive_from_categories(self):
         labels = {}
         for category in ("sudo", "suid", "capabilities"):
-            for name in self.snapshot[category]:
+            for name in self.categories[category]:
                 labels.setdefault(name, []).append(category)
         output = io.BytesIO()
         with tarfile.open(fileobj=output, mode="w:gz") as archive:
@@ -56,50 +58,58 @@ class GtfobinsArchiveBuilderTests(unittest.TestCase):
                 archive.addfile(entry, io.BytesIO(payload))
         return output.getvalue()
 
-    def test_single_archive_request_matches_complete_offline_snapshot(self):
-        archive = self.archive_from_snapshot()
+    def test_single_archive_request_uses_downloaded_categories(self):
+        archive = self.archive_from_categories()
         builder = object.__new__(LinpeasBuilder)
         response = FakeResponse(archive)
         with patch("builder.src.linpeasBuilder.requests.get", return_value=response) as get:
-            online = builder._LinpeasBuilder__get_gtfobins_lists()
+            lists = builder._LinpeasBuilder__get_gtfobins_lists()
         self.assertTrue(response.closed)
         self.assertTrue(get.call_args.kwargs["stream"])
         get.assert_called_once()
+        self.assertEqual(
+            "https://codeload.github.com/GTFOBins/GTFOBins.github.io/tar.gz/refs/heads/master",
+            get.call_args.args[0],
+        )
         self.assertEqual((3, 8), get.call_args.kwargs["timeout"])
 
-        with patch("builder.src.linpeasBuilder.requests.get", side_effect=requests.Timeout) as get:
-            offline = builder._LinpeasBuilder__get_gtfobins_lists()
-        get.assert_called_once()
-        self.assertEqual(online, offline)
-        self.assertGreater(len(online[0]), 185)
-        self.assertGreater(len(online[1]), 250)
-        self.assertGreater(len(online[2]), 2)
-        self.assertIn("[^a-zA-Z0-9]R([[:space:]]*[,]|$)", online[1])
+        self.assertEqual(["/" + name + "$" for name in self.categories["suid"]], lists[0])
+        self.assertEqual(len(self.categories["sudo"]), len(lists[1]))
+        self.assertEqual(self.categories["capabilities"], lists[2])
+        self.assertIn("[^a-zA-Z0-9]R([[:space:]]*[,]|$)", lists[1])
 
-    def test_rejects_incomplete_or_corrupt_archive_before_fallback(self):
+    def test_download_failure_stops_build(self):
+        builder = object.__new__(LinpeasBuilder)
+        with patch("builder.src.linpeasBuilder.requests.get", side_effect=requests.Timeout) as get:
+            with self.assertRaisesRegex(RuntimeError, "failed to download or validate") as caught:
+                builder._LinpeasBuilder__get_gtfobins_lists()
+        get.assert_called_once()
+        self.assertIsInstance(caught.exception.__cause__, requests.Timeout)
+
+    def test_rejects_incomplete_or_corrupt_archive(self):
         builder = object.__new__(LinpeasBuilder)
         with patch("builder.src.linpeasBuilder.requests.get", return_value=FakeResponse(b"bad")) as get:
-            lists = builder._LinpeasBuilder__get_gtfobins_lists()
+            with self.assertRaisesRegex(RuntimeError, "failed to download or validate"):
+                builder._LinpeasBuilder__get_gtfobins_lists()
         get.assert_called_once()
-        self.assertGreater(len(lists[1]), 250)
 
-    def test_archive_download_limit_stops_reading_and_falls_back(self):
+    def test_archive_download_limit_stops_reading(self):
         response = FakeResponse(b"x" * (3 * 1024 * 1024))
         builder = object.__new__(LinpeasBuilder)
         with patch("builder.src.linpeasBuilder.requests.get", return_value=response):
-            lists = builder._LinpeasBuilder__get_gtfobins_lists()
-        self.assertGreater(len(lists[1]), 250)
+            with self.assertRaisesRegex(RuntimeError, "failed to download or validate"):
+                builder._LinpeasBuilder__get_gtfobins_lists()
         self.assertTrue(response.closed)
         self.assertEqual(response.chunks_yielded, 33)
 
-    def test_archive_http_error_closes_response_before_fallback(self):
+    def test_archive_http_error_closes_response(self):
         response = FakeResponse(b"")
         builder = object.__new__(LinpeasBuilder)
         with patch("builder.src.linpeasBuilder.requests.get", return_value=response), patch.object(
             response, "raise_for_status", side_effect=requests.HTTPError
         ):
-            lists = builder._LinpeasBuilder__get_gtfobins_lists()
-        self.assertGreater(len(lists[1]), 250)
+            with self.assertRaisesRegex(RuntimeError, "failed to download or validate"):
+                builder._LinpeasBuilder__get_gtfobins_lists()
         self.assertTrue(response.closed)
         self.assertEqual(response.chunks_yielded, 0)
 
@@ -129,13 +139,14 @@ class GtfobinsArchiveBuilderTests(unittest.TestCase):
         with patch("builder.src.linpeasBuilder.requests.get", return_value=response), patch(
             "builder.src.linpeasBuilder.gzip.GzipFile", return_value=compressed
         ), patch("builder.src.linpeasBuilder.tarfile.open") as tar_open:
-            lists = builder._LinpeasBuilder__get_gtfobins_lists()
+            with self.assertRaisesRegex(RuntimeError, "failed to download or validate") as caught:
+                builder._LinpeasBuilder__get_gtfobins_lists()
         compressed.read.assert_called_once_with(16 * 1024 * 1024 + 1)
         tar_open.assert_not_called()
         self.assertTrue(response.closed)
-        self.assertGreater(len(lists[1]), 250)
+        self.assertIsInstance(caught.exception.__cause__, ValueError)
 
-    def test_invalid_deflate_stream_uses_snapshot(self):
+    def test_invalid_deflate_stream_stops_build(self):
         response = FakeResponse(b"unused")
         compressed = MagicMock()
         compressed.__enter__.return_value = compressed
@@ -144,9 +155,10 @@ class GtfobinsArchiveBuilderTests(unittest.TestCase):
         with patch("builder.src.linpeasBuilder.requests.get", return_value=response), patch(
             "builder.src.linpeasBuilder.gzip.GzipFile", return_value=compressed
         ):
-            lists = builder._LinpeasBuilder__get_gtfobins_lists()
+            with self.assertRaisesRegex(RuntimeError, "failed to download or validate") as caught:
+                builder._LinpeasBuilder__get_gtfobins_lists()
         self.assertTrue(response.closed)
-        self.assertGreater(len(lists[1]), 250)
+        self.assertIsInstance(caught.exception.__cause__, zlib.error)
 
     def test_archive_parser_ignores_nested_and_oversized_members(self):
         output = io.BytesIO()
