@@ -9,7 +9,7 @@
 # Functions Used: check_pg_basebackup_boundary, echo_not_found, print_2title, print_3title, print_info
 # Global Variables: $cronjobsG, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders, $cronjobsB, $PATH, $PG_BASEBACKUP_DESTS
 # Initial Functions:
-# Generated Global Variables: $cmd, $VAR, $file, $path, $user_crontab, $username, $job_id, $cron_dir, $crontab, $findings, $line, $finding, $bin, $cron_log_timeout, $cron_log_status, $files, $cron_file, $prefix, $spool, $bash, $script, $log, $parent, $safe, $candidate, $rest, $part, $route, $mode, $sticky, $cron_tar_timeout, $cron_tar_status, $current_uid, $schedule, $spool_owner, $runas, $helper, $schedule_line, $owner_uid, $helper_text, $dir, $tar_cmd, $helper_line, $version, $cron_process_timeout, $cron_process_status, $magick_cwd, $magick_bin, $magick_cd_line, $magick_exec_line, $magick_marker, $cron_replace_status, $cron_replace_timeout, $cron_ansible_status, $cron_ansible_timeout, $glob, $depth
+# Generated Global Variables: $cmd, $VAR, $file, $path, $user_crontab, $username, $job_id, $cron_dir, $crontab, $findings, $line, $finding, $bin, $cron_log_timeout, $cron_log_status, $files, $cron_file, $prefix, $spool, $bash, $script, $log, $parent, $safe, $candidate, $rest, $part, $route, $mode, $sticky, $cron_tar_timeout, $cron_tar_status, $current_uid, $schedule, $spool_owner, $runas, $helper, $schedule_line, $owner_uid, $helper_text, $dir, $tar_cmd, $helper_line, $version, $cron_process_timeout, $cron_process_status, $magick_cwd, $magick_bin, $magick_cd_line, $magick_exec_line, $magick_marker, $cron_replace_status, $cron_replace_timeout, $cron_ansible_status, $cron_ansible_timeout, $glob, $depth, $kind, $wrapper_text
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -86,7 +86,7 @@ cron_ansible_glob_probe() {
 }
 
 # A read-only cron script may still be replaceable through its parent. Inspect
-# only literal shell-script paths in a few visible cron files; no job is run.
+# only literal script paths in a few visible cron files; no job is run.
 cron_replaceable_script_probe() {
   cron_replace_timeout=$(command -v timeout 2>/dev/null || command -v gtimeout 2>/dev/null)
   [ -n "$cron_replace_timeout" ] || return 0
@@ -114,20 +114,22 @@ cron_replaceable_script_probe() {
         {
           for (i = 1; i <= 5; i++) if ($i !~ /^[0-9*,\/-]+$/) next
           if (owner == "") {
-            if (NF != 8) next
             runas = $6; shell = $7; script = $8
+            kind = (NF == 8 ? "shell" : (NF == 7 ? "php" : ""))
+            if (kind == "php") script = $7
           } else {
-            if (NF != 7) next
             runas = owner; shell = $6; script = $7
+            kind = (NF == 7 ? "shell" : (NF == 6 ? "php" : ""))
+            if (kind == "php") script = $6
           }
-          if (runas !~ /^[A-Za-z_][A-Za-z0-9_-]*$/ ||
-              (shell != "/bin/sh" && shell != "/usr/bin/sh" &&
+          if (runas !~ /^[A-Za-z_][A-Za-z0-9_-]*$/ || kind == "" ||
+              (kind == "shell" && shell != "/bin/sh" && shell != "/usr/bin/sh" &&
                shell != "/bin/bash" && shell != "/usr/bin/bash") ||
               script !~ /^\/[A-Za-z0-9_\/.+-]+$/) next
-          print runas "|" script "|" NR
+          print runas "|" script "|" NR "|" kind
         }
         END { if (partial) print "#PARTIAL" }
-      '\'' | while IFS="|" read -r runas script schedule_line; do
+      '\'' | while IFS="|" read -r runas script schedule_line kind; do
         if [ "$runas" = "#PARTIAL" ]; then
           echo "Cron script replacement review incomplete (line/column limit): $cron_file"
           continue
@@ -135,6 +137,56 @@ cron_replaceable_script_probe() {
         case "$script" in *"/../"*|*"/.."|*"/./"*|*"/."|*"//"*) continue ;; esac
         owner_uid=$(id -u "$runas" 2>/dev/null) || continue
         [ "$owner_uid" != "$current_uid" ] || continue
+        if [ "$kind" = php ]; then
+          [ "$owner_uid" = 0 ] && [ -f "$script" ] && [ -r "$script" ] && [ ! -L "$script" ] || continue
+          path=; rest=${script#/}; safe=1
+          while [ -n "$rest" ]; do
+            part=${rest%%/*}; path=$path/$part
+            if [ -L "$path" ]; then safe=0; break; fi
+            case "$rest" in */*) rest=${rest#*/} ;; *) rest= ;; esac
+          done
+          [ "$safe" -eq 1 ] || continue
+          wrapper_text=$(dd if="$script" bs=4097 count=1 2>/dev/null) || continue
+          [ "${#wrapper_text}" -lt 4096 ] || continue
+          printf "%s\n" "$wrapper_text" | awk "NR == 1 { exit !(/^#!\\/(usr\\/bin|bin)\\/php([0-9.]*)?([[:space:]]|$)/) }" || continue
+          printf "%s\n" "$wrapper_text" | awk '\''
+            NR > 32 || length($0) > 512 { next }
+            {
+              line = $0
+              sub(/^[ \t]*/, "", line)
+              if (line !~ /^exec[ \t]*\(/) next
+              sub(/^exec[ \t]*\([ \t]*/, "", line)
+              quote = substr(line, 1, 1)
+              if (quote != sprintf("%c", 39) && quote != "\"") next
+              line = substr(line, 2)
+              if (match(line, /^\/[A-Za-z0-9_\/.+-]+/) == 0) next
+              helper = substr(line, 1, RLENGTH)
+              tail = substr(line, RLENGTH + 1)
+              if (substr(tail, 1, 1) != quote) next
+              tail = substr(tail, 2)
+              if (tail !~ /^[ \t]*\)[ \t]*;[ \t]*(\/\/.*)?$/) next
+              if (++found > 2) exit
+              print helper
+            }
+          '\'' | while IFS= read -r helper; do
+            case "$helper" in *"/../"*|*"/.."|*"/./"*|*"/."|*"//"*) continue ;; esac
+            [ ! -e "$helper" ] && [ ! -L "$helper" ] || continue
+            parent=${helper%/*}; [ -n "$parent" ] || parent=/
+            [ -d "$parent" ] && [ -w "$parent" ] && [ -x "$parent" ] || continue
+            path=; rest=${helper#/}; safe=1
+            while [ -n "$rest" ]; do
+              part=${rest%%/*}; path=$path/$part
+              if [ -L "$path" ]; then safe=0; break; fi
+              case "$rest" in */*) rest=${rest#*/} ;; *) rest= ;; esac
+            done
+            [ "$safe" -eq 1 ] || continue
+            mode=$(ls -ld "$parent" 2>/dev/null) || continue
+            mode=${mode%% *}
+            case $(printf "%s" "$mode" | cut -c 10) in t|T) continue ;; esac
+            echo "Cron PHP helper review candidate: $cron_file:$schedule_line (root script $script calls absent $helper in current-user-writable $parent; verify scheduler state, PHP policy, ACLs, and mount policy)"
+          done
+          continue
+        fi
         [ -f "$script" ] && [ ! -L "$script" ] && [ ! -w "$script" ] || continue
         parent=${script%/*}; [ -n "$parent" ] || parent=/
         [ -d "$parent" ] && [ -w "$parent" ] && [ -x "$parent" ] || continue

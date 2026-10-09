@@ -77,8 +77,43 @@ class SshForwardingTextReviewTests(unittest.TestCase):
             result = self._review(config)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("[Match User restricted]: AllowTcpForwarding no", result.stdout)
-            self.assertIn("review effective SSH forwarding policy", result.stdout)
+            self.assertIn("review effective SSH policy", result.stdout)
             self.assertNotIn("exploitable", result.stdout.lower())
+
+    def test_authorized_key_helper_directives_keep_scope_and_absence_unknown(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = Path(tmp) / "sshd_config"
+            config.write_text(
+                "# AuthorizedKeysCommand /ignored/helper\n"
+                "AuthorizedKeysCommand /usr/local/libexec/key-lookup %u %k\n"
+                "AuthorizedKeysCommandUser nobody\n"
+                "Match User restricted\n"
+                "  AuthorizedKeysCommand none\n"
+                "  AuthorizedKeysCommandUser root # scoped override\n",
+                encoding="utf-8",
+            )
+            result = self._review(config)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn(
+                "2 [global]: AuthorizedKeysCommand /usr/local/libexec/key-lookup %u %k",
+                result.stdout,
+            )
+            self.assertIn("3 [global]: AuthorizedKeysCommandUser nobody", result.stdout)
+            self.assertIn(
+                "5 [Match User restricted]: AuthorizedKeysCommand none", result.stdout
+            )
+            self.assertIn(
+                "6 [Match User restricted]: AuthorizedKeysCommandUser root", result.stdout
+            )
+            self.assertNotIn("/ignored/helper", result.stdout)
+            self.assertNotIn("scoped override", result.stdout)
+            self.assertIn("do not prove execution or vulnerability", result.stdout)
+
+            config.write_text("PermitRootLogin prohibit-password\n", encoding="utf-8")
+            absent = self._review(config)
+            self.assertEqual(absent.returncode, 0, absent.stderr)
+            self.assertNotIn("AuthorizedKeysCommand", absent.stdout)
+            self.assertNotIn("key-lookup", absent.stdout)
 
     def test_unreadable_or_missing_config_remains_unknown(self):
         result = self._review(Path("/does/not/exist/sshd_config"))

@@ -153,7 +153,7 @@ ssh_ca_trust_correlation() {
 # Show only a bounded portion of the readable server config. Match headings
 # retain the scope of subsequent directives; this text is not sshd's policy.
 ssh_forwarding_config_review() {
-  print_3title 'SSH server directives (review effective SSH forwarding policy)' 'T1021.004'
+  print_3title 'SSH server directives (review effective SSH policy)' 'T1021.004'
   if [ ! -f "$1" ] || [ ! -r "$1" ]; then
     printf '%s\n' 'SSH server config unreadable; forwarding policy unknown.'
     return 0
@@ -177,7 +177,8 @@ ssh_forwarding_config_review() {
                  key == "port" || key == "permitemptypasswords" ||
                  key == "pubkeyauthentication" || key == "listenaddress" ||
                  key == "forwardagent" || key == "allowagentforwarding" ||
-                 key == "authorizedkeysfile" || key == "allowtcpforwarding" ||
+                 key == "authorizedkeysfile" || key == "authorizedkeyscommand" ||
+                 key == "authorizedkeyscommanduser" || key == "allowtcpforwarding" ||
                  key == "disableforwarding" || key == "permitopen" ||
                  key == "forcecommand" || key == "chrootdirectory") {
         printf "%d [%s]: %s\n", NR, context, line
@@ -185,7 +186,7 @@ ssh_forwarding_config_review() {
     }
     BEGIN { context = "global" }
   ' "$1"
-  printf '%s\n' 'Text review only (first 512 lines, 1024 characters per line). Include targets, Match applicability, command-line overrides, and authorized-key restrictions are unknown here.'
+  printf '%s\n' 'Text review only (first 512 lines, 1024 characters per line). Include targets, Match applicability, command-line overrides, and authorized-key restrictions are unknown here; key-helper directives do not prove execution or vulnerability.'
   echo ''
 }
 

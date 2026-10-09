@@ -484,7 +484,7 @@ search:
                 files:
                     - name: "*"
                       value:
-                        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status|command on"
+                        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status|command on|^[[:space:]]*[Aa][Ss][Ss][Ii][Gg][Nn][Uu][Ss][Ee][Rr][Ii][Dd][[:space:]]+(root|0)[[:space:]]+(root|0)([[:space:]]|$)"
                         remove_empty_lines: True
                         # Piped-log command text is summarized by the bounded
                         # checker above; do not echo arguments from config files.
@@ -494,7 +494,7 @@ search:
       
             - name: "000-default.conf"
               value: 
-                bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status"
+                bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status|^[[:space:]]*[Aa][Ss][Ss][Ii][Gg][Nn][Uu][Ss][Ee][Rr][Ii][Dd][[:space:]]+(root|0)[[:space:]]+(root|0)([[:space:]]|$)"
                 remove_regex: '#|^[[:space:]]*([Cc][Uu][Ss][Tt][Oo][Mm][Ll][Oo][Gg]|[Ee][Rr][Rr][Oo][Rr][Ll][Oo][Gg]|[Tt][Rr][Aa][Nn][Ss][Ff][Ee][Rr][Ll][Oo][Gg])[[:space:]]+[^[:space:]]?\\|'
                 type: f
                 search_in: 
@@ -633,6 +633,21 @@ search:
                 search_in:
                   - common
 
+  - name: Mattermost database configuration candidate
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "config.json"
+            value:
+                check_extra_path: '^/opt/mattermost/config/config\.json$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: PHP authentication controller candidates
     value:
         disable:
@@ -704,6 +719,21 @@ search:
         files:
           - name: "*.har"
             value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Webroot backup archive candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "*backup*.zip"
+            value:
+                check_extra_path: '/var/www/[^/]+/(files/)?[^/]*backup[^/]*\.zip$'
                 just_list_file: True
                 type: f
                 search_in:
@@ -2952,7 +2982,7 @@ search:
                 search_in: 
                   - common
       
-          - name: "gitlab.rm"
+          - name: "gitlab.rb"
             value: 
                 type: f
                 remove_path: "/lib"

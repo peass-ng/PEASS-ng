@@ -125,7 +125,7 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
         ${YELLOW}    -N${BLUE} Do not use colours
         ${YELLOW}    -z <N>${BLUE} Set number of threads for background checks (default: auto-detected CPU count, fallback: 2; must be >= 1)$NC"
 
-while getopts ":h?asd:p:i:P:qo:T:LMwNDterVf:F:z:" opt; do
+while getopts ":h?asd:p:i:P:qno:T:LMwNDterVf:F:z:" opt; do
   case "$opt" in
     h|\?) printf "%s\n\n" "$HELP$NC"; exit 0;;
     a)  FAST="";EXTRA_CHECKS="1";ONLINE_VULN_CHECKS="1";;

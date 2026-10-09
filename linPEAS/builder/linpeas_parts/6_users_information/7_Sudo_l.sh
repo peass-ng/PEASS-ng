@@ -2,14 +2,14 @@
 # ID: UG_Sudo_l
 # Author: Carlos Polop
 # Last Update: 09-10-2026
-# Description: Checking 'sudo -l', sudoers files, privileged config, process tracing, container exec and compose wrappers, packet-filter export, PDF attachments, PostScript conversion, Bash pattern comparisons, relative working-directory helpers and cp globs, temporary-file name races, FreeBSD pkg repository trust, PyInstaller build wrappers, preset and PHP CLI loaders, privileged Neofetch and Facter configuration, and privileged Python imports, paths, caches, debugger entry, archive extraction, model loading, and Git transport
+# Description: Checking 'sudo -l', sudoers files, privileged config, process tracing, container exec and compose wrappers, packet-filter export, PDF attachments, PostScript conversion, Bash pattern comparisons, relative working-directory helpers and cp globs, temporary-file name races, FreeBSD pkg repository trust, PyInstaller build wrappers, preset and PHP CLI loaders, privileged Neofetch and Facter configuration, and privileged Python imports, environment paths, caches, debugger entry, archive extraction, model loading, and Git transport
 # License: GNU GPL
 # Version: 1.8
 # Mitre: T1548.003
 # Functions Used: check_sudo_terraform_override, echo_not_found, lp_trusted_version_path, print_2title, print_info
 # Global Variables:$IAMROOT, $PASSWORD, $TIMEOUT, $ROOT_FOLDER, $TMPDIR, $sudoB, $sudoG, $sudoVB1, $sudoVB2
 # Initial Functions:
-# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $sudo_adduser_main, $sudo_adduser_dir, $sudo_adduser_groups, $sudo_adduser_candidates, $sudo_adduser_group, $sudo_adduser_group_status, $sudo_adduser_visible, $sudo_adduser_unknown, $sudo_adduser_files, $sudo_adduser_file, $sudo_adduser_policy, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_backup_wrapper_rules, $sudo_backup_wrapper_script, $sudo_backup_wrapper_remaining, $sudo_backup_wrapper_walk, $sudo_backup_wrapper_part, $sudo_backup_wrapper_symlink, $sudo_backup_wrapper_result, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size, $sudo_python_debugger_rules, $sudo_python_debugger_script, $sudo_python_debugger_size, $sudo_python_debugger_match, $script, $kept_names, $script_size, $matched_name, $sudo_nmap_walk, $sudo_rsync_rules, $sudo_nmap_result, $sudo_nmap_part, $sudo_rsync_dest, $sudo_nmap_remaining, $sudo_nmap_rules, $sudo_nmap_symlink, $sudo_nmap_path, $sudo_rsync_dir, $sudo_nmap_size, $sudo_rsync_source, $sudo_rsync_safe, $sudo_rsync_check, $sudo_rsync_walk, $sudo_rsync_remaining, $sudo_rsync_part, $sudo_rsync_owner, $sudo_rsync_current_uid, $sudo_gitpython_clone_rules, $sudo_gitpython_parser, $sudo_gitpython_binary, $sudo_gitpython_script, $sudo_gitpython_size, $sudo_gitpython_result, $sudo_model_loader_rules, $sudo_model_loader_script, $sudo_model_loader_dir, $sudo_model_loader_size, $sudo_model_loader_helper, $sudo_model_loader_line, $sudo_qpdf_path, $sudo_relative_cwd_dir, $sudo_relative_cwd_candidate, $sudo_relative_cwd_rules, $sudo_relative_cwd_script, $sudo_relative_cwd_size, $sudo_relative_cwd_shebang, $sudo_relative_cwd_go, $sudo_relative_cwd_wasm, $sudo_relative_cwd_helper, $sudo_relative_cwd_shell_match, $sudo_relative_cwd_cpglob, $sudo_relative_cwd_yaml, $sudo_bash_pattern_rules, $sudo_bash_pattern_script, $sudo_bash_pattern_size, $sudo_bash_pattern_shebang, $sudo_bash_pattern_line, $sudo_ps2pdf_rules, $sudo_ps2pdf_script, $sudo_ps2pdf_size, $sudo_ps2pdf_shebang, $sudo_ps2pdf_line, $sudo_compose_rules, $sudo_compose_script, $sudo_compose_size, $sudo_compose_shebang, $sudo_compose_match, $sudo_pyinstaller_rules, $sudo_pyinstaller_script, $sudo_pyinstaller_size, $sudo_pyinstaller_shebang, $sudo_pyinstaller_match, $sudo_setenv_path_rules, $sudo_setenv_path_script, $sudo_setenv_path_mode, $sudo_setenv_path_size, $sudo_setenv_path_shebang, $sudo_setenv_path_match, $sudo_pkg_repo_rules, $sudo_pkg_repo_size, $sudo_pkg_repo_match, $sudo_mktemp_rules, $sudo_mktemp_script, $sudo_mktemp_size, $sudo_mktemp_shebang, $sudo_mktemp_match
+# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $sudo_adduser_main, $sudo_adduser_dir, $sudo_adduser_groups, $sudo_adduser_candidates, $sudo_adduser_group, $sudo_adduser_group_status, $sudo_adduser_visible, $sudo_adduser_unknown, $sudo_adduser_files, $sudo_adduser_file, $sudo_adduser_policy, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_backup_wrapper_rules, $sudo_backup_wrapper_script, $sudo_backup_wrapper_remaining, $sudo_backup_wrapper_walk, $sudo_backup_wrapper_part, $sudo_backup_wrapper_symlink, $sudo_backup_wrapper_result, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size, $sudo_python_debugger_rules, $sudo_python_debugger_script, $sudo_python_debugger_size, $sudo_python_debugger_match, $script, $kept_names, $script_size, $matched_name, $sudo_nmap_walk, $sudo_rsync_rules, $sudo_nmap_result, $sudo_nmap_part, $sudo_rsync_dest, $sudo_nmap_remaining, $sudo_nmap_rules, $sudo_nmap_symlink, $sudo_nmap_path, $sudo_rsync_dir, $sudo_nmap_size, $sudo_rsync_source, $sudo_rsync_safe, $sudo_rsync_check, $sudo_rsync_walk, $sudo_rsync_remaining, $sudo_rsync_part, $sudo_rsync_owner, $sudo_rsync_current_uid, $sudo_gitpython_clone_rules, $sudo_gitpython_parser, $sudo_gitpython_binary, $sudo_gitpython_script, $sudo_gitpython_size, $sudo_gitpython_result, $sudo_model_loader_rules, $sudo_model_loader_script, $sudo_model_loader_dir, $sudo_model_loader_size, $sudo_model_loader_helper, $sudo_model_loader_line, $sudo_qpdf_path, $sudo_relative_cwd_dir, $sudo_relative_cwd_candidate, $sudo_relative_cwd_rules, $sudo_relative_cwd_script, $sudo_relative_cwd_size, $sudo_relative_cwd_shebang, $sudo_relative_cwd_go, $sudo_relative_cwd_wasm, $sudo_relative_cwd_helper, $sudo_relative_cwd_shell_match, $sudo_relative_cwd_cpglob, $sudo_relative_cwd_yaml, $sudo_bash_pattern_rules, $sudo_bash_pattern_script, $sudo_bash_pattern_size, $sudo_bash_pattern_shebang, $sudo_bash_pattern_line, $sudo_ps2pdf_rules, $sudo_ps2pdf_script, $sudo_ps2pdf_size, $sudo_ps2pdf_shebang, $sudo_ps2pdf_line, $sudo_compose_rules, $sudo_compose_script, $sudo_compose_size, $sudo_compose_shebang, $sudo_compose_match, $sudo_pyinstaller_rules, $sudo_pyinstaller_script, $sudo_pyinstaller_size, $sudo_pyinstaller_shebang, $sudo_pyinstaller_match, $sudo_setenv_path_rules, $sudo_setenv_path_script, $sudo_setenv_path_mode, $sudo_setenv_path_size, $sudo_setenv_path_shebang, $sudo_setenv_path_match, $sudo_pkg_repo_rules, $sudo_pkg_repo_size, $sudo_pkg_repo_match, $sudo_mktemp_rules, $sudo_mktemp_script, $sudo_mktemp_size, $sudo_mktemp_shebang, $sudo_mktemp_match, $sudo_pythonpath_rules, $sudo_pythonpath_wrapper, $sudo_pythonpath_wrapper_size, $sudo_pythonpath_wrapper_shebang, $sudo_pythonpath_target, $sudo_pythonpath_target_size, $sudo_pythonpath_target_shebang, $sudo_pythonpath_import
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -3051,6 +3051,118 @@ sudo_setenv_path_review() {
   done
 }
 sudo_setenv_path_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+  sed -"$E" "s,.*,$SED_RED_YELLOW,"
+
+# Review a narrow one-hop Python import path behind an exact root SETENV
+# shell-wrapper grant. Never run the wrapper or import its Python target.
+sudo_setenv_pythonpath_review() {
+  [ -n "$1" ] || return 0
+  sudo_pythonpath_rules=$(printf '%s\n' "$1" | LC_ALL=C awk '
+    function inspect(specs, root_capable, n, commands, i, command, path, args, setenv, noexec) {
+      n = split(specs, commands, /,[[:space:]]*/)
+      if (n > 16) { ambiguous = 1; return }
+      setenv = noexec = 0
+      for (i = 1; i <= n; i++) {
+        command = commands[i]
+        sub(/^[[:space:]]*/, "", command)
+        sub(/[[:space:]]*$/, "", command)
+        while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/) {
+          if (command ~ /^SETENV:/) setenv = 1
+          if (command ~ /^NOSETENV:/) setenv = 0
+          if (command ~ /^NOEXEC:/) noexec = 1
+          if (command ~ /^EXEC:/) noexec = 0
+          sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+        }
+        if (command ~ /^!/) {
+          sub(/^![[:space:]]*/, "", command)
+          path = command
+          sub(/[[:space:]].*$/, "", path)
+          if (path == "ALL" || path ~ /[*?\[\]]/) ambiguous = 1
+          else denied[path] = 1
+          continue
+        }
+        if (!root_capable) continue
+        path = command
+        sub(/[[:space:]].*$/, "", path)
+        if (path !~ /^\/[[:alnum:]_.+\/-]+$/) continue
+        args = substr(command, length(path) + 1)
+        sub(/^[[:space:]]+/, "", args)
+        sub(/[[:space:]]+$/, "", args)
+        if (args != "") continue
+        if (!setenv || noexec) { denied[path] = 1; continue }
+        if (!seen[path]++ && total < 8) ordered[++total] = path
+      }
+    }
+    NR > 3000 || length($0) > 2048 { ambiguous = 1; exit }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      users = parts[1]
+      root_capable = users ~ /(^|[[:space:],])(ALL|root|#0)([[:space:],]|$)/ &&
+                     users !~ /(^|[[:space:],])!(ALL|root|#0)([[:space:],]|$)/
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      inspect(line, root_capable)
+      next
+    }
+    END {
+      if (ambiguous) exit
+      for (i = 1; i <= total; i++)
+        if (!denied[ordered[i]]) print ordered[i]
+    }
+  ')
+  [ -n "$sudo_pythonpath_rules" ] || return 0
+  printf '%s\n' "$sudo_pythonpath_rules" | while IFS= read -r sudo_pythonpath_wrapper; do
+    case "$sudo_pythonpath_wrapper" in *'//'*|*'/./'*|*'/../'*|*'/.'|*'/..') continue ;; esac
+    sudo_python_import_plain_path "$sudo_pythonpath_wrapper" &&
+      [ -f "$sudo_pythonpath_wrapper" ] && [ -r "$sudo_pythonpath_wrapper" ] &&
+      [ -x "$sudo_pythonpath_wrapper" ] || continue
+    sudo_pythonpath_wrapper_size=$(stat -c %s "$sudo_pythonpath_wrapper" 2>/dev/null) ||
+      sudo_pythonpath_wrapper_size=$(stat -f %z "$sudo_pythonpath_wrapper" 2>/dev/null) || continue
+    case "$sudo_pythonpath_wrapper_size" in ''|*[!0-9]*) continue ;; esac
+    [ "$sudo_pythonpath_wrapper_size" -le 65536 ] || continue
+    sudo_pythonpath_wrapper_shebang=$(dd if="$sudo_pythonpath_wrapper" bs=256 count=1 2>/dev/null | sed -n '1p;1q')
+    case "$sudo_pythonpath_wrapper_shebang" in '#!'*'/sh'|'#!'*'/bash'|'#!'*'/dash'|'#!'*'env sh'|'#!'*'env bash') ;; *) continue ;; esac
+    dd if="$sudo_pythonpath_wrapper" bs=65537 count=1 2>/dev/null | LC_ALL=C awk '
+      NR > 200 || length($0) > 2048 { partial = 1; exit }
+      /^[[:space:]]*#/ { next }
+      /PYTHONPATH/ { reset = 1 }
+      /^[[:space:]]*\/[[:alnum:]_.+\/-]+\.py[[:space:]]*(&[[:space:]]*)?(#.*)?$/ {
+        if (++found > 4) { partial = 1; exit }
+        targets[found] = $1
+      }
+      END { if (!partial && !reset) for (i = 1; i <= found; i++) print targets[i] }
+    ' | while IFS= read -r sudo_pythonpath_target; do
+      case "$sudo_pythonpath_target" in *'//'*|*'/./'*|*'/../'*|*'/.'|*'/..') continue ;; esac
+      sudo_python_import_plain_path "$sudo_pythonpath_target" &&
+        [ -f "$sudo_pythonpath_target" ] && [ -r "$sudo_pythonpath_target" ] &&
+        [ -x "$sudo_pythonpath_target" ] || continue
+      sudo_pythonpath_target_size=$(stat -c %s "$sudo_pythonpath_target" 2>/dev/null) ||
+        sudo_pythonpath_target_size=$(stat -f %z "$sudo_pythonpath_target" 2>/dev/null) || continue
+      case "$sudo_pythonpath_target_size" in ''|*[!0-9]*) continue ;; esac
+      [ "$sudo_pythonpath_target_size" -le 65536 ] || continue
+      sudo_pythonpath_target_shebang=$(dd if="$sudo_pythonpath_target" bs=256 count=1 2>/dev/null | sed -n '1p;1q')
+      printf '%s\n' "$sudo_pythonpath_target_shebang" |
+        grep -Eq '^#![[:space:]]*/([^[:space:]]*/)?python([0-9]+(\.[0-9]+)?)?[[:space:]]*$|^#![[:space:]]*/usr/bin/env[[:space:]]+python([0-9]+(\.[0-9]+)?)?[[:space:]]*$' || continue
+      sudo_pythonpath_import=$(dd if="$sudo_pythonpath_target" bs=65537 count=1 2>/dev/null | LC_ALL=C awk '
+        NR > 200 || length($0) > 2048 { exit }
+        /^[[:space:]]*#/ { next }
+        /^[[:space:]]*(from[[:space:]]+[A-Za-z_][A-Za-z_0-9]*[[:space:]]+import[[:space:]]+|import[[:space:]]+[A-Za-z_][A-Za-z_0-9]*([[:space:],#]|$))/ {
+          if ($1 == "from") name = $2
+          else name = $2
+          sub(/[,#].*$/, "", name)
+          if (name !~ /^(sys|os|time|io|builtins|types|encodings)$/) { print name; exit }
+        }
+      ')
+      [ -n "$sudo_pythonpath_import" ] || continue
+      printf 'Sudo Python environment import review candidate: %s starts %s (literal %s import; verify selected branch, effective SETENV, Python import resolution, and a caller-writable PYTHONPATH directory; secure_path governs PATH, not PYTHONPATH).\n' \
+        "$sudo_pythonpath_wrapper" "$sudo_pythonpath_target" "$sudo_pythonpath_import"
+    done
+  done
+}
+sudo_setenv_pythonpath_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
   sed -"$E" "s,.*,$SED_RED_YELLOW,"
 
 # Review exact root-capable sudo Python entry points for literal debugger calls.
