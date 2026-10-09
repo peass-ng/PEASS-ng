@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -81,6 +82,71 @@ class BackupFoldersTests(unittest.TestCase):
             entries = [line for line in output.splitlines()
                        if f"{backups}/item" in line]
             self.assertEqual(len(entries), 30)
+
+    def test_readable_root_archives_report_only_actual_group_or_world_access(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            backups = root / "backups"
+            backups.mkdir()
+            for name in ("group copy.tar.gz", "locked.tar.gz", "other-group.zip",
+                         "world-readable.txz", "ordinary.txt", "nested.tar"):
+                (backups / name).write_text("fixture contents")
+            (backups / "group copy.tar.gz").chmod(0o640)
+            (backups / "locked.tar.gz").chmod(0o600)
+            (backups / "other-group.zip").chmod(0o640)
+            nested = backups / "subdir"
+            nested.mkdir()
+            (nested / "deep.tar.gz").write_text("fixture contents")
+            (backups / "link.tar.gz").symlink_to(backups / "group copy.tar.gz")
+
+            bin_dir = root / "bin"
+            bin_dir.mkdir()
+            for name in ("ls", "find", "head", "awk", "cut", "sed"):
+                (bin_dir / name).symlink_to(shutil.which(name))
+            self.assertFalse((bin_dir / "stat").exists())
+
+            script = r'''
+print_2title() { :; }
+id() {
+  case "$1" in
+    -u) printf '%s\n' 1000 ;;
+    -G) printf '%s\n' '1000 4242' ;;
+    *) return 1 ;;
+  esac
+}
+ls() {
+  if [ "$1" = -ldn ]; then
+    case "$2" in
+      *'group copy.tar.gz') printf '%s\n' '-rw-r----- 1 0 4242 123 fixture' ;;
+      *'locked.tar.gz') printf '%s\n' '-rw------- 1 0 4242 123 fixture' ;;
+      *'other-group.zip') printf '%s\n' '-rw-r----- 1 0 8888 123 fixture' ;;
+      *'world-readable.txz') printf '%s\n' '-rw-r--r-- 1 0 8888 123 fixture' ;;
+      *'ordinary.txt') printf '%s\n' '-rw-r--r-- 1 0 8888 123 fixture' ;;
+      *) return 1 ;;
+    esac
+  else
+    command ls "$@"
+  fi
+}
+stat() { return 127; }
+. "$BACKUP_MODULE"
+'''
+            env = dict(os.environ, BACKUP_MODULE=str(self.module),
+                       PSTORAGE_BACKUPS=str(backups), SEARCH_IN_FOLDER="", DEBUG="",
+                       E="E", SED_RED="", PATH=str(bin_dir))
+            result = subprocess.run(["/bin/sh", "-c", script], env=env,
+                                    capture_output=True, text=True, check=True)
+            findings = [line for line in result.stdout.splitlines()
+                        if "Possible exposure:" in line]
+            self.assertEqual(len(findings), 2, result.stdout)
+            self.assertTrue(any("group copy.tar.gz" in line and
+                                "access=group-readable" in line for line in findings))
+            self.assertTrue(any("world-readable.txz" in line and
+                                "access=world-readable" in line for line in findings))
+            for name in ("locked.tar.gz", "other-group.zip", "ordinary.txt",
+                         "nested.tar", "deep.tar.gz", "link.tar.gz"):
+                self.assertFalse(any(name in line for line in findings), name)
+            self.assertNotIn("fixture contents", result.stdout)
 
 
 if __name__ == "__main__":

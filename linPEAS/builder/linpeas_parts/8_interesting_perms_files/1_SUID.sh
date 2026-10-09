@@ -1,15 +1,15 @@
 # Title: Interesting Permissions Files - SUID
 # ID: IP_SUID
 # Author: Carlos Polop, HT Bot
-# Last Update: 30-09-2026
+# Last Update: 09-10-2026
 # Description: SUID - Check easy privesc, exploits, write perms, and risky file placement
 # License: GNU GPL
-# Version: 1.2
+# Version: 1.3
 # Mitre: T1548.001
 # Functions Used: check_privileged_file_location, echo_not_found, print_2title, print_info
 # Global Variables: $IAMROOT, $LDD, $ROOT_FOLDER, $READELF, $sidB, $sidG1, $sidG2, $sidG3, $sidG4, $sidVB, $sidVB2, $STRACE, $STRINGS, $TIMEOUT, $Wfolders, $cfuncs
 # Initial Functions:
-# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH
+# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH, $ndsudo_uid, $ndsudo_nnp, $ndsudo_mount_options, $ndsudo_uncertainty
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -34,6 +34,27 @@ printf "%s\n" "$suids_files" | while IFS= read -r sfile; do
   sowner="$(echo "$s" | awk '{print $3}')"
   if [ "$sname" = "."  ] || [ "$sname" = ".."  ]; then
     true #Don't do nothing
+  elif echo "$sname" | grep -qE '/netdata/plugins[.]d/ndsudo$'; then
+    # Keep this branch passive: even the generic non-FAST SUID probe must not run ndsudo.
+    echo "$s"
+    ndsudo_uid=$(stat -c '%u' "$sname" 2>/dev/null || stat -f '%u' "$sname" 2>/dev/null)
+    if [ "$ndsudo_uid" != "0" ] || ! [ -u "$sname" ] || ! [ -x "$sname" ]; then
+      echo "  ndsudo: no privilege-escalation candidate for this user (requires root ownership, SUID, and execute access)."
+    else
+      ndsudo_nnp=$(awk '/^NoNewPrivs:/ {print $2; exit}' /proc/self/status 2>/dev/null)
+      ndsudo_mount_options=$(findmnt -no OPTIONS -T "$sname" 2>/dev/null | head -n 1)
+      if [ "$ndsudo_nnp" = "1" ]; then
+        echo "  ndsudo: SUID transition blocked by NoNewPrivs for this process tree."
+      elif echo ",$ndsudo_mount_options," | grep -q ',nosuid,'; then
+        echo "  ndsudo: SUID transition blocked by nosuid mount options."
+      else
+        ndsudo_uncertainty=""
+        [ "$ndsudo_nnp" = "0" ] || ndsudo_uncertainty="NoNewPrivs unknown; "
+        [ -n "$ndsudo_mount_options" ] || ndsudo_uncertainty="${ndsudo_uncertainty}mount SUID policy unknown; "
+        echo "  ndsudo candidate (CVE-2024-32019): root-owned SUID executable by current user; NoNewPrivs=${ndsudo_nnp:-unknown}; mount options=${ndsudo_mount_options:-unknown}."
+        echo "  ${ndsudo_uncertainty}Installed build and vendor backports unknown; confirm affected version and PATH lookup manually. Vendor fixes: v1.45.3 and v1.45.0-169. No helper execution performed."
+      fi
+    fi
   elif ! [ "$IAMROOT" ] && [ -O "$sname" ]; then
     echo "You own the SUID file: $sname" | sed -${E} "s,.*,${SED_RED},"
   elif ! [ "$IAMROOT" ] && [ -w "$sname" ]; then #If write permision, win found (no check exploits)

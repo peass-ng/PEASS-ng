@@ -9,7 +9,7 @@
 # Functions Used: print_2title, print_3title
 # Global Variables: $HOME, $HOMESEARCH, $ROOT_FOLDER, $SEARCH_IN_FOLDER, $TIMEOUT, $USER, $wgroups
 # Initial Functions:
-# Generated Global Variables: $certsb4_grep, $hostsallow, $hostsdenied, $sshconfig, $writable_agents, $agent_sockets, $privatekeyfilesetc, $privatekeyfileshome, $privatekeyfilesroot, $privatekeyfilesmnt, $sc_number, $sc_depth, $sc_pub, $ssh_ca_files, $sc_file, $sc_line, $sc_meta, $sc_candidate, $ssh_ca_root_login_seen, $sc_mapped, $sc_key, $ssh_ca_context, $sc_header, $sc_value, $sc_pattern, $ssh_ca_principals_seen, $sc_keyword, $sc_config, $sc_output,
+# Generated Global Variables: $certsb4_grep, $hostsallow, $hostsdenied, $sshconfig, $writable_agents, $agent_sockets, $privatekeyfilesetc, $privatekeyfileshome, $privatekeyfilesroot, $privatekeyfilesmnt, $sc_number, $sc_depth, $sc_pub, $ssh_ca_files, $sc_file, $sc_line, $sc_meta, $sc_candidate, $ssh_ca_root_login_seen, $sc_mapped, $sc_key, $ssh_ca_context, $sc_header, $sc_value, $sc_pattern, $ssh_ca_principals_seen, $sc_keyword, $sc_config, $sc_output, $sc_root, $sc_count, $sc_size
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -124,6 +124,72 @@ ssh_ca_trust_correlation() {
   echo ''
 }
 
+# Show only a bounded portion of the readable server config. Match headings
+# retain the scope of subsequent directives; this text is not sshd's policy.
+ssh_forwarding_config_review() {
+  print_3title 'SSH server directives (review effective SSH forwarding policy)' 'T1021.004'
+  if [ ! -f "$1" ] || [ ! -r "$1" ]; then
+    printf '%s\n' 'SSH server config unreadable; forwarding policy unknown.'
+    return 0
+  fi
+  awk '
+    NR > 512 { exit }
+    {
+      line = substr($0, 1, 1024)
+      sub(/[[:space:]]*#.*/, "", line)
+      sub(/^[[:space:]]*/, "", line)
+      sub(/[[:space:]]*$/, "", line)
+      if (line == "") next
+      split(line, fields, /[[:space:]]+/)
+      key = tolower(fields[1])
+      if (key == "match") {
+        context = line
+        printf "%d: %s\n", NR, line
+      } else if (key == "include" || key == "permitrootlogin" ||
+                 key == "challengeresponseauthentication" ||
+                 key == "passwordauthentication" || key == "usepam" ||
+                 key == "port" || key == "permitemptypasswords" ||
+                 key == "pubkeyauthentication" || key == "listenaddress" ||
+                 key == "forwardagent" || key == "allowagentforwarding" ||
+                 key == "authorizedkeysfile" || key == "allowtcpforwarding" ||
+                 key == "disableforwarding" || key == "permitopen" ||
+                 key == "forcecommand" || key == "chrootdirectory") {
+        printf "%d [%s]: %s\n", NR, context, line
+      }
+    }
+    BEGIN { context = "global" }
+  ' "$1"
+  printf '%s\n' 'Text review only (first 512 lines, 1024 characters per line). Include targets, Match applicability, command-line overrides, and authorized-key restrictions are unknown here.'
+  echo ''
+}
+
+# Without timeout, inspect only direct files in /root. Cap the number and size
+# before reading a header; report metadata, never key material.
+ssh_root_key_headers() {
+  local sc_root="$1" sc_file sc_count=0 sc_size sc_header sc_meta
+  [ "$(id -u 2>/dev/null)" = 0 ] || return 0
+  [ -d "$sc_root" ] && [ -r "$sc_root" ] && [ -x "$sc_root" ] || return 0
+  for sc_file in "$sc_root"/* "$sc_root"/.[!.]* "$sc_root"/..?*; do
+    [ -f "$sc_file" ] && [ -r "$sc_file" ] && [ ! -L "$sc_file" ] || continue
+    sc_count=$((sc_count + 1))
+    [ "$sc_count" -le 64 ] || break
+    sc_size=$(stat -c '%s' "$sc_file" 2>/dev/null) ||
+      sc_size=$(stat -f '%z' "$sc_file" 2>/dev/null) || continue
+    case "$sc_size" in ''|*[!0-9]*) continue ;; esac
+    [ "$sc_size" -le 1048576 ] || continue
+    sc_header=$(dd if="$sc_file" bs=64 count=1 2>/dev/null) || continue
+    case "$sc_header" in
+      '-----BEGIN OPENSSH PRIVATE KEY-----'*|'-----BEGIN RSA PRIVATE KEY-----'*|\
+      '-----BEGIN EC PRIVATE KEY-----'*|'-----BEGIN DSA PRIVATE KEY-----'*|\
+      '-----BEGIN PRIVATE KEY-----'*|'-----BEGIN ENCRYPTED PRIVATE KEY-----'*) ;;
+      *) continue ;;
+    esac
+    sc_meta=$(stat -c '%U %a' "$sc_file" 2>/dev/null) ||
+      sc_meta=$(stat -f '%Su %Lp' "$sc_file" 2>/dev/null) || continue
+    printf '%s (owner mode: %s; header only checked)\n' "$sc_file" "$sc_meta"
+  done
+}
+
 
 print_2title "Searching ssl/ssh files" "T1552.004,T1021.004"
 if [ "$PSTORAGE_CERTSB4" ]; then certsb4_grep=$(grep -L "\"\|'\|(" $PSTORAGE_CERTSB4 2>/dev/null); fi
@@ -147,7 +213,11 @@ fi
 
 peass{SSH}
 
-grep "PermitRootLogin \|ChallengeResponseAuthentication \|PasswordAuthentication \|UsePAM \|Port\|PermitEmptyPasswords\|PubkeyAuthentication\|ListenAddress\|ForwardAgent\|AllowAgentForwarding\|AuthorizedKeysFile" /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | sed -${E} "s,PermitRootLogin.*es|PermitEmptyPasswords.*es|ChallengeResponseAuthentication.*es|FordwardAgent.*es,${SED_RED},"
+if [ "$SEARCH_IN_FOLDER" ]; then
+  ssh_forwarding_config_review "${ROOT_FOLDER%/}/etc/ssh/sshd_config"
+else
+  ssh_forwarding_config_review '/etc/ssh/sshd_config'
+fi
 ssh_ca_trust_correlation
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
@@ -159,6 +229,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   else
     privatekeyfilesetc=$(grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY\-\-\-\-\-' /etc 2>/dev/null) #If there is tons of files linpeas gets frozen here without a timeout
     privatekeyfileshome=$(grep -rl '\-\-\-\-\-BEGIN .* PRIVATE KEY\-\-\-\-\-' $HOME/.ssh 2>/dev/null)
+    privatekeyfilesroot=$(ssh_root_key_headers /root)
   fi
 else
   # If $SEARCH_IN_FOLDER lets just search for private keys in the whole firmware

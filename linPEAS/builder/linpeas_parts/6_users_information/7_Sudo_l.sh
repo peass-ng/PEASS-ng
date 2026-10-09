@@ -56,9 +56,105 @@ else
   echo_not_found "sudo"
 fi
 
+# A bare root-capable restic command permits caller-selected arguments under
+# sudoers syntax. This is a review lead only; later exclusions, authentication,
+# and effective policy still need checking. Never invoke the password helper.
+printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" | awk '
+  NR > 3000 { exit }
+  length($0) > 2048 { next }
+  /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+    line = $0
+    sub(/^[[:space:]]*\(/, "", line)
+    runas = line
+    sub(/\).*/, "", runas)
+    split(runas, parts, ":")
+    users = parts[1]
+    if (users ~ /(^|[[:space:],])!(root|ALL|#0)([[:space:],]|$)/ ||
+        users !~ /(^|[[:space:],])(root|ALL|#0)([[:space:],]|$)/) next
+    sub(/^[^)]*\)[[:space:]]*/, "", line)
+    count = split(line, commands, ",")
+    for (i = 1; i <= count; i++) {
+      command = commands[i]
+      sub(/^[[:space:]]*/, "", command)
+      sub(/[[:space:]]*$/, "", command)
+      while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/)
+        sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+      if (command ~ /^!\/[^[:space:]]*\/restic([[:space:]]|$)/) denied = 1
+      else if (command ~ /^\/[^[:space:]]*\/restic$/) found = 1
+    }
+  }
+  END {
+    if (found && !denied) print "Sudo restic password-command review candidate: a root-capable argument-free grant may allow a caller-selected --password-command; verify effective policy and authentication."
+  }
+' | sed -${E} "s,.*,${SED_RED_YELLOW},"
+
 if command -v check_sudo_terraform_override >/dev/null 2>&1; then
   check_sudo_terraform_override "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output"
 fi
+
+# A sudoers argument wildcard can match spaces and path separators. Review only
+# captured sudo -l command specifications: a wildcard in the executable path,
+# another command, or a non-root RunAs rule is not this candidate. A displayed
+# grant alone does not establish authentication, effective options, or confinement.
+printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" | awk '
+  function review(specs, count, commands, i, command, path, args) {
+    count = split(specs, commands, ",")
+    for (i = 1; i <= count; i++) {
+      command = commands[i]
+      sub(/^[[:space:]]*/, "", command)
+      while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/)
+        sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+      if (command ~ /^!/) continue
+      path = command
+      sub(/[[:space:]].*$/, "", path)
+      if (path !~ /^\/[^[:space:]]*\/tcpdump$/) continue
+      args = substr(command, length(path) + 1)
+      if (args ~ /(^|[^\\])\*/) found = 1
+    }
+  }
+  NR > 3000 { exit }
+  length($0) > 2048 { if (active) review(specs); active = 0; next }
+  /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+    if (active) review(specs)
+    active = 0
+    wrapped = 0
+    indent = match($0, /[^[:space:]]/) - 1
+    line = $0
+    sub(/^[[:space:]]*\(/, "", line)
+    runas = line
+    sub(/\).*/, "", runas)
+    split(runas, parts, ":")
+    users = parts[1]
+    if (users ~ /(^|[[:space:],])!(root|ALL|#0)([[:space:],]|$)/ ||
+        users !~ /(^|[[:space:],])(root|ALL|#0)([[:space:],]|$)/) next
+    sub(/^[^)]*\)[[:space:]]*/, "", line)
+    specs = line
+    active = 1
+    next
+  }
+  active {
+    continuation = $0
+    sub(/^[[:space:]]*/, "", continuation)
+    # A newly listed absolute command without a comma is not a wrapped arg.
+    if (continuation == "" || match($0, /[^[:space:]]/) <= indent + 1 ||
+        (continuation ~ /^\// && specs !~ /,[[:space:]]*$/ &&
+         specs !~ /[[:space:]](-w|-F)[[:space:]]*$/)) {
+      review(specs)
+      active = 0
+      next
+    }
+    if (length(specs) + length(continuation) > 2048 || ++wrapped > 8) {
+      active = 0
+      next
+    }
+    specs = specs " " continuation
+    next
+  }
+  END {
+    if (active) review(specs)
+    if (found) print "Sudo tcpdump argument wildcard review candidate: root-capable rule may let * span spaces and path separators; verify effective options, authentication, and target confinement."
+  }
+' | sed -${E} "s,.*,${SED_RED_YELLOW},"
 
 # sudo -l can show several Defaults scopes and repeated output from different
 # authentication attempts. These are candidates, not necessarily the effective

@@ -612,6 +612,30 @@ search:
                 type: f
                 search_in:
                   - common
+
+  - name: XWiki
+    value:
+        config:
+          auto_check: True
+          exec:
+            - >-
+              printf '%s\n' "$PSTORAGE_XWIKI" | while IFS= read -r f; do
+                [ -f "$f" ] && [ -r "$f" ] && [ -s "$f" ] || continue;
+                xwiki_properties=$(awk '/<!--/ {comment=1} !comment {print} /-->/ {comment=0}' "$f" |
+                  grep -E '^[[:space:]]*<property[[:space:]]+name="hibernate[.]connection[.](url|username|password)"[[:space:]]*>[[:space:]]*[^<[:space:]][^<]*</property>[[:space:]]*$' |
+                  grep -Eiv 'name="hibernate[.]connection[.]password"[[:space:]]*>[[:space:]]*(changeme|change_me|example|sample|password|your[_-]?password|replace[_-]?me|xxx+)[[:space:]]*</property>' |
+                  head -n 20);
+                [ -n "$xwiki_properties" ] || continue;
+                printf 'XWiki database connection properties in %s (password: possible reuse candidate; host authentication unverified):\n%s\n' "$f" "$xwiki_properties";
+              done
+        files:
+          - name: "hibernate.cfg.xml"
+            value:
+                check_extra_path: '(^|/)etc/xwiki/hibernate\.cfg\.xml$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
   
   - name: Apache-Airflow
     value:
@@ -3596,8 +3620,25 @@ search:
     value:
         config:
           auto_check: True
+          exec:
+            - >-
+              printf '%s\n' 'Zabbix frontend database settings: key presence only, values redacted; credentials may be empty or vault-backed.'
 
         files:
+          - name: "zabbix.conf.php"
+            value:
+                line_grep: >-
+                  'USER|PASSWORD|SERVER|DATABASE' |
+                  awk 'match($0, /^[[:space:]]*\$DB[[:space:]]*\[[[:space:]]*["\047](USER|PASSWORD|SERVER|DATABASE)["\047][[:space:]]*\][[:space:]]*=/) {
+                    key = $0;
+                    sub(/^[[:space:]]*\$DB[[:space:]]*\[[[:space:]]*["\047]/, "", key);
+                    sub(/["\047][[:space:]]*\].*$/, "", key);
+                    print key ": present (value redacted)"
+                  }' | sort -u | head -n 4
+                type: f
+                search_in:
+                  - common
+
           - name: "zabbix_server.conf"
             value: 
                 bad_regex: "DBName|DBUser|DBPassword"
@@ -4000,6 +4041,9 @@ search:
     value:
         config:
           auto_check: True
+          exec:
+            - >-
+              printf '%s\n' 'Roundcube: db_dsnw is a database credential; des_key matters with readable encrypted session state. Values are redacted.'
 
         files:
           - name: "roundcube"
@@ -4007,8 +4051,16 @@ search:
                 files:
                   - name: "config.inc.php"
                     value:
-                        bad_regex: "db_dsnw"
-                        line_grep: '"config\["'
+                        # Only report the presence of these keys. Values can include
+                        # database credentials and the session encryption key.
+                        line_grep: >-
+                          'db_dsnw|des_key|cipher_method|session_storage' |
+                          awk 'match($0, /^[[:space:]]*\$config[[:space:]]*\[[[:space:]]*["\047](db_dsnw|des_key|cipher_method|session_storage)["\047][[:space:]]*\][[:space:]]*=/) {
+                            key = $0;
+                            sub(/^[[:space:]]*\$config[[:space:]]*\[[[:space:]]*["\047]/, "", key);
+                            sub(/["\047][[:space:]]*\].*$/, "", key);
+                            print key ": present (value redacted)"
+                          }' | sort -u | head -n 4
 
                 type: d
                 search_in: 

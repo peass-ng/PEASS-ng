@@ -1,15 +1,15 @@
 # Title: Network Information - Open ports
 # ID: NT_Open_ports
 # Author: Carlos Polop
-# Last Update: 22-08-2023
+# Last Update: 09-10-2026
 # Description: Enumerate open ports
 # License: GNU GPL
-# Version: 1.0
+# Version: 1.1
 # Mitre: T1049
 # Functions Used: print_2title, print_3title, print_info
 # Global Variables: $E, $SED_RED, $SED_RED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $pid_dir, $tx_queue, $pid, $rem_port, $proc_file, $rem_ip, $local_ip, $rx_queue, $proto, $rem_addr, $program, $state, $header_sep, $proc_info, $inode, $header, $line, $local_addr, $local_port
+# Generated Global Variables: $pid_dir, $tx_queue, $pid, $rem_port, $proc_file, $rem_ip, $local_ip, $rx_queue, $proto, $rem_addr, $program, $state, $header_sep, $proc_info, $inode, $header, $line, $local_addr, $local_port, $column
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -105,6 +105,17 @@ parse_proc_net_ports() {
     echo ""
 }
 
+lp_loopback_listeners() {
+    awk -v column="$1" '
+        {
+            address = tolower($column)
+            if (address ~ /^127\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$/ ||
+                address ~ /^\[?::1\]?:[0-9]+$/ ||
+                address ~ /^\[?::ffff:127\.[0-9]+\.[0-9]+\.[0-9]+\]?:[0-9]+$/)
+                print
+        }'
+}
+
 # Function to get open ports information
 get_open_ports() {
     print_2title "Active Ports" "T1049"
@@ -126,9 +137,9 @@ get_open_ports() {
     # Focused local service exposure view
     print_3title "Local-only listeners (loopback)" "T1049"
     if command -v ss >/dev/null 2>&1; then
-        ss -nltpu 2>/dev/null | grep -E "127\.0\.0\.1:|::1:" | sed -${E} "s,127\.0\.0\.1:|::1:,${SED_RED},g"
+        ss -nltpu 2>/dev/null | lp_loopback_listeners 5 | sed -${E} "s,127\.[0-9]+\.[0-9]+\.[0-9]+|::1,${SED_RED},g"
     elif command -v netstat >/dev/null 2>&1; then
-        netstat -punta 2>/dev/null | grep -i listen | grep -E "127\.0\.0\.1:|::1:" | sed -${E} "s,127\.0\.0\.1:|::1:,${SED_RED},g"
+        netstat -punta 2>/dev/null | grep -i listen | lp_loopback_listeners 4 | sed -${E} "s,127\.[0-9]+\.[0-9]+\.[0-9]+|::1,${SED_RED},g"
     fi
 
     print_3title "Unique listener bind addresses" "T1049"
