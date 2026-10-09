@@ -376,10 +376,19 @@ namespace winPEAS.Info.UserInfo
             return results;
         }
 
+        internal static RegistryView GetAutoLogonRegistryView(bool is64BitOperatingSystem)
+        {
+            return is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32;
+        }
+
         public static Dictionary<string, string> GetAutoLogon()
         {
             var results = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            using (RegistryKey winlogon = Registry.LocalMachine.OpenSubKey(WinlogonKeyPath))
+            // Winlogon lives below redirected HKLM\SOFTWARE; use the OS-native
+            // view even when this process is 32-bit on a 64-bit host.
+            RegistryView view = GetAutoLogonRegistryView(Environment.Is64BitOperatingSystem);
+            using (RegistryKey localMachine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view))
+            using (RegistryKey winlogon = localMachine.OpenSubKey(WinlogonKeyPath))
             {
                 if (winlogon != null)
                 {

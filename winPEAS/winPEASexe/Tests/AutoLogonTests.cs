@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Microsoft.Win32;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using winPEAS.Info.UserInfo;
 
@@ -7,6 +8,14 @@ namespace winPEAS.Tests
     [TestClass]
     public class AutoLogonTests
     {
+        [TestMethod]
+        public void NativeRegistryViewDependsOnOperatingSystemArchitecture()
+        {
+            // A 32-bit winPEAS process on x64 must still read native Winlogon.
+            Assert.AreEqual(RegistryView.Registry64, UserInfoHelper.GetAutoLogonRegistryView(true));
+            Assert.AreEqual(RegistryView.Registry32, UserInfoHelper.GetAutoLogonRegistryView(false));
+        }
+
         [TestMethod]
         public void PlaintextPasswordsAreHighRiskEvenWhenAutoLogonIsDisabled()
         {
