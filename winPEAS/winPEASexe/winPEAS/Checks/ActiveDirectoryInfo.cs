@@ -194,7 +194,9 @@ namespace winPEAS.Checks
                     search.Filter = "(&(objectClass=msPKI-Enterprise-Oid)(msDS-OIDToGroupLink=*))";
                     search.PropertiesToLoad.Add("msPKI-Cert-Template-OID");
                     search.PropertiesToLoad.Add("msDS-OIDToGroupLink");
-                    search.PageSize = 121;
+                    search.PageSize = 0; // Keep the server-side size cap effective.
+                    search.SizeLimit = 121;
+                    search.ReferralChasing = ReferralChasingOption.None;
                     search.CacheResults = false;
                     search.ServerTimeLimit = TimeSpan.FromSeconds(5);
                     search.ClientTimeout = TimeSpan.FromSeconds(5);
@@ -999,7 +1001,7 @@ namespace winPEAS.Checks
                 {
                     searcher.SearchScope = SearchScope.Subtree;
                     searcher.ReferralChasing = ReferralChasingOption.None;
-                    searcher.PageSize = 100;
+                    searcher.PageSize = 0;
                     searcher.SizeLimit = sampleLimit + 1;
                     searcher.ClientTimeout = TimeSpan.FromSeconds(5);
                     searcher.ServerTimeLimit = TimeSpan.FromSeconds(5);
@@ -1172,8 +1174,9 @@ namespace winPEAS.Checks
                     using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
                     using (var ds = new DirectorySearcher(baseDe))
                     {
-                        ds.PageSize = OuSampleLimit;
+                        ds.PageSize = 0;
                         ds.SizeLimit = OuSampleLimit + 1;
+                        ds.ReferralChasing = ReferralChasingOption.None;
                         ds.SearchScope = SearchScope.Subtree;
                         ds.ClientTimeout = OuSearchTimeout;
                         ds.ServerTimeLimit = OuSearchTimeout;
@@ -1210,8 +1213,11 @@ namespace winPEAS.Checks
                     using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
                     using (var ds = new DirectorySearcher(baseDe))
                     {
-                        ds.PageSize = 200;
+                        ds.PageSize = 0;
                         ds.SizeLimit = SampleObjectLimit + 1;
+                        ds.ReferralChasing = ReferralChasingOption.None;
+                        ds.ClientTimeout = OuSearchTimeout;
+                        ds.ServerTimeLimit = OuSearchTimeout;
                         ds.SearchScope = SearchScope.Subtree;
                         ds.SecurityMasks = SecurityMasks.Dacl;
                         ds.Filter = "(|(objectClass=user)(objectClass=group)(objectClass=computer))";
@@ -2770,8 +2776,9 @@ namespace winPEAS.Checks
                 using (var baseDe = new DirectoryEntry("LDAP://" + defaultNc))
                 using (var ds = new DirectorySearcher(baseDe))
                 {
-                    ds.PageSize = 100;
+                    ds.PageSize = 0;
                     ds.SizeLimit = searchLimit;
+                    ds.ReferralChasing = ReferralChasingOption.None;
                     ds.ClientTimeout = TimeSpan.FromSeconds(5);
                     ds.ServerTimeLimit = TimeSpan.FromSeconds(5);
                     ds.Filter = "(&(objectClass=user)(servicePrincipalName=*))";

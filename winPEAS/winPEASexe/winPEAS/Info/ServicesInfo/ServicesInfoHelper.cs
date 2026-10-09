@@ -122,6 +122,10 @@ namespace winPEAS.Info.ServicesInfo
                 return assessment;
 
             string path = executable.Groups["quoted"].Success ? executable.Groups["quoted"].Value : executable.Groups["plain"].Value;
+            // A malformed unquoted command can put options before the first executable
+            // suffix (including a secret value ending in .exe). Do not display it as a path.
+            if (!executable.Groups["quoted"].Success && Regex.IsMatch(path, @"(?:^|\s)[-/]"))
+                return assessment;
             // The executable is useful for review, but arbitrary argument text must never reach output.
             if (path.Length <= 260)
             {

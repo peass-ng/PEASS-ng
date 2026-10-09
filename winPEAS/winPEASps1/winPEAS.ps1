@@ -351,7 +351,9 @@ function Get-GmsaReadersReport {
             $acesSeen++
             if (-not $ace.SecurityIdentifier) { continue }
             $sid = [string]$ace.SecurityIdentifier.Value
-            $principal = Convert-SidToName $ace.SecurityIdentifier
+            # Keep descriptor context without an unbounded network name-resolution call.
+            # A deny trustee is not an allowed reader.
+            $principal = "$sid [$($ace.AceQualifier)]"
             if ($principal) { $principals.Add([string]$principal) }
             if ([string]$ace.AceQualifier -eq 'AccessAllowed' -and
                 ($sid -eq 'S-1-1-0' -or $sid -eq 'S-1-5-11' -or $sid -match '^S-1-5-21-(\d+-){3}513$')) {
@@ -364,7 +366,7 @@ function Get-GmsaReadersReport {
       if ($principals.Count -eq 0) { continue }
       $rows.Add([pscustomobject]@{
         Account        = [string]($name | Select-Object -First 1)
-        Allowed        = (($principals | Sort-Object -Unique) -join ', ')
+        Trustees       = (($principals | Sort-Object -Unique) -join ', ')
         WeakPrincipals = (($weak | Sort-Object -Unique) -join ', ')
       })
     }
@@ -392,13 +394,18 @@ function Get-PrivilegedSpnTargets {
   if (-not $DomainContext) { return [pscustomobject]$report }
   $results = $null
   $searcher = $null
+  $domainEntry = $null
+  $container = $null
   try {
-    $domainDN = $DomainContext.GetDirectoryEntry().distinguishedName
+    $domainEntry = $DomainContext.GetDirectoryEntry()
+    $domainDN = $domainEntry.distinguishedName
     $searcher = New-Object System.DirectoryServices.DirectorySearcher
-    $searcher.SearchRoot = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$domainDN")
+    $container = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$domainDN")
+    $searcher.SearchRoot = $container
     $searcher.Filter = '(&(objectClass=user)(servicePrincipalName=*))'
-    $searcher.PageSize = 100
+    $searcher.PageSize = 0
     $searcher.SizeLimit = 201
+    $searcher.ReferralChasing = [System.DirectoryServices.ReferralChasingOption]::None
     $searcher.ClientTimeout = [TimeSpan]::FromSeconds(5)
     $searcher.ServerTimeLimit = [TimeSpan]::FromSeconds(5)
     foreach ($property in @('sAMAccountName','servicePrincipalName','userAccountControl','msDS-SupportedEncryptionTypes','pwdLastSet','memberOf','objectClass')) {
@@ -447,6 +454,8 @@ function Get-PrivilegedSpnTargets {
   finally {
     if ($results) { $results.Dispose() }
     if ($searcher) { $searcher.Dispose() }
+    if ($container) { $container.Dispose() }
+    if ($domainEntry) { $domainEntry.Dispose() }
   }
   return [pscustomobject]$report
 }
@@ -1826,7 +1835,7 @@ else {
     }
     else {
       Write-Host "[i] gMSA membership DACL trustees found (ACE rights and effective access unverified)."
-      $gmsaReport.Rows | Select-Object Account,@{Name='DaclTrustees';Expression={$_.Allowed}} | Sort-Object Account | Select-Object -First 5 | Format-Table -Wrap | Out-String | Write-Host
+      $gmsaReport.Rows | Select-Object Account,@{Name='DaclTrustees';Expression={$_.Trustees}} | Sort-Object Account | Select-Object -First 5 | Format-Table -Wrap | Out-String | Write-Host
     }
   }
   else {

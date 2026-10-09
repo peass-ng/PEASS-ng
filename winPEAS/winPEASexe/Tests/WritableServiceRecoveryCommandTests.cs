@@ -136,6 +136,22 @@ namespace Tests
         }
 
         [TestMethod]
+        public void MalformedUnquotedOptionsBeforeExecutableSuffixRemainRedacted()
+        {
+            foreach (string command in new[]
+            {
+                @"C:\Vendor\helper --user name --password sampleSecret.exe",
+                @"unknown /password:sampleSecret.exe",
+                @"--password sampleSecret.exe"
+            })
+            {
+                var result = ServicesInfoHelper.AssessServiceCommandLine(command);
+                Assert.AreEqual("[service command line redacted]", result.DisplayPath);
+                Assert.IsNull(result.ExecutablePath);
+            }
+        }
+
+        [TestMethod]
         public void WmiFailureUsesRegistryOnlyInventoryWithoutDisplayName()
         {
             bool registryRead = false;

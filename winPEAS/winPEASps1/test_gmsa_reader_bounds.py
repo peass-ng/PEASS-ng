@@ -66,6 +66,15 @@ class GmsaReaderBounds(unittest.TestCase):
         self.assertIn("$gmsaReport.State -ne 'Observed'", caller)
         self.assertIn("Remaining access is unknown", caller)
 
+    def test_trustee_context_avoids_unbounded_name_resolution_and_allowed_label(self):
+        source = function_source("Get-GmsaReadersReport")
+        self.assertNotIn("Convert-SidToName", source)
+        self.assertNotIn(".Translate(", source)
+        self.assertIn('$principal = "$sid [$($ace.AceQualifier)]"', source)
+        self.assertIn("Trustees       =", source)
+        self.assertNotRegex(source, r"(?m)^\s*Allowed\s*=")
+        self.assertIn("Expression={$_.Trustees}", SCRIPT)
+
     @unittest.skipUnless(shutil.which("pwsh") or shutil.which("powershell"),
                          "PowerShell is not installed")
     def test_powershell_script_parses(self):
