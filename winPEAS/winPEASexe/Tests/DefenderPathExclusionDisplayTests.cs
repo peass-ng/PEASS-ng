@@ -43,6 +43,22 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void HistoricalEventParserRejectsUnsafeOrIncompleteXml()
+        {
+            Assert.IsNull(SystemInfo.ExtractDefenderEventNewValue("<Event>"));
+            Assert.IsNull(SystemInfo.ExtractDefenderEventNewValue(
+                @"<!DOCTYPE Event [<!ENTITY value ""must not expand"">]><Event>" +
+                @"<Data Name=""New Value"">&value;</Data></Event>"));
+
+            const string prefix = "<Event><Data Name=\"New Value\">";
+            const string suffix = "</Data></Event>";
+            string oversized = prefix + new string('x', 32769 - prefix.Length - suffix.Length) + suffix;
+            Assert.IsNull(SystemInfo.ExtractDefenderEventNewValue(oversized));
+            Assert.IsNull(SystemInfo.ExtractDefenderEventNewValue(
+                @"<Event><Data Name=""Old Value"">previous configuration</Data></Event>"));
+        }
+
+        [TestMethod]
         public void HistoricalEventParserKeepsOnlyBoundedExclusionNames()
         {
             var eventXml = @"<Event xmlns=""http://schemas.microsoft.com/win/2004/08/events/event""><EventData>" +

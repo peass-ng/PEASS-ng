@@ -72,6 +72,19 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void DisabledUserAclWarningRequiresDisabledUserEvidence()
+        {
+            StringAssert.Contains(ActiveDirectoryInfo.DescribeDisabledUserAclTarget("user", 0x202),
+                "password reset alone does not permit authentication");
+            StringAssert.Contains(ActiveDirectoryInfo.DescribeDisabledUserAclTarget("USER", 0x2),
+                "separately verified rights");
+            Assert.IsNull(ActiveDirectoryInfo.DescribeDisabledUserAclTarget("user", 0x200));
+            Assert.IsNull(ActiveDirectoryInfo.DescribeDisabledUserAclTarget("user", null));
+            Assert.IsNull(ActiveDirectoryInfo.DescribeDisabledUserAclTarget("computer", 0x2));
+            Assert.IsNull(ActiveDirectoryInfo.DescribeDisabledUserAclTarget(null, 0x2));
+        }
+
+        [TestMethod]
         public void FixedAclTargetsIncludeConventionalPermissionsGroupWithoutAnotherSearch()
         {
             const string domain = "DC=example,DC=test";
