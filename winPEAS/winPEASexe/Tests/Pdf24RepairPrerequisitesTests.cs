@@ -71,7 +71,9 @@ namespace winPEAS.Tests
             Assert.IsTrue(Pdf24RepairPrerequisites.IsProduct("PDF24 Creator"));
             Assert.IsFalse(Pdf24RepairPrerequisites.IsProduct("PDF24 Toolbox"));
             Assert.IsFalse(Pdf24RepairPrerequisites.IsProduct("Other PDF24 Creator"));
-            Assert.AreEqual("78563412BC9AF0DE1032547698BADCFE",
+            // Windows Installer reverses the first three GUID groups by character,
+            // then swaps character pairs in the remaining groups.
+            Assert.AreEqual("87654321CBA90FED1032547698BADCFE",
                 Pdf24RepairPrerequisites.PackGuid(new System.Guid("12345678-9abc-def0-0123-456789abcdef")));
         }
     }
