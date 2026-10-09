@@ -26,7 +26,8 @@ namespace winPEAS.Checks
                 "PrestaShop database settings candidates", "ChangeDetection backup candidates",
                 "WonderCMS", "Pluck CMS", "Grafana", "Duplicati server state",
                 "Openfire local configuration and database", "Minecraft plugin JAR candidates",
-                "IIS default webroot backup archive candidates", "TeamCity change patch candidates"
+                "IIS default webroot backup archive candidates", "TeamCity change patch candidates",
+                "Redis Windows service configuration candidates"
             };
 
         internal const int MaxTeamCityChangeFiles = 32;

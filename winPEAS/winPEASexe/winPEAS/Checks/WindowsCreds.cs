@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using Microsoft.Win32;
 using winPEAS.Helpers;
 using winPEAS.Helpers.CredentialManager;
 using winPEAS.Helpers.Registry;
@@ -49,6 +50,7 @@ namespace winPEAS.Checks
                 PrintAppCmd,
                 PrintSCClient,
                 PrintSCCM,
+                PrintTeamViewerRegistryArtifacts,
                 PrintSecurityPackagesCredentials,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
@@ -662,6 +664,22 @@ namespace winPEAS.Checks
             }
         }
 
+        private static void PrintTeamViewerRegistryArtifacts()
+        {
+            var artifacts = TeamViewerRegistryArtifacts.Scan(TeamViewerRegistryArtifacts.ReadKnownNames);
+            if (artifacts.Count == 0)
+            {
+                return;
+            }
+
+            Beaprint.MainPrint("TeamViewer registry credential artifacts (value names only)", "T1552.002");
+            foreach (var artifact in artifacts)
+            {
+                Beaprint.NoColorPrint("    " + artifact);
+            }
+            Beaprint.NoColorPrint("    Review candidate only: format/version, effective registry access, credential validity and OS-account reuse require separate verification.");
+        }
+
         private static string FormatEnabledSetting(uint? value)
         {
             return value.HasValue ? (value.Value != 0).ToString() : "Unknown";
@@ -689,6 +707,92 @@ namespace winPEAS.Checks
             }
 
             return str;
+        }
+    }
+
+    internal static class TeamViewerRegistryArtifacts
+    {
+        private static readonly string[] CandidateNames =
+        {
+            "OptionsPasswordAES",
+            "SecurityPasswordAES",
+            "SecurityPasswordExported",
+            "ServerPasswordAES",
+            "ProxyPasswordAES"
+        };
+
+        internal static List<string> Scan(Func<RegistryView, string, IEnumerable<string>> readNames)
+        {
+            var result = new List<string>();
+            foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+            {
+                for (int version = 0; version <= 15; version++)
+                {
+                    string path = @"SOFTWARE\TeamViewer" +
+                        (version == 0 ? "" : @"\Version" + version);
+                    IEnumerable<string> found;
+                    try
+                    {
+                        found = readNames(view, path);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                    if (found == null)
+                    {
+                        continue;
+                    }
+
+                    var names = new HashSet<string>(found, StringComparer.OrdinalIgnoreCase);
+                    foreach (var candidate in CandidateNames)
+                    {
+                        if (!names.Contains(candidate))
+                        {
+                            continue;
+                        }
+                        result.Add(view + @": HKLM\" + path + " [" + candidate + "]");
+                        if (result.Count == 12)
+                        {
+                            return result;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        internal static IEnumerable<string> ReadKnownNames(RegistryView view, string path)
+        {
+            var found = new List<string>();
+            try
+            {
+                using (var machine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view))
+                using (var key = machine.OpenSubKey(path, false))
+                {
+                    if (key == null)
+                    {
+                        return found;
+                    }
+                    foreach (var name in CandidateNames)
+                    {
+                        try
+                        {
+                            key.GetValueKind(name); // Presence/type only; never read ciphertext.
+                            found.Add(name);
+                        }
+                        catch
+                        {
+                            // Missing or unreadable values are not evidence.
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // A registry view or key can be inaccessible on older systems.
+            }
+            return found;
         }
     }
 }

@@ -46,6 +46,13 @@ namespace winPEAS.Info.ServicesInfo
         public bool LimitReached { get; set; }
     }
 
+    internal sealed class NssmServiceContext
+    {
+        public string Application { get; set; }
+        public string Directory { get; set; }
+        public string Account { get; set; }
+    }
+
     internal sealed class ServiceAccessFallbackReport
     {
         public Dictionary<string, string> Findings { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -389,6 +396,64 @@ namespace winPEAS.Info.ServicesInfo
         ///////////////////////////////////////////////
         //// Non Standard Services (Non Microsoft) ////
         ///////////////////////////////////////////////
+        internal const int MaxNssmServiceContexts = 16;
+
+        internal static bool IsNssmServicePath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path) || path.Length > 512 || path.Any(char.IsControl)) return false;
+            string value = path.Trim().Trim('"');
+            return value.Length >= 11 && char.IsLetter(value[0]) && value[1] == ':' &&
+                value[2] == '\\' && value.EndsWith(@"\nssm.exe", StringComparison.OrdinalIgnoreCase) &&
+                !value.Any(char.IsControl);
+        }
+
+        private static string NssmLocalPath(object raw)
+        {
+            string path = raw as string;
+            if (string.IsNullOrWhiteSpace(path) || path.Length > 512 || path.Any(char.IsControl)) return null;
+            path = path.Trim().Trim('"');
+            if (path.Length < 4 || !char.IsLetter(path[0]) || path[1] != ':' ||
+                path[2] != '\\' || path.Any(char.IsControl) || path.IndexOfAny(new[] { '/', '"', '<', '>', '|', '*', '?' }) >= 0 ||
+                path.IndexOf(':', 2) >= 0 || path.IndexOf('%') >= 0) return null;
+            string[] components = path.Substring(3).Split('\\');
+            if (components.Length > 32 || components.Any(part => part.Length == 0 || part == "." || part == ".."))
+                return null;
+            return path;
+        }
+
+        internal static NssmServiceContext ReadNssmServiceContext(
+            IDictionary<string, string> service, Func<string, Dictionary<string, object>> readRegistryValues)
+        {
+            if (service == null || readRegistryValues == null ||
+                !service.ContainsKey("Name") || !service.ContainsKey("PathName") ||
+                !IsNssmServicePath(service["PathName"])) return null;
+            string name = service["Name"];
+            if (string.IsNullOrWhiteSpace(name) || name.Length > 128 || name.Any(char.IsControl) ||
+                name.IndexOfAny(new[] { '\\', '/' }) >= 0) return null;
+            try
+            {
+                Dictionary<string, object> values = readRegistryValues(
+                    @"SYSTEM\CurrentControlSet\Services\" + name + @"\Parameters");
+                if (values == null) return null;
+                object application, directory;
+                values.TryGetValue("Application", out application);
+                values.TryGetValue("AppDirectory", out directory);
+                string appPath = NssmLocalPath(application);
+                if (appPath == null) return null;
+                string account;
+                if (!service.TryGetValue("Account", out account) || string.IsNullOrWhiteSpace(account))
+                    account = "unknown";
+                if (account.Length > 128 || account.Any(char.IsControl))
+                    account = "unknown";
+                return new NssmServiceContext {
+                    Application = appPath,
+                    Directory = NssmLocalPath(directory),
+                    Account = account
+                };
+            }
+            catch { return null; }
+        }
+
         public static List<Dictionary<string, string>> GetNonstandardServices()
         {
             List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
@@ -428,6 +493,7 @@ namespace winPEAS.Info.ServicesInfo
                                         ["StartMode"] = GetStringOrEmpty(result["StartMode"]),
                                         ["PathName"] = GetStringOrEmpty(result["PathName"]),
                                         ["FilteredPath"] = binaryPath,
+                                        ["Account"] = GetStringOrEmpty(result["StartName"]),
                                         ["isDotNet"] = isDotNet,
                                         ["Description"] = GetStringOrEmpty(result["Description"])
                                     };
@@ -523,6 +589,7 @@ namespace winPEAS.Info.ServicesInfo
                                 ["StartMode"] = startMode,
                                 ["PathName"] = pathName,
                                 ["FilteredPath"] = binaryPath,
+                                ["Account"] = key_values.ContainsKey("ObjectName") ? GetStringOrEmpty(key_values["ObjectName"]) : "",
                                 ["isDotNet"] = isDotNet,
                                 ["Description"] = description
                             };

@@ -147,6 +147,38 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void GmsaDelegationTargetProjectionRequiresFirstNonemptyRange()
+        {
+            Assert.IsTrue(ActiveDirectoryInfo.IsFirstDelegationTargetRange("msDS-AllowedToDelegateTo;range=0-0", 1));
+            Assert.IsTrue(ActiveDirectoryInfo.IsFirstDelegationTargetRange("MSDS-ALLOWEDTODELEGATETO;RANGE=0-*", 1));
+            Assert.IsFalse(ActiveDirectoryInfo.IsFirstDelegationTargetRange("msDS-AllowedToDelegateTo;range=0-0", 0));
+            Assert.IsFalse(ActiveDirectoryInfo.IsFirstDelegationTargetRange("msDS-AllowedToDelegateTo;range=1-1", 1));
+            Assert.IsFalse(ActiveDirectoryInfo.IsFirstDelegationTargetRange("msDS-AllowedToDelegateTo", 1));
+        }
+
+        [TestMethod]
+        public void GmsaDelegationAnnotationNeedsReaderCandidateAndTarget()
+        {
+            Assert.IsNull(ActiveDirectoryInfo.DescribeGmsaDelegationCandidate(
+                ActiveDirectoryInfo.GmsaAccessStatus.NoMatch, true, 0x1000000));
+            Assert.IsNull(ActiveDirectoryInfo.DescribeGmsaDelegationCandidate(
+                ActiveDirectoryInfo.GmsaAccessStatus.Denied, true, 0x1000000));
+            Assert.IsNull(ActiveDirectoryInfo.DescribeGmsaDelegationCandidate(
+                ActiveDirectoryInfo.GmsaAccessStatus.Unknown, true, 0x1000000));
+            Assert.IsNull(ActiveDirectoryInfo.DescribeGmsaDelegationCandidate(
+                ActiveDirectoryInfo.GmsaAccessStatus.Candidate, false, 0x1000000));
+
+            var withTransition = ActiveDirectoryInfo.DescribeGmsaDelegationCandidate(
+                ActiveDirectoryInfo.GmsaAccessStatus.Candidate, true, 0x1000000);
+            StringAssert.Contains(withTransition, "protocol-transition flag set");
+            StringAssert.Contains(withTransition, "Verify effective password read");
+            StringAssert.Contains(ActiveDirectoryInfo.DescribeGmsaDelegationCandidate(
+                ActiveDirectoryInfo.GmsaAccessStatus.Candidate, true, 0), "protocol-transition flag not set");
+            StringAssert.Contains(ActiveDirectoryInfo.DescribeGmsaDelegationCandidate(
+                ActiveDirectoryInfo.GmsaAccessStatus.Candidate, true, null), "protocol-transition flag unknown");
+        }
+
+        [TestMethod]
         public void GmsaReaderListWriteRequiresExactAttributeAndClass()
         {
             Assert.AreEqual(ActiveDirectoryInfo.ExactAttributeWriteRight.GmsaReaderList,
