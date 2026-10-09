@@ -121,7 +121,7 @@ defaults:
   auto_check: False           #The builder will generate a check for the file (only linpeas)
   bad_regex: ""               #The regex used to color red. If only_bad_lines and no line_grep, then only lines containing this regex will be printed
   very_bad_regex: ""          #The regex used to color yellow/red
-  check_extra_path: ""        #Check if the found files are in a specific path (only linpeas)
+  check_extra_path: ""        # Check if found files are in a specific path (linpeas; opt-in selectors on winpeas)
   good_regex: ""              #The regex to color green
   just_list_file: False       #Just mention the path to the file, do not cat it
   line_grep: ""               #The regex to grep lines in a file. IMPORTANT: This is the argument for "grep" command so you need to specify the single and double quotes (see examples)
@@ -1698,6 +1698,38 @@ search:
                   - ${ROOT_FOLDER}lib32
                   - ${ROOT_FOLDER}lib64
 
+  - name: Minecraft plugin JAR candidates
+    value:
+        disable:
+          - linpeas
+        config:
+          auto_check: True
+
+        files:
+          - name: "*.jar"
+            value:
+                check_extra_path: '/(server|minecraft[^/]*|spigot|paper|bukkit)/plugins/[^/]+\.jar$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: IIS default webroot backup archive candidates
+    value:
+        disable:
+          - linpeas
+        config:
+          auto_check: True
+
+        files:
+          - name: "*backup*.zip"
+            value:
+                check_extra_path: '^[A-Za-z]:/inetpub/wwwroot/[^/]*backup[^/]*\.zip$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: OpenVPN
     value:
         config:
@@ -2776,9 +2808,43 @@ search:
 
         files:
           - name:  "passwd"
-            value: 
+            value:
                 type: f
-                search_in: 
+                just_list_file: True
+                check_extra_path: "/[sS]plunk/etc/passwd$"
+                search_in:
+                  - common
+
+          - name: "authentication.conf"
+            value:
+                type: f
+                just_list_file: True
+                check_extra_path: "/[sS]plunk/etc/system/local/authentication[.]conf$"
+                search_in:
+                  - common
+
+          - name: "server.conf"
+            value:
+                type: f
+                just_list_file: True
+                check_extra_path: "/[sS]plunk/etc/system/local/server[.]conf$"
+                search_in:
+                  - common
+
+          - name: "splunk.secret"
+            value:
+                type: f
+                just_list_file: True
+                check_extra_path: "/[sS]plunk/etc/auth/splunk[.]secret$"
+                search_in:
+                  - common
+
+          - name: "inputs.conf"
+            value:
+                type: f
+                just_list_file: True
+                check_extra_path: "/[sS]plunk/etc/apps/[^/]+/(default|local)/inputs[.]conf$"
+                search_in:
                   - common
   
   - name: Git
@@ -3990,6 +4056,19 @@ search:
                 search_in:
                   - $HOMESEARCH
 
+  - name: Password Safe
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "*.psafe3"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: Pre-Shared Keys
     value:
         config:
@@ -5030,6 +5109,20 @@ search:
           - linpeas
 
         files:
+          - name: "sql-Configuration.INI"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "ConfigurationFile.ini"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
           - name: "security"
             value:
                 just_list_file: True
@@ -5248,6 +5341,44 @@ search:
           - name: "data.dat"
             value:
                 check_extra_path: '/AppData/Roaming/SolarWinds/FreeTools/Solar-PuTTY/data\.dat$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Gitea database
+    value:
+        disable:
+          - linpeas
+        config:
+          auto_check: True
+
+        files:
+          - name: "gitea.db"
+            value:
+                check_extra_path: '(^|/)Gitea/data/gitea\.db$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Openfire local configuration and database
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "openfire.xml"
+            value:
+                check_extra_path: '(^|/)openfire/conf/openfire\.xml$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "openfire.script"
+            value:
+                check_extra_path: '(^|/)openfire/embedded-db/openfire\.script$'
                 just_list_file: True
                 type: f
                 search_in:

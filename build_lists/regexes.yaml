@@ -537,7 +537,7 @@ regular_expresions:
       regex: >
         GR1348941[0-9a-zA-Z_\-]{20}
       example: >
-        GR1348941RzEF5zAQQ0ljjE72T-33
+        GR1348941<redacted>
 
     - name: Gitter Access Token
       regex: >
@@ -1184,7 +1184,7 @@ regular_expresions:
     
     - name: Config Secrets
       regex: >
-        passwd.*|creden.*|^kind:[^a-zA-Z0-9_]?Secret|[^a-zA-Z0-9_]env:|secret:|secretName:|^kind:[^a-zA-Z0-9_]?EncryptionConfiguration|\-\-encryption\-provider\-config
+        System[.]Management[.]Automation[.]PSCredential|passwd.*|creden.*|^kind:[^a-zA-Z0-9_]?Secret|[^a-zA-Z0-9_]env:|secret:|secretName:|^kind:[^a-zA-Z0-9_]?EncryptionConfiguration|\-\-encryption\-provider\-config
       example: " secret: 'lala'"
       falsePositives: True
     

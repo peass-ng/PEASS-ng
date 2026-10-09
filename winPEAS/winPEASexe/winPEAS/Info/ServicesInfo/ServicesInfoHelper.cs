@@ -16,10 +16,53 @@ using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 using winPEAS.Info.ApplicationInfo;
+using winPEAS.Info.UserInfo.Token;
 using winPEAS.Native;
 
 namespace winPEAS.Info.ServicesInfo
 {
+    internal sealed class ServiceCommandLineAssessment
+    {
+        public string DisplayPath { get; set; }
+        public string ExecutablePath { get; set; }
+        public bool CredentialPairCandidate { get; set; }
+        public bool UnpairedPasswordOption { get; set; }
+        public bool ScanLimitReached { get; set; }
+    }
+
+    internal sealed class ServiceRegistryEntry
+    {
+        public string Name { get; set; }
+        public Dictionary<string, object> Values { get; set; }
+    }
+
+    internal sealed class ServiceRegistryInventory
+    {
+        public List<ServiceRegistryEntry> Entries { get; } = new List<ServiceRegistryEntry>();
+        public List<Dictionary<string, string>> Services { get; } = new List<Dictionary<string, string>>();
+        public bool UsedRegistry { get; set; }
+        public int Inspected { get; set; }
+        public int Unreadable { get; set; }
+        public bool LimitReached { get; set; }
+    }
+
+    internal sealed class SqlServicePrivilegeInfo
+    {
+        public string Name { get; set; }
+        public string Account { get; set; }
+        public string State { get; set; }
+        public string[] RequiredPrivileges { get; set; }
+        public string Context { get; set; }
+    }
+
+    internal sealed class SqlServicePrivilegeReport
+    {
+        public List<SqlServicePrivilegeInfo> Services { get; } = new List<SqlServicePrivilegeInfo>();
+        public int Omitted { get; set; }
+        public bool TimeLimitReached { get; set; }
+        public bool Unavailable { get; set; }
+    }
+
     internal sealed class WritableServiceDllInfo
     {
         public string ServiceName { get; set; }
@@ -56,6 +99,232 @@ namespace winPEAS.Info.ServicesInfo
 
     class ServicesInfoHelper
     {
+        // Service keys also contain drivers; a few hundred keys can be exhausted before
+        // later service names are reached on ordinary Windows installations.
+        internal const int MaxRegistryServiceEntries = 2048;
+        private static readonly Regex ServiceExecutable = new Regex(
+            @"^\s*(?:""(?<quoted>[^""\r\n]+?\.(?:exe|dll|sys|com|bat|cmd))""|(?<plain>[^\r\n]+?\.(?:exe|dll|sys|com|bat|cmd)))(?=\s|$)",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        internal static ServiceCommandLineAssessment AssessServiceCommandLine(string commandLine)
+        {
+            var assessment = new ServiceCommandLineAssessment { DisplayPath = "[service command line redacted]" };
+            if (string.IsNullOrWhiteSpace(commandLine))
+                return assessment;
+
+            const int maxCommandLineCharacters = 4096;
+            assessment.ScanLimitReached = commandLine.Length > maxCommandLineCharacters;
+            if (assessment.ScanLimitReached)
+                commandLine = commandLine.Substring(0, maxCommandLineCharacters);
+
+            Match executable = ServiceExecutable.Match(commandLine);
+            if (!executable.Success)
+                return assessment;
+
+            string path = executable.Groups["quoted"].Success ? executable.Groups["quoted"].Value : executable.Groups["plain"].Value;
+            // A malformed unquoted command can put options before the first executable
+            // suffix (including a secret value ending in .exe). Do not display it as a path.
+            if (!executable.Groups["quoted"].Success && Regex.IsMatch(path, @"(?:^|\s)[-/]"))
+                return assessment;
+            // The executable is useful for review, but arbitrary argument text must never reach output.
+            if (path.Length <= 260)
+            {
+                assessment.ExecutablePath = path;
+                assessment.DisplayPath = (executable.Groups["quoted"].Success ? "\"" + path + "\"" : path);
+            }
+            string arguments = commandLine.Substring(executable.Length).Trim();
+            if (arguments.Length == 0 && !assessment.ScanLimitReached)
+                return assessment;
+            assessment.DisplayPath += " [arguments redacted]";
+
+            string[] tokens = Regex.Matches(arguments, "\"[^\"]*\"|\\S+")
+                .Cast<Match>().Select(match => match.Value.Trim('"')).ToArray();
+            bool shortUser = false, shortPassword = false;
+            bool longUser = false, longPassword = false;
+            bool slashUser = false, slashPassword = false;
+            for (int i = 0; i < tokens.Length; i++)
+            {
+                string token = tokens[i];
+                bool nextValue = i + 1 < tokens.Length && tokens[i + 1].Length > 0 &&
+                    !tokens[i + 1].StartsWith("-", StringComparison.Ordinal) &&
+                    !tokens[i + 1].StartsWith("/", StringComparison.Ordinal);
+                if (token.Equals("-u", StringComparison.OrdinalIgnoreCase) && nextValue) shortUser = true;
+                if (token.Equals("-p", StringComparison.OrdinalIgnoreCase) && nextValue) shortPassword = true;
+                if (token.Equals("--user", StringComparison.OrdinalIgnoreCase) && nextValue) longUser = true;
+                if (token.Equals("--password", StringComparison.OrdinalIgnoreCase) && nextValue) longPassword = true;
+                if (token.StartsWith("--user=", StringComparison.OrdinalIgnoreCase) && token.Length > 7) longUser = true;
+                if (token.StartsWith("--password=", StringComparison.OrdinalIgnoreCase) && token.Length > 11) longPassword = true;
+                if (token.StartsWith("/user:", StringComparison.OrdinalIgnoreCase) && token.Length > 6) slashUser = true;
+                if (token.StartsWith("/password:", StringComparison.OrdinalIgnoreCase) && token.Length > 10) slashPassword = true;
+            }
+            assessment.CredentialPairCandidate = (shortUser && shortPassword) ||
+                (longUser && longPassword) || (slashUser && slashPassword);
+            assessment.UnpairedPasswordOption = !assessment.CredentialPairCandidate &&
+                (shortPassword || longPassword || slashPassword);
+            return assessment;
+        }
+
+        internal static ServiceRegistryInventory ReadRegistryServiceEntries(
+            IEnumerable<string> names, Func<string, Dictionary<string, object>> readValues, int maxEntries)
+        {
+            var inventory = new ServiceRegistryInventory { UsedRegistry = true };
+            if (names == null || readValues == null || maxEntries < 1)
+                return inventory;
+            foreach (string name in names)
+            {
+                if (inventory.Inspected >= maxEntries)
+                {
+                    inventory.LimitReached = true;
+                    break;
+                }
+                inventory.Inspected++;
+                try
+                {
+                    Dictionary<string, object> values = readValues(name);
+                    if (values == null)
+                    {
+                        inventory.Unreadable++;
+                        continue;
+                    }
+                    if (values.ContainsKey("ImagePath") && values["ImagePath"] != null)
+                        inventory.Entries.Add(new ServiceRegistryEntry { Name = name, Values = values });
+                }
+                catch (Exception)
+                {
+                    inventory.Unreadable++;
+                }
+            }
+            return inventory;
+        }
+
+        internal static string GetRegistryServiceDisplayName(ServiceRegistryEntry entry)
+        {
+            object displayName;
+            return entry.Values.TryGetValue("DisplayName", out displayName) &&
+                !string.IsNullOrWhiteSpace(Convert.ToString(displayName))
+                ? Convert.ToString(displayName) : entry.Name;
+        }
+
+        internal static ServiceRegistryInventory SelectNonstandardServices(
+            Func<List<Dictionary<string, string>>> readWmi, Func<ServiceRegistryInventory> readRegistry)
+        {
+            try
+            {
+                List<Dictionary<string, string>> wmi = readWmi();
+                if (wmi != null && wmi.Count > 0)
+                {
+                    var result = new ServiceRegistryInventory();
+                    result.Services.AddRange(wmi);
+                    return result;
+                }
+            }
+            catch (Exception)
+            {
+                // WMI may be unavailable; use the same passive registry fallback.
+            }
+            return readRegistry();
+        }
+
+        internal const int MaxSqlServiceContextServices = 10;
+        private const int SqlServiceContextMilliseconds = 2000;
+
+        internal static bool IsSqlServiceName(string name)
+        {
+            return !string.IsNullOrEmpty(name) && Regex.IsMatch(name,
+                @"^(MSSQLSERVER|SQLSERVERAGENT|MSSQL\$.+|SQLAgent\$.+)$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        }
+
+        internal static bool IsCurrentServiceAccount(string serviceAccount, string currentIdentity, string computerName)
+        {
+            if (string.IsNullOrWhiteSpace(serviceAccount) || string.IsNullOrWhiteSpace(currentIdentity))
+                return false;
+            string account = serviceAccount.Trim();
+            if (account.StartsWith(@".\", StringComparison.Ordinal))
+                account = computerName + account.Substring(1);
+            return string.Equals(account, currentIdentity.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static string FormatSqlServiceValue(string value)
+        {
+            if (value == null) return "unknown";
+            string clean = Regex.Replace(value, @"[\x00-\x1f\x7f]", " ");
+            return clean.Length > 80 ? clean.Substring(0, 80) + "..." : clean;
+        }
+
+        internal static string ClassifySqlServicePrivilegeContext(
+            string serviceAccount, string currentIdentity, string computerName,
+            string[] requiredPrivileges, bool? currentTokenHasImpersonate)
+        {
+            if (string.IsNullOrWhiteSpace(serviceAccount) || string.IsNullOrWhiteSpace(currentIdentity))
+                return "service account or current process identity unavailable; no token comparison";
+            if (!IsCurrentServiceAccount(serviceAccount, currentIdentity, computerName))
+                return "service account does not match this process identity; no token comparison";
+            if (requiredPrivileges == null)
+                return "RequiredPrivileges unavailable; no token comparison";
+            bool configured = requiredPrivileges.Any(p => string.Equals(
+                p, "SeImpersonatePrivilege", StringComparison.OrdinalIgnoreCase));
+            if (!configured)
+                return "SeImpersonatePrivilege not listed in configured RequiredPrivileges; original service token unknown";
+            if (!currentTokenHasImpersonate.HasValue)
+                return "current process token privileges unavailable; no token comparison";
+            return currentTokenHasImpersonate.Value
+                ? "SeImpersonatePrivilege also present in current process token; original service token unknown"
+                : "configured SeImpersonatePrivilege differs from current process token; another token may differ; unverified";
+        }
+
+        internal static SqlServicePrivilegeReport GetSqlServicePrivilegeContext()
+        {
+            var report = new SqlServicePrivilegeReport();
+            var timer = Stopwatch.StartNew();
+            string identity = null;
+            bool? hasImpersonate = null;
+            try
+            {
+                using (WindowsIdentity current = WindowsIdentity.GetCurrent())
+                    identity = current.Name;
+                Dictionary<string, string> privileges = Token.GetTokenGroupPrivs();
+                if (privileges.Count > 0)
+                    hasImpersonate = privileges.Keys.Any(p => string.Equals(
+                        p, "SeImpersonatePrivilege", StringComparison.OrdinalIgnoreCase));
+            }
+            catch (Exception) { /* Identity and token comparison remain unknown. */ }
+
+            try
+            {
+                using (RegistryKey services = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services"))
+                {
+                    if (services == null) { report.Unavailable = true; return report; }
+                    foreach (string name in services.GetSubKeyNames().Where(IsSqlServiceName).OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+                    {
+                        if (report.Services.Count >= MaxSqlServiceContextServices) { report.Omitted++; continue; }
+                        if (timer.ElapsedMilliseconds >= SqlServiceContextMilliseconds)
+                        { report.TimeLimitReached = true; break; }
+                        var entry = new SqlServicePrivilegeInfo { Name = name, State = "unknown" };
+                        try
+                        {
+                            using (RegistryKey key = services.OpenSubKey(name))
+                            {
+                                if (key != null)
+                                {
+                                    entry.Account = key.GetValue("ObjectName") as string;
+                                    entry.RequiredPrivileges = key.GetValue("RequiredPrivileges") as string[];
+                                }
+                            }
+                            using (var controller = new ServiceController(name))
+                                entry.State = controller.Status.ToString();
+                        }
+                        catch (Exception) { /* Keep readable configuration when SCM access fails. */ }
+                        entry.Context = ClassifySqlServicePrivilegeContext(entry.Account, identity,
+                            Environment.MachineName, entry.RequiredPrivileges, hasImpersonate);
+                        report.Services.Add(entry);
+                    }
+                }
+            }
+            catch (Exception) { report.Unavailable = true; }
+            return report;
+        }
+
         internal const int MaxServiceDllServices = 4096;
         internal const int MaxServiceDllFindings = 64;
         internal const int MaxRecoveryCommandServices = 4096;
@@ -169,18 +438,21 @@ namespace winPEAS.Info.ServicesInfo
             return obj == null ? string.Empty : obj.ToString();
         }
 
-        public static List<Dictionary<string, string>> GetNonstandardServicesFromReg()
+        internal static ServiceRegistryInventory GetNonstandardServicesFromReg()
         {
-            List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
+            ServiceRegistryInventory inventory = new ServiceRegistryInventory { UsedRegistry = true };
 
             try
             {
-                foreach (string key in RegistryHelper.GetRegSubkeys("HKLM", @"SYSTEM\CurrentControlSet\Services"))
+                inventory = ReadRegistryServiceEntries(
+                    RegistryHelper.GetRegSubkeys("HKLM", @"SYSTEM\CurrentControlSet\Services"),
+                    key => RegistryHelper.GetRegValues("HKLM", @"SYSTEM\CurrentControlSet\Services\" + key),
+                    MaxRegistryServiceEntries);
+                foreach (ServiceRegistryEntry entry in inventory.Entries)
                 {
-                    Dictionary<string, object> key_values = RegistryHelper.GetRegValues("HKLM", @"SYSTEM\CurrentControlSet\Services\" + key);
-
-                    if (key_values.ContainsKey("DisplayName") && key_values.ContainsKey("ImagePath"))
+                    try
                     {
+                        Dictionary<string, object> key_values = entry.Values;
                         string companyName = "";
                         string isDotNet = "";
                         string pathName = Environment.ExpandEnvironmentVariables(string.Format("{0}", key_values["ImagePath"]).Replace("\\SystemRoot\\", "%SystemRoot%\\"));
@@ -199,8 +471,7 @@ namespace winPEAS.Info.ServicesInfo
                             }
                         }
 
-                        string displayName = string.Format("{0}", key_values["DisplayName"]);
-                        string imagePath = string.Format("{0}", key_values["ImagePath"]);
+                        string displayName = GetRegistryServiceDisplayName(entry);
                         string description = key_values.ContainsKey("Description") ? string.Format("{0}", key_values["Description"]) : "";
                         string startMode = "";
                         if (key_values.ContainsKey("Start"))
@@ -231,7 +502,7 @@ namespace winPEAS.Info.ServicesInfo
                         {
                             Dictionary<string, string> toadd = new Dictionary<string, string>
                             {
-                                ["Name"] = displayName,
+                                ["Name"] = entry.Name,
                                 ["DisplayName"] = displayName,
                                 ["CompanyName"] = companyName,
                                 ["State"] = "",
@@ -241,8 +512,12 @@ namespace winPEAS.Info.ServicesInfo
                                 ["isDotNet"] = isDotNet,
                                 ["Description"] = description
                             };
-                            results.Add(toadd);
+                            inventory.Services.Add(toadd);
                         }
+                    }
+                    catch (Exception)
+                    {
+                        inventory.Unreadable++;
                     }
                 }
             }
@@ -250,7 +525,7 @@ namespace winPEAS.Info.ServicesInfo
             {
                 Beaprint.PrintException(ex.Message);
             }
-            return results;
+            return inventory;
         }
 
         public static Dictionary<string, string> GetModifiableServices(Dictionary<string, string> SIDs)

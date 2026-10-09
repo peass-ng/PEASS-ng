@@ -151,6 +151,25 @@ namespace winPEAS.Checks
                     Beaprint.InfoPrint("Definitions date: " + report.DefinitionsDate);
                 }
                 Beaprint.InfoPrint("Installed hotfixes detected: " + report.InstalledHotfixesCount);
+                if (report.CandidateProducts.Any(p => p.StartsWith("Windows Server 2022", StringComparison.OrdinalIgnoreCase)) &&
+                    (basicInfo == null || !basicInfo.TryGetValue("CurrentBuild", out var serverBuild) || serverBuild == "20348"))
+                {
+                    var indicator = WindowsVersionVulns.GetCve202430088Indicator();
+                    if (indicator != null)
+                    {
+                        Beaprint.LinkPrint(indicator.cna_url, "Microsoft CNA affected range");
+                        Beaprint.LinkPrint(indicator.release_url, "Microsoft Server 2022 fixed release");
+                        var status = WindowsVersionVulns.AssessFixedBuild(basicInfo, indicator);
+                        string build = basicInfo != null && basicInfo.TryGetValue("CurrentBuild", out var currentBuild) ? currentBuild : "unknown";
+                        string ubr = basicInfo != null && basicInfo.TryGetValue("UpdateBuildRevision", out var revision) ? revision : "unknown";
+                        if (status == FixedBuildStatus.BelowFixedBuild)
+                            Beaprint.InfoPrint($"CVE-2024-30088: {build}.{ubr} is below the Microsoft CNA fixed build {indicator.build}.{indicator.fixed_ubr}; verify installed hotpatches before treating this as affected.");
+                        else if (status == FixedBuildStatus.FixedBuild)
+                            Beaprint.GoodPrint($"CVE-2024-30088: running build {build}.{ubr} matches the Microsoft fixed release (KB{indicator.fixed_kb}).");
+                        else
+                            Beaprint.InfoPrint($"CVE-2024-30088: patch status unknown for build {build}.{ubr}; this fixed-build reference does not verify later cumulative or hotpatch revisions.");
+                    }
+                }
                 if (report.TotalMatchedBeforeFiltering > 0)
                 {
                     Beaprint.InfoPrint($"Pre-filter matches: {report.TotalMatchedBeforeFiltering}, filtered by installed/superseded KBs: {report.FilteredByPatches}");
@@ -158,14 +177,14 @@ namespace winPEAS.Checks
 
                 if (report.Vulnerabilities.Count == 0)
                 {
-                    Beaprint.GoodPrint("No known exploited vulnerabilities matched this running Windows version.");
+                    Beaprint.InfoPrint("No other known exploited vulnerabilities matched the product and reported QFE data.");
                     return;
                 }
 
-                Beaprint.BadPrint($"Matched {report.Vulnerabilities.Count} known exploited vulnerabilities for this running Windows version.");
+                Beaprint.InfoPrint($"Matched {report.Vulnerabilities.Count} known exploited vulnerability candidates for this Windows version; missing QFE entries do not establish exploitability.");
                 if (report.MatchedProducts.Count > 0)
                 {
-                    Beaprint.BadPrint("Matched products: " + string.Join(" | ", report.MatchedProducts));
+                    Beaprint.InfoPrint("Matched products: " + string.Join(" | ", report.MatchedProducts));
                 }
 
                 int maxToPrint = 20;
@@ -175,7 +194,7 @@ namespace winPEAS.Checks
                     string kbInfo = string.IsNullOrWhiteSpace(vuln.kb) ? "" : $" KB{vuln.kb}";
                     string severityInfo = string.IsNullOrWhiteSpace(vuln.severity) ? "" : $" [{vuln.severity}]";
                     string impactInfo = string.IsNullOrWhiteSpace(vuln.impact) ? "" : $" {vuln.impact}";
-                    Beaprint.BadPrint($"    {vulnId}{kbInfo}{severityInfo}{impactInfo}");
+                    Beaprint.InfoPrint($"    {vulnId}{kbInfo}{severityInfo}{impactInfo}");
                 }
 
                 if (report.Vulnerabilities.Count > maxToPrint)
@@ -1019,6 +1038,9 @@ namespace winPEAS.Checks
                 string policyPath = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate";
                 string policyAUPath = "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU";
                 string wsusPolicyValue = RegistryHelper.GetRegValue("HKLM", policyPath, "WUServer");
+                string wuStatusServerValue = RegistryHelper.GetRegValue("HKLM", policyPath, "WUStatusServer");
+                string alternateUpdateServerValue = RegistryHelper.GetRegValue("HKLM", policyPath, "UpdateServiceUrlAlternate");
+                string acceptTrustedPublisherCertsValue = RegistryHelper.GetRegValue("HKLM", policyPath, "AcceptTrustedPublisherCerts");
                 string useWUServerValue = RegistryHelper.GetRegValue("HKLM", policyAUPath, "UseWUServer");
 
                 if (!string.IsNullOrEmpty(wsusPolicyValue) && wsusPolicyValue.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
@@ -1037,8 +1059,17 @@ namespace winPEAS.Checks
                     if (string.IsNullOrEmpty(wsusPolicyValue))
                         Beaprint.NotFoundPrint();
                     else
-                        Beaprint.GoodPrint("    WSUS value: " + wsusPolicyValue);
+                        Beaprint.InfoPrint("    WSUS value: " + wsusPolicyValue);
                 }
+
+                if (!string.IsNullOrEmpty(wuStatusServerValue))
+                    Beaprint.InfoPrint("    WUStatusServer: " + wuStatusServerValue);
+                if (!string.IsNullOrEmpty(alternateUpdateServerValue))
+                    Beaprint.InfoPrint("    UpdateServiceUrlAlternate: " + alternateUpdateServerValue);
+                if (acceptTrustedPublisherCertsValue == "1")
+                    Beaprint.InfoPrint("    AcceptTrustedPublisherCerts=1: updates from an intranet update service may be signed by a certificate in the local computer's Trusted Publishers store.");
+                if (!string.IsNullOrEmpty(wsusPolicyValue) && wsusPolicyValue.StartsWith("https://", StringComparison.OrdinalIgnoreCase) && useWUServerValue == "1")
+                    Beaprint.InfoPrint("    HTTPS WSUS still depends on DNS and TLS certificate trust for this endpoint; review control of the configured name and issuing CA.");
 
                 if (!string.IsNullOrEmpty(wsusPolicyValue))
                 {
@@ -1117,14 +1148,24 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("Checking KrbRelayUp", "T1187,T1558");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#krbrelayup");
 
-                if (Checks.CurrentAdDomainName.Length > 0)
+                var policy = Ntlm.GetLocalDcLdapPolicy();
+                if (policy.Role == LocalDomainRole.DomainController)
                 {
-                    Beaprint.BadPrint("  The system is inside a domain (" + Checks.CurrentAdDomainName + ") so it could be vulnerable.");
-                    Beaprint.InfoPrint("You can try https://github.com/Dec0ne/KrbRelayUp to escalate privileges");
+                    if (policy.HasObservedRelayCondition)
+                    {
+                        Beaprint.BadPrint("  Local DC LDAP policy shows a relay precondition; this does not establish a usable coercion or account path.");
+                        Beaprint.InfoPrint("  LDAP signing: " + policy.SigningStatus + "; LDAPS channel binding: " + policy.ChannelBindingStatus + ".");
+                    }
+                    else
+                        Beaprint.InfoPrint("  No permissive local DC LDAP policy was established; see the server policy values below.");
                 }
+                else if (policy.Role == LocalDomainRole.Member && !string.IsNullOrEmpty(Checks.CurrentAdDomainName))
+                    Beaprint.InfoPrint("  Domain member: DC server-side LDAP policy is unknown from this host.");
+                else if (policy.Role == LocalDomainRole.Unknown)
+                    Beaprint.InfoPrint("  Local domain role and DC server-side LDAP policy are unknown.");
                 else
                 {
-                    Beaprint.GoodPrint("  The system isn't inside a domain, so it isn't vulnerable");
+                    Beaprint.InfoPrint("  No current AD domain was identified; local relay prerequisites were not assessed.");
                 }
             }
             catch (Exception ex)
@@ -1290,8 +1331,24 @@ namespace winPEAS.Checks
                                    $"      ClientNegotiateSigning  : {info.ClientNegotiateSigning}\n" +
                                    $"      ServerRequireSigning    : {info.ServerRequireSigning}\n" +
                                    $"      ServerNegotiateSigning  : {info.ServerNegotiateSigning}\n" +
-                                   $"      LdapSigning             : {(info.LdapSigning != null ? info.LdapSigningString : "null")} ({info.LdapSigningString})",
+                                   $"      LDAP client signing     : {(info.LdapSigning != null ? info.LdapSigning.ToString() : "missing")} ({info.LdapSigningString})",
                                    ntlmSettingsColors);
+
+                var dcPolicy = info.DcLdapPolicy;
+                Beaprint.ColorPrint("\n  Local DC LDAP server policy", Beaprint.LBLUE);
+                if (dcPolicy.Role != LocalDomainRole.DomainController)
+                    Beaprint.InfoPrint("      DC server policy         : unknown (" + dcPolicy.Role + "); client signing cannot substitute for it.");
+                else
+                {
+                    Beaprint.NoColorPrint("      LDAPServerIntegrity     : " + FormatDcPolicyValue(dcPolicy.SigningReadState, dcPolicy.SigningValue) + " (" + dcPolicy.SigningStatus + ")");
+                    Beaprint.NoColorPrint("      LdapEnforceChannelBinding: " + FormatDcPolicyValue(dcPolicy.ChannelBindingReadState, dcPolicy.ChannelBindingValue) + " (" + dcPolicy.ChannelBindingStatus + "; LDAPS only)");
+                    if (dcPolicy.SigningReadState == LdapPolicyReadState.Missing)
+                        Beaprint.InfoPrint(dcPolicy.Generation == DomainControllerGeneration.Before2025
+                            ? "      Absent signing policy: older DC default does not require signing."
+                            : "      Absent signing policy: effective default unknown; new Server 2025 deployments have different enforcement defaults.");
+                    if (dcPolicy.ChannelBindingStatus == LdapsChannelBindingStatus.WhenSupported)
+                        Beaprint.InfoPrint("      When Supported is partial LDAPS protection: capable clients need a valid channel binding token.");
+                }
 
                 Beaprint.ColorPrint("\n  Session Security", Beaprint.LBLUE);
 
@@ -1337,6 +1394,13 @@ namespace winPEAS.Checks
             {
                 Beaprint.PrintException(ex.Message);
             }
+        }
+
+        private static string FormatDcPolicyValue(LdapPolicyReadState state, uint? value)
+        {
+            if (state == LdapPolicyReadState.Missing) return "missing";
+            if (state == LdapPolicyReadState.Error) return "unavailable (read error)";
+            return value.HasValue ? value.Value.ToString() : "unavailable (invalid DWORD)";
         }
 
         private static void PrintPrintNightmarePointAndPrint()
@@ -1851,7 +1915,8 @@ namespace winPEAS.Checks
                         fileSysPath,
                         System.IO.Path.Combine(fileSysPath, @"Machine\Scripts\Startup"),
                         System.IO.Path.Combine(fileSysPath, @"User\Scripts\Logon"),
-                        System.IO.Path.Combine(fileSysPath, @"Machine\Preferences\ScheduledTasks")
+                        System.IO.Path.Combine(fileSysPath, @"Machine\Preferences\ScheduledTasks"),
+                        System.IO.Path.Combine(fileSysPath, @"Machine\Microsoft\Windows NT\SecEdit")
                     };
 
                     foreach (var p in pathsToCheck)
@@ -1864,7 +1929,7 @@ namespace winPEAS.Checks
                                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/index.html", "Why it matters");
                             }
                             anyFinding = true;
-                            Beaprint.BadPrint($"    [!] Writable applied GPO detected");
+                            Beaprint.BadPrint("    [!] Applied GPO path write candidate");
                             Beaprint.NoColorPrint($"        GPO Display Name : {info.DisplayName}");
                             Beaprint.NoColorPrint($"        GPO Name         : {info.GPOName}");
                             Beaprint.NoColorPrint($"        GPO Link         : {info.Link}");
@@ -1873,7 +1938,7 @@ namespace winPEAS.Checks
                             {
                                 Beaprint.NoColorPrint($"          -> {entry}");
                             }
-                            Beaprint.GrayPrint("        Hint: Abuse by adding an immediate Scheduled Task or Startup script to execute as SYSTEM on gpupdate.");
+                            Beaprint.GrayPrint("        Review effective share/GPT and GPC rights, scope, and filtering. An applicable machine-side immediate task can run at policy refresh; startup scripts wait for startup, and user logon scripts run at logon under that user.");
                         }
                     }
                 }

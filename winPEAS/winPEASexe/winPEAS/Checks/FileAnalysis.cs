@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Search;
+using winPEAS.Info.FilesInfo;
 using static winPEAS.Helpers.YamlConfig.YamlConfig.SearchParameters;
 
 namespace winPEAS.Checks
@@ -15,6 +16,18 @@ namespace winPEAS.Checks
     internal class FileAnalysis : ISystemCheck
     {
         private const int ListFileLimit = 70;
+        // Only these YAML categories opt into path filtering on Windows. Other
+        // categories retain their established filename-only behavior.
+        private static readonly HashSet<string> ScopedSensitiveFileSearchNames =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Splunk", "Solar-PuTTY session stores", "Gitea", "Gitea database",
+                "Backdrop CMS settings candidates", "LimeSurvey", "PSWM vault candidates",
+                "PrestaShop database settings candidates", "ChangeDetection backup candidates",
+                "WonderCMS", "Pluck CMS", "Grafana", "Duplicati server state",
+                "Openfire local configuration and database", "Minecraft plugin JAR candidates",
+                "IIS default webroot backup archive candidates"
+            };
 
         public string[] MitreAttackIds { get; } = new[] { "T1552.001", "T1083" };
 
@@ -145,6 +158,11 @@ namespace winPEAS.Checks
 
                 if (isFileFound)
                 {
+                    // Scope only opted-in YAML selectors; other records retain
+                    // their established Windows matching behavior.
+                    if (!MatchesScopedSensitiveFilePath(searchName, file.FullPath,
+                        fileSettings.check_extra_path)) continue;
+
                     if (!somethingFound)
                     {
                         Beaprint.MainPrint($"Found {searchName} Files", "T1552.001");
@@ -173,6 +191,33 @@ namespace winPEAS.Checks
 
 
             return new bool[] { false, somethingFound };
+        }
+
+        internal static bool MatchesScopedSensitiveFilePath(string searchName, string path,
+            string extraPathPattern)
+        {
+            if (!ScopedSensitiveFileSearchNames.Contains(searchName ?? string.Empty))
+                return true;
+            if (string.IsNullOrEmpty(extraPathPattern))
+            {
+                // Preserve existing Splunk behavior and Grafana's grafana.ini;
+                // a new Grafana database without a path pattern fails closed.
+                if (string.Equals(searchName, "Splunk", StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (!string.Equals(searchName, "Grafana", StringComparison.OrdinalIgnoreCase) ||
+                    string.IsNullOrWhiteSpace(path)) return false;
+                string portablePath = path.Replace('\\', '/');
+                return string.Equals(portablePath, "grafana.ini", StringComparison.OrdinalIgnoreCase) ||
+                    portablePath.EndsWith("/grafana.ini", StringComparison.OrdinalIgnoreCase);
+            }
+            if (string.IsNullOrWhiteSpace(path)) return false;
+            try
+            {
+                return Regex.IsMatch(path.Replace('\\', '/'), extraPathPattern,
+                    RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
+            }
+            catch (ArgumentException) { return false; }
+            catch (RegexMatchTimeoutException) { return false; }
         }
 
         public static List<string> SearchContent(string text, string regex_str, bool caseinsensitive)
@@ -239,6 +284,13 @@ namespace winPEAS.Checks
             try
             {
                 var files = InitializeFileSearch();
+                // SQL setup media is often staged directly below the system drive.
+                // Probe only immediate SQL* directories and their immediate children.
+                SqlSetupCandidateInventory sqlSetup = SqlSetupConfigurationIndicator.ScanDriveRoot(
+                    SearchHelper.SystemDrive + "\\");
+                files.InsertRange(0, sqlSetup.Files);
+                if (sqlSetup.Partial)
+                    Beaprint.GrayPrint("SQL setup file probe was partial (directory or time limit).");
                 //var folders = files.Where(f => f.IsDirectory).ToList();
                 var config = Checks.YamlConfig;
                 var defaults = config.defaults;
@@ -576,6 +628,25 @@ namespace winPEAS.Checks
                     { fileInfo.Filename, Beaprint.ansi_color_bad }
                 };
                 Beaprint.AnsiPrint($"File: {fileInfo.FullPath}", colors);
+
+                if (SqlSetupConfigurationIndicator.IsSetupConfigName(fileInfo.Filename))
+                {
+                    if (resultsCount <= SqlSetupConfigurationIndicator.MaxConfigReads)
+                    {
+                        SqlSetupMarkerAssessment assessment = SqlSetupConfigurationIndicator.Inspect(
+                            fileInfo.FullPath, fileInfo.Size);
+                        if (assessment.Markers.Count > 0)
+                            Beaprint.BadPrint("    Possible populated SQL setup credential fields: " +
+                                string.Join(", ", assessment.Markers) + " (values redacted; validity unknown)");
+                        else if (!assessment.Partial)
+                            Beaprint.GrayPrint("    No populated SQL setup credential fields found in bounded sample.");
+                        if (assessment.Partial)
+                            Beaprint.GrayPrint("    SQL setup file inspection partial: " + assessment.Reason);
+                    }
+                    else
+                        Beaprint.GrayPrint("    SQL setup file marker inspection capped; path only.");
+                    return true;
+                }
 
                 if (!(bool)fileSettings.just_list_file)
                 {

@@ -28,10 +28,20 @@ namespace winPEAS.Info.ApplicationInfo
         public string AccessReason { get; set; }
     }
 
+    internal sealed class PrivilegedScheduledTaskDemandStartFinding
+    {
+        public string TaskPath { get; set; }
+        public string Principal { get; set; }
+        public string Action { get; set; }
+        public string ScriptPath { get; set; }
+        public string Trustee { get; set; }
+    }
+
     internal sealed class PrivilegedScheduledTaskReport
     {
         public List<PrivilegedScheduledTaskFinding> Findings { get; } = new List<PrivilegedScheduledTaskFinding>();
         public List<PrivilegedScheduledTaskControlFinding> ControlFindings { get; } = new List<PrivilegedScheduledTaskControlFinding>();
+        public List<PrivilegedScheduledTaskDemandStartFinding> DemandStartFindings { get; } = new List<PrivilegedScheduledTaskDemandStartFinding>();
         public int FoldersInspected { get; set; }
         public int TasksInspected { get; set; }
         public bool FolderLimitReached { get; set; }
@@ -57,9 +67,11 @@ namespace winPEAS.Info.ApplicationInfo
         private const uint FileWriteData = 0x00000002;
         private const uint FileAppendData = 0x00000004;
         private const uint FileDeleteChild = 0x00000040;
+        private const uint FileExecute = 0x00000020;
         private const uint WriteDac = 0x00040000;
         private const uint WriteOwner = 0x00080000;
         private const uint GenericWrite = 0x40000000;
+        private const uint GenericExecute = 0x20000000;
         private const uint GenericAll = 0x10000000;
 
         private static readonly HashSet<string> ReplaceableScriptExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -218,10 +230,23 @@ namespace winPEAS.Info.ApplicationInfo
                         return;
                     }
 
-                    ProcessTaskSecurity(task, principalName, unprivilegedSids, report);
+                    string demandStartTrustee = ProcessTaskSecurity(task, principalName, unprivilegedSids, report);
                     if (ShouldStop(report))
                     {
                         return;
+                    }
+
+                    bool allowDemandStart = false;
+                    try
+                    {
+                        using (TaskSettings settings = definition.Settings)
+                        {
+                            allowDemandStart = settings.AllowDemandStart;
+                        }
+                    }
+                    catch
+                    {
+                        // Do not report a runnable task when its start setting cannot be read.
                     }
 
                     using (ActionCollection actions = definition.Actions)
@@ -238,6 +263,27 @@ namespace winPEAS.Info.ApplicationInfo
                                 var execAction = action as TaskAction.ExecAction;
                                 if (execAction != null)
                                 {
+                                    if (!string.IsNullOrEmpty(demandStartTrustee))
+                                    {
+                                        string scriptPath = GetPowerShellFileScriptPath(
+                                            allowDemandStart, execAction.Path, execAction.Arguments, execAction.WorkingDirectory);
+                                        if (!string.IsNullOrEmpty(scriptPath))
+                                        {
+                                            report.DemandStartFindings.Add(new PrivilegedScheduledTaskDemandStartFinding
+                                            {
+                                                TaskPath = task.Path,
+                                                Principal = principalName,
+                                                Action = (execAction.Path ?? string.Empty) + " " + (execAction.Arguments ?? string.Empty),
+                                                ScriptPath = scriptPath,
+                                                Trustee = demandStartTrustee,
+                                            });
+                                            if (GetFindingCount(report) >= MaxFindings)
+                                            {
+                                                report.FindingLimitReached = true;
+                                                return;
+                                            }
+                                        }
+                                    }
                                     ProcessExecAction(task.Path, principalName, execAction, unprivilegedSids, report);
                                 }
                             }
@@ -256,7 +302,7 @@ namespace winPEAS.Info.ApplicationInfo
             }
         }
 
-        private static void ProcessTaskSecurity(
+        private static string ProcessTaskSecurity(
             ScheduledTask task,
             string principal,
             ISet<string> unprivilegedSids,
@@ -268,15 +314,15 @@ namespace winPEAS.Info.ApplicationInfo
                     SecurityInfos.Owner | SecurityInfos.DiscretionaryAcl);
                 if (string.IsNullOrWhiteSpace(sddl))
                 {
-                    return;
+                    return null;
                 }
 
-                string accessReason = FindTaskControlReason(
-                    new RawSecurityDescriptor(sddl),
-                    unprivilegedSids);
+                var descriptor = new RawSecurityDescriptor(sddl);
+                string demandStartTrustee = FindTaskExecuteTrustee(descriptor, unprivilegedSids);
+                string accessReason = FindTaskControlReason(descriptor, unprivilegedSids);
                 if (string.IsNullOrEmpty(accessReason))
                 {
-                    return;
+                    return demandStartTrustee;
                 }
 
                 report.ControlFindings.Add(new PrivilegedScheduledTaskControlFinding
@@ -290,11 +336,73 @@ namespace winPEAS.Info.ApplicationInfo
                 {
                     report.FindingLimitReached = true;
                 }
+                return demandStartTrustee;
             }
             catch
             {
                 // Reading a task DACL can be denied independently of reading its definition.
+                return null;
             }
+        }
+
+        internal static string GetPowerShellFileScriptPath(bool allowDemandStart, string executable, string arguments, string workingDirectory)
+        {
+            if (!allowDemandStart)
+            {
+                return null;
+            }
+
+            string name = GetFileName(executable);
+            if (!name.Equals("powershell.exe", StringComparison.OrdinalIgnoreCase) &&
+                !name.Equals("powershell", StringComparison.OrdinalIgnoreCase) &&
+                !name.Equals("pwsh.exe", StringComparison.OrdinalIgnoreCase) &&
+                !name.Equals("pwsh", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            string expandedArguments = ExpandAndTrim(arguments);
+            if (expandedArguments.Length > MaxArgumentLength)
+            {
+                expandedArguments = expandedArguments.Substring(0, MaxArgumentLength);
+            }
+
+            List<string> tokens = new List<string>(TokenizeArguments(expandedArguments));
+            for (int index = 0; index < tokens.Count; index++)
+            {
+                string token = tokens[index];
+                // Inline command modes accept abbreviated switches. Do not mistake
+                // a -File token inside their command text for a host file action.
+                if ((token.Length > 1 && token[0] == '-' &&
+                    ("-Command".StartsWith(token, StringComparison.OrdinalIgnoreCase) ||
+                     "-EncodedCommand".StartsWith(token, StringComparison.OrdinalIgnoreCase) ||
+                     "-CommandWithArgs".StartsWith(token, StringComparison.OrdinalIgnoreCase))) ||
+                    token.Equals("-ec", StringComparison.OrdinalIgnoreCase) ||
+                    token.Equals("-cwa", StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+
+                string candidate = null;
+                if (token.Equals("-File", StringComparison.OrdinalIgnoreCase) ||
+                    token.Equals("-f", StringComparison.OrdinalIgnoreCase))
+                {
+                    candidate = index + 1 < tokens.Count ? tokens[index + 1] : null;
+                }
+
+                if (candidate != null)
+                {
+                    var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    AddExecutionCandidate(candidate, PowerShellScriptExtensions, ExpandAndTrim(workingDirectory), paths);
+                    foreach (string path in paths)
+                    {
+                        return path;
+                    }
+                    return null;
+                }
+            }
+
+            return null;
         }
 
         private static void ProcessExecAction(
@@ -354,6 +462,95 @@ namespace winPEAS.Info.ApplicationInfo
                     return;
                 }
             }
+
+            // StandaloneRunner reads these implicit inputs without naming them in
+            // the task action. Probe only this exact helper under the existing
+            // enabled LocalSystem task scope; the two inputs must both be writable.
+            if (targets.Count + 2 > MaxTargetsPerAction || ShouldStop(report))
+            {
+                return;
+            }
+
+            bool inferredDirectory;
+            List<string> sidecars = GetStandaloneRunnerSidecarPaths(
+                executable, workingDirectory, out inferredDirectory);
+            if (sidecars.Count != 2)
+            {
+                return;
+            }
+
+            string[] reasons = new string[2];
+            for (int index = 0; index < sidecars.Count; index++)
+            {
+                if (ShouldStop(report))
+                {
+                    return;
+                }
+
+                report.TargetsInspected++;
+                reasons[index] = GetWritableTargetReason(sidecars[index], unprivilegedSids);
+            }
+
+            if (!string.IsNullOrEmpty(reasons[0]) && !string.IsNullOrEmpty(reasons[1]))
+            {
+                report.Findings.Add(new PrivilegedScheduledTaskFinding
+                {
+                    TaskPath = taskPath,
+                    Principal = principal,
+                    Executable = executable,
+                    TargetPath = sidecars[0] + " and " + sidecars[1],
+                    AccessReason = "StandaloneRunner sidecar inputs: " + reasons[0] + "; " + reasons[1] +
+                        (inferredDirectory
+                            ? ". Inputs are adjacent to the executable; task working directory was unspecified, so confirm the runtime input directory."
+                            : ". Inputs are in the task working directory; confirm runtime consumption and project working-file prerequisites."),
+                });
+
+                if (GetFindingCount(report) >= MaxFindings)
+                {
+                    report.FindingLimitReached = true;
+                }
+            }
+        }
+
+        internal static List<string> GetStandaloneRunnerSidecarPaths(
+            string executable, string workingDirectory, out bool inferredFromExecutableParent)
+        {
+            inferredFromExecutableParent = false;
+            if (!GetFileName(executable).Equals("StandaloneRunner.exe", StringComparison.OrdinalIgnoreCase))
+            {
+                return new List<string>();
+            }
+
+            string directory = CleanCandidatePath(ExpandAndTrim(workingDirectory));
+            if (string.IsNullOrEmpty(directory))
+            {
+                string resolvedExecutable = CleanCandidatePath(ExpandAndTrim(executable));
+                if (!IsLocalAbsolutePath(resolvedExecutable))
+                {
+                    return new List<string>();
+                }
+
+                int separator = resolvedExecutable.LastIndexOf('\\');
+                if (separator < 3)
+                {
+                    return new List<string>();
+                }
+
+                directory = resolvedExecutable.Substring(0, separator);
+                inferredFromExecutableParent = true;
+            }
+
+            if (!IsLocalAbsolutePath(directory))
+            {
+                return new List<string>();
+            }
+
+            directory = directory.TrimEnd('\\');
+            return new List<string>
+            {
+                directory + @"\command.txt",
+                directory + @"\reboot.rsf",
+            };
         }
 
         internal static bool IsLocalSystemPrincipal(string principal)
@@ -784,6 +981,61 @@ namespace winPEAS.Info.ApplicationInfo
             return null;
         }
 
+        internal static string FindTaskExecuteTrustee(RawSecurityDescriptor descriptor, ISet<string> enabledSids)
+        {
+            if (descriptor == null || enabledSids == null || enabledSids.Count == 0)
+            {
+                return null;
+            }
+
+            if ((descriptor.ControlFlags & ControlFlags.DiscretionaryAclPresent) == 0 ||
+                descriptor.DiscretionaryAcl == null)
+            {
+                return enabledSids.Contains("S-1-1-0") ? "S-1-1-0" : null;
+            }
+
+            string allowedTrustee = null;
+            foreach (GenericAce ace in descriptor.DiscretionaryAcl)
+            {
+                if ((ace.AceFlags & AceFlags.InheritOnly) != 0)
+                {
+                    continue;
+                }
+
+                var qualifiedAce = ace as QualifiedAce;
+                var knownAce = ace as KnownAce;
+                if (qualifiedAce == null || knownAce == null || qualifiedAce.SecurityIdentifier == null ||
+                    !enabledSids.Contains(qualifiedAce.SecurityIdentifier.Value))
+                {
+                    continue;
+                }
+
+                uint mask = unchecked((uint)knownAce.AccessMask);
+                if ((mask & (FileExecute | GenericExecute | GenericAll)) == 0)
+                {
+                    continue;
+                }
+
+                // Every matching SID is part of the token; one explicit deny blocks execution.
+                if (qualifiedAce.AceQualifier == AceQualifier.AccessDenied)
+                {
+                    return null;
+                }
+                if (qualifiedAce.AceQualifier == AceQualifier.AccessAllowed)
+                {
+                    // Conditional and object-specific grants require a full access
+                    // check; they do not establish unconditional task execute access.
+                    var commonAce = qualifiedAce as CommonAce;
+                    if (commonAce != null && !commonAce.IsCallback)
+                    {
+                        allowedTrustee = qualifiedAce.SecurityIdentifier.Value;
+                    }
+                }
+            }
+
+            return allowedTrustee;
+        }
+
         private static IEnumerable<uint> IndividualRights(uint rights)
         {
             uint[] candidates = { FileWriteData, FileAppendData, FileDeleteChild, WriteDac, WriteOwner };
@@ -921,7 +1173,7 @@ namespace winPEAS.Info.ApplicationInfo
 
         private static int GetFindingCount(PrivilegedScheduledTaskReport report)
         {
-            return report.Findings.Count + report.ControlFindings.Count;
+            return report.Findings.Count + report.ControlFindings.Count + report.DemandStartFindings.Count;
         }
 
         internal static bool ApplySafetyLimits(PrivilegedScheduledTaskReport report, long elapsedMilliseconds)

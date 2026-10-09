@@ -63,6 +63,15 @@ namespace winPEAS.Info.SystemInfo
             report.TotalMatchedBeforeFiltering = matchedEntries.Count;
 
             var filteredVulns = FilterPatchedVulnerabilities(matchedEntries, installedHotfixes, definitions.kb_supersedes);
+            report.FilteredByPatches = report.TotalMatchedBeforeFiltering - filteredVulns.Count;
+            if (definitions.fixed_build_indicators != null &&
+                definitions.fixed_build_indicators.ContainsKey("CVE-2024-30088") &&
+                (!int.TryParse(GetValue(basicInfo, "CurrentBuild"), out var currentBuild) || currentBuild == 20348) &&
+                report.CandidateProducts.Any(p => p.StartsWith("Windows Server 2022", StringComparison.OrdinalIgnoreCase)))
+            {
+                // This CVE has a separate build assessment; QFE absence is not a finding.
+                filteredVulns.RemoveAll(v => string.Equals(v.cve, "CVE-2024-30088", StringComparison.OrdinalIgnoreCase));
+            }
             var vulnById = new Dictionary<string, WindowsVersionVulnEntry>(StringComparer.OrdinalIgnoreCase);
             AddEntries(filteredVulns, vulnById);
 
@@ -70,7 +79,6 @@ namespace winPEAS.Info.SystemInfo
                 .OrderByDescending(v => GetSeverityPriority(v.severity))
                 .ThenBy(v => string.IsNullOrEmpty(v.cve) ? v.kb : v.cve, StringComparer.OrdinalIgnoreCase)
                 .ToList();
-            report.FilteredByPatches = report.TotalMatchedBeforeFiltering - report.Vulnerabilities.Count;
 
             return report;
         }
@@ -86,6 +94,37 @@ namespace winPEAS.Info.SystemInfo
             var installedHotfixes = GetInstalledHotfixes(basicInfo);
             var suppressed = ExpandSupersededHotfixes(installedHotfixes, definitions?.kb_supersedes);
             return suppressed.Contains(hotfix.Replace("KB", "").Trim());
+        }
+
+        internal static FixedBuildIndicator GetCve202430088Indicator()
+        {
+            var definitions = LoadDefinitions();
+            if (definitions?.fixed_build_indicators == null)
+            {
+                return null;
+            }
+            definitions.fixed_build_indicators.TryGetValue("CVE-2024-30088", out var indicator);
+            return indicator;
+        }
+
+        internal static FixedBuildStatus AssessFixedBuild(Dictionary<string, string> basicInfo, FixedBuildIndicator indicator)
+        {
+            if (basicInfo == null || indicator == null ||
+                !int.TryParse(GetValue(basicInfo, "CurrentBuild"), out var build) ||
+                !int.TryParse(GetValue(basicInfo, "UpdateBuildRevision"), out var ubr) ||
+                build != indicator.build || ubr < 0 ||
+                (GetValue(basicInfo, "ProductName") + " " + GetValue(basicInfo, "OS Name"))
+                    .IndexOf("Server 2022", StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return FixedBuildStatus.Unknown;
+            }
+
+            if (ubr < indicator.fixed_ubr)
+            {
+                return FixedBuildStatus.BelowFixedBuild;
+            }
+            // A later cumulative or hotpatch revision is not verified by this one release record.
+            return ubr == indicator.fixed_ubr ? FixedBuildStatus.FixedBuild : FixedBuildStatus.Unknown;
         }
 
         private static void AddProductMatches(
@@ -447,6 +486,19 @@ namespace winPEAS.Info.SystemInfo
         public string generated { get; set; }
         public Dictionary<string, List<WindowsVersionVulnEntry>> products { get; set; }
         public Dictionary<string, List<string>> kb_supersedes { get; set; }
+        public Dictionary<string, FixedBuildIndicator> fixed_build_indicators { get; set; }
+    }
+
+    internal enum FixedBuildStatus { Unknown, BelowFixedBuild, FixedBuild }
+
+    internal class FixedBuildIndicator
+    {
+        public string product { get; set; }
+        public int build { get; set; }
+        public int fixed_ubr { get; set; }
+        public string fixed_kb { get; set; }
+        public string cna_url { get; set; }
+        public string release_url { get; set; }
     }
 
     internal class WindowsVersionVulnEntry

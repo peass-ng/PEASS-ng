@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using winPEAS.Helpers;
-using winPEAS.Helpers.Registry;
 using winPEAS.Info.UserInfo.SAM;
 using winPEAS.Native;
 using winPEAS.Native.Enums;
@@ -15,8 +15,35 @@ using winPEAS.Native.Enums;
 
 namespace winPEAS.Info.UserInfo
 {
+    internal enum RdpSessionVisibility { Unknown, Empty, Observed }
+
+    internal sealed class RdpSessionEnumeration
+    {
+        internal RdpSessionVisibility Visibility { get; set; } = RdpSessionVisibility.Unknown;
+        internal List<Dictionary<string, string>> Sessions { get; } = new List<Dictionary<string, string>>();
+        internal string FailureReason { get; set; }
+    }
+
+    internal enum AutoLogonFinding
+    {
+        None,
+        EnabledWithoutPlaintextPassword,
+        PlaintextPassword
+    }
+
     class UserInfoHelper
     {
+        private const string WinlogonKeyPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon";
+        private static readonly string[] AutoLogonValueNames =
+        {
+            "AutoAdminLogon",
+            "DefaultDomainName",
+            "DefaultUserName",
+            "DefaultPassword",
+            "AltDefaultDomainName",
+            "AltDefaultUserName",
+            "AltDefaultPassword"
+        };
         private const int ClipboardReadTimeoutMs = 1500;
         private static readonly Dictionary<string, bool> _highPrivAccountCache = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         private static readonly string[] _highPrivGroupIndicators = new string[]
@@ -226,68 +253,94 @@ namespace winPEAS.Info.UserInfo
             return server;
         }
 
-        public static List<Dictionary<string, string>> GetRDPSessions()
+        internal static RdpSessionVisibility AssessRdpSessionVisibility(bool enumerationSucceeded, int visibleSessionCount)
         {
-            List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
+            return !enumerationSucceeded ? RdpSessionVisibility.Unknown
+                : visibleSessionCount > 0 ? RdpSessionVisibility.Observed : RdpSessionVisibility.Empty;
+        }
+
+        internal static RdpSessionEnumeration GetRDPSessions()
+        {
+            var result = new RdpSessionEnumeration();
             // adapted from http://www.pinvoke.net/default.aspx/wtsapi32.wtsenumeratesessions
             IntPtr server = IntPtr.Zero;
-            List<String> ret = new List<string>();
-            server = OpenServer("localhost");
+            IntPtr ppSessionInfo = IntPtr.Zero;
+            int count = 0;
 
             try
             {
-                IntPtr ppSessionInfo = IntPtr.Zero;
+                server = OpenServer("localhost");
+                if (server == IntPtr.Zero)
+                {
+                    result.FailureReason = "WTSOpenServer error " + Marshal.GetLastWin32Error();
+                    return result;
+                }
 
-                Int32 count = 0;
                 Int32 level = 1;
                 Int32 retval = Wtsapi32.WTSEnumerateSessionsEx(server, ref level, 0, ref ppSessionInfo, ref count);
+                if (retval == 0)
+                {
+                    result.FailureReason = "WTSEnumerateSessionsEx error " + Marshal.GetLastWin32Error();
+                    return result;
+                }
+                if (count > 0 && ppSessionInfo == IntPtr.Zero)
+                {
+                    result.FailureReason = "WTSEnumerateSessionsEx returned no buffer";
+                    return result;
+                }
+
                 Int32 dataSize = Marshal.SizeOf(typeof(WTS_SESSION_INFO_1));
                 Int64 current = (Int64)ppSessionInfo;
 
-                if (retval != 0)
+                for (int i = 0; i < count; i++)
                 {
-                    for (int i = 0; i < count; i++)
+                    Dictionary<string, string> rdp_session = new Dictionary<string, string>();
+                    WTS_SESSION_INFO_1 si = (WTS_SESSION_INFO_1)Marshal.PtrToStructure((System.IntPtr)current, typeof(WTS_SESSION_INFO_1));
+                    current += dataSize;
+                    if (string.IsNullOrEmpty(si.pUserName))
+                        continue;
+
+                    rdp_session["SessionID"] = si.SessionID.ToString();
+                    rdp_session["pSessionName"] = si.pSessionName ?? "";
+                    rdp_session["pUserName"] = si.pUserName;
+                    rdp_session["pDomainName"] = si.pDomainName ?? "";
+                    rdp_session["State"] = si.State.ToString();
+                    rdp_session["SourceIP"] = "";
+
+                    IntPtr addressPtr = IntPtr.Zero;
+                    uint bytes = 0;
+                    try
                     {
-                        Dictionary<string, string> rdp_session = new Dictionary<string, string>();
-                        WTS_SESSION_INFO_1 si = (WTS_SESSION_INFO_1)Marshal.PtrToStructure((System.IntPtr)current, typeof(WTS_SESSION_INFO_1));
-                        current += dataSize;
-                        if (si.pUserName == null || si.pUserName == "")
-                            continue;
-
-                        rdp_session["SessionID"] = string.Format("{0}", si.SessionID);
-                        rdp_session["pSessionName"] = string.Format("{0}", si.pSessionName);
-                        rdp_session["pUserName"] = string.Format("{0}", si.pUserName);
-                        rdp_session["pDomainName"] = string.Format("{0}", si.pDomainName);
-                        rdp_session["State"] = string.Format("{0}", si.State);
-                        rdp_session["SourceIP"] = "";
-
-                        // Now use WTSQuerySessionInformation to get the remote IP (if any) for the connection
-                        IntPtr addressPtr = IntPtr.Zero;
-                        uint bytes = 0;
-
-                        Wtsapi32.WTSQuerySessionInformation(server, (uint)si.SessionID, WTS_INFO_CLASS.WTSClientAddress, out addressPtr, out bytes);
-                        WTS_CLIENT_ADDRESS address = (WTS_CLIENT_ADDRESS)Marshal.PtrToStructure((System.IntPtr)addressPtr, typeof(WTS_CLIENT_ADDRESS));
-
-                        if (address.Address[2] != 0)
+                        if (Wtsapi32.WTSQuerySessionInformation(server, (uint)si.SessionID, WTS_INFO_CLASS.WTSClientAddress, out addressPtr, out bytes) &&
+                            addressPtr != IntPtr.Zero && bytes >= Marshal.SizeOf(typeof(WTS_CLIENT_ADDRESS)))
                         {
-                            string sourceIP = string.Format("{0}.{1}.{2}.{3}", address.Address[2], address.Address[3], address.Address[4], address.Address[5]);
-                            rdp_session["SourceIP"] = string.Format("{0}", sourceIP);
+                            var address = (WTS_CLIENT_ADDRESS)Marshal.PtrToStructure(addressPtr, typeof(WTS_CLIENT_ADDRESS));
+                            if (address.AddressFamily == 2 && address.Address != null && address.Address[2] != 0)
+                                rdp_session["SourceIP"] = string.Format("{0}.{1}.{2}.{3}", address.Address[2], address.Address[3], address.Address[4], address.Address[5]);
                         }
-                        results.Add(rdp_session);
                     }
-
-                    Wtsapi32.WTSFreeMemory(ppSessionInfo);
+                    finally
+                    {
+                        if (addressPtr != IntPtr.Zero)
+                            Wtsapi32.WTSFreeMemory(addressPtr);
+                    }
+                    result.Sessions.Add(rdp_session);
                 }
+                result.Visibility = AssessRdpSessionVisibility(true, result.Sessions.Count);
             }
             catch (Exception ex)
             {
-                Beaprint.GrayPrint(string.Format("  [X] Exception: {0}", ex));
+                result.Visibility = RdpSessionVisibility.Unknown;
+                result.FailureReason = ex.Message;
             }
             finally
             {
-                CloseServer(server);
+                if (ppSessionInfo != IntPtr.Zero)
+                    Wtsapi32.WTSFreeMemoryEx(2, ppSessionInfo, count); // WTSTypeSessionInfoLevel1
+                if (server != IntPtr.Zero)
+                    CloseServer(server);
             }
-            return results;
+            return result;
         }
 
         // https://stackoverflow.com/questions/31464835/how-to-programmatically-check-the-password-must-meet-complexity-requirements-g
@@ -325,16 +378,46 @@ namespace winPEAS.Info.UserInfo
 
         public static Dictionary<string, string> GetAutoLogon()
         {
-            Dictionary<string, string> results = new Dictionary<string, string>
+            var results = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            using (RegistryKey winlogon = Registry.LocalMachine.OpenSubKey(WinlogonKeyPath))
             {
-                ["DefaultDomainName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultDomainName"),
-                ["DefaultUserName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultUserName"),
-                ["DefaultPassword"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "DefaultPassword"),
-                ["AltDefaultDomainName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultDomainName"),
-                ["AltDefaultUserName"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultUserName"),
-                ["AltDefaultPassword"] = RegistryHelper.GetRegValue("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "AltDefaultPassword")
-            };
+                if (winlogon != null)
+                {
+                    foreach (string valueName in AutoLogonValueNames)
+                    {
+                        object value = winlogon.GetValue(valueName);
+                        bool isPassword = valueName == "DefaultPassword" || valueName == "AltDefaultPassword";
+                        results[valueName] = isPassword
+                            ? value as string ?? string.Empty
+                            : value == null ? string.Empty : value.ToString();
+                    }
+                }
+            }
             return results;
+        }
+
+        internal static AutoLogonFinding ClassifyAutoLogon(IDictionary<string, string> values)
+        {
+            if (values == null)
+            {
+                return AutoLogonFinding.None;
+            }
+
+            string password;
+            string alternatePassword;
+            if ((values.TryGetValue("DefaultPassword", out password) && !string.IsNullOrEmpty(password)) ||
+                (values.TryGetValue("AltDefaultPassword", out alternatePassword) && !string.IsNullOrEmpty(alternatePassword)))
+            {
+                return AutoLogonFinding.PlaintextPassword;
+            }
+
+            string enabled;
+            if (values.TryGetValue("AutoAdminLogon", out enabled) && enabled == "1")
+            {
+                return AutoLogonFinding.EnabledWithoutPlaintextPassword;
+            }
+
+            return AutoLogonFinding.None;
         }
 
         // From: https://stackoverflow.com/questions/35867427/read-text-from-clipboard
