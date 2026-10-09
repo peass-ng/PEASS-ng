@@ -195,6 +195,10 @@ namespace winPEAS.Checks
                     Beaprint.InfoPrint("Definitions date: " + report.DefinitionsDate);
                 }
                 Beaprint.InfoPrint("Installed hotfixes detected: " + report.InstalledHotfixesCount);
+                if (basicInfo != null && basicInfo.TryGetValue("Hotfix collection", out var hotfixCollection))
+                {
+                    Beaprint.InfoPrint("Patch inventory is unavailable (" + hotfixCollection + "); version matches below cannot be filtered by installed updates.");
+                }
                 if (report.CandidateProducts.Any(p => p.StartsWith("Windows Server 2022", StringComparison.OrdinalIgnoreCase)) &&
                     (basicInfo == null || !basicInfo.TryGetValue("CurrentBuild", out var serverBuild) || serverBuild == "20348"))
                 {

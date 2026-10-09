@@ -51,7 +51,10 @@ namespace winPEAS.Info.SystemInfo
         //From Seatbelt
         public static Dictionary<string, string> GetBasicOSInfo()
         {
-            Dictionary<string, string> results = new Dictionary<string, string>();
+            Dictionary<string, string> results = new Dictionary<string, string>
+            {
+                { "Hotfixes", "unavailable" }
+            };
             string output = ReadSystemInfoOutput();
             // Split the output by newline characters
             string[] lines = output.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
