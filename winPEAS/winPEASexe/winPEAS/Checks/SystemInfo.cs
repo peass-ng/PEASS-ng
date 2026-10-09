@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using System.Management;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Linq;
 using winPEAS.Helpers;
 using winPEAS.Helpers.AppLocker;
 using winPEAS.Helpers.Extensions;
@@ -31,6 +34,28 @@ namespace winPEAS.Checks
         static string badLAPS = "LAPS not installed";
         static Dictionary<string, string> _basicSystemInfo;
         static PrintSpoolerCve38028Report _spoolerReport;
+
+        internal enum AlwaysInstallElevatedStatus
+        {
+            BothEnabled,
+            OneEnabled,
+            NotConfirmed
+        }
+
+        internal static AlwaysInstallElevatedStatus AssessAlwaysInstallElevated(string machineValue, string userValue)
+        {
+            bool machineEnabled = machineValue == "1";
+            bool userEnabled = userValue == "1";
+            if (machineEnabled && userEnabled) return AlwaysInstallElevatedStatus.BothEnabled;
+            if (machineEnabled || userEnabled) return AlwaysInstallElevatedStatus.OneEnabled;
+            return AlwaysInstallElevatedStatus.NotConfirmed;
+        }
+
+        internal static string DescribeAlwaysInstallElevatedValue(string value)
+        {
+            if (value == "1" || value == "0") return value;
+            return string.IsNullOrEmpty(value) ? "missing" : "unexpected value";
+        }
 
         internal enum PointAndPrintPolicyStatus
         {
@@ -687,13 +712,12 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("PS default transcripts history", "T1552.001");
-                Beaprint.InfoPrint("Read the PS history inside these files (if any)");
+                Beaprint.MainPrint("PowerShell transcript paths", "T1552.001");
+                Beaprint.InfoPrint("Transcripts can contain commands and secrets; review readable files separately.");
                 string drive = Path.GetPathRoot(Environment.SystemDirectory);
                 string transcriptsPath = drive + @"transcripts\";
                 string usersPath = $"{drive}users";
 
-                var users = Directory.EnumerateDirectories(usersPath, "*", SearchOption.TopDirectoryOnly);
                 string powershellTranscriptFilter = "powershell_transcript*";
 
                 var colors = new Dictionary<string, string>()
@@ -703,6 +727,17 @@ namespace winPEAS.Checks
 
                 var results = new List<string>();
 
+                // A configured transcript directory may sit at the system drive root.
+                // Inspect only its immediate children; never follow directory junctions.
+                bool rootTranscriptPartial;
+                string rootTranscriptPath = Path.Combine(drive, "PSTranscripts");
+                var rootTranscriptFiles = FindRootPowerShellTranscripts(rootTranscriptPath, out rootTranscriptPartial);
+                if (rootTranscriptFiles.Count > 0)
+                    Beaprint.ListPrint(rootTranscriptFiles.Select(file => "[path only] - " + file).ToList(), colors);
+                if (rootTranscriptPartial)
+                    Beaprint.GrayPrint("    Root transcript inventory is partial (entry limit or inaccessible path).");
+
+                var users = Directory.EnumerateDirectories(usersPath, "*", SearchOption.TopDirectoryOnly);
                 var dict = new Dictionary<string, string>()
                 {
                     // check \\transcripts\ folder
@@ -750,6 +785,77 @@ namespace winPEAS.Checks
             {
                 Beaprint.PrintException(ex.Message);
             }
+        }
+
+        internal static List<string> FindRootPowerShellTranscripts(string rootPath, out bool partial,
+            Func<string, FileAttributes> getAttributes = null)
+        {
+            const int maxRootEntries = 16;
+            const int maxChildEntries = 64;
+            var files = new List<string>();
+            partial = false;
+            getAttributes = getAttributes ?? File.GetAttributes;
+
+            try
+            {
+                if (string.IsNullOrEmpty(rootPath) || rootPath.StartsWith(@"\\", StringComparison.Ordinal) ||
+                    !Path.IsPathRooted(rootPath) ||
+                    new DriveInfo(Path.GetPathRoot(rootPath)).DriveType != DriveType.Fixed)
+                    return files;
+
+                var rootAttributes = getAttributes(rootPath);
+                if ((rootAttributes & FileAttributes.Directory) == 0 ||
+                    (rootAttributes & FileAttributes.ReparsePoint) != 0)
+                    return files;
+
+                int rootEntries = 0;
+                int childEntries = 0;
+                foreach (var child in Directory.EnumerateFileSystemEntries(rootPath, "*", SearchOption.TopDirectoryOnly))
+                {
+                    if (++rootEntries > maxRootEntries)
+                    {
+                        partial = true;
+                        break;
+                    }
+
+                    try
+                    {
+                        var childAttributes = getAttributes(child);
+                        if ((childAttributes & FileAttributes.Directory) == 0 ||
+                            (childAttributes & FileAttributes.ReparsePoint) != 0)
+                            continue;
+
+                        foreach (var file in Directory.EnumerateFileSystemEntries(child, "*", SearchOption.TopDirectoryOnly))
+                        {
+                            // Count every entry, including nonmatches and skipped reparse points.
+                            if (childEntries++ >= maxChildEntries)
+                            {
+                                partial = true;
+                                return files;
+                            }
+
+                            if (!Path.GetFileName(file).StartsWith("PowerShell_transcript", StringComparison.OrdinalIgnoreCase))
+                                continue;
+                            var attributes = getAttributes(file);
+                            if ((attributes & (FileAttributes.Directory | FileAttributes.ReparsePoint)) == 0)
+                                files.Add(file);
+                        }
+                    }
+                    catch (UnauthorizedAccessException) { partial = true; }
+                    catch (PathTooLongException) { partial = true; }
+                    catch (IOException) { partial = true; }
+                    catch (System.Security.SecurityException) { partial = true; }
+                }
+            }
+            catch (FileNotFoundException) { }
+            catch (DirectoryNotFoundException) { }
+            catch (UnauthorizedAccessException) { partial = true; }
+            catch (PathTooLongException) { partial = true; }
+            catch (IOException) { partial = true; }
+            catch (ArgumentException) { partial = true; }
+            catch (NotSupportedException) { partial = true; }
+            catch (System.Security.SecurityException) { partial = true; }
+            return files;
         }
 
         private static void PrintAuditInfo()
@@ -1226,20 +1332,20 @@ namespace winPEAS.Checks
                 string path = "Software\\Policies\\Microsoft\\Windows\\Installer";
                 string HKLM_AIE = RegistryHelper.GetRegValue("HKLM", path, "AlwaysInstallElevated");
                 string HKCU_AIE = RegistryHelper.GetRegValue("HKCU", path, "AlwaysInstallElevated");
+                Beaprint.GrayPrint("    HKLM policy value: " + DescribeAlwaysInstallElevatedValue(HKLM_AIE));
+                Beaprint.GrayPrint("    HKCU policy value: " + DescribeAlwaysInstallElevatedValue(HKCU_AIE));
 
-                if (HKLM_AIE == "1")
+                switch (AssessAlwaysInstallElevated(HKLM_AIE, HKCU_AIE))
                 {
-                    Beaprint.BadPrint("    AlwaysInstallElevated set to 1 in HKLM!");
-                }
-
-                if (HKCU_AIE == "1")
-                {
-                    Beaprint.BadPrint("    AlwaysInstallElevated set to 1 in HKCU!");
-                }
-
-                if (HKLM_AIE != "1" && HKCU_AIE != "1")
-                {
-                    Beaprint.GoodPrint("    AlwaysInstallElevated isn't available");
+                    case AlwaysInstallElevatedStatus.BothEnabled:
+                        Beaprint.BadPrint("    Both AlwaysInstallElevated policy values are 1: review elevated MSI installation for this user (value types and effective policy are unverified).");
+                        break;
+                    case AlwaysInstallElevatedStatus.OneEnabled:
+                        Beaprint.GrayPrint("    Only one AlwaysInstallElevated policy value is 1; the two-policy condition for unmanaged elevated MSI installation is not confirmed.");
+                        break;
+                    default:
+                        Beaprint.GrayPrint("    The two-policy AlwaysInstallElevated condition is not confirmed.");
+                        break;
                 }
             }
             catch (Exception ex)
@@ -1690,6 +1796,84 @@ namespace winPEAS.Checks
             }
         }
 
+        internal static string ExtractHistoricalDefenderExclusion(string newValue)
+        {
+            if (string.IsNullOrEmpty(newValue))
+                return null;
+
+            foreach (var kind in new[] { "Paths", "Processes", "Extensions" })
+            {
+                var marker = "\\Exclusions\\" + kind + "\\";
+                var start = newValue.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+                if (start < 0)
+                    continue;
+
+                var name = newValue.Substring(start + marker.Length);
+                var equals = name.IndexOf(" = ", StringComparison.Ordinal);
+                if (equals >= 0)
+                    name = name.Substring(0, equals);
+                name = name.Replace('\r', ' ').Replace('\n', ' ').Trim();
+                if (name.Length == 0)
+                    return null;
+                return kind + ": " + (name.Length > 160 ? name.Substring(0, 160) + "..." : name);
+            }
+            return null;
+        }
+
+        internal static string ExtractDefenderEventNewValue(string eventXml)
+        {
+            if (string.IsNullOrEmpty(eventXml) || eventXml.Length > 32768)
+                return null;
+            try
+            {
+                var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null };
+                using (var xmlReader = XmlReader.Create(new StringReader(eventXml), settings))
+                {
+                    var document = XDocument.Load(xmlReader);
+                    return document.Descendants().Where(element => element.Name.LocalName == "Data")
+                        .Where(element => string.Equals((string)element.Attribute("Name"), "New Value",
+                            StringComparison.OrdinalIgnoreCase))
+                        .Select(element => element.Value).FirstOrDefault();
+                }
+            }
+            catch (XmlException)
+            {
+                return null;
+            }
+        }
+
+        private static IList<string> GetRecentDefenderExclusionChanges()
+        {
+            var changes = new List<string>();
+            try
+            {
+                // Query only recent configuration events, newest first; never scan an entire log.
+                const string query = "*[System[(EventID=5007) and TimeCreated[timediff(@SystemTime) <= 604800000]]]";
+                using (var reader = MyUtils.GetEventLogReader("Microsoft-Windows-Windows Defender/Operational", query))
+                {
+                    var started = System.Diagnostics.Stopwatch.StartNew();
+                    for (var inspected = 0; inspected < 48 && changes.Count < 5 &&
+                        started.ElapsedMilliseconds < 1500; inspected++)
+                    {
+                        using (var record = reader.ReadEvent(TimeSpan.FromMilliseconds(200)))
+                        {
+                            if (record == null)
+                                break;
+                            var exclusion = ExtractHistoricalDefenderExclusion(
+                                ExtractDefenderEventNewValue(record.ToXml()));
+                            if (exclusion != null)
+                                changes.Add("    " + record.TimeCreated?.ToString("u") + " " + exclusion);
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Defender or its operational log may be absent or inaccessible.
+            }
+            return changes;
+        }
+
         private static void PrintWindowsDefenderInfo()
         {
             Beaprint.MainPrint("Windows Defender configuration", "T1518.001");
@@ -1766,6 +1950,24 @@ namespace winPEAS.Checks
 
                 Beaprint.ColorPrint("  Group Policy Settings", Beaprint.LBLUE);
                 DisplayDefenderSettings(info.GroupPolicySettings);
+
+                if (info.LocalSettings.PathExclusions.Count == 0 &&
+                    info.LocalSettings.PolicyManagerPathExclusions.Count == 0 &&
+                    info.LocalSettings.ProcessExclusions.Count == 0 &&
+                    info.LocalSettings.ExtensionExclusions.Count == 0 &&
+                    info.GroupPolicySettings.PathExclusions.Count == 0 &&
+                    info.GroupPolicySettings.PolicyManagerPathExclusions.Count == 0 &&
+                    info.GroupPolicySettings.ProcessExclusions.Count == 0 &&
+                    info.GroupPolicySettings.ExtensionExclusions.Count == 0)
+                {
+                    var changes = GetRecentDefenderExclusionChanges();
+                    if (changes.Count != 0)
+                    {
+                        Beaprint.NoColorPrint("\n  Recent exclusion changes in Defender event log (historical; verify current policy):");
+                        foreach (var change in changes)
+                            Beaprint.NoColorPrint(change);
+                    }
+                }
             }
             catch (Exception e)
             {

@@ -34,7 +34,7 @@ namespace winPEAS.Checks
 
         static string badgroups = "docker|Remote |DNSAdmins|AD Recycle Bin|Azure Admins|Admins|Server Operators";//The space in Remote is important to not mix with SeShutdownRemotePrivilege
         static readonly string _badPasswd = "NotChange|NotExpi";
-        static readonly string _badPrivileges = "SeImpersonatePrivilege|SeAssignPrimaryPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege|SeManageVolumePrivilege";
+        internal static readonly string BadPrivilegesPattern = "SeImpersonatePrivilege|SeAssignPrimaryTokenPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege|SeManageVolumePrivilege";
 
         public string[] MitreAttackIds { get; } = new[] { "T1087.001", "T1087.004", "T1033", "T1134.001", "T1115", "T1563.002", "T1083", "T1552.002", "T1201" };
 
@@ -66,7 +66,7 @@ namespace winPEAS.Checks
                 {
                     { Checks.PaintActiveUsersNoAdministrator, Beaprint.ansi_users_active },
                     { Checks.CurrentUserName + "|"+ Checks.CurrentUserDomainName, Beaprint.ansi_current_user },
-                    { Checks.PaintAdminUsers+"|"+ badgroups + "|" + _badPasswd + "|" + _badPrivileges + "|" + "DefaultPassword.*", Beaprint.ansi_color_bad },
+                    { Checks.PaintAdminUsers+"|"+ badgroups + "|" + _badPasswd + "|" + BadPrivilegesPattern + "|" + "DefaultPassword.*", Beaprint.ansi_color_bad },
                     { @"Disabled", Beaprint.ansi_users_disabled },
                 };
 

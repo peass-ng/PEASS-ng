@@ -87,7 +87,7 @@ IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS16-032 patch is NOT installed! (Vuln
 IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB2393802" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS11-011 patch is NOT installed! (Vulns: XP/SP2/3,2K3/SP2,2K8/SP2,Vista/SP1/2,7/SP0-WmiTraceMessageVa)
 IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB982799" 1>NUL
-IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS10-59 patch is NOT installed! (Vulns: 2K8,Vista,7/SP0-Chimichurri)
+IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS10-059 review candidate: KB982799 was not found in WMIC QFE output (which may be unavailable or incomplete); confirm affected OS, service pack, superseding updates and local logon. No vulnerability verdict.
 IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB979683" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS10-21 patch is NOT installed! (Vulns: 2K/SP4,XP/SP2/3,2K3/SP2,2K8/SP2,Vista/SP0/1/2,7/SP0-Win Kernel)
 IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB2305420" 1>NUL
@@ -118,8 +118,8 @@ IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS14-040 patch is NOT installed! (Vulns: 2K3/SP2,2K8/SP2,Vista/SP2,7/SP1-afd.sys Dangling Pointer)
 IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB3136041" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS16-016 patch is NOT installed! (Vulns: 2K8/SP1/2,Vista/SP2,7/SP1-WebDAV to Address)
-IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB3057191" 1>NUL
-IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS15-051 patch is NOT installed! (Vulns: 2K3/SP2,2K8/SP2,Vista/SP2,7/SP1-win32k.sys)
+IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB3045171" 1>NUL
+IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS15-051 (KB3045171) not found in WMIC QFE output (which may be unavailable or incomplete); verify supported OS/service pack and superseding updates.
 IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB2989935" 1>NUL
 IF "%expl%" == "yes" IF errorlevel 1 ECHO.MS14-070 patch is NOT installed! (Vulns: 2K3/SP2-TCP/IP)
 IF "%expl%" == "yes" wmic qfe get Caption,Description,HotFixID,InstalledOn 2>nul | findstr /C:"KB2778930" 1>NUL

@@ -27,7 +27,9 @@ namespace winPEAS.Checks
                 "WonderCMS", "Pluck CMS", "Grafana", "Duplicati server state",
                 "Openfire local configuration and database", "Minecraft plugin JAR candidates",
                 "IIS default webroot backup archive candidates", "TeamCity change patch candidates",
-                "Redis Windows service configuration candidates"
+                "Redis Windows service configuration candidates",
+                "FileZilla Server legacy configuration candidates",
+                "NSClient configuration candidates"
             };
 
         internal const int MaxTeamCityChangeFiles = 32;

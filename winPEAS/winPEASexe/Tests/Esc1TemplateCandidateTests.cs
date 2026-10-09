@@ -13,6 +13,54 @@ namespace winPEAS.Tests
         private static readonly string[] ClientAuth = { "1.3.6.1.5.5.7.3.2" };
 
         [TestMethod]
+        public void DisabledUserAclCueRequiresConfirmedDisabledUser()
+        {
+            StringAssert.Contains(ActiveDirectoryInfo.DescribeDisabledUserAclTarget("user", 0x202),
+                "password reset alone");
+            Assert.IsNull(ActiveDirectoryInfo.DescribeDisabledUserAclTarget("user", 0x200));
+            Assert.IsNull(ActiveDirectoryInfo.DescribeDisabledUserAclTarget("user", null));
+            Assert.IsNull(ActiveDirectoryInfo.DescribeDisabledUserAclTarget("computer", 0x1002));
+            Assert.IsNull(ActiveDirectoryInfo.DescribeDisabledUserAclTarget("group", 0x2));
+        }
+
+        [TestMethod]
+        public void Esc15RequiresPublishedV1SuppliedSubjectAndAutomaticIssuance()
+        {
+            Assert.AreEqual(ActiveDirectoryInfo.Esc15TemplateStatus.Candidate,
+                ActiveDirectoryInfo.AssessEsc15Template(1, 1, 0, 0, true));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc15TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc15Template(2, 1, 0, 0, true));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc15TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc15Template(1, 0, 0, 0, true));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc15TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc15Template(1, 1, 2, 0, true));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc15TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc15Template(1, 1, 0, 1, true));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc15TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc15Template(1, 1, 0, 0, false));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc15TemplateStatus.Unknown,
+                ActiveDirectoryInfo.AssessEsc15Template(1, 1, 0, 0, null));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc15TemplateStatus.Unknown,
+                ActiveDirectoryInfo.AssessEsc15Template(null, 1, 0, 0, true));
+        }
+
+        [TestMethod]
+        public void DeletedObjectSidFilterUsesExactBinarySid()
+        {
+            Assert.AreEqual("\\01\\05\\00\\00\\00\\00\\00\\05\\15\\00\\00\\00\\01\\00\\00\\00\\02\\00\\00\\00\\03\\00\\00\\00\\04\\00\\00\\00",
+                ActiveDirectoryInfo.SidToLdapFilterBytes("S-1-5-21-1-2-3-4"));
+            Assert.IsNull(ActiveDirectoryInfo.SidToLdapFilterBytes("S-1-5-21-1-2-3-4)(objectClass=*)"));
+        }
+
+        [TestMethod]
+        public void CaRoleMaskSeparatesAdministratorOfficerAndEnrollmentRights()
+        {
+            Assert.AreEqual("CA Administrator, Enroll", ActiveDirectoryInfo.DescribeCaAccessMask(0x201));
+            Assert.AreEqual("Certificate Manager", ActiveDirectoryInfo.DescribeCaAccessMask(0x2));
+            Assert.IsNull(ActiveDirectoryInfo.DescribeCaAccessMask(0x100));
+        }
+
+        [TestMethod]
         public void TemplateContainerCreateAceRequiresApplicableClassAndCurrentContainer()
         {
             var templateClass = new Guid("e5209ca2-3bba-11d2-90cc-00c04fd91ab1");

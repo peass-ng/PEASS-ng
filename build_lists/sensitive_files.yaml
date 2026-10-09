@@ -2303,6 +2303,21 @@ search:
                 type: f
                 search_in:
                   - common
+
+  - name: NSClient configuration candidates
+    value:
+        disable:
+          - linpeas
+        config:
+          auto_check: True
+        files:
+          - name: "nsclient.ini"
+            value:
+                check_extra_path: '^[A-Za-z]:/Program Files(?: \(x86\))?/NSClient\+\+/nsclient\.ini$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
   
   - name: Mosquitto
     value:
@@ -2541,6 +2556,21 @@ search:
                 just_list_file: True
                 type: f
                 search_in: 
+                  - common
+
+  - name: FileZilla Server legacy configuration candidates
+    value:
+        disable:
+          - linpeas
+        config:
+          auto_check: True
+        files:
+          - name: "FileZilla Server.xml"
+            value:
+                check_extra_path: '^[A-Za-z]:/Program Files(?: \(x86\))?/FileZilla Server/FileZilla Server\.xml$'
+                just_list_file: True
+                type: f
+                search_in:
                   - common
 
   - name: Backup Manager

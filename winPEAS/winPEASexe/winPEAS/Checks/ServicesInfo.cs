@@ -257,6 +257,14 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Modifiable Services", "T1543.003");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services", "Check if you can modify any service");
+                ScmCreateServiceAccess createAccess = ServicesInfoHelper.GetScmCreateServiceAccess();
+                if (createAccess == ScmCreateServiceAccess.Granted)
+                {
+                    Beaprint.BadPrint("    SCM create-service access granted to this process token (review candidate).");
+                    Beaprint.GrayPrint("    This does not test service creation or start. A higher-privilege transition also needs a runnable service identity, a usable service handle, and permitted executable path.");
+                }
+                else if (createAccess == ScmCreateServiceAccess.Unknown)
+                    Beaprint.GrayPrint("    SCM create-service access could not be determined for this process token.");
                 if (serviceAccessFallback != null)
                 {
                     Beaprint.GrayPrint($"    Service enumeration was unavailable; read-only named-service access fallback inspected {serviceAccessFallback.Inspected} registry names (cap {ServicesInfoHelper.MaxRegistryServiceEntries}, 2-second deadline).");
@@ -301,23 +309,28 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Looking if you can modify any service registry", "T1574.011");
-                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services-registry-modify-permissions", "Check if you can modify the registry of a service");
-                List<Dictionary<string, string>> regPerms = ServicesInfoHelper.GetWriteServiceRegs(Checks.CurrentUserSiDs);
+                Beaprint.MainPrint("Service registry ACL review", "T1574.011");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services-registry-modify-permissions", "Review service-key registry permissions");
+                ServiceRegistryWriteReport report = ServicesInfoHelper.GetWriteServiceRegsReport(Checks.CurrentUserSiDs);
 
                 Dictionary<string, string> colorsWR = new Dictionary<string, string>()
                             {
-                                { @"\(.*\)", Beaprint.ansi_color_bad },
+                                { @"\(.*\)", Beaprint.ansi_color_yellow },
                             };
 
-                if (regPerms.Count <= 0)
-                    Beaprint.GoodPrint("    [-] Looks like you cannot change the registry of any service...");
+                if (report.Findings.Count == 0)
+                    Beaprint.GrayPrint("    " + report.NoFindingsSummary);
                 else
                 {
-                    foreach (Dictionary<string, string> writeServReg in regPerms)
+                    foreach (Dictionary<string, string> writeServReg in report.Findings)
                         Beaprint.AnsiPrint(string.Format("    {0} ({1})", writeServReg["Path"], writeServReg["Permissions"]), colorsWR);
-
                 }
+                Beaprint.GrayPrint(string.Format("    Reviewed {0}/{1} service keys; {2} unreadable; {3} further ACL candidates omitted.",
+                    report.Inspected, report.TotalNames, report.Unreadable, report.OmittedFindings));
+                if (!report.Complete)
+                    Beaprint.GrayPrint("    Partial/unknown registry ACL coverage (key read, count, or time limit).");
+                if (report.Findings.Count > 0)
+                    Beaprint.GrayPrint("    ACL entries may include Deny rules and do not prove effective write access. SCM service-object rights, start permission, and service identity require separate review.");
             }
             catch (Exception ex)
             {

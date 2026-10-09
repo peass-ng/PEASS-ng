@@ -103,6 +103,7 @@
     <Compile Include="BitLockerDataAndRecoveryArtifactTests.cs" />
     <Compile Include="PasswordSafeFileSelectorTests.cs" />
     <Compile Include="TeamViewerRegistryArtifactsTests.cs" />
+    <Compile Include="NsclientConfigCatalogTests.cs" />
     <Compile Include="SqlSetupConfigurationIndicatorTests.cs" />
     <Compile Include="ArgumentParsingTests.cs" />
     <Compile Include="AutoLogonTests.cs" />
@@ -118,6 +119,8 @@
     <Compile Include="VeeamBackupVersionTests.cs" />
     <Compile Include="ClfsAuthenticationTests.cs" />
     <Compile Include="PointAndPrintPolicyTests.cs" />
+    <Compile Include="AlwaysInstallElevatedPolicyTests.cs" />
+    <Compile Include="RootPowerShellTranscriptTests.cs" />
     <Compile Include="DcLdapPolicyTests.cs" />
     <Compile Include="DelegationPrivilegePresentationTests.cs" />
     <Compile Include="CurrentProcessTokenPresentationTests.cs" />
@@ -147,6 +150,8 @@
     <Compile Include="WritableServiceDllTests.cs" />
     <Compile Include="WritableServiceRecoveryCommandTests.cs" />
     <Compile Include="NamedServiceAccessFallbackTests.cs" />
+    <Compile Include="ServiceManagerCreateAccessTests.cs" />
+    <Compile Include="ServiceRegistryWriteScanTests.cs" />
     <Compile Include="ZipNtdsBackupIndicatorTests.cs" />
     <Compile Include="WimBackupPathTests.cs" />
     <Compile Include="RecycleBinArchiveIndicatorTests.cs" />
@@ -158,6 +163,7 @@
     <Compile Include="MinecraftPluginJarCatalogTests.cs" />
     <Compile Include="TeamCityChangePatchCatalogTests.cs" />
     <Compile Include="RedisWindowsServiceConfigCatalogTests.cs" />
+    <Compile Include="FileZillaServerCatalogTests.cs" />
     <Compile Include="SavedProcessDumpCatalogTests.cs" />
     <Compile Include="VelociraptorServerConfigTests.cs" />
     <Compile Include="Pdf24RepairPrerequisitesTests.cs" />
