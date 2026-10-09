@@ -9,6 +9,8 @@ REM :: Code by carlospolop; Re-Write by ThisLimn0
 REM Registry scan of other drives besides 
 REM /////true or false
 SET long=false
+SET "PEAS_HAS_ROBOCOPY=false"
+where robocopy >nul 2>&1 && SET "PEAS_HAS_ROBOCOPY=true"
 
 REM Check if the current path contains spaces
 SET "CurrentFolder=%~dp0"
@@ -600,32 +602,24 @@ CALL :T_Progress 3
 
 :McAffeeSitelist
 CALL :ColorLine " %E%33m[+]%E%97m McAffee SiteList.xml"
-cd %ProgramFiles% 2>nul
-dir /s SiteList.xml 2>nul
-cd %ProgramFiles(x86)% 2>nul
-dir /s SiteList.xml 2>nul
-cd "%windir%\..\Documents and Settings" 2>nul
-dir /s SiteList.xml 2>nul
-cd %windir%\..\Users 2>nul
-dir /s SiteList.xml 2>nul
+if exist "%ProgramFiles%\" (cd /d "%ProgramFiles%" && dir /s /a:-l SiteList.xml 2>nul)
+if exist "%ProgramFiles(x86)%\" (cd /d "%ProgramFiles(x86)%" && dir /s /a:-l SiteList.xml 2>nul)
+if not exist "%SystemDrive%\Users\" if exist "%SystemDrive%\Documents and Settings\" (cd /d "%SystemDrive%\Documents and Settings" && dir /s /a:-l SiteList.xml 2>nul)
+if exist "%SystemDrive%\Users\" (cd /d "%SystemDrive%\Users" && dir /s /a:-l SiteList.xml 2>nul)
 ECHO.
 CALL :T_Progress 2
 
 :GPPPassword
 CALL :ColorLine " %E%33m[+]%E%97m GPP Password"
-cd "%SystemDrive%\Microsoft\Group Policy\history" 2>nul
-dir /s/b Groups.xml == Services.xml == Scheduledtasks.xml == DataSources.xml == Printers.xml == Drives.xml 2>nul
-cd "%windir%\..\Documents and Settings\All Users\Application Data\Microsoft\Group Policy\history" 2>nul
-dir /s/b Groups.xml == Services.xml == Scheduledtasks.xml == DataSources.xml == Printers.xml == Drives.xml 2>nul
+if exist "%SystemDrive%\Microsoft\Group Policy\history\" (cd /d "%SystemDrive%\Microsoft\Group Policy\history" && dir /s/b /a:-l Groups.xml == Services.xml == Scheduledtasks.xml == DataSources.xml == Printers.xml == Drives.xml 2>nul)
+if exist "%ProgramData%\Microsoft\Group Policy\history\" (cd /d "%ProgramData%\Microsoft\Group Policy\history" && dir /s/b /a:-l Groups.xml == Services.xml == Scheduledtasks.xml == DataSources.xml == Printers.xml == Drives.xml 2>nul)
 ECHO.
 CALL :T_Progress 2
 
 :CloudCreds
 CALL :ColorLine " %E%33m[+]%E%97m Cloud Credentials"
-cd "%SystemDrive%\Users"
-dir /s/b .aws == credentials == gcloud == credentials.db == legacy_credentials == access_tokens.db == .azure == accessTokens.json == azureProfile.json 2>nul
-cd "%windir%\..\Documents and Settings"
-dir /s/b .aws == credentials == gcloud == credentials.db == legacy_credentials == access_tokens.db == .azure == accessTokens.json == azureProfile.json 2>nul
+if exist "%SystemDrive%\Users\" (cd /d "%SystemDrive%\Users" && dir /s/b /a:-l .aws == credentials == gcloud == credentials.db == legacy_credentials == access_tokens.db == .azure == accessTokens.json == azureProfile.json 2>nul)
+if not exist "%SystemDrive%\Users\" if exist "%SystemDrive%\Documents and Settings\" (cd /d "%SystemDrive%\Documents and Settings" && dir /s/b /a:-l .aws == credentials == gcloud == credentials.db == legacy_credentials == access_tokens.db == .azure == accessTokens.json == azureProfile.json 2>nul)
 ECHO.
 CALL :T_Progress 2
 
@@ -661,10 +655,19 @@ CALL :T_Progress 2
 ECHO.Looking inside HKCU\Software\OpenSSH\Agent\Keys
 CALL :T_Progress 2
 reg query HKCU\Software\OpenSSH\Agent\Keys /s 2>nul
-cd %USERPROFILE% 2>nul && dir /s/b *password* == *credential* 2>nul
-cd ..\..\..\..\..\..\..\..\..\..\..\..\..\..\..\..\..\..\..
-dir /s/b /A:-D RDCMan.settings == *.rdg == SCClient.exe == *_history == .sudo_as_admin_successful == .profile == *bashrc == httpd.conf == *.plan == .htpasswd == .git-credentials == *.rhosts == hosts.equiv == Dockerfile == docker-compose.yml == appcmd.exe == TypedURLs == TypedURLsTime == History == Bookmarks == Cookies == "Login Data" == places.sqlite == key3.db == key4.db == credentials == credentials.db == access_tokens.db == accessTokens.json == legacy_credentials == azureProfile.json == unattend.txt == access.log == error.log == *.gpg == *.pgp == *config*.php == elasticsearch.y*ml == kibana.y*ml == *.p12 == *.der == *.csr == *.cer == known_hosts == id_rsa == id_dsa == *.ovpn == anaconda-ks.cfg == hostapd.conf == rsyncd.conf == cesi.conf == supervisord.conf == tomcat-users.xml == *.kdbx == *.psafe3 == KeePass.config == Ntds.dit == SAM == SYSTEM == FreeSSHDservice.ini == sysprep.inf == sysprep.xml == unattend.xml == unattended.xml == *vnc*.ini == *vnc*.c*nf* == *vnc*.txt == *vnc*.xml == groups.xml == services.xml == scheduledtasks.xml == printers.xml == drives.xml == datasources.xml == php.ini == https.conf == https-xampp.conf == httpd.conf == my.ini == my.cnf == access.log == error.log == server.xml == SiteList.xml == ConsoleHost_history.txt == setupinfo == setupinfo.bak 2>nul | findstr /v ".dll"
-cd inetpub 2>nul && (dir /s/b web.config == *.log & cd ..)
+SET "PEAS_USERS_ROOT=%SystemDrive%\Users"
+IF NOT EXIST "%PEAS_USERS_ROOT%\" SET "PEAS_USERS_ROOT=%SystemDrive%\Documents and Settings"
+if "%PEAS_HAS_ROBOCOPY%" == "true" (
+    if exist "%USERPROFILE%\" robocopy "%USERPROFILE%" "%TEMP%\winpeas-list-only" *password* *credential* /L /S /XJ /R:0 /W:0 /NJH /NJS /NDL /NP /FP /NS /NC
+) else (
+    if exist "%USERPROFILE%\" (cd /d "%USERPROFILE%" && dir /s/b /a:-d-l *password* == *credential* 2>nul)
+)
+if "%PEAS_HAS_ROBOCOPY%" == "true" (
+    if exist "%PEAS_USERS_ROOT%\" robocopy "%PEAS_USERS_ROOT%" "%TEMP%\winpeas-list-only" RDCMan.settings *.rdg SCClient.exe *_history .sudo_as_admin_successful .profile *bashrc httpd.conf *.plan .htpasswd .git-credentials *.rhosts hosts.equiv Dockerfile docker-compose.yml appcmd.exe TypedURLs TypedURLsTime History Bookmarks Cookies "Login Data" places.sqlite key3.db key4.db credentials credentials.db access_tokens.db accessTokens.json legacy_credentials azureProfile.json unattend.txt access.log error.log *.gpg *.pgp *config*.php elasticsearch.y*ml kibana.y*ml *.p12 *.der *.csr *.cer known_hosts id_rsa id_dsa *.ovpn anaconda-ks.cfg hostapd.conf rsyncd.conf cesi.conf supervisord.conf tomcat-users.xml *.kdbx *.psafe3 KeePass.config Ntds.dit SAM SYSTEM FreeSSHDservice.ini sysprep.inf sysprep.xml unattend.xml unattended.xml *vnc*.ini *vnc*.c*nf* *vnc*.txt *vnc*.xml groups.xml services.xml scheduledtasks.xml printers.xml drives.xml datasources.xml php.ini https.conf https-xampp.conf httpd.conf my.ini my.cnf access.log error.log server.xml SiteList.xml ConsoleHost_history.txt setupinfo setupinfo.bak /L /S /XJ /R:0 /W:0 /NJH /NJS /NDL /NP /FP /NS /NC | findstr /v ".dll"
+) else (
+    if exist "%PEAS_USERS_ROOT%\" (cd /d "%PEAS_USERS_ROOT%" && dir /s/b /A:-D-L RDCMan.settings == *.rdg == SCClient.exe == *_history == .sudo_as_admin_successful == .profile == *bashrc == httpd.conf == *.plan == .htpasswd == .git-credentials == *.rhosts == hosts.equiv == Dockerfile == docker-compose.yml == appcmd.exe == TypedURLs == TypedURLsTime == History == Bookmarks == Cookies == "Login Data" == places.sqlite == key3.db == key4.db == credentials == credentials.db == access_tokens.db == accessTokens.json == legacy_credentials == azureProfile.json == unattend.txt == access.log == error.log == *.gpg == *.pgp == *config*.php == elasticsearch.y*ml == kibana.y*ml == *.p12 == *.der == *.csr == *.cer == known_hosts == id_rsa == id_dsa == *.ovpn == anaconda-ks.cfg == hostapd.conf == rsyncd.conf == cesi.conf == supervisord.conf == tomcat-users.xml == *.kdbx == *.psafe3 == KeePass.config == Ntds.dit == SAM == SYSTEM == FreeSSHDservice.ini == sysprep.inf == sysprep.xml == unattend.xml == unattended.xml == *vnc*.ini == *vnc*.c*nf* == *vnc*.txt == *vnc*.xml == groups.xml == services.xml == scheduledtasks.xml == printers.xml == drives.xml == datasources.xml == php.ini == https.conf == https-xampp.conf == httpd.conf == my.ini == my.cnf == access.log == error.log == server.xml == SiteList.xml == ConsoleHost_history.txt == setupinfo == setupinfo.bak 2>nul | findstr /v ".dll")
+)
+if exist "%SystemDrive%\inetpub\" (cd /d "%SystemDrive%\inetpub" && dir /s/b /a:-d-l web.config == *.log 2>nul)
 ECHO.
 CALL :T_Progress 2
 
@@ -710,7 +713,7 @@ if "%long%" == "true" (
 TITLE WinPEAS - Windows local Privilege Escalation Awesome Script - Idle
 ECHO.---
 ECHO.Scan complete.
-PAUSE >NUL 
+IF /I "%~1" == "--pause" PAUSE >NUL
 EXIT /B
 
 :::-Subroutines

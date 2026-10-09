@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
+using winPEAS.Helpers;
 
 namespace winPEAS.Info.SystemInfo
 {
@@ -41,6 +42,13 @@ namespace winPEAS.Info.SystemInfo
             };
 
             CollectBuildAndPatchState(report, basicInfo);
+            if (report.PatchStatus == StorvspPatchStatus.Patched ||
+                report.PatchStatus == StorvspPatchStatus.NotAffected)
+            {
+                report.SurfaceCollectionSkipped = true;
+                return report;
+            }
+
             CollectOptionalFeatureState(report);
             CollectDriverFile(report);
             CollectDriverRegistration(report);
@@ -113,29 +121,35 @@ namespace winPEAS.Info.SystemInfo
 
         private static void CollectOptionalFeatureState(StorvspVsmbReport report)
         {
-            try
+            OptionalFeatureState state;
+            string error;
+            if (CheckRunner.TryRunBounded(() =>
             {
                 const string query = "SELECT Name,InstallState FROM Win32_OptionalFeature WHERE Name='VirtualMachinePlatform'";
                 using (var searcher = new ManagementObjectSearcher(@"root\cimv2", query))
-                using (var results = searcher.Get())
                 {
-                    foreach (ManagementObject feature in results)
+                    searcher.Options.Timeout = TimeSpan.FromSeconds(2);
+                    using (var results = searcher.Get())
                     {
-                        uint state = Convert.ToUInt32(feature["InstallState"]);
-                        report.VirtualMachinePlatformState = state == 1
-                            ? OptionalFeatureState.Enabled
-                            : state == 2 || state == 3
-                                ? OptionalFeatureState.Disabled
-                                : OptionalFeatureState.Unknown;
-                        return;
+                        foreach (ManagementObject feature in results)
+                        {
+                            uint featureState = Convert.ToUInt32(feature["InstallState"]);
+                            return featureState == 1
+                                ? OptionalFeatureState.Enabled
+                                : featureState == 2 || featureState == 3
+                                    ? OptionalFeatureState.Disabled
+                                    : OptionalFeatureState.Unknown;
+                        }
                     }
                 }
-
-                report.VirtualMachinePlatformState = OptionalFeatureState.NotFound;
-            }
-            catch (Exception ex)
+                return OptionalFeatureState.NotFound;
+            }, TimeSpan.FromSeconds(3), out state, out error))
             {
-                report.CollectionErrors.Add("Virtual Machine Platform feature: " + ex.Message);
+                report.VirtualMachinePlatformState = state;
+            }
+            else
+            {
+                report.CollectionErrors.Add("Virtual Machine Platform feature: " + error);
             }
         }
 
@@ -217,27 +231,53 @@ namespace winPEAS.Info.SystemInfo
                 report.CollectionErrors.Add("storvsp driver registry: " + ex.Message);
             }
 
-            try
+            DriverWmiSnapshot snapshot;
+            string error;
+            if (CheckRunner.TryRunBounded(() =>
             {
                 const string query = "SELECT Name,PathName,StartMode,State,Started FROM Win32_SystemDriver WHERE Name='storvsp'";
                 using (var searcher = new ManagementObjectSearcher(@"root\cimv2", query))
-                using (var results = searcher.Get())
                 {
-                    foreach (ManagementObject driver in results)
+                    searcher.Options.Timeout = TimeSpan.FromSeconds(2);
+                    using (var results = searcher.Get())
                     {
-                        report.DriverRegistered = true;
-                        report.DriverWmiPath = Convert.ToString(driver["PathName"]);
-                        report.DriverStartMode = Convert.ToString(driver["StartMode"]);
-                        report.DriverState = Convert.ToString(driver["State"]);
-                        report.DriverStarted = Convert.ToBoolean(driver["Started"]);
-                        return;
+                        foreach (ManagementObject driver in results)
+                        {
+                            return new DriverWmiSnapshot
+                            {
+                                Path = Convert.ToString(driver["PathName"]),
+                                StartMode = Convert.ToString(driver["StartMode"]),
+                                State = Convert.ToString(driver["State"]),
+                                Started = Convert.ToBoolean(driver["Started"])
+                            };
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
+                return null;
+            }, TimeSpan.FromSeconds(3), out snapshot, out error))
             {
-                report.CollectionErrors.Add("storvsp driver WMI state: " + ex.Message);
+                report.DriverRuntimeKnown = true;
+                if (snapshot != null)
+                {
+                    report.DriverRegistered = true;
+                    report.DriverWmiPath = snapshot.Path;
+                    report.DriverStartMode = snapshot.StartMode;
+                    report.DriverState = snapshot.State;
+                    report.DriverStarted = snapshot.Started;
+                }
             }
+            else
+            {
+                report.CollectionErrors.Add("storvsp driver WMI state: " + error);
+            }
+        }
+
+        private sealed class DriverWmiSnapshot
+        {
+            internal string Path;
+            internal string StartMode;
+            internal string State;
+            internal bool Started;
         }
 
         private static void CollectDeviceLink(StorvspVsmbReport report)
@@ -439,6 +479,8 @@ namespace winPEAS.Info.SystemInfo
         public string DriverStartMode { get; set; } = "";
         public string DriverState { get; set; } = "";
         public bool DriverStarted { get; set; }
+        public bool DriverRuntimeKnown { get; set; }
+        public bool SurfaceCollectionSkipped { get; set; }
         public bool DeviceLinkPresent { get; set; }
         public string DeviceLinkTarget { get; set; } = "";
         public bool AttackSurfaceEnabled { get; set; }
