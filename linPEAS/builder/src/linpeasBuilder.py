@@ -356,11 +356,17 @@ class LinpeasBuilder:
         # complete and deterministic when GitHub is slow or unavailable.
         archive_url = "https://api.github.com/repos/GTFOBins/GTFOBins.github.io/tarball/master"
         try:
-            response = requests.get(archive_url, timeout=(3, 8))
-            response.raise_for_status()
-            if len(response.content) > 2 * 1024 * 1024:
-                raise ValueError("GTFOBins archive exceeds size limit")
-            categories = self.__gtfobins_archive_categories(response.content)
+            response = requests.get(archive_url, timeout=(3, 8), stream=True)
+            try:
+                response.raise_for_status()
+                content = bytearray()
+                for chunk in response.iter_content(chunk_size=64 * 1024):
+                    if len(content) + len(chunk) > 2 * 1024 * 1024:
+                        raise ValueError("GTFOBins archive exceeds size limit")
+                    content.extend(chunk)
+            finally:
+                response.close()
+            categories = self.__gtfobins_archive_categories(content)
             self.__validate_gtfobins_categories(categories)
         except (requests.RequestException, tarfile.TarError, OSError, ValueError, EOFError):
             print("[+] GTFOBins archive unavailable; using bundled capability snapshot")
@@ -390,12 +396,14 @@ class LinpeasBuilder:
                 members += 1
                 if members > 2048:
                     raise ValueError("GTFOBins archive has too many entries")
-                marker = "/_gtfobins/"
-                if not member.isfile() or marker not in member.name or member.size > 128 * 1024:
-                    continue
+                # Skipped members must also fit the expanded-size budget:
+                # tarfile traverses their payload to reach the next header.
                 total_bytes += member.size
                 if total_bytes > 16 * 1024 * 1024:
                     raise ValueError("GTFOBins archive exceeds expanded size limit")
+                marker = "/_gtfobins/"
+                if not member.isfile() or marker not in member.name or member.size > 128 * 1024:
+                    continue
                 name = member.name.split(marker, 1)[1]
                 if not re.fullmatch(r"[A-Za-z0-9_ .+-]{1,80}", name) or name in seen:
                     continue
