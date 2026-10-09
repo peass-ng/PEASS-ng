@@ -502,9 +502,9 @@ ECHO.
 CALL :T_Progress 1
 
 :CheckRegistryModificationAbilities
-CALL :ColorLine " %E%33m[+]%E%97m CHECK IF YOU CAN MODIFY ANY SERVICE REGISTRY"
+CALL :ColorLine " %E%33m[+]%E%97m SERVICE REGISTRY PERMISSIONS"
 ECHO.   [?] https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services
-for /f %%a in ('reg query hklm\system\currentcontrolset\services') do del %temp%\reg.hiv >nul 2>&1 & reg save %%a %temp%\reg.hiv >nul 2>&1 && reg restore %%a %temp%\reg.hiv >nul 2>&1 && ECHO.You can modify %%a
+ECHO.   [i] Effective service registry write access is unknown in this batch check; inspect key ACLs with the winPEAS executable or a trusted read-only ACL viewer.
 ECHO.
 CALL :T_Progress 1
 

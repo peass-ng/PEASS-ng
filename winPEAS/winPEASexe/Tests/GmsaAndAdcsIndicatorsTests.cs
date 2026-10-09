@@ -12,6 +12,7 @@ namespace winPEAS.Tests
     {
         private const string CurrentSid = "S-1-5-21-111-222-333-1001";
         private const string OtherSid = "S-1-5-21-111-222-333-1002";
+        private static readonly Guid ReaderListGuid = new Guid("888eedd6-ce04-df40-b462-b8a50e41ba38");
 
         private static byte[] MembershipDescriptor(params GenericAce[] aces)
         {
@@ -34,6 +35,13 @@ namespace winPEAS.Tests
         {
             return new CommonAce(AceFlags.None, AceQualifier.AccessAllowed, 0x20,
                 new SecurityIdentifier(sid), false, null);
+        }
+
+        private static ObjectAce ReaderListWriteAce(string sid, AceQualifier qualifier,
+            Guid? attribute = null, AceFlags flags = AceFlags.None, bool callback = false)
+        {
+            return new ObjectAce(flags, qualifier, 0x20, new SecurityIdentifier(sid),
+                ObjectAceFlags.ObjectAceTypePresent, attribute ?? ReaderListGuid, Guid.Empty, callback, null);
         }
 
         private static HashSet<string> TokenSids()
@@ -136,6 +144,77 @@ namespace winPEAS.Tests
             refreshedSids.Add(OtherSid);
             Assert.AreEqual(ActiveDirectoryInfo.GmsaAccessStatus.Candidate,
                 ActiveDirectoryInfo.AssessGmsaMembership(descriptor, refreshedSids));
+        }
+
+        [TestMethod]
+        public void GmsaReaderListWriteRequiresExactAttributeAndClass()
+        {
+            Assert.AreEqual(ActiveDirectoryInfo.ExactAttributeWriteRight.GmsaReaderList,
+                ActiveDirectoryInfo.ClassifyExactAttributeWrite(ReaderListGuid, false,
+                    "msDS-GroupManagedServiceAccount"));
+            Assert.AreEqual(ActiveDirectoryInfo.ExactAttributeWriteRight.None,
+                ActiveDirectoryInfo.ClassifyExactAttributeWrite(ReaderListGuid, false, "user"));
+            Assert.AreEqual(ActiveDirectoryInfo.ExactAttributeWriteRight.None,
+                ActiveDirectoryInfo.ClassifyExactAttributeWrite(ReaderListGuid, true,
+                    "msDS-GroupManagedServiceAccount"));
+            var mapped = ActiveDirectoryInfo.MapAttributeWriteImpact(ReaderListGuid,
+                "msDS-GroupManagedServiceAccount", null, null, false);
+            Assert.AreEqual("gMSA reader-list WriteProperty candidate", mapped.Impact);
+
+            var candidate = ActiveDirectoryInfo.InspectGmsaReaderListWrite(
+                MembershipDescriptor(ReaderListWriteAce(CurrentSid, AceQualifier.AccessAllowed)), TokenSids());
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaReaderListWriteStatus.Candidate, candidate.Status);
+            Assert.IsFalse(candidate.BroadWrite);
+            CollectionAssert.AreEqual(new[] { CurrentSid }, candidate.MatchingWriterSids);
+
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaReaderListWriteStatus.NoMatch,
+                ActiveDirectoryInfo.InspectGmsaReaderListWrite(
+                    MembershipDescriptor(ReaderListWriteAce(CurrentSid, AceQualifier.AccessAllowed,
+                        new Guid("888eedd7-ce04-df40-b462-b8a50e41ba38"))), TokenSids()).Status);
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaReaderListWriteStatus.NoMatch,
+                ActiveDirectoryInfo.InspectGmsaReaderListWrite(
+                    MembershipDescriptor(ReaderListWriteAce(OtherSid, AceQualifier.AccessAllowed)), TokenSids()).Status);
+        }
+
+        [TestMethod]
+        public void GmsaReaderListWriteDenyAndComplexScopeStayUnproven()
+        {
+            var denied = ActiveDirectoryInfo.InspectGmsaReaderListWrite(
+                MembershipDescriptor(ReaderListWriteAce(CurrentSid, AceQualifier.AccessAllowed),
+                    ReaderListWriteAce(CurrentSid, AceQualifier.AccessDenied)), TokenSids());
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaReaderListWriteStatus.Denied, denied.Status);
+            CollectionAssert.AreEqual(new[] { CurrentSid }, denied.MatchingDenySids);
+
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaReaderListWriteStatus.Unknown,
+                ActiveDirectoryInfo.InspectGmsaReaderListWrite(
+                    MembershipDescriptor(ReaderListWriteAce(CurrentSid, AceQualifier.AccessAllowed,
+                        flags: AceFlags.Inherited, callback: true)), TokenSids()).Status);
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaReaderListWriteStatus.NoMatch,
+                ActiveDirectoryInfo.InspectGmsaReaderListWrite(
+                    MembershipDescriptor(ReaderListWriteAce(CurrentSid, AceQualifier.AccessAllowed,
+                        flags: AceFlags.InheritOnly)), TokenSids()).Status);
+            var scopedInheritance = new ObjectAce(AceFlags.Inherited, AceQualifier.AccessAllowed, 0x20,
+                new SecurityIdentifier(CurrentSid), ObjectAceFlags.ObjectAceTypePresent |
+                ObjectAceFlags.InheritedObjectAceTypePresent, ReaderListGuid,
+                new Guid("11111111-2222-3333-4444-555555555555"), false, null);
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaReaderListWriteStatus.Unknown,
+                ActiveDirectoryInfo.InspectGmsaReaderListWrite(
+                    MembershipDescriptor(scopedInheritance), TokenSids()).Status);
+        }
+
+        [TestMethod]
+        public void GmsaReaderListBroadWriteAndMalformedDescriptorAreBounded()
+        {
+            var broad = ActiveDirectoryInfo.InspectGmsaReaderListWrite(
+                MembershipDescriptor(new CommonAce(AceFlags.Inherited, AceQualifier.AccessAllowed, 0x20,
+                    new SecurityIdentifier(CurrentSid), false, null)), TokenSids());
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaReaderListWriteStatus.Candidate, broad.Status);
+            Assert.IsTrue(broad.BroadWrite);
+            Assert.IsTrue(broad.InheritedAce);
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaReaderListWriteStatus.Unknown,
+                ActiveDirectoryInfo.InspectGmsaReaderListWrite(new byte[] { 1, 2, 3 }, TokenSids()).Status);
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaReaderListWriteStatus.Unknown,
+                ActiveDirectoryInfo.InspectGmsaReaderListWrite(new byte[65537], TokenSids()).Status);
         }
 
         [TestMethod]

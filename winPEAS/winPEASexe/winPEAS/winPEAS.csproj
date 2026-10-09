@@ -1269,9 +1269,13 @@
     <Compile Include="Info\FilesInfo\RegistryHiveExposure.cs" />
     <Compile Include="Info\FilesInfo\HMailServerExposure.cs" />
     <Compile Include="Info\FilesInfo\IisServedRootPermissions.cs" />
+    <Compile Include="Info\FilesInfo\IisAdcsWebEnrollment.cs" />
+    <Compile Include="Info\FilesInfo\SqlSetupConfigurationIndicator.cs" />
     <Compile Include="Info\FilesInfo\ZipNtdsBackupIndicator.cs" />
     <Compile Include="Info\FilesInfo\RecycleBinArchiveIndicator.cs" />
     <Compile Include="Info\FilesInfo\MRemoteNgConnectionFiles.cs" />
+    <Compile Include="Info\FilesInfo\RemoteDesktopPlusProfiles.cs" />
+    <Compile Include="Info\FilesInfo\VelociraptorServerConfig.cs" />
     <Compile Include="Info\FilesInfo\WSL\WSLHelper.cs" />
     <Compile Include="Info\NetworkInfo\Enums\IPVersion.cs" />
     <Compile Include="Info\NetworkInfo\Enums\MibTcpState.cs" />

@@ -41,6 +41,18 @@ namespace winPEAS.Helpers.Search
             ".png", ".psd", ".raw", ".svg", ".svgz", ".tif", ".tiff", ".webp",
         };
 
+        internal static bool ShouldRetainInventoryFile(string filename, string extension)
+        {
+            string ext = (extension ?? string.Empty).ToLowerInvariant();
+            if (!StaticExtensions.Contains(ext)) return true;
+            if (ext != ".7z" && ext != ".zip") return false;
+            string name = filename ?? string.Empty;
+            return name.IndexOf("bitlocker", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                name.IndexOf("recovery", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                name.IndexOf("backup", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                name.IndexOf("credential", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         public static List<CustomFileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null, bool isFoldersIncluded = false)
         {
             ConcurrentBag<CustomFileInfo> files = new ConcurrentBag<CustomFileInfo>();
@@ -73,7 +85,7 @@ namespace winPEAS.Helpers.Search
                 var foundFiles = GetFiles(d.FullName, pattern);
                 foreach (var f in foundFiles)
                 {
-                    if (f != null && !StaticExtensions.Contains(f.Extension.ToLower()))
+                    if (f != null && ShouldRetainInventoryFile(f.Name, f.Extension))
                     {
                         CustomFileInfo file_info = new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false);
                         files.Add(file_info);
@@ -179,7 +191,7 @@ namespace winPEAS.Helpers.Search
 
                     foreach (var f in dirInfo.GetFiles(pattern))
                     {
-                        if (!StaticExtensions.Contains(f.Extension.ToLower()))
+                        if (ShouldRetainInventoryFile(f.Name, f.Extension))
                         {
                             if (Checks.Checks.IsLongPath || f.FullName.Length <= 260)
                                 files.Add(new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false));
@@ -291,6 +303,71 @@ namespace winPEAS.Helpers.Search
             }
         }
 
+        internal const int MaxMessengerAndRecoveryArtifacts = 20;
+
+        internal static string ClassifyMessengerOrRecoveryFile(CustomFileInfo file)
+        {
+            if (file == null || file.IsDirectory || string.IsNullOrWhiteSpace(file.FullPath)) return null;
+            string path = file.FullPath.Replace('/', '\\');
+            string name = file.Filename ?? string.Empty;
+            string ext = (file.Extension ?? string.Empty).ToLowerInvariant();
+            const string appRoot = "\\AppData\\Roaming\\Output Messenger\\";
+            int rootIndex = path.IndexOf(appRoot, StringComparison.OrdinalIgnoreCase);
+            if (rootIndex >= 0)
+            {
+                string appRelative = path.Substring(rootIndex + appRoot.Length);
+                int userFolderEnd = appRelative.IndexOf('\\');
+                if (userFolderEnd > 0 && userFolderEnd <= 32)
+                {
+                    string remaining = appRelative.Substring(userFolderEnd + 1);
+                    if (remaining.IndexOf('\\') < 0 &&
+                        (name.Equals("OM.db3", StringComparison.OrdinalIgnoreCase) ||
+                         name.Equals("OT.db3", StringComparison.OrdinalIgnoreCase)))
+                        return "messaging client database";
+                    if (remaining.StartsWith("Received Files\\", StringComparison.OrdinalIgnoreCase) &&
+                        (ext == ".pcap" || ext == ".pcapng" || ext == ".exe" ||
+                         ext == ".7z" || ext == ".zip"))
+                        return "messaging client received file";
+                }
+            }
+            if ((ext == ".html" || ext == ".txt") &&
+                name.IndexOf("bitlocker", StringComparison.OrdinalIgnoreCase) >= 0)
+                return "BitLocker recovery export candidate";
+            if ((ext == ".7z" || ext == ".zip") &&
+                (name.IndexOf("bitlocker", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                 name.IndexOf("recovery", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                 name.IndexOf("backup", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                 name.IndexOf("credential", StringComparison.OrdinalIgnoreCase) >= 0))
+                return "backup/recovery archive candidate";
+            return null;
+        }
+
+        internal static List<string> SearchMessengerAndRecoveryArtifacts()
+        {
+            return SearchMessengerAndRecoveryArtifacts(RootDirCurrentUser, RootDirUsers);
+        }
+
+        internal static List<string> SearchMessengerAndRecoveryArtifacts(
+            IEnumerable<CustomFileInfo> current, IEnumerable<CustomFileInfo> users)
+        {
+            var findings = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            current = current ?? Enumerable.Empty<CustomFileInfo>();
+            users = users ?? Enumerable.Empty<CustomFileInfo>();
+            foreach (CustomFileInfo file in current.Concat(users))
+            {
+                string kind = ClassifyMessengerOrRecoveryFile(file);
+                if (kind == null || !seen.Add(file.FullPath)) continue;
+                if (findings.Count == MaxMessengerAndRecoveryArtifacts)
+                {
+                    findings.Add("[additional matching files omitted]");
+                    break;
+                }
+                findings.Add(file.FullPath + " [" + kind + "; " + file.Size + " bytes; contents not inspected]");
+            }
+            return findings;
+        }
+
         internal static List<string> SearchUsersInterestingFiles()
         {
             var result = new List<string>();
@@ -301,6 +378,15 @@ namespace winPEAS.Helpers.Search
                 {
                     string extLower = file.Extension.ToLower();
                     string nameLower = file.Filename.ToLower();
+
+                    if (extLower == ".wim")
+                    {
+                        // The current-user inventory is already available. Do not search another tree
+                        // or open image contents: a WIM filename is only a backup review lead.
+                        if (IsBackupWimPath(file.FullPath) && CanOpenLocalBackupWim(file.FullPath))
+                            result.Add(file.FullPath + " [readable local WIM backup candidate; contents not inspected]");
+                        continue;
+                    }
 
                     if (Patterns.WhitelistExtensions.Contains(extLower) ||
                         Patterns.WhiteListExactfilenamesWithExtensions.Contains(nameLower))
@@ -324,6 +410,55 @@ namespace winPEAS.Helpers.Search
             }
 
             return result;
+        }
+
+        internal static bool IsBackupWimPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return false;
+            string normalized = path.Replace('/', '\\');
+            // Reject UNC and relative paths; mapped network drives are rejected at open time.
+            if (normalized.Length < 4 || !char.IsLetter(normalized[0]) ||
+                normalized[1] != ':' || normalized[2] != '\\') return false;
+
+            string[] parts = normalized.Split('\\');
+            string name = parts[parts.Length - 1];
+            if (!name.EndsWith(".wim", StringComparison.OrdinalIgnoreCase)) return false;
+            string stem = name.Substring(0, name.Length - 4);
+            if (stem.Length == 0) return false;
+            foreach (string routine in new[] { "install", "boot", "winre", "winpe", "recovery" })
+                if (string.Equals(stem, routine, StringComparison.OrdinalIgnoreCase)) return false;
+
+            bool backupDirectory = false;
+            for (int i = 1; i < parts.Length - 1; i++)
+            {
+                string part = parts[i];
+                if (string.Equals(part, "Windows", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(part, "Program Files", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(part, "Program Files (x86)", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(part, "Recovery", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(part, "sources", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(part, "$Windows.~BT", StringComparison.OrdinalIgnoreCase)) return false;
+                if (string.Equals(part, "backup", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(part, "backups", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(part, "image", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(part, "images", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(part, "snapshot", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(part, "snapshots", StringComparison.OrdinalIgnoreCase)) backupDirectory = true;
+            }
+            return backupDirectory || stem.IndexOf("backup", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                stem.IndexOf("snapshot", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool CanOpenLocalBackupWim(string path)
+        {
+            try
+            {
+                if (new DriveInfo(path.Substring(0, 3)).DriveType != DriveType.Fixed) return false;
+                using (new FileStream(path, FileMode.Open, FileAccess.Read,
+                    FileShare.ReadWrite | FileShare.Delete)) { }
+                return true;
+            }
+            catch (Exception) { return false; }
         }
 
         internal static List<string> FindCachedGPPPassword()

@@ -23,6 +23,24 @@ namespace winPEAS.Checks
             return quota.Value == 0 ? MachineAccountQuotaStatus.Zero : MachineAccountQuotaStatus.Positive;
         }
 
+        internal enum StagedComputerStatus { Unknown, Excluded, Candidate }
+
+        internal static StagedComputerStatus AssessStagedComputer(int? userAccountControl)
+        {
+            if (!userAccountControl.HasValue || userAccountControl.Value < 0)
+                return StagedComputerStatus.Unknown;
+            const int disabled = 0x2;
+            const int passwordNotRequired = 0x20;
+            const int workstationTrust = 0x1000;
+            const int serverTrust = 0x2000;
+            int flags = userAccountControl.Value;
+            if ((flags & disabled) != 0 || (flags & serverTrust) != 0)
+                return StagedComputerStatus.Excluded;
+            return (flags & (passwordNotRequired | workstationTrust)) == (passwordNotRequired | workstationTrust)
+                ? StagedComputerStatus.Candidate
+                : StagedComputerStatus.Excluded;
+        }
+
         internal enum Esc11RegistryStatus
         {
             Unknown,
@@ -31,6 +49,15 @@ namespace winPEAS.Checks
         }
 
         internal enum GmsaAccessStatus { Unknown, NoMatch, Denied, Candidate }
+        internal enum GmsaReaderListWriteStatus { Unknown, NoMatch, Denied, Candidate }
+        internal sealed class GmsaReaderListWriteAssessment
+        {
+            internal GmsaReaderListWriteStatus Status { get; set; }
+            internal List<string> MatchingWriterSids { get; } = new List<string>();
+            internal List<string> MatchingDenySids { get; } = new List<string>();
+            internal bool BroadWrite { get; set; }
+            internal bool InheritedAce { get; set; }
+        }
         internal sealed class GmsaMembershipAssessment
         {
             internal GmsaAccessStatus Status { get; set; }
@@ -43,12 +70,74 @@ namespace winPEAS.Checks
         internal enum SchannelUpnMappingStatus { Unknown, Enabled, Disabled }
         internal enum SpnWriteRight { None, WriteProperty, ValidatedSelf }
         internal enum MembershipWriteRight { None, OwnMembership, MemberAttribute }
-        internal enum ExactAttributeWriteRight { None, Upn, KeyCredentialLink }
+        internal enum ExactAttributeWriteRight { None, Upn, KeyCredentialLink, AltSecurityIdentities, GmsaReaderList }
         private static readonly Guid SelfMembershipGuid = new Guid("bf9679c0-0de6-11d0-a285-00aa003049e2");
         private static readonly Guid ValidatedSpnGuid = new Guid("f3a64788-5306-11d1-a9c5-0000f80367c1");
         private static readonly Guid OrganizationalUnitClassGuid = new Guid("bf967aa5-0de6-11d0-a285-00aa003049e2");
         private static readonly Guid UserPrincipalNameGuid = new Guid("28630ebb-41d5-11d1-a9c1-0000f80367c1");
         private static readonly Guid KeyCredentialLinkGuid = new Guid("5b47d60f-6090-40b2-9f37-2a4de88f3063");
+        private static readonly Guid AltSecurityIdentitiesGuid = new Guid("00fbf30c-91fe-11d1-aebc-0000f80367c1");
+        private static readonly Guid GmsaReaderListGuid = new Guid("888eedd6-ce04-df40-b462-b8a50e41ba38");
+        private static readonly Guid CertificateEnrollGuid = new Guid("0e10c968-78fb-11d2-90d4-00c04f79dc55");
+
+        internal enum Esc1TemplateStatus { Unknown, NotCandidate, Candidate }
+
+        // Configuration only: publication, CA rights, effective ACLs and KDC mapping remain unverified.
+        internal static Esc1TemplateStatus AssessEsc1Template(int? nameFlags, int? enrollmentFlags,
+            int? requiredSignatures, IEnumerable<string> extendedKeyUsages)
+        {
+            if (!nameFlags.HasValue || !enrollmentFlags.HasValue || !requiredSignatures.HasValue ||
+                extendedKeyUsages == null)
+                return Esc1TemplateStatus.Unknown;
+            if ((nameFlags.Value & 0x10001) == 0 || (enrollmentFlags.Value & 0x2) != 0 ||
+                requiredSignatures.Value != 0)
+                return Esc1TemplateStatus.NotCandidate;
+            var eku = new HashSet<string>(extendedKeyUsages, StringComparer.Ordinal);
+            return eku.Contains("1.3.6.1.5.5.7.3.2") || // Client Authentication
+                   eku.Contains("1.3.6.1.5.2.3.4") || // PKINIT Client Authentication
+                   eku.Contains("1.3.6.1.4.1.311.20.2.2") // Smart Card Logon
+                ? Esc1TemplateStatus.Candidate : Esc1TemplateStatus.NotCandidate;
+        }
+
+        internal static bool IsCertificateEnrollAce(ActiveDirectoryRights rights, Guid objectType)
+        {
+            return ((rights & ActiveDirectoryRights.GenericAll) != 0 && objectType == Guid.Empty) ||
+                   ((rights & ActiveDirectoryRights.ExtendedRight) != 0 &&
+                    (objectType == CertificateEnrollGuid || objectType == Guid.Empty));
+        }
+
+        internal static string DescribeEsc1EnrollAceEvidence(bool descriptorRead, bool currentAllow,
+            bool currentDeny, bool computerAllow, bool computerDeny, bool computerSidKnown)
+        {
+            if (!descriptorRead) return "enrollment ACL unavailable";
+            var evidence = new List<string>();
+            if (currentDeny) evidence.Add("current-token matching deny ACE");
+            else if (currentAllow) evidence.Add("current-token Enroll allow ACE");
+            if (!computerSidKnown) evidence.Add("Domain Computers SID unavailable from token");
+            else if (computerDeny) evidence.Add("Domain Computers matching deny ACE");
+            else if (computerAllow) evidence.Add("Domain Computers Enroll allow ACE");
+            if (evidence.Count == 0) evidence.Add("matching Enroll allow ACE not found; indirect rights unknown");
+            return string.Join("; ", evidence);
+        }
+
+        internal static string DescribeTemplateMinimumKeySize(int? minimumKey)
+        {
+            return minimumKey.HasValue && minimumKey.Value > 0
+                ? "minimum key size " + minimumKey.Value : "minimum key size unknown";
+        }
+
+        internal static string DomainComputersSidFromToken(IEnumerable<string> tokenSids)
+        {
+            if (tokenSids == null) return null;
+            foreach (string sid in tokenSids)
+            {
+                if (string.IsNullOrEmpty(sid) || !sid.StartsWith("S-1-5-21-", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (sid.EndsWith("-515", StringComparison.Ordinal) || sid.EndsWith("-513", StringComparison.Ordinal))
+                    return sid.Substring(0, sid.LastIndexOf('-') + 1) + "515";
+            }
+            return null;
+        }
 
         internal static bool IsAclCandidateAce(AccessControlType accessType, bool sidMatches, bool inheritOnly,
             bool isInherited, Guid inheritedObjectType, string targetClass)
@@ -88,6 +177,13 @@ namespace winPEAS.Checks
                 (string.Equals(targetClass, "user", StringComparison.OrdinalIgnoreCase) ||
                  string.Equals(targetClass, "computer", StringComparison.OrdinalIgnoreCase)))
                 return ExactAttributeWriteRight.KeyCredentialLink;
+            if (objectType == AltSecurityIdentitiesGuid &&
+                (string.Equals(targetClass, "user", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(targetClass, "computer", StringComparison.OrdinalIgnoreCase)))
+                return ExactAttributeWriteRight.AltSecurityIdentities;
+            if (objectType == GmsaReaderListGuid &&
+                string.Equals(targetClass, "msDS-GroupManagedServiceAccount", StringComparison.OrdinalIgnoreCase))
+                return ExactAttributeWriteRight.GmsaReaderList;
             return ExactAttributeWriteRight.None;
         }
 
@@ -277,6 +373,83 @@ namespace winPEAS.Checks
             return result;
         }
 
+        // Interpret the *object* DACL, not the separate reader-list descriptor. A matching
+        // ACE is only an indicator: effective access and possible deny/property-set rules
+        // are not fully evaluated here.
+        internal static GmsaReaderListWriteAssessment InspectGmsaReaderListWrite(byte[] descriptorBytes,
+            ISet<string> currentSids)
+        {
+            var result = new GmsaReaderListWriteAssessment { Status = GmsaReaderListWriteStatus.Unknown };
+            if (descriptorBytes == null || descriptorBytes.Length == 0 || descriptorBytes.Length > 65536 ||
+                currentSids == null || currentSids.Count == 0)
+                return result;
+
+            try
+            {
+                var descriptor = new RawSecurityDescriptor(descriptorBytes, 0);
+                if ((descriptor.ControlFlags & ControlFlags.DiscretionaryAclPresent) == 0 ||
+                    descriptor.DiscretionaryAcl == null)
+                    return result;
+
+                bool complexAce = false;
+                foreach (GenericAce ace in descriptor.DiscretionaryAcl)
+                {
+                    var qualified = ace as QualifiedAce;
+                    if (qualified == null || (ace.AceFlags & AceFlags.InheritOnly) != 0 ||
+                        !currentSids.Contains(qualified.SecurityIdentifier.Value))
+                        continue;
+
+                    const int writeProperty = 0x20;
+                    const int genericWrite = 0x40000000;
+                    const int genericAll = 0x10000000;
+                    if ((qualified.AccessMask & (writeProperty | genericWrite | genericAll)) == 0)
+                        continue;
+
+                    var objectAce = qualified as ObjectAce;
+                    bool scoped = objectAce != null &&
+                        (objectAce.ObjectAceFlags & ObjectAceFlags.ObjectAceTypePresent) != 0;
+                    if (scoped && ClassifyExactAttributeWrite(objectAce.ObjectAceType, false,
+                        "msDS-GroupManagedServiceAccount") != ExactAttributeWriteRight.GmsaReaderList)
+                        continue;
+
+                    // Callback/conditional ACEs and inherited-object scopes need a complete
+                    // access check; never promote them to a positive candidate.
+                    if (qualified.IsCallback || (objectAce != null &&
+                        (objectAce.ObjectAceFlags & ObjectAceFlags.InheritedObjectAceTypePresent) != 0))
+                    {
+                        complexAce = true;
+                        continue;
+                    }
+
+                    string sid = qualified.SecurityIdentifier.Value;
+                    if (qualified.AceQualifier == AceQualifier.AccessDenied)
+                    {
+                        if (!result.MatchingDenySids.Contains(sid)) result.MatchingDenySids.Add(sid);
+                    }
+                    else if (qualified.AceQualifier == AceQualifier.AccessAllowed)
+                    {
+                        if (!result.MatchingWriterSids.Contains(sid)) result.MatchingWriterSids.Add(sid);
+                        if (!scoped) result.BroadWrite = true;
+                        if ((ace.AceFlags & AceFlags.Inherited) != 0) result.InheritedAce = true;
+                    }
+                    else
+                        complexAce = true;
+                }
+
+                result.Status = complexAce ? GmsaReaderListWriteStatus.Unknown
+                    : result.MatchingDenySids.Count > 0 ? GmsaReaderListWriteStatus.Denied
+                    : result.MatchingWriterSids.Count > 0 ? GmsaReaderListWriteStatus.Candidate
+                    : GmsaReaderListWriteStatus.NoMatch;
+            }
+            catch (Exception)
+            {
+                result.Status = GmsaReaderListWriteStatus.Unknown;
+                result.MatchingWriterSids.Clear();
+                result.MatchingDenySids.Clear();
+            }
+            return result;
+        }
+
         internal static Esc16RegistryStatus AssessEsc16(object disableExtensionList)
         {
             var values = disableExtensionList as string[];
@@ -327,6 +500,7 @@ namespace winPEAS.Checks
                 PrintDmsaCreationRights,
                 PrintKerberoastableServiceAccounts,
                 PrintMachineAccountQuota,
+                PrintStagedComputerCandidates,
                 PrintAdObjectControlPaths,
                 PrintAdcsMisconfigurations
             }.ForEach(action => CheckRunner.Run(action, isDebug));
@@ -606,6 +780,99 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.InfoPrint("  ms-DS-MachineAccountQuota: unavailable (LDAP read failed: " + ex.Message + ").");
+            }
+        }
+
+        private void PrintStagedComputerCandidates()
+        {
+            Beaprint.MainPrint("Staged computer-account candidates", "T1087.002");
+            if (!Checks.IsPartOfDomain)
+            {
+                Beaprint.GrayPrint("  [-] Host is not domain-joined. Skipping.");
+                return;
+            }
+
+            string defaultNc = GetRootDseProp("defaultNamingContext");
+            if (string.IsNullOrEmpty(defaultNc))
+            {
+                Beaprint.GrayPrint("  [?] Candidate visibility unknown: domain root not resolved.");
+                return;
+            }
+
+            const int sampleLimit = 120;
+            const int displayLimit = 20;
+            int inspected = 0;
+            int candidates = 0;
+            int unknown = 0;
+            bool truncated = false;
+            bool elapsedLimit = false;
+            var displayed = new List<string>();
+            try
+            {
+                using (var baseDe = new DirectoryEntry("LDAP://" + defaultNc))
+                using (var searcher = new DirectorySearcher(baseDe))
+                {
+                    searcher.SearchScope = SearchScope.Subtree;
+                    searcher.ReferralChasing = ReferralChasingOption.None;
+                    searcher.PageSize = 100;
+                    searcher.SizeLimit = sampleLimit + 1;
+                    searcher.ClientTimeout = TimeSpan.FromSeconds(5);
+                    searcher.ServerTimeLimit = TimeSpan.FromSeconds(5);
+                    searcher.Filter = "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=32)"
+                        + "(userAccountControl:1.2.840.113556.1.4.803:=4096)"
+                        + "(!(userAccountControl:1.2.840.113556.1.4.803:=2))"
+                        + "(!(userAccountControl:1.2.840.113556.1.4.803:=8192)))";
+                    searcher.PropertiesToLoad.Add("sAMAccountName");
+                    searcher.PropertiesToLoad.Add("userAccountControl");
+                    searcher.PropertiesToLoad.Add("pwdLastSet");
+
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    using (var results = searcher.FindAll())
+                    foreach (SearchResult result in results)
+                    {
+                        if (watch.Elapsed >= TimeSpan.FromSeconds(5))
+                        {
+                            elapsedLimit = true;
+                            break;
+                        }
+                        if (inspected == sampleLimit)
+                        {
+                            truncated = true;
+                            break;
+                        }
+                        inspected++;
+                        var status = AssessStagedComputer(GetIntProp(result, "userAccountControl"));
+                        if (status == StagedComputerStatus.Unknown)
+                        {
+                            unknown++;
+                            continue;
+                        }
+                        if (status != StagedComputerStatus.Candidate)
+                            continue;
+
+                        candidates++;
+                        if (displayed.Count >= displayLimit)
+                            continue;
+                        string name = GetProp(result, "sAMAccountName");
+                        if (string.IsNullOrWhiteSpace(name)) name = "<unnamed computer>";
+                        name = new string(name.Select(c => char.IsControl(c) ? '?' : c).ToArray());
+                        displayed.Add(name + (GetFileTimeProp(result, "pwdLastSet").HasValue
+                            ? " (password timestamp present)" : " (password timestamp absent or zero)"));
+                    }
+                }
+
+                Beaprint.InfoPrint("  Inspected " + inspected + " staged-computer candidate object(s); "
+                    + candidates + " enabled workstation-trust candidate(s); account-control unknown: " + unknown + ".");
+                foreach (string label in displayed) Beaprint.GrayPrint("    - " + label);
+                if (candidates > displayed.Count)
+                    Beaprint.GrayPrint("  [*] " + (candidates - displayed.Count) + " additional candidate(s) omitted from display.");
+                if (truncated) Beaprint.GrayPrint("  [?] LDAP sample capped at 120 objects; further candidates are unknown.");
+                if (elapsedLimit) Beaprint.GrayPrint("  [?] LDAP elapsed limit reached; further candidates are unknown.");
+                Beaprint.GrayPrint("  [*] Account flags identify review candidates only; they do not prove a predictable password or usable logon. Review machine-principal object rights separately.");
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("  [?] Candidate visibility unknown: LDAP search failed or timed out: " + ex.Message);
             }
         }
 
@@ -1124,6 +1391,24 @@ namespace winPEAS.Checks
             var exactRight = ClassifyExactAttributeWrite(objectType, validatedWrite, targetClass);
             if (exactRight != ExactAttributeWriteRight.None)
             {
+                if (exactRight == ExactAttributeWriteRight.GmsaReaderList)
+                {
+                    return new AdAccessImpact
+                    {
+                        Impact = "gMSA reader-list WriteProperty candidate",
+                        Detail = "Exact attribute-write ACE on msDS-GroupMSAMembership; deny ACEs, inheritance, effective access, and any subsequent password read remain unverified.",
+                        Score = 5
+                    };
+                }
+                if (exactRight == ExactAttributeWriteRight.AltSecurityIdentities)
+                {
+                    return new AdAccessImpact
+                    {
+                        Impact = "altSecurityIdentities WriteProperty candidate",
+                        Detail = "Matching certificate-mapping attribute write ACE; effective access, certificate possession/enrollment, CA trust, and strong binding require review.",
+                        Score = 5
+                    };
+                }
                 return new AdAccessImpact
                 {
                     Impact = exactRight == ExactAttributeWriteRight.Upn
@@ -1580,7 +1865,8 @@ namespace winPEAS.Checks
                 if (currentSidSet.Count == 0)
                     Beaprint.GrayPrint("  [-] Current token SIDs unavailable; gMSA access status UNKNOWN.");
                 int total = 0, candidates = 0, unknown = 0, denied = 0;
-                int readerRows = 0;
+                int writerCandidates = 0, writerDenied = 0, writerUnknown = 0;
+                int readerRows = 0, writerRows = 0;
                 bool sampleTruncated = false;
 
                 using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
@@ -1590,10 +1876,12 @@ namespace winPEAS.Checks
                     ds.SizeLimit = GmsaSampleLimit + 1;
                     ds.ClientTimeout = GmsaSearchTimeout;
                     ds.ServerTimeLimit = GmsaSearchTimeout;
+                    ds.SecurityMasks = SecurityMasks.Dacl;
                     ds.Filter = "(&(objectClass=msDS-GroupManagedServiceAccount))";
                     ds.PropertiesToLoad.Add("sAMAccountName");
                     ds.PropertiesToLoad.Add("distinguishedName");
                     ds.PropertiesToLoad.Add("msDS-GroupMSAMembership");
+                    ds.PropertiesToLoad.Add("ntSecurityDescriptor");
 
                     using (var results = ds.FindAll())
                     {
@@ -1612,6 +1900,10 @@ namespace winPEAS.Checks
                                 ? r.Properties["msDS-GroupMSAMembership"][0] as byte[] : null;
                             var assessment = InspectGmsaMembership(descriptorBytes, currentSidSet);
                             var status = assessment.Status;
+                            var objectDescriptor = r.Properties.Contains("ntSecurityDescriptor") &&
+                                r.Properties["ntSecurityDescriptor"].Count > 0
+                                ? r.Properties["ntSecurityDescriptor"][0] as byte[] : null;
+                            var writer = InspectGmsaReaderListWrite(objectDescriptor, currentSidSet);
 
                             if (assessment.ReaderSids.Count > 0 && readerRows < MaxFindingsToPrint)
                             {
@@ -1641,17 +1933,35 @@ namespace winPEAS.Checks
                                     Beaprint.GrayPrint($"  [?] Matching deny ACE for gMSA: {name}; effective access unknown. SID(s): " +
                                         string.Join(", ", assessment.MatchingDenySids.Take(8)));
                             }
+
+                            if (writer.Status == GmsaReaderListWriteStatus.Candidate)
+                            {
+                                writerCandidates++;
+                                if (writerRows++ < MaxFindingsToPrint)
+                                    Beaprint.BadPrint($"  gMSA reader-list write candidate: {name} (DN: {dn}); " +
+                                        (writer.BroadWrite ? "broad attribute-write ACE" : "exact msDS-GroupMSAMembership WriteProperty ACE") +
+                                        "; matching token SID(s): " + string.Join(", ", writer.MatchingWriterSids.Take(8)) +
+                                        (writer.InheritedAce ? "; inherited ACE" : "") +
+                                        ". Effective rights and subsequent password access unverified.");
+                            }
+                            else if (writer.Status == GmsaReaderListWriteStatus.Denied)
+                                writerDenied++;
+                            else if (writer.Status == GmsaReaderListWriteStatus.Unknown)
+                                writerUnknown++;
                         }
                     }
                 }
 
                 Beaprint.GrayPrint($"  [*] Checked {total} gMSA(s): {candidates} token-match candidate(s), {denied} matching deny(s), {unknown} unknown status(es). Descriptor trustees and token matches do not prove effective access; group membership changes require a refreshed token/session.");
+                Beaprint.GrayPrint($"  [*] gMSA reader-list object ACLs: {writerCandidates} write candidate(s), {writerDenied} matching deny(s), {writerUnknown} unknown status(es). Exact attribute scope, deny/inheritance ordering, and effective access require review; LDAP DACL visibility may be incomplete.");
                 if (candidates > MaxFindingsToPrint)
                     Beaprint.GrayPrint($"  [*] {candidates - MaxFindingsToPrint} additional candidate(s) omitted.");
                 if (sampleTruncated)
                     Beaprint.GrayPrint($"  [*] gMSA sample limited to {GmsaSampleLimit}; other accounts were not checked.");
                 if (readerRows == MaxFindingsToPrint)
                     Beaprint.GrayPrint("  [*] Trustee output limited to the first 40 gMSAs with read grants.");
+                if (writerCandidates > MaxFindingsToPrint)
+                    Beaprint.GrayPrint($"  [*] {writerCandidates - MaxFindingsToPrint} additional writer candidate(s) omitted.");
             }
             catch (Exception)
             {
@@ -1879,18 +2189,24 @@ namespace winPEAS.Checks
                     Beaprint.GrayPrint("  [-] Certificate Authority not found. Skipping.");
                 }
 
-                // Detect AD CS certificate templates where current principal has dangerous control rights(ESC4 - style)
+                // Reuse one template scan for ESC4 rights and passive ESC1 configuration candidates.
                 Beaprint.InfoPrint("\nIf you can modify a template (WriteDacl/WriteOwner/GenericAll), you can abuse ESC4");
                 var configNC = GetRootDseProp("configurationNamingContext");
                 if (string.IsNullOrEmpty(configNC))
                 {
                     Beaprint.GrayPrint("  [-] Could not resolve configurationNamingContext.");
+                    Beaprint.GrayPrint("  [?] ESC1 template visibility unknown without the configuration naming context.");
                     return;
                 }
 
                 var currentSidSet = GetCurrentSidSet();
+                var domainComputersSid = DomainComputersSidFromToken(currentSidSet);
                 int checkedTemplates = 0;
                 int vulnerable = 0;
+                int esc1Checked = 0;
+                int esc1Unknown = 0;
+                int esc1Candidates = 0;
+                bool esc1Capped = false;
 
                 var templatesDn = $"LDAP://CN=Certificate Templates,CN=Public Key Services,CN=Services,{configNC}";
 
@@ -1900,75 +2216,144 @@ namespace winPEAS.Checks
                     ds.PageSize = 300;
                     ds.Filter = "(objectClass=pKICertificateTemplate)";
                     ds.PropertiesToLoad.Add("cn");
+                    ds.PropertiesToLoad.Add("msPKI-Certificate-Name-Flag");
+                    ds.PropertiesToLoad.Add("msPKI-Enrollment-Flag");
+                    ds.PropertiesToLoad.Add("msPKI-RA-Signature");
+                    ds.PropertiesToLoad.Add("pKIExtendedKeyUsage");
+                    ds.PropertiesToLoad.Add("msPKI-Minimal-Key-Size");
 
-                    foreach (SearchResult r in ds.FindAll())
+                    using (var results = ds.FindAll())
                     {
-                        checkedTemplates++;
-                        string templateCn = GetProp(r, "cn") ?? "<unknown>";
-
-                        // Fetch security descriptor (DACL)
-                        DirectoryEntry de = null;
-                        try
+                        var esc1Watch = System.Diagnostics.Stopwatch.StartNew();
+                        foreach (SearchResult r in results)
                         {
-                            de = r.GetDirectoryEntry();
-                            de.Options.SecurityMasks = SecurityMasks.Dacl;
-                            de.RefreshCache(new[] { "ntSecurityDescriptor" });
-                        }
-                        catch (Exception)
-                        {
-                            de?.Dispose();
-                            continue;
-                        }
-
-                        try
-                        {
-                            var sd = de.ObjectSecurity; // ActiveDirectorySecurity
-                            var rules = sd.GetAccessRules(true, true, typeof(SecurityIdentifier));
-                            bool hit = false;
-                            var hitRights = new HashSet<string>();
-
-                            foreach (ActiveDirectoryAccessRule rule in rules)
+                            checkedTemplates++;
+                            string templateCn = GetProp(r, "cn") ?? "<unknown>";
+                            Esc1TemplateStatus esc1Status = Esc1TemplateStatus.Unknown;
+                            bool currentEnrollAllow = false, currentEnrollDeny = false;
+                            bool computerEnrollAllow = false, computerEnrollDeny = false;
+                            bool descriptorRead = false;
+                            if (esc1Checked < 120 && esc1Watch.Elapsed < TimeSpan.FromSeconds(5))
                             {
-                                if (rule.AccessControlType != AccessControlType.Allow) continue;
-                                var sid = (rule.IdentityReference as SecurityIdentifier)?.Value;
-                                if (string.IsNullOrEmpty(sid)) continue;
-                                if (!currentSidSet.Contains(sid)) continue;
+                                esc1Checked++;
+                            IEnumerable<string> ekus = r.Properties.Contains("pKIExtendedKeyUsage")
+                                ? r.Properties["pKIExtendedKeyUsage"].Cast<object>()
+                                    .Where(value => value != null).Select(value => value.ToString())
+                                : null;
+                                esc1Status = AssessEsc1Template(GetIntProp(r, "msPKI-Certificate-Name-Flag"),
+                                    GetIntProp(r, "msPKI-Enrollment-Flag"), GetIntProp(r, "msPKI-RA-Signature"), ekus);
+                                if (esc1Status == Esc1TemplateStatus.Unknown) esc1Unknown++;
+                            }
+                            else
+                            {
+                                esc1Capped = true;
+                            }
 
-                                var rights = rule.ActiveDirectoryRights;
-                                bool dangerous =
-                                    rights.HasFlag(ActiveDirectoryRights.GenericAll) ||
-                                    rights.HasFlag(ActiveDirectoryRights.WriteDacl) ||
-                                    rights.HasFlag(ActiveDirectoryRights.WriteOwner) ||
-                                    rights.HasFlag(ActiveDirectoryRights.WriteProperty) ||
-                                    rights.HasFlag(ActiveDirectoryRights.ExtendedRight);
+                            // Fetch security descriptor (DACL)
+                            DirectoryEntry de = null;
+                            try
+                            {
+                                de = r.GetDirectoryEntry();
+                                de.Options.SecurityMasks = SecurityMasks.Dacl;
+                                de.RefreshCache(new[] { "ntSecurityDescriptor" });
+                            }
+                            catch (Exception)
+                            {
+                                de?.Dispose();
+                                de = null;
+                            }
 
-                                if (dangerous)
+                            if (de != null) try
+                            {
+                                var sd = de.ObjectSecurity; // ActiveDirectorySecurity
+                                var rules = sd.GetAccessRules(true, true, typeof(SecurityIdentifier));
+                                descriptorRead = true;
+                                bool hit = false;
+                                var hitRights = new HashSet<string>();
+
+                                foreach (ActiveDirectoryAccessRule rule in rules)
                                 {
-                                    hit = true;
-                                    if (rights.HasFlag(ActiveDirectoryRights.GenericAll)) hitRights.Add("GenericAll");
-                                    if (rights.HasFlag(ActiveDirectoryRights.WriteDacl)) hitRights.Add("WriteDacl");
-                                    if (rights.HasFlag(ActiveDirectoryRights.WriteOwner)) hitRights.Add("WriteOwner");
-                                    if (rights.HasFlag(ActiveDirectoryRights.WriteProperty)) hitRights.Add("WriteProperty");
-                                    if (rights.HasFlag(ActiveDirectoryRights.ExtendedRight)) hitRights.Add("ExtendedRight");
+                                    var sid = (rule.IdentityReference as SecurityIdentifier)?.Value;
+                                    if (string.IsNullOrEmpty(sid)) continue;
+                                    if (esc1Status == Esc1TemplateStatus.Candidate &&
+                                        IsCertificateEnrollAce(rule.ActiveDirectoryRights, rule.ObjectType))
+                                    {
+                                        bool allowed = rule.AccessControlType == AccessControlType.Allow;
+                                        if (currentSidSet.Contains(sid))
+                                        {
+                                            if (allowed) currentEnrollAllow = true;
+                                            else currentEnrollDeny = true;
+                                        }
+                                        if (domainComputersSid != null &&
+                                            string.Equals(domainComputersSid, sid, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            if (allowed) computerEnrollAllow = true;
+                                            else computerEnrollDeny = true;
+                                        }
+                                    }
+                                    if (rule.AccessControlType != AccessControlType.Allow) continue;
+                                    if (!currentSidSet.Contains(sid)) continue;
+
+                                    var rights = rule.ActiveDirectoryRights;
+                                    bool dangerous =
+                                        rights.HasFlag(ActiveDirectoryRights.GenericAll) ||
+                                        rights.HasFlag(ActiveDirectoryRights.WriteDacl) ||
+                                        rights.HasFlag(ActiveDirectoryRights.WriteOwner) ||
+                                        rights.HasFlag(ActiveDirectoryRights.WriteProperty) ||
+                                        rights.HasFlag(ActiveDirectoryRights.ExtendedRight);
+
+                                    if (dangerous)
+                                    {
+                                        hit = true;
+                                        if (rights.HasFlag(ActiveDirectoryRights.GenericAll)) hitRights.Add("GenericAll");
+                                        if (rights.HasFlag(ActiveDirectoryRights.WriteDacl)) hitRights.Add("WriteDacl");
+                                        if (rights.HasFlag(ActiveDirectoryRights.WriteOwner)) hitRights.Add("WriteOwner");
+                                        if (rights.HasFlag(ActiveDirectoryRights.WriteProperty)) hitRights.Add("WriteProperty");
+                                        if (rights.HasFlag(ActiveDirectoryRights.ExtendedRight)) hitRights.Add("ExtendedRight");
+                                    }
+                                }
+
+                                if (hit)
+                                {
+                                    vulnerable++;
+                                    Beaprint.BadPrint($"  Dangerous rights over template: {templateCn}  (Rights: {string.Join(",", hitRights)})");
                                 }
                             }
-
-                            if (hit)
+                            catch (Exception)
                             {
-                                vulnerable++;
-                                Beaprint.BadPrint($"  Dangerous rights over template: {templateCn}  (Rights: {string.Join(",", hitRights)})");
+                                // ignore templates we couldn't read
                             }
-                        }
-                        catch (Exception)
-                        {
-                            // ignore templates we couldn't read
-                        }
-                        finally
-                        {
-                            de?.Dispose();
+                            finally
+                            {
+                                de?.Dispose();
+                            }
+                            if (esc1Status == Esc1TemplateStatus.Candidate)
+                            {
+                                esc1Candidates++;
+                                if (esc1Candidates <= 20)
+                                {
+                                    string enrollment = DescribeEsc1EnrollAceEvidence(descriptorRead,
+                                        currentEnrollAllow, currentEnrollDeny, computerEnrollAllow,
+                                        computerEnrollDeny, domainComputersSid != null);
+                                    int? minimumKey = GetIntProp(r, "msPKI-Minimal-Key-Size");
+                                    string message = "  ESC1 configuration candidate: " + templateCn + " (" + enrollment
+                                        + "; " + DescribeTemplateMinimumKeySize(minimumKey) + ").";
+                                    if ((currentEnrollAllow && !currentEnrollDeny) ||
+                                        (computerEnrollAllow && !computerEnrollDeny)) Beaprint.BadPrint(message);
+                                    else Beaprint.GrayPrint(message);
+                                }
+                            }
                         }
                     }
                 }
+
+                Beaprint.GrayPrint("  [*] ESC1 configuration review: " + esc1Checked + " template(s) assessed, "
+                    + esc1Candidates + " candidate(s), " + esc1Unknown + " with incomplete attributes.");
+                if (esc1Candidates > 20)
+                    Beaprint.GrayPrint("  [*] " + (esc1Candidates - 20) + " additional ESC1 candidate(s) omitted from display.");
+                if (esc1Capped)
+                    Beaprint.GrayPrint("  [?] ESC1 assessment capped at 120 templates or 5 seconds; remaining templates are unknown. ESC4 scan continued.");
+                Beaprint.GrayPrint("  [*] Template flags and allow ACEs are leads only; publication, CA rights, effective ACLs and KDC strong SID mapping remain unverified.");
 
                 if (vulnerable == 0)
                 {
@@ -1982,6 +2367,7 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
+                Beaprint.GrayPrint("  [?] ESC1 template visibility unknown because the AD CS enumeration did not complete.");
             }
         }
         private void PrintDomainKerberosDefaults(string defaultNc)

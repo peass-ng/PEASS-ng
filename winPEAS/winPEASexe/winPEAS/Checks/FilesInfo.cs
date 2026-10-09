@@ -21,7 +21,7 @@ namespace winPEAS.Checks
 {
     internal class FilesInfo : ISystemCheck
     {
-        static readonly string _patternsFileCredsColor = @"RDCMan.settings|.rdg|_history|httpd.conf|.htpasswd|.gitconfig|.git-credentials|Dockerfile|docker-compose.ymlaccess_tokens.db|accessTokens.json|azureProfile.json|appcmd.exe|scclient.exe|unattend.txt|access.log|error.log|credential|password|.gpg|.pgp|config.php|elasticsearch|kibana.|.p12|\.der|.csr|.crt|.cer|.pem|known_hosts|id_rsa|id_dsa|.ovpn|tomcat-users.xml|web.config|.kdbx|.key|KeePass.config|ntds.dir|Ntds.dit|sam|system|SAM|SYSTEM|security|software|SECURITY|SOFTWARE|FreeSSHDservice.ini|sysprep.inf|sysprep.xml|unattend.xml|unattended.xml|vnc|groups.xml|services.xml|scheduledtasks.xml|printers.xml|drives.xml|datasources.xml|php.ini|https.conf|https-xampp.conf|my.ini|my.cnf|access.log|error.log|server.xml|setupinfo|pagefile.sys|NetSetup.log|iis6.log|AppEvent.Evt|SecEvent.Evt|default.sav|security.sav|software.sav|system.sav|ntuser.dat|index.dat|bash.exe|wsl.exe";
+        static readonly string _patternsFileCredsColor = @"\.accdb\b|\.mdb\b|\.pfx\b|RDCMan.settings|.rdg|_history|httpd.conf|.htpasswd|.gitconfig|.git-credentials|Dockerfile|docker-compose.ymlaccess_tokens.db|accessTokens.json|azureProfile.json|appcmd.exe|scclient.exe|unattend.txt|access.log|error.log|credential|password|.gpg|.pgp|config.php|elasticsearch|kibana.|.p12|\.der|.csr|.crt|.cer|.pem|known_hosts|id_rsa|id_dsa|.ovpn|tomcat-users.xml|web.config|.kdbx|.key|KeePass.config|ntds.dir|Ntds.dit|sam|system|SAM|SYSTEM|security|software|SECURITY|SOFTWARE|FreeSSHDservice.ini|sysprep.inf|sysprep.xml|unattend.xml|unattended.xml|vnc|groups.xml|services.xml|scheduledtasks.xml|printers.xml|drives.xml|datasources.xml|php.ini|https.conf|https-xampp.conf|my.ini|my.cnf|access.log|error.log|server.xml|setupinfo|pagefile.sys|NetSetup.log|iis6.log|AppEvent.Evt|SecEvent.Evt|default.sav|security.sav|software.sav|system.sav|ntuser.dat|index.dat|bash.exe|wsl.exe";
         //    static readonly string _patternsFileCreds = @"RDCMan.settings;*.rdg;*_history*;httpd.conf;.htpasswd;.gitconfig;.git-credentials;Dockerfile;docker-compose.yml;access_tokens.db;accessTokens.json;azureProfile.json;appcmd.exe;scclient.exe;*.gpg$;*.pgp$;*config*.php;elasticsearch.y*ml;kibana.y*ml;*.p12$;*.cer$;known_hosts;*id_rsa*;*id_dsa*;*.ovpn;tomcat-users.xml;web.config;*.kdbx;KeePass.config;Ntds.dit;SAM;SYSTEM;security;software;FreeSSHDservice.ini;sysprep.inf;sysprep.xml;*vnc*.ini;*vnc*.c*nf*;*vnc*.txt;*vnc*.xml;php.ini;https.conf;https-xampp.conf;my.ini;my.cnf;access.log;error.log;server.xml;ConsoleHost_history.txt;pagefile.sys;NetSetup.log;iis6.log;AppEvent.Evt;SecEvent.Evt;default.sav;security.sav;software.sav;system.sav;ntuser.dat;index.dat;bash.exe;wsl.exe;unattend.txt;*.der$;*.csr$;unattend.xml;unattended.xml;groups.xml;services.xml;scheduledtasks.xml;printers.xml;drives.xml;datasources.xml;setupinfo;setupinfo.bak";
 
         private static readonly IList<string> patternsFileCreds = new List<string>()
@@ -34,6 +34,7 @@ namespace winPEAS.Checks
             "*.kdbx",
             "*.ovpn",
             "*.p12$",
+            "*.pfx$",
             "*.pgp$",
             "*.rdg",
             "*_history*",
@@ -136,6 +137,7 @@ namespace winPEAS.Checks
                 HMailServerExposure.PrintInfo,
                 PrintUserCredsFiles,
                 PrintMRemoteNgConnectionFiles,
+                PrintVelociraptorServerConfig,
                 PrintOracleSQLDeveloperConfigFiles,
                 Slack.PrintInfo,
                 PrintLOLBAS,
@@ -322,7 +324,25 @@ namespace winPEAS.Checks
             if (report.LimitReached) Beaprint.GrayPrint("    IIS inspection incomplete: path, configuration, or time limit reached.");
             if (report.Roots.Count == 0 && report.ConfigReadable && !report.LimitReached)
                 Beaprint.GoodPrint("    No eligible local physical roots in the inspected IIS configuration.");
+            if (report.AdcsWebEnrollment.Count > 0)
+            {
+                Beaprint.InfoPrint("  Local AD CS Web Enrollment posture (ESC8 configuration leads)");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/ad-certificates/domain-escalation.html#ntlm-relay-to-ad-cs-http-endpoints--esc8");
+                foreach (IisAdcsWebEnrollmentFinding finding in report.AdcsWebEnrollment)
+                {
+                    string summary = $"    {finding.Site}{finding.Path}: HTTP {(finding.HttpBinding ? "yes" : "no")}; HTTPS {(finding.HttpsBinding ? "yes" : "no")}; Windows auth {Show(finding.WindowsAuthentication)}; NTLM-capable provider {Show(finding.NtlmProvider)}; EPA {finding.EpaTokenChecking}; Require SSL {Show(finding.RequireSsl)}.";
+                    Beaprint.NoColorPrint(summary);
+                    if (finding.Candidate)
+                        Beaprint.BadPrint("      ESC8 configuration candidate. Endpoint reachability, web.config overrides, coercion, template enrollment, and runtime state are unverified.");
+                    else
+                        Beaprint.GrayPrint("      Local configuration does not establish an ESC8 candidate; inspect effective endpoint settings and runtime state.");
+                    if (finding.FileLevelOverride)
+                        Beaprint.GrayPrint("      File-level IIS location override exists; effective certificate request endpoint behavior is unknown.");
+                }
+            }
         }
+
+        private static string Show(bool? value) => value.HasValue ? (value.Value ? "yes" : "no") : "unknown";
 
         private static void PrintMcAffeSitelistFiles()
         {
@@ -560,6 +580,21 @@ namespace winPEAS.Checks
                         }
                     }
                 }
+
+                string drive = Environment.GetEnvironmentVariable("SystemDrive");
+                string driveRoot = string.IsNullOrEmpty(drive) ? null : drive.TrimEnd('\\') + "\\";
+                var profileCandidates = SearchHelper.RootDirUsers
+                    .Where(file => !file.IsDirectory && string.Equals(file.Filename, "profiles.xml", StringComparison.OrdinalIgnoreCase))
+                    .Select(file => file.FullPath);
+                RemoteDesktopPlusProfileReport profiles = RemoteDesktopPlusProfiles.Scan(driveRoot, profileCandidates);
+                foreach (string path in profiles.Paths)
+                {
+                    string safePath = new string(path.Select(c => char.IsControl(c) ? '?' : c).ToArray());
+                    Beaprint.BadPrint("    Remote Desktop Plus-like profile export: " + safePath +
+                        " | stored-password marker present; recovery unverified");
+                }
+                if (profiles.Partial || profiles.LimitReached)
+                    Beaprint.GrayPrint("    Remote-session profile visibility partial: inaccessible path, file size, or scan limit.");
             }
             catch (Exception ex)
             {
@@ -584,6 +619,32 @@ namespace winPEAS.Checks
                 Beaprint.GrayPrint("    Partial visibility: a directory, candidate, or best-effort time limit was reached, or a path could not be inspected.");
             Beaprint.GrayPrint("    Encrypted entries are a credential lead; recovery depends on the configuration and master password.");
             Beaprint.GrayPrint("    Only accessible local profile paths were checked; malformed files and hidden stores may be missed.");
+        }
+
+        private static void PrintVelociraptorServerConfig()
+        {
+            Beaprint.MainPrint("Readable forensic server configuration", "T1552.001");
+            ServerConfigReport report = VelociraptorServerConfig.Collect();
+            foreach (ServerConfigFinding finding in report.Findings)
+            {
+                string safePath = new string(finding.Path.Select(c => char.IsControl(c) ? '?' : c).ToArray());
+                switch (finding.State)
+                {
+                    case ServerConfigState.ReadableWithCaKey:
+                        Beaprint.BadPrint("    " + safePath + " | readable; CA private-key marker present");
+                        break;
+                    case ServerConfigState.ReadableWithoutCaKey:
+                        Beaprint.GrayPrint("    " + safePath + " | readable; CA private-key marker absent");
+                        break;
+                    default:
+                        Beaprint.GrayPrint("    " + safePath + " | " + finding.State + "; contents unknown");
+                        break;
+                }
+            }
+            if (report.Findings.Count == 0) Beaprint.NotFoundPrint();
+            if (report.Partial) Beaprint.GrayPrint("    Partial visibility: a path, file-size, or best-effort time limit prevented inspection.");
+            Beaprint.GrayPrint("    Metadata/marker only; no key material is printed. API access also requires a suitable server identity and role.");
+            Beaprint.GrayPrint("    Up to six direct local installation paths were checked; custom paths and offline CA keys may be missed.");
         }
 
         void PrintRecycleBin()
@@ -660,6 +721,15 @@ namespace winPEAS.Checks
                 var files = SearchHelper.SearchUsersInterestingFiles();
 
                 Beaprint.AnsiPrint("    " + string.Join("\n    ", files), colorF);
+
+                var artifacts = SearchHelper.SearchMessengerAndRecoveryArtifacts();
+                if (artifacts.Count > 0)
+                {
+                    Beaprint.InfoPrint("    Messaging and recovery file candidates from cached user inventory:");
+                    foreach (string artifact in artifacts)
+                        Beaprint.GrayPrint("      " + artifact);
+                    Beaprint.GrayPrint("    File names are review leads; accessibility, archive contents, and recovery keys were not checked.");
+                }
             }
             catch (Exception ex)
             {

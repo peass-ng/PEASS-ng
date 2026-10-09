@@ -99,6 +99,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdcsLocalRegistryTests.cs" />
+    <Compile Include="Esc1TemplateCandidateTests.cs" />
+    <Compile Include="BitLockerDataAndRecoveryArtifactTests.cs" />
+    <Compile Include="SqlSetupConfigurationIndicatorTests.cs" />
     <Compile Include="ArgumentParsingTests.cs" />
     <Compile Include="AutoLogonTests.cs" />
     <Compile Include="FixedBuildIndicatorTests.cs" />
@@ -135,8 +138,11 @@
     <Compile Include="WritableServiceDllTests.cs" />
     <Compile Include="WritableServiceRecoveryCommandTests.cs" />
     <Compile Include="ZipNtdsBackupIndicatorTests.cs" />
+    <Compile Include="WimBackupPathTests.cs" />
     <Compile Include="RecycleBinArchiveIndicatorTests.cs" />
     <Compile Include="MRemoteNgConnectionFilesTests.cs" />
+    <Compile Include="RemoteDesktopPlusProfilesTests.cs" />
+    <Compile Include="VelociraptorServerConfigTests.cs" />
     <Compile Include="Pdf24RepairPrerequisitesTests.cs" />
   </ItemGroup>
   <ItemGroup>

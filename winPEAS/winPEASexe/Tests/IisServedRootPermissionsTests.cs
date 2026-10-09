@@ -198,5 +198,139 @@ namespace winPEAS.Tests
             Assert.IsTrue(report.Roots[0].Configured);
             Assert.AreEqual(@"C:\inetpub\wwwroot", report.Roots[0].Path);
         }
+
+        private static XDocument CertSrvConfig(bool application = true)
+        {
+            XDocument config = Config(1, false);
+            XElement site = config.Descendants("site").Single();
+            if (application)
+                site.Add(new XElement("application", new XAttribute("path", "/CertSrv"),
+                    new XElement("virtualDirectory", new XAttribute("path", "/"),
+                        new XAttribute("physicalPath", @"C:\Windows\System32\CertSrv"))));
+            else
+                site.Descendants("application").Single().Add(new XElement("virtualDirectory",
+                    new XAttribute("path", "/CertSrv"),
+                    new XAttribute("physicalPath", @"C:\Windows\System32\CertSrv")));
+            return config;
+        }
+
+        private static void AddCertSrvLocation(XDocument config, string path, string enabled,
+            string epa, string ssl)
+        {
+            var windowsAuth = new XElement("windowsAuthentication", new XAttribute("enabled", enabled));
+            if (epa != null) windowsAuth.Add(new XElement("extendedProtection", new XAttribute("tokenChecking", epa)));
+            var security = new XElement("security", new XElement("authentication", windowsAuth));
+            if (ssl != null) security.Add(new XElement("access", new XAttribute("sslFlags", ssl)));
+            config.Root.Add(new XElement("location", new XAttribute("path", path),
+                new XElement("system.webServer", security)));
+        }
+
+        private static IisServedRootReport AssessCertSrv(XDocument config)
+        {
+            var report = new IisServedRootReport();
+            IisAdcsWebEnrollment.Assess(report, config, Stopwatch.StartNew());
+            return report;
+        }
+
+        [TestMethod]
+        public void CertSrvHttpNtlmWithoutRequiredProtectionIsOnlyAConfigurationCandidate()
+        {
+            XDocument config = CertSrvConfig();
+            AddCertSrvLocation(config, "Site0/CertSrv", "true", "None", "None");
+            var report = AssessCertSrv(config);
+            Assert.AreEqual(1, report.AdcsWebEnrollment.Count);
+            var finding = report.AdcsWebEnrollment.Single();
+            Assert.IsTrue(finding.Candidate);
+            Assert.AreEqual("Site0", finding.Site);
+            Assert.IsTrue(finding.HttpBinding);
+            Assert.IsFalse(report.LimitReached);
+        }
+
+        [TestMethod]
+        public void RequireSslOrEpaRemovesTheHttpEsc8ConfigurationLead()
+        {
+            XDocument config = CertSrvConfig(false);
+            AddCertSrvLocation(config, "Site0", "true", "Allow", "None");
+            AddCertSrvLocation(config, "Site0/CertSrv", "true", "Require", "Ssl");
+            var finding = AssessCertSrv(config).AdcsWebEnrollment.Single();
+            Assert.IsFalse(finding.Candidate);
+            Assert.AreEqual("Require", finding.EpaTokenChecking);
+            Assert.AreEqual(true, finding.RequireSsl);
+            Assert.AreEqual(true, finding.WindowsAuthentication);
+        }
+
+        [TestMethod]
+        public void CertificateRequestFileOverrideKeepsEffectivePostureUnknown()
+        {
+            XDocument config = CertSrvConfig();
+            AddCertSrvLocation(config, "Site0/CertSrv", "true", "Allow", "None");
+            AddCertSrvLocation(config, "Site0/CertSrv/certfnsh.asp", "false", null, "Ssl");
+            var finding = AssessCertSrv(config).AdcsWebEnrollment.Single();
+            Assert.IsTrue(finding.FileLevelOverride);
+            Assert.IsFalse(finding.Candidate);
+        }
+
+        [TestMethod]
+        public void GlobalLocationProtectionIsInheritedByCertSrv()
+        {
+            XDocument config = CertSrvConfig();
+            AddCertSrvLocation(config, "", "true", "Require", "Ssl");
+            var finding = AssessCertSrv(config).AdcsWebEnrollment.Single();
+            Assert.AreEqual("Require", finding.EpaTokenChecking);
+            Assert.AreEqual(true, finding.RequireSsl);
+            Assert.IsFalse(finding.Candidate);
+        }
+
+        [TestMethod]
+        public void NoNtlmProviderOrRequiredEpaIsNotAnEsc8Candidate()
+        {
+            XDocument config = CertSrvConfig();
+            config.Descendants("binding").Single().SetAttributeValue("protocol", "https");
+            AddCertSrvLocation(config, "Site0/CertSrv", "true", "Require", "Ssl");
+            Assert.IsFalse(AssessCertSrv(config).AdcsWebEnrollment.Single().Candidate);
+            config.Descendants("binding").Single().SetAttributeValue("protocol", "http");
+            config.Descendants("extendedProtection").Single().SetAttributeValue("tokenChecking", "None");
+            config.Descendants("access").Single().SetAttributeValue("sslFlags", "None");
+            XElement auth = config.Descendants("windowsAuthentication").Single();
+            auth.Add(new XElement("providers", new XElement("clear"),
+                new XElement("add", new XAttribute("value", "Negotiate:Kerberos"))));
+            var finding = AssessCertSrv(config).AdcsWebEnrollment.Single();
+            Assert.AreEqual(false, finding.NtlmProvider);
+            Assert.IsFalse(finding.Candidate);
+        }
+
+        [TestMethod]
+        public void HttpsWithoutRequiredEpaIsStillAnEsc8ConfigurationCandidate()
+        {
+            XDocument config = CertSrvConfig();
+            config.Descendants("binding").Single().SetAttributeValue("protocol", "https");
+            AddCertSrvLocation(config, "Site0/CertSrv", "true", "Allow", "Ssl");
+            var finding = AssessCertSrv(config).AdcsWebEnrollment.Single();
+            Assert.IsFalse(finding.HttpBinding);
+            Assert.IsTrue(finding.HttpsBinding);
+            Assert.IsTrue(finding.Candidate);
+        }
+
+        [TestMethod]
+        public void NegotiateProviderCanStillAcceptNtlm()
+        {
+            XDocument config = CertSrvConfig();
+            AddCertSrvLocation(config, "Site0/CertSrv", "true", "None", "None");
+            config.Descendants("windowsAuthentication").Single().Add(new XElement("providers",
+                new XElement("clear"), new XElement("add", new XAttribute("value", "Negotiate"))));
+            var finding = AssessCertSrv(config).AdcsWebEnrollment.Single();
+            Assert.AreEqual(true, finding.NtlmProvider);
+            Assert.IsTrue(finding.Candidate);
+        }
+
+        [TestMethod]
+        public void UnrelatedSitesAndBoundedSiteInventoryDoNotClaimCertSrvExposure()
+        {
+            Assert.AreEqual(0, AssessCertSrv(Config(1, false)).AdcsWebEnrollment.Count);
+            XDocument manySites = Config(IisAdcsWebEnrollment.MaxSites + 1, false);
+            var report = AssessCertSrv(manySites);
+            Assert.IsTrue(report.LimitReached);
+            Assert.AreEqual(0, report.AdcsWebEnrollment.Count);
+        }
     }
 }

@@ -12,6 +12,7 @@ namespace winPEAS.Tests
     {
         private static readonly Guid UpnGuid = new Guid("28630ebb-41d5-11d1-a9c1-0000f80367c1");
         private static readonly Guid KeyCredentialGuid = new Guid("5b47d60f-6090-40b2-9f37-2a4de88f3063");
+        private static readonly Guid AltSecurityIdentitiesGuid = new Guid("00fbf30c-91fe-11d1-aebc-0000f80367c1");
 
         private static ActiveDirectoryInfo.AdAccessImpact Candidate(Guid objectType, string targetClass,
             AccessControlType accessType = AccessControlType.Allow, bool inheritOnly = false, bool validatedWrite = false)
@@ -50,6 +51,23 @@ namespace winPEAS.Tests
             Assert.IsNull(Candidate(KeyCredentialGuid, "computer", AccessControlType.Deny));
             Assert.IsNull(Candidate(KeyCredentialGuid, "computer", inheritOnly: true));
             Assert.IsNull(Candidate(KeyCredentialGuid, "computer", validatedWrite: true));
+        }
+
+        [TestMethod]
+        public void CertificateMappingRequiresExactWritePropertyOnUserOrComputer()
+        {
+            foreach (var targetClass in new[] { "user", "computer" })
+            {
+                var impact = Candidate(AltSecurityIdentitiesGuid, targetClass);
+                Assert.IsNotNull(impact);
+                Assert.AreEqual("altSecurityIdentities WriteProperty candidate", impact.Impact);
+                StringAssert.Contains(impact.Detail, "strong binding require review");
+            }
+            Assert.IsNull(Candidate(AltSecurityIdentitiesGuid, "group"));
+            Assert.IsNull(Candidate(AltSecurityIdentitiesGuid, "user", AccessControlType.Deny));
+            Assert.IsNull(Candidate(AltSecurityIdentitiesGuid, "computer", inheritOnly: true));
+            Assert.IsNull(Candidate(AltSecurityIdentitiesGuid, "user", validatedWrite: true));
+            Assert.IsNull(Candidate(new Guid("00fbf30d-91fe-11d1-aebc-0000f80367c1"), "user"));
         }
 
         [TestMethod]

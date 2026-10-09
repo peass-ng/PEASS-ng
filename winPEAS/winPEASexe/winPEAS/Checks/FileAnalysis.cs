@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Search;
+using winPEAS.Info.FilesInfo;
 using static winPEAS.Helpers.YamlConfig.YamlConfig.SearchParameters;
 
 namespace winPEAS.Checks
@@ -145,6 +146,29 @@ namespace winPEAS.Checks
 
                 if (isFileFound)
                 {
+                    // The shared YAML's extra-path patterns have historically been
+                    // Linux-only. Scope this credential-bearing selector on Windows
+                    // without changing other selectors' established behavior.
+                    if (string.Equals(searchName, "Splunk", StringComparison.OrdinalIgnoreCase) &&
+                        !string.IsNullOrEmpty(fileSettings.check_extra_path))
+                    {
+                        try
+                        {
+                            string portablePath = file.FullPath.Replace('\\', '/');
+                            if (!Regex.IsMatch(portablePath, fileSettings.check_extra_path,
+                                RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100)))
+                                continue;
+                        }
+                        catch (ArgumentException)
+                        {
+                            continue;
+                        }
+                        catch (RegexMatchTimeoutException)
+                        {
+                            continue;
+                        }
+                    }
+
                     if (!somethingFound)
                     {
                         Beaprint.MainPrint($"Found {searchName} Files", "T1552.001");
@@ -239,6 +263,13 @@ namespace winPEAS.Checks
             try
             {
                 var files = InitializeFileSearch();
+                // SQL setup media is often staged directly below the system drive.
+                // Probe only immediate SQL* directories and their immediate children.
+                SqlSetupCandidateInventory sqlSetup = SqlSetupConfigurationIndicator.ScanDriveRoot(
+                    SearchHelper.SystemDrive + "\\");
+                files.InsertRange(0, sqlSetup.Files);
+                if (sqlSetup.Partial)
+                    Beaprint.GrayPrint("SQL setup file probe was partial (directory or time limit).");
                 //var folders = files.Where(f => f.IsDirectory).ToList();
                 var config = Checks.YamlConfig;
                 var defaults = config.defaults;
@@ -576,6 +607,25 @@ namespace winPEAS.Checks
                     { fileInfo.Filename, Beaprint.ansi_color_bad }
                 };
                 Beaprint.AnsiPrint($"File: {fileInfo.FullPath}", colors);
+
+                if (SqlSetupConfigurationIndicator.IsSetupConfigName(fileInfo.Filename))
+                {
+                    if (resultsCount <= SqlSetupConfigurationIndicator.MaxConfigReads)
+                    {
+                        SqlSetupMarkerAssessment assessment = SqlSetupConfigurationIndicator.Inspect(
+                            fileInfo.FullPath, fileInfo.Size);
+                        if (assessment.Markers.Count > 0)
+                            Beaprint.BadPrint("    Possible populated SQL setup credential fields: " +
+                                string.Join(", ", assessment.Markers) + " (values redacted; validity unknown)");
+                        else if (!assessment.Partial)
+                            Beaprint.GrayPrint("    No populated SQL setup credential fields found in bounded sample.");
+                        if (assessment.Partial)
+                            Beaprint.GrayPrint("    SQL setup file inspection partial: " + assessment.Reason);
+                    }
+                    else
+                        Beaprint.GrayPrint("    SQL setup file marker inspection capped; path only.");
+                    return true;
+                }
 
                 if (!(bool)fileSettings.just_list_file)
                 {

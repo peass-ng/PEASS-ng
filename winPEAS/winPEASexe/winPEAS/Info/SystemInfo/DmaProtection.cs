@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
@@ -29,7 +30,32 @@ namespace winPEAS.Info.SystemInfo
         {
             internal bool Available { get; set; }
             internal bool ProtectionEnabled { get; set; }
+            internal bool ProtectionKnown { get; set; }
             internal List<uint> ProtectorTypes { get; } = new List<uint>();
+            internal List<DataVolumeAssessment> DataVolumes { get; } = new List<DataVolumeAssessment>();
+            internal bool DataVolumesPartial { get; set; }
+        }
+
+        internal sealed class DataVolumeAssessment
+        {
+            internal string DriveLetter { get; set; }
+            internal string Protection { get; set; }
+            internal string Lock { get; set; }
+        }
+
+        internal const int MaxDataVolumes = 8;
+        private static readonly TimeSpan BitLockerQueryTimeout = TimeSpan.FromSeconds(3);
+        private static readonly TimeSpan BitLockerLockTimeout = TimeSpan.FromMilliseconds(250);
+        private static readonly TimeSpan DataVolumeBudget = TimeSpan.FromMilliseconds(2000);
+
+        internal static DataVolumeAssessment AssessDataVolume(string driveLetter, uint? protectionStatus, uint? lockStatus)
+        {
+            return new DataVolumeAssessment
+            {
+                DriveLetter = string.IsNullOrWhiteSpace(driveLetter) ? "(unmounted)" : driveLetter,
+                Protection = protectionStatus == 1 ? "on" : protectionStatus == 0 ? "off" : "unknown",
+                Lock = lockStatus == 1 ? "locked" : lockStatus == 0 ? "unlocked" : "unknown"
+            };
         }
 
         internal static void PrintInfo()
@@ -68,6 +94,7 @@ namespace winPEAS.Info.SystemInfo
             }
 
             PrintBitLockerState(bitLocker);
+            PrintDataVolumes(bitLocker);
 
             if (dmaInterfaces.Count > 0)
             {
@@ -236,62 +263,120 @@ namespace winPEAS.Info.SystemInfo
         {
             BitLockerState state = new BitLockerState();
             string systemDrive = Environment.GetEnvironmentVariable("SystemDrive") ?? string.Empty;
+            Stopwatch dataTimer = new Stopwatch();
 
             try
             {
                 using (var searcher = new ManagementObjectSearcher(
                     @"root\CIMV2\Security\MicrosoftVolumeEncryption",
                     "SELECT * FROM Win32_EncryptableVolume"))
-                using (var results = searcher.Get())
                 {
-                    foreach (ManagementObject volume in results)
+                    searcher.Options.Timeout = BitLockerQueryTimeout;
+                    using (var results = searcher.Get())
                     {
-                        string driveLetter = Convert.ToString(volume["DriveLetter"]);
-                        if (!string.Equals(driveLetter, systemDrive, StringComparison.OrdinalIgnoreCase))
+                        foreach (ManagementObject volume in results)
                         {
-                            continue;
-                        }
+                            string driveLetter;
+                            try { driveLetter = Convert.ToString(volume["DriveLetter"]); }
+                            catch (Exception) { state.DataVolumesPartial = true; continue; }
 
-                        state.Available = true;
-                        state.ProtectionEnabled = Convert.ToUInt32(volume["ProtectionStatus"] ?? 0) == 1;
-
-                        using (ManagementBaseObject inParameters = volume.GetMethodParameters("GetKeyProtectors"))
-                        {
-                            inParameters["KeyProtectorType"] = 0;
-                            using (ManagementBaseObject outParameters = volume.InvokeMethod("GetKeyProtectors", inParameters, null))
+                            if (!string.Equals(driveLetter, systemDrive, StringComparison.OrdinalIgnoreCase))
                             {
-                                if (outParameters == null || Convert.ToUInt32(outParameters["ReturnValue"] ?? 1) != 0)
+                                uint? volumeType = ReadUInt32(volume, "VolumeType");
+                                if (volumeType != 1 && volumeType != 2) continue;
+                                if (!dataTimer.IsRunning) dataTimer.Start();
+                                if (state.DataVolumes.Count >= MaxDataVolumes || dataTimer.Elapsed >= DataVolumeBudget)
                                 {
-                                    break;
+                                    state.DataVolumesPartial = true;
+                                    continue;
                                 }
 
-                                string[] protectorIds = outParameters["VolumeKeyProtectorID"] as string[];
-                                foreach (string protectorId in protectorIds ?? new string[0])
+                                uint? protectionStatus = ReadUInt32(volume, "ProtectionStatus");
+                                if (!protectionStatus.HasValue) state.DataVolumesPartial = true;
+                                uint? lockStatus = null;
+                                try
                                 {
-                                    using (ManagementBaseObject typeInput = volume.GetMethodParameters("GetKeyProtectorType"))
+                                    using (ManagementBaseObject lockResult = volume.InvokeMethod(
+                                        "GetLockStatus", null,
+                                        new InvokeMethodOptions { Timeout = BitLockerLockTimeout }))
                                     {
-                                        typeInput["VolumeKeyProtectorID"] = protectorId;
-                                        using (ManagementBaseObject typeOutput = volume.InvokeMethod("GetKeyProtectorType", typeInput, null))
+                                        if (lockResult != null && ReadUInt32(lockResult, "ReturnValue") == 0)
                                         {
-                                            if (typeOutput != null && Convert.ToUInt32(typeOutput["ReturnValue"] ?? 1) == 0)
+                                            lockStatus = ReadUInt32(lockResult, "LockStatus");
+                                            if (!lockStatus.HasValue) state.DataVolumesPartial = true;
+                                        }
+                                        else
+                                            state.DataVolumesPartial = true;
+                                    }
+                                }
+                                catch (Exception) { state.DataVolumesPartial = true; }
+
+                                state.DataVolumes.Add(AssessDataVolume(driveLetter, protectionStatus, lockStatus));
+                                continue;
+                            }
+
+                            state.Available = true;
+                            uint? osProtectionStatus = ReadUInt32(volume, "ProtectionStatus");
+                            state.ProtectionKnown = osProtectionStatus == 0 || osProtectionStatus == 1;
+                            state.ProtectionEnabled = osProtectionStatus == 1;
+
+                            try
+                            {
+                                using (ManagementBaseObject inParameters = volume.GetMethodParameters("GetKeyProtectors"))
+                                {
+                                    inParameters["KeyProtectorType"] = 0;
+                                    using (ManagementBaseObject outParameters = volume.InvokeMethod(
+                                        "GetKeyProtectors", inParameters,
+                                        new InvokeMethodOptions { Timeout = BitLockerLockTimeout }))
+                                    {
+                                        if (outParameters == null || ReadUInt32(outParameters, "ReturnValue") != 0)
+                                            continue;
+
+                                        string[] protectorIds = outParameters["VolumeKeyProtectorID"] as string[];
+                                        int inspected = 0;
+                                        foreach (string protectorId in protectorIds ?? new string[0])
+                                        {
+                                            if (++inspected > 16) break;
+                                            using (ManagementBaseObject typeInput = volume.GetMethodParameters("GetKeyProtectorType"))
                                             {
-                                                state.ProtectorTypes.Add(Convert.ToUInt32(typeOutput["KeyProtectorType"]));
+                                                typeInput["VolumeKeyProtectorID"] = protectorId;
+                                                using (ManagementBaseObject typeOutput = volume.InvokeMethod(
+                                                    "GetKeyProtectorType", typeInput,
+                                                    new InvokeMethodOptions { Timeout = BitLockerLockTimeout }))
+                                                {
+                                                    if (typeOutput != null && ReadUInt32(typeOutput, "ReturnValue") == 0)
+                                                    {
+                                                        uint? protectorType = ReadUInt32(typeOutput, "KeyProtectorType");
+                                                        if (protectorType.HasValue) state.ProtectorTypes.Add(protectorType.Value);
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
+                            catch (Exception) { /* The OS volume result remains valid without protector details. */ }
                         }
-                        break;
                     }
                 }
             }
             catch
             {
                 // BitLocker WMI can be unavailable or access restricted.
+                state.DataVolumesPartial = true;
             }
 
             return state;
+        }
+
+        private static uint? ReadUInt32(ManagementBaseObject value, string property)
+        {
+            try
+            {
+                object raw = value[property];
+                return raw == null ? (uint?)null : Convert.ToUInt32(raw);
+            }
+            catch (Exception) { return null; }
         }
 
         private static List<string> GetDmaCapableInterfaces()
@@ -375,6 +460,12 @@ namespace winPEAS.Info.SystemInfo
                 return;
             }
 
+            if (!state.ProtectionKnown)
+            {
+                Beaprint.InfoPrint("    OS volume BitLocker protection: unknown");
+                return;
+            }
+
             if (!state.ProtectionEnabled)
             {
                 Beaprint.BadPrint("    OS volume BitLocker protection: off");
@@ -402,6 +493,24 @@ namespace winPEAS.Info.SystemInfo
             {
                 Beaprint.GoodPrint("    BitLocker protectors: " + protectorList);
             }
+        }
+
+        private static void PrintDataVolumes(BitLockerState state)
+        {
+            if (state.DataVolumes.Count == 0)
+            {
+                if (state.DataVolumesPartial)
+                    Beaprint.InfoPrint("    Data volume BitLocker status: unavailable or incomplete");
+                return;
+            }
+
+            Beaprint.InfoPrint("    BitLocker data volumes (metadata only):");
+            foreach (DataVolumeAssessment volume in state.DataVolumes)
+                Beaprint.InfoPrint("        " + volume.DriveLetter + " | protection " +
+                    volume.Protection + " | " + volume.Lock);
+            if (state.DataVolumesPartial)
+                Beaprint.InfoPrint("    Data volume list/status is incomplete (limit, timeout, or access denied).");
+            Beaprint.InfoPrint("    A locked volume requires separate authorized recovery material; no key material was read.");
         }
 
         private static string GetProtectorName(uint type)

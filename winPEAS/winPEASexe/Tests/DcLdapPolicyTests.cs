@@ -98,5 +98,26 @@ namespace winPEAS.Tests
             Assert.AreEqual(ActiveDirectoryInfo.MachineAccountQuotaStatus.Unavailable,
                 ActiveDirectoryInfo.AssessMachineAccountQuota(-1));
         }
+
+        [TestMethod]
+        public void StagedComputerFlagsAreCandidatesOnlyWhenEnabledAndWorkstationTrust()
+        {
+            Assert.AreEqual(ActiveDirectoryInfo.StagedComputerStatus.Candidate,
+                ActiveDirectoryInfo.AssessStagedComputer(0x1020));
+            Assert.AreEqual(ActiveDirectoryInfo.StagedComputerStatus.Candidate,
+                ActiveDirectoryInfo.AssessStagedComputer(0x1020 | 0x10000));
+            Assert.AreEqual(ActiveDirectoryInfo.StagedComputerStatus.Excluded,
+                ActiveDirectoryInfo.AssessStagedComputer(0x1022));
+            Assert.AreEqual(ActiveDirectoryInfo.StagedComputerStatus.Excluded,
+                ActiveDirectoryInfo.AssessStagedComputer(0x2020));
+            Assert.AreEqual(ActiveDirectoryInfo.StagedComputerStatus.Excluded,
+                ActiveDirectoryInfo.AssessStagedComputer(0x1000));
+            Assert.AreEqual(ActiveDirectoryInfo.StagedComputerStatus.Excluded,
+                ActiveDirectoryInfo.AssessStagedComputer(0x20));
+            Assert.AreEqual(ActiveDirectoryInfo.StagedComputerStatus.Unknown,
+                ActiveDirectoryInfo.AssessStagedComputer(null));
+            Assert.AreEqual(ActiveDirectoryInfo.StagedComputerStatus.Unknown,
+                ActiveDirectoryInfo.AssessStagedComputer(-1));
+        }
     }
 }

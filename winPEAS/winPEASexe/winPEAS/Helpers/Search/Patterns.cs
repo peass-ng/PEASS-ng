@@ -6,11 +6,14 @@ namespace winPEAS.Helpers.Search
     {
         public static readonly HashSet<string> WhitelistExtensions = new HashSet<string>()
         {
+            ".accdb",
             ".cer",
             ".csr",
             ".der",
             ".kdbx",
+            ".mdb",
             ".p12",
+            ".pfx",
         };
 
         public static readonly HashSet<string> WhiteListExactfilenamesWithExtensions = new HashSet<string>()

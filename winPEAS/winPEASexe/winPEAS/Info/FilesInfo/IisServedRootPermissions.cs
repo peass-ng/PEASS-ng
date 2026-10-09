@@ -33,6 +33,8 @@ namespace winPEAS.Info.FilesInfo
         internal bool ConfigReadable;
         internal bool LimitReached;
         internal string Note;
+        internal readonly List<IisAdcsWebEnrollmentFinding> AdcsWebEnrollment =
+            new List<IisAdcsWebEnrollmentFinding>();
     }
 
     // Reads a small portion of applicationHost.config and directory ACLs. No content traversal or write probe.
@@ -61,6 +63,7 @@ namespace winPEAS.Info.FilesInfo
                     {
                         XDocument config = XDocument.Load(reader);
                         report.ConfigReadable = true;
+                        IisAdcsWebEnrollment.Assess(report, config, timer);
                         AddConfiguredRoots(report, config, timer);
                     }
                 }
