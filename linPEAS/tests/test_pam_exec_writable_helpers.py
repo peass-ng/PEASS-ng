@@ -36,6 +36,55 @@ class PamExecWritableHelperTests(unittest.TestCase):
             self.assertEqual(1, output.count("fixture-marker"))
             self.assertIn(str(policy), output)
 
+    def test_nonstandard_active_module_is_a_path_only_review_candidate(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            policy = root / "etc/pam.d/common-auth"
+            policy.parent.mkdir(parents=True)
+            policy.write_text(
+                "auth sufficient custom_auth.so nodelay\n"
+                "account [success=1 default=ignore] /usr/lib/security/other_auth.so\n"
+            )
+            legacy = root / "etc/pam.conf"
+            legacy.write_text("login auth sufficient legacy_auth.so\n")
+
+            output = self.run_module(root)
+
+            self.assertIn(f"{policy}:1 -> custom_auth.so", output)
+            self.assertIn(f"{policy}:2 -> /usr/lib/security/other_auth.so", output)
+            self.assertIn(f"{legacy}:1 -> legacy_auth.so", output)
+            self.assertEqual(3, output.count("PAM nonstandard module review candidate:"))
+
+    def test_standard_modules_comments_and_options_do_not_make_candidates(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            policy = root / "etc/pam.d/common-auth"
+            policy.parent.mkdir(parents=True)
+            policy.write_text(
+                "# auth sufficient hidden_custom.so\n"
+                "auth required pam_unix.so custom_option.so\n"
+                "-auth required /usr/lib/security/pam_sss.so\n"
+                "@include hidden_custom.so\n"
+                "auth required pam_unix.so # hidden_custom.so\n"
+            )
+
+            self.assertNotIn("PAM nonstandard module review candidate:", self.run_module(root))
+
+    def test_nonstandard_module_output_is_capped_and_oversized_policy_skipped(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            policy = root / "etc/pam.d/common-auth"
+            policy.parent.mkdir(parents=True)
+            policy.write_text("auth sufficient custom_auth.so\n" * 20)
+            oversized = root / "etc/pam.d/oversized"
+            oversized.write_text("auth sufficient too_large.so\n" + "#" * 8192)
+
+            output = self.run_module(root)
+
+            self.assertEqual(16, output.count("PAM nonstandard module review candidate:"))
+            self.assertIn("review capped at 16 findings", output)
+            self.assertNotIn("too_large.so", output)
+
     def test_exact_executable_writable_helper_is_reported_without_contents(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

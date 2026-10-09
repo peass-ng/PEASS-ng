@@ -633,6 +633,21 @@ search:
                 search_in:
                   - common
 
+  - name: PHP authentication controller candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "AuthController.php"
+            value:
+                check_extra_path: '/app/Http/Controllers/AuthController\.php$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: PrestaShop database settings candidates
     value:
         config:
@@ -4663,6 +4678,31 @@ search:
                 just_list_file: True
                 type: f
                 search_in: 
+                  - common
+
+          - name: "auth.log"
+            value:
+                # Application authentication logs may retain submitted usernames.
+                # Show metadata only; a candidate value must never be printed here.
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Crash report candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "*.crash"
+            value:
+                # Reuse cached discovery and report only metadata, never core contents.
+                check_extra_path: '/var/crash/[^/]+\.crash$'
+                just_list_file: True
+                type: f
+                search_in:
                   - common
 
   - name: Jupyter startup log candidates

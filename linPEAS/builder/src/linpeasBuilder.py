@@ -1,7 +1,10 @@
+import io
+import json
 import re
 import requests
 import base64
 import os
+import tarfile
 from pathlib import Path
 
 from .peasLoaded import PEASLoaded
@@ -348,52 +351,76 @@ class LinpeasBuilder:
         return bin_b64
     
     def __get_gtfobins_lists(self) -> tuple:
-        bins = []
-        api_url = "https://api.github.com/repos/GTFOBins/GTFOBins.github.io/contents/_gtfobins?per_page=100"
-        while api_url:
-            r = requests.get(api_url, timeout=10)
-            if not r.ok:
-                break
-            data = r.json()
-            for entry in data:
-                if entry.get("type") == "file" and entry.get("name"):
-                    bins.append(entry["name"])
-            api_url = None
-            link = r.headers.get("Link", "")
-            for part in link.split(","):
-                if 'rel="next"' in part:
-                    api_url = part.split(";")[0].strip().strip("<>")
-                    break
-        if not bins:
-            r = requests.get("https://github.com/GTFOBins/GTFOBins.github.io/tree/master/_gtfobins", timeout=10)
-            bins = re.findall(r'_gtfobins/([a-zA-Z0-9_ \-]+)(?:\\.md)?', r.text)
+        # One repository archive replaces a directory listing and hundreds of
+        # sequential raw-file requests. The bundled snapshot keeps builds
+        # complete and deterministic when GitHub is slow or unavailable.
+        archive_url = "https://api.github.com/repos/GTFOBins/GTFOBins.github.io/tarball/master"
+        try:
+            response = requests.get(archive_url, timeout=(3, 8))
+            response.raise_for_status()
+            if len(response.content) > 2 * 1024 * 1024:
+                raise ValueError("GTFOBins archive exceeds size limit")
+            categories = self.__gtfobins_archive_categories(response.content)
+            self.__validate_gtfobins_categories(categories)
+        except (requests.RequestException, tarfile.TarError, OSError, ValueError, EOFError):
+            print("[+] GTFOBins archive unavailable; using bundled capability snapshot")
+            snapshot = Path(__file__).resolve().parents[1] / "gtfobins_snapshot.json"
+            with snapshot.open(encoding="utf-8") as handle:
+                categories = json.load(handle)
+            self.__validate_gtfobins_categories(categories)
 
-        sudoVB = []
-        suidVB = []
-        capsVB = []
         # sudoers aliases and sudo -l may list several commands on one line.
         sudo_command_boundary = "([[:space:]]*[,]|$)"
-
-        for b in bins:
-            try:
-                rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}", timeout=5)
-            except:
-                try:
-                    rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}", timeout=5)
-                except:
-                    rb = requests.get(f"https://raw.githubusercontent.com/GTFOBins/GTFOBins.github.io/master/_gtfobins/{b}", timeout=5)
-            if "sudo:" in rb.text:
-                if len(b) <= 3:
-                    # Reduce false positives for short names.
-                    sudoVB.append("[^a-zA-Z0-9]" + b + sudo_command_boundary)
-                else:
-                    sudoVB.append(b + sudo_command_boundary)
-            if "suid:" in rb.text:
-                suidVB.append("/"+b+"$")
-            if "capabilities:" in rb.text:
-                capsVB.append(b)
-        
+        sudoVB = [
+            ("[^a-zA-Z0-9]" if len(name) <= 3 else "") + name + sudo_command_boundary
+            for name in categories["sudo"]
+        ]
+        suidVB = ["/" + name + "$" for name in categories["suid"]]
+        capsVB = categories["capabilities"]
         return (suidVB, sudoVB, capsVB)
+
+    @staticmethod
+    def __gtfobins_archive_categories(content: bytes) -> dict:
+        categories = {"sudo": [], "suid": [], "capabilities": []}
+        seen = set()
+        members = 0
+        total_bytes = 0
+        with tarfile.open(fileobj=io.BytesIO(content), mode="r:gz") as archive:
+            for member in archive:
+                members += 1
+                if members > 2048:
+                    raise ValueError("GTFOBins archive has too many entries")
+                marker = "/_gtfobins/"
+                if not member.isfile() or marker not in member.name or member.size > 128 * 1024:
+                    continue
+                total_bytes += member.size
+                if total_bytes > 16 * 1024 * 1024:
+                    raise ValueError("GTFOBins archive exceeds expanded size limit")
+                name = member.name.split(marker, 1)[1]
+                if not re.fullmatch(r"[A-Za-z0-9_ .+-]{1,80}", name) or name in seen:
+                    continue
+                member_file = archive.extractfile(member)
+                if member_file is None:
+                    continue
+                seen.add(name)
+                body = member_file.read().decode("utf-8", "replace")
+                for category in categories:
+                    if category + ":" in body:
+                        categories[category].append(name)
+        for category in categories:
+            categories[category].sort()
+        return categories
+
+    @staticmethod
+    def __validate_gtfobins_categories(categories: dict) -> None:
+        limits = {"suid": 185, "sudo": 250, "capabilities": 2}
+        for category, minimum in limits.items():
+            names = categories.get(category)
+            if not isinstance(names, list) or len(names) <= minimum or names != sorted(set(names)):
+                raise ValueError(f"Incomplete GTFOBins {category} list")
+            if not all(isinstance(name, str) and re.fullmatch(r"[A-Za-z0-9_ .+-]{1,80}", name)
+                       for name in names):
+                raise ValueError(f"Invalid GTFOBins {category} entry")
     
     def __generate_regexes_search(self) -> str:
         regexes = REGEXES_LOADED["regular_expresions"]

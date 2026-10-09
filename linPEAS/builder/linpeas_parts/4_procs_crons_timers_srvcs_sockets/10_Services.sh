@@ -1,21 +1,67 @@
 # Title: Processes & Cron & Services & Timers - Services and Service Files
 # ID: PR_Services
 # Author: Carlos Polop
-# Last Update: 08-10-2026
-# Description: Services and service files analysis with privilege escalation vectors, including replaceable executables and writable root-service drop-ins.
+# Last Update: 09-10-2026
+# Description: Services and service files analysis with privilege escalation vectors, including replaceable executables, writable root-service drop-ins, and root TFTP upload scope.
 # License: GNU GPL
-# Version: 1.4
+# Version: 1.5
 # Mitre: T1543.002,T1574.010,T1007
 # Functions Used: checkSystemdWritableExecPaths, checkSystemdWritableDropins, echo_not_found, print_2title, print_info, print_3title
 # Global Variables: $EXTRA_CHECKS, $IAMROOT, $SEARCH_IN_FOLDER, $TIMEOUT, $WRITABLESYSTEMDPATH
 # Initial Functions:
-# Generated Global Variables: $service_unit, $service_path, $service_content, $finding, $findings, $service_file, $exec_path, $exec_paths, $service, $line, $target_file, $target_exec, $relpath1, $relpath2
+# Generated Global Variables: $service_unit, $service_path, $service_content, $finding, $findings, $service_file, $exec_path, $exec_paths, $service, $line, $target_file, $target_exec, $relpath1, $relpath2, $conf, $bytes
 # Fat linpeas: 0
 # Small linpeas: 0
+
+# Read only the small, conventional tftpd-hpa settings file. Configuration is a
+# review cue: the running daemon, network access and effective arguments may differ.
+check_tftpd_hpa_root_upload_scope() (
+  conf="${1:-/etc/default/tftpd-hpa}"
+  if [ "$conf" = /etc/default/tftpd-hpa ]; then
+    [ ! -L /etc ] && [ ! -L /etc/default ] || return 0
+  fi
+  [ -f "$conf" ] && [ ! -L "$conf" ] && [ -r "$conf" ] || return 0
+  bytes=$(stat -c %s "$conf" 2>/dev/null) ||
+    bytes=$(stat -f %z "$conf" 2>/dev/null) || return 0
+  case "$bytes" in ''|*[!0-9]*) return 0 ;; esac
+  [ "$bytes" -le 4096 ] || return 0
+
+  if awk '
+    function setting(line) {
+      sub(/^[^=]*=[[:space:]]*/, "", line)
+      sub(/[[:space:]]*$/, "", line)
+      if (length(line) >= 2 &&
+          ((substr(line, 1, 1) == "\"" && substr(line, length(line), 1) == "\"") ||
+           (substr(line, 1, 1) == "\047" && substr(line, length(line), 1) == "\047")))
+        line = substr(line, 2, length(line) - 2)
+      return line
+    }
+    /^[[:space:]]*(#|$)/ { next }
+    /^[[:space:]]*TFTP_USERNAME[[:space:]]*=/ { user = setting($0); next }
+    /^[[:space:]]*TFTP_DIRECTORY[[:space:]]*=/ { directory = setting($0); next }
+    /^[[:space:]]*TFTP_OPTIONS[[:space:]]*=/ { options = setting($0); next }
+    END {
+      if (user != "root" || directory != "/") exit 1
+      n = split(options, words, /[[:space:]]+/)
+      for (i = 1; i <= n; i++) {
+        if (words[i] == "--create" || words[i] == "-c") create = 1
+        if (words[i] == "--secure" || words[i] == "-s") secure = 1
+        if (words[i] == "--read-only" || words[i] == "-r") readonly = 1
+      }
+      exit !(create && secure && !readonly)
+    }
+  ' "$conf" 2>/dev/null; then
+    print_3title "Root TFTP file-creation scope (review candidate)" "T1543.002"
+    echo "Configured tftpd-hpa root user, filesystem-root secure directory and --create: $conf"
+    echo "Verify active effective service, listener reachability, TFTP access rules, and whether a privileged job consumes newly created files (for example APT hooks)."
+  fi
+)
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Services and Service Files" "T1543.002,T1007"
   print_info "https://book.hacktricks.wiki/en/linux-hardening/processes-crontab-systemd-dbus/process-enumeration-and-service-paths.html#follow-the-service-execution-chain"
+
+  check_tftpd_hpa_root_upload_scope
 
   checkSystemdWritableExecPaths
   checkSystemdWritableDropins

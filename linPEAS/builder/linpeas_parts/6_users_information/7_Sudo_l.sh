@@ -2,9 +2,9 @@
 # ID: UG_Sudo_l
 # Author: Carlos Polop
 # Last Update: 09-10-2026
-# Description: Checking 'sudo -l', sudoers files, privileged config, process tracing, container exec and compose wrappers, packet-filter export, PDF attachments, PostScript conversion, Bash pattern comparisons, relative working-directory helpers, PyInstaller build wrappers, preset and PHP CLI loaders, privileged Neofetch configuration, and privileged Python imports, paths, caches, archive extraction, model loading, and Git transport
+# Description: Checking 'sudo -l', sudoers files, privileged config, process tracing, container exec and compose wrappers, packet-filter export, PDF attachments, PostScript conversion, Bash pattern comparisons, relative working-directory helpers, PyInstaller build wrappers, preset and PHP CLI loaders, privileged Neofetch and Facter configuration, and privileged Python imports, paths, caches, archive extraction, model loading, and Git transport
 # License: GNU GPL
-# Version: 1.6
+# Version: 1.7
 # Mitre: T1548.003
 # Functions Used: check_sudo_terraform_override, echo_not_found, lp_trusted_version_path, print_2title, print_info
 # Global Variables:$IAMROOT, $PASSWORD, $TIMEOUT, $ROOT_FOLDER, $TMPDIR, $sudoB, $sudoG, $sudoVB1, $sudoVB2
@@ -191,6 +191,37 @@ sudo_neofetch_xdg_review() {
   '
 }
 sudo_neofetch_xdg_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")"
+
+# A bare root-capable Facter rule accepts caller-selected custom fact paths.
+# Inspect only captured sudo policy; do not run Facter or load Ruby code.
+sudo_facter_custom_dir_review() {
+  [ -n "$1" ] || return 0
+  case "$1" in *facter*) ;; *) return 0 ;; esac
+  printf '%s\n' "$1" | LC_ALL=C awk '
+    NR > 3000 || length($0) > 2048 { ambiguous = 1; exit }
+    /![[:space:]]*(ALL|\/[A-Za-z0-9_\/.+-]*\/facter)([[:space:],]|$)/ { denied = 1 }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      users = parts[1]
+      if (users !~ /(^|[[:space:],])(root|ALL|#0)([[:space:],]|$)/ ||
+          users ~ /(^|[[:space:],])!(root|ALL|#0)([[:space:],]|$)/) next
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      while (line ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC):[[:space:]]*/)
+        sub(/^[A-Z_]+:[[:space:]]*/, "", line)
+      sub(/[[:space:]]+$/, "", line)
+      if (line ~ /^\/[A-Za-z0-9_\/.+-]*\/facter$/) allowed = 1
+    }
+    END {
+      if (!ambiguous && !denied && allowed)
+        print "Sudo Facter custom-fact review candidate: root-capable unrestricted Facter rule may load caller-selected Ruby facts with --custom-dir; verify the installed Facter behavior and sudo policy."
+    }
+  '
+}
+sudo_facter_custom_dir_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")"
 
 # Review only an explicitly sudo-allowed Nmap executable. A small shell
 # wrapper that filters --script but forwards argv may still leave NSE's data
