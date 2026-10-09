@@ -12,7 +12,7 @@ using winPEAS.Info.ActiveDirectoryInfo;
 
 namespace winPEAS.Checks
 {
-    // Lightweight AD-oriented checks for common escalation paths (gMSA readable password, AD CS template control)
+    // Lightweight AD checks for access candidates and certificate template configuration.
     internal class ActiveDirectoryInfo : ISystemCheck
     {
         internal enum MachineAccountQuotaStatus { Unavailable, Zero, Positive }
@@ -31,55 +31,195 @@ namespace winPEAS.Checks
         }
 
         internal enum GmsaAccessStatus { Unknown, NoMatch, Denied, Candidate }
+        internal sealed class GmsaMembershipAssessment
+        {
+            internal GmsaAccessStatus Status { get; set; }
+            internal List<string> ReaderSids { get; } = new List<string>();
+            internal List<string> MatchingReaderSids { get; } = new List<string>();
+            internal List<string> MatchingDenySids { get; } = new List<string>();
+        }
         internal enum Esc16RegistryStatus { Unknown, Present, Absent }
         internal enum Esc6RegistryStatus { Unknown, Candidate, Absent }
+        internal enum SchannelUpnMappingStatus { Unknown, Enabled, Disabled }
+        internal enum SpnWriteRight { None, WriteProperty, ValidatedSelf }
+        internal enum MembershipWriteRight { None, OwnMembership, MemberAttribute }
+        internal enum ExactAttributeWriteRight { None, Upn, KeyCredentialLink }
+        private static readonly Guid SelfMembershipGuid = new Guid("bf9679c0-0de6-11d0-a285-00aa003049e2");
+        private static readonly Guid ValidatedSpnGuid = new Guid("f3a64788-5306-11d1-a9c5-0000f80367c1");
+        private static readonly Guid OrganizationalUnitClassGuid = new Guid("bf967aa5-0de6-11d0-a285-00aa003049e2");
+        private static readonly Guid UserPrincipalNameGuid = new Guid("28630ebb-41d5-11d1-a9c1-0000f80367c1");
+        private static readonly Guid KeyCredentialLinkGuid = new Guid("5b47d60f-6090-40b2-9f37-2a4de88f3063");
+
+        internal static bool IsAclCandidateAce(AccessControlType accessType, bool sidMatches, bool inheritOnly,
+            bool isInherited, Guid inheritedObjectType, string targetClass)
+        {
+            if (accessType != AccessControlType.Allow || !sidMatches || inheritOnly)
+                return false;
+            if (isInherited && string.Equals(targetClass, "organizationalUnit", StringComparison.OrdinalIgnoreCase) &&
+                inheritedObjectType != Guid.Empty && inheritedObjectType != OrganizationalUnitClassGuid)
+                return false;
+            return true;
+        }
+
+        internal static MembershipWriteRight ClassifyMembershipWrite(Guid objectType, bool validatedWrite, string targetClass)
+        {
+            if (!string.Equals(targetClass, "group", StringComparison.OrdinalIgnoreCase))
+                return MembershipWriteRight.None;
+            if (validatedWrite)
+                return objectType == SelfMembershipGuid ? MembershipWriteRight.OwnMembership : MembershipWriteRight.None;
+            return objectType == SelfMembershipGuid ? MembershipWriteRight.MemberAttribute : MembershipWriteRight.None;
+        }
+
+        internal static string DescribeMembershipCandidate(MembershipWriteRight right)
+        {
+            if (right == MembershipWriteRight.OwnMembership)
+                return "Candidate to add or remove only the current account from this group; effective access requires review.";
+            if (right == MembershipWriteRight.MemberAttribute)
+                return "Candidate to edit the exact member attribute and manage group membership; effective access requires review, and new membership requires a refreshed token/session.";
+            return null;
+        }
+
+        internal static ExactAttributeWriteRight ClassifyExactAttributeWrite(Guid objectType, bool validatedWrite, string targetClass)
+        {
+            if (validatedWrite) return ExactAttributeWriteRight.None;
+            if (objectType == UserPrincipalNameGuid && string.Equals(targetClass, "user", StringComparison.OrdinalIgnoreCase))
+                return ExactAttributeWriteRight.Upn;
+            if (objectType == KeyCredentialLinkGuid &&
+                (string.Equals(targetClass, "user", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(targetClass, "computer", StringComparison.OrdinalIgnoreCase)))
+                return ExactAttributeWriteRight.KeyCredentialLink;
+            return ExactAttributeWriteRight.None;
+        }
+
+        internal sealed class BoundedSample<T>
+        {
+            internal List<T> Items { get; } = new List<T>();
+            internal bool Truncated { get; set; }
+        }
+
+        internal static BoundedSample<T> SelectBoundedSample<T>(IEnumerable<T> source, int limit)
+        {
+            var sample = new BoundedSample<T>();
+            if (source == null || limit < 1) return sample;
+            foreach (var item in source)
+            {
+                if (sample.Items.Count == limit)
+                {
+                    sample.Truncated = true;
+                    break;
+                }
+                sample.Items.Add(item);
+            }
+            return sample;
+        }
+
+        internal sealed class OuSample
+        {
+            internal List<string> DistinguishedNames { get; } = new List<string>();
+            internal bool Truncated { get; set; }
+        }
+
+        internal static OuSample SelectOuSample(IEnumerable<string> distinguishedNames, int limit)
+        {
+            var sample = new OuSample();
+            if (distinguishedNames == null || limit < 1) return sample;
+            foreach (var dn in distinguishedNames.Where(dn => !string.IsNullOrWhiteSpace(dn)))
+            {
+                if (sample.DistinguishedNames.Count == limit)
+                {
+                    sample.Truncated = true;
+                    break;
+                }
+                sample.DistinguishedNames.Add(dn);
+            }
+            return sample;
+        }
+
+        internal static SchannelUpnMappingStatus AssessSchannelUpnMapping(uint? mappingMethods)
+        {
+            return !mappingMethods.HasValue ? SchannelUpnMappingStatus.Unknown
+                : (mappingMethods.Value & 0x4) != 0 ? SchannelUpnMappingStatus.Enabled
+                : SchannelUpnMappingStatus.Disabled;
+        }
+
+        internal static SpnWriteRight ClassifySpnWrite(string rightName, bool validatedWrite)
+        {
+            if (validatedWrite)
+            {
+                return string.Equals(rightName, "Validated-SPN", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(rightName, "Validated write to service principal name", StringComparison.OrdinalIgnoreCase)
+                    ? SpnWriteRight.ValidatedSelf : SpnWriteRight.None;
+            }
+
+            return string.Equals(rightName, "servicePrincipalName", StringComparison.OrdinalIgnoreCase)
+                ? SpnWriteRight.WriteProperty : SpnWriteRight.None;
+        }
 
         internal static GmsaAccessStatus AssessGmsaMembership(byte[] descriptorBytes, ISet<string> currentSids)
         {
-            if (descriptorBytes == null || descriptorBytes.Length == 0 || currentSids == null || currentSids.Count == 0)
-                return GmsaAccessStatus.Unknown;
+            return InspectGmsaMembership(descriptorBytes, currentSids).Status;
+        }
+
+        internal static GmsaMembershipAssessment InspectGmsaMembership(byte[] descriptorBytes, ISet<string> currentSids)
+        {
+            var result = new GmsaMembershipAssessment { Status = GmsaAccessStatus.Unknown };
+            if (descriptorBytes == null || descriptorBytes.Length == 0 || descriptorBytes.Length > 16384)
+                return result;
 
             try
             {
                 var descriptor = new RawSecurityDescriptor(descriptorBytes, 0);
                 if ((descriptor.ControlFlags & ControlFlags.DiscretionaryAclPresent) == 0 || descriptor.DiscretionaryAcl == null)
-                    return GmsaAccessStatus.Unknown;
+                    return result;
 
-                bool allowed = false;
                 bool uncertain = false;
                 foreach (GenericAce ace in descriptor.DiscretionaryAcl)
                 {
                     var qualified = ace as QualifiedAce;
-                    if (qualified == null || (ace.AceFlags & AceFlags.InheritOnly) != 0 ||
-                        !currentSids.Contains(qualified.SecurityIdentifier.Value))
+                    if (qualified == null || (ace.AceFlags & AceFlags.InheritOnly) != 0)
                         continue;
 
-                    // AD checks RIGHT_DS_READ_PROPERTY against this descriptor.
                     const int readProperty = 0x10;
                     const int genericRead = unchecked((int)0x80000000);
                     const int genericAll = 0x10000000;
                     if ((qualified.AccessMask & (readProperty | genericRead | genericAll)) == 0)
                         continue;
 
-                    if (qualified.AceQualifier == AceQualifier.AccessDenied)
-                        return GmsaAccessStatus.Denied;
-
-                    if (qualified.AceQualifier == AceQualifier.AccessAllowed)
+                    var sid = qualified.SecurityIdentifier.Value;
+                    bool matchesToken = currentSids != null && currentSids.Contains(sid);
+                    bool simpleAce = qualified is CommonAce && !((CommonAce)qualified).IsCallback;
+                    if (qualified.AceQualifier == AceQualifier.AccessAllowed && simpleAce)
                     {
-                        // Conditional or object-specific ACEs need a full AD access check.
-                        var common = qualified as CommonAce;
-                        if (common != null && !common.IsCallback)
-                            allowed = true;
-                        else
+                        if (!result.ReaderSids.Contains(sid)) result.ReaderSids.Add(sid);
+                        if (matchesToken && !result.MatchingReaderSids.Contains(sid))
+                            result.MatchingReaderSids.Add(sid);
+                    }
+
+                    if (!matchesToken) continue;
+                    if (qualified.AceQualifier == AceQualifier.AccessDenied)
+                    {
+                        if (simpleAce && !result.MatchingDenySids.Contains(sid))
+                            result.MatchingDenySids.Add(sid);
+                        else if (!simpleAce)
                             uncertain = true;
                     }
+                    else if (qualified.AceQualifier != AceQualifier.AccessAllowed || !simpleAce)
+                        uncertain = true;
                 }
-                return uncertain ? GmsaAccessStatus.Unknown : allowed ? GmsaAccessStatus.Candidate : GmsaAccessStatus.NoMatch;
+                result.Status = currentSids == null || currentSids.Count == 0 || uncertain
+                    ? GmsaAccessStatus.Unknown
+                    : result.MatchingDenySids.Count > 0 ? GmsaAccessStatus.Denied
+                    : result.MatchingReaderSids.Count > 0 ? GmsaAccessStatus.Candidate
+                    : GmsaAccessStatus.NoMatch;
             }
             catch (Exception)
             {
-                return GmsaAccessStatus.Unknown;
+                result.Status = GmsaAccessStatus.Unknown;
+                result.ReaderSids.Clear();
+                result.MatchingReaderSids.Clear();
+                result.MatchingDenySids.Clear();
             }
+            return result;
         }
 
         internal static Esc16RegistryStatus AssessEsc16(object disableExtensionList)
@@ -137,6 +277,8 @@ namespace winPEAS.Checks
         }
 
         private const int SampleObjectLimit = 120;
+        private const int OuSampleLimit = 50;
+        private static readonly TimeSpan OuSearchTimeout = TimeSpan.FromSeconds(5);
         private const int MaxFindingsToPrint = 40;
         private const int DmsaOuSampleLimit = 120;
         private const int GmsaSampleLimit = 120;
@@ -409,7 +551,7 @@ namespace winPEAS.Checks
             }
         }
 
-        // Highlight objects where the current principal already has useful write/control rights
+        // Show matching ACL leads for the current token.
         private void PrintAdObjectControlPaths()
         {
             try
@@ -417,7 +559,7 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("AD object control surfaces", "T1484.001,T1087.002,T1018");
                 Beaprint.LinkPrint(
                     "https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/index.html#acl-abuse",
-                    "Look for objects where you have GenericAll/GenericWrite/attribute rights for ACL abuse (password reset, SPN/UAC/RBCD, sidHistory, delegation, DCSync).");
+                    "Review GenericAll, GenericWrite, and attribute-right ACL candidates for password reset, SPN, UAC, RBCD, sidHistory, delegation, and replication paths.");
 
                 if (!Checks.IsPartOfDomain)
                 {
@@ -438,6 +580,7 @@ namespace winPEAS.Checks
                 var sidSet = GetCurrentSidSet();
                 var processedDns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var findings = new List<AdObjectFinding>();
+                bool samplingIncomplete = false;
 
                 foreach (var target in EnumerateHighValueTargets(defaultNC))
                 {
@@ -449,6 +592,7 @@ namespace winPEAS.Checks
 
                     if (processedDns.Add(finding.DistinguishedName))
                     {
+                        finding.SamplePriority = 0;
                         findings.Add(finding);
                     }
                 }
@@ -458,8 +602,46 @@ namespace winPEAS.Checks
                     using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
                     using (var ds = new DirectorySearcher(baseDe))
                     {
+                        ds.PageSize = OuSampleLimit;
+                        ds.SizeLimit = OuSampleLimit + 1;
+                        ds.SearchScope = SearchScope.Subtree;
+                        ds.ClientTimeout = OuSearchTimeout;
+                        ds.ServerTimeLimit = OuSearchTimeout;
+                        ds.Filter = "(objectClass=organizationalUnit)";
+                        ds.PropertiesToLoad.Add("distinguishedName");
+
+                        using (var results = ds.FindAll())
+                        {
+                            var sample = SelectOuSample(results.Cast<SearchResult>().Select(r => GetProp(r, "distinguishedName")), OuSampleLimit);
+                            foreach (var dn in sample.DistinguishedNames)
+                            {
+                                if (processedDns.Contains(dn)) continue;
+                                var finding = AnalyzeDirectoryObject(dn, dn, sidSet, schemaNC, configNC);
+                                if (finding != null && processedDns.Add(finding.DistinguishedName))
+                                {
+                                    finding.SamplePriority = 1;
+                                    findings.Add(finding);
+                                }
+                            }
+                            Beaprint.GrayPrint($"  [*] Sampled {sample.DistinguishedNames.Count} ordinary OU(s) for ACL candidates.");
+                            if (sample.Truncated)
+                                Beaprint.GrayPrint($"  [*] OU sample limited to {OuSampleLimit}; other OUs were not checked.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    samplingIncomplete = true;
+                    Beaprint.GrayPrint("    [!] OU ACL sampling failed: " + ex.Message);
+                }
+
+                try
+                {
+                    using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
+                    using (var ds = new DirectorySearcher(baseDe))
+                    {
                         ds.PageSize = 200;
-                        ds.SizeLimit = SampleObjectLimit;
+                        ds.SizeLimit = SampleObjectLimit + 1;
                         ds.SearchScope = SearchScope.Subtree;
                         ds.SecurityMasks = SecurityMasks.Dacl;
                         ds.Filter = "(|(objectClass=user)(objectClass=group)(objectClass=computer))";
@@ -469,7 +651,8 @@ namespace winPEAS.Checks
 
                         using (var results = ds.FindAll())
                         {
-                            foreach (SearchResult r in results)
+                            var sample = SelectBoundedSample(results.Cast<SearchResult>(), SampleObjectLimit);
+                            foreach (SearchResult r in sample.Items)
                             {
                                 var dn = GetProp(r, "distinguishedName");
                                 if (string.IsNullOrEmpty(dn) || processedDns.Contains(dn))
@@ -481,25 +664,31 @@ namespace winPEAS.Checks
                                 var finding = AnalyzeDirectoryObject(dn, label, sidSet, schemaNC, configNC);
                                 if (finding != null && processedDns.Add(finding.DistinguishedName))
                                 {
+                                    finding.SamplePriority = 2;
                                     findings.Add(finding);
                                 }
                             }
+                            if (sample.Truncated)
+                                Beaprint.GrayPrint($"  [*] LDAP sample capped at {SampleObjectLimit} objects; other user/group/computer objects were not inspected.");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
+                    samplingIncomplete = true;
                     Beaprint.GrayPrint("    [!] LDAP sampling failed: " + ex.Message);
                 }
 
                 if (findings.Count == 0)
                 {
-                    Beaprint.GrayPrint("  [-] No impactful ACLs detected for the current principal (sampled set).");
+                    Beaprint.GrayPrint("  [-] No matching ACL candidates observed in the sampled set; effective access was not evaluated." +
+                        (samplingIncomplete ? " LDAP sampling was incomplete." : ""));
                     return;
                 }
 
                 var ordered = findings
-                    .OrderByDescending(f => f.MaxScore)
+                    .OrderBy(f => f.SamplePriority == 0 ? 0 : 1)
+                    .ThenByDescending(f => f.MaxScore)
                     .ThenBy(f => f.DisplayName, StringComparer.OrdinalIgnoreCase)
                     .ToList();
 
@@ -509,10 +698,10 @@ namespace winPEAS.Checks
                     ordered = ordered.Take(MaxFindingsToPrint).ToList();
                 }
 
-                Beaprint.GrayPrint($"  [+] Found {findings.Count} object(s) where your principal has abuse-friendly rights:");
+                Beaprint.GrayPrint($"  [+] Found {findings.Count} object(s) with matching ACL candidate rights. Deny ACEs, inheritance, object-class applicability, and effective access need verification:");
                 foreach (var finding in ordered)
                 {
-                    Beaprint.BadPrint($"    -> {finding.DisplayName} ({finding.ClassName})");
+                    Beaprint.BadPrint($"    -> ACL candidate: {finding.DisplayName} ({finding.ClassName})");
                     Beaprint.GrayPrint("       DN: " + finding.DistinguishedName);
                     foreach (var impact in finding.Impacts.OrderByDescending(i => i.Score))
                     {
@@ -522,7 +711,7 @@ namespace winPEAS.Checks
 
                 if (truncated)
                 {
-                    Beaprint.GrayPrint($"  [!] Additional {findings.Count - MaxFindingsToPrint} object(s) not shown (enable domain mode or run winPEAS with more time to enumerate all objects).");
+                    Beaprint.GrayPrint($"  [!] Additional {findings.Count - MaxFindingsToPrint} sampled object(s) not shown.");
                 }
             }
             catch (Exception ex)
@@ -605,8 +794,8 @@ namespace winPEAS.Checks
                 {
                     var impact = new AdAccessImpact
                     {
-                        Impact = "Object owner",
-                        Detail = "You own this object and can rewrite its ACL to grant full control.",
+                        Impact = "Object owner candidate",
+                        Detail = "Current token SID matches the owner; review owner rights and the effective DACL.",
                         Score = 3
                     };
                     finding.Impacts.Add(impact);
@@ -630,22 +819,13 @@ namespace winPEAS.Checks
 
             foreach (ActiveDirectoryAccessRule rule in rules)
             {
-                if (rule == null || rule.AccessControlType != AccessControlType.Allow)
-                {
+                if (rule == null || !(rule.IdentityReference is SecurityIdentifier sid) ||
+                    !IsAclCandidateAce(rule.AccessControlType, sidSet.Contains(sid.Value),
+                        (rule.PropagationFlags & PropagationFlags.InheritOnly) != 0,
+                        rule.IsInherited, rule.InheritedObjectType, finding.ClassName))
                     continue;
-                }
 
-                if (!(rule.IdentityReference is SecurityIdentifier sid))
-                {
-                    continue;
-                }
-
-                if (!sidSet.Contains(sid.Value))
-                {
-                    continue;
-                }
-
-                foreach (var impact in MapRuleToImpacts(rule, schemaNC, configNC))
+                foreach (var impact in MapRuleToImpacts(rule, finding.ClassName, schemaNC, configNC))
                 {
                     if (impact == null)
                     {
@@ -663,7 +843,7 @@ namespace winPEAS.Checks
             return finding.Impacts.Count > 0 ? finding : null;
         }
 
-        private static IEnumerable<AdAccessImpact> MapRuleToImpacts(ActiveDirectoryAccessRule rule, string schemaNC, string configNC)
+        private static IEnumerable<AdAccessImpact> MapRuleToImpacts(ActiveDirectoryAccessRule rule, string targetClass, string schemaNC, string configNC)
         {
             var impacts = new List<AdAccessImpact>();
             var rights = rule.ActiveDirectoryRights;
@@ -673,7 +853,7 @@ namespace winPEAS.Checks
                 impacts.Add(new AdAccessImpact
                 {
                     Impact = "GenericAll",
-                    Detail = "Full control -> reset password, add group members, edit SPNs/UAC, change ACLs.",
+                    Detail = "Matching full-control allow ACE; target class, deny ACEs, and inheritance require review.",
                     Score = 5
                 });
                 return impacts;
@@ -684,7 +864,7 @@ namespace winPEAS.Checks
                 impacts.Add(new AdAccessImpact
                 {
                     Impact = "GenericWrite",
-                    Detail = "Can modify most attributes (logon scripts, SPNs, UAC, etc.).",
+                    Detail = "Matching broad attribute-write ACE; allowed attributes depend on the target class.",
                     Score = 4
                 });
             }
@@ -694,7 +874,7 @@ namespace winPEAS.Checks
                 impacts.Add(new AdAccessImpact
                 {
                     Impact = "WriteDACL",
-                    Detail = "Can edit the ACL to grant yourself additional rights/persistence.",
+                    Detail = "Matching ACL-write ACE; effective control requires review.",
                     Score = 4
                 });
             }
@@ -704,7 +884,7 @@ namespace winPEAS.Checks
                 impacts.Add(new AdAccessImpact
                 {
                     Impact = "WriteOwner",
-                    Detail = "Can take ownership and then modify the DACL.",
+                    Detail = "Matching owner-write ACE; effective control requires review.",
                     Score = 3
                 });
             }
@@ -714,7 +894,7 @@ namespace winPEAS.Checks
                 impacts.Add(new AdAccessImpact
                 {
                     Impact = "CreateChild",
-                    Detail = "Can create new users/computers/groups under this container (great for planting attack principals).",
+                    Detail = "Matching child-create ACE; permitted child classes and effective access require review.",
                     Score = 3
                 });
             }
@@ -730,7 +910,7 @@ namespace winPEAS.Checks
 
             if ((rights & ActiveDirectoryRights.WriteProperty) != 0)
             {
-                var attrImpact = MapAttributeWriteImpact(rule.ObjectType, schemaNC, configNC, false);
+                var attrImpact = MapAttributeWriteImpact(rule.ObjectType, targetClass, schemaNC, configNC, false);
                 if (attrImpact != null)
                 {
                     impacts.Add(attrImpact);
@@ -739,7 +919,7 @@ namespace winPEAS.Checks
 
             if ((rights & ActiveDirectoryRights.Self) != 0)
             {
-                var validatedImpact = MapAttributeWriteImpact(rule.ObjectType, schemaNC, configNC, true);
+                var validatedImpact = MapAttributeWriteImpact(rule.ObjectType, targetClass, schemaNC, configNC, true);
                 if (validatedImpact != null)
                 {
                     impacts.Add(validatedImpact);
@@ -767,7 +947,7 @@ namespace winPEAS.Checks
                 return new AdAccessImpact
                 {
                     Impact = "ResetPassword right",
-                    Detail = "Can reset the target account password without knowing the current value.",
+                    Detail = "Matching password-reset ACE; effective access and target applicability require review.",
                     Score = 5
                 };
             }
@@ -777,7 +957,7 @@ namespace winPEAS.Checks
                 return new AdAccessImpact
                 {
                     Impact = "Replication (DCSync)",
-                    Detail = "Has replication rights (part of DCSync privilege to dump NTDS hashes).",
+                    Detail = "Matching replication ACE; additional rights and effective access require review.",
                     Score = name.Contains("filtered") ? 5 : 4
                 };
             }
@@ -785,97 +965,125 @@ namespace winPEAS.Checks
             return null;
         }
 
-        private static AdAccessImpact MapAttributeWriteImpact(Guid objectType, string schemaNC, string configNC, bool validatedWrite)
+        internal static AdAccessImpact MapAttributeWriteImpact(Guid objectType, string targetClass, string schemaNC, string configNC, bool validatedWrite)
         {
             if (objectType == Guid.Empty)
             {
                 return new AdAccessImpact
                 {
                     Impact = validatedWrite ? "Validated write (broad)" : "WriteProperty (broad)",
-                    Detail = "ACE applies to most attributes. Consider SPN/UAC/sidHistory abuse paths.",
+                    Detail = validatedWrite
+                        ? "Matching ACE covers validated writes supported by the target class; permitted values are constrained."
+                        : "Matching ACE covers broad attribute writes; effective access requires review.",
                     Score = 3
                 };
             }
 
-            var attributeName = GetGuidFriendlyName(objectType, schemaNC, configNC);
-            if (string.IsNullOrEmpty(attributeName))
-            {
-                return null;
-            }
-
-            var lower = attributeName.ToLowerInvariant();
-
-            if (lower.Contains("member"))
+            var membershipRight = ClassifyMembershipWrite(objectType, validatedWrite, targetClass);
+            if (membershipRight != MembershipWriteRight.None)
             {
                 return new AdAccessImpact
                 {
-                    Impact = "Group membership control",
-                    Detail = "Can edit the 'member' attribute -> add principals to this group.",
-                    Score = 5
+                    Impact = membershipRight == MembershipWriteRight.OwnMembership ? "Self-membership validated write" : "member WriteProperty",
+                    Detail = DescribeMembershipCandidate(membershipRight),
+                    Score = membershipRight == MembershipWriteRight.OwnMembership ? 3 : 5
                 };
             }
 
-            if (lower.Contains("serviceprincipalname") || lower.Contains("validated-spn"))
+            var exactRight = ClassifyExactAttributeWrite(objectType, validatedWrite, targetClass);
+            if (exactRight != ExactAttributeWriteRight.None)
             {
                 return new AdAccessImpact
                 {
-                    Impact = "SPN control",
-                    Detail = "Can set servicePrincipalName -> Kerberoast or constrained delegation abuse.",
+                    Impact = exactRight == ExactAttributeWriteRight.Upn
+                        ? "UPN WriteProperty candidate" : "KeyCredentialLink WriteProperty candidate",
+                    Detail = "Matching allow ACE is a lead only; deny ACEs, inheritance, property sets, applicable class, effective access, refreshed token/group context, server support, and certificate path remain unverified.",
                     Score = 4
                 };
             }
 
-            if (lower.Contains("useraccountcontrol"))
+            // The well-known validated-SPN right needs no schema lookup.
+            var attributeName = validatedWrite && objectType == ValidatedSpnGuid
+                ? "Validated-SPN" : GetGuidFriendlyName(objectType, schemaNC, configNC);
+            if (string.IsNullOrEmpty(attributeName))
+                return null;
+
+            var spnRight = validatedWrite && objectType == ValidatedSpnGuid
+                ? SpnWriteRight.ValidatedSelf : ClassifySpnWrite(attributeName, validatedWrite);
+            if (spnRight != SpnWriteRight.None)
+            {
+                if (spnRight == SpnWriteRight.ValidatedSelf && !IsValidatedSpnTargetClass(targetClass))
+                    return null;
+                return new AdAccessImpact
+                {
+                    Impact = spnRight == SpnWriteRight.WriteProperty ? "SPN WriteProperty" : "SPN validated SELF",
+                    Detail = spnRight == SpnWriteRight.WriteProperty
+                        ? "Attribute write candidate on servicePrincipalName; effective access still depends on the full ACL."
+                        : "Validated SPN write candidate on a computer or service account; values must comply with the account's DNS host name.",
+                    Score = spnRight == SpnWriteRight.WriteProperty ? 4 : 2
+                };
+            }
+
+            if (validatedWrite) return null;
+
+            if (string.Equals(attributeName, "userAccountControl", StringComparison.OrdinalIgnoreCase))
             {
                 return new AdAccessImpact
                 {
                     Impact = "UAC control",
-                    Detail = "Can toggle UserAccountControl bits (AS-REP roastable, delegation, unconstrained).",
+                    Detail = "Candidate to edit userAccountControl; permitted values and effective access require review.",
                     Score = 4
                 };
             }
 
-            if (lower.Contains("msds-allowedtoactonbehalfofotheridentity"))
+            if (string.Equals(attributeName, "msDS-AllowedToActOnBehalfOfOtherIdentity", StringComparison.OrdinalIgnoreCase))
             {
                 return new AdAccessImpact
                 {
                     Impact = "RBCD control",
-                    Detail = "Can edit msDS-AllowedToActOnBehalfOfOtherIdentity -> configure Resource-Based Constrained Delegation.",
+                    Detail = "Candidate to edit msDS-AllowedToActOnBehalfOfOtherIdentity; effective access requires review.",
                     Score = 5
                 };
             }
 
-            if (lower.Contains("msds-allowedtodelegateto"))
+            if (string.Equals(attributeName, "msDS-AllowedToDelegateTo", StringComparison.OrdinalIgnoreCase))
             {
                 return new AdAccessImpact
                 {
                     Impact = "Delegation target control",
-                    Detail = "Can edit msDS-AllowedToDelegateTo -> establish constrained delegation paths.",
+                    Detail = "Candidate to edit msDS-AllowedToDelegateTo; effective access requires review.",
                     Score = 4
                 };
             }
 
-            if (lower.Contains("sidhistory"))
+            if (string.Equals(attributeName, "sIDHistory", StringComparison.OrdinalIgnoreCase))
             {
                 return new AdAccessImpact
                 {
                     Impact = "sidHistory control",
-                    Detail = "Can add privileged SIDs into sidHistory for stealth escalation/persistence.",
+                    Detail = "Candidate to edit sIDHistory; directory restrictions and effective access require review.",
                     Score = 4
                 };
             }
 
-            if (lower.Contains("unicodepwd") || lower.Contains("userpassword"))
+            if (string.Equals(attributeName, "unicodePwd", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(attributeName, "userPassword", StringComparison.OrdinalIgnoreCase))
             {
                 return new AdAccessImpact
                 {
                     Impact = "Password write",
-                    Detail = "Can directly set unicodePwd/userPassword -> immediate account takeover.",
+                    Detail = "Candidate password-attribute write; protocol restrictions and effective access require review.",
                     Score = 5
                 };
             }
 
             return null;
+        }
+
+        internal static bool IsValidatedSpnTargetClass(string targetClass)
+        {
+            return string.Equals(targetClass, "computer", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(targetClass, "msDS-ManagedServiceAccount", StringComparison.OrdinalIgnoreCase);
         }
 
         private static string GetGuidFriendlyName(Guid guid, string schemaNC, string configNC)
@@ -985,6 +1193,7 @@ namespace winPEAS.Checks
 
         private class AdObjectFinding
         {
+            public int SamplePriority { get; set; }
             public string DisplayName { get; set; }
             public string DistinguishedName { get; set; }
             public string ClassName { get; set; }
@@ -992,7 +1201,7 @@ namespace winPEAS.Checks
             public int MaxScore => Impacts.Count == 0 ? 0 : Impacts.Max(i => i.Score);
         }
 
-        private class AdAccessImpact
+        internal class AdAccessImpact
         {
             public string Impact { get; set; }
             public string Detail { get; set; }
@@ -1140,12 +1349,12 @@ namespace winPEAS.Checks
             }
         }
 
-        // Detect gMSA objects where the current principal (or one of its groups) can retrieve the managed password
+        // Inspect gMSA membership descriptors for possible read-property trustees.
         private void PrintGmsaReadableByCurrentPrincipal()
         {
             try
             {
-                Beaprint.MainPrint("gMSA readable managed passwords", "T1003");
+                Beaprint.MainPrint("gMSA managed password reader candidates", "T1003");
                 Beaprint.LinkPrint(
                     "https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/golden-dmsa-gmsa.html",
                     "Look for Group Managed Service Account password access candidates");
@@ -1165,11 +1374,9 @@ namespace winPEAS.Checks
 
                 var currentSidSet = GetCurrentSidSet();
                 if (currentSidSet.Count == 0)
-                {
                     Beaprint.GrayPrint("  [-] Current token SIDs unavailable; gMSA access status UNKNOWN.");
-                    return;
-                }
                 int total = 0, candidates = 0, unknown = 0, denied = 0;
+                int readerRows = 0;
                 bool sampleTruncated = false;
 
                 using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
@@ -1199,31 +1406,52 @@ namespace winPEAS.Checks
                             var descriptorBytes = r.Properties.Contains("msDS-GroupMSAMembership") &&
                                 r.Properties["msDS-GroupMSAMembership"].Count > 0
                                 ? r.Properties["msDS-GroupMSAMembership"][0] as byte[] : null;
-                            var status = AssessGmsaMembership(descriptorBytes, currentSidSet);
+                            var assessment = InspectGmsaMembership(descriptorBytes, currentSidSet);
+                            var status = assessment.Status;
+
+                            if (assessment.ReaderSids.Count > 0 && readerRows < MaxFindingsToPrint)
+                            {
+                                readerRows++;
+                                Beaprint.GrayPrint($"  Descriptor read-grant trustees for {name}: " +
+                                    string.Join(", ", assessment.ReaderSids.Take(8)) +
+                                    (assessment.ReaderSids.Count > 8 ? " (more omitted)" : ""));
+                            }
 
                             if (status == GmsaAccessStatus.Candidate)
                             {
                                 candidates++;
                                 if (candidates <= MaxFindingsToPrint)
-                                    Beaprint.BadPrint($"  Managed password access candidate for gMSA: {name}  (DN: {dn})");
+                                    Beaprint.BadPrint($"  Current-token SID matches a read-grant candidate for gMSA: {name} (DN: {dn}); " +
+                                        string.Join(", ", assessment.MatchingReaderSids.Take(8)));
                             }
                             else if (status == GmsaAccessStatus.Unknown)
+                            {
                                 unknown++;
+                                if (unknown <= MaxFindingsToPrint)
+                                    Beaprint.GrayPrint($"  [?] Reader status unknown for gMSA: {name} (missing, malformed, or complex descriptor/token).");
+                            }
                             else if (status == GmsaAccessStatus.Denied)
+                            {
                                 denied++;
+                                if (denied <= MaxFindingsToPrint)
+                                    Beaprint.GrayPrint($"  [?] Matching deny ACE for gMSA: {name}; effective access unknown. SID(s): " +
+                                        string.Join(", ", assessment.MatchingDenySids.Take(8)));
+                            }
                         }
                     }
                 }
 
-                Beaprint.GrayPrint($"  [*] Checked {total} gMSA(s): {candidates} access candidate(s), {denied} matching deny(s), {unknown} unknown descriptor(s). Effective access requires verification.");
+                Beaprint.GrayPrint($"  [*] Checked {total} gMSA(s): {candidates} token-match candidate(s), {denied} matching deny(s), {unknown} unknown status(es). Descriptor trustees and token matches do not prove effective access; group membership changes require a refreshed token/session.");
                 if (candidates > MaxFindingsToPrint)
                     Beaprint.GrayPrint($"  [*] {candidates - MaxFindingsToPrint} additional candidate(s) omitted.");
                 if (sampleTruncated)
                     Beaprint.GrayPrint($"  [*] gMSA sample limited to {GmsaSampleLimit}; other accounts were not checked.");
+                if (readerRows == MaxFindingsToPrint)
+                    Beaprint.GrayPrint("  [*] Trustee output limited to the first 40 gMSAs with read grants.");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Beaprint.PrintException(ex.Message);
+                Beaprint.GrayPrint("  [?] gMSA LDAP enumeration unavailable; reader status unknown.");
             }
         }
 
@@ -1306,31 +1534,50 @@ namespace winPEAS.Checks
                 {
                     // For StrongBinding and CertificateMapping, More details in KB014754 - Registry key information:
                     // https://support.microsoft.com/en-us/topic/kb5014754-certificate-based-authentication-changes-on-windows-domain-controllers-ad2c23b0-15d8-4340-a468-4d4f3b188f16
-                    uint? strongBinding = RegistryHelper.GetDwordValue("HKLM", @"SYSTEM\CurrentControlSet\Services\Kdc", "StrongCertificateBindingEnforcement");
+                    uint? strongBinding = null;
+                    try
+                    {
+                        strongBinding = RegistryHelper.GetDwordValue("HKLM", @"SYSTEM\CurrentControlSet\Services\Kdc", "StrongCertificateBindingEnforcement");
+                    }
+                    catch
+                    {
+                        // Continue to the independent Schannel setting below.
+                    }
                     switch (strongBinding)
                     {
                         case 0: 
-                            Beaprint.BadPrint("  StrongCertificateBindingEnforcement: 0 — Weak mapping allowed, vulnerable to ESC9.");
+                            Beaprint.NoColorPrint("  StrongCertificateBindingEnforcement: 0 — legacy weak-mapping setting; verify effective KDC behavior for this Windows version.");
                             break;
                         case 2: 
-                            Beaprint.GoodPrint("  StrongCertificateBindingEnforcement: 2 — Prevents weak UPN/DNS mappings even if SID extension missing, not vulnerable to ESC9.");
+                            Beaprint.NoColorPrint("  StrongCertificateBindingEnforcement: 2 — configured KDC strong-binding enforcement; other certificate prerequisites are not checked here.");
                             break;
-                        // 1 is default behavior now I think?
                         case 1:
-                        default: 
-                            Beaprint.NoColorPrint($"  StrongCertificateBindingEnforcement: {strongBinding} — Allow weak mapping if SID extension missing, may be vulnerable to ESC9.");
+                            Beaprint.NoColorPrint("  StrongCertificateBindingEnforcement: 1 — legacy compatibility setting; verify current KDC behavior for this Windows version.");
+                            break;
+                        default:
+                            Beaprint.GrayPrint($"  StrongCertificateBindingEnforcement: {(strongBinding.HasValue ? strongBinding.Value.ToString() : "unavailable")} — KDC mapping behavior unknown from this read.");
                             break;
 
                     }  
 
-                    uint? certMapping = RegistryHelper.GetDwordValue("HKLM", @"SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL", "CertificateMappingMethods");
-                    if (certMapping.HasValue && (certMapping & 0x4) != 0)
-                        Beaprint.BadPrint($"  CertificateMappingMethods: {certMapping} — Allow UPN-based mapping, vulnerable to ESC10.");
-                    else if(certMapping.HasValue && ((certMapping & 0x1) != 0 || (certMapping & 0x2) != 0))
-                        Beaprint.NoColorPrint($"  CertificateMappingMethods: {certMapping} — Allow weak Subject/Issuer certificate mapping.");
-                    // 0x18 (strong mapping) is default behavior if not the flags above I think?
+                    uint? certMapping = null;
+                    try
+                    {
+                        certMapping = RegistryHelper.GetDwordValue("HKLM", @"SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL", "CertificateMappingMethods");
+                    }
+                    catch
+                    {
+                        // A registry read failure leaves this local prerequisite unknown.
+                    }
+                    var mappingStatus = AssessSchannelUpnMapping(certMapping);
+                    if (mappingStatus == SchannelUpnMappingStatus.Unknown)
+                        Beaprint.GrayPrint("  CertificateMappingMethods: unavailable — local Schannel UPN mapping status unknown.");
+                    else if (mappingStatus == SchannelUpnMappingStatus.Enabled)
+                        Beaprint.BadPrint($"  CertificateMappingMethods: 0x{certMapping.Value:X} — UPN mapping enabled on this host. ESC10 is only a candidate if a victim UPN is writable and a suitable client-authentication template is enrollable.");
+                    else if ((certMapping.Value & 0x3) != 0)
+                        Beaprint.NoColorPrint($"  CertificateMappingMethods: 0x{certMapping.Value:X} — UPN mapping flag absent; weak Subject/Issuer mapping flag present.");
                     else
-                        Beaprint.GoodPrint($"  CertificateMappingMethods: {certMapping} — Strong Certificate mapping enabled.");
+                        Beaprint.NoColorPrint($"  CertificateMappingMethods: 0x{certMapping.Value:X} — UPN mapping flag absent on this host.");
 
                 }
                 else if (dcRegistryReadable)

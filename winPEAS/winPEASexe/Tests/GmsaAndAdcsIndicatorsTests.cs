@@ -13,10 +13,10 @@ namespace winPEAS.Tests
         private const string CurrentSid = "S-1-5-21-111-222-333-1001";
         private const string OtherSid = "S-1-5-21-111-222-333-1002";
 
-        private static byte[] MembershipDescriptor(params CommonAce[] aces)
+        private static byte[] MembershipDescriptor(params GenericAce[] aces)
         {
             var owner = new SecurityIdentifier("S-1-5-18");
-            var acl = new RawAcl(2, aces.Length);
+            var acl = new RawAcl(GenericAcl.AclRevisionDS, aces.Length);
             foreach (var ace in aces)
                 acl.InsertAce(acl.Count, ace);
             var descriptor = new RawSecurityDescriptor(ControlFlags.DiscretionaryAclPresent, owner, owner, null, acl);
@@ -28,6 +28,12 @@ namespace winPEAS.Tests
         private static CommonAce ReadAce(string sid, AceQualifier qualifier)
         {
             return new CommonAce(AceFlags.None, qualifier, 0x10, new SecurityIdentifier(sid), false, null);
+        }
+
+        private static CommonAce WriteOnlyAce(string sid)
+        {
+            return new CommonAce(AceFlags.None, AceQualifier.AccessAllowed, 0x20,
+                new SecurityIdentifier(sid), false, null);
         }
 
         private static HashSet<string> TokenSids()
@@ -65,6 +71,71 @@ namespace winPEAS.Tests
         {
             Assert.AreEqual(ActiveDirectoryInfo.GmsaAccessStatus.Unknown,
                 ActiveDirectoryInfo.AssessGmsaMembership(null, TokenSids()));
+        }
+
+        [TestMethod]
+        public void GmsaReaderSidsAreSeparateFromCurrentTokenMatches()
+        {
+            var descriptor = MembershipDescriptor(ReadAce(CurrentSid, AceQualifier.AccessAllowed),
+                ReadAce(OtherSid, AceQualifier.AccessAllowed));
+            var report = ActiveDirectoryInfo.InspectGmsaMembership(descriptor, TokenSids());
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaAccessStatus.Candidate, report.Status);
+            CollectionAssert.AreEquivalent(new[] { CurrentSid, OtherSid }, report.ReaderSids);
+            CollectionAssert.AreEqual(new[] { CurrentSid }, report.MatchingReaderSids);
+        }
+
+        [TestMethod]
+        public void GmsaWriteOnlyAceIsNotAReaderCandidate()
+        {
+            var report = ActiveDirectoryInfo.InspectGmsaMembership(
+                MembershipDescriptor(WriteOnlyAce(CurrentSid)), TokenSids());
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaAccessStatus.NoMatch, report.Status);
+            Assert.AreEqual(0, report.ReaderSids.Count);
+        }
+
+        [TestMethod]
+        public void GmsaMatchingDenyKeepsAccessUnproven()
+        {
+            var report = ActiveDirectoryInfo.InspectGmsaMembership(
+                MembershipDescriptor(ReadAce(CurrentSid, AceQualifier.AccessAllowed),
+                    ReadAce(CurrentSid, AceQualifier.AccessDenied)), TokenSids());
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaAccessStatus.Denied, report.Status);
+            CollectionAssert.AreEqual(new[] { CurrentSid }, report.MatchingDenySids);
+        }
+
+        [TestMethod]
+        public void GmsaConditionalOrObjectScopedAceIsUnknown()
+        {
+            var callback = new CommonAce(AceFlags.None, AceQualifier.AccessAllowed, 0x10,
+                new SecurityIdentifier(CurrentSid), true, null);
+            var scoped = new ObjectAce(AceFlags.None, AceQualifier.AccessAllowed, 0x10,
+                new SecurityIdentifier(CurrentSid), ObjectAceFlags.ObjectAceTypePresent,
+                new Guid("11111111-2222-3333-4444-555555555555"), Guid.Empty, false, null);
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaAccessStatus.Unknown,
+                ActiveDirectoryInfo.AssessGmsaMembership(MembershipDescriptor(callback), TokenSids()));
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaAccessStatus.Unknown,
+                ActiveDirectoryInfo.AssessGmsaMembership(MembershipDescriptor(scoped), TokenSids()));
+        }
+
+        [TestMethod]
+        public void GmsaMalformedAndOversizedDescriptorsAreUnknown()
+        {
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaAccessStatus.Unknown,
+                ActiveDirectoryInfo.AssessGmsaMembership(new byte[] { 1, 2, 3 }, TokenSids()));
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaAccessStatus.Unknown,
+                ActiveDirectoryInfo.AssessGmsaMembership(new byte[16385], TokenSids()));
+        }
+
+        [TestMethod]
+        public void GmsaGroupJoinNeedsRefreshedTokenSidSet()
+        {
+            var descriptor = MembershipDescriptor(ReadAce(OtherSid, AceQualifier.AccessAllowed));
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaAccessStatus.NoMatch,
+                ActiveDirectoryInfo.AssessGmsaMembership(descriptor, TokenSids()));
+            var refreshedSids = TokenSids();
+            refreshedSids.Add(OtherSid);
+            Assert.AreEqual(ActiveDirectoryInfo.GmsaAccessStatus.Candidate,
+                ActiveDirectoryInfo.AssessGmsaMembership(descriptor, refreshedSids));
         }
 
         [TestMethod]

@@ -1773,16 +1773,16 @@ else {
   if ($gmsaReport.Count -gt 0) {
     $weakGmsa = $gmsaReport | Where-Object { $_.WeakPrincipals -ne "" }
     if ($weakGmsa) {
-      Write-Host "[!] gMSA passwords readable by low-priv groups/principals: " -ForegroundColor Yellow
-      $weakGmsa | Select-Object Account, WeakPrincipals | Format-Table -AutoSize | Out-String | Write-Host
+      Write-Host "[?] gMSA membership DACLs mention broad trustees; ACE rights and effective access are unverified:" -ForegroundColor Yellow
+      $weakGmsa | Select-Object Account,@{Name='DaclTrustees';Expression={$_.WeakPrincipals}} | Format-Table -AutoSize | Out-String | Write-Host
     }
     else {
-      Write-Host "[i] gMSA accounts discovered (review allowed readers below)."
-      $gmsaReport | Select-Object Account, Allowed | Sort-Object Account | Select-Object -First 5 | Format-Table -Wrap | Out-String | Write-Host
+      Write-Host "[i] gMSA membership DACL trustees found (ACE rights and effective access unverified)."
+      $gmsaReport | Select-Object Account,@{Name='DaclTrustees';Expression={$_.Allowed}} | Sort-Object Account | Select-Object -First 5 | Format-Table -Wrap | Out-String | Write-Host
     }
   }
   else {
-    Write-Host "[i] No gMSA objects found via LDAP."
+    Write-Host "[?] No gMSA membership DACL trustees returned; LDAP, descriptor visibility, and account coverage are unknown."
   }
 
   $adcsInfo = Get-AdcsSchannelInfo
@@ -1901,7 +1901,7 @@ Write-Host -ForegroundColor Blue "=========|| WHOAMI INFO"
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Check Token access here: https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/privilege-escalation-abusing-tokens.html#abusing-tokens"
-Write-Host -ForegroundColor Blue "=========|| Check if you are inside the Administrators group or if you have enabled any token that can be use to escalate privileges like SeImpersonatePrivilege, SeAssignPrimaryPrivilege, SeTcbPrivilege, SeBackupPrivilege, SeRestorePrivilege, SeCreateTokenPrivilege, SeLoadDriverPrivilege, SeTakeOwnershipPrivilege, SeDebugPrivilege"
+Write-Host -ForegroundColor Blue "=========|| Check if you are inside the Administrators group or if you have enabled any token that can be use to escalate privileges like SeImpersonatePrivilege, SeAssignPrimaryPrivilege, SeTcbPrivilege, SeBackupPrivilege, SeRestorePrivilege, SeCreateTokenPrivilege, SeLoadDriverPrivilege, SeTakeOwnershipPrivilege, SeDebugPrivilege, SeManageVolumePrivilege"
 Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#users--groups" -ForegroundColor Yellow
 Start-Process whoami.exe -ArgumentList "/all" -Wait -NoNewWindow
 

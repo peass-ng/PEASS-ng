@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Info.ApplicationInfo;
@@ -584,47 +585,69 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Scheduled Applications --Non Microsoft--", "T1053.005");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/privilege-escalation-with-autorun-binaries.html", "Check if you can modify other users scheduled binaries");
-                List<Dictionary<string, string>> scheduled_apps = ApplicationInfoHelper.GetScheduledAppsNoMicrosoft();
+                ScheduledAppsResult scheduled_apps = ApplicationInfoHelper.GetScheduledAppsNoMicrosoft();
 
-                foreach (Dictionary<string, string> sapp in scheduled_apps)
+                foreach (Dictionary<string, string> sapp in scheduled_apps.Apps)
                 {
-                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(sapp["Action"], Checks.CurrentUserSiDs);
-                    List<string> dirRights = PermissionsHelper.GetPermissionsFolder(sapp["Action"], Checks.CurrentUserSiDs);
-                    string formString = "    ({0}) {1}: {2}";
-
-                    if (fileRights.Count > 0)
+                    var fileRights = new List<string>();
+                    var dirRights = new List<string>();
+                    foreach (string actionPath in sapp["ActionPath"].Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
                     {
-                        formString += "\n    Permissions file: {3}";
-                    }
-
-                    if (dirRights.Count > 0)
-                    {
-                        formString += "\n    Permissions folder(DLL Hijacking): {4}";
-                    }
-
-                    if (!string.IsNullOrEmpty(sapp["Trigger"]))
-                    {
-                        formString += "\n    Trigger: {5}";
-                    }
-
-                    if (string.IsNullOrEmpty(sapp["Description"]))
-                    {
-                        formString += "\n    {6}";
+                        try
+                        {
+                            string path = actionPath.Trim().Trim('"');
+                            foreach (string right in PermissionsHelper.GetPermissionsFile(path, Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT))
+                                fileRights.Add(path + ": " + right);
+                            string parent = Path.GetDirectoryName(path);
+                            if (!string.IsNullOrEmpty(parent))
+                            {
+                                foreach (string right in PermissionsHelper.GetPermissionsFolder(parent, Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT))
+                                    dirRights.Add(parent + ": " + right);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Beaprint.PrintException($"failed to check scheduled action path: '{actionPath}': {ex.Message}");
+                        }
                     }
 
                     Dictionary<string, string> colorsS = new Dictionary<string, string>()
                     {
                         { "Permissions.*", Beaprint.ansi_color_bad },
-                        { sapp["Action"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+"), (fileRights.Count > 0 || dirRights.Count > 0) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
+                        { "Possible LSA-secret lead.*", Beaprint.ansi_color_bad },
                     };
-                    Beaprint.AnsiPrint(string.Format(formString, sapp["Author"], sapp["Name"], sapp["Action"], string.Join(", ", fileRights), string.Join(", ", dirRights), sapp["Trigger"], sapp["Description"]), colorsS);
+                    Beaprint.AnsiPrint(FormatScheduledApp(sapp, fileRights, dirRights), colorsS);
                     Beaprint.PrintLineSeparator();
                 }
+                if (scheduled_apps.LimitReached)
+                    Beaprint.NoColorPrint($"    Scheduled task listing stopped at its safety limit ({ApplicationInfoHelper.MaxScheduledTasksInspected} tasks, {ApplicationInfoHelper.MaxScheduledFoldersInspected} folders, or {ApplicationInfoHelper.MaxScheduledAppsDisplayed} displayed).");
+                if (scheduled_apps.WithoutAuthorLimitReached)
+                    Beaprint.NoColorPrint($"    Tasks with unknown author were capped at {ApplicationInfoHelper.MaxScheduledAppsWithoutAuthor}.");
             }
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
             }
+        }
+
+        internal static string FormatScheduledApp(Dictionary<string, string> app, IEnumerable<string> fileRights, IEnumerable<string> dirRights)
+        {
+            var lines = new List<string> { $"    ({app["Author"]}) {app["Name"]}: {app["Action"]}" };
+            lines.Add($"    Principal: {app["Principal"]}; Logon type: {app["LogonType"]}; Run level: {app["RunLevel"]}");
+            lines.Add("    Action path: " + (string.IsNullOrEmpty(app["ActionPath"]) ? "unknown" : app["ActionPath"].Replace("\n", "\n                 ")));
+            string file = string.Join(", ", fileRights ?? new string[0]);
+            string directory = string.Join(", ", dirRights ?? new string[0]);
+            if (!string.IsNullOrEmpty(file))
+                lines.Add("    Permissions file (current user): " + file);
+            if (!string.IsNullOrEmpty(directory))
+                lines.Add("    Permissions parent directory (current user): " + directory);
+            if (!string.IsNullOrEmpty(app["Trigger"]))
+                lines.Add("    Trigger: " + app["Trigger"]);
+            if (!string.IsNullOrEmpty(app["Description"]))
+                lines.Add("    " + app["Description"]);
+            if (!string.IsNullOrEmpty(app["CredentialLead"]))
+                lines.Add("    " + app["CredentialLead"]);
+            return string.Join("\n", lines);
         }
 
         void PrintControllableSystemTasks()

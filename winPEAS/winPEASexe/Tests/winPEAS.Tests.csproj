@@ -108,7 +108,13 @@
     <Compile Include="VeeamBackupVersionTests.cs" />
     <Compile Include="ClfsAuthenticationTests.cs" />
     <Compile Include="DcLdapPolicyTests.cs" />
+    <Compile Include="DpapiMasterKeyProfileTests.cs" />
+    <Compile Include="DpapiCredentialFileInventoryTests.cs" />
     <Compile Include="ServiceSpnPriorityTests.cs" />
+    <Compile Include="SessionAndSchannelCuesTests.cs" />
+    <Compile Include="SpnWriteRightTests.cs" />
+    <Compile Include="ExactAttributeAclAndSampleTests.cs" />
+    <Compile Include="OuAndMembershipAclTests.cs" />
     <Compile Include="SqlServicePrivilegeContextTests.cs" />
     <Compile Include="GmsaAndAdcsIndicatorsTests.cs" />
     <Compile Include="LapsPasswordExposureTests.cs" />
@@ -117,6 +123,7 @@
     <Compile Include="PrivilegedWmiEventConsumerTests.cs" />
     <Compile Include="RegistryHiveExposureTests.cs" />
     <Compile Include="SccmNetworkAccessAccountTests.cs" />
+    <Compile Include="ScheduledApplicationDisplayTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SmokeTests.cs" />
     <Compile Include="WritableServiceDllTests.cs" />

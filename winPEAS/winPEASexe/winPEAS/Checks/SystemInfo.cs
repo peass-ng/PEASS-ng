@@ -1928,7 +1928,7 @@ namespace winPEAS.Checks
                                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/index.html", "Why it matters");
                             }
                             anyFinding = true;
-                            Beaprint.BadPrint($"    [!] Writable applied GPO detected");
+                            Beaprint.BadPrint("    [!] Applied GPO path write candidate");
                             Beaprint.NoColorPrint($"        GPO Display Name : {info.DisplayName}");
                             Beaprint.NoColorPrint($"        GPO Name         : {info.GPOName}");
                             Beaprint.NoColorPrint($"        GPO Link         : {info.Link}");
@@ -1937,7 +1937,7 @@ namespace winPEAS.Checks
                             {
                                 Beaprint.NoColorPrint($"          -> {entry}");
                             }
-                            Beaprint.GrayPrint("        Hint: Abuse by adding an immediate Scheduled Task or Startup script to execute as SYSTEM on gpupdate.");
+                            Beaprint.GrayPrint("        Review effective share/GPT and GPC rights, scope, and filtering. An applicable machine-side immediate task can run at policy refresh; startup scripts wait for startup, and user logon scripts run at logon under that user.");
                         }
                     }
                 }

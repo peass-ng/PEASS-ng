@@ -9,6 +9,7 @@ namespace winPEAS.Helpers.Search
             ".cer",
             ".csr",
             ".der",
+            ".kdbx",
             ".p12",
         };
 
