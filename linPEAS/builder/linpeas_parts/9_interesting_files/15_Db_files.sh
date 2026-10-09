@@ -9,7 +9,7 @@
 # Functions Used: print_2title
 # Global Variables: $DEBUG, $HOME, $MACPEAS
 # Initial Functions:
-# Generated Global Variables: $FILECMD, $SQLITEPYTHON, $tables, $columns, $INTCOLUMN
+# Generated Global Variables: $FILECMD, $SQLITEPYTHON, $tables, $columns, $INTCOLUMN, $escaped_t, $escaped_sql_t
 # Fat linpeas: 0
 # Small linpeas: 0
 
@@ -25,45 +25,54 @@ fi
 
 if [ "$PSTORAGE_DATABASE" ] || [ "$DEBUG" ]; then
   print_2title "Searching tables inside readable .db/.sql/.sqlite files (limit 100)" "T1005"
-  FILECMD="$(command -v file 2>/dev/null || echo -n '')"
-  printf "%s\n" "$PSTORAGE_DATABASE" | while read f; do
+  FILECMD=$(command -v file 2>/dev/null)
+  printf "%s\n" "$PSTORAGE_DATABASE" | while IFS= read -r f; do
+    [ -n "$f" ] || continue
     if [ "$FILECMD" ]; then
-      echo "Found "$(file "$f") | sed -${E} "s,\.db|\.sql|\.sqlite|\.sqlite3,${SED_RED},g";
+      printf 'Found %s\n' "$(file "$f")" | sed -${E} "s,\.db|\.sql|\.sqlite|\.sqlite3,${SED_RED},g";
     else
-      echo "Found $f" | sed -${E} "s,\.db|\.sql|\.sqlite|\.sqlite3,${SED_RED},g";
+      printf 'Found %s\n' "$f" | sed -${E} "s,\.db|\.sql|\.sqlite|\.sqlite3,${SED_RED},g";
     fi
   done
   SQLITEPYTHON=""
   echo ""
-  printf "%s\n" "$PSTORAGE_DATABASE" | while read f; do
+  printf "%s\n" "$PSTORAGE_DATABASE" | while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    SQLITEPYTHON=""
     if ([ -r "$f" ] && [ "$FILECMD" ] && file "$f" | grep -qi sqlite) || ([ -r "$f" ] && [ ! "$FILECMD" ]); then #If readable and filecmd and sqlite, or readable and not filecmd
-      if [ "$(command -v sqlite3 2>/dev/null || echo -n '')" ]; then
-        tables=$(sqlite3 $f ".tables" 2>/dev/null)
+      if command -v sqlite3 >/dev/null 2>&1; then
+        tables=$(sqlite3 "$f" "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%'" 2>/dev/null)
         #printf "$tables\n" | sed "s,user.*\|credential.*,${SED_RED},g"
-      elif [ "$(command -v python 2>/dev/null || echo -n '')" ] || [ "$(command -v python3 2>/dev/null || echo -n '')" ]; then
-        SQLITEPYTHON=$(command -v python 2>/dev/null || command -v python3 2>/dev/null || echo -n '')
-        tables=$($SQLITEPYTHON -c "print('\n'.join([t[0] for t in __import__('sqlite3').connect('$f').cursor().execute('SELECT name FROM sqlite_master WHERE type=\'table\' and tbl_name NOT like \'sqlite_%\';').fetchall()]))" 2>/dev/null)
+      elif command -v python >/dev/null 2>&1 || command -v python3 >/dev/null 2>&1; then
+        SQLITEPYTHON=$(command -v python 2>/dev/null || command -v python3 2>/dev/null)
+        tables=$("$SQLITEPYTHON" -c 'import sqlite3,sys; db=sqlite3.connect(sys.argv[1]); print("\n".join(row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type=? AND name NOT LIKE ?", ("table", "sqlite_%"))))' "$f" 2>/dev/null)
         #printf "$tables\n" | sed "s,user.*\|credential.*,${SED_RED},g"
       else
         tables=""
       fi
       if [ "$tables" ] || [ "$DEBUG" ]; then
           printf $GREEN" -> Extracting tables from$NC $f $DG(limit 20)\n"$NC
-          printf "%s\n" "$tables" | while read t; do
+          printf "%s\n" "$tables" | while IFS= read -r t; do
           columns=""
           # Search for credentials inside the table using sqlite3
           if [ -z "$SQLITEPYTHON" ]; then
-            columns=$(sqlite3 $f ".schema $t" 2>/dev/null | grep "CREATE TABLE")
+            escaped_sql_t=$(printf '%s' "$t" | sed "s/'/''/g")
+            columns=$(sqlite3 "$f" "SELECT sql FROM sqlite_master WHERE name='$escaped_sql_t' AND sql IS NOT NULL" 2>/dev/null)
           # Search for credentials inside the table using python
           else
-            columns=$($SQLITEPYTHON -c "print(__import__('sqlite3').connect('$f').cursor().execute('SELECT sql FROM sqlite_master WHERE type!=\'meta\' AND sql NOT NULL AND name =\'$t\';').fetchall()[0][0])" 2>/dev/null)
+            columns=$("$SQLITEPYTHON" -c 'import sqlite3,sys; db=sqlite3.connect(sys.argv[1]); row=db.execute("SELECT sql FROM sqlite_master WHERE name=? AND sql IS NOT NULL", (sys.argv[2],)).fetchone(); print(row[0] if row else "")' "$f" "$t" 2>/dev/null)
           fi
           #Check found columns for interesting fields
           INTCOLUMN=$(echo "$columns" | grep -i "username\|passw\|credential\|email\|hash\|salt")
           if [ "$INTCOLUMN" ]; then
             printf ${BLUE}"  --> Found interesting column names in$NC $t $DG(output limit 10)\n"$NC | sed -${E} "s,user.*|credential.*,${SED_RED},g"
-            printf "$columns\n" | sed -${E} "s,username|passw|credential|email|hash|salt|$t,${SED_RED},g"
-            (sqlite3 $f "select * from $t" || $SQLITEPYTHON -c "print(', '.join([str(x) for x in __import__('sqlite3').connect('$f').cursor().execute('SELECT * FROM \'$t\';').fetchall()[0]]))") 2>/dev/null | head
+            printf "%s\n" "$columns" | sed -${E} "s,username|passw|credential|email|hash|salt,${SED_RED},g"
+            if [ -z "$SQLITEPYTHON" ]; then
+              escaped_t=$(printf '%s' "$t" | sed 's/"/""/g')
+              sqlite3 "$f" "SELECT * FROM \"$escaped_t\" LIMIT 10" 2>/dev/null | head
+            else
+              "$SQLITEPYTHON" -c 'import sqlite3,sys; db=sqlite3.connect(sys.argv[1]); table=sys.argv[2].replace("\"", "\"\""); print("\n".join("|".join(str(v) if v is not None else "" for v in row) for row in db.execute("SELECT * FROM \""+table+"\" LIMIT 10")))' "$f" "$t" 2>/dev/null | head
+            fi
             echo ""
           fi
         done

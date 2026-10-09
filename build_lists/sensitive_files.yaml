@@ -29,6 +29,7 @@ root_folders:
   - ${ROOT_FOLDER}var           #common
   - ${ROOT_FOLDER}concourse-auth
   - ${ROOT_FOLDER}concourse-keys
+  - ${ROOT_FOLDER}datastore/Backups
 
 
 common_file_folders:
@@ -613,6 +614,108 @@ search:
             value:
                 check_extra_path: '/cfg/conf\.php$'
                 line_grep: '"(pwd|passwd|password|db[_-]?(user|pass)|dsn)[[:space:]]*[:=]" | head -n 20'
+                type: f
+                search_in:
+                  - common
+
+  - name: Dolibarr database settings candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "conf.php"
+            value:
+                check_extra_path: '/htdocs/conf/conf\.php$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: PrestaShop database settings candidates
+    value:
+        config:
+          auto_check: True
+        files:
+          - name: "parameters.php"
+            value:
+                check_extra_path: "/app/config/parameters\\.php$"
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+          - name: "settings.inc.php"
+            value:
+                check_extra_path: "/config/settings\\.inc\\.php$"
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Chamilo database settings candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "configuration.php"
+            value:
+                check_extra_path: '/app/config/configuration\.php$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: ChangeDetection backup candidates
+    value:
+        config:
+          auto_check: True
+        files:
+          - name: "changedetection-backup-*.zip"
+            value:
+                check_extra_path: "/datastore/Backups/changedetection-backup-[0-9]+\\.zip$"
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+                  - ${ROOT_FOLDER}datastore/Backups
+
+  - name: HTTP archive candidates
+    value:
+        config:
+          auto_check: True
+        files:
+          - name: "*.har"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: WonderCMS
+    value:
+        config:
+          auto_check: True
+        files:
+          - name: "database.js"
+            value:
+                check_extra_path: '/data/database\.js$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Pluck CMS
+    value:
+        config:
+          auto_check: True
+        files:
+          - name: "pass.php"
+            value:
+                check_extra_path: '/([Pp]luck/)?data/settings/pass\.php$'
+                just_list_file: True
                 type: f
                 search_in:
                   - common
@@ -2258,6 +2361,21 @@ search:
                 type: f
                 search_in:
                   - common
+
+  - name: Duplicati server state
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "Duplicati-server.sqlite"
+            value:
+                # Use cached file discovery; list metadata only, never query the database.
+                check_extra_path: '(^|/)[Dd]uplicati(/config)?/Duplicati-server\.sqlite$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
                  
   - name: Knockd
     value:
@@ -3766,6 +3884,14 @@ search:
                 search_in: 
                   - common
 
+          # Candidate only: other encrypted key databases also use .kdb.
+          - name: "*.kdb"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
           - name: "KeePass.config*"
             value: 
                 just_list_file: True
@@ -4283,6 +4409,23 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  - name: Suricata event log candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "eve*.json*"
+            value:
+                # Includes ordinary, threaded, and rotated EVE files. Keep
+                # discovery scoped to Suricata's conventional log directory.
+                check_extra_path: '/var/log/suricata/eve[^/]*\.json'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}var
 
   - name: Other Interesting
     value:

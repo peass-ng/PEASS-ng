@@ -137,8 +137,87 @@ class DjangoFileCacheTests(unittest.TestCase):
         deep.mkdir(parents=True)
         (deep / "settings.py").write_text("CACHES = {}\n", encoding="utf-8")
 
+    def test_signed_cookie_pickle_pair_without_secret_disclosure(self):
+        secret = "fixture-secret-must-remain-hidden"
+        self.settings.write_text(
+            "SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'\n"
+            "SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'\n"
+            "SECRET_KEY = %r\n" % secret,
+            encoding="utf-8",
+        )
+        output = self.run_check()
+        self.assertEqual(output.count("review signed-cookie pickle session"), 1)
+        self.assertIn(repr(str(self.settings)), output)
+        self.assertNotIn(secret, output)
+        self.assertNotIn("review Django cache settings", output)
+
+    def test_signed_cookie_pickle_requires_unambiguous_literal_pair(self):
+        engine = "SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'\n"
+        serializer = "SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'\n"
+        negatives = (
+            engine,
+            serializer,
+            engine + "SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'\n",
+            "SESSION_ENGINE = 'django.contrib.sessions.backends.db'\n" + serializer,
+            "# " + engine + serializer,
+            "description = %r\n" % (engine + serializer),
+            engine + "SESSION_SERIALIZER = os.environ['SESSION_SERIALIZER']\n# PickleSerializer\n",
+            engine + serializer + "SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'\n",
+            engine + serializer + "SESSION_ENGINE = 'django.contrib.sessions.backends.db'\n",
+            engine + serializer + "from local_settings import *\n",
+            engine + serializer + "SESSION_ENGINE += '.other'\n",
+        )
+        for source in negatives:
+            with self.subTest(source=source):
+                self.settings.write_text(source, encoding="utf-8")
+                self.assertNotIn("review signed-cookie pickle session", self.run_check())
+
+    def test_session_check_does_not_execute_settings_and_preserves_cache(self):
+        marker = self.root / "must-not-exist"
+        self.config(tail=(
+            "SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'\n"
+            "SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'\n"
+            "open(%r, 'w')\n" % str(marker)
+        ))
+        output = self.run_check()
+        self.assertIn("potential cross-user Django file cache replacement", output)
+        self.assertIn("review signed-cookie pickle session", output)
+        self.assertFalse(marker.exists())
+
+    def test_exact_default_path_runs_after_existing_roots_and_respects_candidate_cap(self):
+        self.settings.write_text(
+            "SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'\n"
+            "SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'\n",
+            encoding="utf-8",
+        )
+        absent = self.root / "absent"
+        args = [str(absent)] * 3 + [str(self.settings)]
+        result = subprocess.run(
+            ["python3", "-I", "-S", "-c", CHECK] + args,
+            capture_output=True, text=True, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("review signed-cookie pickle session", result.stdout)
+        link = self.root / "linked-settings.py"
+        link.symlink_to(self.settings)
+        result = subprocess.run(
+            ["python3", "-I", "-S", "-c", CHECK] + args[:3] + [str(link)],
+            capture_output=True, text=True, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
+        result = subprocess.run(
+            ["python3", "-I", "-S", "-c", CHECK.replace("MAX_CANDIDATES = 30", "MAX_CANDIDATES = 0")] + args,
+            capture_output=True, text=True, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
+
     def test_shell_gates_fast_and_missing_tools(self):
-        self.config()
+        self.config(tail=(
+            "SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'\n"
+            "SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'\n"
+        ))
         shell = "print_2title() { :; }; . \"$1\""
         sh = shutil.which("sh") or "/bin/sh"
         env = dict(os.environ, SEARCH_IN_FOLDER=str(self.root), FAST="1", SUPERFAST="", TIMEOUT=shutil.which("timeout") or "")
@@ -158,6 +237,7 @@ class DjangoFileCacheTests(unittest.TestCase):
             env["PATH"] = os.environ["PATH"]
             result = subprocess.run([sh, "-c", shell, "sh", str(MODULE)], env=env, capture_output=True, text=True, timeout=10)
             self.assertIn("review Django file cache candidate", result.stdout)
+            self.assertIn("review signed-cookie pickle session", result.stdout)
 
 
 if __name__ == "__main__":

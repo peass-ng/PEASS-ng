@@ -175,11 +175,11 @@ class LinpeasBuilder:
                     
                     if type == "d": 
                         find_line += "-type d "
-                        bash_find_var = f"FIND_DIR_{r[1:].replace('.','').replace('-','_').replace('{ROOT_FOLDER}','').upper()}"
+                        bash_find_var = f"FIND_DIR_{r[1:].replace('.','').replace('-','_').replace('/','_').replace('{ROOT_FOLDER}','').upper()}"
                         self.bash_find_d_vars.add(bash_find_var)
                         all_folder_regexes += regexes
                     else:
-                        bash_find_var = f"FIND_{r[1:].replace('.','').replace('-','_').replace('{ROOT_FOLDER}','').upper()}"
+                        bash_find_var = f"FIND_{r[1:].replace('.','').replace('-','_').replace('/','_').replace('{ROOT_FOLDER}','').upper()}"
                         self.bash_find_f_vars.add(bash_find_var)
                         all_file_regexes += regexes
 

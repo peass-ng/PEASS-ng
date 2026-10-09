@@ -2,14 +2,14 @@
 # ID: UG_Sudo_l
 # Author: Carlos Polop
 # Last Update: 09-10-2026
-# Description: Checking 'sudo -l', sudoers files, privileged config, container exec, packet-filter export, preset and PHP CLI loaders, and privileged Python imports, paths, caches, and archive extraction
+# Description: Checking 'sudo -l', sudoers files, privileged config, process tracing, container exec, packet-filter export, preset and PHP CLI loaders, and privileged Python imports, paths, caches, archive extraction, model loading, and Git transport
 # License: GNU GPL
-# Version: 1.4
+# Version: 1.5
 # Mitre: T1548.003
 # Functions Used: check_sudo_terraform_override, echo_not_found, print_2title, print_info
 # Global Variables:$IAMROOT, $PASSWORD, $TIMEOUT, $ROOT_FOLDER, $TMPDIR, $sudoB, $sudoG, $sudoVB1, $sudoVB2
 # Initial Functions:
-# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $sudo_adduser_main, $sudo_adduser_dir, $sudo_adduser_groups, $sudo_adduser_candidates, $sudo_adduser_group, $sudo_adduser_group_status, $sudo_adduser_visible, $sudo_adduser_unknown, $sudo_adduser_files, $sudo_adduser_file, $sudo_adduser_policy, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_backup_wrapper_rules, $sudo_backup_wrapper_script, $sudo_backup_wrapper_remaining, $sudo_backup_wrapper_walk, $sudo_backup_wrapper_part, $sudo_backup_wrapper_symlink, $sudo_backup_wrapper_result, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size, $script, $kept_names, $script_size, $matched_name, $sudo_nmap_walk, $sudo_rsync_rules, $sudo_nmap_result, $sudo_nmap_part, $sudo_rsync_dest, $sudo_nmap_remaining, $sudo_nmap_rules, $sudo_nmap_symlink, $sudo_nmap_path, $sudo_rsync_dir, $sudo_nmap_size, $sudo_rsync_source, $sudo_rsync_safe, $sudo_rsync_check, $sudo_rsync_walk, $sudo_rsync_remaining, $sudo_rsync_part, $sudo_rsync_owner, $sudo_rsync_current_uid
+# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $sudo_adduser_main, $sudo_adduser_dir, $sudo_adduser_groups, $sudo_adduser_candidates, $sudo_adduser_group, $sudo_adduser_group_status, $sudo_adduser_visible, $sudo_adduser_unknown, $sudo_adduser_files, $sudo_adduser_file, $sudo_adduser_policy, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_backup_wrapper_rules, $sudo_backup_wrapper_script, $sudo_backup_wrapper_remaining, $sudo_backup_wrapper_walk, $sudo_backup_wrapper_part, $sudo_backup_wrapper_symlink, $sudo_backup_wrapper_result, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size, $script, $kept_names, $script_size, $matched_name, $sudo_nmap_walk, $sudo_rsync_rules, $sudo_nmap_result, $sudo_nmap_part, $sudo_rsync_dest, $sudo_nmap_remaining, $sudo_nmap_rules, $sudo_nmap_symlink, $sudo_nmap_path, $sudo_rsync_dir, $sudo_nmap_size, $sudo_rsync_source, $sudo_rsync_safe, $sudo_rsync_check, $sudo_rsync_walk, $sudo_rsync_remaining, $sudo_rsync_part, $sudo_rsync_owner, $sudo_rsync_current_uid, $sudo_gitpython_clone_rules, $sudo_gitpython_parser, $sudo_gitpython_binary, $sudo_gitpython_script, $sudo_gitpython_size, $sudo_gitpython_result, $sudo_model_loader_rules, $sudo_model_loader_script, $sudo_model_loader_dir, $sudo_model_loader_size, $sudo_model_loader_helper, $sudo_model_loader_line
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -477,6 +477,136 @@ sudo_build_package_tool_review() {
   '
 }
 sudo_build_package_tool_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+  sed -"${E}" "s,.*,${SED_RED_YELLOW},"
+
+# A slicer project can carry post-processing commands. Flag only an effective
+# root-capable sudo grant with caller-selectable arguments; never load a model.
+sudo_prusaslicer_project_review() {
+  [ -n "$1" ] || return 0
+  case "$1" in *prusaslicer*|*prusa-slicer*) ;; *) return 0 ;; esac
+  printf '%s\n' "$1" | LC_ALL=C awk '
+    function review(specs, root_capable, count, commands, i, command, path, args, noexec) {
+      count = split(specs, commands, ",")
+      noexec = 0
+      for (i = 1; i <= count; i++) {
+        command = commands[i]
+        sub(/^[[:space:]]*/, "", command)
+        sub(/[[:space:]]*$/, "", command)
+        while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/) {
+          if (command ~ /^NOEXEC:/) noexec = 1
+          if (command ~ /^EXEC:/) noexec = 0
+          sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+        }
+        if (command ~ /^!/) {
+          sub(/^![[:space:]]*/, "", command)
+          path = command
+          sub(/[[:space:]].*$/, "", path)
+          if (path == "ALL" || path ~ /^\/([[:alnum:]_.+-]+\/)*(prusaslicer|prusa-slicer)$/)
+            denied = 1
+          continue
+        }
+        path = command
+        sub(/[[:space:]].*$/, "", path)
+        if (path !~ /^\/([[:alnum:]_.+-]+\/)*(prusaslicer|prusa-slicer)$/) continue
+        args = substr(command, length(path) + 1)
+        sub(/^[[:space:]]+/, "", args)
+        sub(/[[:space:]]+$/, "", args)
+        if (root_capable && !noexec && (args == "" || args == "*")) found = 1
+      }
+    }
+    NR > 3000 || length($0) > 2048 { partial = 1; exit }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      if (active) review(specs, root_capable)
+      active = 0
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      users = parts[1]
+      root_capable = users ~ /(^|[[:space:],])(ALL|root|#0)([[:space:],]|$)/ &&
+                     users !~ /(^|[[:space:],])!(ALL|root|#0)([[:space:],]|$)/
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      specs = line
+      active = 1
+      next
+    }
+    active && /^[[:space:]]+[^[:space:]]/ { active = 0; partial = 1; next }
+    active { review(specs, root_capable); active = 0 }
+    END {
+      if (active) review(specs, root_capable)
+      if (!partial && !denied && found)
+        print "Sudo PrusaSlicer project post-processing review candidate: unrestricted root-capable slicer grant may process a caller-selected project; verify effective policy, binary/version, project format, and whether post-processing execution is enabled."
+    }
+  '
+}
+sudo_prusaslicer_project_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+  sed -"${E}" "s,.*,${SED_RED_YELLOW},"
+
+# A root-capable ProcMon grant can observe another process's syscall buffers.
+# Inspect only already-captured sudo policy; never start a trace or read one.
+sudo_procmon_trace_review() {
+  [ -n "$1" ] || return 0
+  case "$1" in *procmon*) ;; *) return 0 ;; esac
+  printf '%s\n' "$1" | LC_ALL=C awk '
+    function review(specs, root_capable, count, commands, i, command, path, args, noexec) {
+      count = split(specs, commands, ",")
+      noexec = 0
+      for (i = 1; i <= count; i++) {
+        command = commands[i]
+        sub(/^[[:space:]]*/, "", command)
+        sub(/[[:space:]]*$/, "", command)
+        while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/) {
+          if (command ~ /^NOEXEC:/) noexec = 1
+          if (command ~ /^EXEC:/) noexec = 0
+          sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+        }
+        if (command ~ /^!/) {
+          sub(/^![[:space:]]*/, "", command)
+          path = command
+          sub(/[[:space:]].*$/, "", path)
+          if (path == "ALL" || path ~ /^\/([[:alnum:]_.+-]+\/)*procmon$/) denied = 1
+          continue
+        }
+        path = command
+        sub(/[[:space:]].*$/, "", path)
+        if (path !~ /^\/([[:alnum:]_.+-]+\/)*procmon$/) continue
+        args = substr(command, length(path) + 1)
+        sub(/^[[:space:]]+/, "", args)
+        sub(/[[:space:]]+$/, "", args)
+        if (root_capable && !noexec && (args == "" || args == "*")) found = 1
+        if (noexec) denied = 1
+      }
+    }
+    NR > 3000 || length($0) > 2048 { ambiguous = 1; exit }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      if (active) review(specs, root_capable)
+      active = 0
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      users = parts[1]
+      root_capable = users ~ /(^|[[:space:],])(ALL|root|#0)([[:space:],]|$)/ &&
+                     users !~ /(^|[[:space:],])!(ALL|root|#0)([[:space:],]|$)/
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      specs = line
+      active = 1
+      after_rule = 1
+      next
+    }
+    after_rule && /^[[:space:]]+[^[:space:](]/ { ambiguous = 1; next }
+    /^[[:space:]]*$/ { after_rule = 0 }
+    active { review(specs, root_capable); active = 0 }
+    END {
+      if (active) review(specs, root_capable)
+      if (!ambiguous && !denied && found)
+        print "Sudo ProcMon root-process trace review candidate: unrestricted root-capable ProcMon may expose another process\047s syscall data; verify effective policy, tracer support, and target process before manual review."
+    }
+  '
+}
+sudo_procmon_trace_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # A single-name adduser grant can create a missing group with the same name.
@@ -1393,6 +1523,112 @@ if [ "$sudo_python_import_rules" ]; then
   done
 fi
 
+# Review a root sudo rule that lets the caller choose a PyTorch checkpoint.
+# A small shell wrapper must forward its first argument to one fixed Python
+# helper containing a model loader. This never reads or executes model data.
+sudo_model_loader_review() {
+  [ -n "$1" ] || return 0
+  case "$1" in *'.pth'*|*'.pt'*|*'.ckpt'*) ;; *) return 0 ;; esac
+  sudo_model_loader_rules=$(printf '%s\n' "$1" | LC_ALL=C awk '
+    NR > 3000 || length($0) > 2048 { incomplete = 1; exit }
+    /^[[:space:]]*$/ { after_rule = 0; next }
+    after_rule && /^[[:space:]]+[^[:space:](]/ { incomplete = 1; exit }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      after_rule = 1
+      line = $0
+      runas = line
+      sub(/^[[:space:]]*\(/, "", runas)
+      sub(/\).*/, "", runas)
+      split(runas, users, ":")
+      if (users[1] !~ /(^|[[:space:],])(root|ALL|#0)([[:space:],]|$)/ ||
+          users[1] ~ /(^|[[:space:],])!(root|ALL|#0)([[:space:],]|$)/) next
+      sub(/^[[:space:]]*[^)]*\)[[:space:]]*/, "", line)
+      if (line ~ /(^|[[:space:]])NOEXEC:/ || line ~ /(^|[[:space:]])!/ ||
+          line ~ /,/) { blocked = 1; next }
+      while (sub(/^[A-Z_]+:[[:space:]]*/, "", line)) {}
+      n = split(line, words, /[[:space:]]+/)
+      if (n != 2) next
+      script = words[1]
+      model = words[2]
+      if (script !~ /^\/[A-Za-z0-9_.+\/-]+$/ ||
+          script ~ /\/(\.\/|\.\.\/|\/)/ ||
+          model !~ /^\/[A-Za-z0-9_.+\/-]+\/\*\.(pt|pth|ckpt)$/ ||
+          model ~ /\/(\.\/|\.\.\/|\/)/) next
+      dir = model
+      sub(/\/\*\.(pt|pth|ckpt)$/, "", dir)
+      key = script "|" dir
+      if (!seen[key]++ && total < 8) ordered[++total] = key
+    }
+    END {
+      if (incomplete || blocked) exit
+      for (i = 1; i <= total; i++) print ordered[i]
+    }
+  ')
+  [ -n "$sudo_model_loader_rules" ] || return 0
+  printf '%s\n' "$sudo_model_loader_rules" |
+    while IFS='|' read -r sudo_model_loader_script sudo_model_loader_dir; do
+      [ -d "$sudo_model_loader_dir" ] && [ -w "$sudo_model_loader_dir" ] &&
+        [ -x "$sudo_model_loader_dir" ] &&
+        sudo_python_import_plain_path "$sudo_model_loader_dir" || continue
+      [ -f "$sudo_model_loader_script" ] && [ -r "$sudo_model_loader_script" ] &&
+        [ -x "$sudo_model_loader_script" ] &&
+        sudo_python_import_plain_path "$sudo_model_loader_script" || continue
+      sudo_model_loader_size=$(stat -c %s "$sudo_model_loader_script" 2>/dev/null) ||
+        sudo_model_loader_size=$(stat -f %z "$sudo_model_loader_script" 2>/dev/null) || continue
+      case "$sudo_model_loader_size" in ''|*[!0-9]*) continue ;; esac
+      [ "$sudo_model_loader_size" -le 65536 ] || continue
+      sudo_model_loader_helper=$(LC_ALL=C awk '
+        NR > 200 || length($0) > 2048 { incomplete = 1; exit }
+        /^[[:space:]]*#/ { next }
+        {
+          line = $0
+          sub(/^[[:space:]]*/, "", line)
+          if (line ~ /^[A-Za-z_][A-Za-z0-9_]*=["\047]\$1["\047][[:space:]]*(#.*)?$/) {
+            modelvar = line
+            sub(/=.*/, "", modelvar)
+          }
+          if (line ~ /^[A-Za-z_][A-Za-z0-9_]*=["\047]\/[A-Za-z0-9_.+\/-]+[.]py["\047][[:space:]]*(#.*)?$/) {
+            helpervar = line
+            sub(/=.*/, "", helpervar)
+            helperpath = line
+            sub(/^[^=]*=["\047]/, "", helperpath)
+            sub(/["\047].*$/, "", helperpath)
+          }
+          if (modelvar != "" && helpervar != "" &&
+              line ~ /^\/[A-Za-z0-9_.+\/-]*python(3([.][0-9]+)?)?[[:space:]]/ &&
+              index(line, "$" modelvar "\"") && index(line, "$" helpervar "\""))
+            forwarded = 1
+        }
+        END { if (!incomplete && forwarded) print helperpath }
+      ' "$sudo_model_loader_script" 2>/dev/null)
+      case "$sudo_model_loader_helper" in
+        /*.py) ;;
+        *) continue ;;
+      esac
+      case "$sudo_model_loader_helper" in
+        *'/../'*|*'/./'*|*'//'*) continue ;;
+      esac
+      [ -f "$sudo_model_loader_helper" ] && [ -r "$sudo_model_loader_helper" ] &&
+        sudo_python_import_plain_path "$sudo_model_loader_helper" || continue
+      sudo_model_loader_size=$(stat -c %s "$sudo_model_loader_helper" 2>/dev/null) ||
+        sudo_model_loader_size=$(stat -f %z "$sudo_model_loader_helper" 2>/dev/null) || continue
+      case "$sudo_model_loader_size" in ''|*[!0-9]*) continue ;; esac
+      [ "$sudo_model_loader_size" -le 65536 ] || continue
+      sudo_model_loader_line=$(LC_ALL=C awk '
+        NR > 200 || length($0) > 2048 { incomplete = 1; exit }
+        /^[[:space:]]*#/ { next }
+        /^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*[[:space:]]*=[[:space:]]*|return[[:space:]]+)?(torch[.]load|pickle[.]load|joblib[.]load)[[:space:]]*\(/ {
+          if (!found) found = NR
+        }
+        END { if (!incomplete && found) print found }
+      ' "$sudo_model_loader_helper" 2>/dev/null)
+      [ -n "$sudo_model_loader_line" ] || continue
+      printf 'Sudo model-loader review candidate: %s accepts checkpoints from writable %s and forwards them to %s (loader at line %s); verify helper dataflow, effective sudo policy, loader version, and weights_only behavior.\n' "$sudo_model_loader_script" "$sudo_model_loader_dir" "$sudo_model_loader_helper" "$sudo_model_loader_line"
+    done
+}
+sudo_model_loader_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+  sed -"${E}" "s,.*,${SED_RED_YELLOW},"
+
 # Correlate direct root sudo rules with an existing cache for a top-level,
 # same-directory import. Only a bounded prefix of each script is read. The
 # interpreter is queried for its version, but the sudo target is never run.
@@ -1596,6 +1832,168 @@ if [ "$sudo_python_tar_commands" ]; then
     done
   done
 fi
+
+# A root sudo grant for one exact Python entry point can still pass a caller
+# supplied Git remote to GitPython. Inspect only that named script; do not run
+# the wrapper, import its modules, or contact a remote. A legacy GitPython
+# clone with protocol.ext.allow=always may execute the remote-ext helper.
+sudo_gitpython_clone_review() {
+  [ -n "$1" ] || return 0
+  sudo_gitpython_clone_rules=$(printf '%s\n' "$1" | awk '
+    NR > 3000 || length($0) > 2048 { incomplete = 1; exit }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      line = $0
+      runas = line
+      sub(/^[[:space:]]*\(/, "", runas)
+      sub(/\).*/, "", runas)
+      if (runas !~ /^(root|ALL|#0)([[:space:]:,]|$)/ || runas ~ /!([[:space:]]*)?(root|ALL|#0)/) next
+      sub(/^[[:space:]]*[^)]*\)[[:space:]]*/, "", line)
+      if (line ~ /(^|[[:space:]])NOEXEC:/ || line ~ /(^|[[:space:]])!/) {
+        blocked = 1
+        next
+      }
+      while (sub(/^[A-Z_]+:[[:space:]]*/, "", line)) {}
+      if (line ~ /,/) next
+      n = split(line, words, /[[:space:]]+/)
+      if (n != 3 || words[3] != "*") next
+      binary = words[1]
+      script = words[2]
+      if (binary !~ /^\/[A-Za-z0-9_.+\/-]*\/python3([.][0-9]+)?$/ ||
+          script !~ /^\/[A-Za-z0-9_.+\/-]+[.]py$/ ||
+          binary ~ /\/(\.\/|\.\.\/|\/)/ || script ~ /\/(\.\/|\.\.\/|\/)/) next
+      key = binary "|" script
+      if (!seen[key]++ && total < 6) ordered[++total] = key
+    }
+    END {
+      if (incomplete || blocked) exit
+      for (i = 1; i <= total; i++) print ordered[i]
+    }
+  ')
+  [ -n "$sudo_gitpython_clone_rules" ] || return 0
+  if [ -x /usr/bin/python3 ]; then
+    sudo_gitpython_parser=/usr/bin/python3
+  elif [ -x /usr/local/bin/python3 ]; then
+    sudo_gitpython_parser=/usr/local/bin/python3
+  else
+    return 0
+  fi
+  printf '%s\n' "$sudo_gitpython_clone_rules" | while IFS='|' read -r sudo_gitpython_binary sudo_gitpython_script; do
+    [ -x "$sudo_gitpython_binary" ] && [ -f "$sudo_gitpython_script" ] &&
+      [ -r "$sudo_gitpython_script" ] &&
+      sudo_python_import_plain_path "$sudo_gitpython_script" || continue
+    sudo_gitpython_size=$(stat -c %s "$sudo_gitpython_script" 2>/dev/null) ||
+      sudo_gitpython_size=$(stat -f %z "$sudo_gitpython_script" 2>/dev/null) || continue
+    case "$sudo_gitpython_size" in ''|*[!0-9]*) continue ;; esac
+    [ "$sudo_gitpython_size" -le 65536 ] || continue
+    sudo_gitpython_result=$("$sudo_gitpython_parser" -I -S - "$sudo_gitpython_script" 2>/dev/null <<'GITPYTHON_CLONE_AST'
+import ast
+import signal
+import sys
+
+signal.alarm(1)
+try:
+    with open(sys.argv[1], "rb") as source_file:
+        source = source_file.read(65537)
+    if len(source) > 65536 or source.count(b"\n") > 200:
+        raise SystemExit(0)
+    if any(len(line) > 2048 for line in source.splitlines()):
+        raise SystemExit(0)
+    tree = ast.parse(source)
+except (OSError, SyntaxError, ValueError, RecursionError):
+    raise SystemExit(0)
+
+
+def name(node, value):
+    return isinstance(node, ast.Name) and node.id == value
+
+
+def constant(node, value):
+    if isinstance(node, getattr(ast, "Constant", ())):
+        return node.value == value
+    if isinstance(node, ast.Str):
+        return node.s == value
+    if isinstance(node, ast.Num):
+        return node.n == value
+    return False
+
+
+def argv_one(node):
+    if not isinstance(node, ast.Subscript):
+        return False
+    target = node.value
+    index = node.slice
+    if isinstance(index, getattr(ast, "Index", ())):
+        index = index.value
+    return (isinstance(target, ast.Attribute) and target.attr == "argv"
+            and name(target.value, "sys") and constant(index, 1))
+
+
+def repo_init(node):
+    return (isinstance(node, ast.Call) and
+            isinstance(node.func, ast.Attribute) and
+            node.func.attr == "init" and name(node.func.value, "Repo"))
+
+
+def ext_enabled(node):
+    return (isinstance(node, (ast.List, ast.Tuple)) and
+            any(constant(item, "-c protocol.ext.allow=always") or
+                constant(item, "--config protocol.ext.allow=always")
+                for item in node.elts))
+
+
+imports = any(isinstance(stmt, ast.ImportFrom) and stmt.module == "git"
+              and any(alias.name == "Repo" and alias.asname is None
+                      for alias in stmt.names) for stmt in tree.body)
+sys_import = any(isinstance(stmt, ast.Import) and
+                 any(alias.name == "sys" and alias.asname is None
+                     for alias in stmt.names) for stmt in tree.body)
+if not imports or not sys_import:
+    raise SystemExit(0)
+
+writes = {}
+for node in ast.walk(tree):
+    if isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del)):
+        writes[node.id] = writes.get(node.id, 0) + 1
+if writes.get("Repo") or writes.get("sys"):
+    raise SystemExit(0)
+
+url_names = set()
+repo_names = set()
+for stmt in tree.body:
+    if isinstance(stmt, ast.Assign) and len(stmt.targets) == 1 and isinstance(stmt.targets[0], ast.Name):
+        target = stmt.targets[0].id
+        if writes.get(target) == 1:
+            if argv_one(stmt.value):
+                url_names.add(target)
+            elif repo_init(stmt.value):
+                repo_names.add(target)
+    value = getattr(stmt, "value", None)
+    if not isinstance(value, ast.Call) or not isinstance(value.func, ast.Attribute):
+        continue
+    if value.func.attr != "clone_from" or not value.args:
+        continue
+    receiver = value.func.value
+    if not isinstance(receiver, ast.Name):
+        continue
+    if receiver.id != "Repo" and receiver.id not in repo_names:
+        continue
+    remote = value.args[0]
+    if not argv_one(remote) and not (isinstance(remote, ast.Name) and remote.id in url_names):
+        continue
+    options = [kw.value for kw in value.keywords if kw.arg == "multi_options"]
+    if len(options) != 1 or not ext_enabled(options[0]):
+        continue
+    print("GitPython privileged clone review candidate")
+    break
+GITPYTHON_CLONE_AST
+)
+    if [ "$sudo_gitpython_result" = 'GitPython privileged clone review candidate' ]; then
+      printf 'GitPython privileged clone review candidate: %s (root sudo permits caller-selected URL with ext transport; verify GitPython version, patch status, effective sudo policy, and reachability; no clone attempted)\n' "$sudo_gitpython_script"
+    fi
+  done
+}
+
+sudo_gitpython_clone_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")"
 
 (sudo_l_colorize_file /etc/sudoers) 2>/dev/null || echo_not_found "/etc/sudoers"
 if ! [ "$IAMROOT" ] && [ -w '/etc/sudoers.d/' ]; then

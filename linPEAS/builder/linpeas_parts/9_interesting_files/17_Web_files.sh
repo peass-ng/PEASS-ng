@@ -24,12 +24,12 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
 fi
 
 if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ] && command -v python3 >/dev/null 2>&1; then
-  print_2title "Django FileBasedCache directory permissions (bounded passive check)" "T1005"
+  print_2title "Django settings and FileBasedCache permissions (bounded passive check)" "T1005"
   (
     if [ "$SEARCH_IN_FOLDER" ]; then
       set -- "$SEARCH_IN_FOLDER"
     else
-      set -- /var/www /srv/www /opt
+      set -- /var/www /srv/www /opt /usr/src/app/app/settings.py
     fi
     "$TIMEOUT" 8 python3 -I -S - "$@" <<'DJANGO_FILE_CACHE_CHECK'
 import ast
@@ -42,6 +42,8 @@ if sys.version_info < (3, 6):
     raise SystemExit(0)  # Scoped scandir context managers are unavailable.
 
 BACKEND = "django.core.cache.backends.filebased.FileBasedCache"
+COOKIE_BACKEND = "django.contrib.sessions.backends.signed_cookies"
+PICKLE_SERIALIZER = "django.contrib.sessions.serializers.PickleSerializer"
 MAX_CANDIDATES = 30
 MAX_BYTES = 262144
 MAX_DIRS = 240
@@ -55,6 +57,33 @@ def literal(node):
         return node.value if isinstance(node.value, str) else None
     legacy_string = getattr(ast, "Str", ())
     return node.s if isinstance(node, legacy_string) else None
+
+
+def signed_pickle_session(source):
+    if b"signed_cookies" not in source or b"PickleSerializer" not in source:
+        return False
+    try:
+        tree = ast.parse(source)
+    except (SyntaxError, ValueError):
+        return False
+    names = ("SESSION_ENGINE", "SESSION_SERIALIZER")
+    writes = {name: 0 for name in names}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and any(alias.name == "*" for alias in node.names):
+            return False
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in ("exec", "eval", "globals", "locals"):
+            return False
+        if isinstance(node, ast.Name) and node.id in writes and isinstance(node.ctx, (ast.Store, ast.Del)):
+            writes[node.id] += 1
+    if any(writes[name] != 1 for name in names):
+        return False
+    settings = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            name = node.targets[0].id
+            if name in writes:
+                settings[name] = literal(node.value)
+    return settings.get("SESSION_ENGINE") == COOKIE_BACKEND and settings.get("SESSION_SERIALIZER") == PICKLE_SERIALIZER
 
 
 def cache_entries(source):
@@ -122,6 +151,11 @@ def candidate_files(roots):
                         continue
         except OSError:
             continue
+    if candidates < MAX_CANDIDATES and time.monotonic() < DEADLINE:
+        for path in roots[3:4]:
+            if os.path.isfile(path) and not os.path.islink(path):
+                candidates += 1
+                yield path
 
 
 def process_consumer(settings):
@@ -185,10 +219,14 @@ def inspect(settings):
         if len(source) > MAX_BYTES:
             return []
         aliases, reason = cache_entries(source)
+        session_candidate = signed_pickle_session(source)
     except (OSError, UnicodeError):
         return []
     if reason:
-        return ["review Django cache settings %r: %s" % (settings, reason)] if b"FileBasedCache" in source else []
+        findings = ["review Django cache settings %r: %s" % (settings, reason)] if b"FileBasedCache" in source else []
+        if session_candidate:
+            findings.append("review signed-cookie pickle session: settings=%r; SECRET_KEY access and active backend require confirmation" % settings)
+        return findings
     findings = []
     for alias, location in aliases:
         if location is None:
@@ -217,6 +255,8 @@ def inspect(settings):
             findings.append("potential cross-user Django file cache replacement: " + evidence)
         else:
             findings.append("review Django file cache candidate: " + evidence)
+    if session_candidate:
+        findings.append("review signed-cookie pickle session: settings=%r; SECRET_KEY access and active backend require confirmation" % settings)
     return findings
 
 
