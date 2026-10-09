@@ -784,12 +784,14 @@ namespace winPEAS.Checks
             }
         }
 
-        internal static List<string> FindRootPowerShellTranscripts(string rootPath, out bool partial)
+        internal static List<string> FindRootPowerShellTranscripts(string rootPath, out bool partial,
+            Func<string, FileAttributes> getAttributes = null)
         {
-            const int maxChildDirectories = 16;
-            const int maxFiles = 64;
+            const int maxRootEntries = 16;
+            const int maxChildEntries = 64;
             var files = new List<string>();
             partial = false;
+            getAttributes = getAttributes ?? File.GetAttributes;
 
             try
             {
@@ -798,15 +800,16 @@ namespace winPEAS.Checks
                     new DriveInfo(Path.GetPathRoot(rootPath)).DriveType != DriveType.Fixed)
                     return files;
 
-                var rootAttributes = File.GetAttributes(rootPath);
+                var rootAttributes = getAttributes(rootPath);
                 if ((rootAttributes & FileAttributes.Directory) == 0 ||
                     (rootAttributes & FileAttributes.ReparsePoint) != 0)
                     return files;
 
-                int childDirectories = 0;
-                foreach (var child in Directory.EnumerateDirectories(rootPath, "*", SearchOption.TopDirectoryOnly))
+                int rootEntries = 0;
+                int childEntries = 0;
+                foreach (var child in Directory.EnumerateFileSystemEntries(rootPath, "*", SearchOption.TopDirectoryOnly))
                 {
-                    if (++childDirectories > maxChildDirectories)
+                    if (++rootEntries > maxRootEntries)
                     {
                         partial = true;
                         break;
@@ -814,20 +817,23 @@ namespace winPEAS.Checks
 
                     try
                     {
-                        var childAttributes = File.GetAttributes(child);
+                        var childAttributes = getAttributes(child);
                         if ((childAttributes & FileAttributes.Directory) == 0 ||
                             (childAttributes & FileAttributes.ReparsePoint) != 0)
                             continue;
 
-                        foreach (var file in Directory.EnumerateFiles(child, "PowerShell_transcript*", SearchOption.TopDirectoryOnly))
+                        foreach (var file in Directory.EnumerateFileSystemEntries(child, "*", SearchOption.TopDirectoryOnly))
                         {
-                            if (files.Count >= maxFiles)
+                            // Count every entry, including nonmatches and skipped reparse points.
+                            if (childEntries++ >= maxChildEntries)
                             {
                                 partial = true;
                                 return files;
                             }
 
-                            var attributes = File.GetAttributes(file);
+                            if (!Path.GetFileName(file).StartsWith("PowerShell_transcript", StringComparison.OrdinalIgnoreCase))
+                                continue;
+                            var attributes = getAttributes(file);
                             if ((attributes & (FileAttributes.Directory | FileAttributes.ReparsePoint)) == 0)
                                 files.Add(file);
                         }
