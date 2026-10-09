@@ -21,6 +21,13 @@ using winPEAS.Native;
 
 namespace winPEAS.Info.ServicesInfo
 {
+    internal enum ScmCreateServiceAccess
+    {
+        Unknown,
+        Denied,
+        Granted
+    }
+
     internal sealed class ServiceCommandLineAssessment
     {
         public string DisplayPath { get; set; }
@@ -61,6 +68,22 @@ namespace winPEAS.Info.ServicesInfo
         public bool LimitReached { get; set; }
         public bool TimeLimitReached { get; set; }
         public bool Complete => Available && !LimitReached && !TimeLimitReached;
+    }
+
+    internal sealed class ServiceRegistryWriteReport
+    {
+        public List<Dictionary<string, string>> Findings { get; } = new List<Dictionary<string, string>>();
+        public int TotalNames { get; set; }
+        public int Inspected { get; set; }
+        public int Unreadable { get; set; }
+        public int OmittedFindings { get; set; }
+        public bool Available { get; set; }
+        public bool LimitReached { get; set; }
+        public bool TimeLimitReached { get; set; }
+        public bool Complete => Available && !LimitReached && !TimeLimitReached && Unreadable == 0 && Inspected == TotalNames;
+        public string NoFindingsSummary => Complete
+            ? "No matching service-registry ACL entries found in the complete inventory."
+            : "Service-registry ACL review is incomplete; uninspected or unreadable keys remain unknown.";
     }
 
     internal sealed class SqlServicePrivilegeInfo
@@ -119,6 +142,7 @@ namespace winPEAS.Info.ServicesInfo
         // Service keys also contain drivers; a few hundred keys can be exhausted before
         // later service names are reached on ordinary Windows installations.
         internal const int MaxRegistryServiceEntries = 2048;
+        internal const int MaxServiceRegistryWriteFindings = 128;
         internal const uint ServiceChangeConfigAccess = 0x0002;
         internal const uint ServiceStartAccess = 0x0010;
         internal const uint ServiceStopAccess = 0x0020;
@@ -356,6 +380,8 @@ namespace winPEAS.Info.ServicesInfo
         private const int ServiceWin32TypeMask = 0x30;
         private const int ServiceDisabled = 0x4;
         private const uint ScManagerConnect = 0x0001;
+        internal const uint ScManagerCreateService = 0x0002;
+        private const int ErrorAccessDenied = 5;
         private const uint ServiceQueryConfig = 0x0001;
         private const uint ServiceConfigFailureActions = 2;
         private const int ScActionRunCommand = 3;
@@ -725,6 +751,40 @@ namespace winPEAS.Info.ServicesInfo
             return report;
         }
 
+        internal static ScmCreateServiceAccess ProbeScmCreateServiceAccess(
+            Func<uint, IntPtr> openManager, Func<int> getLastError, Action<IntPtr> closeManager)
+        {
+            IntPtr manager = IntPtr.Zero;
+            try
+            {
+                manager = openManager(ScManagerCreateService);
+                if (manager != IntPtr.Zero)
+                    return ScmCreateServiceAccess.Granted;
+                return getLastError() == ErrorAccessDenied
+                    ? ScmCreateServiceAccess.Denied : ScmCreateServiceAccess.Unknown;
+            }
+            catch (Exception)
+            {
+                return ScmCreateServiceAccess.Unknown;
+            }
+            finally
+            {
+                if (manager != IntPtr.Zero)
+                {
+                    try { closeManager(manager); }
+                    catch (Exception) { /* Access result remains valid if handle cleanup fails. */ }
+                }
+            }
+        }
+
+        internal static ScmCreateServiceAccess GetScmCreateServiceAccess()
+        {
+            return ProbeScmCreateServiceAccess(
+                access => Advapi32.OpenSCManager(null, null, access),
+                Marshal.GetLastWin32Error,
+                handle => Advapi32.CloseServiceHandle(handle));
+        }
+
         internal static ServiceAccessFallbackReport GetModifiableServicesByRegistryName()
         {
             var unavailable = new ServiceAccessFallbackReport();
@@ -773,31 +833,84 @@ namespace winPEAS.Info.ServicesInfo
         //////////////////////////////////////////
         ///////  Find Write reg. Services ////////
         //////////////////////////////////////////
-        /// Find Services which Reg you have write or equivalent access
-        public static List<Dictionary<string, string>> GetWriteServiceRegs(Dictionary<string, string> NtAccountNames)
+        /// Review matching service-key ACL entries. Matching entries are not effective access decisions.
+        internal static ServiceRegistryWriteReport InspectWriteServiceRegs(
+            string[] names, Func<string, List<string>> readPermissions, int maxNames, Func<bool> deadlineReached)
         {
-            List<Dictionary<string, string>> results = new List<Dictionary<string, string>>();
+            var report = new ServiceRegistryWriteReport();
+            if (names == null || readPermissions == null)
+                return report;
+
+            report.Available = true;
+            report.TotalNames = names.Length;
+            foreach (string serviceRegName in names)
+            {
+                if (report.Inspected >= maxNames)
+                {
+                    report.LimitReached = true;
+                    break;
+                }
+                if (deadlineReached != null && deadlineReached())
+                {
+                    report.TimeLimitReached = true;
+                    break;
+                }
+
+                ++report.Inspected;
+                List<string> perms;
+                try { perms = readPermissions(serviceRegName); }
+                catch { perms = null; }
+                if (perms == null)
+                {
+                    ++report.Unreadable;
+                    continue;
+                }
+                if (perms.Count == 0)
+                    continue;
+                if (report.Findings.Count >= MaxServiceRegistryWriteFindings)
+                {
+                    ++report.OmittedFindings;
+                    continue;
+                }
+                report.Findings.Add(new Dictionary<string, string> {
+                    { "Path", @"HKLM\system\currentcontrolset\services\" + serviceRegName },
+                    { "Permissions", string.Join(", ", perms) }
+                });
+            }
+            return report;
+        }
+
+        internal static ServiceRegistryWriteReport GetWriteServiceRegsReport(Dictionary<string, string> ntAccountNames)
+        {
+            var unavailable = new ServiceRegistryWriteReport();
             try
             {
-                RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"system\currentcontrolset\services");
-                foreach (string serviceRegName in regKey.GetSubKeyNames())
+                using (RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"system\currentcontrolset\services"))
                 {
-                    RegistryKey key = Registry.LocalMachine.OpenSubKey(@"system\currentcontrolset\services\" + serviceRegName);
-                    List<string> perms = PermissionsHelper.GetMyPermissionsR(key, NtAccountNames);
-                    if (perms.Count > 0)
+                    if (regKey == null)
+                        return unavailable;
+                    string[] names = regKey.GetSubKeyNames();
+                    Stopwatch timer = Stopwatch.StartNew();
+                    return InspectWriteServiceRegs(names, name =>
                     {
-                        results.Add(new Dictionary<string, string> {
-                        { "Path", @"HKLM\system\currentcontrolset\services\" + serviceRegName },
-                        { "Permissions", string.Join(", ", perms) }
-                    });
-                    }
+                        using (RegistryKey key = regKey.OpenSubKey(name))
+                        {
+                            if (key == null)
+                                return null;
+                            bool aclReadable;
+                            List<string> permissions = PermissionsHelper.GetMyPermissionsR(
+                                key, ntAccountNames, out aclReadable);
+                            return aclReadable ? permissions : null;
+                        }
+                    }, MaxRegistryServiceEntries, () => timer.ElapsedMilliseconds >= MaxServiceAccessFallbackMilliseconds);
                 }
             }
-            catch (Exception ex)
-            {
-                Beaprint.PrintException(ex.Message);
-            }
-            return results;
+            catch { return unavailable; }
+        }
+
+        public static List<Dictionary<string, string>> GetWriteServiceRegs(Dictionary<string, string> ntAccountNames)
+        {
+            return GetWriteServiceRegsReport(ntAccountNames).Findings;
         }
 
 

@@ -210,7 +210,14 @@ namespace winPEAS.Helpers
 
         public static List<string> GetMyPermissionsR(RegistryKey key, Dictionary<string, string> SIDs)
         {
+            bool aclReadable;
+            return GetMyPermissionsR(key, SIDs, out aclReadable, true);
+        }
+
+        internal static List<string> GetMyPermissionsR(RegistryKey key, Dictionary<string, string> SIDs, out bool aclReadable, bool printErrors = false)
+        {
             // Get interesting permissions in rSecurity (Only Registry)
+            aclReadable = false;
             List<string> results = new List<string>();
             var container = new Dictionary<string, Dictionary<string, string>>();
 
@@ -270,10 +277,12 @@ namespace winPEAS.Helpers
                     string to_add = string.Format("{0}{1}", SID_input.Key, perms);
                     results.Add(to_add);
                 }
+                aclReadable = true;
             }
             catch (Exception ex)
             {
-                Beaprint.PrintException(ex.Message);
+                if (printErrors)
+                    Beaprint.PrintException(ex.Message);
             }
             return results;
         }

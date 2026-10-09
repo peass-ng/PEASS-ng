@@ -72,6 +72,20 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void FixedAclTargetsIncludeConventionalPermissionsGroupWithoutAnotherSearch()
+        {
+            const string domain = "DC=example,DC=test";
+            var targets = ActiveDirectoryInfo.EnumerateHighValueTargets(domain).ToArray();
+            var group = targets.Where(target => target.Label == "Exchange Windows Permissions").ToArray();
+            Assert.AreEqual(1, group.Length);
+            Assert.AreEqual("CN=Exchange Windows Permissions,OU=Microsoft Exchange Security Groups," + domain,
+                group[0].DistinguishedName);
+            Assert.AreEqual(1, targets.Count(target => target.Label == "Domain Root"));
+            Assert.AreEqual(domain, targets.Single(target => target.Label == "Domain Root").DistinguishedName);
+            Assert.IsFalse(targets.Any(target => target.DistinguishedName.Contains("*")));
+        }
+
+        [TestMethod]
         public void SelfMembershipAndMemberWritePropertyStayDistinct()
         {
             Assert.AreEqual(ActiveDirectoryInfo.MembershipWriteRight.OwnMembership,

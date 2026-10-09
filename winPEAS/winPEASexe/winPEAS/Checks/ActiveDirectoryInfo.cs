@@ -1461,7 +1461,7 @@ namespace winPEAS.Checks
             }
         }
 
-        private static IEnumerable<(string Label, string DistinguishedName)> EnumerateHighValueTargets(string defaultNC)
+        internal static IEnumerable<(string Label, string DistinguishedName)> EnumerateHighValueTargets(string defaultNC)
         {
             return new List<(string, string)>
             {
@@ -1474,6 +1474,8 @@ namespace winPEAS.Checks
                 ("Schema Admins", $"CN=Schema Admins,CN=Users,{defaultNC}"),
                 ("Administrators", $"CN=Administrators,CN=Builtin,{defaultNC}"),
                 ("Account Operators", $"CN=Account Operators,CN=Builtin,{defaultNC}"),
+                // Optional group at its conventional location; moved groups depend on the capped sample.
+                ("Exchange Windows Permissions", $"CN=Exchange Windows Permissions,OU=Microsoft Exchange Security Groups,{defaultNC}"),
                 ("Backup Operators", $"CN=Backup Operators,CN=Builtin,{defaultNC}"),
                 ("Group Policy Creator Owners", $"CN=Group Policy Creator Owners,CN=Users,{defaultNC}"),
                 ("krbtgt", $"CN=krbtgt,CN=Users,{defaultNC}")

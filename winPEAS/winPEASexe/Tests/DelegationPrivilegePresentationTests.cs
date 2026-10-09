@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using winPEAS.Checks;
 using winPEAS.Info.UserInfo.Token;
@@ -9,6 +10,16 @@ namespace winPEAS.Tests
     public class DelegationPrivilegePresentationTests
     {
         private const string Name = "SeEnableDelegationPrivilege";
+
+        [TestMethod]
+        public void RiskyTokenPrivilegePatternIncludesPrimaryTokenAssignment()
+        {
+            Assert.IsTrue(Regex.IsMatch("SeAssignPrimaryTokenPrivilege", UserInfo.BadPrivilegesPattern));
+            Assert.IsTrue(Regex.IsMatch("SeImpersonatePrivilege", UserInfo.BadPrivilegesPattern));
+            Assert.IsTrue(Regex.IsMatch("SeDebugPrivilege", UserInfo.BadPrivilegesPattern));
+            Assert.IsFalse(Regex.IsMatch("SeAssignPrimaryPrivilege", UserInfo.BadPrivilegesPattern));
+            Assert.IsFalse(Regex.IsMatch("SeChangeNotifyPrivilege", UserInfo.BadPrivilegesPattern));
+        }
 
         [TestMethod]
         public void OnlyAnEnabledCurrentTokenPrivilegeTriggersEmphasis()

@@ -32,6 +32,28 @@ namespace winPEAS.Checks
         static Dictionary<string, string> _basicSystemInfo;
         static PrintSpoolerCve38028Report _spoolerReport;
 
+        internal enum AlwaysInstallElevatedStatus
+        {
+            BothEnabled,
+            OneEnabled,
+            NotConfirmed
+        }
+
+        internal static AlwaysInstallElevatedStatus AssessAlwaysInstallElevated(string machineValue, string userValue)
+        {
+            bool machineEnabled = machineValue == "1";
+            bool userEnabled = userValue == "1";
+            if (machineEnabled && userEnabled) return AlwaysInstallElevatedStatus.BothEnabled;
+            if (machineEnabled || userEnabled) return AlwaysInstallElevatedStatus.OneEnabled;
+            return AlwaysInstallElevatedStatus.NotConfirmed;
+        }
+
+        internal static string DescribeAlwaysInstallElevatedValue(string value)
+        {
+            if (value == "1" || value == "0") return value;
+            return string.IsNullOrEmpty(value) ? "missing" : "unexpected value";
+        }
+
         internal enum PointAndPrintPolicyStatus
         {
             ExplicitAdminOnly,
@@ -687,13 +709,12 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("PS default transcripts history", "T1552.001");
-                Beaprint.InfoPrint("Read the PS history inside these files (if any)");
+                Beaprint.MainPrint("PowerShell transcript paths", "T1552.001");
+                Beaprint.InfoPrint("Transcripts can contain commands and secrets; review readable files separately.");
                 string drive = Path.GetPathRoot(Environment.SystemDirectory);
                 string transcriptsPath = drive + @"transcripts\";
                 string usersPath = $"{drive}users";
 
-                var users = Directory.EnumerateDirectories(usersPath, "*", SearchOption.TopDirectoryOnly);
                 string powershellTranscriptFilter = "powershell_transcript*";
 
                 var colors = new Dictionary<string, string>()
@@ -703,6 +724,17 @@ namespace winPEAS.Checks
 
                 var results = new List<string>();
 
+                // A configured transcript directory may sit at the system drive root.
+                // Inspect only its immediate children; never follow directory junctions.
+                bool rootTranscriptPartial;
+                string rootTranscriptPath = Path.Combine(drive, "PSTranscripts");
+                var rootTranscriptFiles = FindRootPowerShellTranscripts(rootTranscriptPath, out rootTranscriptPartial);
+                if (rootTranscriptFiles.Count > 0)
+                    Beaprint.ListPrint(rootTranscriptFiles.Select(file => "[path only] - " + file).ToList(), colors);
+                if (rootTranscriptPartial)
+                    Beaprint.GrayPrint("    Root transcript inventory is partial (entry limit or inaccessible path).");
+
+                var users = Directory.EnumerateDirectories(usersPath, "*", SearchOption.TopDirectoryOnly);
                 var dict = new Dictionary<string, string>()
                 {
                     // check \\transcripts\ folder
@@ -750,6 +782,71 @@ namespace winPEAS.Checks
             {
                 Beaprint.PrintException(ex.Message);
             }
+        }
+
+        internal static List<string> FindRootPowerShellTranscripts(string rootPath, out bool partial)
+        {
+            const int maxChildDirectories = 16;
+            const int maxFiles = 64;
+            var files = new List<string>();
+            partial = false;
+
+            try
+            {
+                if (string.IsNullOrEmpty(rootPath) || rootPath.StartsWith(@"\\", StringComparison.Ordinal) ||
+                    !Path.IsPathRooted(rootPath) ||
+                    new DriveInfo(Path.GetPathRoot(rootPath)).DriveType != DriveType.Fixed)
+                    return files;
+
+                var rootAttributes = File.GetAttributes(rootPath);
+                if ((rootAttributes & FileAttributes.Directory) == 0 ||
+                    (rootAttributes & FileAttributes.ReparsePoint) != 0)
+                    return files;
+
+                int childDirectories = 0;
+                foreach (var child in Directory.EnumerateDirectories(rootPath, "*", SearchOption.TopDirectoryOnly))
+                {
+                    if (++childDirectories > maxChildDirectories)
+                    {
+                        partial = true;
+                        break;
+                    }
+
+                    try
+                    {
+                        var childAttributes = File.GetAttributes(child);
+                        if ((childAttributes & FileAttributes.Directory) == 0 ||
+                            (childAttributes & FileAttributes.ReparsePoint) != 0)
+                            continue;
+
+                        foreach (var file in Directory.EnumerateFiles(child, "PowerShell_transcript*", SearchOption.TopDirectoryOnly))
+                        {
+                            if (files.Count >= maxFiles)
+                            {
+                                partial = true;
+                                return files;
+                            }
+
+                            var attributes = File.GetAttributes(file);
+                            if ((attributes & (FileAttributes.Directory | FileAttributes.ReparsePoint)) == 0)
+                                files.Add(file);
+                        }
+                    }
+                    catch (UnauthorizedAccessException) { partial = true; }
+                    catch (PathTooLongException) { partial = true; }
+                    catch (IOException) { partial = true; }
+                    catch (System.Security.SecurityException) { partial = true; }
+                }
+            }
+            catch (FileNotFoundException) { }
+            catch (DirectoryNotFoundException) { }
+            catch (UnauthorizedAccessException) { partial = true; }
+            catch (PathTooLongException) { partial = true; }
+            catch (IOException) { partial = true; }
+            catch (ArgumentException) { partial = true; }
+            catch (NotSupportedException) { partial = true; }
+            catch (System.Security.SecurityException) { partial = true; }
+            return files;
         }
 
         private static void PrintAuditInfo()
@@ -1226,20 +1323,20 @@ namespace winPEAS.Checks
                 string path = "Software\\Policies\\Microsoft\\Windows\\Installer";
                 string HKLM_AIE = RegistryHelper.GetRegValue("HKLM", path, "AlwaysInstallElevated");
                 string HKCU_AIE = RegistryHelper.GetRegValue("HKCU", path, "AlwaysInstallElevated");
+                Beaprint.GrayPrint("    HKLM policy value: " + DescribeAlwaysInstallElevatedValue(HKLM_AIE));
+                Beaprint.GrayPrint("    HKCU policy value: " + DescribeAlwaysInstallElevatedValue(HKCU_AIE));
 
-                if (HKLM_AIE == "1")
+                switch (AssessAlwaysInstallElevated(HKLM_AIE, HKCU_AIE))
                 {
-                    Beaprint.BadPrint("    AlwaysInstallElevated set to 1 in HKLM!");
-                }
-
-                if (HKCU_AIE == "1")
-                {
-                    Beaprint.BadPrint("    AlwaysInstallElevated set to 1 in HKCU!");
-                }
-
-                if (HKLM_AIE != "1" && HKCU_AIE != "1")
-                {
-                    Beaprint.GoodPrint("    AlwaysInstallElevated isn't available");
+                    case AlwaysInstallElevatedStatus.BothEnabled:
+                        Beaprint.BadPrint("    Both AlwaysInstallElevated policy values are 1: review elevated MSI installation for this user (value types and effective policy are unverified).");
+                        break;
+                    case AlwaysInstallElevatedStatus.OneEnabled:
+                        Beaprint.GrayPrint("    Only one AlwaysInstallElevated policy value is 1; the two-policy condition for unmanaged elevated MSI installation is not confirmed.");
+                        break;
+                    default:
+                        Beaprint.GrayPrint("    The two-policy AlwaysInstallElevated condition is not confirmed.");
+                        break;
                 }
             }
             catch (Exception ex)
