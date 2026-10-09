@@ -83,7 +83,7 @@ peas_storages_markup: "peass{STORAGES_HERE}"
 storage_line_markup: "peass{STORAGE_PARAMS_HERE}"
 storage_line_extra_markup: "peass{STORAGE_PARAMS_EXTRA_HERE}"
 storage_template: >
-          $(echo -e "peass{STORAGE_PARAMS_HERE}" peass{STORAGE_PARAMS_EXTRA_HERE} | sort | uniq | head -n 70)
+          $(printf '%b\n' "peass{STORAGE_PARAMS_HERE}" peass{STORAGE_PARAMS_EXTRA_HERE} | sort | uniq | head -n 70)
 
 int_hidden_files_markup: "peass{INT_HIDDEN_FILES}"
 
