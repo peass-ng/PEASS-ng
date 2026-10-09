@@ -135,6 +135,7 @@ namespace winPEAS.Checks
                 PrintPossCredsRegs,
                 HMailServerExposure.PrintInfo,
                 PrintUserCredsFiles,
+                PrintMRemoteNgConnectionFiles,
                 PrintOracleSQLDeveloperConfigFiles,
                 Slack.PrintInfo,
                 PrintLOLBAS,
@@ -566,6 +567,25 @@ namespace winPEAS.Checks
             }
         }
 
+        private static void PrintMRemoteNgConnectionFiles()
+        {
+            Beaprint.MainPrint("Readable mRemoteNG connection XML", "T1552.001");
+            MRemoteNgConnectionReport report = MRemoteNgConnectionFiles.ScanCurrentUser();
+            foreach (MRemoteNgConnectionFinding finding in report.Findings)
+            {
+                string safePath = new string(finding.Path.Select(c => char.IsControl(c) ? '?' : c).ToArray());
+                string count = finding.EncryptedNodeCount.HasValue
+                    ? finding.EncryptedNodeCount.Value.ToString()
+                    : "unavailable (full-file encryption)";
+                Beaprint.BadPrint("    " + safePath + " | encrypted nodes: " + count);
+            }
+            if (report.Findings.Count == 0) Beaprint.NotFoundPrint();
+            if (report.LimitReached || report.Partial)
+                Beaprint.GrayPrint("    Partial visibility: a directory, candidate, or best-effort time limit was reached, or a path could not be inspected.");
+            Beaprint.GrayPrint("    Encrypted entries are a credential lead; recovery depends on the configuration and master password.");
+            Beaprint.GrayPrint("    Only accessible local profile paths were checked; malformed files and hidden stores may be missed.");
+        }
+
         void PrintRecycleBin()
         {
             try
@@ -598,6 +618,26 @@ namespace winPEAS.Checks
                 {
                     Beaprint.NotFoundPrint();
                 }
+
+                Beaprint.MainPrint("Deleted archive candidates in accessible Recycle Bins", "T1552.001");
+                RecycleBinArchiveResult archives = RecycleBinArchiveIndicator.Scan();
+                foreach (RecycleBinArchiveCandidate archive in archives.Candidates)
+                {
+                    int ageDays = Math.Max(0, (int)(DateTime.UtcNow - archive.DeletedUtc).TotalDays);
+                    Beaprint.GrayPrint("  " + archive.OriginalName +
+                        " | deleted " + ageDays + " days ago" +
+                        " | $R: " + archive.RecycledPath +
+                        " | size: " + (archive.Size.HasValue ? archive.Size.Value.ToString() + " bytes" : "unknown") +
+                        " | access: " + archive.Accessibility +
+                        (archive.LikelyBackup ? " | backup/config name" : ""));
+                }
+                if (archives.Candidates.Count == 0) Beaprint.NotFoundPrint();
+                Beaprint.GrayPrint("  Metadata only; archive contents and credentials were not inspected.");
+                Beaprint.GrayPrint("  Scan limits: 16 volumes, 128 SID folders, 4096 entries, 1024 $I records, 20 candidates, 4096 bytes per $I; 3-second best-effort budget.");
+                if (archives.Partial || archives.MalformedRecords > 0)
+                    Beaprint.GrayPrint("  Partial visibility: limits, access errors, skipped reparse points, or malformed $I metadata (" +
+                        archives.MalformedRecords + " malformed); additional candidates may be unseen.");
+                Beaprint.GrayPrint("  Visibility depends on the current identity and Recycle Bin ACLs; no finding does not prove absence.");
             }
             catch (Exception ex)
             {

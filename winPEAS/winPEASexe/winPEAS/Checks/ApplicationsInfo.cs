@@ -112,6 +112,8 @@ namespace winPEAS.Checks
                 PrintDockerDesktopVersionRisk();
                 PrintCheckmkAgentVersionRisk();
                 PrintVeeamBackupVersionRisk();
+                PrintPdf24RepairPrerequisites();
+                PrintLansweeperConfigMetadata();
                 SortedDictionary<string, Dictionary<string, string>> installedAppsPerms = InstalledApps.GetInstalledAppsPerms();
                 string format = "    ==>  {0} ({1})";
 
@@ -149,6 +151,53 @@ namespace winPEAS.Checks
             catch (Exception e)
             {
                 Beaprint.PrintException(e.Message);
+            }
+        }
+
+        private static void PrintLansweeperConfigMetadata()
+        {
+            foreach (LansweeperConfigResult result in LansweeperConfigMetadata.Collect())
+            {
+                Beaprint.MainPrint("Lansweeper configuration metadata", "T1552.001");
+                Beaprint.NoColorPrint("    Website\\web.config: " + result.ConfigState);
+                Beaprint.NoColorPrint("    Key\\Encryption.txt: " + result.KeyState);
+                Beaprint.NoColorPrint("    Protected connectionStrings: " +
+                    (result.ConfigState == ConfigFileState.Readable
+                        ? (result.ProtectedConnectionStrings ? "present" : "not detected") : "unknown"));
+                if (result.Candidate)
+                    Beaprint.BadPrint("    Candidate: application-stored scanning credentials may be recoverable with the required context.");
+                Beaprint.GrayPrint("    Database connectivity and decryption context are unknown; no recovery was attempted.");
+                if (result.Partial || result.ConfigState == ConfigFileState.TooLarge)
+                    Beaprint.GrayPrint("    Partial visibility: file access, size, or time limit prevented complete inspection.");
+            }
+        }
+
+        private static void PrintPdf24RepairPrerequisites()
+        {
+            foreach (Pdf24RepairEvidence evidence in Pdf24RepairPrerequisites.Collect())
+            {
+                Version registry = Pdf24RepairPrerequisites.ParseVersion(evidence.RegistryVersion);
+                Version binary = Pdf24RepairPrerequisites.ParseVersion(evidence.BinaryVersion);
+                string versions = "registry version " + (registry == null ? "unavailable" : registry.ToString()) +
+                    ", binary version " + (binary == null ? "unavailable" : binary.ToString());
+                switch (Pdf24RepairPrerequisites.Assess(evidence))
+                {
+                    case Pdf24RepairAssessment.FixedVersion:
+                        Beaprint.GoodPrint("    PDF24 Creator " + versions + ": installed version at or above the 11.15.2 fix boundary; cached package version unverified.");
+                        break;
+                    case Pdf24RepairAssessment.ConditionalLead:
+                        Beaprint.BadPrint("    PDF24 Creator " + versions + ": conditional MSI repair lead; registered installer, readable package, and nonzero interactive-session indicator found.");
+                        Beaprint.InfoPrint("    Repair permission, desktop/UI visibility, vulnerable console action, and log-file delay/access remain unverified. No repair or log access was attempted.");
+                        break;
+                    case Pdf24RepairAssessment.MissingRepairEvidence:
+                        Beaprint.InfoPrint("    PDF24 Creator " + versions + ": older-version clue only; MSI registered=" + evidence.MsiRegistered +
+                            ", readable package=" + evidence.ReadablePackage + ", current session interactive=" + evidence.InteractiveSession +
+                            ", repair UI hidden=" + evidence.RepairUiHidden + ". Repair permission, desktop/UI visibility, vulnerable console action, and log-file delay/access remain unverified.");
+                        break;
+                    default:
+                        Beaprint.InfoPrint("    PDF24 Creator " + versions + ": installer version status unknown or conflicting; no repair conclusion.");
+                        break;
+                }
             }
         }
 
@@ -859,15 +908,18 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Device Drivers --Non Microsoft--", "T1014");
+                Beaprint.MainPrint("Device Drivers -- candidates for manual review --", "T1014");
                 // this link is not very specific, but its the best on hacktricks
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#drivers", "Check 3rd party drivers for known vulnerabilities/rootkits.");
 
-                foreach (var driver in DeviceDrivers.GetDeviceDriversNoMicrosoft())
+                DeviceDriverInventory inventory = DeviceDrivers.GetDriverInventory();
+                Beaprint.InfoPrint("    Driver presence and file permissions do not establish device access or unsafe IOCTL behavior.");
+                foreach (DeviceDriverRecord driver in inventory.Drivers)
                 {
-                    string pathDriver = driver.Key;
-                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(pathDriver, Checks.CurrentUserSiDs);
-                    List<string> dirRights = PermissionsHelper.GetPermissionsFolder(pathDriver, Checks.CurrentUserSiDs);
+                    string pathDriver = driver.Path;
+                    bool localFile = DeviceDrivers.IsLocalFilePath(pathDriver) && File.Exists(pathDriver);
+                    List<string> fileRights = localFile ? PermissionsHelper.GetPermissionsFile(pathDriver, Checks.CurrentUserSiDs) : new List<string>();
+                    List<string> dirRights = localFile ? PermissionsHelper.GetPermissionsFolder(Path.GetDirectoryName(pathDriver), Checks.CurrentUserSiDs) : new List<string>();
 
                     Dictionary<string, string> colorsD = new Dictionary<string, string>()
                         {
@@ -877,7 +929,7 @@ namespace winPEAS.Checks
                         };
 
 
-                    string formString = "    {0} - {1} [{2}]: {3}";
+                    string formString = "    {0} - {1} [{2}]: {3}\n    Service: {6}; State: {7}; Start: {8}";
                     if (fileRights.Count > 0)
                     {
                         formString += "\n    Permissions file: {4}";
@@ -888,7 +940,14 @@ namespace winPEAS.Checks
                         formString += "\n    Permissions folder(DLL Hijacking): {5}";
                     }
 
-                    Beaprint.AnsiPrint(string.Format(formString, driver.Value.ProductName, driver.Value.ProductVersion, driver.Value.CompanyName, pathDriver, string.Join(", ", fileRights), string.Join(", ", dirRights)), colorsD);
+                    Beaprint.AnsiPrint(string.Format(formString,
+                        string.IsNullOrEmpty(driver.Product) ? "product unavailable" : driver.Product,
+                        string.IsNullOrEmpty(driver.Version) ? "version unavailable" : driver.Version,
+                        string.IsNullOrEmpty(driver.Company) ? "publisher unavailable" : driver.Company,
+                        pathDriver, string.Join(", ", fileRights), string.Join(", ", dirRights),
+                        string.IsNullOrEmpty(driver.Name) ? "unknown" : driver.Name,
+                        string.IsNullOrEmpty(driver.State) ? "unknown" : driver.State,
+                        string.IsNullOrEmpty(driver.StartMode) ? "unknown" : driver.StartMode), colorsD);
 
                     //If vuln, end with separator
                     if ((fileRights.Count > 0) || (dirRights.Count > 0))
@@ -896,6 +955,8 @@ namespace winPEAS.Checks
                         Beaprint.PrintLineSeparator();
                     }
                 }
+                if (inventory.UnknownOrTruncated)
+                    Beaprint.InfoPrint("    Driver inventory partial/unknown: " + inventory.Detail);
             }
             catch (Exception ex)
             {

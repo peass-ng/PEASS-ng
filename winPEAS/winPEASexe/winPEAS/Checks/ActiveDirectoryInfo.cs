@@ -113,6 +113,61 @@ namespace winPEAS.Checks
             return sample;
         }
 
+        private const int TrustedForDelegation = 0x80000;
+        private const int ServerTrustAccount = 0x2000;
+
+        internal sealed class DelegationComputer
+        {
+            internal string Name { get; set; }
+            internal int? UserAccountControl { get; set; }
+        }
+
+        internal sealed class DelegationInventorySummary
+        {
+            internal List<string> DisplayNames { get; } = new List<string>();
+            internal int Inspected { get; set; }
+            internal int Candidates { get; set; }
+            internal int UnknownFlags { get; set; }
+            internal bool Truncated { get; set; }
+            internal bool LdapError { get; set; }
+        }
+
+        internal static bool IsNonDcUnconstrainedDelegation(int? userAccountControl)
+        {
+            return userAccountControl.HasValue &&
+                (userAccountControl.Value & TrustedForDelegation) != 0 &&
+                (userAccountControl.Value & ServerTrustAccount) == 0;
+        }
+
+        internal static DelegationInventorySummary SummarizeDelegationInventory(
+            IEnumerable<DelegationComputer> rows, bool ldapError)
+        {
+            var summary = new DelegationInventorySummary { LdapError = ldapError };
+            var sample = SelectBoundedSample(rows, DelegationSampleLimit);
+            summary.Truncated = sample.Truncated;
+            foreach (var row in sample.Items)
+            {
+                summary.Inspected++;
+                if (row == null || !row.UserAccountControl.HasValue)
+                {
+                    summary.UnknownFlags++;
+                    continue;
+                }
+                if (!IsNonDcUnconstrainedDelegation(row.UserAccountControl)) continue;
+                summary.Candidates++;
+                if (summary.DisplayNames.Count < MaxFindingsToPrint)
+                    summary.DisplayNames.Add(string.IsNullOrWhiteSpace(row.Name) ? "<unknown>" : row.Name);
+            }
+            return summary;
+        }
+
+        internal static bool ShouldInspectAclTarget(string dn, IEnumerable<string> inspectedDns)
+        {
+            return !string.IsNullOrWhiteSpace(dn) &&
+                (inspectedDns == null || !inspectedDns.Any(inspected =>
+                    string.Equals(inspected, dn, StringComparison.OrdinalIgnoreCase)));
+        }
+
         internal sealed class OuSample
         {
             internal List<string> DistinguishedNames { get; } = new List<string>();
@@ -268,6 +323,7 @@ namespace winPEAS.Checks
             {
                 PrintCurrentComputerLapsPasswordExposure,
                 PrintGmsaReadableByCurrentPrincipal,
+                PrintNonDcUnconstrainedDelegation,
                 PrintDmsaCreationRights,
                 PrintKerberoastableServiceAccounts,
                 PrintMachineAccountQuota,
@@ -282,7 +338,9 @@ namespace winPEAS.Checks
         private const int MaxFindingsToPrint = 40;
         private const int DmsaOuSampleLimit = 120;
         private const int GmsaSampleLimit = 120;
+        private const int DelegationSampleLimit = 120;
         private static readonly TimeSpan GmsaSearchTimeout = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan DelegationSearchTimeout = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan DmsaSearchTimeout = TimeSpan.FromSeconds(5);
         private static readonly Dictionary<Guid, string> GuidNameCache = new Dictionary<Guid, string>();
         private static readonly object GuidCacheLock = new object();
@@ -573,7 +631,7 @@ namespace winPEAS.Checks
 
                 if (string.IsNullOrEmpty(defaultNC))
                 {
-                    Beaprint.GrayPrint("  [-] Could not resolve defaultNamingContext.");
+                    Beaprint.GrayPrint("  [!] Current computer object ACL coverage unknown: could not resolve defaultNamingContext.");
                     return;
                 }
 
@@ -595,6 +653,62 @@ namespace winPEAS.Checks
                         finding.SamplePriority = 0;
                         findings.Add(finding);
                     }
+                }
+
+                // Inspect the exact local computer before the capped ordinary-object sample.
+                // A DC computer object can otherwise fall beyond the first 120 results.
+                try
+                {
+                    string computerAccount = LapsPasswordExposure.EscapeLdapFilterValue(Environment.MachineName + "$");
+                    using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
+                    using (var searcher = new DirectorySearcher(baseDe))
+                    {
+                        searcher.SearchScope = SearchScope.Subtree;
+                        searcher.SizeLimit = 1;
+                        searcher.ClientTimeout = TimeSpan.FromSeconds(5);
+                        searcher.ServerTimeLimit = TimeSpan.FromSeconds(5);
+                        searcher.Filter = "(&(objectCategory=computer)(sAMAccountName=" + computerAccount + "))";
+                        searcher.PropertiesToLoad.Add("distinguishedName");
+
+                        var result = searcher.FindOne();
+                        var dn = result == null ? null : GetProp(result, "distinguishedName");
+                        if (string.IsNullOrWhiteSpace(dn))
+                        {
+                            samplingIncomplete = true;
+                            Beaprint.GrayPrint("  [!] Current computer object ACL coverage unknown: object lookup returned no DN.");
+                        }
+                        else if (ShouldInspectAclTarget(dn, processedDns))
+                        {
+                            bool aclReadSucceeded;
+                            var finding = AnalyzeDirectoryObject(dn, Environment.MachineName + "$", sidSet,
+                                schemaNC, configNC, out aclReadSucceeded);
+                            if (!aclReadSucceeded)
+                            {
+                                samplingIncomplete = true;
+                                Beaprint.GrayPrint("  [!] Current computer object ACL coverage unknown: DACL read failed for " + dn + ".");
+                                // An owner match may still be known even when ACE enumeration fails.
+                                if (finding != null)
+                                {
+                                    finding.SamplePriority = 0;
+                                    findings.Add(finding);
+                                }
+                            }
+                            else
+                            {
+                                processedDns.Add(dn);
+                                if (finding != null)
+                                {
+                                    finding.SamplePriority = 0;
+                                    findings.Add(finding);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    samplingIncomplete = true;
+                    Beaprint.GrayPrint("  [!] Current computer object ACL coverage unknown: lookup failed: " + ex.Message);
                 }
 
                 try
@@ -655,7 +769,7 @@ namespace winPEAS.Checks
                             foreach (SearchResult r in sample.Items)
                             {
                                 var dn = GetProp(r, "distinguishedName");
-                                if (string.IsNullOrEmpty(dn) || processedDns.Contains(dn))
+                                if (!ShouldInspectAclTarget(dn, processedDns))
                                 {
                                     continue;
                                 }
@@ -741,6 +855,14 @@ namespace winPEAS.Checks
 
         private static AdObjectFinding AnalyzeDirectoryObject(string dn, string label, HashSet<string> sidSet, string schemaNC, string configNC)
         {
+            bool aclReadSucceeded;
+            return AnalyzeDirectoryObject(dn, label, sidSet, schemaNC, configNC, out aclReadSucceeded);
+        }
+
+        private static AdObjectFinding AnalyzeDirectoryObject(string dn, string label, HashSet<string> sidSet, string schemaNC, string configNC,
+            out bool aclReadSucceeded)
+        {
+            aclReadSucceeded = false;
             if (string.IsNullOrEmpty(dn))
             {
                 return null;
@@ -752,7 +874,7 @@ namespace winPEAS.Checks
                 {
                     entry.Options.SecurityMasks = SecurityMasks.Owner | SecurityMasks.Dacl;
                     entry.RefreshCache();
-                    return EvaluateSecurity(entry, label ?? dn, sidSet, schemaNC, configNC);
+                    return EvaluateSecurity(entry, label ?? dn, sidSet, schemaNC, configNC, out aclReadSucceeded);
                 }
             }
             catch (Exception)
@@ -761,8 +883,10 @@ namespace winPEAS.Checks
             }
         }
 
-        private static AdObjectFinding EvaluateSecurity(DirectoryEntry entry, string label, HashSet<string> sidSet, string schemaNC, string configNC)
+        private static AdObjectFinding EvaluateSecurity(DirectoryEntry entry, string label, HashSet<string> sidSet, string schemaNC, string configNC,
+            out bool aclReadSucceeded)
         {
+            aclReadSucceeded = false;
             ActiveDirectorySecurity security;
             try
             {
@@ -840,6 +964,7 @@ namespace winPEAS.Checks
                 }
             }
 
+            aclReadSucceeded = true;
             return finding.Impacts.Count > 0 ? finding : null;
         }
 
@@ -1353,6 +1478,79 @@ namespace winPEAS.Checks
             {
                 Beaprint.GrayPrint("  [-] Inaccessible: could not read this computer's delegation attribute.");
             }
+        }
+
+        // Inventory non-DC computer objects configured for unconstrained delegation.
+        private void PrintNonDcUnconstrainedDelegation()
+        {
+            Beaprint.MainPrint("Non-DC unconstrained delegation configuration", "T1018");
+            if (!Checks.IsPartOfDomain)
+            {
+                Beaprint.GrayPrint("  [-] Host is not domain-joined. Skipping.");
+                return;
+            }
+
+            var rows = new List<DelegationComputer>();
+            bool ldapError = false;
+            try
+            {
+                var defaultNC = GetRootDseProp("defaultNamingContext");
+                if (string.IsNullOrEmpty(defaultNC))
+                {
+                    Beaprint.GrayPrint("  [?] LDAP naming context unavailable; delegation inventory unknown.");
+                    return;
+                }
+
+                using (var baseDe = new DirectoryEntry("LDAP://" + defaultNC))
+                using (var ds = new DirectorySearcher(baseDe))
+                {
+                    ds.SearchScope = SearchScope.Subtree;
+                    ds.PageSize = 0;
+                    ds.SizeLimit = DelegationSampleLimit + 1;
+                    ds.ClientTimeout = DelegationSearchTimeout;
+                    ds.ServerTimeLimit = DelegationSearchTimeout;
+                    ds.Filter = "(&(objectCategory=computer)" +
+                        "(userAccountControl:1.2.840.113556.1.4.803:=524288)" +
+                        "(!(userAccountControl:1.2.840.113556.1.4.803:=8192)))";
+                    ds.PropertiesToLoad.Add("sAMAccountName");
+                    ds.PropertiesToLoad.Add("distinguishedName");
+                    ds.PropertiesToLoad.Add("userAccountControl");
+
+                    using (var results = ds.FindAll())
+                    {
+                        foreach (SearchResult result in results)
+                        {
+                            if (rows.Count > DelegationSampleLimit) break;
+                            int flags;
+                            var rawFlags = GetProp(result, "userAccountControl");
+                            int? uac = int.TryParse(rawFlags, out flags) ? (int?)flags : null;
+                            rows.Add(new DelegationComputer
+                            {
+                                Name = GetProp(result, "sAMAccountName") ??
+                                    GetProp(result, "distinguishedName"),
+                                UserAccountControl = uac
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                ldapError = true;
+            }
+
+            var summary = SummarizeDelegationInventory(rows, ldapError);
+            foreach (var name in summary.DisplayNames)
+                Beaprint.GrayPrint("  [i] Candidate computer: " + name + " (TRUSTED_FOR_DELEGATION set; non-DC).");
+            Beaprint.GrayPrint($"  [*] Inspected {summary.Inspected} matching computer object(s): {summary.Candidates} configuration candidate(s), {summary.UnknownFlags} missing or unreadable UAC value(s). This flag alone does not provide a TGT; ticket access requires separate privileges and conditions.");
+            if (summary.Candidates > summary.DisplayNames.Count)
+                Beaprint.GrayPrint($"  [*] {summary.Candidates - summary.DisplayNames.Count} additional candidate(s) omitted from display.");
+            if (summary.Truncated)
+                Beaprint.GrayPrint($"  [?] Sample limited to {DelegationSampleLimit} objects; additional matching computers were not checked.");
+            if (summary.UnknownFlags > 0)
+                Beaprint.GrayPrint("  [?] Some returned objects had unknown UAC flags; their delegation status could not be verified.");
+            if (summary.LdapError)
+                Beaprint.GrayPrint("  [?] LDAP query failed or ended early; this inventory is partial and domain-wide status is unknown.");
         }
 
         // Inspect gMSA membership descriptors for possible read-property trustees.

@@ -102,14 +102,18 @@
     <Compile Include="AutoLogonTests.cs" />
     <Compile Include="FixedBuildIndicatorTests.cs" />
     <Compile Include="HMailAndInstalledAppsTests.cs" />
+    <Compile Include="LansweeperConfigMetadataTests.cs" />
     <Compile Include="IisServedRootPermissionsTests.cs" />
     <Compile Include="ChecksArgumentEdgeCasesTests.cs" />
     <Compile Include="CheckmkAgentVersionTests.cs" />
     <Compile Include="VeeamBackupVersionTests.cs" />
     <Compile Include="ClfsAuthenticationTests.cs" />
     <Compile Include="DcLdapPolicyTests.cs" />
+    <Compile Include="DelegationPrivilegePresentationTests.cs" />
+    <Compile Include="CurrentProcessTokenPresentationTests.cs" />
     <Compile Include="DpapiMasterKeyProfileTests.cs" />
     <Compile Include="DpapiCredentialFileInventoryTests.cs" />
+    <Compile Include="DeviceDriverInventoryTests.cs" />
     <Compile Include="ServiceSpnPriorityTests.cs" />
     <Compile Include="SessionAndSchannelCuesTests.cs" />
     <Compile Include="SpnWriteRightTests.cs" />
@@ -119,6 +123,7 @@
     <Compile Include="GmsaAndAdcsIndicatorsTests.cs" />
     <Compile Include="LapsPasswordExposureTests.cs" />
     <Compile Include="CurrentComputerRbcdTests.cs" />
+    <Compile Include="UnconstrainedDelegationInventoryTests.cs" />
     <Compile Include="PrivilegedScheduledTaskTests.cs" />
     <Compile Include="PrivilegedWmiEventConsumerTests.cs" />
     <Compile Include="RegistryHiveExposureTests.cs" />
@@ -129,6 +134,9 @@
     <Compile Include="WritableServiceDllTests.cs" />
     <Compile Include="WritableServiceRecoveryCommandTests.cs" />
     <Compile Include="ZipNtdsBackupIndicatorTests.cs" />
+    <Compile Include="RecycleBinArchiveIndicatorTests.cs" />
+    <Compile Include="MRemoteNgConnectionFilesTests.cs" />
+    <Compile Include="Pdf24RepairPrerequisitesTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

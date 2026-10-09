@@ -80,12 +80,15 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("Interesting Services -non Microsoft-", "T1007");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services", "Check if you can overwrite some service binary or perform a DLL hijacking, also check for unquoted paths");
 
-                List<Dictionary<string, string>> services_info = ServicesInfoHelper.GetNonstandardServices();
-
-                if (services_info.Count < 1)
-                {
-                    services_info = ServicesInfoHelper.GetNonstandardServicesFromReg();
-                }
+                ServiceRegistryInventory inventory = ServicesInfoHelper.SelectNonstandardServices(
+                    ServicesInfoHelper.GetNonstandardServices, ServicesInfoHelper.GetNonstandardServicesFromReg);
+                List<Dictionary<string, string>> services_info = inventory.Services;
+                if (inventory.UsedRegistry)
+                    Beaprint.GrayPrint($"    Registry fallback inspected {inventory.Inspected} service keys; " +
+                        $"{inventory.Unreadable} unreadable or incomplete. " +
+                        (inventory.LimitReached ? "Partial visibility: entry cap reached; remaining services unknown."
+                        : inventory.Unreadable > 0 || inventory.Inspected == 0 ? "Partial visibility possible."
+                        : ""));
 
                 foreach (Dictionary<string, string> serviceInfo in services_info)
                 {
@@ -98,6 +101,7 @@ namespace winPEAS.Checks
                     }
 
                     bool noQuotesAndSpace = MyUtils.CheckQuoteAndSpace(serviceInfo["PathName"]);
+                    ServiceCommandLineAssessment commandLine = ServicesInfoHelper.AssessServiceCommandLine(serviceInfo["PathName"]);
 
                     string formString = "    {0}(";
                     if (serviceInfo["CompanyName"] != null && serviceInfo["CompanyName"].Length > 1)
@@ -128,6 +132,12 @@ namespace winPEAS.Checks
                         formString += "\n    Possible DLL Hijacking in binary folder: {9} ({10})";
                     if (serviceInfo["Description"].Length > 1)
                         formString += "\n    " + Beaprint.ansi_color_gray + "{11}";
+                    if (commandLine.CredentialPairCandidate)
+                        formString += "\n    Credential-shaped service arguments present (values redacted; review candidate only)";
+                    else if (commandLine.UnpairedPasswordOption)
+                        formString += "\n    Password-shaped option present (values redacted; ambiguous, review only)";
+                    if (commandLine.ScanLimitReached)
+                        formString += "\n    Service command line scan stopped at 4096 characters; remaining arguments unknown";
 
                     {
                         Dictionary<string, string> colorsS = new Dictionary<string, string>()
@@ -137,10 +147,12 @@ namespace winPEAS.Checks
                                 { "No quotes and Space detected", Beaprint.ansi_color_bad },
                                 { "YOU CAN MODIFY THIS SERVICE:.*", Beaprint.ansi_color_bad },
                                 { " START ", Beaprint.ansi_color_bad },
-                                { serviceInfo["PathName"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+"), (fileRights.Count > 0 || dirRights.Count > 0 || noQuotesAndSpace) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
+                                { "Credential-shaped service arguments.*", Beaprint.ansi_color_yellow },
+                                { "Password-shaped option.*", Beaprint.ansi_color_yellow },
+                                { commandLine.DisplayPath.Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+"), (fileRights.Count > 0 || dirRights.Count > 0 || noQuotesAndSpace) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
                             };
 
-                        Beaprint.AnsiPrint(string.Format(formString, serviceInfo["Name"], serviceInfo["CompanyName"], serviceInfo["DisplayName"], serviceInfo["PathName"], serviceInfo["StartMode"], serviceInfo["State"], serviceInfo["isDotNet"], "No quotes and Space detected", string.Join(", ", fileRights), dirRights.Count > 0 ? Path.GetDirectoryName(serviceInfo["FilteredPath"]) : "", string.Join(", ", dirRights), serviceInfo["Description"]), colorsS);
+                        Beaprint.AnsiPrint(string.Format(formString, serviceInfo["Name"], serviceInfo["CompanyName"], serviceInfo["DisplayName"], commandLine.DisplayPath, serviceInfo["StartMode"], serviceInfo["State"], serviceInfo["isDotNet"], "No quotes and Space detected", string.Join(", ", fileRights), dirRights.Count > 0 && commandLine.ExecutablePath != null ? Path.GetDirectoryName(commandLine.ExecutablePath) : "[binary folder redacted]", string.Join(", ", dirRights), serviceInfo["Description"]), colorsS);
                     }
 
                     Beaprint.PrintLineSeparator();

@@ -407,7 +407,8 @@ CALL :T_Progress 1
 
 :BasicUserInfo
 CALL :ColorLine "%E%32m[*]%E%97m BASIC USER INFO
-ECHO.   [i] Check if you are inside the Administrators group or if you have enabled any token that can be use to escalate privileges like SeImpersonatePrivilege, SeAssignPrimaryPrivilege, SeTcbPrivilege, SeBackupPrivilege, SeRestorePrivilege, SeCreateTokenPrivilege, SeLoadDriverPrivilege, SeTakeOwnershipPrivilege, SeDebugPrivilege, SeManageVolumePrivilege
+ECHO.   [i] Check if you are inside the Administrators group or if you have enabled any token that can be use to escalate privileges like SeImpersonatePrivilege, SeAssignPrimaryPrivilege, SeTcbPrivilege, SeBackupPrivilege, SeRestorePrivilege, SeCreateTokenPrivilege, SeLoadDriverPrivilege, SeTakeOwnershipPrivilege, SeDebugPrivilege, SeManageVolumePrivilege, SeEnableDelegationPrivilege
+ECHO.   [i] If SeEnableDelegationPrivilege is enabled in this process token, review domain machine-account quota and effective computer-object rights; the privilege alone does not prove a delegation path.
 ECHO.   [?] https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#users--groups
 ECHO.
 CALL :ColorLine " %E%33m[+]%E%97m CURRENT USER"

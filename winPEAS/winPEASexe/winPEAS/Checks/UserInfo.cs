@@ -16,6 +16,8 @@ namespace winPEAS.Checks
 {
     internal class UserInfo : ISystemCheck
     {
+        internal const string DelegationPrivilegeNote = "Enabled SeEnableDelegationPrivilege in this process token: review domain machine-account quota and effective computer-object rights; this alone does not prove unconstrained delegation or a coercion path.";
+
         /* Colors Code
         * RED:
         * ---- Privileges users and groups names
@@ -112,9 +114,25 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Current process token privileges", "T1134.001");
                 Beaprint.InfoPrint("These privileges belong to this winPEAS process token; another logon or service token for the same account may differ.");
+                CurrentProcessTokenSnapshot tokenState = CurrentProcessToken.Read();
+                Beaprint.InfoPrint("  " + tokenState.Summary);
+                if (tokenState.IsFilteredLocalAdminCandidate)
+                {
+                    Beaprint.BadPrint("  [!] Confirmed medium, limited local administrator token: the Administrators SID is deny-only and this process is not elevated. UAC policy and consent settings still govern elevation; this does not prove any bypass.");
+                }
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#token-manipulation", "Check if you can escalate privilege using some enabled token");
                 Dictionary<string, string> tokenPrivs = Token.GetTokenGroupPrivs();
-                Beaprint.DictPrint(tokenPrivs, ColorsU(), false);
+                bool delegationEnabled = Token.IsPrivilegeEnabled(tokenPrivs, "SeEnableDelegationPrivilege");
+                Dictionary<string, string> colors = ColorsU();
+                if (delegationEnabled)
+                {
+                    colors["SeEnableDelegationPrivilege"] = Beaprint.ansi_color_bad;
+                }
+                Beaprint.DictPrint(tokenPrivs, colors, false);
+                if (delegationEnabled)
+                {
+                    Beaprint.BadPrint("  [!] " + DelegationPrivilegeNote);
+                }
             }
             catch (Exception ex)
             {

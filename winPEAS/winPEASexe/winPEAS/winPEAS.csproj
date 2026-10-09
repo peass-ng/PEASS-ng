@@ -1234,6 +1234,8 @@
     <Compile Include="Info\ApplicationInfo\RecallPolicyConfiguration.cs" />
     <Compile Include="Info\ApplicationInfo\SoapClientProxyAnalyzer.cs" />
     <Compile Include="Info\ApplicationInfo\InstalledApps.cs" />
+    <Compile Include="Info\ApplicationInfo\LansweeperConfigMetadata.cs" />
+    <Compile Include="Info\ApplicationInfo\Pdf24RepairPrerequisites.cs" />
     <Compile Include="Helpers\Beaprint.cs" />
     <Compile Include="Info\CloudInfo\AWSInfo.cs" />
     <Compile Include="Info\CloudInfo\AzureInfo.cs" />
@@ -1268,6 +1270,8 @@
     <Compile Include="Info\FilesInfo\HMailServerExposure.cs" />
     <Compile Include="Info\FilesInfo\IisServedRootPermissions.cs" />
     <Compile Include="Info\FilesInfo\ZipNtdsBackupIndicator.cs" />
+    <Compile Include="Info\FilesInfo\RecycleBinArchiveIndicator.cs" />
+    <Compile Include="Info\FilesInfo\MRemoteNgConnectionFiles.cs" />
     <Compile Include="Info\FilesInfo\WSL\WSLHelper.cs" />
     <Compile Include="Info\NetworkInfo\Enums\IPVersion.cs" />
     <Compile Include="Info\NetworkInfo\Enums\MibTcpState.cs" />
@@ -1392,6 +1396,7 @@
     <Compile Include="Info\UserInfo\Token\Enums.cs" />
     <Compile Include="Info\UserInfo\Token\Structs.cs" />
     <Compile Include="Info\UserInfo\Token\Token.cs" />
+    <Compile Include="Info\UserInfo\Token\CurrentProcessToken.cs" />
     <Compile Include="Info\UserInfo\User.cs" />
     <Compile Include="Native\Advapi32.cs" />
     <Compile Include="Native\Classes\SafeTokenHandle.cs" />
