@@ -1614,6 +1614,24 @@ namespace winPEAS.Checks
             }
         }
 
+        internal static IEnumerable<string> FormatDefenderPathExclusions(
+            IList<string> pathExclusions, IList<string> policyManagerPathExclusions)
+        {
+            if (pathExclusions.Count != 0)
+            {
+                yield return "\n  Path Exclusions:";
+                foreach (var path in pathExclusions)
+                    yield return $"    {path}";
+            }
+
+            if (policyManagerPathExclusions.Count != 0)
+            {
+                yield return "\n  PolicyManagerPathExclusions:";
+                foreach (var path in policyManagerPathExclusions)
+                    yield return $"    {path}";
+            }
+        }
+
         private static void PrintWindowsDefenderInfo()
         {
             Beaprint.MainPrint("Windows Defender configuration", "T1518.001");
@@ -1625,23 +1643,8 @@ namespace winPEAS.Checks
                 var extensionExclusions = settings.ExtensionExclusions;
                 var asrSettings = settings.AsrSettings;
 
-                if (pathExclusions.Count != 0)
-                {
-                    Beaprint.NoColorPrint("\n  Path Exclusions:");
-                    foreach (var path in pathExclusions)
-                    {
-                        Beaprint.NoColorPrint($"    {path}");
-                    }
-                }
-
-                if (pathExclusions.Count != 0)
-                {
-                    Beaprint.NoColorPrint("\n  PolicyManagerPathExclusions:");
-                    foreach (var path in pathExclusions)
-                    {
-                        Beaprint.NoColorPrint($"    {path}");
-                    }
-                }
+                foreach (var line in FormatDefenderPathExclusions(pathExclusions, settings.PolicyManagerPathExclusions))
+                    Beaprint.NoColorPrint(line);
 
                 if (processExclusions.Count != 0)
                 {

@@ -146,6 +146,104 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void PoolIdentityUsesExplicitValueThenConfiguredDefault()
+        {
+            XDocument config = Config(1, true);
+            XElement host = config.Root.Element("system.applicationHost");
+            host.Add(new XElement("applicationPools",
+                new XElement("add", new XAttribute("name", "ExamplePool"),
+                    new XElement("processModel", new XAttribute("identityType", "NetworkService"))),
+                new XElement("applicationPoolDefaults",
+                    new XElement("processModel", new XAttribute("identityType", "SpecificUser")))));
+            var report = new IisServedRootReport();
+            IisServedRootPermissions.AddConfiguredRoots(report, config, Stopwatch.StartNew());
+            Assert.AreEqual(IisPoolIdentity.NetworkService, report.Roots.Single().PoolIdentity);
+            Assert.IsTrue(IisServedRootPermissions.DescribePoolIdentity(report.Roots.Single().PoolIdentity)
+                .Contains("computer account"));
+
+            host.Element("applicationPools").Element("add").Element("processModel").Remove();
+            host.Element("applicationPools").Element("applicationPoolDefaults").Element("processModel")
+                .SetAttributeValue("password", "fixture-secret");
+            report = new IisServedRootReport();
+            IisServedRootPermissions.AddConfiguredRoots(report, config, Stopwatch.StartNew());
+            Assert.AreEqual(IisPoolIdentity.SpecificUser, report.Roots.Single().PoolIdentity);
+            string description = IisServedRootPermissions.DescribePoolIdentity(report.Roots.Single().PoolIdentity);
+            Assert.IsTrue(description.Contains("credentials suppressed"));
+            Assert.IsFalse(description.Contains("fixture-secret"));
+        }
+
+        [TestMethod]
+        public void PoolIdentityRemainsUnknownWithoutDefinitionOrExplicitDefault()
+        {
+            XDocument config = Config(1, false);
+            var report = new IisServedRootReport();
+            IisServedRootPermissions.AddConfiguredRoots(report, config, Stopwatch.StartNew());
+            Assert.AreEqual(IisPoolIdentity.Unknown, report.Roots.Single().PoolIdentity);
+
+            XElement host = config.Root.Element("system.applicationHost");
+            host.Add(new XElement("applicationPools", new XElement("add", new XAttribute("name", "OtherPool"),
+                new XElement("processModel", new XAttribute("identityType", "ApplicationPoolIdentity")))));
+            report = new IisServedRootReport();
+            IisServedRootPermissions.AddConfiguredRoots(report, config, Stopwatch.StartNew());
+            Assert.AreEqual(IisPoolIdentity.Unknown, report.Roots.Single().PoolIdentity);
+            Assert.IsTrue(IisServedRootPermissions.DescribePoolIdentity(report.Roots.Single().PoolIdentity)
+                .Contains("no network principal inferred"));
+        }
+
+        [TestMethod]
+        public void PoolIdentityVocabularyAndPoolCountAreBounded()
+        {
+            Assert.AreEqual(IisPoolIdentity.ApplicationPoolIdentity,
+                IisServedRootPermissions.ParsePoolIdentity("4"));
+            Assert.AreEqual(IisPoolIdentity.LocalSystem,
+                IisServedRootPermissions.ParsePoolIdentity("LocalSystem"));
+            Assert.AreEqual(IisPoolIdentity.LocalService,
+                IisServedRootPermissions.ParsePoolIdentity("1"));
+            Assert.AreEqual(IisPoolIdentity.Unknown,
+                IisServedRootPermissions.ParsePoolIdentity("UnexpectedUserPassword"));
+
+            XDocument config = Config(1, false);
+            XElement host = config.Root.Element("system.applicationHost");
+            XElement pools = new XElement("applicationPools");
+            for (int i = 0; i < IisServedRootPermissions.MaxPoolEntries; i++)
+                pools.Add(new XElement("add", new XAttribute("name", "Pool" + i),
+                    new XElement("processModel", new XAttribute("identityType", "NetworkService"))));
+            pools.Add(new XElement("add", new XAttribute("name", "ExamplePool"),
+                new XElement("processModel", new XAttribute("identityType", "ApplicationPoolIdentity"))));
+            host.Add(pools);
+            var report = new IisServedRootReport();
+            IisServedRootPermissions.AddConfiguredRoots(report, config, Stopwatch.StartNew());
+            Assert.AreEqual(IisPoolIdentity.Unknown, report.Roots.Single().PoolIdentity);
+        }
+
+        [TestMethod]
+        public void RemovedOrClearedPoolsDoNotRetainStaleIdentity()
+        {
+            XDocument config = Config(1, false);
+            XElement host = config.Root.Element("system.applicationHost");
+            XElement pools = new XElement("applicationPools",
+                new XElement("add", new XAttribute("name", "ExamplePool"),
+                    new XElement("processModel", new XAttribute("identityType", "NetworkService"))),
+                new XElement("remove", new XAttribute("name", "ExamplePool")));
+            host.Add(pools);
+            var report = new IisServedRootReport();
+            IisServedRootPermissions.AddConfiguredRoots(report, config, Stopwatch.StartNew());
+            Assert.AreEqual(IisPoolIdentity.Unknown, report.Roots.Single().PoolIdentity);
+
+            pools.Element("remove").Remove();
+            pools.Add(new XElement("clear"));
+            report = new IisServedRootReport();
+            IisServedRootPermissions.AddConfiguredRoots(report, config, Stopwatch.StartNew());
+            Assert.AreEqual(IisPoolIdentity.Unknown, report.Roots.Single().PoolIdentity);
+
+            pools.Add(new XElement("add", new XAttribute("name", "ExamplePool"),
+                new XElement("processModel", new XAttribute("identityType", "ApplicationPoolIdentity"))));
+            report = new IisServedRootReport();
+            IisServedRootPermissions.AddConfiguredRoots(report, config, Stopwatch.StartNew());
+            Assert.AreEqual(IisPoolIdentity.ApplicationPoolIdentity, report.Roots.Single().PoolIdentity);
+        }
+
+        [TestMethod]
         public void ManualStartSiteRemainsVisibleAndMissingHandlerDoesNotClaimExecution()
         {
             var disabled = new IisServedRootReport();

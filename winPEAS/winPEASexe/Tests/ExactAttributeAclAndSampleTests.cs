@@ -149,6 +149,25 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void UnlabeledInfoTokenIsOnlyARedactedCandidate()
+        {
+            var user = new[] { "user" };
+            const string token = "River47glen40Watchful";
+            var cue = ActiveDirectoryInfo.ClassifyAdCredentialNote(user, null, "  " + token + "  ");
+            Assert.AreEqual("info unlabeled mixed-case token (candidate only; value redacted)", cue);
+            Assert.IsFalse(cue.Contains(token));
+
+            Assert.IsNull(ActiveDirectoryInfo.ClassifyAdCredentialNote(user, token, null));
+            Assert.IsNull(ActiveDirectoryInfo.ClassifyAdCredentialNote(new[] { "user", "computer" }, null, token));
+            Assert.IsNull(ActiveDirectoryInfo.ClassifyAdCredentialNote(user, null, "Please review this shared account soon"));
+            Assert.IsNull(ActiveDirectoryInfo.ClassifyAdCredentialNote(user, null, "ab12345678901234567890"));
+            Assert.IsNull(ActiveDirectoryInfo.ClassifyAdCredentialNote(user, null, "ABab12" + new string('c', 13)));
+            Assert.IsNull(ActiveDirectoryInfo.ClassifyAdCredentialNote(user, null, "ABab12" + new string('c', 59)));
+            Assert.IsNull(ActiveDirectoryInfo.ClassifyAdCredentialNote(user, null, "River47-glen40-Watchful"));
+            Assert.IsNull(ActiveDirectoryInfo.ClassifyAdCredentialNote(user, null, "River47glen40Watchful" + new string('x', 77)));
+        }
+
+        [TestMethod]
         public void CurrentComputerAclTargetIsSelectedBeforeCappedSample()
         {
             const string computerDn = "CN=DC,CN=Computers,DC=example,DC=test";

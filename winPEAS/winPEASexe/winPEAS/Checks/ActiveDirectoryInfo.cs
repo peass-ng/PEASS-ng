@@ -80,6 +80,17 @@ namespace winPEAS.Checks
         private static readonly Guid GmsaReaderListGuid = new Guid("888eedd6-ce04-df40-b462-b8a50e41ba38");
         private static readonly Guid ScriptPathGuid = new Guid("bf9679a8-0de6-11d0-a285-00aa003049e2");
         private static readonly Guid CertificateEnrollGuid = new Guid("0e10c968-78fb-11d2-90d4-00c04f79dc55");
+        private static readonly Guid CertificateTemplateClassGuid = new Guid("e5209ca2-3bba-11d2-90cc-00c04fd91ab1");
+
+        internal static bool IsCertificateTemplateCreateAce(ActiveDirectoryRights rights,
+            Guid objectType, PropagationFlags propagationFlags)
+        {
+            if ((propagationFlags & PropagationFlags.InheritOnly) != 0) return false;
+            if ((rights & ActiveDirectoryRights.CreateChild) != ActiveDirectoryRights.CreateChild &&
+                (rights & ActiveDirectoryRights.GenericAll) != ActiveDirectoryRights.GenericAll)
+                return false;
+            return objectType == Guid.Empty || objectType == CertificateTemplateClassGuid;
+        }
 
         internal enum Esc1TemplateStatus { Unknown, NotCandidate, Candidate }
         internal enum Esc9TemplateStatus { Unknown, NotCandidate, Candidate }
@@ -356,7 +367,27 @@ namespace winPEAS.Checks
             if (!isUser) return null;
             if (HasCredentialAssignmentCue(description)) return "description password-like assignment (value redacted)";
             if (HasCredentialAssignmentCue(info)) return "info password-like assignment (value redacted)";
+            if (HasUnlabeledInfoTokenCue(info)) return "info unlabeled mixed-case token (candidate only; value redacted)";
             return null;
+        }
+
+        private static bool HasUnlabeledInfoTokenCue(string info)
+        {
+            // A single unlabeled token may be a reused password. Keep this narrow: many
+            // ordinary account notes and identifiers must not become credential findings.
+            if (string.IsNullOrEmpty(info) || info.Length > 96) return false;
+            string token = info.Trim();
+            if (token.Length < 20 || token.Length > 64) return false;
+
+            int upper = 0, lower = 0, digits = 0;
+            foreach (char ch in token)
+            {
+                if (ch >= 'A' && ch <= 'Z') upper++;
+                else if (ch >= 'a' && ch <= 'z') lower++;
+                else if (ch >= '0' && ch <= '9') digits++;
+                else return false;
+            }
+            return upper >= 2 && lower >= 2 && digits >= 2;
         }
 
         private static bool HasCredentialAssignmentCue(string note)
@@ -2243,6 +2274,91 @@ namespace winPEAS.Checks
 
 
         // Detect AD CS misconfigurations
+        private static void PrintCertificateTemplateContainerCreateAces(string templatesDn,
+            HashSet<string> currentSidSet)
+        {
+            if (currentSidSet == null || currentSidSet.Count == 0)
+            {
+                Beaprint.GrayPrint("  [?] Certificate-template container create ACEs unknown (current token SIDs unavailable).");
+                return;
+            }
+
+            try
+            {
+                using (var entry = new DirectoryEntry(templatesDn))
+                using (var searcher = new DirectorySearcher(entry))
+                {
+                    searcher.SearchScope = SearchScope.Base;
+                    searcher.Filter = "(objectClass=*)";
+                    searcher.SizeLimit = 1;
+                    searcher.SecurityMasks = SecurityMasks.Dacl;
+                    searcher.ClientTimeout = TimeSpan.FromSeconds(2);
+                    searcher.ServerTimeLimit = TimeSpan.FromSeconds(2);
+                    searcher.PropertiesToLoad.Add("ntSecurityDescriptor");
+                    var result = searcher.FindOne();
+                    var descriptor = result != null && result.Properties["ntSecurityDescriptor"].Count > 0
+                        ? result.Properties["ntSecurityDescriptor"][0] as byte[] : null;
+                    if (descriptor == null)
+                    {
+                        Beaprint.GrayPrint("  [?] Certificate-template container create ACEs unknown (DACL unreadable).");
+                        return;
+                    }
+                    if (descriptor.Length > 65536)
+                    {
+                        Beaprint.GrayPrint("  [?] Certificate-template container create ACEs unknown (DACL exceeds 64 KiB review limit).");
+                        return;
+                    }
+
+                    var security = new ActiveDirectorySecurity();
+                    security.SetSecurityDescriptorBinaryForm(descriptor);
+                    int matches = 0;
+                    int inspected = 0;
+                    bool capped = false;
+                    var timer = System.Diagnostics.Stopwatch.StartNew();
+                    foreach (ActiveDirectoryAccessRule rule in security.GetAccessRules(
+                        true, true, typeof(SecurityIdentifier)))
+                    {
+                        if (inspected++ >= 256 || timer.ElapsedMilliseconds >= 500)
+                        {
+                            capped = true;
+                            break;
+                        }
+                        var sid = rule.IdentityReference as SecurityIdentifier;
+                        if (sid == null || !currentSidSet.Contains(sid.Value) ||
+                            !IsCertificateTemplateCreateAce(rule.ActiveDirectoryRights,
+                                rule.ObjectType, rule.PropagationFlags)) continue;
+
+                        matches++;
+                        if (matches > 12) continue;
+                        string right = (rule.ActiveDirectoryRights & ActiveDirectoryRights.GenericAll) ==
+                            ActiveDirectoryRights.GenericAll
+                            ? "GenericAll" : "CreateChild";
+                        string scope = rule.ObjectType == Guid.Empty ? "all child classes"
+                            : "certificate-template class";
+                        string inherited = rule.IsInherited ? "inherited" : "explicit";
+                        string message = "  Certificate-template container " +
+                            rule.AccessControlType + " ACE candidate: trustee " + sid.Value +
+                            ", " + right + ", " + scope + ", " + inherited +
+                            " (effective create rights unverified).";
+                        if (rule.AccessControlType == AccessControlType.Allow)
+                            Beaprint.BadPrint(message);
+                        else
+                            Beaprint.GrayPrint(message);
+                    }
+                    if (matches > 12)
+                        Beaprint.GrayPrint("  [*] Additional matching certificate-template container ACEs omitted (12 shown).");
+                    if (capped)
+                        Beaprint.GrayPrint("  [?] Certificate-template container ACE review capped at 256 entries or 500 ms; remaining ACEs unknown.");
+                    if (matches > 0)
+                        Beaprint.GrayPrint("  [*] ACEs alone do not prove effective template creation, CA publication, enrollment, or certificate mapping.");
+                }
+            }
+            catch (Exception)
+            {
+                Beaprint.GrayPrint("  [?] Certificate-template container create ACEs unknown (bounded DACL read failed).");
+            }
+        }
+
         private void PrintAdcsMisconfigurations()
         {
             try
@@ -2453,6 +2569,7 @@ namespace winPEAS.Checks
                 var esc13Observations = new List<Esc13TemplateObservation>();
 
                 var templatesDn = $"LDAP://CN=Certificate Templates,CN=Public Key Services,CN=Services,{configNC}";
+                PrintCertificateTemplateContainerCreateAces(templatesDn, currentSidSet);
 
                 using (var deBase = new DirectoryEntry(templatesDn))
                 using (var ds = new DirectorySearcher(deBase))

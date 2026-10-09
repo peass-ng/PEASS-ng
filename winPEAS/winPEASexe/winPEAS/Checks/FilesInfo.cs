@@ -296,7 +296,7 @@ namespace winPEAS.Checks
         {
             ApacheSystemWebRootReport report = ApacheSystemWebRoot.Scan();
             if (report == null) return;
-            Beaprint.MainPrint("XAMPP Apache served-root permissions", "T1505.003");
+            Beaprint.MainPrint((report.Layout ?? "Apache") + " Apache served-root permissions", "T1505.003");
             Beaprint.NoColorPrint("    Service: " + (report.ServiceName ?? "unresolved"));
             if (report.Root != null)
             {
@@ -331,6 +331,7 @@ namespace winPEAS.Checks
                     continue;
                 }
                 Beaprint.GrayPrint($"      Site: {root.Site}; application: {root.Application}; pool: {root.Pool ?? "unspecified"} (auto-start {(root.AutoStartConfigured ? "enabled" : "disabled")}; runtime state unverified)");
+                Beaprint.GrayPrint("      " + IisServedRootPermissions.DescribePoolIdentity(root.PoolIdentity));
                 if (root.CreateFileAcl == IisCreateFileAcl.ManualReview)
                 {
                     Beaprint.GrayPrint($"      Effective current-token create-file: manual review. {root.Reason}");

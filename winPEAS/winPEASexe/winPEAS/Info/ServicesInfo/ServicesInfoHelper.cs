@@ -46,6 +46,16 @@ namespace winPEAS.Info.ServicesInfo
         public bool LimitReached { get; set; }
     }
 
+    internal sealed class ServiceAccessFallbackReport
+    {
+        public Dictionary<string, string> Findings { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        public int Inspected { get; set; }
+        public bool Available { get; set; }
+        public bool LimitReached { get; set; }
+        public bool TimeLimitReached { get; set; }
+        public bool Complete => Available && !LimitReached && !TimeLimitReached;
+    }
+
     internal sealed class SqlServicePrivilegeInfo
     {
         public string Name { get; set; }
@@ -102,6 +112,10 @@ namespace winPEAS.Info.ServicesInfo
         // Service keys also contain drivers; a few hundred keys can be exhausted before
         // later service names are reached on ordinary Windows installations.
         internal const int MaxRegistryServiceEntries = 2048;
+        internal const uint ServiceChangeConfigAccess = 0x0002;
+        internal const uint ServiceStartAccess = 0x0010;
+        internal const uint ServiceStopAccess = 0x0020;
+        private const int MaxServiceAccessFallbackMilliseconds = 2000;
         private static readonly Regex ServiceExecutable = new Regex(
             @"^\s*(?:""(?<quoted>[^""\r\n]+?\.(?:exe|dll|sys|com|bat|cmd))""|(?<plain>[^\r\n]+?\.(?:exe|dll|sys|com|bat|cmd)))(?=\s|$)",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
@@ -604,6 +618,89 @@ namespace winPEAS.Info.ServicesInfo
                 }
             }
             return results;
+        }
+
+        internal static ServiceAccessFallbackReport ProbeServiceAccessByName(
+            IEnumerable<string> serviceNames,
+            Func<string, uint, bool> canOpen,
+            int maxEntries,
+            Func<bool> deadlineReached)
+        {
+            var report = new ServiceAccessFallbackReport();
+            if (serviceNames == null || canOpen == null || deadlineReached == null || maxEntries <= 0)
+                return report;
+
+            report.Available = true;
+            foreach (string name in serviceNames)
+            {
+                if (report.Inspected >= maxEntries)
+                {
+                    report.LimitReached = true;
+                    break;
+                }
+                if (deadlineReached())
+                {
+                    report.TimeLimitReached = true;
+                    break;
+                }
+                if (string.IsNullOrWhiteSpace(name))
+                    continue;
+
+                report.Inspected++;
+                if (!canOpen(name, ServiceChangeConfigAccess))
+                    continue;
+
+                var rights = new List<string>(3) { "ChangeConfig" };
+                if (canOpen(name, ServiceStartAccess)) rights.Add("Start");
+                if (canOpen(name, ServiceStopAccess)) rights.Add("Stop");
+                report.Findings[name] = string.Join(", ", rights);
+            }
+            return report;
+        }
+
+        internal static ServiceAccessFallbackReport GetModifiableServicesByRegistryName()
+        {
+            var unavailable = new ServiceAccessFallbackReport();
+            IntPtr manager = IntPtr.Zero;
+            try
+            {
+                manager = Advapi32.OpenSCManager(null, null, ScManagerConnect);
+                if (manager == IntPtr.Zero)
+                    return unavailable;
+
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services"))
+                {
+                    if (key == null)
+                        return unavailable;
+
+                    string[] names = key.GetSubKeyNames();
+                    if (names.Length == 0)
+                        return unavailable;
+
+                    var stopwatch = Stopwatch.StartNew();
+                    return ProbeServiceAccessByName(
+                        names,
+                        (name, access) =>
+                        {
+                            IntPtr service = Advapi32.OpenService(manager, name, access);
+                            if (service == IntPtr.Zero)
+                                return false;
+                            Advapi32.CloseServiceHandle(service);
+                            return true;
+                        },
+                        MaxRegistryServiceEntries,
+                        () => stopwatch.ElapsedMilliseconds >= MaxServiceAccessFallbackMilliseconds);
+                }
+            }
+            catch (Exception)
+            {
+                return unavailable;
+            }
+            finally
+            {
+                if (manager != IntPtr.Zero)
+                    Advapi32.CloseServiceHandle(manager);
+            }
         }
 
         //////////////////////////////////////////

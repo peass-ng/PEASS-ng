@@ -25,6 +25,7 @@ namespace winPEAS.Info.ApplicationInfo
         internal const int MaxScheduledFoldersInspected = 200;
         internal const int MaxScheduledAppsDisplayed = 150;
         internal const int MaxScheduledAppsWithoutAuthor = 30;
+        internal const int MaxScheduledReferencedTargets = 8;
 
         public static string GetActiveWindowTitle()
         {
@@ -101,6 +102,7 @@ namespace winPEAS.Info.ApplicationInfo
                         }
 
                         List<string> actionPaths = new List<string>();
+                        int referencedTargets = 0;
                         string snortExecutable = null;
                         string snortArguments = null;
                         foreach (winPEAS.TaskScheduler.Action action in t.Definition.Actions)
@@ -109,6 +111,19 @@ namespace winPEAS.Info.ApplicationInfo
                             {
                                 string actionPath = Environment.ExpandEnvironmentVariables(executable.Path);
                                 actionPaths.Add(actionPath);
+                                if (referencedTargets < MaxScheduledReferencedTargets)
+                                {
+                                    foreach (string referencedPath in GetScheduledActionReferencedPaths(
+                                        actionPath, executable.Arguments, executable.WorkingDirectory))
+                                    {
+                                        if (referencedTargets >= MaxScheduledReferencedTargets)
+                                            break;
+                                        if (actionPaths.Contains(referencedPath, StringComparer.OrdinalIgnoreCase))
+                                            continue;
+                                        actionPaths.Add(referencedPath);
+                                        referencedTargets++;
+                                    }
+                                }
                                 if (snortExecutable == null && IsSnortExecutable(actionPath))
                                 {
                                     snortExecutable = actionPath;
@@ -151,6 +166,23 @@ namespace winPEAS.Info.ApplicationInfo
             int separator = Math.Max(path.LastIndexOf('\\'), path.LastIndexOf('/'));
             return IsLocalWindowsPath(path) &&
                 path.Substring(separator + 1).Equals("snort.exe", StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static List<string> GetScheduledActionReferencedPaths(
+            string executable, string arguments, string workingDirectory)
+        {
+            // Reuse the bounded parser from the SYSTEM task review. Its interpreter
+            // rules distinguish a file argument from inline code or output data.
+            try
+            {
+                return PrivilegedScheduledTasks.ExtractReferencedFilePaths(
+                    executable, arguments, workingDirectory);
+            }
+            catch
+            {
+                // Malformed task arguments must not hide the task's executable.
+                return new List<string>();
+            }
         }
 
         internal static string GetSnortConfigPath(string executable, string arguments)

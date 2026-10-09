@@ -11,6 +11,7 @@ namespace winPEAS.Checks
     internal class ServicesInfo : ISystemCheck
     {
         Dictionary<string, string> modifiableServices = new Dictionary<string, string>();
+        ServiceAccessFallbackReport serviceAccessFallback;
 
         public string[] MitreAttackIds { get; } = new[] { "T1007", "T1543.003", "T1574.001", "T1574.010", "T1574.011", "T1014", "T1068" };
 
@@ -29,7 +30,10 @@ namespace winPEAS.Checks
             }
             catch (Exception ex)
             {
-                Beaprint.PrintException(ex.Message);
+                serviceAccessFallback = ServicesInfoHelper.GetModifiableServicesByRegistryName();
+                modifiableServices = serviceAccessFallback.Findings;
+                if (!serviceAccessFallback.Available && isDebug)
+                    Beaprint.PrintException(ex.Message);
             }
 
             new List<Action>
@@ -183,6 +187,13 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Modifiable Services", "T1543.003");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services", "Check if you can modify any service");
+                if (serviceAccessFallback != null)
+                {
+                    Beaprint.GrayPrint($"    Service enumeration was unavailable; read-only named-service access fallback inspected {serviceAccessFallback.Inspected} registry names (cap {ServicesInfoHelper.MaxRegistryServiceEntries}, 2-second deadline).");
+                    if (!serviceAccessFallback.Complete)
+                        Beaprint.GrayPrint("    Partial visibility: service access could not be checked for every name.");
+                    Beaprint.GrayPrint("    OpenService rights are review candidates; verify the service identity and start policy. No service was changed or started.");
+                }
                 if (modifiableServices.Count > 0)
                 {
                     Beaprint.BadPrint("    LOOKS LIKE YOU CAN MODIFY OR START/STOP SOME SERVICE/s:");
@@ -205,7 +216,9 @@ namespace winPEAS.Checks
                     Beaprint.DictPrint(modifiableServices, colorsMS, false, true);
                 }
                 else
-                    Beaprint.GoodPrint("    You cannot modify any service");
+                    Beaprint.GrayPrint(serviceAccessFallback == null
+                        ? "    No modifiable service observed in the enumerated services; inaccessible service ACLs may remain unknown."
+                        : "    No ChangeConfig right observed among the named services inspected; remaining access may be unknown.");
 
             }
             catch (Exception ex)

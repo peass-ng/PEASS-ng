@@ -62,6 +62,28 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void IncludesLiteralTaskScriptTargetsWithoutTreatingInlineCodeAsFiles()
+        {
+            var cmdPaths = ApplicationInfoHelper.GetScheduledActionReferencedPaths(
+                @"C:\Windows\System32\cmd.exe", @"/c call ""C:\Jobs\daily clean.bat""",
+                null);
+            CollectionAssert.AreEqual(new[] { @"C:\Jobs\daily clean.bat" }, cmdPaths);
+
+            var psPaths = ApplicationInfoHelper.GetScheduledActionReferencedPaths(
+                @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+                @"-NoProfile -File ""C:\Jobs\daily clean.ps1""", null);
+            CollectionAssert.AreEqual(new[] { @"C:\Jobs\daily clean.ps1" }, psPaths);
+
+            Assert.AreEqual(0, ApplicationInfoHelper.GetScheduledActionReferencedPaths(
+                @"C:\Windows\System32\cmd.exe", @"/c echo C:\Jobs\not-run.bat", null).Count);
+            Assert.AreEqual(0, ApplicationInfoHelper.GetScheduledActionReferencedPaths(
+                @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+                @"-Command ""C:\Jobs\not-run.ps1""", null).Count);
+            Assert.AreEqual(0, ApplicationInfoHelper.GetScheduledActionReferencedPaths(
+                @"C:\Tools\writer.exe", @"--output C:\Jobs\not-run.bat", null).Count);
+        }
+
+        [TestMethod]
         public void SelectsLiteralSnortConfigFromScheduledActionOnly()
         {
             Assert.AreEqual(@"C:\Snort\etc\snort.conf", ApplicationInfoHelper.GetSnortConfigPath(

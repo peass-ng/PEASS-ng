@@ -109,6 +109,7 @@
     <Compile Include="HMailAndInstalledAppsTests.cs" />
     <Compile Include="LansweeperConfigMetadataTests.cs" />
     <Compile Include="IisServedRootPermissionsTests.cs" />
+    <Compile Include="EdgeCredentialStorePathTests.cs" />
     <Compile Include="ApacheSystemWebRootTests.cs" />
     <Compile Include="IisWebrootBackupSelectorTests.cs" />
     <Compile Include="ChecksArgumentEdgeCasesTests.cs" />
@@ -141,6 +142,7 @@
     <Compile Include="SmokeTests.cs" />
     <Compile Include="WritableServiceDllTests.cs" />
     <Compile Include="WritableServiceRecoveryCommandTests.cs" />
+    <Compile Include="NamedServiceAccessFallbackTests.cs" />
     <Compile Include="ZipNtdsBackupIndicatorTests.cs" />
     <Compile Include="WimBackupPathTests.cs" />
     <Compile Include="RecycleBinArchiveIndicatorTests.cs" />
@@ -150,8 +152,11 @@
     <Compile Include="GiteaAndVisualStudioCandidateTests.cs" />
     <Compile Include="OpenfireEmbeddedDatabaseTests.cs" />
     <Compile Include="MinecraftPluginJarCatalogTests.cs" />
+    <Compile Include="TeamCityChangePatchCatalogTests.cs" />
     <Compile Include="VelociraptorServerConfigTests.cs" />
     <Compile Include="Pdf24RepairPrerequisitesTests.cs" />
+    <Compile Include="FirefoxCredentialFilePathTests.cs" />
+    <Compile Include="DefenderPathExclusionDisplayTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

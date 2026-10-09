@@ -1518,6 +1518,22 @@ search:
                 search_in:
                   - common
 
+  - name: TeamCity change patch candidates
+    value:
+        disable:
+          - linpeas
+        config:
+          auto_check: True
+
+        files:
+          - name: "*.changes.diff"
+            value:
+                check_extra_path: '^[A-Za-z]:/(?:ProgramData/JetBrains/TeamCity|Users/[^/]+/\.BuildServer)/system/changes/[^/]+\.changes\.diff$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: OpenVPN
     value:
         config:

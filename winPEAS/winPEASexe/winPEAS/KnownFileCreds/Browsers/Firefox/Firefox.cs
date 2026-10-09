@@ -88,17 +88,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
                                 var directories = Directory.EnumerateDirectories(userFirefoxBasePath);
                                 foreach (string directory in directories)
                                 {
-                                    string firefoxCredentialFile3 = $"{directory}\\{"key3.db"}";
-                                    if (File.Exists(firefoxCredentialFile3))
-                                    {
-                                        results.Add(firefoxCredentialFile3);
-                                    }
-
-                                    string firefoxCredentialFile4 = $"{directory}\\{"key4.db"}";
-                                    if (File.Exists(firefoxCredentialFile4))
-                                    {
-                                        results.Add(firefoxCredentialFile3);
-                                    }
+                                    results.AddRange(GetFirefoxCredentialFilePaths(directory));
                                 }
                             }
                         }
@@ -115,17 +105,7 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
                         var directories = Directory.EnumerateDirectories(userFirefoxBasePath);
                         foreach (string directory in directories)
                         {
-                            string firefoxCredentialFile3 = $"{directory}\\{"key3.db"}";
-                            if (File.Exists(firefoxCredentialFile3))
-                            {
-                                results.Add(firefoxCredentialFile3);
-                            }
-
-                            string firefoxCredentialFile4 = $"{directory}\\{"key4.db"}";
-                            if (File.Exists(firefoxCredentialFile4))
-                            {
-                                results.Add(firefoxCredentialFile4);
-                            }
+                            results.AddRange(GetFirefoxCredentialFilePaths(directory));
                         }
                     }
                 }
@@ -135,6 +115,20 @@ namespace winPEAS.KnownFileCreds.Browsers.Firefox
                 Beaprint.PrintException(ex.Message);
             }
 
+            return results;
+        }
+
+        internal static List<string> GetFirefoxCredentialFilePaths(string profileDirectory)
+        {
+            var results = new List<string>();
+            foreach (string name in new[] { "key3.db", "key4.db", "logins.json" })
+            {
+                string path = Path.Combine(profileDirectory, name);
+                if (File.Exists(path))
+                {
+                    results.Add(path);
+                }
+            }
             return results;
         }
 

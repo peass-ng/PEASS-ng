@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
+using System.Security.AccessControl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using winPEAS.Checks;
 
@@ -10,6 +11,26 @@ namespace winPEAS.Tests
     public class Esc1TemplateCandidateTests
     {
         private static readonly string[] ClientAuth = { "1.3.6.1.5.5.7.3.2" };
+
+        [TestMethod]
+        public void TemplateContainerCreateAceRequiresApplicableClassAndCurrentContainer()
+        {
+            var templateClass = new Guid("e5209ca2-3bba-11d2-90cc-00c04fd91ab1");
+            Assert.IsTrue(ActiveDirectoryInfo.IsCertificateTemplateCreateAce(
+                ActiveDirectoryRights.CreateChild, templateClass, PropagationFlags.None));
+            Assert.IsTrue(ActiveDirectoryInfo.IsCertificateTemplateCreateAce(
+                ActiveDirectoryRights.CreateChild, Guid.Empty, PropagationFlags.None));
+            Assert.IsTrue(ActiveDirectoryInfo.IsCertificateTemplateCreateAce(
+                ActiveDirectoryRights.GenericAll, Guid.Empty, PropagationFlags.None));
+            Assert.IsFalse(ActiveDirectoryInfo.IsCertificateTemplateCreateAce(
+                ActiveDirectoryRights.CreateChild, Guid.NewGuid(), PropagationFlags.None));
+            Assert.IsFalse(ActiveDirectoryInfo.IsCertificateTemplateCreateAce(
+                ActiveDirectoryRights.WriteProperty, templateClass, PropagationFlags.None));
+            Assert.IsFalse(ActiveDirectoryInfo.IsCertificateTemplateCreateAce(
+                ActiveDirectoryRights.DeleteChild, templateClass, PropagationFlags.None));
+            Assert.IsFalse(ActiveDirectoryInfo.IsCertificateTemplateCreateAce(
+                ActiveDirectoryRights.CreateChild, templateClass, PropagationFlags.InheritOnly));
+        }
 
         [TestMethod]
         public void CompleteClientAuthenticationTemplateIsConfigurationCandidate()
