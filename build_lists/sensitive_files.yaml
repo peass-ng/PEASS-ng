@@ -1744,6 +1744,13 @@ search:
                 search_in:
                   - common
 
+          - name: "*.ppk"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
           - name: "known_hosts"
             value: 
                 type: f
@@ -2779,6 +2786,20 @@ search:
                 bad_regex: ".*"
                 type: f
                 search_in: 
+                  - common
+
+  # Repository history can retain credentials removed from the working tree.
+  # Keep this path-only: recursive directory listing would dump Git objects.
+  - name: Git repository metadata
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: ".git"
+            value:
+                type: d
+                search_in:
                   - common
                   
   - name: Atlantis
@@ -4461,6 +4482,22 @@ search:
                 just_list_file: True
                 type: f
                 search_in: 
+                  - common
+
+  - name: Jupyter startup log candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "jupyter-*.log"
+            value:
+                # Reuse the existing file cache; never print token-bearing logs.
+                check_extra_path: '/logs/jupyter-[^/]*\.log$'
+                just_list_file: True
+                type: f
+                search_in:
                   - common
 
   - name: Suricata event log candidates

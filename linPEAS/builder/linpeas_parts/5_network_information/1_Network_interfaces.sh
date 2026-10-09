@@ -9,7 +9,7 @@
 # Functions Used: print_2title, print_3title
 # Global Variables: $E, $SED_RED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $iface, $state, $mac, $ip_file, $line
+# Generated Global Variables: $iface, $state, $mac, $ip_file, $line, $wireless_modes
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -72,6 +72,15 @@ elif command -v ip >/dev/null 2>&1; then
     ip a 2>/dev/null
 else
     parse_network_interfaces
+fi
+
+# A local nl80211 query shows AP/managed/monitor modes without scanning the air.
+if [ -d /sys/class/ieee80211 ] && command -v iw >/dev/null 2>&1; then
+    wireless_modes="$(iw dev 2>/dev/null | head -n 100)"
+    if [ -n "$wireless_modes" ]; then
+        print_3title "Wireless interface modes (local inventory)" "T1016"
+        printf '%s\n' "$wireless_modes"
+    fi
 fi
 
 if command -v ip >/dev/null 2>&1; then

@@ -2,14 +2,14 @@
 # ID: UG_Sudo_l
 # Author: Carlos Polop
 # Last Update: 09-10-2026
-# Description: Checking 'sudo -l', sudoers files, privileged config, process tracing, container exec, packet-filter export, PDF attachments, Bash pattern comparisons, relative working-directory helpers, preset and PHP CLI loaders, and privileged Python imports, paths, caches, archive extraction, model loading, and Git transport
+# Description: Checking 'sudo -l', sudoers files, privileged config, process tracing, container exec and compose wrappers, packet-filter export, PDF attachments, PostScript conversion, Bash pattern comparisons, relative working-directory helpers, preset and PHP CLI loaders, and privileged Python imports, paths, caches, archive extraction, model loading, and Git transport
 # License: GNU GPL
-# Version: 1.5
+# Version: 1.6
 # Mitre: T1548.003
 # Functions Used: check_sudo_terraform_override, echo_not_found, print_2title, print_info
 # Global Variables:$IAMROOT, $PASSWORD, $TIMEOUT, $ROOT_FOLDER, $TMPDIR, $sudoB, $sudoG, $sudoVB1, $sudoVB2
 # Initial Functions:
-# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $sudo_adduser_main, $sudo_adduser_dir, $sudo_adduser_groups, $sudo_adduser_candidates, $sudo_adduser_group, $sudo_adduser_group_status, $sudo_adduser_visible, $sudo_adduser_unknown, $sudo_adduser_files, $sudo_adduser_file, $sudo_adduser_policy, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_backup_wrapper_rules, $sudo_backup_wrapper_script, $sudo_backup_wrapper_remaining, $sudo_backup_wrapper_walk, $sudo_backup_wrapper_part, $sudo_backup_wrapper_symlink, $sudo_backup_wrapper_result, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size, $script, $kept_names, $script_size, $matched_name, $sudo_nmap_walk, $sudo_rsync_rules, $sudo_nmap_result, $sudo_nmap_part, $sudo_rsync_dest, $sudo_nmap_remaining, $sudo_nmap_rules, $sudo_nmap_symlink, $sudo_nmap_path, $sudo_rsync_dir, $sudo_nmap_size, $sudo_rsync_source, $sudo_rsync_safe, $sudo_rsync_check, $sudo_rsync_walk, $sudo_rsync_remaining, $sudo_rsync_part, $sudo_rsync_owner, $sudo_rsync_current_uid, $sudo_gitpython_clone_rules, $sudo_gitpython_parser, $sudo_gitpython_binary, $sudo_gitpython_script, $sudo_gitpython_size, $sudo_gitpython_result, $sudo_model_loader_rules, $sudo_model_loader_script, $sudo_model_loader_dir, $sudo_model_loader_size, $sudo_model_loader_helper, $sudo_model_loader_line, $sudo_qpdf_path, $sudo_relative_cwd_dir, $sudo_relative_cwd_candidate, $sudo_relative_cwd_rules, $sudo_relative_cwd_script, $sudo_relative_cwd_size, $sudo_relative_cwd_shebang, $sudo_relative_cwd_helper, $sudo_bash_pattern_rules, $sudo_bash_pattern_script, $sudo_bash_pattern_size, $sudo_bash_pattern_shebang, $sudo_bash_pattern_line
+# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $sudo_adduser_main, $sudo_adduser_dir, $sudo_adduser_groups, $sudo_adduser_candidates, $sudo_adduser_group, $sudo_adduser_group_status, $sudo_adduser_visible, $sudo_adduser_unknown, $sudo_adduser_files, $sudo_adduser_file, $sudo_adduser_policy, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_backup_wrapper_rules, $sudo_backup_wrapper_script, $sudo_backup_wrapper_remaining, $sudo_backup_wrapper_walk, $sudo_backup_wrapper_part, $sudo_backup_wrapper_symlink, $sudo_backup_wrapper_result, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size, $script, $kept_names, $script_size, $matched_name, $sudo_nmap_walk, $sudo_rsync_rules, $sudo_nmap_result, $sudo_nmap_part, $sudo_rsync_dest, $sudo_nmap_remaining, $sudo_nmap_rules, $sudo_nmap_symlink, $sudo_nmap_path, $sudo_rsync_dir, $sudo_nmap_size, $sudo_rsync_source, $sudo_rsync_safe, $sudo_rsync_check, $sudo_rsync_walk, $sudo_rsync_remaining, $sudo_rsync_part, $sudo_rsync_owner, $sudo_rsync_current_uid, $sudo_gitpython_clone_rules, $sudo_gitpython_parser, $sudo_gitpython_binary, $sudo_gitpython_script, $sudo_gitpython_size, $sudo_gitpython_result, $sudo_model_loader_rules, $sudo_model_loader_script, $sudo_model_loader_dir, $sudo_model_loader_size, $sudo_model_loader_helper, $sudo_model_loader_line, $sudo_qpdf_path, $sudo_relative_cwd_dir, $sudo_relative_cwd_candidate, $sudo_relative_cwd_rules, $sudo_relative_cwd_script, $sudo_relative_cwd_size, $sudo_relative_cwd_shebang, $sudo_relative_cwd_helper, $sudo_bash_pattern_rules, $sudo_bash_pattern_script, $sudo_bash_pattern_size, $sudo_bash_pattern_shebang, $sudo_bash_pattern_line, $sudo_ps2pdf_rules, $sudo_ps2pdf_script, $sudo_ps2pdf_size, $sudo_ps2pdf_shebang, $sudo_ps2pdf_line, $sudo_compose_rules, $sudo_compose_script, $sudo_compose_size, $sudo_compose_shebang, $sudo_compose_match
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -2083,7 +2083,6 @@ sudo_relative_cwd_review() {
         command = commands[i]
         sub(/^[[:space:]]*/, "", command)
         sub(/[[:space:]]*$/, "", command)
-        noexec = 0
         while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/) {
           if (command ~ /^NOEXEC:/) noexec = 1
           if (command ~ /^EXEC:/) noexec = 0
@@ -2271,6 +2270,189 @@ sudo_bash_pattern_auth_review() {
   done
 }
 sudo_bash_pattern_auth_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+  sed -"${E}" "s,.*,${SED_RED_YELLOW},"
+
+# Inspect only exact root-capable sudo scripts already named by sudo -l. A
+# literal ps2pdf -dNOSAFER pairing is a review cue, not proof that untrusted
+# data reaches executable PostScript. Never run the script or converter.
+sudo_ps2pdf_nosafer_review() {
+  [ -n "$1" ] || return 0
+  sudo_ps2pdf_rules=$(printf '%s\n' "$1" | LC_ALL=C awk '
+    function review(specs, root_capable, count, commands, i, command, path, args, noexec) {
+      count = split(specs, commands, ",")
+      for (i = 1; i <= count; i++) {
+        command = commands[i]
+        sub(/^[[:space:]]*/, "", command)
+        sub(/[[:space:]]*$/, "", command)
+        while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/) {
+          if (command ~ /^NOEXEC:/) noexec = 1
+          if (command ~ /^EXEC:/) noexec = 0
+          sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+        }
+        if (command ~ /^!/) {
+          sub(/^![[:space:]]*/, "", command)
+          path = command
+          sub(/[[:space:]].*$/, "", path)
+          if (path == "ALL") deny_all = 1
+          if (path ~ /^\/[[:alnum:]_.+\/-]+$/) denied[path] = 1
+          continue
+        }
+        if (!root_capable || noexec) continue
+        path = command
+        sub(/[[:space:]].*$/, "", path)
+        if (path !~ /^\/[[:alnum:]_.+\/-]+$/) continue
+        args = substr(command, length(path) + 1)
+        sub(/^[[:space:]]+/, "", args)
+        sub(/[[:space:]]+$/, "", args)
+        if ((args == "" || args == "*") && !seen[path]++) ordered[++total] = path
+      }
+    }
+    NR > 3000 || length($0) > 2048 { partial = 1; exit }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      previous_rule = 1
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      users = parts[1]
+      root_capable = users ~ /(^|[[:space:],])(ALL|root|#0)([[:space:],]|$)/ &&
+                     users !~ /(^|[[:space:],])!(ALL|root|#0)([[:space:],]|$)/
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      review(line, root_capable)
+      next
+    }
+    previous_rule && /^[[:space:]]+[^[:space:]]/ { partial = 1; exit }
+    { previous_rule = 0 }
+    END {
+      if (partial || deny_all) exit
+      for (i = 1; i <= total; i++) {
+        path = ordered[i]
+        if (denied[path]) continue
+        if (++count > 10) exit
+        print path
+      }
+    }
+  ')
+  [ -n "$sudo_ps2pdf_rules" ] || return 0
+  printf '%s\n' "$sudo_ps2pdf_rules" | while IFS= read -r sudo_ps2pdf_script; do
+    case "$sudo_ps2pdf_script" in *'//'*|*'/./'*|*'/../'*|*'/.'|*'/..') continue ;; esac
+    sudo_python_import_plain_path "$sudo_ps2pdf_script" &&
+      [ -f "$sudo_ps2pdf_script" ] && [ -r "$sudo_ps2pdf_script" ] &&
+      [ -x "$sudo_ps2pdf_script" ] || continue
+    sudo_ps2pdf_size=$(stat -c %s "$sudo_ps2pdf_script" 2>/dev/null) ||
+      sudo_ps2pdf_size=$(stat -f %z "$sudo_ps2pdf_script" 2>/dev/null) || continue
+    case "$sudo_ps2pdf_size" in ''|*[!0-9]*) continue ;; esac
+    [ "$sudo_ps2pdf_size" -le 65536 ] || continue
+    sudo_ps2pdf_shebang=$(sed -n '1p;1q' "$sudo_ps2pdf_script" 2>/dev/null)
+    case "$sudo_ps2pdf_shebang" in '#!'*'/python'*|'#!'*'env python'*|'#!'*'/sh'|'#!'*'/bash'|'#!'*'/dash'|'#!'*'/ksh'|'#!'*'/zsh'|'#!'*'env sh'|'#!'*'env bash') ;; *) continue ;; esac
+    sudo_ps2pdf_line=$(LC_ALL=C awk '
+      NR > 400 || length($0) > 2048 { partial = 1; exit }
+      /^[[:space:]]*#/ { next }
+      /(^|[^[:alnum:]_.-])ps2pdf([^[:alnum:]_.-]|$)/ { tool_line = NR }
+      /(^|[^[:alnum:]_-])-dNOSAFER([^[:alnum:]_]|$)/ { if (!flag_line) flag_line = NR }
+      END { if (!partial && tool_line && flag_line) print flag_line }
+    ' "$sudo_ps2pdf_script" 2>/dev/null)
+    [ -n "$sudo_ps2pdf_line" ] || continue
+    printf 'Sudo PostScript conversion review candidate: %s (literal ps2pdf and -dNOSAFER, flag line %s; verify caller-controlled PostScript reaches converter, SAFER state, and effective sudo policy)\n' \
+      "$sudo_ps2pdf_script" "$sudo_ps2pdf_line"
+  done
+}
+sudo_ps2pdf_nosafer_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+  sed -"${E}" "s,.*,${SED_RED_YELLOW},"
+
+# Inspect only exact root-capable Python rules that accept a caller-selected
+# Compose YAML. This is a review cue: wrapper validation and daemon policy can
+# still block dangerous service settings. Never run the wrapper or Docker.
+sudo_compose_wrapper_review() {
+  [ -n "$1" ] || return 0
+  sudo_compose_rules=$(printf '%s\n' "$1" | LC_ALL=C awk '
+    function review(specs, root_capable, count, commands, i, command, path, args, noexec) {
+      count = split(specs, commands, ",")
+      for (i = 1; i <= count; i++) {
+        command = commands[i]
+        sub(/^[[:space:]]*/, "", command)
+        sub(/[[:space:]]*$/, "", command)
+        noexec = 0
+        while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/) {
+          if (command ~ /^NOEXEC:/) noexec = 1
+          if (command ~ /^EXEC:/) noexec = 0
+          sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+        }
+        if (command ~ /^!/) {
+          sub(/^![[:space:]]*/, "", command)
+          path = command
+          sub(/[[:space:]].*$/, "", path)
+          if (path == "ALL") deny_all = 1
+          if (path ~ /^\/[[:alnum:]_.+\/-]+\.py$/) denied[path] = 1
+          continue
+        }
+        if (!root_capable || noexec) continue
+        path = command
+        sub(/[[:space:]].*$/, "", path)
+        if (path !~ /^\/[[:alnum:]_.+\/-]+\.py$/) continue
+        args = substr(command, length(path) + 1)
+        sub(/^[[:space:]]+/, "", args)
+        sub(/[[:space:]]+$/, "", args)
+        if (args !~ /^(\*\.ya?ml|\/[[:alnum:]_.+\/-]*\*\.ya?ml)$/) continue
+        if (!seen[path]++) ordered[++total] = path
+      }
+    }
+    NR > 3000 || length($0) > 2048 { partial = 1; exit }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      previous_rule = 1
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      users = parts[1]
+      root_capable = users ~ /(^|[[:space:],])(ALL|root|#0)([[:space:],]|$)/ &&
+                     users !~ /(^|[[:space:],])!(ALL|root|#0)([[:space:],]|$)/
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      review(line, root_capable)
+      next
+    }
+    previous_rule && /^[[:space:]]+[^[:space:]]/ { partial = 1; exit }
+    { previous_rule = 0 }
+    END {
+      if (partial || deny_all) exit
+      for (i = 1; i <= total; i++) {
+        path = ordered[i]
+        if (denied[path]) continue
+        if (++printed > 8) exit
+        print path
+      }
+    }
+  ')
+  [ -n "$sudo_compose_rules" ] || return 0
+  printf '%s\n' "$sudo_compose_rules" | while IFS= read -r sudo_compose_script; do
+    case "$sudo_compose_script" in *'//'*|*'/./'*|*'/../'*|*'/.'|*'/..') continue ;; esac
+    sudo_python_import_plain_path "$sudo_compose_script" &&
+      [ -f "$sudo_compose_script" ] && [ -r "$sudo_compose_script" ] &&
+      [ -x "$sudo_compose_script" ] || continue
+    sudo_compose_size=$(stat -c %s "$sudo_compose_script" 2>/dev/null) ||
+      sudo_compose_size=$(stat -f %z "$sudo_compose_script" 2>/dev/null) || continue
+    case "$sudo_compose_size" in ''|*[!0-9]*) continue ;; esac
+    [ "$sudo_compose_size" -le 65536 ] || continue
+    sudo_compose_shebang=$(dd if="$sudo_compose_script" bs=256 count=1 2>/dev/null | sed -n '1p;1q')
+    case "$sudo_compose_shebang" in '#!'*'/python'*|'#!'*'env python'*) ;; *) continue ;; esac
+    sudo_compose_match=$(dd if="$sudo_compose_script" bs=65537 count=1 2>/dev/null | LC_ALL=C awk '
+      BEGIN { single_quote = sprintf("%c", 39) }
+      NR > 400 || length($0) > 2048 { partial = 1; exit }
+      /^[[:space:]]*#/ { next }
+      /sys\.argv\[1\]/ { argument = 1 }
+      (index($0, "/docker-compose\"") || index($0, "/docker-compose" single_quote) ||
+       index($0, "\"docker-compose\"") || index($0, single_quote "docker-compose" single_quote)) &&
+        /subprocess|Popen|os\.system/ &&
+        (index($0, "\"up\"") || index($0, single_quote "up" single_quote)) { compose = 1 }
+      END { if (!partial && argument && compose) print "yes" }
+    ')
+    [ "$sudo_compose_match" = yes ] || continue
+    printf 'Sudo Compose wrapper review candidate: %s has a caller-selected YAML sudo rule and invokes Docker Compose up; verify that this YAML reaches Compose, wrapper validation of capabilities, security options and volume syntax, effective sudo policy, and daemon restrictions.\n' "$sudo_compose_script"
+  done
+}
+sudo_compose_wrapper_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 (sudo_l_colorize_file /etc/sudoers) 2>/dev/null || echo_not_found "/etc/sudoers"
