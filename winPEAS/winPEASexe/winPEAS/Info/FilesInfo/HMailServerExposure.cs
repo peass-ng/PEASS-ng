@@ -51,6 +51,7 @@ namespace winPEAS.Info.FilesInfo
         {
             var settings = new HMailDatabaseSettings();
             bool inDatabase = false;
+            bool inDirectories = false;
             using (var reader = new StringReader(text ?? ""))
             {
                 string line;
@@ -60,17 +61,22 @@ namespace winPEAS.Info.FilesInfo
                     if (line.StartsWith("[", StringComparison.Ordinal))
                     {
                         inDatabase = line.Equals("[Database]", StringComparison.OrdinalIgnoreCase);
+                        inDirectories = line.Equals("[Directories]", StringComparison.OrdinalIgnoreCase);
                         continue;
                     }
-                    if (!inDatabase || line.Length == 0 || line[0] == ';' || line[0] == '#') continue;
+                    if ((!inDatabase && !inDirectories) || line.Length == 0 || line[0] == ';' || line[0] == '#') continue;
                     int equals = line.IndexOf('=');
                     if (equals <= 0) continue;
                     string key = line.Substring(0, equals).Trim();
                     string value = line.Substring(equals + 1).Trim();
+                    if (inDirectories)
+                    {
+                        if (key.Equals("DatabaseFolder", StringComparison.OrdinalIgnoreCase)) settings.DatabaseFolder = value;
+                        continue;
+                    }
                     if (key.Equals("Type", StringComparison.OrdinalIgnoreCase)) settings.Type = value;
                     else if (key.Equals("Internal", StringComparison.OrdinalIgnoreCase)) settings.Internal = value;
                     else if (key.Equals("PasswordEncryption", StringComparison.OrdinalIgnoreCase)) settings.PasswordEncryption = value;
-                    else if (key.Equals("DatabaseFolder", StringComparison.OrdinalIgnoreCase)) settings.DatabaseFolder = value;
                     else if (key.Equals("Password", StringComparison.OrdinalIgnoreCase)) settings.PasswordPresent = value.Length != 0;
                 }
             }

@@ -96,6 +96,16 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void UninspectedMappedRootsRemainUnknown()
+        {
+            var report = new IisServedRootReport();
+            IisServedRootPermissions.AddConfiguredRoots(report, Config(1, false), Stopwatch.StartNew());
+            Assert.AreEqual(1, report.Roots.Count);
+            Assert.AreEqual(IisCreateFileAcl.ManualReview, report.Roots[0].CreateFileAcl);
+            Assert.AreEqual("Physical root ACL not inspected", report.Roots[0].Reason);
+        }
+
+        [TestMethod]
         public void ActiveMappedRootsAndAspxEvidenceAreBounded()
         {
             var report = new IisServedRootReport();

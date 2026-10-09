@@ -44,17 +44,28 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
-        public void ParsesOnlyDatabaseKeysAndNeverRetainsPasswordValue()
+        public void ParsesOnlyRelevantConfigurationKeysAndNeverRetainsPasswordValue()
         {
             string secret = "fixture-secret-should-not-be-retained";
             var settings = HMailServerExposure.ParseDatabaseSection(
                 "[Other]\nPassword=wrong\n[database]\ntYpE=MSSQLCE\nInternal=1\n" +
-                "PasswordEncryption=1\nDatabaseFolder=Database\nPassword=" + secret + "\n[Other]\nType=ignored");
+                "PasswordEncryption=1\nPassword=" + secret + "\n[Directories]\nDatabaseFolder=Database\n[Other]\nType=ignored");
             Assert.AreEqual("MSSQLCE", settings.Type);
             Assert.AreEqual("Database", settings.DatabaseFolder);
             Assert.IsTrue(settings.PasswordPresent);
             Assert.IsFalse(string.Join("|", settings.Type, settings.Internal,
                 settings.PasswordEncryption, settings.DatabaseFolder).Contains(secret));
+        }
+
+        [TestMethod]
+        public void DatabaseFolderComesOnlyFromDirectoriesSection()
+        {
+            var settings = HMailServerExposure.ParseDatabaseSection(
+                "[Directories]\nDatabaseFolder=CustomDatabase\nPassword=ignored\n" +
+                "[Database]\nType=MSSQLCE\nDatabaseFolder=wrong\n");
+            Assert.AreEqual("CustomDatabase", settings.DatabaseFolder);
+            Assert.AreEqual("MSSQLCE", settings.Type);
+            Assert.IsFalse(settings.PasswordPresent);
         }
 
         [TestMethod]
@@ -80,8 +91,18 @@ namespace winPEAS.Tests
                 Assert.AreEqual(HMailReadState.Accessible, both.DatabaseState);
                 Assert.IsTrue(both.EncryptedPasswordPresent);
 
+                string customDatabase = Path.Combine(install, "CustomDatabase");
+                Directory.CreateDirectory(customDatabase);
+                string customFile = Path.Combine(customDatabase, "hMailServer.sdf");
+                File.WriteAllBytes(customFile, new byte[] { 1 });
                 File.WriteAllText(Path.Combine(bin, "hMailServer.ini"),
-                    "[Database]\nType=MSSQLCE\nDatabaseFolder=../outside\n");
+                    "[Database]\nType=MSSQLCE\n[Directories]\nDatabaseFolder=" + customDatabase + "\n");
+                var relocated = HMailServerExposure.ProbeInstall(install);
+                Assert.AreEqual(customFile, relocated.DatabasePath);
+                Assert.AreEqual(HMailReadState.Accessible, relocated.DatabaseState);
+
+                File.WriteAllText(Path.Combine(bin, "hMailServer.ini"),
+                    "[Database]\nType=MSSQLCE\n[Directories]\nDatabaseFolder=../outside\n");
                 var rejected = HMailServerExposure.ProbeInstall(install);
                 Assert.AreEqual(HMailReadState.Accessible, rejected.IniState);
                 Assert.AreEqual(HMailReadState.Unknown, rejected.DatabaseState);

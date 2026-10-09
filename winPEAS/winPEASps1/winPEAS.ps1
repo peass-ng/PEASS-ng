@@ -188,9 +188,9 @@ function Get-DnsZoneAceReviewSignal {
     default { return $null }
   }
   $rights = [System.DirectoryServices.ActiveDirectoryRights]$Ace.ActiveDirectoryRights
-  $reviewRights = [System.DirectoryServices.ActiveDirectoryRights]::GenericAll -bor
-    [System.DirectoryServices.ActiveDirectoryRights]::GenericWrite -bor
-    [System.DirectoryServices.ActiveDirectoryRights]::CreateChild -bor
+  # GenericAll/GenericWrite are composite masks and include ordinary read rights.
+  # Relevant write bits are covered below; do not flag an ACE just for sharing a read bit.
+  $reviewRights = [System.DirectoryServices.ActiveDirectoryRights]::CreateChild -bor
     [System.DirectoryServices.ActiveDirectoryRights]::WriteProperty -bor
     [System.DirectoryServices.ActiveDirectoryRights]::WriteDacl -bor
     [System.DirectoryServices.ActiveDirectoryRights]::WriteOwner

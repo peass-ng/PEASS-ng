@@ -22,9 +22,9 @@ namespace winPEAS.Info.FilesInfo
         internal bool Configured;
         internal bool AutoStartConfigured;
         internal bool AspxHandlerConfigured;
-        internal IisCreateFileAcl CreateFileAcl;
+        internal IisCreateFileAcl CreateFileAcl = IisCreateFileAcl.ManualReview;
         internal string Trustee;
-        internal string Reason;
+        internal string Reason = "Physical root ACL not inspected";
     }
 
     internal sealed class IisServedRootReport
