@@ -186,20 +186,20 @@ class LinpeasBuilder:
                         self.bash_find_f_vars.add(bash_find_var)
                         all_file_regexes += regexes
 
-                    find_line += '-name \\"' + '\\" -o -name \\"'.join(regexes) + '\\"'
+                    find_line += '\\( -name \\"' + '\\" -o -name \\"'.join(regexes) + '\\" \\)'
                     find_line = FIND_TEMPLATE.replace(FIND_LINE_MARKUP, find_line)
                     find_line = f"{bash_find_var}={find_line}"
                     finds.append(find_line)
         
         # Buid folder and files finds when searching in a custom folder
         all_folder_regexes = list(set(all_folder_regexes))
-        find_line = '$SEARCH_IN_FOLDER -type d -name \\"' + '\\" -o -name \\"'.join(all_folder_regexes) + '\\"'
+        find_line = '$SEARCH_IN_FOLDER -type d \\( -name \\"' + '\\" -o -name \\"'.join(all_folder_regexes) + '\\" \\)'
         find_line = FIND_TEMPLATE.replace(FIND_LINE_MARKUP, find_line)
         find_line = f"FIND_DIR_CUSTOM={find_line}"
         finds_custom.append(find_line)
         
         all_file_regexes = list(set(all_file_regexes))
-        find_line = '$SEARCH_IN_FOLDER -name \\"' + '\\" -o -name \\"'.join(all_file_regexes) + '\\"'
+        find_line = '$SEARCH_IN_FOLDER \\( -name \\"' + '\\" -o -name \\"'.join(all_file_regexes) + '\\" \\)'
         find_line = FIND_TEMPLATE.replace(FIND_LINE_MARKUP, find_line)
         find_line = f"FIND_CUSTOM={find_line}"
         finds_custom.append(find_line)

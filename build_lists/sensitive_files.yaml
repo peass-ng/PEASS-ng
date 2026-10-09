@@ -2419,9 +2419,9 @@ search:
                 type: f
                 search_in:
                   - common
-          
+
           - name: "krb5cc_*"
-            value: 
+            value:
                 type: f
                 search_in: 
                   - common
@@ -2504,12 +2504,12 @@ search:
                 type: f
                 search_in:
                   - common
-                 
+
   - name: Knockd
     value:
         config:
           auto_check: True
-    
+
         files:
           - name: "*knockd*"
             value: 
@@ -4330,11 +4330,43 @@ search:
           - name: "smb.conf"
             value: 
                 type: f
-                bad_regex: "browseable.*yes|read only.*no|writable.*yes|guest ok.*yes|enable privileges.*yes|create mask.*|directory mask.*|logon script.*|magic script.*|magic output.*"
+                bad_regex: "browseable.*yes|read only.*no|writable.*yes|guest ok.*yes|enable privileges.*yes|create mask.*|directory mask.*|logon script.*|magic script.*|magic output.*|wide links.*yes|allow insecure wide links.*yes|force user[[:space:]]*=[[:space:]]*root"
                 good_regex: "browseable.*no|read only.*yes|writable.*no|guest ok.*no|enable privileges.*no"
-                line_grep: '"browseable|read only|writable|guest ok|enable privileges|create mask|directory mask|logon script|magic script|magic output"'
+                line_grep: '-i "^[[:space:]]*(browseable|read only|writable|guest ok|enable privileges|create mask|directory mask|logon script|magic script|magic output|wide links|allow insecure wide links|force user|include)[[:space:]]*=" | head -n 30'
                 remove_empty_lines: True
                 search_in: 
+                  - common
+
+  - name: Samba included configuration policies
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "*.conf"
+            value:
+                check_extra_path: '^/(etc|usr/local/etc)/samba/[^/]+\.conf$'
+                line_grep: '-i "^[[:space:]]*(include|force user|wide links|allow insecure wide links|browseable|read only|writable|guest ok)[[:space:]]*=" | head -n 30'
+                bad_regex: "wide links.*yes|allow insecure wide links.*yes|force user[[:space:]]*=[[:space:]]*root"
+                remove_empty_lines: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}usr
+
+  - name: Rclone configuration candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "rclone.conf"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
                   - common
 
   - name: DNS

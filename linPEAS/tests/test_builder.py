@@ -3,6 +3,7 @@ import re
 import shlex
 import stat
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,6 +21,60 @@ class LinpeasBuilderTests(unittest.TestCase):
             raise AssertionError(
                 f"linpeas_builder failed:\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
             )
+
+    def test_generated_find_groups_name_alternatives_under_directory_type(self):
+        """A second directory name must not admit an ordinary file via find -o."""
+        sys.path.insert(0, str(self.linpeas_dir))
+        try:
+            from builder.src.linpeasBuilder import LinpeasBuilder
+        finally:
+            sys.path.pop(0)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "dir-first").mkdir()
+            (root / "dir-second").mkdir()
+            (root / "file-first.conf").write_text("", encoding="utf-8")
+            (root / "file-second.yaml").write_text("", encoding="utf-8")
+            (root / "dir-second-file").write_text("", encoding="utf-8")
+            (root / "other").write_text("", encoding="utf-8")
+            # The second alternative has the same basename as this file in a
+            # nested directory; it must never enter a directory-only cache.
+            (root / "nested").mkdir()
+            (root / "nested" / "dir-second").write_text("", encoding="utf-8")
+
+            builder = object.__new__(LinpeasBuilder)
+            builder.dict_to_search = {
+                "d": {str(root): {"dir-first", "dir-second"}},
+                "f": {str(root): {"*.conf", "*.yaml"}},
+            }
+            builder.bash_find_f_vars = set()
+            builder.bash_find_d_vars = set()
+            standard, custom = builder._LinpeasBuilder__generate_finds()
+
+            def run_find(assignment):
+                rhs = assignment.partition("=")[2]
+                script = "\n".join((
+                    'eval_bckgrd() { eval "$1"; }',
+                    f"SEARCH_IN_FOLDER={shlex.quote(str(root))}",
+                    f"RESULT={rhs}",
+                    'printf "%s\\n" "$RESULT"',
+                ))
+                result = subprocess.run(
+                    ["sh", "-c", script], capture_output=True, text=True,
+                    cwd=str(root),
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                return set(result.stdout.splitlines())
+
+            expected_dirs = {str(root / "dir-first"), str(root / "dir-second")}
+            expected_files = {str(root / "file-first.conf"), str(root / "file-second.yaml")}
+            for assignment in standard + custom:
+                found = run_find(assignment)
+                if assignment.startswith("FIND_DIR_"):
+                    self.assertEqual(found, expected_dirs, assignment)
+                else:
+                    self.assertEqual(found, expected_files, assignment)
 
     def test_small_build_creates_executable(self):
         with tempfile.TemporaryDirectory() as tmpdir:
