@@ -59,6 +59,65 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void SkippedReparseFilesStillConsumeTheEntryBudget()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "transcript-inventory-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                string day = Path.Combine(root, "20200101");
+                Directory.CreateDirectory(day);
+                for (int i = 0; i < 65; i++)
+                    File.WriteAllText(Path.Combine(day, "PowerShell_transcript." + i + ".txt"), "x");
+
+                int inspectedFiles = 0;
+                bool partial;
+                var found = SystemInfo.FindRootPowerShellTranscripts(root, out partial, path =>
+                {
+                    if (Directory.Exists(path)) return File.GetAttributes(path);
+                    ++inspectedFiles;
+                    return FileAttributes.ReparsePoint;
+                });
+
+                Assert.IsTrue(partial);
+                Assert.AreEqual(0, found.Count);
+                Assert.AreEqual(64, inspectedFiles);
+            }
+            finally
+            {
+                if (Directory.Exists(root)) Directory.Delete(root, true);
+            }
+        }
+
+        [TestMethod]
+        public void NonmatchingEntriesStillConsumeBothInventoryBudgets()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "transcript-inventory-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(root);
+                for (int i = 0; i < 17; i++)
+                    File.WriteAllText(Path.Combine(root, "ordinary." + i + ".txt"), "x");
+
+                bool partial;
+                Assert.AreEqual(0, SystemInfo.FindRootPowerShellTranscripts(root, out partial).Count);
+                Assert.IsTrue(partial);
+
+                foreach (var file in Directory.EnumerateFiles(root)) File.Delete(file);
+                string day = Path.Combine(root, "20200101");
+                Directory.CreateDirectory(day);
+                for (int i = 0; i < 65; i++)
+                    File.WriteAllText(Path.Combine(day, "ordinary." + i + ".txt"), "x");
+
+                Assert.AreEqual(0, SystemInfo.FindRootPowerShellTranscripts(root, out partial).Count);
+                Assert.IsTrue(partial);
+            }
+            finally
+            {
+                if (Directory.Exists(root)) Directory.Delete(root, true);
+            }
+        }
+
+        [TestMethod]
         public void MissingRootHasNoFindings()
         {
             string root = Path.Combine(Path.GetTempPath(), "transcript-inventory-" + Guid.NewGuid().ToString("N"));
