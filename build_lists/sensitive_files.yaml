@@ -2723,6 +2723,20 @@ search:
           auto_check: True
 
         files:
+
+          - name: "*.vbox"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "*.vdi"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
       
           - name: "*.vhd"
             value: 
@@ -4615,6 +4629,22 @@ search:
                 search_in: 
                   - common
 
+  - name: Axel download configuration candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: ".axelrc"
+            value:
+                # A sudo-run downloader may read this from a caller-controlled HOME.
+                # Show the path only; configurations may contain credentials.
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: Interesting logs
     value:
         config:
@@ -4674,6 +4704,14 @@ search:
           auto_check: True
 
         files:
+          - name: ".npmrc"
+            value:
+                # Registry configuration may contain authentication material.
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
           - name: ".bashrc"
             value: 
                 just_list_file: True

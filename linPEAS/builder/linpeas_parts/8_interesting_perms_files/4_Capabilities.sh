@@ -7,9 +7,9 @@
 # Version: 1.1
 # Mitre: T1548.001,T1068
 # Functions Used: checkSnapConfineCVE20263888, checkSnapConfineCVE20268933, echo_not_found, print_2title, print_info, print_3title
-# Global Variables: $capsB, $capsVB, $IAMROOT, $SEARCH_IN_FOLDER
+# Global Variables: $capsB, $capsVB, $IAMROOT, $SEARCH_IN_FOLDER, $STRINGS
 # Initial Functions:
-# Generated Global Variables: $cap_name, $cap_value, $cap_line, $cap_status_file, $cap_default_sep, $cap_sep, $cap_color, $capVB, $capname, $capbins, $capsVB_vuln, $proc_status, $proc_pid, $proc_name, $proc_uid, $user_name, $proc_inh, $proc_prm, $proc_eff, $proc_bnd, $proc_amb, $proc_inh_dec, $proc_prm_dec, $proc_eff_dec, $proc_bnd_dec, $proc_amb_dec
+# Generated Global Variables: $cap_name, $cap_value, $cap_line, $cap_status_file, $cap_default_sep, $cap_sep, $cap_color, $capVB, $capname, $capbins, $capsVB_vuln, $proc_status, $proc_pid, $proc_name, $proc_uid, $user_name, $proc_inh, $proc_prm, $proc_eff, $proc_bnd, $proc_amb, $proc_inh_dec, $proc_prm_dec, $proc_eff_dec, $proc_bnd_dec, $proc_amb_dec, $binfmt_probe_count, $cap_path, $cap_rights, $cap_size
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -47,7 +47,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
           # so we redirect stderr to prevent error propagation
           echo "$cap_name$cap_sep$(capsh --decode=0x"$cap_value" 2>/dev/null | sed -${E} "s,$capsB,${cap_color},")"
         else
-          echo "$cap_name$cap_sep[Invalid capability format]"
+          echo "$cap_name${cap_sep}[Invalid capability format]"
         fi
       done
     }
@@ -104,8 +104,16 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   fi
   echo ""
   echo "Files with capabilities (limited to 50):"
+  binfmt_probe_count=0
   getcap -r / 2>/dev/null | head -n 50 | while read cb; do
     capsVB_vuln=""
+    # Match the executable basename exactly; broad capsVB patterns also match wrappers.
+    case "$cb" in
+      */gdb\ *cap_sys_ptrace*)
+        echo "$cb" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+        continue
+        ;;
+    esac
     
     for capVB in $capsVB; do
       capname="$(echo $capVB | cut -d ':' -f 1)"
@@ -119,6 +127,28 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     
     if ! [ "$capsVB_vuln" ]; then
       echo "$cb" | sed -${E} "s,$capsB,${SED_RED},"
+    fi
+    # Reuse the capped getcap results. A helper that embeds the exact
+    # registration path is only a static lead; never run it or read its input.
+    cap_path=${cb%% *}
+    cap_rights=${cb#* }
+    cap_rights=${cap_rights#= }
+    if [ "$binfmt_probe_count" -lt 8 ] && [ ! "$IAMROOT" ] && [ "$STRINGS" ] &&
+       [ -f "$cap_path" ] && [ ! -L "$cap_path" ] &&
+       [ -r "$cap_path" ] && [ -x "$cap_path" ] &&
+       printf '%s\n' "$cap_rights" | grep -Eq '(^|[ ,])cap_dac_override(,cap_[a-z0-9_]+)*[+=][eip]*e[eip]*($|[[:space:]])'; then
+      cap_size=$(stat -c %s "$cap_path" 2>/dev/null || stat -f %z "$cap_path" 2>/dev/null)
+      case "$cap_size" in
+        ''|*[!0-9]*) ;;
+        *)
+          if [ "$cap_size" -le 1048576 ]; then
+            binfmt_probe_count=$((binfmt_probe_count + 1))
+            if LC_ALL=C "$STRINGS" -a "$cap_path" 2>/dev/null | grep -Fxq '/proc/sys/fs/binfmt_misc/register'; then
+              printf '  binfmt_misc helper review candidate: %s (file cap_dac_override effective flag and embedded register path; effective helper privilege, caller control, writable proc mount, kernel policy, interpreter access, and SUID transition unverified).\n' "$cap_path"
+            fi
+          fi
+          ;;
+      esac
     fi
     if ! [ "$IAMROOT" ] && [ -w "$(echo $cb | cut -d" " -f1)" ]; then
       echo "$cb is writable" | sed -${E} "s,.*,${SED_RED},"

@@ -2,7 +2,7 @@
 # ID: UG_Sudo_l
 # Author: Carlos Polop
 # Last Update: 09-10-2026
-# Description: Checking 'sudo -l', sudoers files, privileged config, process tracing, container exec and compose wrappers, packet-filter export, PDF attachments, PostScript conversion, Bash pattern comparisons, relative working-directory helpers, PyInstaller build wrappers, preset and PHP CLI loaders, and privileged Python imports, paths, caches, archive extraction, model loading, and Git transport
+# Description: Checking 'sudo -l', sudoers files, privileged config, process tracing, container exec and compose wrappers, packet-filter export, PDF attachments, PostScript conversion, Bash pattern comparisons, relative working-directory helpers, PyInstaller build wrappers, preset and PHP CLI loaders, privileged Neofetch configuration, and privileged Python imports, paths, caches, archive extraction, model loading, and Git transport
 # License: GNU GPL
 # Version: 1.6
 # Mitre: T1548.003
@@ -132,6 +132,65 @@ else
 fi
 
 sudo_env_keep_script_candidates "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")"
+
+# An empty-argument Neofetch grant can still source a shell config when sudo
+# preserves a caller-selected XDG_CONFIG_HOME. Inspect only cached policy text.
+sudo_neofetch_xdg_review() {
+  [ -n "$1" ] || return 0
+  case "$1" in *neofetch*XDG_CONFIG_HOME*|*XDG_CONFIG_HOME*neofetch*) ;; *) return 0 ;; esac
+  printf '%s\n' "$1" | LC_ALL=C awk '
+    function inspect(specs, n, items, i, item, path, args) {
+      n = split(specs, items, ",")
+      if (n > 32) { ambiguous = 1; return }
+      for (i = 1; i <= n; i++) {
+        item = items[i]
+        sub(/^[[:space:]]+/, "", item)
+        while (item ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC):[[:space:]]*/)
+          sub(/^[A-Z_]+:[[:space:]]*/, "", item)
+        if (item ~ /^!/) {
+          sub(/^![[:space:]]*/, "", item)
+          if (item ~ /^ALL([[:space:]]|$)/ || item ~ /^\/([A-Za-z0-9_.+-]+\/)+neofetch([[:space:]]|$)/)
+            denied = 1
+          continue
+        }
+        path = item
+        sub(/[[:space:]].*$/, "", path)
+        if (path !~ /^\/([A-Za-z0-9_.+-]+\/)+neofetch$/) continue
+        args = substr(item, length(path) + 1)
+        sub(/^[[:space:]]+/, "", args)
+        sub(/[[:space:]]+$/, "", args)
+        if (args == "\"\"") allowed = 1
+      }
+    }
+    NR > 3000 || length($0) > 2048 { ambiguous = 1; exit }
+    /!env_keep|env_keep[[:space:]]*-=/ { denied_env = 1; next }
+    /env_keep[[:space:]]*\+?=[[:space:]]*/ {
+      line = $0
+      sub(/.*env_keep[[:space:]]*\+?=[[:space:]]*/, "", line)
+      gsub(/"/, " ", line)
+      sub(/,.*/, "", line)
+      n = split(line, words, /[[:space:]]+/)
+      for (i = 1; i <= n; i++) if (words[i] == "XDG_CONFIG_HOME") kept = 1
+    }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      users = parts[1]
+      if (users !~ /(^|[[:space:],])(root|ALL|#0)([[:space:],]|$)/ ||
+          users ~ /(^|[[:space:],])!(root|ALL|#0)([[:space:],]|$)/) next
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      inspect(line)
+    }
+    END {
+      if (!ambiguous && kept && !denied_env && allowed && !denied)
+        print "Sudo Neofetch config review candidate: root-capable empty-argument grant and XDG_CONFIG_HOME in listed env_keep; confirm applicability, caller-controlled config path, and installed loader."
+    }
+  '
+}
+sudo_neofetch_xdg_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")"
 
 # Review only an explicitly sudo-allowed Nmap executable. A small shell
 # wrapper that filters --script but forwards argv may still leave NSE's data

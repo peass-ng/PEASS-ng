@@ -1,15 +1,15 @@
 # Title: Interesting Permissions Files - Misconfigured ld.so
 # ID: IP_Misconfigured_ldso
 # Author: Carlos Polop
-# Last Update: 22-08-2023
+# Last Update: 09-10-2026
 # Description: Checking misconfigurations of ld.so
 # License: GNU GPL
-# Version: 1.0
+# Version: 1.1
 # Mitre: T1574.006
 # Functions Used: print_2title, print_info
 # Global Variables: $IAMROOT, $ITALIC, $SEARCH_IN_FOLDER, $USER, $Wfolders, $ldsoconfdG, $wgroups
 # Initial Functions:
-# Generated Global Variables: $ini_path, $fpath
+# Generated Global Variables: $ini_path, $fpath, $ldso_writable_files
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -43,8 +43,9 @@ if ! [ "$SEARCH_IN_FOLDER" ] && ! [ "$IAMROOT" ]; then
         printf $GREEN$ITALIC"$fpath\n"$NC;
       fi
 
-      if [ "$(find "$fpath" -type f '(' '(' -user "$USER" ')' -or '(' -perm -o=w ')' -or '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" ]; then
-        echo "You have write privileges over $(find "$fpath" -type f '(' '(' -user "$USER" ')' -or '(' -perm -o=w ')' -or '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null)" | sed -${E} "s,.*,${SED_RED_YELLOW},";
+      ldso_writable_files=$(find "$fpath" -type f '(' '(' -user "$USER" ')' -or '(' -perm -o=w ')' -or '(' -perm -g=w -and '(' $wgroups ')' ')' ')' 2>/dev/null) || :
+      if [ "$ldso_writable_files" ]; then
+        echo "You have write privileges over $ldso_writable_files" | sed -${E} "s,.*,${SED_RED_YELLOW},";
       fi
 
       for f in $ini_path; do

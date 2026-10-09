@@ -32,7 +32,7 @@
 # Version: 1.1
 # Mitre: T1518.001
 # Functions Used: echo_no, echo_not_found, print_2title, print_list, warn_exec
-# Global Variables: $ROOT_FOLDER, $SEARCH_IN_FOLDER, $TIMEOUT
+# Global Variables: $IAMROOT, $ROOT_FOLDER, $SEARCH_IN_FOLDER, $TIMEOUT
 # Initial Functions:
 # Generated Global Variables: $ASLR, $hypervisorflag, $detectedvirt, $unpriv_userns_clone, $perf_event_paranoid, $mmap_min_addr, $ptrace_scope, $dmesg_restrict, $kptr_restrict, $unpriv_bpf_disabled, $protected_symlinks, $protected_hardlinks, $protected_regular, $label, $sysctl_path, $sysctl_var, $zero_color, $nonzero_color, $sysctl_value, $f2b_jails, $no_new_privs_status, $cups_job_timeout, $cups_job_ids, $cups_job_id, $cups_job_doc, $cups_job_file, $cups_job_header
 # Fat linpeas: 0
@@ -184,6 +184,14 @@ else
 fi
 
 #-- SY) Fail2ban (Intrusion Prevention System)
+fail2ban_action_dir_review() {
+    # Exact, metadata-only check. A symlinked final component can point to an
+    # unrelated or slow filesystem, so leave that case for manual review.
+    if ! [ "$IAMROOT" ] && [ ! -L "$1" ] && [ -d "$1" ] && [ -w "$1" ] && [ -x "$1" ]; then
+        printf '  Fail2ban action directory review candidate: %s is writable/searchable (parent paths, selected jail/action, service identity, effective restart policy, and event trigger unverified).\n' "$1"
+    fi
+}
+
 print_list "Fail2ban present? .............. "$NC
 if command -v fail2ban-client >/dev/null 2>&1 || [ -S "/var/run/fail2ban/fail2ban.sock" ] || pgrep -x fail2ban-server >/dev/null 2>&1; then
     f2b_jails=$(fail2ban-client status 2>/dev/null | grep "Jail list" | sed "s/.*Jail list:[[:space:]]*//")
@@ -192,6 +200,7 @@ if command -v fail2ban-client >/dev/null 2>&1 || [ -S "/var/run/fail2ban/fail2ba
     else
         echo "Yes - installed (could not query jails, may need root)" | sed -${E} "s,.*,${SED_GREEN},"
     fi
+    fail2ban_action_dir_review /etc/fail2ban/action.d
 else
     echo_not_found "fail2ban"
 fi
