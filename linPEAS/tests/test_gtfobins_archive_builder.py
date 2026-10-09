@@ -1,10 +1,12 @@
 """One-download GTFOBins builder and offline completeness fixtures."""
 
+import gzip
 import io
 import json
 import sys
 import tarfile
 import unittest
+import zlib
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -114,8 +116,37 @@ class GtfobinsArchiveBuilderTests(unittest.TestCase):
                 archive.__enter__.return_value = archive
                 with patch("builder.src.linpeasBuilder.tarfile.open", return_value=archive):
                     with self.assertRaisesRegex(ValueError, "expanded size limit"):
-                        LinpeasBuilder._LinpeasBuilder__gtfobins_archive_categories(b"")
+                        LinpeasBuilder._LinpeasBuilder__gtfobins_archive_categories(gzip.compress(b""))
                 archive.extractfile.assert_not_called()
+
+    def test_whole_expanded_stream_is_bounded_before_tar_parsing(self):
+        # Mock decompression rather than constructing oversized tar metadata.
+        response = FakeResponse(b"unused")
+        compressed = MagicMock()
+        compressed.__enter__.return_value = compressed
+        compressed.read.return_value = bytes(16 * 1024 * 1024 + 1)
+        builder = object.__new__(LinpeasBuilder)
+        with patch("builder.src.linpeasBuilder.requests.get", return_value=response), patch(
+            "builder.src.linpeasBuilder.gzip.GzipFile", return_value=compressed
+        ), patch("builder.src.linpeasBuilder.tarfile.open") as tar_open:
+            lists = builder._LinpeasBuilder__get_gtfobins_lists()
+        compressed.read.assert_called_once_with(16 * 1024 * 1024 + 1)
+        tar_open.assert_not_called()
+        self.assertTrue(response.closed)
+        self.assertGreater(len(lists[1]), 250)
+
+    def test_invalid_deflate_stream_uses_snapshot(self):
+        response = FakeResponse(b"unused")
+        compressed = MagicMock()
+        compressed.__enter__.return_value = compressed
+        compressed.read.side_effect = zlib.error("invalid compressed data")
+        builder = object.__new__(LinpeasBuilder)
+        with patch("builder.src.linpeasBuilder.requests.get", return_value=response), patch(
+            "builder.src.linpeasBuilder.gzip.GzipFile", return_value=compressed
+        ):
+            lists = builder._LinpeasBuilder__get_gtfobins_lists()
+        self.assertTrue(response.closed)
+        self.assertGreater(len(lists[1]), 250)
 
     def test_archive_parser_ignores_nested_and_oversized_members(self):
         output = io.BytesIO()

@@ -1,3 +1,4 @@
+import gzip
 import io
 import json
 import re
@@ -5,6 +6,7 @@ import requests
 import base64
 import os
 import tarfile
+import zlib
 from pathlib import Path
 
 from .peasLoaded import PEASLoaded
@@ -368,7 +370,7 @@ class LinpeasBuilder:
                 response.close()
             categories = self.__gtfobins_archive_categories(content)
             self.__validate_gtfobins_categories(categories)
-        except (requests.RequestException, tarfile.TarError, OSError, ValueError, EOFError):
+        except (requests.RequestException, tarfile.TarError, OSError, ValueError, EOFError, zlib.error):
             print("[+] GTFOBins archive unavailable; using bundled capability snapshot")
             snapshot = Path(__file__).resolve().parents[1] / "gtfobins_snapshot.json"
             with snapshot.open(encoding="utf-8") as handle:
@@ -391,7 +393,13 @@ class LinpeasBuilder:
         seen = set()
         members = 0
         total_bytes = 0
-        with tarfile.open(fileobj=io.BytesIO(content), mode="r:gz") as archive:
+        # Bound the whole tar stream before parsing: extension headers and
+        # padding are not included in the member sizes yielded by tarfile.
+        with gzip.GzipFile(fileobj=io.BytesIO(content)) as compressed:
+            expanded = compressed.read(16 * 1024 * 1024 + 1)
+        if len(expanded) > 16 * 1024 * 1024:
+            raise ValueError("GTFOBins archive exceeds expanded size limit")
+        with tarfile.open(fileobj=io.BytesIO(expanded), mode="r:") as archive:
             for member in archive:
                 members += 1
                 if members > 2048:
