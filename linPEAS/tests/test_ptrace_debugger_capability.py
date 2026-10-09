@@ -15,7 +15,7 @@ CAPS_MODULE = ROOT / "builder/linpeas_parts/8_interesting_perms_files/4_Capabili
 class PtraceDebuggerCapabilityTests(unittest.TestCase):
     def classify(self, record):
         source = CAPS_MODULE.read_text()
-        start = source.index("  getcap -r / 2>/dev/null | head -n 50 | while read cb; do")
+        start = source.index("  cap_inventory_count=0\n  getcap -r / 2>/dev/null | head -n 51 | while read cb; do")
         end = source.index("\n  checkSnapConfineCVE20268933", start)
         listing = source[start:end]
         script = (

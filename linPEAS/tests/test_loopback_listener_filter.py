@@ -36,6 +36,16 @@ class LoopbackListenerFilterTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.splitlines(), lines[:2])
 
+    def test_freebsd_netstat_uses_dotted_port_and_local_bind_column(self):
+        lines = [
+            "tcp4 0 0 127.0.0.1.5901 *.* LISTEN",
+            "tcp6 0 0 ::1.5801 *.* LISTEN",
+            "tcp4 0 0 *.80 127.0.0.1.51234 LISTEN",
+        ]
+        result = self._filter(lines, 4)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.splitlines(), lines[:2])
+
 
 if __name__ == "__main__":
     unittest.main()

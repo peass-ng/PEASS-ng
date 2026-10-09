@@ -9,7 +9,7 @@
 # Functions Used: checkSnapConfineCVE20263888, checkSnapConfineCVE20268933, echo_not_found, print_2title, print_info, print_3title
 # Global Variables: $capsB, $capsVB, $IAMROOT, $SEARCH_IN_FOLDER, $STRINGS
 # Initial Functions:
-# Generated Global Variables: $cap_name, $cap_value, $cap_line, $cap_status_file, $cap_default_sep, $cap_sep, $cap_color, $capVB, $capname, $capbins, $capsVB_vuln, $proc_status, $proc_pid, $proc_name, $proc_uid, $user_name, $proc_inh, $proc_prm, $proc_eff, $proc_bnd, $proc_amb, $proc_inh_dec, $proc_prm_dec, $proc_eff_dec, $proc_bnd_dec, $proc_amb_dec, $binfmt_probe_count, $cap_path, $cap_rights, $cap_size
+# Generated Global Variables: $cap_name, $cap_value, $cap_line, $cap_status_file, $cap_default_sep, $cap_sep, $cap_color, $capVB, $capname, $capbins, $capsVB_vuln, $proc_status, $proc_pid, $proc_name, $proc_uid, $user_name, $proc_inh, $proc_prm, $proc_eff, $proc_bnd, $proc_amb, $proc_inh_dec, $proc_prm_dec, $proc_eff_dec, $proc_bnd_dec, $proc_amb_dec, $binfmt_probe_count, $cap_inventory_count, $cap_path, $cap_rights, $cap_size
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -105,7 +105,13 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   echo ""
   echo "Files with capabilities (limited to 50):"
   binfmt_probe_count=0
-  getcap -r / 2>/dev/null | head -n 50 | while read cb; do
+  cap_inventory_count=0
+  getcap -r / 2>/dev/null | head -n 51 | while read cb; do
+    cap_inventory_count=$((cap_inventory_count + 1))
+    if [ "$cap_inventory_count" -gt 50 ]; then
+      echo "Capability inventory is partial: more than 50 files have capabilities."
+      break
+    fi
     capsVB_vuln=""
     # Match the executable basename exactly; broad capsVB patterns also match wrappers.
     case "$cb" in

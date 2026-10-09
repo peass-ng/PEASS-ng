@@ -26,7 +26,7 @@ class BinfmtCapabilityHelperTests(unittest.TestCase):
 
     def scan(self, records):
         source = MODULE.read_text()
-        start = source.index("  binfmt_probe_count=0\n  getcap -r / 2>/dev/null | head -n 50 | while read cb; do")
+        start = source.index("  binfmt_probe_count=0\n  cap_inventory_count=0\n  getcap -r / 2>/dev/null | head -n 51 | while read cb; do")
         end = source.index("\n  checkSnapConfineCVE20268933", start)
         listing = source[start:end]
         record_text = "\n".join(records)

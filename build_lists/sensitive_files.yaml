@@ -3340,6 +3340,35 @@ search:
             search_in: 
               - $HOMESEARCH
 
+  - name: Thunderbird saved-login files
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "logins.json"
+            value:
+                type: f
+                search_in:
+                  - $HOMESEARCH
+                check_extra_path: '(^|/)\.thunderbird/[^/]+/logins\.json$'
+                just_list_file: True
+          - name: "key3.db"
+            value:
+                type: f
+                search_in:
+                  - $HOMESEARCH
+                check_extra_path: '(^|/)\.thunderbird/[^/]+/key3\.db$'
+                just_list_file: True
+          - name: "key4.db"
+            value:
+                type: f
+                search_in:
+                  - $HOMESEARCH
+                check_extra_path: '(^|/)\.thunderbird/[^/]+/key4\.db$'
+                just_list_file: True
+
   - name: Chrome
     value:
         disable:
