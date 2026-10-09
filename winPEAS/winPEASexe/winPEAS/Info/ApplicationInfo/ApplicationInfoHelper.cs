@@ -6,7 +6,6 @@ using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
-using System.Text;
 using winPEAS.Helpers;
 using winPEAS.Native;
 using winPEAS.TaskScheduler;

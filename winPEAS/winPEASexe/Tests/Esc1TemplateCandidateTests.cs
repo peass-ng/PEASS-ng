@@ -56,6 +56,32 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void UnscopedReadAndWriteRightsAreNotEnrollmentRights()
+        {
+            foreach (var rights in new[] {
+                ActiveDirectoryRights.GenericRead, ActiveDirectoryRights.ReadControl,
+                ActiveDirectoryRights.ReadProperty, ActiveDirectoryRights.ListChildren,
+                ActiveDirectoryRights.ListObject, ActiveDirectoryRights.WriteProperty,
+                ActiveDirectoryRights.GenericWrite, ActiveDirectoryRights.WriteDacl,
+                ActiveDirectoryRights.WriteOwner
+            })
+                Assert.IsFalse(ActiveDirectoryInfo.IsCertificateEnrollAce(rights, Guid.Empty),
+                    "Non-enrollment rights must not match the composite GenericAll mask: " + rights);
+        }
+
+        [TestMethod]
+        public void InheritOnlyEnrollmentAcesDoNotApplyToTheTemplate()
+        {
+            var enroll = new Guid("0e10c968-78fb-11d2-90d4-00c04f79dc55");
+            Assert.IsFalse(ActiveDirectoryInfo.IsCertificateEnrollAce(
+                ActiveDirectoryRights.ExtendedRight, enroll, inheritOnly: true));
+            Assert.IsFalse(ActiveDirectoryInfo.IsCertificateEnrollAce(
+                ActiveDirectoryRights.GenericAll, Guid.Empty, inheritOnly: true));
+            Assert.IsTrue(ActiveDirectoryInfo.IsCertificateEnrollAce(
+                ActiveDirectoryRights.ExtendedRight, enroll, inheritOnly: false));
+        }
+
+        [TestMethod]
         public void DomainComputersSidNeedsTokenDomainGroupContext()
         {
             Assert.AreEqual("S-1-5-21-10-20-30-515", ActiveDirectoryInfo.DomainComputersSidFromToken(

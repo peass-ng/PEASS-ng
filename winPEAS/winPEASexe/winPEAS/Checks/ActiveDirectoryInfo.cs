@@ -228,11 +228,14 @@ namespace winPEAS.Checks
             return links;
         }
 
-        internal static bool IsCertificateEnrollAce(ActiveDirectoryRights rights, Guid objectType)
+        internal static bool IsCertificateEnrollAce(ActiveDirectoryRights rights, Guid objectType,
+            bool inheritOnly = false)
         {
-            return ((rights & ActiveDirectoryRights.GenericAll) != 0 && objectType == Guid.Empty) ||
-                   ((rights & ActiveDirectoryRights.ExtendedRight) != 0 &&
-                    (objectType == CertificateEnrollGuid || objectType == Guid.Empty));
+            // GenericAll is composite: merely sharing a read/write bit is not enrollment.
+            return !inheritOnly &&
+                   (((rights & ActiveDirectoryRights.GenericAll) == ActiveDirectoryRights.GenericAll && objectType == Guid.Empty) ||
+                    ((rights & ActiveDirectoryRights.ExtendedRight) != 0 &&
+                     (objectType == CertificateEnrollGuid || objectType == Guid.Empty)));
         }
 
         internal static string DescribeEsc1EnrollAceEvidence(bool descriptorRead, bool currentAllow,
@@ -2439,6 +2442,7 @@ namespace winPEAS.Checks
                 var currentSidSet = GetCurrentSidSet();
                 var domainComputersSid = DomainComputersSidFromToken(currentSidSet);
                 int checkedTemplates = 0;
+                int templateAclUnknown = 0;
                 int vulnerable = 0;
                 int esc1Checked = 0;
                 int esc1Unknown = 0;
@@ -2453,8 +2457,14 @@ namespace winPEAS.Checks
                 using (var deBase = new DirectoryEntry(templatesDn))
                 using (var ds = new DirectorySearcher(deBase))
                 {
-                    ds.PageSize = 300;
+                    ds.PageSize = 0; // Keep the template sample's server-side cap effective.
+                    ds.SizeLimit = SampleObjectLimit + 1;
+                    ds.ReferralChasing = ReferralChasingOption.None;
+                    ds.ClientTimeout = OuSearchTimeout;
+                    ds.ServerTimeLimit = OuSearchTimeout;
+                    ds.SecurityMasks = SecurityMasks.Dacl;
                     ds.Filter = "(objectClass=pKICertificateTemplate)";
+                    ds.PropertiesToLoad.Add("nTSecurityDescriptor");
                     ds.PropertiesToLoad.Add("cn");
                     ds.PropertiesToLoad.Add("msPKI-Certificate-Name-Flag");
                     ds.PropertiesToLoad.Add("msPKI-Enrollment-Flag");
@@ -2468,6 +2478,11 @@ namespace winPEAS.Checks
                         var esc1Watch = System.Diagnostics.Stopwatch.StartNew();
                         foreach (SearchResult r in results)
                         {
+                            if (checkedTemplates >= SampleObjectLimit || esc1Watch.Elapsed >= OuSearchTimeout)
+                            {
+                                esc1Capped = true;
+                                break;
+                            }
                             checkedTemplates++;
                             string templateCn = GetProp(r, "cn") ?? "<unknown>";
                             Esc1TemplateStatus esc1Status = Esc1TemplateStatus.Unknown;
@@ -2515,23 +2530,16 @@ namespace winPEAS.Checks
                                 esc1Capped = true;
                             }
 
-                            // Fetch security descriptor (DACL)
-                            DirectoryEntry de = null;
+                            // Request the DACL with the bounded search instead of making an
+                            // extra, unbounded ADSI bind/RefreshCache for every template.
                             try
                             {
-                                de = r.GetDirectoryEntry();
-                                de.Options.SecurityMasks = SecurityMasks.Dacl;
-                                de.RefreshCache(new[] { "ntSecurityDescriptor" });
-                            }
-                            catch (Exception)
-                            {
-                                de?.Dispose();
-                                de = null;
-                            }
-
-                            if (de != null) try
-                            {
-                                var sd = de.ObjectSecurity; // ActiveDirectorySecurity
+                                byte[] descriptor = r.Properties["ntsecuritydescriptor"].Count > 0
+                                    ? r.Properties["ntsecuritydescriptor"][0] as byte[] : null;
+                                if (descriptor == null || descriptor.Length > 65536)
+                                    throw new InvalidOperationException("Template DACL unavailable or over the read limit.");
+                                var sd = new ActiveDirectorySecurity();
+                                sd.SetSecurityDescriptorBinaryForm(descriptor);
                                 var rules = sd.GetAccessRules(true, true, typeof(SecurityIdentifier));
                                 descriptorRead = true;
                                 bool hit = false;
@@ -2544,7 +2552,8 @@ namespace winPEAS.Checks
                                     if ((esc1Status == Esc1TemplateStatus.Candidate ||
                                         esc9Status == Esc9TemplateStatus.Candidate ||
                                         esc13Observation != null) &&
-                                        IsCertificateEnrollAce(rule.ActiveDirectoryRights, rule.ObjectType))
+                                        IsCertificateEnrollAce(rule.ActiveDirectoryRights, rule.ObjectType,
+                                            (rule.PropagationFlags & PropagationFlags.InheritOnly) != 0))
                                     {
                                         bool allowed = rule.AccessControlType == AccessControlType.Allow;
                                         if (currentSidSet.Contains(sid))
@@ -2589,11 +2598,7 @@ namespace winPEAS.Checks
                             }
                             catch (Exception)
                             {
-                                // ignore templates we couldn't read
-                            }
-                            finally
-                            {
-                                de?.Dispose();
+                                templateAclUnknown++; // Inaccessible DACLs are unknown, not clean.
                             }
                             if (esc13Observation != null)
                             {
@@ -2685,14 +2690,16 @@ namespace winPEAS.Checks
                 if (esc9Candidates > 20)
                     Beaprint.GrayPrint("  [*] " + (esc9Candidates - 20) + " additional ESC9 candidate(s) omitted from display.");
                 if (esc1Capped)
-                    Beaprint.GrayPrint("  [?] ESC1/ESC9/ESC13 assessment capped at 120 templates or 5 seconds; remaining templates are unknown. ESC4 scan continued.");
+                    Beaprint.GrayPrint("  [?] ESC1/ESC4/ESC9/ESC13 assessment capped at 120 templates or 5 seconds; remaining templates are unknown.");
                 Beaprint.GrayPrint("  [*] Template flags and allow ACEs are leads only; publication, CA rights, effective ACLs and KDC strong SID mapping remain unverified.");
                 if (esc9Candidates > 0)
                     Beaprint.GrayPrint("  [*] ESC9 mapping caveat: current patched KDCs require a strong certificate mapping; the historical StrongCertificateBindingEnforcement compatibility override ended in September 2025. Schannel UPN mapping is a separate endpoint setting. Local registry values do not prove the effective authentication path or a writable target UPN.");
 
+                if (templateAclUnknown > 0)
+                    Beaprint.GrayPrint($"  [?] {templateAclUnknown} sampled template DACL(s) unavailable; their access is unknown.");
                 if (vulnerable == 0)
                 {
-                    Beaprint.GrayPrint($"  [-] No templates with dangerous rights found (checked {checkedTemplates}).");
+                    Beaprint.GrayPrint($"  [-] No dangerous template rights observed in readable sampled DACLs (sampled {checkedTemplates}).");
                 }
                 else
                 {
