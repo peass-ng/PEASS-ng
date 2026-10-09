@@ -14,6 +14,7 @@ MODULE = (Path(__file__).resolve().parents[1] /
           "builder/linpeas_parts/4_procs_crons_timers_srvcs_sockets/7_Cron_jobs.sh")
 MARKER = "Cron script replacement review candidate"
 PHP_MARKER = "Cron PHP helper review candidate"
+PHP_SCRIPT_MARKER = "Cron PHP script review candidate"
 
 
 @unittest.skipUnless(shutil.which("timeout") or shutil.which("gtimeout"), "timeout required")
@@ -49,6 +50,17 @@ class CronReplaceableScriptTests(unittest.TestCase):
     def run_php_probe(self, script=None, runas="root"):
         script = script or self.script
         self.cron.write_text(f"* * * * * {runas} {script}\n")
+        source = MODULE.read_text().split('\nif ! [ "$SEARCH_IN_FOLDER" ]; then', 1)[0]
+        result = subprocess.run(
+            ["sh", "-c", source + '\ncron_replaceable_script_probe "$@"\n',
+             "sh", str(self.cron)],
+            capture_output=True, text=True, timeout=6,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout
+
+    def run_php_cli_probe(self, command, runas="root"):
+        self.cron.write_text(f"* * * * * {runas} {command}\n")
         source = MODULE.read_text().split('\nif ! [ "$SEARCH_IN_FOLDER" ]; then', 1)[0]
         result = subprocess.run(
             ["sh", "-c", source + '\ncron_replaceable_script_probe "$@"\n',
@@ -125,6 +137,39 @@ class CronReplaceableScriptTests(unittest.TestCase):
         self.assertNotIn(PHP_MARKER, self.run_php_probe(alias / self.script.name))
         self.write_php_wrapper(f"#!/usr/bin/php\n<?php\nexec('{alias / 'helper.sh'}');\n")
         self.assertNotIn(PHP_MARKER, self.run_php_probe())
+
+    def test_root_php_cli_with_literal_argument_and_redirect_reports_writable_script(self):
+        php_script = self.parent / "task.php"
+        php_script.write_text("<?php\n")
+        php_script.chmod(0o666)
+        for command in (f"php {php_script}",
+                        f"php {php_script} schedule:run >> /dev/null 2>&1"):
+            output = self.run_php_cli_probe(command)
+            self.assertEqual(output.count(PHP_SCRIPT_MARKER), 1, output)
+            self.assertIn(str(php_script), output)
+            self.assertNotIn("<?php", output)
+
+    def test_php_cli_rejects_nonroot_unwritable_quoted_wildcard_and_symlink_paths(self):
+        php_script = self.parent / "task.php"
+        php_script.write_text("<?php\n")
+        php_script.chmod(0o666)
+        command = f"php {php_script} schedule:run"
+        current_user = pwd.getpwuid(os.geteuid()).pw_name
+        self.assertNotIn(PHP_SCRIPT_MARKER,
+                         self.run_php_cli_probe(command, runas=current_user))
+
+        php_script.chmod(0o444)
+        self.assertNotIn(PHP_SCRIPT_MARKER, self.run_php_cli_probe(command))
+        php_script.chmod(0o666)
+        for unsafe in (f"php '{php_script}' schedule:run",
+                       f"php {self.parent}/*.php schedule:run",
+                       f"php {php_script} 'schedule:run'"):
+            self.assertNotIn(PHP_SCRIPT_MARKER, self.run_php_cli_probe(unsafe))
+
+        alias = self.base / "alias"
+        alias.symlink_to(self.parent, target_is_directory=True)
+        self.assertNotIn(PHP_SCRIPT_MARKER,
+                         self.run_php_cli_probe(f"php {alias / php_script.name} schedule:run"))
 
     def test_module_syntax(self):
         result = subprocess.run(["sh", "-n", str(MODULE)],

@@ -484,7 +484,7 @@ search:
                 files:
                     - name: "*"
                       value:
-                        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status|command on|^[[:space:]]*[Aa][Ss][Ss][Ii][Gg][Nn][Uu][Ss][Ee][Rr][Ii][Dd][[:space:]]+(root|0)[[:space:]]+(root|0)([[:space:]]|$)"
+                        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status|command on|^[[:space:]]*[Aa][Ss][Ss][Ii][Gg][Nn][Uu][Ss][Ee][Rr][Ii][Dd][[:space:]]+[[:alnum:]_.-]+[[:space:]]+[[:alnum:]_.-]+([[:space:]]|$)"
                         remove_empty_lines: True
                         # Piped-log command text is summarized by the bounded
                         # checker above; do not echo arguments from config files.
@@ -494,7 +494,7 @@ search:
       
             - name: "000-default.conf"
               value: 
-                bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status|^[[:space:]]*[Aa][Ss][Ss][Ii][Gg][Nn][Uu][Ss][Ee][Rr][Ii][Dd][[:space:]]+(root|0)[[:space:]]+(root|0)([[:space:]]|$)"
+                bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status|^[[:space:]]*[Aa][Ss][Ss][Ii][Gg][Nn][Uu][Ss][Ee][Rr][Ii][Dd][[:space:]]+[[:alnum:]_.-]+[[:space:]]+[[:alnum:]_.-]+([[:space:]]|$)"
                 remove_regex: '#|^[[:space:]]*([Cc][Uu][Ss][Tt][Oo][Mm][Ll][Oo][Gg]|[Ee][Rr][Rr][Oo][Rr][Ll][Oo][Gg]|[Tt][Rr][Aa][Nn][Ss][Ff][Ee][Rr][Ll][Oo][Gg])[[:space:]]+[^[:space:]]?\\|'
                 type: f
                 search_in: 
@@ -603,6 +603,21 @@ search:
             value: 
                 type: f
                 search_in: 
+                  - common
+
+  - name: PHP database settings path candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "db.php5"
+            value:
+                check_extra_path: '^(/[^/]+)*/var/www(/[^/]+){0,5}/db\.php5$'
+                just_list_file: True
+                type: f
+                search_in:
                   - common
 
   - name: PHP service credential configuration
@@ -1854,6 +1869,29 @@ search:
                 only_bad_lines: True
                 type: f
                 search_in: 
+                  - common
+
+  - name: Web-served SSH identity archives
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "*ssh*.tgz"
+            value:
+                check_extra_path: '^(/[^/:]+)*/public_www/([^/]+/){0,2}[^/]*ssh[^/]*\.tgz$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "*ssh*.tar.gz"
+            value:
+                check_extra_path: '^(/[^/:]+)*/public_www/([^/]+/){0,2}[^/]*ssh[^/]*\.tar\.gz$'
+                just_list_file: True
+                type: f
+                search_in:
                   - common
   
   - name: CERTSB4
@@ -4788,6 +4826,14 @@ search:
           - name: ".npmrc"
             value:
                 # Registry configuration may contain authentication material.
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "printers.conf"
+            value:
+                # CUPS device URIs may contain authentication material.
                 just_list_file: True
                 type: f
                 search_in:

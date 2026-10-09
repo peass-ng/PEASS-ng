@@ -17,7 +17,7 @@ class SudoPythonLocalImportTests(unittest.TestCase):
     def run_case(
         self, *, source="from helpers import status\n", helper_mode=0o666,
         package_mode=0o555, init_mode=0o444, create_helper=True,
-        symlink_package=False,
+        symlink_package=False, symlink_script=False, shebang=True, directory_mode=0o555,
         rule_template=None, script_mode=0o755, script_size=0,
     ):
         with tempfile.TemporaryDirectory(dir=Path.home()) as temp:
@@ -27,12 +27,17 @@ class SudoPythonLocalImportTests(unittest.TestCase):
             marker = base / "executed"
             script = base / "entry.py"
             script.write_text(
-                "#!/usr/bin/env python3\n"
+                ("#!/usr/bin/env python3\n" if shebang else "")
+                +
                 "open(" + repr(str(marker)) + ", 'w').close()\n"
                 + source + "SECRET = 'private-value-must-stay-hidden'\n"
                 + ("x = 1\n" * script_size)
             )
             script.chmod(script_mode)
+            if symlink_script:
+                real_script = base / "real_entry.py"
+                script.rename(real_script)
+                script.symlink_to(real_script)
             package = base / "helpers"
             actual_package = base / "other"
             if symlink_package:
@@ -80,7 +85,7 @@ class SudoPythonLocalImportTests(unittest.TestCase):
                 f". {shlex.quote(str(self.module))}",
             ])
             actual_package.chmod(package_mode)
-            base.chmod(0o555)
+            base.chmod(directory_mode)
             try:
                 result = subprocess.run(
                     ["sh", "-c", body], env=env, capture_output=True,
@@ -140,12 +145,71 @@ class SudoPythonLocalImportTests(unittest.TestCase):
             "    (operator) NOPASSWD: {script} *",
             "    (operator) NOPASSWD: !{script}",
             "    (operator) NOPASSWD: {directory}/*.py",
-            "    (operator) NOPASSWD: /usr/bin/python3 {script}",
+            "    (operator) NOPASSWD: /usr/bin/python3 {script} *",
+            "    (operator) NOPASSWD: /bin/sh {script}",
             "    (operator) NOPASSWD: {script}, !{script}",
+            "    (root) NOPASSWD: /usr/bin/python3 {script}, !/usr/bin/python3 {script}",
         ):
             with self.subTest(rule_template=rule_template):
                 output, _ = self.run_case(rule_template=rule_template)
                 self.assertNotIn("Sudo Python import review:", output)
+
+    def test_exact_interpreter_rule_needs_readable_script_not_executable(self):
+        output, helper = self.run_case(
+            shebang=False, script_mode=0o644,
+            rule_template="    (root) NOPASSWD: /usr/bin/python3 {script}",
+        )
+        self.assertIn("Sudo Python import review:", output)
+        self.assertIn(helper, output)
+        output, _ = self.run_case(
+            shebang=False, script_mode=0o644,
+            rule_template="    (root) NOPASSWD: {script}",
+        )
+        self.assertNotIn("Sudo Python import review:", output)
+        output, _ = self.run_case(
+            shebang=False, script_mode=0o755,
+            rule_template="    (root) NOPASSWD: {script}",
+        )
+        self.assertNotIn("Sudo Python import review:", output)
+
+    def test_interpreter_rule_missing_module_creation(self):
+        output, _ = self.run_case(
+            source="import subprocess\n", shebang=False, script_mode=0o644,
+            directory_mode=0o700,
+            rule_template="    (root) NOPASSWD: /usr/bin/python3 {script}",
+        )
+        self.assertIn("subprocess.py", output)
+        self.assertIn("module path can be created", output)
+        output, _ = self.run_case(
+            source="import subprocess\n", shebang=False, script_mode=0o644,
+            rule_template="    (root) NOPASSWD: /usr/bin/python3 {script}",
+        )
+        self.assertNotIn("Sudo Python import review:", output)
+        output, _ = self.run_case(
+            source="import subprocess\n", shebang=False, script_mode=0o644,
+            directory_mode=0o1777,
+            rule_template="    (root) NOPASSWD: /usr/bin/python3 {script}",
+        )
+        self.assertIn("module path can be created", output)
+
+    def test_builtin_and_symlink_boundaries(self):
+        output, _ = self.run_case(
+            source="import sys\n", shebang=False,
+            directory_mode=0o700,
+            rule_template="    (root) NOPASSWD: /usr/bin/python3 {script}",
+        )
+        self.assertNotIn("Sudo Python import review:", output)
+        output, _ = self.run_case(
+            shebang=False, script_mode=0o644, symlink_script=True,
+            rule_template="    (root) NOPASSWD: /usr/bin/python3 {script}",
+        )
+        self.assertNotIn("Sudo Python import review:", output)
+        output, _ = self.run_case(
+            shebang=False, script_mode=0o644, symlink_package=True,
+            directory_mode=0o700,
+            rule_template="    (root) NOPASSWD: /usr/bin/python3 {script}",
+        )
+        self.assertNotIn("Sudo Python import review:", output)
 
 
 if __name__ == "__main__":

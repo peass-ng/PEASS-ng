@@ -1,4 +1,4 @@
-"""Apache's existing cached vhost display highlights only exact root identities."""
+"""Apache's cached vhost display highlights explicit process identities."""
 
 import subprocess
 import sys
@@ -17,30 +17,43 @@ class ApacheRootVhostHighlightTests(unittest.TestCase):
         catalog = yaml.safe_load((ROOT / "build_lists/sensitive_files.yaml").read_text())
         record, = [item for item in catalog["search"] if item["name"] == "Apache-Nginx"]
         files = record["value"]["files"]
-        cls.nested = files[0]["value"]["files"][0]["value"]["bad_regex"]
-        cls.direct = next(item["value"]["bad_regex"] for item in files
-                          if item["name"] == "000-default.conf")
+        nested = files[0]["value"]["files"][0]["value"]
+        direct = next(item["value"] for item in files
+                      if item["name"] == "000-default.conf")
+        cls.records = ((nested["bad_regex"], nested["remove_regex"]),
+                       (direct["bad_regex"], direct["remove_regex"]))
 
-    def colorized(self, pattern, line):
+    def colorized(self, pattern, remove, line):
+        # The generator places this YAML regex inside shell double quotes,
+        # which reduces its doubled backslash before grep receives it.
+        remove = remove.replace("\\\\", "\\")
+        filtered = subprocess.run(
+            ["grep", "-Ev", remove], input=line + "\n", text=True,
+            capture_output=True, timeout=2,
+        )
+        self.assertIn(filtered.returncode, (0, 1), filtered.stderr)
         result = subprocess.run(
-            ["sed", "-E", "s," + pattern + ",[ROOT-CUE],g"],
-            input=line + "\n", text=True, capture_output=True, timeout=2,
+            ["sed", "-E", "s," + pattern + ",[IDENTITY-CUE],g"],
+            input=filtered.stdout, text=True, capture_output=True, timeout=2,
         )
         self.assertEqual(0, result.returncode, result.stderr)
         return result.stdout.strip()
 
-    def test_root_identity_boundaries_and_existing_highlight(self):
-        for pattern in (self.nested, self.direct):
+    def test_active_identity_directives_and_existing_highlight(self):
+        for pattern, remove in self.records:
             for line in ("AssignUserId root root", "AssignUserID 0 0",
-                         "assignuserid root 0", "  ASSIGNUSERID 0 root  "):
+                         "assignuserid root 0", "  ASSIGNUSERID 0 root  ",
+                         "AssignUserId root staff", "AssignUserId app root",
+                         "AssignUserID app_user app-group"):
                 with self.subTest(line=line):
-                    self.assertIn("[ROOT-CUE]", self.colorized(pattern, line))
-            for line in ("AssignUserId root staff", "AssignUserId app root",
-                         "AssignUserId root rootish", "AssignUserId root 00",
-                         "NotAssignUserId root root"):
+                    self.assertIn("[IDENTITY-CUE]", self.colorized(pattern, remove, line))
+            for line in ("# AssignUserId app staff", "  # AssignUserID 0 0",
+                         "NotAssignUserId root root", "AssignUserID app",
+                         "AssignUserID app/group staff"):
                 with self.subTest(line=line):
-                    self.assertNotIn("[ROOT-CUE]", self.colorized(pattern, line))
-            self.assertIn("[ROOT-CUE]", self.colorized(pattern, "ServerName local.example"))
+                    self.assertNotIn("[IDENTITY-CUE]", self.colorized(pattern, remove, line))
+            self.assertEqual("", self.colorized(pattern, remove, "# AssignUserID app staff"))
+            self.assertIn("[IDENTITY-CUE]", self.colorized(pattern, remove, "ServerName local.example"))
 
     def test_generated_section_preserves_cached_vhost_inventory(self):
         sys.path.insert(0, str(ROOT / "linPEAS"))
@@ -53,8 +66,9 @@ class ApacheRootVhostHighlightTests(unittest.TestCase):
         self.assertIn("PSTORAGE_APACHE_NGINX", section)
         self.assertIn('grep -E "sites-enabled$"', section)
         self.assertIn('grep -E "000-default\\.conf$"', section)
-        self.assertIn(self.nested, section)
-        self.assertIn(self.direct, section)
+        for pattern, remove in self.records:
+            self.assertIn(pattern, section)
+            self.assertIn('grep -Ev "' + remove + '" | sed -${E} ', section)
         syntax = subprocess.run(["sh", "-n"], input=section, text=True,
                                 capture_output=True, timeout=2)
         self.assertEqual(0, syntax.returncode, syntax.stderr)

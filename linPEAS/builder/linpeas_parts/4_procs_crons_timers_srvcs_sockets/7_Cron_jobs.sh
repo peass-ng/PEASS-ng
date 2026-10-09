@@ -9,9 +9,44 @@
 # Functions Used: check_pg_basebackup_boundary, echo_not_found, print_2title, print_3title, print_info
 # Global Variables: $cronjobsG, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders, $cronjobsB, $PATH, $PG_BASEBACKUP_DESTS
 # Initial Functions:
-# Generated Global Variables: $cmd, $VAR, $file, $path, $user_crontab, $username, $job_id, $cron_dir, $crontab, $findings, $line, $finding, $bin, $cron_log_timeout, $cron_log_status, $files, $cron_file, $prefix, $spool, $bash, $script, $log, $parent, $safe, $candidate, $rest, $part, $route, $mode, $sticky, $cron_tar_timeout, $cron_tar_status, $current_uid, $schedule, $spool_owner, $runas, $helper, $schedule_line, $owner_uid, $helper_text, $dir, $tar_cmd, $helper_line, $version, $cron_process_timeout, $cron_process_status, $magick_cwd, $magick_bin, $magick_cd_line, $magick_exec_line, $magick_marker, $cron_replace_status, $cron_replace_timeout, $cron_ansible_status, $cron_ansible_timeout, $glob, $depth, $kind, $wrapper_text
+# Generated Global Variables: $cmd, $VAR, $file, $path, $user_crontab, $username, $job_id, $cron_dir, $crontab, $findings, $line, $finding, $bin, $cron_log_timeout, $cron_log_status, $files, $cron_file, $prefix, $spool, $bash, $script, $log, $parent, $safe, $candidate, $rest, $part, $route, $mode, $sticky, $cron_tar_timeout, $cron_tar_status, $current_uid, $schedule, $spool_owner, $runas, $helper, $schedule_line, $owner_uid, $helper_text, $dir, $tar_cmd, $helper_line, $version, $cron_process_timeout, $cron_process_status, $magick_cwd, $magick_bin, $magick_cd_line, $magick_exec_line, $magick_marker, $cron_replace_status, $cron_replace_timeout, $cron_ansible_status, $cron_ansible_timeout, $glob, $depth, $kind, $wrapper_text, $chkrootkit_file, $chkrootkit_size, $chkrootkit_match, $file_port
 # Fat linpeas: 0
 # Small linpeas: 1
+
+# Inspect only conventional installed script paths for the old slapper loop
+# assignment defect. Never run the script or inspect its temporary-file inputs.
+cron_chkrootkit_static_probe() (
+  if [ "$#" -eq 0 ]; then
+    set -- /usr/sbin/chkrootkit /usr/bin/chkrootkit
+  fi
+  for chkrootkit_file do
+    [ ! -L "$chkrootkit_file" ] && [ -f "$chkrootkit_file" ] && [ -r "$chkrootkit_file" ] || continue
+    chkrootkit_size=$(dd if="$chkrootkit_file" bs=65537 count=1 2>/dev/null | wc -c | tr -d '[:space:]') || continue
+    case "$chkrootkit_size" in ''|*[!0-9]*) continue ;; esac
+    [ "$chkrootkit_size" -gt 0 ] && [ "$chkrootkit_size" -le 65536 ] || continue
+    chkrootkit_match=$(dd if="$chkrootkit_file" bs=65536 count=1 2>/dev/null | LC_ALL=C awk '
+      NR > 256 { exit }
+      /^[[:space:]]*slapper[[:space:]]*\([[:space:]]*\)[[:space:]]*\{/ {
+        inside = 1; start = NR; files = loop = guard_line = 0; next
+      }
+      inside && NR - start > 80 { inside = 0 }
+      inside {
+        if ($0 ~ /^[[:space:]]*}[[:space:]]*$/) inside = 0
+        if (loop && $0 ~ /^[[:space:]]*done([[:space:]]|$)/) { loop = guard_line = 0 }
+        if ($0 ~ /^[[:space:]]*SLAPPER_FILES=/ && $0 ~ /tmp\//) files = 1
+        if ($0 ~ /^[[:space:]]*for[[:space:]]+i[[:space:]]+in[[:space:]]+\$\{SLAPPER_FILES\};[[:space:]]*do/) loop = 1
+        if (loop && $0 ~ /^[[:space:]]*if[[:space:]]+\[[[:space:]]+-f[[:space:]]+\$\{i\}[[:space:]]+\][[:space:]]*;?[[:space:]]*then/) guard_line = NR
+        if (files && loop && guard_line && NR - guard_line <= 3 &&
+            $0 ~ /^[[:space:]]*file_port=\$file_port[[:space:]]+\$i[[:space:]]*(#.*)?$/) {
+          print "yes"; exit
+        }
+      }
+    ' 2>/dev/null) || continue
+    [ "$chkrootkit_match" = yes ] || continue
+    printf 'Checker script review candidate: %s has an unquoted slapper-loop assignment; verify root scheduling, writable executable temporary path, mount policy and installed patch state.\n' "$chkrootkit_file"
+    break
+  done
+)
 
 # Correlate a literal root cron playbook glob with a directory the current
 # user can populate. Never expand the glob, inspect playbooks, or run Ansible.
@@ -113,14 +148,24 @@ cron_replaceable_script_probe() {
         /^[[:space:]]*(#|$)/ { next }
         {
           for (i = 1; i <= 5; i++) if ($i !~ /^[0-9*,\/-]+$/) next
+          n = NF
+          if (n >= 10 && $(n-2) == ">>" && $(n-1) == "/dev/null" && $n == "2>&1") n -= 3
           if (owner == "") {
             runas = $6; shell = $7; script = $8
             kind = (NF == 8 ? "shell" : (NF == 7 ? "php" : ""))
             if (kind == "php") script = $7
+            if ((shell == "php" || shell == "/usr/bin/php" || shell == "/bin/php") &&
+                (n == 8 || n == 9) && (n == 8 || $9 ~ /^[A-Za-z0-9_.:-]+$/)) {
+              kind = "php_cli"; script = $8
+            }
           } else {
             runas = owner; shell = $6; script = $7
             kind = (NF == 7 ? "shell" : (NF == 6 ? "php" : ""))
             if (kind == "php") script = $6
+            if ((shell == "php" || shell == "/usr/bin/php" || shell == "/bin/php") &&
+                (n == 7 || n == 8) && (n == 7 || $8 ~ /^[A-Za-z0-9_.:-]+$/)) {
+              kind = "php_cli"; script = $7
+            }
           }
           if (runas !~ /^[A-Za-z_][A-Za-z0-9_-]*$/ || kind == "" ||
               (kind == "shell" && shell != "/bin/sh" && shell != "/usr/bin/sh" &&
@@ -137,6 +182,19 @@ cron_replaceable_script_probe() {
         case "$script" in *"/../"*|*"/.."|*"/./"*|*"/."|*"//"*) continue ;; esac
         owner_uid=$(id -u "$runas" 2>/dev/null) || continue
         [ "$owner_uid" != "$current_uid" ] || continue
+        if [ "$kind" = php_cli ]; then
+          [ "$owner_uid" = 0 ] && [ -f "$script" ] && [ -r "$script" ] &&
+            [ -w "$script" ] && [ ! -L "$script" ] || continue
+          path=; rest=${script#/}; safe=1
+          while [ -n "$rest" ]; do
+            part=${rest%%/*}; path=$path/$part
+            if [ -L "$path" ]; then safe=0; break; fi
+            case "$rest" in */*) rest=${rest#*/} ;; *) rest= ;; esac
+          done
+          [ "$safe" -eq 1 ] || continue
+          echo "Cron PHP script review candidate: $cron_file:$schedule_line (root PHP runs current-user-writable $script; verify scheduler state, script identity, ACLs, and mount policy)"
+          continue
+        fi
         if [ "$kind" = php ]; then
           [ "$owner_uid" = 0 ] && [ -f "$script" ] && [ -r "$script" ] && [ ! -L "$script" ] || continue
           path=; rest=${script#/}; safe=1
@@ -617,6 +675,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_3title "Root cron process arguments (passive review)" "T1053.003"
   cron_process_args_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/root /var/spool/cron/root
   echo "Only literal, readable root cron helpers were inspected; private tasks remain unknown."
+  cron_chkrootkit_static_probe
   PG_BASEBACKUP_DESTS=
   check_pg_basebackup_boundary
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
