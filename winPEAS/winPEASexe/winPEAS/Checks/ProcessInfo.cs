@@ -83,6 +83,17 @@ namespace winPEAS.Checks
                     Beaprint.AnsiPrint(string.Format(formString, procInfo["Name"], procInfo["ProcessID"], procInfo["ExecutablePath"], procInfo["Product"], procInfo["Owner"], procInfo["isDotNet"], string.Join(", ", fileRights), dirRights.Count > 0 ? Path.GetDirectoryName(procInfo["ExecutablePath"]) : "", string.Join(", ", dirRights), procInfo["CommandLine"]), colorsP);
                     Beaprint.PrintLineSeparator();
                 }
+
+                var moduleDirectoryReview = ProcessModuleDirectoryReview.FindLeads(
+                    processesInfo, Checks.CurrentUserName,
+                    path => PermissionsHelper.GetPermissionsFolder(path, Checks.CurrentUserSiDs,
+                        PermissionType.WRITEABLE_OR_EQUIVALENT));
+                foreach (var lead in moduleDirectoryReview.Leads)
+                    Beaprint.BadPrint("    Writable module-directory review lead: " + lead.ProcessName +
+                        " (owner " + lead.Owner + ") -> " + lead.Directory + " (" + lead.Permissions +
+                        "; confirm effective ACL, process privilege, and an actual DLL load from this path)");
+                if (moduleDirectoryReview.Truncated)
+                    Beaprint.GrayPrint("    Module-directory review truncated at its process, path, or finding limit; additional paths are unknown.");
             }
             catch (Exception ex)
             {

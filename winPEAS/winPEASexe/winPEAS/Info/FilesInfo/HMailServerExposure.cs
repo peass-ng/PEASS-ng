@@ -16,6 +16,7 @@ namespace winPEAS.Info.FilesInfo
         internal string PasswordEncryption;
         internal string DatabaseFolder;
         internal bool PasswordPresent;
+        internal bool AdministratorPasswordPresent;
     }
 
     internal sealed class HMailExposureResult
@@ -26,6 +27,7 @@ namespace winPEAS.Info.FilesInfo
         internal HMailReadState DatabaseState;
         internal bool IsSqlCe;
         internal bool EncryptedPasswordPresent;
+        internal bool AdministratorPasswordPresent;
     }
 
     internal static class HMailServerExposure
@@ -52,6 +54,7 @@ namespace winPEAS.Info.FilesInfo
             var settings = new HMailDatabaseSettings();
             bool inDatabase = false;
             bool inDirectories = false;
+            bool inSecurity = false;
             using (var reader = new StringReader(text ?? ""))
             {
                 string line;
@@ -62,13 +65,20 @@ namespace winPEAS.Info.FilesInfo
                     {
                         inDatabase = line.Equals("[Database]", StringComparison.OrdinalIgnoreCase);
                         inDirectories = line.Equals("[Directories]", StringComparison.OrdinalIgnoreCase);
+                        inSecurity = line.Equals("[Security]", StringComparison.OrdinalIgnoreCase);
                         continue;
                     }
-                    if ((!inDatabase && !inDirectories) || line.Length == 0 || line[0] == ';' || line[0] == '#') continue;
+                    if ((!inDatabase && !inDirectories && !inSecurity) || line.Length == 0 || line[0] == ';' || line[0] == '#') continue;
                     int equals = line.IndexOf('=');
                     if (equals <= 0) continue;
                     string key = line.Substring(0, equals).Trim();
                     string value = line.Substring(equals + 1).Trim();
+                    if (inSecurity)
+                    {
+                        if (key.Equals("AdministratorPassword", StringComparison.OrdinalIgnoreCase))
+                            settings.AdministratorPasswordPresent = value.Length != 0;
+                        continue;
+                    }
                     if (inDirectories)
                     {
                         if (key.Equals("DatabaseFolder", StringComparison.OrdinalIgnoreCase)) settings.DatabaseFolder = value;
@@ -124,8 +134,17 @@ namespace winPEAS.Info.FilesInfo
 
         internal static HMailExposureResult ProbeInstall(string installPath)
         {
+            return ProbeInstall(installPath, false);
+        }
+
+        internal static HMailExposureResult ProbeInstall(string installPath, bool programDataLayout)
+        {
             if (!Directory.Exists(installPath)) return null;
-            var result = new HMailExposureResult { IniPath = Path.Combine(installPath, "Bin", "hMailServer.ini") };
+            var result = new HMailExposureResult
+            {
+                IniPath = programDataLayout ? Path.Combine(installPath, "hMailServer.ini")
+                    : Path.Combine(installPath, "Bin", "hMailServer.ini")
+            };
             var watch = Stopwatch.StartNew();
             try
             {
@@ -149,6 +168,7 @@ namespace winPEAS.Info.FilesInfo
                 if (watch.ElapsedMilliseconds > MaxProbeMilliseconds) return result;
                 HMailDatabaseSettings settings = ParseDatabaseSection(Encoding.Default.GetString(bytes));
                 result.IniState = HMailReadState.Accessible;
+                result.AdministratorPasswordPresent = settings.AdministratorPasswordPresent;
                 result.IsSqlCe = string.Equals(settings.Type, "MSSQLCE", StringComparison.OrdinalIgnoreCase);
                 result.EncryptedPasswordPresent = settings.PasswordPresent && settings.PasswordEncryption == "1";
                 if (!result.IsSqlCe) return result;
@@ -168,6 +188,19 @@ namespace winPEAS.Info.FilesInfo
             return result;
         }
 
+        private static void PrintResult(HMailExposureResult result)
+        {
+            if (result == null) return;
+            Beaprint.MainPrint("hMailServer configuration and SQL CE database access", "T1552.001");
+            Beaprint.NoColorPrint("    INI: " + result.IniPath + " — " + result.IniState);
+            Beaprint.NoColorPrint("    SQL CE DB: " + (result.DatabasePath ?? "path unknown") + " — " + result.DatabaseState);
+            if (result.IniState == HMailReadState.Accessible && result.AdministratorPasswordPresent)
+                Beaprint.BadPrint("    Readable hMailServer administrator password hash present; inspect reuse separately.");
+            if (result.IniState == HMailReadState.Accessible && result.DatabaseState == HMailReadState.Accessible)
+                Beaprint.BadPrint("    Readable hMailServer database config and SQL CE DB; encrypted DB password "
+                    + (result.EncryptedPasswordPresent ? "present" : "not confirmed") + "; inspect manually.");
+        }
+
         internal static void PrintInfo()
         {
             string programFiles = Environment.GetEnvironmentVariable("ProgramW6432")
@@ -176,16 +209,10 @@ namespace winPEAS.Info.FilesInfo
             string programFilesX86 = Environment.GetEnvironmentVariable("ProgramFiles(x86)")
                 ?? Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
             foreach (string install in CandidateInstallPaths(programFiles, programFilesX86))
-            {
-                HMailExposureResult result = ProbeInstall(install);
-                if (result == null) continue;
-                Beaprint.MainPrint("hMailServer configuration and SQL CE database access", "T1552.001");
-                Beaprint.NoColorPrint("    INI: " + result.IniPath + " — " + result.IniState);
-                Beaprint.NoColorPrint("    SQL CE DB: " + (result.DatabasePath ?? "path unknown") + " — " + result.DatabaseState);
-                if (result.IniState == HMailReadState.Accessible && result.DatabaseState == HMailReadState.Accessible)
-                    Beaprint.BadPrint("    Readable hMailServer database config and SQL CE DB; encrypted DB password "
-                        + (result.EncryptedPasswordPresent ? "present" : "not confirmed") + "; inspect manually.");
-            }
+                PrintResult(ProbeInstall(install));
+            string commonData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            if (!string.IsNullOrEmpty(commonData) && Path.IsPathRooted(commonData))
+                PrintResult(ProbeInstall(Path.Combine(commonData, "hMailServer"), true));
         }
     }
 }

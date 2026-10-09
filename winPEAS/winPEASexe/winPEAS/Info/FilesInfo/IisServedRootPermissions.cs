@@ -166,7 +166,7 @@ namespace winPEAS.Info.FilesInfo
             catch (Exception) { return null; }
         }
 
-        private static void AssessRoot(IisServedRoot root)
+        internal static void AssessRoot(IisServedRoot root)
         {
             root.CreateFileAcl = IisCreateFileAcl.ManualReview;
             if (!root.Configured) { root.Reason = "No active site mapping evidence"; return; }

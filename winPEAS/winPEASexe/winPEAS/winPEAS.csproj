@@ -1269,6 +1269,7 @@
     <Compile Include="Info\FilesInfo\RegistryHiveExposure.cs" />
     <Compile Include="Info\FilesInfo\HMailServerExposure.cs" />
     <Compile Include="Info\FilesInfo\IisServedRootPermissions.cs" />
+    <Compile Include="Info\FilesInfo\ApacheSystemWebRoot.cs" />
     <Compile Include="Info\FilesInfo\IisAdcsWebEnrollment.cs" />
     <Compile Include="Info\FilesInfo\SqlSetupConfigurationIndicator.cs" />
     <Compile Include="Info\FilesInfo\ZipNtdsBackupIndicator.cs" />
@@ -1485,6 +1486,7 @@
     <Compile Include="Info\ProcessInfo\DefensiveProcesses.cs" />
     <Compile Include="Info\ProcessInfo\InterestingProcesses.cs" />
     <Compile Include="Info\ProcessInfo\ProcessesInfo.cs" />
+    <Compile Include="Info\ProcessInfo\ProcessModuleDirectoryReview.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

@@ -131,6 +131,7 @@ namespace winPEAS.Checks
                 PrintSAMBackups,
                 PrintNtdsZipBackups,
                 PrintIisServedRoots,
+                PrintApacheSystemWebRoot,
                 PrintMcAffeSitelistFiles,
                 PrintCachedGPPPassword,
                 PrintPossCredsRegs,
@@ -289,6 +290,30 @@ namespace winPEAS.Checks
             {
                 Beaprint.GoodPrint("    No matching ZIP backup metadata found in the inspected locations.");
             }
+        }
+
+        void PrintApacheSystemWebRoot()
+        {
+            ApacheSystemWebRootReport report = ApacheSystemWebRoot.Scan();
+            if (report == null) return;
+            Beaprint.MainPrint("XAMPP Apache served-root permissions", "T1505.003");
+            Beaprint.NoColorPrint("    Service: " + (report.ServiceName ?? "unresolved"));
+            if (report.Root != null)
+            {
+                Beaprint.NoColorPrint("    DocumentRoot: " + report.Root.Path);
+                if (report.Root.CreateFileAcl == IisCreateFileAcl.ManualReview &&
+                    !string.IsNullOrEmpty(report.Root.Trustee))
+                    Beaprint.GrayPrint("    Create-file Allow indicated for current token SID " +
+                        report.Root.Trustee + "; effective access requires manual review.");
+                else if (report.Root.CreateFileAcl == IisCreateFileAcl.Denied)
+                    Beaprint.GrayPrint("    Create-file denied by matching ACL entry.");
+                else if (report.Root.CreateFileAcl == IisCreateFileAcl.NoMatch)
+                    Beaprint.GrayPrint("    No matching create-file Allow in inspected ACL.");
+                else
+                    Beaprint.GrayPrint("    Create-file ACL: " + report.Root.Reason);
+            }
+            Beaprint.GrayPrint("    " + report.Note);
+            Beaprint.GrayPrint("    A writable served root becomes a host escalation route only when the service executes attacker-controlled server-side content with a privileged token.");
         }
 
         void PrintIisServedRoots()

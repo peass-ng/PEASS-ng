@@ -24,7 +24,9 @@ namespace winPEAS.Checks
                 "Splunk", "Solar-PuTTY session stores", "Gitea", "Gitea database",
                 "Backdrop CMS settings candidates", "LimeSurvey", "PSWM vault candidates",
                 "PrestaShop database settings candidates", "ChangeDetection backup candidates",
-                "WonderCMS", "Pluck CMS", "Grafana", "Duplicati server state"
+                "WonderCMS", "Pluck CMS", "Grafana", "Duplicati server state",
+                "Openfire local configuration and database", "Minecraft plugin JAR candidates",
+                "IIS default webroot backup archive candidates"
             };
 
         public string[] MitreAttackIds { get; } = new[] { "T1552.001", "T1083" };

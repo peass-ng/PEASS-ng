@@ -1,3 +1,6 @@
+using System.IO;
+using System.Linq;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using winPEAS.Checks;
 using winPEAS.Info.ApplicationInfo;
@@ -56,6 +59,77 @@ namespace winPEAS.Tests
             StringAssert.Contains(output, "Trigger: Daily");
             StringAssert.Contains(output, "Vendor update");
             StringAssert.Contains(output, "Possible LSA-secret lead");
+        }
+
+        [TestMethod]
+        public void SelectsLiteralSnortConfigFromScheduledActionOnly()
+        {
+            Assert.AreEqual(@"C:\Snort\etc\snort.conf", ApplicationInfoHelper.GetSnortConfigPath(
+                @"C:\Snort\bin\snort.exe", @"-i 1 -c C:\Snort\etc\snort.conf -l C:\Snort\log"));
+            Assert.AreEqual(@"C:\Program Files\Snort\etc\snort.conf", ApplicationInfoHelper.GetSnortConfigPath(
+                @"C:\Program Files\Snort\bin\snort.exe", @"-c ""C:\Program Files\Snort\etc\snort.conf"""));
+            Assert.IsNull(ApplicationInfoHelper.GetSnortConfigPath(@"C:\Snort\bin\other.exe", @"-c C:\Snort\etc\snort.conf"));
+            Assert.IsNull(ApplicationInfoHelper.GetSnortConfigPath("snort.exe", @"-c C:\Snort\etc\snort.conf"));
+            Assert.IsNull(ApplicationInfoHelper.GetSnortConfigPath(@"C:\Snort\bin\snort.exe", @"-c \\server\snort.conf"));
+            Assert.IsNull(ApplicationInfoHelper.GetSnortConfigPath(@"C:\Snort\bin\snort.exe", "-c "));
+        }
+
+        [TestMethod]
+        public void SelectsOnlyBoundedLiteralModuleDirectories()
+        {
+            string config = "# dynamicpreprocessor directory C:\\ignored\\lib\n" +
+                "dynamicpreprocessor directory C:\\Snort\\lib\\snort_dynamicpreprocessor\n" +
+                "dynamicpreprocessor directory C:\\Snort\\lib\\snort_dynamicpreprocessor\n" +
+                "dynamicpreprocessor file C:\\Snort\\lib\\other.dll\n" +
+                "dynamicpreprocessor directory \\\\server\\share\\modules\n";
+            var paths = ApplicationInfoHelper.GetSnortDynamicPreprocessorDirectories(config);
+            Assert.AreEqual(1, paths.Count);
+            Assert.AreEqual(@"C:\Snort\lib\snort_dynamicpreprocessor", paths[0]);
+            Assert.AreEqual(0, ApplicationInfoHelper.GetSnortDynamicPreprocessorDirectories(
+                new string('x', 65537)).Count);
+        }
+
+        [TestMethod]
+        public void CapsConfigReadEvenWhenStreamContainsMoreThanInitialLimit()
+        {
+            using (var small = new MemoryStream(Encoding.UTF8.GetBytes(
+                "dynamicpreprocessor directory C:\\Snort\\lib\\modules")))
+                StringAssert.Contains(ApplicationInfoHelper.ReadSnortConfigCapped(small), "dynamicpreprocessor");
+            using (var grown = new MemoryStream(new byte[65537]))
+                Assert.IsNull(ApplicationInfoHelper.ReadSnortConfigCapped(grown));
+        }
+
+        [TestMethod]
+        public void ComparesTaskPrincipalsLocallyAndLeavesAmbiguousNamesUnknown()
+        {
+            const string sid = "S-1-5-21-100-200-300-1100";
+            Assert.IsTrue(ApplicationInfoHelper.IsDifferentTaskPrincipalWithoutLookup(
+                @"DOMAIN\other", @"DOMAIN\current", sid));
+            Assert.IsFalse(ApplicationInfoHelper.IsDifferentTaskPrincipalWithoutLookup(
+                @"DOMAIN\current", @"DOMAIN\current", sid));
+            Assert.IsTrue(ApplicationInfoHelper.IsDifferentTaskPrincipalWithoutLookup(
+                "S-1-5-18", @"DOMAIN\current", sid));
+            Assert.IsFalse(ApplicationInfoHelper.IsDifferentTaskPrincipalWithoutLookup(
+                sid, @"DOMAIN\current", sid));
+            Assert.IsFalse(ApplicationInfoHelper.IsDifferentTaskPrincipalWithoutLookup(
+                "current@domain.test", @"DOMAIN\current", sid));
+            Assert.IsFalse(ApplicationInfoHelper.IsDifferentTaskPrincipalWithoutLookup(
+                "S-1-5-invalid", @"DOMAIN\current", sid));
+        }
+
+        [TestMethod]
+        public void BoundsLiteralLocalPathsBeforeFilesystemInspection()
+        {
+            Assert.IsTrue(ApplicationInfoHelper.HasBoundedLocalPathComponents(
+                @"C:\Snort\lib\snort_dynamicpreprocessor"));
+            Assert.IsFalse(ApplicationInfoHelper.HasBoundedLocalPathComponents(
+                @"C:\Snort\..\private\config.conf"));
+            Assert.IsFalse(ApplicationInfoHelper.HasBoundedLocalPathComponents(
+                @"\\server\share\config.conf"));
+            Assert.IsFalse(ApplicationInfoHelper.HasBoundedLocalPathComponents(
+                "C:\\" + string.Join("\\", Enumerable.Repeat("part", 33))));
+            Assert.IsFalse(ApplicationInfoHelper.HasBoundedLocalPathComponents(
+                @"C:\Snort\etc\" + new string('x', 500)));
         }
 
         [TestMethod]

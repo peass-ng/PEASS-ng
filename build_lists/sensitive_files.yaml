@@ -1486,6 +1486,38 @@ search:
                   - ${ROOT_FOLDER}lib32
                   - ${ROOT_FOLDER}lib64
 
+  - name: Minecraft plugin JAR candidates
+    value:
+        disable:
+          - linpeas
+        config:
+          auto_check: True
+
+        files:
+          - name: "*.jar"
+            value:
+                check_extra_path: '/(server|minecraft[^/]*|spigot|paper|bukkit)/plugins/[^/]+\.jar$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: IIS default webroot backup archive candidates
+    value:
+        disable:
+          - linpeas
+        config:
+          auto_check: True
+
+        files:
+          - name: "*backup*.zip"
+            value:
+                check_extra_path: '^[A-Za-z]:/inetpub/wwwroot/[^/]*backup[^/]*\.zip$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: OpenVPN
     value:
         config:
@@ -4728,6 +4760,28 @@ search:
           - name: "gitea.db"
             value:
                 check_extra_path: '(^|/)Gitea/data/gitea\.db$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Openfire local configuration and database
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "openfire.xml"
+            value:
+                check_extra_path: '(^|/)openfire/conf/openfire\.xml$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "openfire.script"
+            value:
+                check_extra_path: '(^|/)openfire/embedded-db/openfire\.script$'
                 just_list_file: True
                 type: f
                 search_in:

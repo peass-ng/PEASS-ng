@@ -49,12 +49,41 @@ namespace winPEAS.Tests
             string secret = "fixture-secret-should-not-be-retained";
             var settings = HMailServerExposure.ParseDatabaseSection(
                 "[Other]\nPassword=wrong\n[database]\ntYpE=MSSQLCE\nInternal=1\n" +
-                "PasswordEncryption=1\nPassword=" + secret + "\n[Directories]\nDatabaseFolder=Database\n[Other]\nType=ignored");
+                "PasswordEncryption=1\nPassword=" + secret + "\n[Directories]\nDatabaseFolder=Database\n" +
+                "[Security]\nAdministratorPassword=" + secret + "\n[Other]\nType=ignored");
             Assert.AreEqual("MSSQLCE", settings.Type);
             Assert.AreEqual("Database", settings.DatabaseFolder);
             Assert.IsTrue(settings.PasswordPresent);
+            Assert.IsTrue(settings.AdministratorPasswordPresent);
             Assert.IsFalse(string.Join("|", settings.Type, settings.Internal,
                 settings.PasswordEncryption, settings.DatabaseFolder).Contains(secret));
+        }
+
+        [TestMethod]
+        public void ProgramDataLayoutReportsAdministratorHashWithoutSqlCeDatabase()
+        {
+            string parent = Path.Combine(Path.GetTempPath(), "hmail-data-fixture-" + Guid.NewGuid().ToString("N"));
+            string install = Path.Combine(parent, "hMailServer");
+            try
+            {
+                Directory.CreateDirectory(install);
+                string ini = Path.Combine(install, "hMailServer.ini");
+                File.WriteAllText(ini, "[Security]\nAdministratorPassword=fixture-hash\n[Database]\nType=MYSQL\n");
+                var result = HMailServerExposure.ProbeInstall(install, true);
+                Assert.AreEqual(ini, result.IniPath);
+                Assert.AreEqual(HMailReadState.Accessible, result.IniState);
+                Assert.IsTrue(result.AdministratorPasswordPresent);
+                Assert.IsFalse(result.IsSqlCe);
+                Assert.AreEqual(HMailReadState.Unknown, result.DatabaseState);
+
+                File.WriteAllText(ini, "[Other]\nAdministratorPassword=ignored\n[Security]\nAdministratorPassword=\n");
+                result = HMailServerExposure.ProbeInstall(install, true);
+                Assert.IsFalse(result.AdministratorPasswordPresent);
+            }
+            finally
+            {
+                if (Directory.Exists(parent)) Directory.Delete(parent, true);
+            }
         }
 
         [TestMethod]

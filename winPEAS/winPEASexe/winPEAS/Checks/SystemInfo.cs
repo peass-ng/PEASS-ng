@@ -1915,7 +1915,8 @@ namespace winPEAS.Checks
                         fileSysPath,
                         System.IO.Path.Combine(fileSysPath, @"Machine\Scripts\Startup"),
                         System.IO.Path.Combine(fileSysPath, @"User\Scripts\Logon"),
-                        System.IO.Path.Combine(fileSysPath, @"Machine\Preferences\ScheduledTasks")
+                        System.IO.Path.Combine(fileSysPath, @"Machine\Preferences\ScheduledTasks"),
+                        System.IO.Path.Combine(fileSysPath, @"Machine\Microsoft\Windows NT\SecEdit")
                     };
 
                     foreach (var p in pathsToCheck)

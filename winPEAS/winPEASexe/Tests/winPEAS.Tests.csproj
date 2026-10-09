@@ -109,6 +109,8 @@
     <Compile Include="HMailAndInstalledAppsTests.cs" />
     <Compile Include="LansweeperConfigMetadataTests.cs" />
     <Compile Include="IisServedRootPermissionsTests.cs" />
+    <Compile Include="ApacheSystemWebRootTests.cs" />
+    <Compile Include="IisWebrootBackupSelectorTests.cs" />
     <Compile Include="ChecksArgumentEdgeCasesTests.cs" />
     <Compile Include="CheckmkAgentVersionTests.cs" />
     <Compile Include="VeeamBackupVersionTests.cs" />
@@ -130,6 +132,7 @@
     <Compile Include="CurrentComputerRbcdTests.cs" />
     <Compile Include="UnconstrainedDelegationInventoryTests.cs" />
     <Compile Include="PrivilegedScheduledTaskTests.cs" />
+    <Compile Include="ProcessModuleDirectoryReviewTests.cs" />
     <Compile Include="PrivilegedWmiEventConsumerTests.cs" />
     <Compile Include="RegistryHiveExposureTests.cs" />
     <Compile Include="SccmNetworkAccessAccountTests.cs" />
@@ -145,6 +148,8 @@
     <Compile Include="RemoteDesktopPlusProfilesTests.cs" />
     <Compile Include="SolarPuttyFilePathTests.cs" />
     <Compile Include="GiteaAndVisualStudioCandidateTests.cs" />
+    <Compile Include="OpenfireEmbeddedDatabaseTests.cs" />
+    <Compile Include="MinecraftPluginJarCatalogTests.cs" />
     <Compile Include="VelociraptorServerConfigTests.cs" />
     <Compile Include="Pdf24RepairPrerequisitesTests.cs" />
   </ItemGroup>

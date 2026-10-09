@@ -635,6 +635,9 @@ namespace winPEAS.Checks
                 Beaprint.MainPrint("Scheduled Applications --Non Microsoft--", "T1053.005");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/privilege-escalation-with-autorun-binaries.html", "Check if you can modify other users scheduled binaries");
                 ScheduledAppsResult scheduled_apps = ApplicationInfoHelper.GetScheduledAppsNoMicrosoft();
+                int snortConfigsInspected = 0;
+                bool snortLimitReached = false;
+                HashSet<string> snortTokenSids = null;
 
                 foreach (Dictionary<string, string> sapp in scheduled_apps.Apps)
                 {
@@ -666,8 +669,30 @@ namespace winPEAS.Checks
                         { "Possible LSA-secret lead.*", Beaprint.ansi_color_bad },
                     };
                     Beaprint.AnsiPrint(FormatScheduledApp(sapp, fileRights, dirRights), colorsS);
+                    if (sapp.ContainsKey("SnortExecutable") && sapp["LogonType"] != "Group")
+                    {
+                        if (snortConfigsInspected >= 3)
+                            snortLimitReached = true;
+                        else
+                        {
+                            snortConfigsInspected++;
+                            if (snortTokenSids == null)
+                                snortTokenSids = PermissionsHelper.GetUnprivilegedTokenSids();
+                            string lead = ApplicationInfoHelper.GetSnortModuleDirectoryLead(
+                                sapp["SnortExecutable"], sapp["SnortArguments"], sapp["Principal"], snortTokenSids);
+                            if (!string.IsNullOrEmpty(lead))
+                            {
+                                Beaprint.InfoPrint("    Snort dynamic preprocessor directory review: " + lead);
+                                Beaprint.GrayPrint("    Configured task principal identifier differs from this token; account equivalence and effective privilege are unverified. Confirm Snort module loading and ACL/share restrictions before treating this as escalation.");
+                            }
+                        }
+                    }
                     Beaprint.PrintLineSeparator();
                 }
+                if (snortLimitReached)
+                    Beaprint.GrayPrint("    Snort configuration review stopped after 3 scheduled actions; remaining Snort actions unknown.");
+                if (snortConfigsInspected > 0)
+                    Beaprint.GrayPrint("    Snort review reads at most 64 KiB and the first 1024 lines of each config, and checks up to 3 literal module directories; other forms remain unknown.");
                 if (scheduled_apps.LimitReached)
                     Beaprint.NoColorPrint($"    Scheduled task listing stopped at its safety limit ({ApplicationInfoHelper.MaxScheduledTasksInspected} tasks, {ApplicationInfoHelper.MaxScheduledFoldersInspected} folders, or {ApplicationInfoHelper.MaxScheduledAppsDisplayed} displayed).");
                 if (scheduled_apps.WithoutAuthorLimitReached)
