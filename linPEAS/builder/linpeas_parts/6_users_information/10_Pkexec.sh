@@ -1,15 +1,15 @@
 # Title: Users Information - Pkexec
 # ID: UG_Pkexec
 # Author: Carlos Polop
-# Last Update: 22-08-2023
+# Last Update: 09-10-2026
 # Description: Check Pkexec policy and related files for privilege escalation
 # License: GNU GPL
-# Version: 1.0
+# Version: 1.1
 # Mitre: T1548.003,T1548.004,T1068
 # Functions Used: print_2title, print_info
 # Global Variables: $Groups, $groupsB, $groupsVB, $nosh_usrs, $sh_usrs, $USER
 # Initial Functions:
-# Generated Global Variables: $pkexec_bin, $pkexec_version, $policy_dir, $policy_file
+# Generated Global Variables: $pkexec_bin, $pkexec_owner, $pkexec_version_output, $pkexec_version, $pkexec_major, $pkexec_minor, $policy_dir, $policy_file
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -27,14 +27,24 @@ if [ -n "$pkexec_bin" ]; then
     echo "Pkexec binary has SUID bit set!" | sed -${E} "s,.*,${SED_RED},g"
   fi
   ls -l "$pkexec_bin" 2>/dev/null
-  
-  # Check polkit version for known vulnerabilities
-  if command -v pkexec >/dev/null 2>&1; then
-    pkexec --version 2>/dev/null
-    pkexec_version="$(pkexec --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+')"
-    if [ "$pkexec_version" ] && [ "$(printf '%s\n' "$pkexec_version" "0.120" | sort -V | head -n1)" = "$pkexec_version" ] && [ "$pkexec_version" != "0.120" ]; then
-      echo "Potentially vulnerable to CVE-2021-4034 (PwnKit) - check distro patches" | sed -${E} "s,.*,${SED_RED_YELLOW},"
-    fi
+
+  # The local escalation requires an executable root-owned SUID pkexec.
+  pkexec_owner=$(LC_ALL=C ls -ldnL "$pkexec_bin" 2>/dev/null | awk 'NR == 1 { print $3 }')
+  if [ -f "$pkexec_bin" ] && [ -x "$pkexec_bin" ] && [ -u "$pkexec_bin" ] && [ "$pkexec_owner" = 0 ]; then
+    pkexec_version_output=$(pkexec --version 2>/dev/null)
+    if [ -n "$pkexec_version_output" ]; then printf '%s\n' "$pkexec_version_output"; fi
+    pkexec_version=$(printf '%s\n' "$pkexec_version_output" | awk 'match($0, /[0-9]+([.][0-9]+)+/) { print substr($0, RSTART, RLENGTH); exit }')
+    pkexec_major=${pkexec_version%%.*}
+    pkexec_minor=${pkexec_version#*.}
+    pkexec_minor=${pkexec_minor%%.*}
+    case "$pkexec_major:$pkexec_minor" in
+      *[!0-9:]*|:|*:) ;;
+      *) if [ "$pkexec_major" -eq 0 ] && [ "$pkexec_minor" -lt 120 ]; then
+           echo "CVE-2021-4034 candidate: root-owned SUID pkexec with older upstream version; verify distro package fixes and mitigations" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+         fi ;;
+    esac
+  else
+    echo "Pkexec is not an executable root-owned SUID binary; local SUID exploit candidate suppressed"
   fi
 fi
 

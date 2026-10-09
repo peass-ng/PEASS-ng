@@ -19,6 +19,7 @@ print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-p
 ptrace_scope="$(cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null)"
 if [ "$ptrace_scope" ] && [ "$ptrace_scope" -eq 0 ]; then
   echo "ptrace protection is disabled (0), so sudo tokens could be abused" | sed "s,is disabled,${SED_RED},g";
+  echo "Same-UID process input or memory may also expose vault passwords or reused credentials if the target is dumpable and other access controls permit tracing"
 
   if [ "$(command -v gdb 2>/dev/null || echo -n '')" ]; then
     echo "gdb was found in PATH" | sed -${E} "s,.*,${SED_RED},g";

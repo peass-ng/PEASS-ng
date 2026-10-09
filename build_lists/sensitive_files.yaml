@@ -29,6 +29,7 @@ root_folders:
   - ${ROOT_FOLDER}var           #common
   - ${ROOT_FOLDER}concourse-auth
   - ${ROOT_FOLDER}concourse-keys
+  - ${ROOT_FOLDER}datastore/Backups
 
 
 common_file_folders:
@@ -82,7 +83,7 @@ peas_storages_markup: "peass{STORAGES_HERE}"
 storage_line_markup: "peass{STORAGE_PARAMS_HERE}"
 storage_line_extra_markup: "peass{STORAGE_PARAMS_EXTRA_HERE}"
 storage_template: >
-          $(echo -e "peass{STORAGE_PARAMS_HERE}" peass{STORAGE_PARAMS_EXTRA_HERE} | sort | uniq | head -n 70)
+          $(printf '%b\n' "peass{STORAGE_PARAMS_HERE}" peass{STORAGE_PARAMS_EXTRA_HERE} | sort | uniq | head -n 70)
 
 int_hidden_files_markup: "peass{INT_HIDDEN_FILES}"
 
@@ -472,6 +473,8 @@ search:
             - 'echo "Nginx version: $(warn_exec nginx -v 2>/dev/null)"'
             - if [ -d "/etc/apache2" ] && [ -r "/etc/apache2" ]; then grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null; fi
             - if [ -d "/usr/share/nginx/modules" ] && [ -r "/usr/share/nginx/modules" ]; then print_3title 'Nginx modules'; ls /usr/share/nginx/modules | sed -${E} "s,$NGINX_KNOWN_MODULES,${SED_GREEN},g"; fi
+            - lp_apache_piped_log_check
+            - lp_remco_apache_template_check
             - "print_3title 'PHP exec extensions'"
             
         files:
@@ -481,25 +484,27 @@ search:
                 files:
                     - name: "*"
                       value:
-                        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status|command on"
+                        bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status|command on|^[[:space:]]*[Aa][Ss][Ss][Ii][Gg][Nn][Uu][Ss][Ee][Rr][Ii][Dd][[:space:]]+[[:alnum:]_.-]+[[:space:]]+[[:alnum:]_.-]+([[:space:]]|$)"
                         remove_empty_lines: True
-                        remove_regex: '#'
+                        # Piped-log command text is summarized by the bounded
+                        # checker above; do not echo arguments from config files.
+                        remove_regex: '#|^[[:space:]]*([Cc][Uu][Ss][Tt][Oo][Mm][Ll][Oo][Gg]|[Ee][Rr][Rr][Oo][Rr][Ll][Oo][Gg]|[Tt][Rr][Aa][Nn][Ss][Ff][Ee][Rr][Ll][Oo][Gg])[[:space:]]+[^[:space:]]?\\|'
                 search_in: 
                     - common
       
             - name: "000-default.conf"
               value: 
-                bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status"
-                remove_regex: '#'
+                bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status|^[[:space:]]*[Aa][Ss][Ss][Ii][Gg][Nn][Uu][Ss][Ee][Rr][Ii][Dd][[:space:]]+[[:alnum:]_.-]+[[:space:]]+[[:alnum:]_.-]+([[:space:]]|$)"
+                remove_regex: '#|^[[:space:]]*([Cc][Uu][Ss][Tt][Oo][Mm][Ll][Oo][Gg]|[Ee][Rr][Rr][Oo][Rr][Ll][Oo][Gg]|[Tt][Rr][Aa][Nn][Ss][Ff][Ee][Rr][Ll][Oo][Gg])[[:space:]]+[^[:space:]]?\\|'
                 type: f
                 search_in: 
                     - common
             
             - name: "php.ini"
               value: 
-                bad_regex: "On"
+                bad_regex: "^[[:space:]]*allow_[[:alnum:]_]*[[:space:]]*=[[:space:]]*On"
                 remove_regex: "^;"
-                line_grep: "allow_"
+                line_grep: "'^[[:space:]]*(allow_[[:alnum:]_]*|disable_functions|open_basedir)[[:space:]]*='"
                 type: f
                 search_in: 
                     - common
@@ -599,6 +604,205 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  - name: PHP database settings path candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "db.php5"
+            value:
+                check_extra_path: '^(/[^/]+)*/var/www(/[^/]+){0,5}/db\.php5$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: PHP service credential configuration
+    value:
+        config:
+          auto_check: True
+        files:
+          - name: "conf.php"
+            value:
+                check_extra_path: '/cfg/conf\.php$'
+                line_grep: '"(pwd|passwd|password|db[_-]?(user|pass)|dsn)[[:space:]]*[:=]" | head -n 20'
+                type: f
+                search_in:
+                  - common
+
+  - name: Dolibarr database settings candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "conf.php"
+            value:
+                check_extra_path: '/htdocs/conf/conf\.php$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Mattermost database configuration candidate
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "config.json"
+            value:
+                check_extra_path: '^/opt/mattermost/config/config\.json$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: PHP authentication controller candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "AuthController.php"
+            value:
+                check_extra_path: '/app/Http/Controllers/AuthController\.php$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: PrestaShop database settings candidates
+    value:
+        config:
+          auto_check: True
+        files:
+          - name: "parameters.php"
+            value:
+                check_extra_path: "/app/config/parameters\\.php$"
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+          - name: "settings.inc.php"
+            value:
+                check_extra_path: "/config/settings\\.inc\\.php$"
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Chamilo database settings candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "configuration.php"
+            value:
+                check_extra_path: '/app/config/configuration\.php$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: ChangeDetection backup candidates
+    value:
+        config:
+          auto_check: True
+        files:
+          - name: "changedetection-backup-*.zip"
+            value:
+                check_extra_path: "/datastore/Backups/changedetection-backup-[0-9]+\\.zip$"
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+                  - ${ROOT_FOLDER}datastore/Backups
+
+  - name: HTTP archive candidates
+    value:
+        config:
+          auto_check: True
+        files:
+          - name: "*.har"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Webroot backup archive candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "*backup*.zip"
+            value:
+                check_extra_path: '/var/www/[^/]+/(files/)?[^/]*backup[^/]*\.zip$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: WonderCMS
+    value:
+        config:
+          auto_check: True
+        files:
+          - name: "database.js"
+            value:
+                check_extra_path: '/data/database\.js$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Pluck CMS
+    value:
+        config:
+          auto_check: True
+        files:
+          - name: "pass.php"
+            value:
+                check_extra_path: '/([Pp]luck/)?data/settings/pass\.php$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: XWiki
+    value:
+        config:
+          auto_check: True
+          exec:
+            - >-
+              printf '%s\n' "$PSTORAGE_XWIKI" | while IFS= read -r f; do
+                [ -f "$f" ] && [ -r "$f" ] && [ -s "$f" ] || continue;
+                xwiki_properties=$(awk '/<!--/ {comment=1} !comment {print} /-->/ {comment=0}' "$f" |
+                  grep -E '^[[:space:]]*<property[[:space:]]+name="hibernate[.]connection[.](url|username|password)"[[:space:]]*>[[:space:]]*[^<[:space:]][^<]*</property>[[:space:]]*$' |
+                  grep -Eiv 'name="hibernate[.]connection[.]password"[[:space:]]*>[[:space:]]*(changeme|change_me|example|sample|password|your[_-]?password|replace[_-]?me|xxx+)[[:space:]]*</property>' |
+                  head -n 20);
+                [ -n "$xwiki_properties" ] || continue;
+                printf 'XWiki database connection properties in %s (password: possible reuse candidate; host authentication unverified):\n%s\n' "$f" "$xwiki_properties";
+              done
+        files:
+          - name: "hibernate.cfg.xml"
+            value:
+                check_extra_path: '(^|/)etc/xwiki/hibernate\.cfg\.xml$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
   
   - name: Apache-Airflow
     value:
@@ -663,6 +867,21 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  - name: Backdrop CMS settings candidates
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "settings.php"
+            value:
+                check_extra_path: "/settings\\.php$"
+                remove_path: "/sites/(default|[^/]+)/settings\\.php$"
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
   
   - name: Moodle
     value:
@@ -679,6 +898,20 @@ search:
                 search_in: 
                   - common
 
+  - name: LimeSurvey
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "config.php"
+            value:
+                check_extra_path: "/limesurvey/application/config/config\\.php$"
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: Tomcat
     value:
         config:
@@ -692,6 +925,21 @@ search:
                 only_bad_lines: True
                 type: f
                 search_in: 
+                  - common
+
+  - name: Guacamole
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "guacamole.properties"
+            value:
+                check_extra_path: '(^|/)guacamole/guacamole\.properties$'
+                line_grep: "'^[[:space:]]*(mysql|postgresql|sqlserver)-(hostname|database|username|password)[[:space:]]*=[[:space:]]*[^[:space:]]' | head -n 20"
+                bad_regex: "^[[:space:]]*(mysql|postgresql|sqlserver)-password[[:space:]]*=[[:space:]]*[^[:space:]]"
+                type: f
+                search_in:
                   - common
   
   - name: Mongo
@@ -735,7 +983,7 @@ search:
         files:
           - name:  "supervisord.conf"
             value: 
-              bad_regex: "port.*=|username.*=|password.*="
+              bad_regex: "port.*=|username.*=|password.*=|^[[:space:]]*files[[:space:]]*="
               only_bad_lines: True
               type: f
               search_in: 
@@ -816,11 +1064,22 @@ search:
           - name: "hostapd.conf"
             value: 
               bad_regex: "passphrase.*"
+              # Keep the existing config matches when the EAP file path filter is applied.
+              check_extra_path: '(^|/)hostapd\.conf$'
               remove_regex: '^#'
               remove_empty_lines: True
               type: f
               search_in: 
                 - common
+
+          - name: "*.eap_user"
+            value:
+              # Quoted phase-2 passwords are EAP credentials, not evidence of local account access.
+              check_extra_path: '^/etc/hostapd/[^/]*\.eap_user$'
+              line_grep: '''^[[:space:]]*"[^"]+"[[:space:]]+[[:alnum:],-]+[[:space:]]+"[^"]+"[[:space:]]+\[2\]([[:space:]]*#.*)?$'' | head -n 20'
+              type: f
+              search_in:
+                - ${ROOT_FOLDER}etc
   
   - name: Wifi Connections
     value:
@@ -941,6 +1200,20 @@ search:
           auto_check: True
 
         files:
+          - name: ".terraformrc"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "terraform.rc"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
           - name: "*.tfstate"
             value: 
                 bad_regex: "secret.*"
@@ -1189,8 +1462,7 @@ search:
                         files:
                           - name: "token"
                             value:
-                                bad_regex: ".*"
-                                remove_empty_lines: True
+                                just_list_file: True
                           - name: "namespace"
                             value:
                                 bad_regex: ".*"
@@ -1566,6 +1838,27 @@ search:
                 search_in: 
                   - common
 
+          - name: "*id_ed25519*"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "id_ecdsa*"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "*.ppk"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
           - name: "known_hosts"
             value: 
                 type: f
@@ -1592,6 +1885,29 @@ search:
                 only_bad_lines: True
                 type: f
                 search_in: 
+                  - common
+
+  - name: Web-served SSH identity archives
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "*ssh*.tgz"
+            value:
+                check_extra_path: '^(/[^/:]+)*/public_www/([^/]+/){0,2}[^/]*ssh[^/]*\.tgz$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "*ssh*.tar.gz"
+            value:
+                check_extra_path: '^(/[^/:]+)*/public_www/([^/]+/){0,2}[^/]*ssh[^/]*\.tar\.gz$'
+                just_list_file: True
+                type: f
+                search_in:
                   - common
   
   - name: CERTSB4
@@ -2113,9 +2429,15 @@ search:
                 type: f
                 search_in: 
                   - common
-          
+
+          - name: ".k5users"
+            value:
+                type: f
+                search_in:
+                  - common
+
           - name: "krb5cc_*"
-            value: 
+            value:
                 type: f
                 search_in: 
                   - common
@@ -2173,12 +2495,37 @@ search:
                 remove_regex: '^#|^;'
                 search_in: 
                   - common
-                 
+
+          # The path filter applies to the entire Grafana group: keep every
+          # existing grafana.ini match while scoping the binary database.
+          - name: "grafana.db"
+            value:
+                check_extra_path: '(^|/)grafana\.ini$|(^|/)(var/lib/grafana|opt/grafana/data|opt/data|data/grafana)/grafana\.db$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Duplicati server state
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "Duplicati-server.sqlite"
+            value:
+                # Use cached file discovery; list metadata only, never query the database.
+                check_extra_path: '(^|/)[Dd]uplicati(/config)?/Duplicati-server\.sqlite$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: Knockd
     value:
         config:
           auto_check: True
-    
+
         files:
           - name: "*knockd*"
             value: 
@@ -2505,6 +2852,20 @@ search:
           auto_check: True
 
         files:
+
+          - name: "*.vbox"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "*.vdi"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
       
           - name: "*.vhd"
             value: 
@@ -2656,6 +3017,36 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  # Bundler can persist source credentials here. List only the path.
+  - name: Ruby Bundler configuration candidate
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "config"
+            value:
+                check_extra_path: '/\.bundle/config$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - $HOMESEARCH
+
+  # Repository history can retain credentials removed from the working tree.
+  # Keep this path-only: recursive directory listing would dump Git objects.
+  - name: Git repository metadata
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: ".git"
+            value:
+                type: d
+                search_in:
+                  - common
                   
   - name: Atlantis
     value:
@@ -2690,7 +3081,7 @@ search:
                 search_in: 
                   - common
       
-          - name: "gitlab.rm"
+          - name: "gitlab.rb"
             value: 
                 type: f
                 remove_path: "/lib"
@@ -2755,12 +3146,6 @@ search:
                 type: f
                 just_list_file: True
                 search_in:
-                  - common
-
-          - name: "private-keys-v1.d/*.key"
-            value: 
-                type: f
-                search_in: 
                   - common
 
           - name: "*.gnupg"
@@ -3015,6 +3400,35 @@ search:
             type: d
             search_in: 
               - $HOMESEARCH
+
+  - name: Thunderbird saved-login files
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "logins.json"
+            value:
+                type: f
+                search_in:
+                  - $HOMESEARCH
+                check_extra_path: '(^|/)\.thunderbird/[^/]+/logins\.json$'
+                just_list_file: True
+          - name: "key3.db"
+            value:
+                type: f
+                search_in:
+                  - $HOMESEARCH
+                check_extra_path: '(^|/)\.thunderbird/[^/]+/key3\.db$'
+                just_list_file: True
+          - name: "key4.db"
+            value:
+                type: f
+                search_in:
+                  - $HOMESEARCH
+                check_extra_path: '(^|/)\.thunderbird/[^/]+/key4\.db$'
+                just_list_file: True
 
   - name: Chrome
     value:
@@ -3289,6 +3703,17 @@ search:
                 type: f
                 search_in: 
                   - common
+
+          # The builder applies path filters to the whole category. Keep the
+          # two existing autologin names valid while restricting passwd exactly.
+          - name: "passwd"
+            value:
+                check_extra_path: '/autologin(\.conf)?$|^(/mnt/stateful_partition)?/etc/autologin/passwd$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}mnt
   
   - name: FastCGI
     value:
@@ -3303,6 +3728,24 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  # Pool files can describe TCP FastCGI listeners that cross Unix identities.
+  # Inventory paths only; pool environment directives may contain secrets.
+  - name: PHP-FPM pool configuration candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "*.conf"
+            value:
+                check_extra_path: '^/(etc/php/[^/]+/fpm/pool\.d|etc/php-fpm\.d|usr/local/etc/php-fpm\.d)/[^/]+\.conf$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}usr
   
   - name: Fat-Free
     value:
@@ -3657,8 +4100,25 @@ search:
     value:
         config:
           auto_check: True
+          exec:
+            - >-
+              printf '%s\n' 'Zabbix frontend database settings: key presence only, values redacted; credentials may be empty or vault-backed.'
 
         files:
+          - name: "zabbix.conf.php"
+            value:
+                line_grep: >-
+                  'USER|PASSWORD|SERVER|DATABASE' |
+                  awk 'match($0, /^[[:space:]]*\$DB[[:space:]]*\[[[:space:]]*["\047](USER|PASSWORD|SERVER|DATABASE)["\047][[:space:]]*\][[:space:]]*=/) {
+                    key = $0;
+                    sub(/^[[:space:]]*\$DB[[:space:]]*\[[[:space:]]*["\047]/, "", key);
+                    sub(/["\047][[:space:]]*\].*$/, "", key);
+                    print key ": present (value redacted)"
+                  }' | sort -u | head -n 4
+                type: f
+                search_in:
+                  - common
+
           - name: "zabbix_server.conf"
             value: 
                 bad_regex: "DBName|DBUser|DBPassword"
@@ -3749,6 +4209,14 @@ search:
                 search_in: 
                   - common
 
+          # Candidate only: other encrypted key databases also use .kdb.
+          - name: "*.kdb"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
           - name: "KeePass.config*"
             value: 
                 just_list_file: True
@@ -3769,7 +4237,23 @@ search:
                 type: f
                 search_in: 
                   - common
-        
+
+  - name: PSWM vault candidates
+    value:
+        config:
+          auto_check: True
+          exec:
+            - echo "Encrypted vault path only; readability, master password strength, and credential reuse are unverified."
+
+        files:
+          - name: "pswm"
+            value:
+                check_extra_path: '/\.local/share/pswm/pswm$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - $HOMESEARCH
+
   - name: Password Safe
     value:
         config:
@@ -3808,6 +4292,21 @@ search:
                 type: d
                 search_in: 
                   - common
+
+  # The default encrypted credential database; list the directory only.
+  - name: Passpie database candidate
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+
+        files:
+          - name: ".passpie"
+            value:
+                type: d
+                search_in:
+                  - $HOMESEARCH
 
   - name: FTP
     value:
@@ -3892,11 +4391,43 @@ search:
           - name: "smb.conf"
             value: 
                 type: f
-                bad_regex: "browseable.*yes|read only.*no|writable.*yes|guest ok.*yes|enable privileges.*yes|create mask.*|directory mask.*|logon script.*|magic script.*|magic output.*"
+                bad_regex: "browseable.*yes|read only.*no|writable.*yes|guest ok.*yes|enable privileges.*yes|create mask.*|directory mask.*|logon script.*|magic script.*|magic output.*|wide links.*yes|allow insecure wide links.*yes|force user[[:space:]]*=[[:space:]]*root"
                 good_regex: "browseable.*no|read only.*yes|writable.*no|guest ok.*no|enable privileges.*no"
-                line_grep: '"browseable|read only|writable|guest ok|enable privileges|create mask|directory mask|logon script|magic script|magic output"'
+                line_grep: '-i "^[[:space:]]*(browseable|read only|writable|guest ok|enable privileges|create mask|directory mask|logon script|magic script|magic output|wide links|allow insecure wide links|force user|include)[[:space:]]*=" | head -n 30'
                 remove_empty_lines: True
                 search_in: 
+                  - common
+
+  - name: Samba included configuration policies
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "*.conf"
+            value:
+                check_extra_path: '^/(etc|usr/local/etc)/samba/[^/]+\.conf$'
+                line_grep: '-i "^[[:space:]]*(include|force user|wide links|allow insecure wide links|browseable|read only|writable|guest ok)[[:space:]]*=" | head -n 30'
+                bad_regex: "wide links.*yes|allow insecure wide links.*yes|force user[[:space:]]*=[[:space:]]*root"
+                remove_empty_lines: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}usr
+
+  - name: Rclone configuration candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "rclone.conf"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
                   - common
 
   - name: DNS
@@ -4074,6 +4605,9 @@ search:
     value:
         config:
           auto_check: True
+          exec:
+            - >-
+              printf '%s\n' 'Roundcube: db_dsnw is a database credential; des_key matters with readable encrypted session state. Values are redacted.'
 
         files:
           - name: "roundcube"
@@ -4081,12 +4615,117 @@ search:
                 files:
                   - name: "config.inc.php"
                     value:
-                        bad_regex: "db_dsnw"
-                        line_grep: '"config\["'
+                        # Only report the presence of these keys. Values can include
+                        # database credentials and the session encryption key.
+                        line_grep: >-
+                          'db_dsnw|des_key|cipher_method|session_storage' |
+                          awk 'match($0, /^[[:space:]]*\$config[[:space:]]*\[[[:space:]]*["\047](db_dsnw|des_key|cipher_method|session_storage)["\047][[:space:]]*\][[:space:]]*=/) {
+                            key = $0;
+                            sub(/^[[:space:]]*\$config[[:space:]]*\[[[:space:]]*["\047]/, "", key);
+                            sub(/["\047][[:space:]]*\].*$/, "", key);
+                            print key ": present (value redacted)"
+                          }' | sort -u | head -n 4
 
                 type: d
                 search_in: 
                   - common
+
+  - name: Webmin administration configuration
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "webmin.acl"
+            value:
+                # Module grants are a manual review lead; do not print identities.
+                # The cached path may include an offline ROOT_FOLDER prefix.
+                check_extra_path: '/etc/webmin/webmin\.acl$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "miniserv.conf"
+            value:
+                # Server settings can contain authentication material.
+                check_extra_path: '/etc/webmin/miniserv\.conf$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+  - name: PostgreSQL NSS configuration
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "nss-pgsql.conf"
+            value:
+                # Connection settings can contain credentials; report paths only.
+                check_extra_path: '/etc/nss-pgsql\.conf$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "nss-pgsql-root.conf"
+            value:
+                check_extra_path: '/etc/nss-pgsql-root\.conf$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+  - name: Cobbler
+    value:
+        config:
+          auto_check: True
+          exec:
+            - 'if grep -Eq "^[[:space:]]*(module[[:space:]]*[:=]|authentication[[:space:]]*:)[[:space:]]*authn_ldap([[:space:]]|$)" /etc/cobbler/modules.conf /etc/cobbler/settings /etc/cobbler/settings.yaml 2>/dev/null && [ -f /etc/cobbler/ldap.conf ]; then ls -ld /etc/cobbler/ldap.conf; fi'
+            - 'if [ -f /var/lib/cobbler/web.ss ]; then ls -ld /var/lib/cobbler/web.ss; fi'
+
+        files:
+          - name: "modules.conf"
+            value:
+                check_extra_path: '^/etc/cobbler/modules\.conf$'
+                line_grep: '"^[[:space:]]*(\\[(authentication|authorization)\\]|module[[:space:]]*=[[:space:]]*auth(n|z)_[[:alnum:]_]+)" | head -n 20'
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "settings"
+            value:
+                check_extra_path: '^/etc/cobbler/settings$'
+                line_grep: '"^[[:space:]]*(authentication|authorization|xmlrpc_(port|host|protocol|listen|enabled|ssl_enabled)|client_use_https)[[:space:]]*:|^[[:space:]]*module[[:space:]]*:[[:space:]]*auth(n|z)_[[:alnum:]_]+" | head -n 30'
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "settings.yaml"
+            value:
+                check_extra_path: '^/etc/cobbler/settings\.yaml$'
+                line_grep: '"^[[:space:]]*(authentication|authorization|xmlrpc_(port|host|protocol|listen|enabled|ssl_enabled)|client_use_https)[[:space:]]*:|^[[:space:]]*module[[:space:]]*:[[:space:]]*auth(n|z)_[[:alnum:]_]+" | head -n 30'
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "users.digest"
+            value:
+                check_extra_path: '^/etc/cobbler/users\.digest$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "users.conf"
+            value:
+                check_extra_path: '^/etc/cobbler/users\.conf$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
   
   - name: Passbolt
     value:
@@ -4119,6 +4758,76 @@ search:
                 search_in: 
                   - common
   
+  # List only the config path; privilege depends on write access and an
+  # authorized daemon/RPC apply operation, not on file presence alone.
+  - name: OpenMediaVault configuration candidate
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "config.xml"
+            value:
+                check_extra_path: '^/etc/openmediavault/config\.xml$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+  - name: Monit configuration candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: ".monitrc"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "monitrc"
+            value:
+                check_extra_path: '/(etc|monit)/monitrc$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: TeamCity data candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "buildserver.script"
+            value:
+                check_extra_path: '/system/buildserver\.script$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "buildserver.log"
+            value:
+                check_extra_path: '/system/buildserver\.log$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "TeamCity_Backup_*.zip"
+            value:
+                check_extra_path: '/backup/TeamCity_Backup_[0-9]{8}_[0-9]{6}\.zip$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: Jenkins
     value:
         config:
@@ -4184,6 +4893,22 @@ search:
                 search_in: 
                   - common
 
+  - name: Axel download configuration candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: ".axelrc"
+            value:
+                # A sudo-run downloader may read this from a caller-controlled HOME.
+                # Show the path only; configurations may contain credentials.
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: Interesting logs
     value:
         config:
@@ -4204,12 +4929,86 @@ search:
                 search_in: 
                   - common
 
+          - name: "auth.log"
+            value:
+                # Application authentication logs may retain submitted usernames.
+                # Show metadata only; a candidate value must never be printed here.
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Crash report candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "*.crash"
+            value:
+                # Reuse cached discovery and report only metadata, never core contents.
+                check_extra_path: '/var/crash/[^/]+\.crash$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Jupyter startup log candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "jupyter-*.log"
+            value:
+                # Reuse the existing file cache; never print token-bearing logs.
+                check_extra_path: '/logs/jupyter-[^/]*\.log$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Suricata event log candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "eve*.json*"
+            value:
+                # Includes ordinary, threaded, and rotated EVE files. Keep
+                # discovery scoped to Suricata's conventional log directory.
+                check_extra_path: '/var/log/suricata/eve[^/]*\.json'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}var
+
   - name: Other Interesting
     value:
         config:
           auto_check: True
 
         files:
+          - name: ".npmrc"
+            value:
+                # Registry configuration may contain authentication material.
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "printers.conf"
+            value:
+                # CUPS device URIs may contain authentication material.
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
           - name: ".bashrc"
             value: 
                 just_list_file: True
@@ -4700,6 +5499,24 @@ search:
                 search_in:
                   - common
 
+# The Derby marker identifies an embedded OFBiz database directory without
+# recursively listing its potentially large seg0 table files.
+  - name: OFBiz embedded Derby database
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+
+        files:
+          - name: "service.properties"
+            value:
+                check_extra_path: '/runtime/data/derby/[^/]+/service[.]properties$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
 # Final section
   - name: Database
     value:
@@ -4728,22 +5545,79 @@ search:
                 search_in: 
                   - common
 
+  - name: Proxmox VE host backups
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "pve-host-*.tar.gz"
+            value:
+                check_extra_path: '/var/backups/pve-host-[^/]+\.tar\.gz$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "proxmox_backup_*.tar.gz"
+            value:
+                check_extra_path: '/var/backups/proxmox_backup_[^/]+\.tar\.gz$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Shadow backup candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "shadow.bak"
+            value:
+                check_extra_path: '/var/backups/shadow\.bak$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}var
+
   - name: Backups
     value:
         config:
           auto_check: False
 
         files:
+          - name: "npbackup.conf"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
           - name: "backup"
             value: 
                 type: f
                 search_in: 
+                  - common
+
+          - name: "backup"
+            value:
+                type: d
+                search_in:
                   - common
       
           - name: "backups"
             value: 
                 type: f
                 search_in: 
+                  - common
+
+          - name: "backups"
+            value:
+                type: d
+                search_in:
                   - common
 
   - name: Password Files
@@ -4795,13 +5669,25 @@ search:
         files:
           - name: "crontab.db"
             value:
-                bad_regex: "-P[[:space:]]+\\S+|--password[[:space:]]+\\S+|[Pp]ass(word)?|[Tt]oken|[Ss]ecret"
-                only_bad_lines: True
+                just_list_file: True
                 type: f
                 search_in:
                   - common
 
           - name: "crontab-ui.service"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Velociraptor server configuration candidate
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "server.config.yaml"
             value:
                 just_list_file: True
                 type: f

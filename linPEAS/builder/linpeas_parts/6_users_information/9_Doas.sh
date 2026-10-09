@@ -1,16 +1,16 @@
 # Title: Users Information - Doas
 # ID: UG_Doas
 # Author: Carlos Polop
-# Last Update: 11-08-2026
+# Last Update: 09-10-2026
 # Description: Check doas/OpenDoas configuration, effective rules, binary permissions, and known vulnerable versions.
-#   Detects unrestricted and nopass root rules, GTFOBins-capable commands (including the HTB Soccer dstat path), dangerous environment preservation, writable configuration paths, and applicable CVEs.
+#   Detects unrestricted and nopass root rules, GTFOBins-capable commands, writable dstat plugin directories, dangerous environment preservation, writable configuration paths, and applicable CVEs.
 # License: GNU GPL
-# Version: 1.1
+# Version: 1.2
 # Mitre: T1548.003
 # Functions Used: doas_check_command, doas_command_is_dangerous, doas_config_syntax_valid, doas_extract_upstream_version, doas_get_package_details, doas_read_rules, doas_rule_applies_to_current_user, doas_rule_command, doas_rule_has_dangerous_environment, doas_rule_has_option, doas_rule_targets_root, doas_version_ge, doas_version_le, doas_version_lt, echo_not_found, print_2title, print_3title, print_info
 # Global Variables: $doas_package_full_version, $doas_package_homepage, $doas_package_implementation, $doas_package_manager, $doas_package_name
 # Initial Functions:
-# Generated Global Variables: $conf_file, $doas_active_rules, $doas_bin, $doas_bin_mode, $doas_bin_owner, $doas_bin_trusted, $doas_conf_candidates, $doas_conf_dir, $doas_conf_dir_mode, $doas_conf_found, $doas_conf_mode, $doas_conf_owner, $doas_conf_trusted, $doas_current_gids, $doas_current_groups, $doas_current_uid, $doas_current_user, $doas_package_label, $doas_rule_applies, $doas_rule_cmd_value, $doas_rule_dangerous, $doas_rule_env, $doas_rule_line, $doas_rule_nopass, $doas_rule_number, $doas_rule_root, $doas_rule_unrestricted, $doas_seen_configs, $doas_seen_test_commands, $doas_strings_conf, $doas_test_cmd, $doas_test_commands, $doas_check_output, $doas_tiocsti, $doas_upstream_version
+# Generated Global Variables: $conf_file, $doas_active_rules, $doas_bin, $doas_bin_mode, $doas_bin_owner, $doas_bin_trusted, $doas_conf_candidates, $doas_conf_dir, $doas_conf_dir_mode, $doas_conf_found, $doas_conf_mode, $doas_conf_owner, $doas_conf_trusted, $doas_current_gids, $doas_current_groups, $doas_current_uid, $doas_current_user, $doas_package_label, $doas_rule_applies, $doas_rule_cmd_value, $doas_rule_dangerous, $doas_rule_env, $doas_rule_line, $doas_rule_nopass, $doas_rule_number, $doas_rule_root, $doas_rule_unrestricted, $doas_seen_configs, $doas_seen_test_commands, $doas_strings_conf, $doas_test_cmd, $doas_test_commands, $doas_check_output, $doas_tiocsti, $doas_upstream_version, $doas_dstat_plugin_dir, $doas_dstat_checked
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -21,6 +21,21 @@ doas_current_uid="$(id -u 2>/dev/null)"
 doas_current_groups="$(id -Gn 2>/dev/null)"
 doas_current_gids="$(id -G 2>/dev/null)"
 doas_bin_trusted="no"
+doas_dstat_checked=""
+
+# Dstat implementations differ: this checks only two documented global
+# plugin locations, and only current-user write/search rights. It does not
+# inspect plugin content or invoke the privileged program.
+doas_dstat_plugin_review() {
+  [ "$doas_current_uid" != "0" ] || return 0
+  for doas_dstat_plugin_dir in "$@"; do
+    [ -d "$doas_dstat_plugin_dir" ] &&
+      [ -w "$doas_dstat_plugin_dir" ] &&
+      [ -x "$doas_dstat_plugin_dir" ] || continue
+    printf 'Writable dstat plugin directory candidate: %s (review installed plugin search path, doas policy, and whether a selected plugin is loaded)\n' "$doas_dstat_plugin_dir"
+    ls -ld "$doas_dstat_plugin_dir" 2>/dev/null || :
+  done
+}
 
 doas_conf_candidates="/etc/doas.conf
 /usr/local/etc/doas.conf
@@ -180,9 +195,6 @@ if [ -n "$doas_bin" ] || [ "$doas_conf_found" = "yes" ]; then
               echo "POTENTIAL: a matching permit rule allows arbitrary root commands after authentication; a later rule may override it" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
             elif [ "$doas_rule_dangerous" = "yes" ] && [ "$doas_rule_nopass" = "yes" ]; then
               echo "POTENTIAL: a matching permit rule allows GTFOBins-capable command $doas_rule_cmd_value as root without a password; a later rule may override it" | sed -${E} "s,.*,${SED_RED},g"
-              if [ "${doas_rule_cmd_value##*/}" = "dstat" ]; then
-                echo "This is the HTB Soccer privilege-escalation pattern: a user-controlled dstat plugin can execute as root" | sed -${E} "s,.*,${SED_RED},g"
-              fi
             elif [ "$doas_rule_dangerous" = "yes" ]; then
               echo "POTENTIAL: a matching permit rule allows GTFOBins-capable command $doas_rule_cmd_value as root after authentication; a later rule may override it" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
             elif [ "$doas_rule_nopass" = "yes" ]; then
@@ -190,6 +202,11 @@ if [ -n "$doas_bin" ] || [ "$doas_conf_found" = "yes" ]; then
             fi
             if [ "$doas_rule_env" = "yes" ]; then
               echo "Dangerous environment preservation is enabled for an applicable root rule (keepenv or sensitive setenv variable)" | sed -${E} "s,.*,${SED_RED_YELLOW},g"
+            fi
+            if [ "${doas_rule_cmd_value##*/}" = "dstat" ] && [ -z "$doas_dstat_checked" ]; then
+              doas_dstat_checked=1
+              doas_dstat_plugin_review /usr/local/share/dstat /usr/share/dstat |
+                sed -"${E}" "s,.*,${SED_RED_YELLOW},"
             fi
           elif [ "$doas_rule_root" = "yes" ] && { [ "$doas_rule_nopass" = "yes" ] || [ "$doas_rule_unrestricted" = "yes" ] || [ "$doas_rule_dangerous" = "yes" ]; }; then
             echo "  $conf_file:$doas_rule_number $doas_rule_line" | sed -${E} "s,.*,${SED_LIGHT_CYAN},g"

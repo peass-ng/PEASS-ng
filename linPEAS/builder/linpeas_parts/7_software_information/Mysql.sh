@@ -9,7 +9,7 @@
 # Functions Used: print_2title
 # Global Variables: $DEBUG, $knw_usrs, $nosh_usrs, $sh_usrs, $DEBUG, $USER, $STRINGS
 # Initial Functions:
-# Generated Global Variables: $mysqluser, $mysqlexec, $mysqlconnect, $mysqlconnectnopass, $mysqluser, $version_output, $major_version, $version, $process_info
+# Generated Global Variables: $mysqluser, $mysqlexec, $mysqlconnect, $mysqlconnectnopass, $mysqluser, $version_output, $version, $process_info, $mysql_unit_dir, $mysql_unit_parent, $mysql_unit_file, $mysql_unit_count, $mysql_unit_size, $mysql_unit_signal
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -107,13 +107,69 @@ if [ "$(command -v mysql || echo -n '')" ] || [ "$(command -v mysqladmin || echo
   echo ""
 fi
 
-### This section checks if MySQL (mysqld) is running as root and if its version is 4.x or 5.x to refer a known local privilege escalation exploit! ###
+### Review the MySQL/MariaDB service identity without assuming a version is exploitable. ###
 
 # Find the mysqld process
-process_info=$(ps aux | grep '[m]ysqld' | head -n1)
+process_info=$(ps aux 2>/dev/null | grep -E '[m]ysqld|[m]ariadbd' | head -n1)
 
 if [ -z "$process_info" ]; then
-  echo "MySQL process not found." | sed -${E} "s,.*,${SED_GREEN},"
+  echo "MySQL/MariaDB process not visible to this user (it may be stopped or /proc may hide other users)."
+
+  # A fixed, small unit-file review can still expose an explicitly configured
+  # root context when hidepid prevents process enumeration. Never run the unit.
+  if [ -d /run/systemd/system ]; then
+    mysql_unit_count=0
+    for mysql_unit_dir in /etc/systemd/system /usr/lib/systemd/system /lib/systemd/system; do
+      [ -d "$mysql_unit_dir" ] || continue
+      mysql_unit_parent=$mysql_unit_dir
+      while [ "$mysql_unit_parent" != / ] && [ ! -L "$mysql_unit_parent" ]; do
+        mysql_unit_parent=${mysql_unit_parent%/*}
+        [ "$mysql_unit_parent" ] || mysql_unit_parent=/
+      done
+      [ "$mysql_unit_parent" = / ] || continue
+      for mysql_unit_file in "$mysql_unit_dir"/*mysql*.service "$mysql_unit_dir"/*mariadb*.service; do
+        [ -f "$mysql_unit_file" ] && [ -r "$mysql_unit_file" ] && [ ! -L "$mysql_unit_file" ] || continue
+        mysql_unit_count=$((mysql_unit_count + 1))
+        if [ "$mysql_unit_count" -gt 12 ]; then
+          echo "MySQL/MariaDB unit review incomplete (12-file limit)."
+          break 2
+        fi
+        mysql_unit_size=$(stat -c %s "$mysql_unit_file" 2>/dev/null) ||
+          mysql_unit_size=$(stat -f %z "$mysql_unit_file" 2>/dev/null) || continue
+        case "$mysql_unit_size" in ''|*[!0-9]*) continue ;; esac
+        [ "${#mysql_unit_size}" -le 6 ] && [ "$mysql_unit_size" -le 65536 ] || continue
+        mysql_unit_signal=$(head -c 65537 "$mysql_unit_file" 2>/dev/null | awk '
+          /^\[Service\][[:space:]]*$/ { service = 1; next }
+          /^\[/ { service = 0; next }
+          !service || /^[[:space:]]*[#;]/ { next }
+          {
+            line = $0
+            sub(/^[[:space:]]*/, "", line)
+            if (line ~ /^User[[:space:]]*=/) {
+              sub(/^User[[:space:]]*=[[:space:]]*/, "", line)
+              sub(/[[:space:]]*$/, "", line)
+              user = line
+            } else if (line ~ /^DynamicUser[[:space:]]*=/) {
+              sub(/^DynamicUser[[:space:]]*=[[:space:]]*/, "", line)
+              sub(/[[:space:]]*$/, "", line)
+              dynamic = tolower(line)
+            } else if (line ~ /^ExecStart[[:space:]]*=/) {
+              sub(/^ExecStart[[:space:]]*=[[:space:]]*[-+!@]*/, "", line)
+              direct = (line ~ /^\/[^[:space:]]+\/(mysqld|mariadbd)([[:space:]]|$)/ &&
+                line !~ /(^|[[:space:]])--user([=[:space:]]|$)/)
+            }
+          }
+          END {
+            if (direct && (user == "" || user == "root") && dynamic !~ /^(yes|true|1)$/)
+              print (user == "root" ? "explicit root" : "default root")
+          }
+        ' 2>/dev/null)
+        if [ "$mysql_unit_signal" ]; then
+          printf 'MySQL/MariaDB unit root-context review candidate: %s (%s; process state, drop-ins, SQL FILE/UDF rights and plugin directory unverified)\n' "$mysql_unit_file" "$mysql_unit_signal"
+        fi
+      done
+    done
+  fi
 else
 
   # Extract the process user
@@ -125,22 +181,9 @@ else
   # Extract the version number (expects format like X.Y.Z)
   version=$(echo "$version_output" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
 
-  if [ -z "$version" ]; then
-    echo "Unable to determine MySQL version." | sed -${E} "s,.*,${SED_GREEN},"
+  if [ "$mysqluser" = "root" ]; then
+    printf 'MySQL/MariaDB process runs as root%s; review SQL access, FILE/UDF rights, plugin directory, and effective service policy.\n' "${version:+ (binary version $version)}" | sed -${E} "s,.*,${SED_RED},"
   else
-
-    # Extract the major version number (X from X.Y.Z)
-    major_version=$(echo "$version" | cut -d. -f1)
-
-    # Check if MySQL is running as root and if the version is either 4.x or 5.x
-    if [ "$mysqluser" = "root" ] && { [ "$major_version" -eq 4 ] || [ "$major_version" -eq 5 ]; }; then
-      echo "MySQL is running as root with version $version. This is a potential local privilege escalation vulnerability!" | sed -${E} "s,.*,${SED_RED},"
-      echo "\tRefer to: https://www.exploit-db.com/exploits/1518" | sed -${E} "s,.*,${SED_YELLOW},"
-      echo "\tRefer to: https://medium.com/r3d-buck3t/privilege-escalation-with-mysql-user-defined-functions-996ef7d5ceaf" | sed -${E} "s,.*,${SED_YELLOW},"
-    else
-      echo "MySQL is running as user '$mysqluser' with version $version." | sed -${E} "s,.*,${SED_GREEN},"
-    fi
-    ### ------------------------------------------------------------------------------------------------------------------------------------------------ ###
-  
+    printf "MySQL/MariaDB process runs as user '%s'%s.\n" "$mysqluser" "${version:+ (binary version $version)}" | sed -${E} "s,.*,${SED_GREEN},"
   fi
 fi

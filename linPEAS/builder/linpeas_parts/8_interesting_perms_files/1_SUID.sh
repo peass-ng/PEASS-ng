@@ -1,15 +1,15 @@
 # Title: Interesting Permissions Files - SUID
 # ID: IP_SUID
 # Author: Carlos Polop, HT Bot
-# Last Update: 30-09-2026
-# Description: SUID - Check easy privesc, exploits, write perms, and risky file placement
+# Last Update: 09-10-2026
+# Description: SUID - Check easy privesc, exploits, write perms, risky file placement, and identity-helper candidates
 # License: GNU GPL
-# Version: 1.2
+# Version: 1.5
 # Mitre: T1548.001
 # Functions Used: check_privileged_file_location, echo_not_found, print_2title, print_info
 # Global Variables: $IAMROOT, $LDD, $ROOT_FOLDER, $READELF, $sidB, $sidG1, $sidG2, $sidG3, $sidG4, $sidVB, $sidVB2, $STRACE, $STRINGS, $TIMEOUT, $Wfolders, $cfuncs
 # Initial Functions:
-# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH
+# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH, $ndsudo_uid, $ndsudo_nnp, $ndsudo_mount_options, $ndsudo_uncertainty, $pinns_uid, $pinns_nnp, $pinns_mount_options, $pinns_uncertainty, $jjs_nnp, $jjs_mount_options, $gosu_nnp, $gosu_mount_options
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -32,12 +32,84 @@ printf "%s\n" "$suids_files" | while IFS= read -r sfile; do
   # Keep the path returned by find: parsing it from ls output breaks on whitespace.
   sname="$sfile"
   sowner="$(echo "$s" | awk '{print $3}')"
+  if [ "${sname##*/}" = "pinns" ] && [ "$(uname -s 2>/dev/null)" = "Linux" ]; then
+    # The privileged CRI-O helper is a lead only; never invoke it to test.
+    pinns_uid=$(stat -c '%u' "$sname" 2>/dev/null || stat -f '%u' "$sname" 2>/dev/null)
+    if [ "$IAMROOT" ] || [ "$pinns_uid" != "0" ] || ! [ -u "$sname" ] || ! [ -x "$sname" ]; then
+      echo "  pinns: no local privilege-escalation candidate for this user (requires root ownership, SUID, and execute access)."
+    else
+      pinns_nnp=$(awk '/^NoNewPrivs:/ {print $2; exit}' /proc/self/status 2>/dev/null)
+      pinns_mount_options=$(findmnt -no OPTIONS -T "$sname" 2>/dev/null | head -n 1)
+      if [ "$pinns_nnp" = "1" ]; then
+        echo "  pinns: SUID transition blocked by NoNewPrivs for this process tree."
+      elif echo ",$pinns_mount_options," | grep -q ',nosuid,'; then
+        echo "  pinns: SUID transition blocked by nosuid mount options."
+      else
+        pinns_uncertainty=""
+        [ "$pinns_nnp" = "0" ] || pinns_uncertainty="NoNewPrivs unknown; "
+        [ -n "$pinns_mount_options" ] || pinns_uncertainty="${pinns_uncertainty}mount SUID policy unknown; "
+        echo "  pinns review candidate (CVE-2022-0811): root-owned SUID executable by current user; NoNewPrivs=${pinns_nnp:-unknown}; mount options=${pinns_mount_options:-unknown}."
+        echo "  ${pinns_uncertainty}Installed helper build and vendor fixes unknown; verify the exact binary and host sysctl policy. No helper execution performed."
+      fi
+    fi
+  fi
   if [ "$sname" = "."  ] || [ "$sname" = ".."  ]; then
     true #Don't do nothing
+  elif echo "$sname" | grep -qE '/netdata/plugins[.]d/ndsudo$'; then
+    # Keep this branch passive: even the generic non-FAST SUID probe must not run ndsudo.
+    echo "$s"
+    ndsudo_uid=$(stat -c '%u' "$sname" 2>/dev/null || stat -f '%u' "$sname" 2>/dev/null)
+    if [ "$ndsudo_uid" != "0" ] || ! [ -u "$sname" ] || ! [ -x "$sname" ]; then
+      echo "  ndsudo: no privilege-escalation candidate for this user (requires root ownership, SUID, and execute access)."
+    else
+      ndsudo_nnp=$(awk '/^NoNewPrivs:/ {print $2; exit}' /proc/self/status 2>/dev/null)
+      ndsudo_mount_options=$(findmnt -no OPTIONS -T "$sname" 2>/dev/null | head -n 1)
+      if [ "$ndsudo_nnp" = "1" ]; then
+        echo "  ndsudo: SUID transition blocked by NoNewPrivs for this process tree."
+      elif echo ",$ndsudo_mount_options," | grep -q ',nosuid,'; then
+        echo "  ndsudo: SUID transition blocked by nosuid mount options."
+      else
+        ndsudo_uncertainty=""
+        [ "$ndsudo_nnp" = "0" ] || ndsudo_uncertainty="NoNewPrivs unknown; "
+        [ -n "$ndsudo_mount_options" ] || ndsudo_uncertainty="${ndsudo_uncertainty}mount SUID policy unknown; "
+        echo "  ndsudo candidate (CVE-2024-32019): root-owned SUID executable by current user; NoNewPrivs=${ndsudo_nnp:-unknown}; mount options=${ndsudo_mount_options:-unknown}."
+        echo "  ${ndsudo_uncertainty}Installed build and vendor backports unknown; confirm affected version and PATH lookup manually. Vendor fixes: v1.45.3 and v1.45.0-169. No helper execution performed."
+      fi
+    fi
   elif ! [ "$IAMROOT" ] && [ -O "$sname" ]; then
     echo "You own the SUID file: $sname" | sed -${E} "s,.*,${SED_RED},"
   elif ! [ "$IAMROOT" ] && [ -w "$sname" ]; then #If write permision, win found (no check exploits)
     echo "You can write SUID file: $sname" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+  elif [ "${sname##*/}" = jjs ] && [ ! "$IAMROOT" ] &&
+       [ -u "$sname" ] && [ -x "$sname" ] &&
+       [ "$(stat -c '%u' "$sname" 2>/dev/null || stat -f '%u' "$sname" 2>/dev/null)" = 0 ]; then
+    # Nashorn's file APIs can retain the SUID identity even if a spawned shell
+    # drops it. Check only the exact executable; never run the JVM here.
+    echo "$s"
+    jjs_nnp=$(awk '/^NoNewPrivs:/ {print $2; exit}' /proc/self/status 2>/dev/null)
+    jjs_mount_options=$(findmnt -no OPTIONS -T "$sname" 2>/dev/null | head -n 1)
+    if [ "$jjs_nnp" = 1 ]; then
+      echo "  jjs: SUID transition blocked by NoNewPrivs for this process tree."
+    elif echo ",$jjs_mount_options," | grep -q ',nosuid,'; then
+      echo "  jjs: SUID transition blocked by nosuid mount options."
+    else
+      echo "  jjs SUID file-access review candidate: root-owned and caller-executable; verify effective UID, mount/NoNewPrivs policy, and installed JVM behavior without running it."
+    fi
+  elif [ "${sname##*/}" = gosu ] && [ ! "$IAMROOT" ] &&
+       [ -u "$sname" ] && [ -x "$sname" ] &&
+       [ "$(stat -c '%u' "$sname" 2>/dev/null || stat -f '%u' "$sname" 2>/dev/null)" = 0 ]; then
+    # A SUID identity-switching helper is a lead; never invoke it to test.
+    echo "$s"
+    gosu_nnp=$(awk '/^NoNewPrivs:/ {print $2; exit}' /proc/self/status 2>/dev/null)
+    gosu_mount_options=$(findmnt -no OPTIONS -T "$sname" 2>/dev/null | head -n 1)
+    if [ "$gosu_nnp" = 1 ]; then
+      echo "  gosu: SUID transition blocked by NoNewPrivs for this process tree."
+    elif echo ",$gosu_mount_options," | grep -q ',nosuid,'; then
+      echo "  gosu: SUID transition blocked by nosuid mount options."
+    else
+      echo "  gosu SUID review candidate: root-owned and caller-executable; NoNewPrivs=${gosu_nnp:-unknown}; mount options=${gosu_mount_options:-unknown}."
+      echo "  Verify effective identity, user-namespace mapping, and installed helper behavior; this does not establish host-root access. No helper execution performed."
+    fi
   else
     c="a"
     for b in $sidB; do

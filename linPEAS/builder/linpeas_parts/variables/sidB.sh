@@ -1,10 +1,10 @@
 # Title: Variables - sidB
 # ID: sidB
 # Author: Carlos Polop
-# Last Update: 05-09-2026
+# Last Update: 09-10-2026
 # Description: Dangerous sid binaries
 # License: GNU GPL
-# Version: 1.0
+# Version: 1.1
 # Functions Used:
 # Global Variables:
 # Initial Functions:
@@ -26,8 +26,6 @@ sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
  /dtappgather$%Solaris_7_<_11_\(SPARC/x86\)\(CVE-2017-3622\)\
  /dtprintinfo$%Solaris_10_\(x86\)_and_lower_versions_also_SunOS_5.7_to_5.10\
  /dtsession$%Oracle_Solaris_10_1/13_and_earlier\(CVE-2020-2696\)\
- /enlightenment_backlight$%Before_0.25.4_\(CVE-2022-37706\)\
- /enlightenment_ckpasswd$%Before_0.25.4_\(CVE-2022-37706\)\
  /enlightenment_sys$%Before_0.25.4_\(CVE-2022-37706\)\
  /eject$%FreeBSD_mcweject_0.9/SGI_IRIX_6.2\
  /ibstat$%IBM_AIX_Version_6.1/7.1\(09-2013\)\
@@ -54,9 +52,10 @@ sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
  /rdist$%Solaris_10/OpenSolaris\
  /rsh$%Apple_Mac_OSX_10.9.5/10.10.5\(09-2015\)\
  /screen$%GNU_Screen_4.5.0\
+ /screen-4\.5\.0$%GNU_Screen_logfile_policy_candidate_verify_SUID_and_vendor_patch\
  /sdtcm_convert$%Sun_Solaris_7.0\
  /sendmail$%Sendmail_8.10.1/Sendmail_8.11.x/Linux_Kernel_2.2.x_2.4.0-test1_\(SGI_ProPack_1.2/1.3\)\
- /snap-confine$%Ubuntu_snapd<2.37_dirty_sock_Local_Privilege_Escalation\(CVE-2019-7304\)\
+ /snap-confine$%snap-confine_SUID_helper_review_effective_identity_and_mount_policy\
  /sudo%check_if_the_sudo_version_is_vulnerable\
  /Serv-U%FTP_Server<15.1.7(CVE-2019-12181)\
  /sudoedit$%Sudo/SudoEdit_1.6.9p21/1.7.2p4/\(RHEL_5/6/7/Ubuntu\)/Sudo<=1.8.14\

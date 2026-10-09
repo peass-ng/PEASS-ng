@@ -175,6 +175,7 @@ class KubernetesSurfacesTests(unittest.TestCase):
                 '  *"get namespaces"*) echo namespace/testing ;;\n'
                 '  *"get pods,services,serviceaccounts,secrets"*) echo pod/example ;;\n'
                 '  *"auth can-i get nodes/"*) echo yes ;;\n'
+                '  *"auth can-i list secrets -n kube-system"*) echo "${KUBECTL_ACCESS_REPLY:-yes}" ;;\n'
                 '  *"get nodes"*) echo node/example ;;\n'
                 '  *"hostPath.path"*) echo "example: /host" ;;\n'
                 '  *"get pods"*) echo "example sa=default hostPID=true" ;;\n'
@@ -197,6 +198,14 @@ class KubernetesSurfacesTests(unittest.TestCase):
             self.assertIn("example: /host", output)
             self.assertIn("Context: cluster-a", output)
             self.assertIn("example: yes", output)
+            self.assertIn("kube-system secrets list authorization (current context): allowed", output)
+            self.assertEqual(1, sum("auth can-i list secrets -n kube-system" in call for call in log.read_text().splitlines()))
+            env["KUBECTL_ACCESS_REPLY"] = "no"
+            denied = self.run_shell("k8s_namespace=''; EXTRA_CHECKS=1; k8s_scan_kubectl", env=env)
+            self.assertIn("kube-system secrets list authorization (current context): denied", denied)
+            env["KUBECTL_ACCESS_REPLY"] = "authorization unavailable"
+            unknown = self.run_shell("k8s_namespace=''; EXTRA_CHECKS=1; k8s_scan_kubectl", env=env)
+            self.assertIn("kube-system secrets list authorization (current context): unknown", unknown)
             for call in log.read_text().splitlines()[1:]:
                 if "config " not in call:
                     self.assertIn("--request-timeout=5s", call)
@@ -218,12 +227,13 @@ class KubernetesSurfacesTests(unittest.TestCase):
                 'case "$*" in\n'
                 '  *"/api/v1/namespaces/workloads/pods"*)\n'
                 "    echo '{\"items\":[{\"metadata\":{\"name\":\"pod-a\"},\"spec\":{\"serviceAccountName\":\"runner\",\"hostPID\":true,\"containers\":[{\"name\":\"app\",\"securityContext\":{\"privileged\":true}}],\"volumes\":[{\"hostPath\":{\"path\":\"/var/log\"}}]}}]}' ;;\n"
-                '  *"/api/v1/namespaces/workloads/secrets"*) echo \'{"items":[{"metadata":{"name":"my-secret"},"data":{"password":"SENSITIVE_SECRET_VALUE"}}]}\' ;;\n'
+                '  *"/api/v1/namespaces/workloads/secrets"*) echo \'{"items":[{"metadata":{"name":"my-secret"},"type":"Opaque","data":{"password":"SENSITIVE_SECRET_VALUE"}}]}\' ;;\n'
                 '  *"/api/v1/namespaces/workloads/services"*) echo \'{"items":[{"metadata":{"name":"svc-a"}}]}\' ;;\n'
                 '  *"/api/v1/namespaces/workloads/serviceaccounts"*) echo \'{"items":[{"metadata":{"name":"runner"}}]}\' ;;\n'
                 '  *"/api/v1/namespaces?"*) echo \'{"items":[{"metadata":{"name":"workloads"}}]}\' ;;\n'
                 '  *"/api/v1/nodes?"*) echo \'{"items":[{"metadata":{"name":"node-a"}}]}\' ;;\n'
                 'esac\n'
+                "printf '\\n200'\n"
             )
             curl.chmod(0o755)
             env = os.environ.copy()
@@ -235,13 +245,180 @@ class KubernetesSurfacesTests(unittest.TestCase):
             self.assertIn("pod: pod-a sa=runner hostPID=true", output)
             self.assertIn("container app privileged=true", output)
             self.assertIn("hostPath /var/log", output)
-            self.assertIn("secrets: my-secret", output)
+            self.assertIn('secrets: name="my-secret" type="Opaque" keys=["password"]', output)
             self.assertIn("node: node-a", output)
             self.assertNotIn("SENSITIVE_TOKEN_VALUE", output)
             self.assertNotIn("SENSITIVE_SECRET_VALUE", output)
             self.assertNotIn("SENSITIVE_TOKEN_VALUE", calls.read_text())
             self.assertTrue(all("--max-time 5" in call for call in calls.read_text().splitlines()))
             self.assertTrue(all(call.startswith("-q ") for call in calls.read_text().splitlines()))
+            self.assertEqual(1, sum("/secrets?limit=40" in call for call in calls.read_text().splitlines()))
+
+    def test_cross_namespace_access_review_is_bounded_and_never_reads_secrets(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            curl = root / "curl"
+            calls = root / "calls"
+            payload = root / "reply"
+            curl.write_text(
+                "#!/bin/sh\n"
+                'printf "%s\\n" "$*" >> "$CURL_CALLS"\n'
+                'read -r header\n'
+                'cat "$ACCESS_REPLY"\n'
+                'printf "\\n%s" "$ACCESS_HTTP"\n'
+                'exit "$ACCESS_EXIT"\n'
+            )
+            curl.chmod(0o755)
+            env = os.environ.copy()
+            env.update({
+                "PATH": f"{root}:{env['PATH']}",
+                "CURL_CALLS": str(calls),
+                "ACCESS_REPLY": str(payload),
+                "ACCESS_HTTP": "201",
+                "ACCESS_EXIT": "0",
+            })
+            command = (
+                'k8s_direct_token="SENSITIVE_TOKEN_VALUE"; '
+                'k8s_direct_ca=/tmp/test-ca; k8s_direct_base=https://test.invalid; '
+                'k8s_sa_kube_system_secret_access'
+            )
+            for response, expected in (
+                ('{"status":{"allowed":true,"denied":false}}', "allowed"),
+                ('{"status":{"allowed":false,"denied":true}}', "denied"),
+                ('{"status":{"allowed":true,"evaluationError":"incomplete"}}', "unknown"),
+                ('{"status":{}}', "unknown"),
+                ('not-json', "unknown"),
+            ):
+                payload.write_text(response)
+                self.assertEqual(expected + "\n", self.run_shell(command, env=env))
+            env["ACCESS_HTTP"] = "403"
+            payload.write_text('{"status":{"allowed":true}}')
+            self.assertEqual("unknown\n", self.run_shell(command, env=env))
+            self.assertEqual(6, len(calls.read_text().splitlines()))
+            self.assertTrue(all("--max-time 5" in line and "--max-filesize 4096" in line
+                                for line in calls.read_text().splitlines()))
+            self.assertTrue(all("/selfsubjectaccessreviews" in line and "/secrets?" not in line
+                                for line in calls.read_text().splitlines()))
+            self.assertTrue(all('"namespace":"kube-system"' in line and
+                                '"resource":"secrets"' in line for line in calls.read_text().splitlines()))
+            self.assertNotIn("SENSITIVE_TOKEN_VALUE", calls.read_text())
+
+    def run_secret_fixture(self, root, payload, status="200", exit_code=0):
+        root = Path(root)
+        fixture = root / "secrets.json"
+        fixture.write_text(payload)
+        calls = root / "curl-calls"
+        curl = root / "curl"
+        curl.write_text(
+            "#!/bin/sh\n"
+            'printf "%s\\n" "$*" >> "$CURL_CALLS"\n'
+            'cat "$SECRET_FIXTURE"\n'
+            'printf "\\n%s" "$SECRET_STATUS"\n'
+            'exit "$SECRET_EXIT"\n'
+        )
+        curl.chmod(0o755)
+        env = os.environ.copy()
+        env.update({
+            "PATH": f"{root}:{env['PATH']}",
+            "CURL_CALLS": str(calls),
+            "SECRET_FIXTURE": str(fixture),
+            "SECRET_STATUS": status,
+            "SECRET_EXIT": str(exit_code),
+        })
+        output = self.run_shell(
+            'k8s_direct_token=SENSITIVE_TOKEN_VALUE; k8s_direct_ca=/dev/null; '
+            'k8s_direct_base=https://127.0.0.1:443; k8s_namespace=workloads; '
+            'k8s_scan_sa_secrets', env=env
+        )
+        return output, calls.read_text().splitlines()
+
+    def test_bounded_curl_capture_preserves_status_and_trailing_newlines(self):
+        output = self.run_shell(
+            "curl() { printf 'body\\n200'; return 22; }; "
+            "k8s_bounded_curl 4111"
+        )
+        self.assertEqual("body\n200\nexit=22\n.", output)
+        output = self.run_shell(
+            "curl() { printf '%5000s' ''; printf '\\n\\n'; }; "
+            "k8s_bounded_curl 4111"
+        )
+        self.assertEqual(4112, len(output.encode()))
+        self.assertTrue(output.endswith("."))
+
+    def test_access_review_capture_is_bounded_without_content_length(self):
+        output = self.run_shell(
+            "curl() { printf '%100000s' ''; }; "
+            "k8s_sa_kube_system_secret_access; "
+            "printf '%s' \"$k8s_access_response\" | wc -c"
+        )
+        self.assertEqual(["unknown", "4111"], output.splitlines())
+
+    def test_secret_capture_is_bounded_without_content_length(self):
+        output = self.run_shell(
+            "curl() { printf '%2000000s' ''; }; "
+            "k8s_scan_sa_secrets; "
+            "printf '%s' \"$k8s_secret_response\" | wc -c"
+        )
+        self.assertIn("response exceeded 1 MiB; inventory skipped", output)
+        self.assertEqual("1048591", output.splitlines()[-1])
+
+    def test_secret_inventory_only_prints_bounded_metadata(self):
+        with tempfile.TemporaryDirectory() as root:
+            items = [
+                {"metadata": {"name": "credentials"}, "type": "Opaque", "data": {
+                    "password": "SENSITIVE_PASSWORD_VALUE", "username": "SENSITIVE_USER_VALUE"}},
+                {"metadata": {"name": "release"}, "type": "helm.sh/release.v1", "data": {
+                    "release": "SENSITIVE_HELM_VALUE"}},
+            ]
+            items += [{"metadata": {"name": f"item-{n}"}, "type": "Opaque",
+                       "data": {f"key-{k:02}": "SENSITIVE_EXTRA_VALUE" for k in range(25)}}
+                      for n in range(43)]
+            output, calls = self.run_secret_fixture(
+                root, json.dumps({"items": items, "metadata": {"continue": "opaque-cursor"}})
+            )
+            self.assertIn('name="credentials" type="Opaque" keys=["password","username"]', output)
+            self.assertIn('name="release" type="helm.sh/release.v1" keys=["release"]', output)
+            self.assertIn('"key-19"] (additional keys omitted)', output)
+            self.assertNotIn("key-20", output)
+            self.assertNotIn("item-38", output)
+            self.assertIn("additional results omitted", output)
+            self.assertEqual(40, output.count("secrets: name="))
+            self.assertNotIn("SENSITIVE_", output)
+            self.assertEqual(1, len(calls))
+            self.assertIn("/api/v1/namespaces/workloads/secrets?limit=40", calls[0])
+            self.assertIn("--max-filesize 1048576", calls[0])
+            self.assertNotIn("SENSITIVE_TOKEN_VALUE", calls[0])
+
+    def test_secret_inventory_error_and_empty_cases(self):
+        cases = [
+            ("", "403", 22, "access denied (RBAC)"),
+            ("", "404", 22, "namespace unavailable"),
+            ("", "000", 28, "request timed out"),
+            ("", "200", 63, "response exceeded 1 MiB"),
+            ("{invalid", "200", 0, "malformed API response"),
+            ('{"items":{}}', "200", 0, "malformed API response"),
+            ('{"items":[]}', "200", 0, "none (accessible list)"),
+        ]
+        for payload, status, exit_code, expected in cases:
+            with self.subTest(expected=expected), tempfile.TemporaryDirectory() as root:
+                output, calls = self.run_secret_fixture(root, payload, status, exit_code)
+                self.assertIn(expected, output)
+                self.assertEqual(1, len(calls))
+                self.assertNotIn("SENSITIVE_TOKEN_VALUE", output)
+
+    def test_direct_api_inventory_requires_opt_in_and_dependencies(self):
+        output = self.run_shell(
+            'command() { [ "$2" != kubectl ]; }; '
+            'k8s_scan_sa_api() { echo DIRECT_API_CALLED; }; '
+            'EXTRA_CHECKS=""; k8s_scan_kubectl; '
+            'EXTRA_CHECKS=1; k8s_scan_kubectl'
+        )
+        self.assertEqual("DIRECT_API_CALLED\n", output)
+        output = self.run_shell(
+            'command() { [ "$2" != jq ]; }; '
+            'k8s_scan_sa_api'
+        )
+        self.assertIn("discovery skipped (curl or jq unavailable)", output)
 
     def test_service_account_api_preserves_explicit_false_security_setting(self):
         with tempfile.TemporaryDirectory() as root:

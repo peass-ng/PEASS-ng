@@ -24,4 +24,4 @@ cap_setfcap:python|perl|ruby|php|node|lua|bash \
 cap_setpcap:python|perl|ruby|php|node|lua|bash \
 cap_setuid:peass{CAP_SETUID_HERE} \
 cap_setgid:peass{CAP_SETGID_HERE} \
-cap_net_raw:python|tcpdump|dumpcap|tcpflow"
+cap_net_raw:python|tcpdump|dumpcap|tcpflow|reaver"

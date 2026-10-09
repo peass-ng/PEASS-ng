@@ -36,6 +36,9 @@ get_hostname_info() {
 get_hosts_info() {
     print_3title "Hosts File Information" "T1016,T1018"
     if [ -f "/etc/hosts" ]; then
+        if test -w /etc/hosts; then
+            echo "Writable /etc/hosts review candidate: current user can change local hostname resolution; verify a higher-privileged job resolves an affected hostname and executes or trusts the fetched result."
+        fi
         echo "Contents of /etc/hosts:"
         grep -v "^#" /etc/hosts 2>/dev/null | grep -v "^$" | while read -r line; do
             echo "  $line"

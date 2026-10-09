@@ -6,12 +6,650 @@
 # License: GNU GPL
 # Version: 1.2
 # Mitre: T1053.003
-# Functions Used: echo_not_found, print_2title, print_info
-# Global Variables: $cronjobsG, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders, $cronjobsB, $PATH
+# Functions Used: check_pg_basebackup_boundary, echo_not_found, print_2title, print_3title, print_info
+# Global Variables: $cronjobsG, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders, $cronjobsB, $PATH, $PG_BASEBACKUP_DESTS
 # Initial Functions:
-# Generated Global Variables: $cmd, $VAR, $file, $path, $user_crontab, $username, $job_id, $cron_dir, $crontab, $findings, $line, $finding, $bin
+# Generated Global Variables: $cmd, $VAR, $file, $path, $user_crontab, $username, $job_id, $cron_dir, $crontab, $findings, $line, $finding, $bin, $cron_log_timeout, $cron_log_status, $files, $cron_file, $prefix, $spool, $bash, $script, $log, $parent, $safe, $candidate, $rest, $part, $route, $mode, $sticky, $cron_tar_timeout, $cron_tar_status, $current_uid, $schedule, $spool_owner, $runas, $helper, $schedule_line, $owner_uid, $helper_text, $dir, $tar_cmd, $helper_line, $version, $cron_process_timeout, $cron_process_status, $magick_cwd, $magick_bin, $magick_cd_line, $magick_exec_line, $magick_marker, $cron_replace_status, $cron_replace_timeout, $cron_ansible_status, $cron_ansible_timeout, $glob, $depth, $kind, $wrapper_text, $chkrootkit_file, $chkrootkit_size, $chkrootkit_match, $file_port
 # Fat linpeas: 0
 # Small linpeas: 1
+
+# Inspect only conventional installed script paths for the old slapper loop
+# assignment defect. Never run the script or inspect its temporary-file inputs.
+cron_chkrootkit_static_probe() (
+  if [ "$#" -eq 0 ]; then
+    set -- /usr/sbin/chkrootkit /usr/bin/chkrootkit
+  fi
+  for chkrootkit_file do
+    [ ! -L "$chkrootkit_file" ] && [ -f "$chkrootkit_file" ] && [ -r "$chkrootkit_file" ] || continue
+    chkrootkit_size=$(dd if="$chkrootkit_file" bs=65537 count=1 2>/dev/null | wc -c | tr -d '[:space:]') || continue
+    case "$chkrootkit_size" in ''|*[!0-9]*) continue ;; esac
+    [ "$chkrootkit_size" -gt 0 ] && [ "$chkrootkit_size" -le 65536 ] || continue
+    chkrootkit_match=$(dd if="$chkrootkit_file" bs=65536 count=1 2>/dev/null | LC_ALL=C awk '
+      NR > 256 { exit }
+      /^[[:space:]]*slapper[[:space:]]*\([[:space:]]*\)[[:space:]]*\{/ {
+        inside = 1; start = NR; files = loop = guard_line = 0; next
+      }
+      inside && NR - start > 80 { inside = 0 }
+      inside {
+        if ($0 ~ /^[[:space:]]*}[[:space:]]*$/) inside = 0
+        if (loop && $0 ~ /^[[:space:]]*done([[:space:]]|$)/) { loop = guard_line = 0 }
+        if ($0 ~ /^[[:space:]]*SLAPPER_FILES=/ && $0 ~ /tmp\//) files = 1
+        if ($0 ~ /^[[:space:]]*for[[:space:]]+i[[:space:]]+in[[:space:]]+\$\{SLAPPER_FILES\};[[:space:]]*do/) loop = 1
+        if (loop && $0 ~ /^[[:space:]]*if[[:space:]]+\[[[:space:]]+-f[[:space:]]+\$\{i\}[[:space:]]+\][[:space:]]*;?[[:space:]]*then/) guard_line = NR
+        if (files && loop && guard_line && NR - guard_line <= 3 &&
+            $0 ~ /^[[:space:]]*file_port=\$file_port[[:space:]]+\$i[[:space:]]*(#.*)?$/) {
+          print "yes"; exit
+        }
+      }
+    ' 2>/dev/null) || continue
+    [ "$chkrootkit_match" = yes ] || continue
+    printf 'Checker script review candidate: %s has an unquoted slapper-loop assignment; verify root scheduling, writable executable temporary path, mount policy and installed patch state.\n' "$chkrootkit_file"
+    break
+  done
+)
+
+# Correlate a literal root cron playbook glob with a directory the current
+# user can populate. Never expand the glob, inspect playbooks, or run Ansible.
+cron_ansible_glob_probe() {
+  cron_ansible_timeout=$(command -v timeout 2>/dev/null || command -v gtimeout 2>/dev/null)
+  [ -n "$cron_ansible_timeout" ] || return 0
+  "$cron_ansible_timeout" 3 sh -c '
+    LC_ALL=C; export LC_ALL
+    [ "$(id -u 2>/dev/null)" != 0 ] || exit 0
+    files=0
+    for cron_file do
+      files=$((files + 1))
+      if [ "$files" -gt 12 ]; then
+        echo "Cron Ansible playbook correlation: incomplete (12-file limit)."
+        break
+      fi
+      [ -f "$cron_file" ] && [ -r "$cron_file" ] && [ ! -L "$cron_file" ] || continue
+      schedule=$(dd if="$cron_file" bs=8193 count=1 2>/dev/null) || continue
+      if [ "${#schedule}" -ge 8192 ]; then
+        echo "Cron Ansible playbook correlation: incomplete (8 KiB schedule limit): $cron_file"
+        continue
+      fi
+      case "$schedule" in *ansible-parallel*) ;; *) continue ;; esac
+      case "$cron_file" in */spool/cron/root|*/spool/cron/crontabs/root) spool=1 ;; *) spool=0 ;; esac
+      printf "%s\n" "$schedule" | awk -v spool="$spool" '\''
+        NR > 32 || length($0) > 512 { partial = 1; next }
+        /^[[:space:]]*(#|$)/ { next }
+        {
+          for (i = 1; i <= 5; i++) if ($i !~ /^[0-9*,\/-]+$/) next
+          if (spool) {
+            if (NF != 7) next
+            helper = $6; glob = $7
+          } else {
+            if (NF != 8 || $6 != "root") next
+            helper = $7; glob = $8
+          }
+          if (helper !~ /^\/[A-Za-z0-9_.\/+\-]+\/ansible-parallel$/ ||
+              glob !~ /^\/[A-Za-z0-9_.\/+\-]+\/\*\.(yml|yaml)$/) next
+          print glob "|" NR
+        }
+        END { if (partial) print "#PARTIAL" }
+      '\'' | while IFS="|" read -r glob schedule_line; do
+        if [ "$glob" = "#PARTIAL" ]; then
+          echo "Cron Ansible playbook correlation: incomplete (line/column limit): $cron_file"
+          continue
+        fi
+        case "$glob" in *"/../"*|*"/./"*|*"//"*) continue ;; esac
+        dir=${glob%/*}
+        [ -d "$dir" ] && [ -w "$dir" ] && [ -x "$dir" ] || continue
+        path=; rest=${dir#/}; safe=1; depth=0
+        while [ -n "$rest" ]; do
+          depth=$((depth + 1))
+          [ "$depth" -le 16 ] || { safe=0; break; }
+          part=${rest%%/*}; path=$path/$part
+          if [ -L "$path" ]; then safe=0; break; fi
+          case "$rest" in */*) rest=${rest#*/} ;; *) rest= ;; esac
+        done
+        [ "$safe" -eq 1 ] || continue
+        mode=$(ls -ld "$dir" 2>/dev/null) || continue
+        mode=${mode%% *}
+        case $(printf "%s" "$mode" | cut -c 10) in t|T) continue ;; esac
+        echo "Cron Ansible playbook review candidate: $cron_file:$schedule_line (root cron passes $glob to helper; current user can create entries in $dir; verify helper behavior, ACLs, mount policy, and scheduler state)"
+      done
+    done
+  ' sh "$@"
+  cron_ansible_status=$?
+  case "$cron_ansible_status" in
+    124|137) echo "Cron Ansible playbook correlation: incomplete (3-second timeout)." ;;
+    0) ;;
+    *) echo "Cron Ansible playbook correlation: incomplete (metadata error)." ;;
+  esac
+}
+
+# A read-only cron script may still be replaceable through its parent. Inspect
+# only literal script paths in a few visible cron files; no job is run.
+cron_replaceable_script_probe() {
+  cron_replace_timeout=$(command -v timeout 2>/dev/null || command -v gtimeout 2>/dev/null)
+  [ -n "$cron_replace_timeout" ] || return 0
+  "$cron_replace_timeout" 3 sh -c '
+    LC_ALL=C; export LC_ALL
+    current_uid=$(id -u 2>/dev/null) || exit 1
+    files=0
+    for cron_file do
+      files=$((files + 1))
+      if [ "$files" -gt 12 ]; then
+        echo "Cron script replacement review incomplete (12-file limit)."
+        break
+      fi
+      [ -f "$cron_file" ] && [ -r "$cron_file" ] && [ ! -L "$cron_file" ] || continue
+      schedule=$(dd if="$cron_file" bs=8193 count=1 2>/dev/null) || continue
+      if [ "${#schedule}" -ge 8192 ]; then
+        echo "Cron script replacement review incomplete (8 KiB schedule limit): $cron_file"
+        continue
+      fi
+      spool_owner=
+      case "$cron_file" in */spool/cron/root|*/spool/cron/crontabs/root) spool_owner=root ;; esac
+      printf "%s\n" "$schedule" | awk -v owner="$spool_owner" '\''
+        NR > 32 || length($0) > 512 { partial = 1; next }
+        /^[[:space:]]*(#|$)/ { next }
+        {
+          for (i = 1; i <= 5; i++) if ($i !~ /^[0-9*,\/-]+$/) next
+          n = NF
+          if (n >= 10 && $(n-2) == ">>" && $(n-1) == "/dev/null" && $n == "2>&1") n -= 3
+          if (owner == "") {
+            runas = $6; shell = $7; script = $8
+            kind = (NF == 8 ? "shell" : (NF == 7 ? "php" : ""))
+            if (kind == "php") script = $7
+            if ((shell == "php" || shell == "/usr/bin/php" || shell == "/bin/php") &&
+                (n == 8 || n == 9) && (n == 8 || $9 ~ /^[A-Za-z0-9_.:-]+$/)) {
+              kind = "php_cli"; script = $8
+            }
+          } else {
+            runas = owner; shell = $6; script = $7
+            kind = (NF == 7 ? "shell" : (NF == 6 ? "php" : ""))
+            if (kind == "php") script = $6
+            if ((shell == "php" || shell == "/usr/bin/php" || shell == "/bin/php") &&
+                (n == 7 || n == 8) && (n == 7 || $8 ~ /^[A-Za-z0-9_.:-]+$/)) {
+              kind = "php_cli"; script = $7
+            }
+          }
+          if (runas !~ /^[A-Za-z_][A-Za-z0-9_-]*$/ || kind == "" ||
+              (kind == "shell" && shell != "/bin/sh" && shell != "/usr/bin/sh" &&
+               shell != "/bin/bash" && shell != "/usr/bin/bash") ||
+              script !~ /^\/[A-Za-z0-9_\/.+-]+$/) next
+          print runas "|" script "|" NR "|" kind
+        }
+        END { if (partial) print "#PARTIAL" }
+      '\'' | while IFS="|" read -r runas script schedule_line kind; do
+        if [ "$runas" = "#PARTIAL" ]; then
+          echo "Cron script replacement review incomplete (line/column limit): $cron_file"
+          continue
+        fi
+        case "$script" in *"/../"*|*"/.."|*"/./"*|*"/."|*"//"*) continue ;; esac
+        owner_uid=$(id -u "$runas" 2>/dev/null) || continue
+        [ "$owner_uid" != "$current_uid" ] || continue
+        if [ "$kind" = php_cli ]; then
+          [ "$owner_uid" = 0 ] && [ -f "$script" ] && [ -r "$script" ] &&
+            [ -w "$script" ] && [ ! -L "$script" ] || continue
+          path=; rest=${script#/}; safe=1
+          while [ -n "$rest" ]; do
+            part=${rest%%/*}; path=$path/$part
+            if [ -L "$path" ]; then safe=0; break; fi
+            case "$rest" in */*) rest=${rest#*/} ;; *) rest= ;; esac
+          done
+          [ "$safe" -eq 1 ] || continue
+          echo "Cron PHP script review candidate: $cron_file:$schedule_line (root PHP runs current-user-writable $script; verify scheduler state, script identity, ACLs, and mount policy)"
+          continue
+        fi
+        if [ "$kind" = php ]; then
+          [ "$owner_uid" = 0 ] && [ -f "$script" ] && [ -r "$script" ] && [ ! -L "$script" ] || continue
+          path=; rest=${script#/}; safe=1
+          while [ -n "$rest" ]; do
+            part=${rest%%/*}; path=$path/$part
+            if [ -L "$path" ]; then safe=0; break; fi
+            case "$rest" in */*) rest=${rest#*/} ;; *) rest= ;; esac
+          done
+          [ "$safe" -eq 1 ] || continue
+          wrapper_text=$(dd if="$script" bs=4097 count=1 2>/dev/null) || continue
+          [ "${#wrapper_text}" -lt 4096 ] || continue
+          printf "%s\n" "$wrapper_text" | awk "NR == 1 { exit !(/^#!\\/(usr\\/bin|bin)\\/php([0-9.]*)?([[:space:]]|$)/) }" || continue
+          printf "%s\n" "$wrapper_text" | awk '\''
+            NR > 32 || length($0) > 512 { next }
+            {
+              line = $0
+              sub(/^[ \t]*/, "", line)
+              if (line !~ /^exec[ \t]*\(/) next
+              sub(/^exec[ \t]*\([ \t]*/, "", line)
+              quote = substr(line, 1, 1)
+              if (quote != sprintf("%c", 39) && quote != "\"") next
+              line = substr(line, 2)
+              if (match(line, /^\/[A-Za-z0-9_\/.+-]+/) == 0) next
+              helper = substr(line, 1, RLENGTH)
+              tail = substr(line, RLENGTH + 1)
+              if (substr(tail, 1, 1) != quote) next
+              tail = substr(tail, 2)
+              if (tail !~ /^[ \t]*\)[ \t]*;[ \t]*(\/\/.*)?$/) next
+              if (++found > 2) exit
+              print helper
+            }
+          '\'' | while IFS= read -r helper; do
+            case "$helper" in *"/../"*|*"/.."|*"/./"*|*"/."|*"//"*) continue ;; esac
+            [ ! -e "$helper" ] && [ ! -L "$helper" ] || continue
+            parent=${helper%/*}; [ -n "$parent" ] || parent=/
+            [ -d "$parent" ] && [ -w "$parent" ] && [ -x "$parent" ] || continue
+            path=; rest=${helper#/}; safe=1
+            while [ -n "$rest" ]; do
+              part=${rest%%/*}; path=$path/$part
+              if [ -L "$path" ]; then safe=0; break; fi
+              case "$rest" in */*) rest=${rest#*/} ;; *) rest= ;; esac
+            done
+            [ "$safe" -eq 1 ] || continue
+            mode=$(ls -ld "$parent" 2>/dev/null) || continue
+            mode=${mode%% *}
+            case $(printf "%s" "$mode" | cut -c 10) in t|T) continue ;; esac
+            echo "Cron PHP helper review candidate: $cron_file:$schedule_line (root script $script calls absent $helper in current-user-writable $parent; verify scheduler state, PHP policy, ACLs, and mount policy)"
+          done
+          continue
+        fi
+        [ -f "$script" ] && [ ! -L "$script" ] && [ ! -w "$script" ] || continue
+        parent=${script%/*}; [ -n "$parent" ] || parent=/
+        [ -d "$parent" ] && [ -w "$parent" ] && [ -x "$parent" ] || continue
+        path=; rest=${script#/}; safe=1
+        while [ -n "$rest" ]; do
+          part=${rest%%/*}; path=$path/$part
+          if [ -L "$path" ]; then safe=0; break; fi
+          case "$rest" in */*) rest=${rest#*/} ;; *) rest= ;; esac
+        done
+        [ "$safe" -eq 1 ] || continue
+        mode=$(ls -ld "$parent" 2>/dev/null) || continue
+        mode=${mode%% *}
+        sticky=$(printf "%s" "$mode" | cut -c 10)
+        case "$sticky" in t|T) continue ;; esac
+        echo "Cron script replacement review candidate: $cron_file:$schedule_line ($runas runs $script; current user can replace its directory entry in $parent; verify ACLs, mount policy, and scheduler state)"
+      done
+    done
+  ' sh "$@"
+  cron_replace_status=$?
+  case "$cron_replace_status" in
+    124|137) echo 'Cron script replacement review incomplete (3-second timeout).' ;;
+    0) ;;
+    *) echo 'Cron script replacement review incomplete (metadata error).' ;;
+  esac
+}
+
+# Inspect only literal, visible root cron commands. The whole probe has a wall-clock
+# limit; without timeout, filesystem metadata on an unresponsive mount is unbounded.
+cron_log_input_probe() {
+  cron_log_timeout=$(command -v timeout 2>/dev/null || command -v gtimeout 2>/dev/null)
+  if [ -z "$cron_log_timeout" ]; then
+    echo "Cron log input correlation: unknown (timeout unavailable)."
+    return
+  fi
+  "$cron_log_timeout" 3 sh -c '
+    LC_ALL=C; export LC_ALL
+    files=0
+    for cron_file do
+      files=$((files + 1))
+      if [ "$files" -gt 8 ]; then
+        echo "Cron log input correlation: truncated at 8 cron files."
+        break
+      fi
+      if [ -L "$cron_file" ] || [ ! -f "$cron_file" ] || [ ! -r "$cron_file" ]; then
+        continue
+      fi
+      prefix=$(dd if="$cron_file" bs=8193 count=1 2>/dev/null) || continue
+      if [ "${#prefix}" -ge 8192 ]; then
+        echo "Cron log input correlation: skipped oversized cron file: $cron_file"
+        continue
+      fi
+      case "$cron_file" in
+        */root) spool=1 ;;
+        *) spool=0 ;;
+      esac
+      printf "%s\n" "$prefix" | awk -v spool="$spool" '\''NR <= 16 && length($0) <= 512 && $0 !~ /^[[:space:]]*(#|$)/ {
+        for (i=1; i<=5; i++) if ($i !~ /^[0-9*,\/-]+$/) next
+        if (spool == 0) {
+          if (NF != 9 || $6 != "root") next
+          bash=$7; script=$8; input=$9
+        } else {
+          if (NF != 8) next
+          bash=$6; script=$7; input=$8
+        }
+        if (bash != "/bin/bash" && bash != "/usr/bin/bash") next
+        if (script !~ /^\/[A-Za-z0-9_.\/-]+$/ || input !~ /^\/[A-Za-z0-9_.\/-]+\.log$/) next
+        print bash "|" script "|" input
+      }
+      END { if (NR > 16) print "#TRUNCATED" }'\'' | while IFS="|" read -r bash script log; do
+        if [ "$bash" = "#TRUNCATED" ]; then
+          echo "Cron log input correlation: truncated at 16 lines: $cron_file"
+          continue
+        fi
+        case "$script:$log" in *"/../"*|*"/..:"*|*"/./"*|*"//"*) continue ;; esac
+        [ -L "$script" ] && continue
+        [ -f "$script" ] && [ -r "$script" ] || continue
+        [ -L "$log" ] && continue
+        [ -f "$log" ] || continue
+        parent=${log%/*}; [ -n "$parent" ] || parent=/
+        [ -d "$parent" ] || continue
+        # Reject symlinks in every ancestor; metadata otherwise describes a
+        # different path than the one the privileged command would resolve.
+        safe=1
+        for candidate in "$script" "$log"; do
+          path=; rest=${candidate#/}
+          while [ -n "$rest" ]; do
+            part=${rest%%/*}; path=$path/$part
+            if [ -L "$path" ]; then safe=0; break; fi
+            case "$rest" in */*) rest=${rest#*/} ;; *) rest= ;; esac
+          done
+          [ "$safe" -eq 1 ] || break
+        done
+        [ "$safe" -eq 1 ] || continue
+        route=
+        if [ -w "$log" ]; then route="current user can write input file"; fi
+        if [ -w "$parent" ] && [ -x "$parent" ]; then
+          mode=$(ls -ld "$parent" 2>/dev/null) || continue
+          mode=${mode%% *}
+          sticky=$(printf "%s" "$mode" | cut -c 10)
+          case "$sticky" in t|T) ;; *) route="current user can replace directory entry" ;; esac
+        fi
+        [ -n "$route" ] || continue
+        echo "Cron log input review candidate: $cron_file"
+        echo "  Root command: $bash $script $log"
+        echo "  Input: $log ($route)"
+        ls -ld "$parent" "$log" 2>/dev/null
+        echo "  Metadata only; parser behavior and ACL/mount policy need review."
+      done
+    done
+  ' sh "$@"
+  cron_log_status=$?
+  case "$cron_log_status" in
+    124|137) echo "Cron log input correlation: timed out; visibility unknown." ;;
+    0) ;;
+    *) echo "Cron log input correlation: incomplete; visibility unknown." ;;
+  esac
+}
+
+# Correlate a visible cron identity with one literal helper and a GNU tar glob.
+# This intentionally recognizes only simple, adjacent `cd DIR` and `tar -cf
+# ARCHIVE *` lines. Shell expansion, other archivers, and nested helpers need
+# manual review; no scheduled command or archive operation is run here.
+cron_tar_wildcard_probe() {
+  cron_tar_timeout=$(command -v timeout 2>/dev/null || command -v gtimeout 2>/dev/null)
+  if [ -z "$cron_tar_timeout" ]; then
+    echo "Cron tar wildcard correlation: unknown (timeout unavailable)."
+    return
+  fi
+  "$cron_tar_timeout" 5 sh -c '
+    LC_ALL=C; export LC_ALL
+    current_uid=$(id -u 2>/dev/null) || exit 1
+    [ "$current_uid" -ne 0 ] || exit 0
+    files=0
+    for cron_file do
+      files=$((files + 1))
+      if [ "$files" -gt 12 ]; then
+        echo "Cron tar wildcard correlation: unknown beyond 12 schedule files."
+        break
+      fi
+      [ -f "$cron_file" ] && [ -r "$cron_file" ] && [ ! -L "$cron_file" ] || continue
+      schedule=$(dd if="$cron_file" bs=8193 count=1 2>/dev/null) || continue
+      if [ "${#schedule}" -ge 8192 ]; then
+        echo "Cron tar wildcard correlation: unknown (oversized schedule: $cron_file)."
+        continue
+      fi
+      spool_owner=
+      case "$cron_file" in */spool/cron/*) spool_owner=${cron_file##*/} ;; esac
+      printf "%s\n" "$schedule" | awk -v owner="$spool_owner" '\''
+        NR > 32 { truncated=1; next }
+        length($0) > 512 { truncated=1; next }
+        /^[[:space:]]*(#|$)/ { next }
+        {
+          for (i=1; i<=5; i++) if ($i !~ /^[0-9*,\/-]+$/) next
+          if (owner == "") {
+            if (NF != 8) next
+            runas=$6; interpreter=$7; helper=$8
+          } else {
+            if (NF != 7) next
+            runas=owner; interpreter=$6; helper=$7
+          }
+          if (interpreter != "/bin/sh" && interpreter != "/usr/bin/sh" &&
+              interpreter != "/bin/bash" && interpreter != "/usr/bin/bash") next
+          if (helper ~ /^\/[A-Za-z0-9_.\/-]+$/) print runas "|" helper "|" NR
+        }
+        END { if (truncated) print "#TRUNCATED" }
+      '\'' | while IFS="|" read -r runas helper schedule_line; do
+        if [ "$runas" = "#TRUNCATED" ]; then
+          echo "Cron tar wildcard correlation: unknown beyond schedule line/length cap: $cron_file."
+          continue
+        fi
+        case "$runas" in ""|*[!A-Za-z0-9_-]*) continue ;; esac
+        case "$helper" in *"/../"*|*"/.."|*"/./"*|*"/."|*"//"*) continue ;; esac
+        owner_uid=$(id -u "$runas" 2>/dev/null) || continue
+        [ "$owner_uid" != "$current_uid" ] || continue
+        [ -f "$helper" ] && [ -r "$helper" ] && [ ! -L "$helper" ] || continue
+        helper_text=$(dd if="$helper" bs=4097 count=1 2>/dev/null) || continue
+        if [ "${#helper_text}" -ge 4096 ]; then
+          echo "Cron tar wildcard correlation: unknown (oversized helper: $helper)."
+          continue
+        fi
+        printf "%s\n" "$helper_text" | awk '\''
+          NR > 24 { truncated=1; next }
+          length($0) > 512 { truncated=1; next }
+          /^[[:space:]]*(#|$)/ { next }
+          {
+            if (NF == 2 && $1 == "cd" && $2 ~ /^\/[A-Za-z0-9_.\/-]+$/) {
+              dir=$2; next
+            }
+            if (dir != "" && NF == 4 &&
+                ($1 == "tar" || $1 == "/usr/bin/tar" || $1 == "/bin/tar" || $1 == "gtar") &&
+                $2 ~ /^-[A-Za-z]+$/ && $2 ~ /c/ && $2 ~ /f/ &&
+                $3 ~ /^[A-Za-z0-9_.\/-]+$/ && $4 == "*") {
+              print dir "|" $1 "|" NR
+            }
+            dir=""
+          }
+          END { if (truncated) print "#TRUNCATED" }
+        '\'' | while IFS="|" read -r dir tar_cmd helper_line; do
+          if [ "$dir" = "#TRUNCATED" ]; then
+            echo "Cron tar wildcard correlation: unknown beyond helper line/length cap: $helper."
+            continue
+          fi
+          case "$dir" in *"/../"*|*"/.."|*"/./"*|*"/."|*"//"*) continue ;; esac
+          [ -d "$dir" ] && [ -w "$dir" ] && [ -x "$dir" ] && [ ! -L "$dir" ] || continue
+          version=$($tar_cmd --version 2>/dev/null | awk '\''NR == 1 { print; exit }'\'')
+          case "$version" in *"GNU tar"*) ;; *) continue ;; esac
+          echo "Cron GNU tar wildcard review candidate: $cron_file:$schedule_line"
+          echo "  Schedule owner: $runas (uid $owner_uid); helper: $helper:$helper_line"
+          echo "  Working directory: $dir (current user can write and enter)"
+          echo "  Command: $tar_cmd archive * (unquoted glob, no --); GNU tar version observed"
+          echo "  Candidate only; execution context and file ownership need review."
+        done
+      done
+    done
+  ' sh "$@"
+  cron_tar_status=$?
+  case "$cron_tar_status" in
+    124|137) echo "Cron tar wildcard correlation: timed out; visibility unknown." ;;
+    0) ;;
+    *) echo "Cron tar wildcard correlation: incomplete; visibility unknown." ;;
+  esac
+}
+
+# Read only literal shell helpers in visible root cron entries. This is a
+# conservative text correlation, not a shell parser or proof of exploitability.
+cron_process_args_probe() {
+  cron_process_timeout=$(command -v timeout 2>/dev/null || command -v gtimeout 2>/dev/null)
+  if [ -z "$cron_process_timeout" ]; then
+    echo "Cron process arguments correlation: unknown (timeout unavailable)."
+    return
+  fi
+  "$cron_process_timeout" 5 sh -c '
+    LC_ALL=C; export LC_ALL
+    files=0
+    for cron_file do
+      files=$((files + 1))
+      if [ "$files" -gt 6 ]; then
+        echo "Cron process arguments correlation: unknown beyond 6 schedule files."
+        break
+      fi
+      [ -e "$cron_file" ] || continue
+      if [ -L "$cron_file" ] || [ ! -f "$cron_file" ] || [ ! -r "$cron_file" ]; then
+        echo "Cron process arguments correlation: unknown (unreadable schedule: $cron_file)."
+        continue
+      fi
+      schedule=$(dd if="$cron_file" bs=8193 count=1 2>/dev/null) || {
+        echo "Cron process arguments correlation: unknown (unreadable schedule: $cron_file)."
+        continue
+      }
+      if [ "${#schedule}" -ge 8192 ]; then
+        echo "Cron process arguments correlation: unknown (oversized schedule: $cron_file)."
+        continue
+      fi
+      spool_owner=
+      case "$cron_file" in */spool/cron/root|*/spool/cron/crontabs/root) spool_owner=root ;; esac
+      printf "%s\n" "$schedule" | awk -v owner="$spool_owner" '\''
+        NR > 32 { truncated=1; next }
+        length($0) > 512 { truncated=1; next }
+        /^[[:space:]]*(#|$)/ { next }
+        {
+          for (i=1; i<=5; i++) if ($i !~ /^[0-9*,\/-]+$/) next
+          if (owner == "") {
+            if (NF != 8 || $6 != "root") next
+            interpreter=$7; helper=$8
+          } else {
+            if (NF != 7) next
+            interpreter=$6; helper=$7
+          }
+          if (interpreter != "/bin/sh" && interpreter != "/usr/bin/sh" &&
+              interpreter != "/bin/bash" && interpreter != "/usr/bin/bash") next
+          if (helper !~ /^\/[A-Za-z0-9_.\/-]+$/ ||
+              helper ~ /\/\.\.?($|\/)/ || helper ~ /\/\//) next
+          if (++helpers > 2) { capped=1; next }
+          print helper "|" NR
+        }
+        END {
+          if (truncated) print "#LINES"
+          if (capped) print "#HELPERS"
+        }
+      '\'' | while IFS="|" read -r helper schedule_line; do
+        case "$helper" in
+          "#LINES") echo "Cron process arguments correlation: unknown beyond schedule line/length cap: $cron_file."; continue ;;
+          "#HELPERS") echo "Cron process arguments correlation: unknown beyond 2 helpers: $cron_file."; continue ;;
+        esac
+        if [ -L "$helper" ] || [ ! -f "$helper" ] || [ ! -r "$helper" ]; then
+          echo "Cron process arguments correlation: unknown (unreadable helper: $helper)."
+          continue
+        fi
+        helper_text=$(dd if="$helper" bs=4097 count=1 2>/dev/null) || {
+          echo "Cron process arguments correlation: unknown (unreadable helper: $helper)."
+          continue
+        }
+        if [ "${#helper_text}" -ge 4096 ]; then
+          echo "Cron process arguments correlation: unknown (oversized helper: $helper)."
+          continue
+        fi
+        printf "%s\n" "$helper_text" | awk -v cron="$cron_file" -v schedule_line="$schedule_line" -v helper="$helper" '\''
+          NR > 32 { truncated=1; next }
+          length($0) > 512 { truncated=1; next }
+          /^[[:space:]]*(#|$)/ { next }
+          {
+            line=$0
+            if (line ~ /pgrep[[:space:]]+(-[A-Za-z]*f[A-Za-z]*|--full)([[:space:]]|$)/ &&
+                line ~ /[[:space:]]read[[:space:]]/) {
+              capture=line
+              sub(/^.*[[:space:]]read[[:space:]]+/, "", capture)
+              sub(/^-r[[:space:]]+/, "", capture)
+              sub(/[;|].*$/, "", capture)
+              n=split(capture, fields, /[[:space:]]+/)
+              if (fields[n] ~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
+                input=fields[n]; select_line=NR
+                derived=""; derive_line=0; execute_line=0; apache=0; config=0
+              }
+            }
+            if (input != "" && line ~ /^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=/ &&
+                index(line, "$" input) && line ~ /sed|\/\//) {
+              derived=line
+              sub(/^[[:space:]]*/, "", derived)
+              sub(/=.*/, "", derived)
+              if (derived ~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
+                derive_line=NR
+                if (line ~ /apache2ctl|apachectl|httpd/) apache=1
+                if (line ~ /[[:space:]]-t([^A-Za-z0-9_-]|$)/) config=1
+              }
+            }
+            if (derived != "" && index(line, "$" derived) &&
+                line ~ /[[:space:]]-t([^A-Za-z0-9_-]|$)/) config=1
+            if (derived != "" && line ~ /^[[:space:]]*\$[A-Za-z_][A-Za-z0-9_]*/ && NR > derive_line) {
+              executed=line
+              sub(/^[[:space:]]*\$/, "", executed)
+              sub(/[^A-Za-z0-9_].*$/, "", executed)
+              if (executed == derived) execute_line=NR
+            }
+          }
+          END {
+            if (truncated) {
+              print "Cron process arguments correlation: unknown beyond helper line/length cap: " helper "."
+            } else if (select_line && derive_line && execute_line) {
+              print "Cron process arguments review candidate: " cron ":" schedule_line
+              print "  Schedule owner: root; helper: " helper
+              print "  Full-args pgrep/read: helper line " select_line "; derived command: line " derive_line "; execution: line " execute_line
+              if (apache && config) print "  Apache config-test option flow observed; review process identity and config inputs."
+              print "  Candidate only; process arguments are unauthenticated input."
+            }
+          }
+        '\''
+        # Reuse the same bounded helper text for the Linux AppImage search-path
+        # lead. No image tool is executed: a crafted CWD could load code on run.
+        if [ "$(uname -s 2>/dev/null)" = Linux ]; then
+          printf "%s\n" "$helper_text" | awk '\''
+            NR > 32 || length($0) > 512 { exit }
+            /^[[:space:]]*(#|$)/ { next }
+            {
+              line=$0
+              sub(/^[[:space:]]+/, "", line)
+              sub(/[[:space:]]+#.*$/, "", line)
+              if (line ~ /^cd[[:space:]]+/) {
+                cwd=line
+                sub(/^cd[[:space:]]+/, "", cwd)
+                sub(/[[:space:]]+$/, "", cwd)
+                if (cwd ~ /^\/[A-Za-z0-9_.\/-]+$/ &&
+                    cwd !~ /\/\.\.?($|\/)/ && cwd !~ /\/\//) {
+                  cd_line=NR
+                } else { cwd=""; cd_line=0 }
+                next
+              }
+              if (!cwd) next
+              n=split(line, words, /[[:space:]]+/)
+              for (i=1; i<n; i++) {
+                if (words[i] ~ /^\/[A-Za-z0-9_.\/-]+\/magick$/ &&
+                    words[i+1] == "identify" &&
+                    (i == 1 || words[i-1] == "xargs")) {
+                  print cwd "|" words[i] "|" cd_line "|" NR
+                  exit
+                }
+              }
+            }
+          '\'' | while IFS="|" read -r magick_cwd magick_bin magick_cd_line magick_exec_line; do
+            [ -d "$magick_cwd" ] && [ -w "$magick_cwd" ] && [ -x "$magick_cwd" ] || continue
+            [ -f "$magick_bin" ] && [ -x "$magick_bin" ] || continue
+            magick_marker=""
+            if [ -r "$magick_bin" ] && command -v od >/dev/null 2>&1; then
+              magick_marker=$(dd if="$magick_bin" bs=1 skip=8 count=3 2>/dev/null | od -An -tx1 2>/dev/null | tr -d "[:space:]")
+            fi
+            echo "Cron ImageMagick working-directory review candidate: $cron_file:$schedule_line"
+            echo "  Schedule owner: root; helper: $helper (cd line $magick_cd_line; identify line $magick_exec_line)"
+            echo "  Caller-writable working directory: $magick_cwd; executable: $magick_bin"
+            if [ "$magick_marker" = 414902 ]; then
+              echo "  AppImage type-2 marker found; verify affected ImageMagick AppRun search paths and version."
+            else
+              echo "  AppImage format not confirmed; native builds and safe search paths may be unaffected."
+            fi
+            echo "  Passive correlation only; cron execution, loader paths, and mount/ACL policy need review."
+          done
+        fi
+      done
+    done
+  ' sh "$@"
+  cron_process_status=$?
+  case "$cron_process_status" in
+    124|137) echo "Cron process arguments correlation: timed out; visibility unknown." ;;
+    0) ;;
+    *) echo "Cron process arguments correlation: incomplete; visibility unknown." ;;
+  esac
+}
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Check for vulnerable cron jobs" "T1053.003"
@@ -26,6 +664,20 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   cat /etc/cron* /etc/at* /etc/anacrontab /var/spool/cron/crontabs/* /etc/incron.d/* /var/spool/incron/* 2>/dev/null | tr -d "\r" | grep -v "^#" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed -${E} "s,$nosh_usrs,${SED_BLUE},"  | sed "s,root,${SED_RED},"
   grep -Hn '^PATH=' /etc/crontab /etc/cron.d/* 2>/dev/null | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
   grep -RInE 'pg_basebackup|run-parts|crontab-ui' /etc/crontab /etc/cron.d /etc/anacrontab /var/spool/cron/crontabs /etc/incron.d /var/spool/incron 2>/dev/null | sed -${E} "s,$cronjobsB,${SED_RED},g" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
+  print_3title "Root cron literal log inputs (passive review)" "T1053.003"
+  cron_log_input_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/root /var/spool/cron/root
+  cron_replaceable_script_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/root /var/spool/cron/root
+  cron_ansible_glob_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/root /var/spool/cron/root
+  echo "Only readable root entries were inspected; private crontabs and other schedules may be invisible."
+  print_3title "GNU tar cron wildcard inputs (passive review)" "T1053.003"
+  cron_tar_wildcard_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/* /var/spool/cron/*
+  echo "Only readable cron schedules were inspected; private tasks remain unknown."
+  print_3title "Root cron process arguments (passive review)" "T1053.003"
+  cron_process_args_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/root /var/spool/cron/root
+  echo "Only literal, readable root cron helpers were inspected; private tasks remain unknown."
+  cron_chkrootkit_static_probe
+  PG_BASEBACKUP_DESTS=
+  check_pg_basebackup_boundary
   crontab -l -u "$USER" 2>/dev/null | tr -d "\r"
   ls -lR /usr/lib/cron/tabs/ /private/var/at/jobs /var/at/tabs/ /etc/periodic/ 2>/dev/null | sed -${E} "s,$cronjobsG,${SED_GREEN},g" | sed "s,$cronjobsB,${SED_RED},g" #MacOS paths
   atq 2>/dev/null

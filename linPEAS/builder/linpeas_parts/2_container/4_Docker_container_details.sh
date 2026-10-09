@@ -23,9 +23,10 @@ if echo "$containerType" | grep -qi "docker"; then
     enumerateDockerSockets
     print_list "Docker version .................$NC$dockerVersion"
     checkDockerVersionExploits
-    print_list "Vulnerable to CVE-2019-5736 ....$NC$VULN_CVE_2019_5736"$NC | sed -${E} "s,Yes,${SED_RED_YELLOW},"
-    print_list "Vulnerable to CVE-2019-13139 ...$NC$VULN_CVE_2019_13139"$NC | sed -${E} "s,Yes,${SED_RED_YELLOW},"
-    print_list "Vulnerable to CVE-2021-41091 ...$NC$VULN_CVE_2021_41091"$NC | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "Docker version may predate bundled runc CVE-2019-5736 fix ...$NC$VULN_CVE_2019_5736"$NC | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "Docker version may predate CVE-2019-13139 fix ...$NC$VULN_CVE_2019_13139"$NC | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "Docker version may predate CVE-2021-41091 fix ...$NC$VULN_CVE_2021_41091"$NC | sed -${E} "s,Yes,${SED_RED_YELLOW},"
+    print_list "A newer daemon version does not rule out stale permissions in containers that have not restarted.\n"$NC
     if [ "$inContainer" ]; then
         checkDockerRootless
         print_list "Rootless Docker? ............... $DOCKER_ROOTLESS\n"$NC | sed -${E} "s,No,${SED_RED}," | sed -${E} "s,Yes,${SED_GREEN},"

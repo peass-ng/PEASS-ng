@@ -36,9 +36,12 @@ class FileRecord:
     def __resolve_search_in(self, search_in):
         """ Resolve spacial values to the correct directories """
 
+        # The YAML catalog is cached globally; do not consume its selector list.
+        search_in = list(search_in)
+
         if "all" in search_in:
             search_in.remove("all")
-            search_in = ROOT_FOLDER
+            search_in = list(ROOT_FOLDER)
 
         if "common" in search_in:
             search_in.remove("common")

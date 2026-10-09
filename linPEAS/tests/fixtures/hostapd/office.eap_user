@@ -1,0 +1,9 @@
+# A commented password must not be reported.
+# "commented" MSCHAPV2 "not-a-secret" [2]
+* PEAP,TTLS,TLS,FAST
+"certificate-user" TLS [2]
+"hashed-user" MSCHAPV2 hash:000102030405060708090a0b0c0d0e0f [2]
+"phase-one" MD5 "phase-one-secret"
+"wireless-admin" MSCHAPV2 "wireless-secret" [2]
+"tunnel-user" TTLS-PAP "tunnel-secret" [2]
+"malformed" MSCHAPV2 "trailing-secret" [2] unexpected

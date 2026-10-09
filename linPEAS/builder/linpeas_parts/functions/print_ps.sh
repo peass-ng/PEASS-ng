@@ -14,10 +14,10 @@
 
 
 print_ps(){
-  (ls -d /proc/*/ 2>/dev/null | while read f; do
-    CMDLINE=$(cat $f/cmdline 2>/dev/null | grep -av "seds,"); #Delete my own sed processess
+  (ls -d /proc/*/ 2>/dev/null | while read -r f; do
+    CMDLINE=$(tr '\000' ' ' < "$f/cmdline" 2>/dev/null | grep -av "seds,"); #Delete my own sed processess
     if [ "$CMDLINE" ];
-      then var USER2=ls -ld $f | awk '{print $3}'; PID=$(echo $f | cut -d "/" -f3);
+      then USER2=$(ls -ld "$f" 2>/dev/null | awk '{print $3}'); PID=$(echo "$f" | cut -d "/" -f3);
       printf "  %-13s  %-8s  %s\n" "$USER2" "$PID" "$CMDLINE";
     fi;
   done) 2>/dev/null | sort -r

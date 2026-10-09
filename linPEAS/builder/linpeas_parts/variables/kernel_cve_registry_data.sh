@@ -108,7 +108,6 @@ CVE-2021-27365	linux-iscsi	pkg=linux-kernel,ver<=5.11.3,CONFIG_SLAB_FREELIST_HAR
 CVE-2021-3490	eBPF ALU32 bounds tracking for bitwise ops	pkg=linux-kernel,ver>=5.7,ver<5.12,CONFIG_BPF_SYSCALL=y,sysctl:kernel.unprivileged_bpf_disabled!=1	ubuntu=20.04{kernel:5.8.0-(25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52)-*},ubuntu=21.04{kernel:5.11.0-16-*}	5	CONFIG_BPF_SYSCALL needs to be set && kernel.unprivileged_bpf_disabled != 1
 CVE-2021-3493	Ubuntu OverlayFS	pkg=linux-kernel,ver>=3.13,ver<5.14,x86_64	ubuntu=(14.04|16.04|18.04|20.04|20.10)	1	Only Ubuntu is affected.
 CVE-2021-22555	Netfilter heap out-of-bounds write	pkg=linux-kernel,ver>=2.6.19,ver<=5.12-rc6	ubuntu=20.04{kernel:5.8.0-*}	1	ip_tables kernel module must be loaded
-CVE-2022-0847	DirtyPipe	pkg=linux-kernel,ver>=5.8,ver<=5.16.11	ubuntu=(20.04|21.04),debian=11	1	
 CVE-2022-0995	watch_queue	pkg=linux-kernel,ver>=5.8,ver<5.16.5,x86_64	ubuntu=21.10{kernel:5.13.0.37-generic}	1	Not 100% reliable, may need to be run a couple of times. It rare cases it may panic the kernel.
 CVE-2022-2586	nft_object UAF	pkg=linux-kernel,ver>=5.12,ver<5.19,CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1	ubuntu=(20.04){kernel:5.12.13}	1	kernel.unprivileged_userns_clone=1 required (to obtain CAP_NET_ADMIN)
 CVE-2022-32250	nft_object UAF (NFT_MSG_NEWSET)	pkg=linux-kernel,ver<5.18.1,CONFIG_USER_NS=y,sysctl:kernel.unprivileged_userns_clone==1	ubuntu=(22.04){kernel:5.15.0-27-generic}	1	kernel.unprivileged_userns_clone=1 required (to obtain CAP_NET_ADMIN)
@@ -462,10 +461,10 @@ CVE-2023-2593	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token 
 CVE-2023-2598	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2023-26083	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2023-2612	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
-CVE-2023-2640	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
+CVE-2023-2640	catalog_reference_only	9999.9999.9999		0	Reference-only source token; narrow Ubuntu generic matcher is in KERNEL_CVE_DATA_26
 CVE-2023-31248	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2023-32233	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
-CVE-2023-32629	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
+CVE-2023-32629	catalog_reference_only	9999.9999.9999		0	Reference-only source token; narrow Ubuntu generic matcher is in KERNEL_CVE_DATA_26
 CVE-2023-3269	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2023-32832	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2023-32837	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
@@ -653,6 +652,9 @@ EOF_DATA_22
 )"
 
 KERNEL_CVE_DATA_23="$(cat <<'EOF_DATA_23'
+CVE-2022-0847	DirtyPipe	pkg=linux-kernel,ver>=5.8,ver<5.10.102	upstream-branch-candidate	1	Upstream stable 5.10.102 fixes this branch; vendor backports and readable target-file prerequisites remain unverified
+CVE-2022-0847	DirtyPipe	pkg=linux-kernel,ver>=5.11,ver<5.15.25	upstream-branch-candidate	1	Upstream stable 5.15.25 fixes this branch; vendor backports and readable target-file prerequisites remain unverified
+CVE-2022-0847	DirtyPipe	pkg=linux-kernel,ver>=5.16,ver<5.16.11	upstream-branch-candidate	1	Upstream stable 5.16.11 fixes this branch; vendor backports and readable target-file prerequisites remain unverified
 CVE-2026-43499	GhostLock rtmutex UAF	pkg=linux-kernel,ver>=2.6.39,ver<5.10.261,CONFIG_FUTEX_PI=y		1	Fixed in stable 5.10.261; priority-inheritance futexes must be enabled
 CVE-2026-43499	GhostLock rtmutex UAF	pkg=linux-kernel,ver>=5.11,ver<5.15.212,CONFIG_FUTEX_PI=y		1	Fixed in stable 5.15.212; priority-inheritance futexes must be enabled
 CVE-2026-43499	GhostLock rtmutex UAF	pkg=linux-kernel,ver>=5.16,ver<6.1.175,CONFIG_FUTEX_PI=y		1	Fixed in stable 6.1.175; priority-inheritance futexes must be enabled
@@ -731,6 +733,7 @@ EOF_DATA_25
 )"
 
 KERNEL_CVE_DATA_26="$(cat <<'EOF_DATA_26'
+CVE-2023-2640,CVE-2023-32629	Ubuntu OverlayFS userns copy-up	pkg=linux-kernel,ver>=6.2.0-1,ver<6.2.0-26,CONFIG_USER_NS=y,cmd:grep -q '^ID=ubuntu$' /etc/os-release && grep -Eq '^VERSION_ID="?(22[.]04|23[.]04)"?$' /etc/os-release && uname -r | grep -Eq '^6[.]2[.]0-[0-9]+-generic$',cmd:test -r /proc/sys/kernel/unprivileged_userns_clone && test "$(cat /proc/sys/kernel/unprivileged_userns_clone)" = 1		1	Candidate only for Ubuntu 22.04 HWE 6.2 or 23.04 generic before 6.2.0-26; Canonical backports and Livepatch may alter effective status; verify running kernel package
 CVE-2026-53264	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public net/sched privilege-escalation exploit; dedicated LinPEAS check handles prerequisites
 CVE-2026-68121	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public PPPoE privilege-escalation exploit; no stable matcher added
 CVE-2026-74469	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public SCTP diagnostics privilege-escalation exploit; dedicated LinPEAS check handles prerequisites

@@ -8,7 +8,9 @@ class PEASLoaded:
         self.peasrecords = []
         for record in to_search:
             record_value = record["value"]
-            if "linpeas" in str(record_value["config"].get("disable","")).lower():
+            # Shared YAML uses value.disable; accept the older config.disable too.
+            if any("linpeas" in str(disabled).lower() for disabled in (
+                    record_value.get("disable"), record_value["config"].get("disable"))):
                 continue
 
             filerecords = []

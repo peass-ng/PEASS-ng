@@ -7,6 +7,8 @@ You can **build you own linpeas which will contain only the checks you want**. T
 It's possible to indicate the params `--all`, `--all-no-fat` and `--small` to build the classic `linpeas_fat.sh`, `linpeas.sh` and `linpeas_small.sh` outputs:
 - When testing builder changes locally, prefer writing the output to `/tmp` so you don't overwrite tracked release artifacts by accident.
 
+Builds that include GTFOBins-based checks download the current GTFOBins archive once. They require network access and stop if the archive cannot be downloaded or validated.
+
 - **linpeas_fat.sh**: Contains all checks, even third party applications in base64 embedded.
 - **linpeas.sh**: Contains all checks, but only the third party application `linux exploit suggester` is embedded. This is the default `linpeas.sh`.
 - **linpeas_small.sh**: Contains only the most *important* checks making its size smaller.

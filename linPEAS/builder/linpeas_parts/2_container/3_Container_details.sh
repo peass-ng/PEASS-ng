@@ -6,10 +6,10 @@
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1613,T1611
-# Functions Used: containerCheck, echo_no, enumerateDockerSockets, print_2title, print_list, warn_exec
+# Functions Used: checkDockerOverlayStorage, containerCheck, echo_no, enumerateDockerSockets, print_2title, print_list, warn_exec
 # Global Variables: $containerType
 # Initial Functions: containerCheck
-# Generated Global Variables: $containerCounts, $crictlcontainers, $ctrcontainers, $dockercontainers, $lxccontainers, $nerdctlcontainers, $podmancontainers, $rktcontainers
+# Generated Global Variables: $containerCounts, $crictlcontainers, $ctrcontainers, $dockercontainers, $docker_overlay_candidates, $lxccontainers, $minikube_log_checked, $minikube_log_home, $minikube_log_parent, $minikube_log_path, $minikube_log_version, $nerdctlcontainers, $podmancontainers, $rktcontainers
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -41,6 +41,32 @@ print_runtime_info() {
         shift 2
         warn_exec "$@"
     fi
+}
+
+minikube_crio_log_probe() {
+    minikube_log_checked=0
+    for minikube_log_home in "$@"; do
+        minikube_log_checked=$((minikube_log_checked + 1))
+        [ "$minikube_log_checked" -le 8 ] || break
+        minikube_log_parent="${minikube_log_home%/*}"
+        minikube_log_path="$minikube_log_home/.minikube/logs/lastStart.txt"
+        # Avoid links into unrelated or remote trees; only inspect this exact log.
+        [ -L "$minikube_log_parent" ] && continue
+        [ -L "$minikube_log_home" ] && continue
+        [ -L "$minikube_log_home/.minikube" ] && continue
+        [ -L "$minikube_log_home/.minikube/logs" ] && continue
+        [ -L "$minikube_log_path" ] && continue
+        [ -f "$minikube_log_path" ] && [ -r "$minikube_log_path" ] || continue
+        minikube_log_version="$(head -c 65536 "$minikube_log_path" 2>/dev/null |
+            head -n 200 |
+            sed -n 's/.*Preparing Kubernetes .* on CRI-O \([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\) .*/\1/p' |
+            head -n 1)"
+        [ "${#minikube_log_version}" -le 20 ] || continue
+        case "$minikube_log_version" in
+            ''|*[!0-9.]*) continue ;;
+        esac
+        print_list "Minikube startup log CRI-O ....$NC $minikube_log_version (historical; verify live runtime, fixes, Pod creation rights, seccomp/userns)"
+    done
 }
 
 get_runtime_container_count() {
@@ -86,6 +112,7 @@ print_runtime_info podman "Podman info ................" podman info
 print_runtime_info lxc "LXC version ................" lxc version
 print_runtime_info lxc "LXC info ..................." lxc info
 print_runtime_info crio "CRI-O version ..............." crio --version
+minikube_crio_log_probe /root /home/*
 print_runtime_info runc "runc version ..............." runc --version
 print_runtime_info crun "crun version ..............." crun --version
 print_runtime_info nerdctl "nerdctl version ............" nerdctl version
@@ -94,6 +121,13 @@ print_runtime_info ctr "ctr version ................" ctr version
 
 print_list "Interesting runtime sockets ... "$NC
 enumerateDockerSockets
+
+docker_overlay_candidates="$(checkDockerOverlayStorage)"
+if [ "$docker_overlay_candidates" ]; then
+    print_list "Traversable Docker overlay roots (review candidate; mount lacks nosuid/noexec):\n"$NC
+    printf '%s\n' "$docker_overlay_candidates"
+    print_list "Requires a root-owned SetUID file, compatible rootful/userns mapping, and effective execution policy; newer daemon versions may leave old container permissions until restart. No file search was run.\n"$NC
+fi
 
 print_list "Any running containers? ........ "$NC
 # Get counts of running containers for each platform

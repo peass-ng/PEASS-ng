@@ -9,7 +9,7 @@
 # Functions Used: echo_not_found, print_2title, print_info, print_3title
 # Global Variables: $SEARCH_IN_FOLDER, $timersG
 # Initial Functions:
-# Generated Global Variables: $timer_unit, $timer_path, $timer_content, $exec_path, $timer_file, $line, $findings, $unit_path, $finding, $service_unit, $timer, $target_unit, $target_file
+# Generated Global Variables: $timer_unit, $timer_path, $exec_path, $timer_file, $line, $findings, $unit_path, $finding, $service_unit, $timer, $target_unit, $target_file, $timer_count, $timer_unit_property, $service_properties, $service_user, $service_user_seen, $dynamic_user, $exec_start, $property, $timer_restart_timeout, $timer_restart_queries, $timer_restart_targets, $restart_target, $restart_properties, $restart_user, $restart_user_seen, $restart_dynamic_user, $restart_root_dir, $restart_root_dir_seen, $restart_root_image, $restart_root_image_seen, $restart_exec, $restart_exec_path, $restart_script
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -21,17 +21,47 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   check_timer_content() {
     local timer="$1"
     local findings=""
+    local restart_target restart_properties restart_user restart_user_seen
+    local restart_dynamic_user restart_root_dir restart_root_dir_seen
+    local restart_root_image restart_root_image_seen restart_exec
+    local restart_exec_path restart_script
     
     # Get the service unit this timer activates
-    local service_unit=$(systemctl show "$timer" -p Unit 2>/dev/null | cut -d= -f2)
+    local timer_unit_property=$(systemctl show "$timer" -p Unit 2>/dev/null)
+    case "$timer_unit_property" in Unit=*) ;; *) return ;; esac
+    local service_unit=${timer_unit_property#Unit=}
     if [ -n "$service_unit" ]; then
+      # Read the service properties once per timer to keep the check cheap.
+      local service_properties=$(systemctl show "$service_unit" -p User -p DynamicUser -p ExecStart 2>/dev/null)
+      local service_user="" service_user_seen="" dynamic_user="" exec_start="" property
+      while IFS= read -r property; do
+        case "$property" in
+          User=*) service_user=${property#User=}; service_user_seen=1 ;;
+          DynamicUser=*) dynamic_user=${property#DynamicUser=} ;;
+          ExecStart=*) exec_start=${property#ExecStart=} ;;
+        esac
+      done <<EOF
+$service_properties
+EOF
+
       # Check if the service runs with elevated privileges
-      if systemctl show "$service_unit" -p User 2>/dev/null | grep -q "root"; then
-        findings="${findings}RUNS_AS_ROOT: Service runs as root\n"
+      if [ -n "$service_user_seen" ]; then
+        case "$service_user" in
+          ""|root|0)
+            if [ -n "$service_user" ] || [ "$dynamic_user" != "yes" ]; then
+              findings="${findings}RUNS_AS_ROOT: Service runs as root\n"
+            fi ;;
+        esac
       fi
 
-      # Get the executable path
-      local exec_path=$(systemctl show "$service_unit" -p ExecStart 2>/dev/null | cut -d= -f2 | cut -d' ' -f1)
+      # systemctl show commonly formats ExecStart as { path=... ; argv[]=... }.
+      local exec_path
+      case "$exec_start" in
+        *path=*) exec_path=${exec_start#*path=}
+                 exec_path=${exec_path%%[[:space:];]*}
+                 exec_path=${exec_path%\}} ;;
+        *) exec_path=${exec_start%% *} ;;
+      esac
       if [ -n "$exec_path" ]; then
         if [ -w "$exec_path" ]; then
           findings="${findings}WRITABLE_EXEC: Executable is writable: $exec_path\n"
@@ -44,13 +74,105 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
       fi
 
       # Check for unsafe configurations
-      if systemctl show "$service_unit" -p ExecStart 2>/dev/null | grep -qE '(chmod|chown|mount|sudo|su)'; then
+      if printf '%s\n' "$exec_start" | grep -qE '(chmod|chown|mount|sudo|su)'; then
         findings="${findings}UNSAFE_CMD: Uses potentially dangerous commands\n"
       fi
 
       # Check for weak permissions
       if [ -e "$exec_path" ] && [ "$(stat -c %a "$exec_path" 2>/dev/null)" = "777" ]; then
         findings="${findings}WEAK_PERMS: Executable has 777 permissions\n"
+      fi
+
+      # Follow only a literal root timer service -> systemctl restart -> root
+      # shell-script edge. Reuse the direct service properties above; query no
+      # more than four distinct restart targets, with a one-second deadline.
+      if [ -n "$timer_restart_timeout" ] && [ "$timer_restart_queries" -lt 4 ] &&
+         [ -n "$service_user_seen" ]; then
+        case "$service_user" in
+          ''|root|0)
+            if [ -n "$service_user" ] || [ "$dynamic_user" != yes ]; then
+              case "$exec_path" in
+                /bin/systemctl|/usr/bin/systemctl)
+                  restart_target=$(printf '%s\n' "$exec_start" | awk -v exe="$exec_path" '
+                    {
+                      i = index($0, "argv[]=")
+                      if (!i) exit
+                      args = substr($0, i + 7)
+                      if (args !~ /[[:space:]];[[:space:]]/) exit
+                      sub(/[[:space:]];[[:space:]].*/, "", args)
+                      if (index(args, ";")) exit
+                      sub(/^[[:space:]]+/, "", args)
+                      sub(/[[:space:]]+$/, "", args)
+                      n = split(args, word, /[[:space:]]+/)
+                      if (n == 3 && word[1] == exe && word[2] == "restart" &&
+                          word[3] ~ /^[A-Za-z0-9_.@-]+\.service$/) print word[3]
+                    }
+                  ')
+                  if [ -n "$restart_target" ]; then
+                    case " $timer_restart_targets" in
+                      *" $restart_target "*) ;;
+                      *)
+                        timer_restart_targets="$timer_restart_targets$restart_target "
+                        timer_restart_queries=$((timer_restart_queries + 1))
+                        if restart_properties=$("$timer_restart_timeout" 1 systemctl show "$restart_target" \
+                          -p User -p DynamicUser -p RootDirectory -p RootImage -p ExecStart 2>/dev/null); then
+                          restart_user='' restart_user_seen='' restart_dynamic_user=''
+                          restart_root_dir='' restart_root_dir_seen=''
+                          restart_root_image='' restart_root_image_seen='' restart_exec=''
+                          while IFS= read -r property; do
+                            case "$property" in
+                              User=*) restart_user=${property#User=}; restart_user_seen=1 ;;
+                              DynamicUser=*) restart_dynamic_user=${property#DynamicUser=} ;;
+                              RootDirectory=*) restart_root_dir=${property#RootDirectory=}; restart_root_dir_seen=1 ;;
+                              RootImage=*) restart_root_image=${property#RootImage=}; restart_root_image_seen=1 ;;
+                              ExecStart=*) restart_exec=${property#ExecStart=} ;;
+                            esac
+                          done <<EOF
+$restart_properties
+EOF
+                          if [ -n "$restart_user_seen" ] && [ -n "$restart_root_dir_seen" ] &&
+                             [ -n "$restart_root_image_seen" ] && [ "$restart_dynamic_user" != yes ] &&
+                             [ -z "$restart_root_image" ] &&
+                             { [ -z "$restart_root_dir" ] || [ "$restart_root_dir" = / ]; }; then
+                            case "$restart_user" in
+                              ''|root|0)
+                                restart_exec_path=${restart_exec#*path=}
+                                restart_exec_path=${restart_exec_path%%[[:space:];]*}
+                                case "$restart_exec_path" in
+                                  /bin/bash|/usr/bin/bash|/bin/sh|/usr/bin/sh)
+                                    restart_script=$(printf '%s\n' "$restart_exec" | awk -v exe="$restart_exec_path" '
+                                      {
+                                        i = index($0, "argv[]=")
+                                        if (!i) exit
+                                        args = substr($0, i + 7)
+                                        if (args !~ /[[:space:]];[[:space:]]/) exit
+                                        sub(/[[:space:]];[[:space:]].*/, "", args)
+                                        if (index(args, ";")) exit
+                                        sub(/^[[:space:]]+/, "", args)
+                                        sub(/[[:space:]]+$/, "", args)
+                                        n = split(args, word, /[[:space:]]+/)
+                                        if (n == 2 && word[1] == exe &&
+                                            word[2] ~ /^\/[A-Za-z0-9_.\/-]+$/) print word[2]
+                                      }
+                                    ')
+                                    if [ -n "$restart_script" ] && [ -f "$restart_script" ] &&
+                                       [ ! -L "$restart_script" ] && [ -w "$restart_script" ]; then
+                                      findings="${findings}WRITABLE_TIMER_SCRIPT: $restart_target invokes $restart_script through $restart_exec_path (root review candidate)\n"
+                                    fi
+                                    ;;
+                                esac
+                                ;;
+                            esac
+                          fi
+                        fi
+                        ;;
+                    esac
+                  fi
+                  ;;
+              esac
+            fi
+            ;;
+        esac
       fi
     fi
 
@@ -90,7 +212,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     fi
 
     # Check for writable executables in Unit directive (following symlinks)
-    local unit_path=$(grep -Po '^Unit=*(.*?$)' "$timer_file" 2>/dev/null | cut -d '=' -f2)
+    local unit_path=$(sed -n 's/^Unit=//p' "$timer_file" 2>/dev/null | head -n 1)
     if [ -n "$unit_path" ]; then
       if [ -L "$unit_path" ]; then
         local target_unit=$(readlink -f "$unit_path")
@@ -113,32 +235,47 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
 
   # List all timers and check for privilege escalation vectors
   print_3title "Active timers:" "T1053.003"
-  systemctl list-timers --all 2>/dev/null | grep -Ev "(^$|timers listed)" | while read -r line; do
-    # Extract timer unit name
-    timer_unit=$(echo "$line" | awk '{print $1}')
+  timer_count=0
+  timer_restart_queries=0
+  timer_restart_targets=''
+  timer_restart_timeout=''
+  if command -v timeout >/dev/null 2>&1; then
+    timer_restart_timeout=$(command -v timeout)
+  elif command -v gtimeout >/dev/null 2>&1; then
+    timer_restart_timeout=$(command -v gtimeout)
+  fi
+  systemctl list-timers --all --no-pager --full 2>/dev/null | grep -Ev "(^$|timers listed)" | while IFS= read -r line; do
+    # UNIT is the next-to-last column; NEXT can contain several date fields.
+    timer_unit=$(printf '%s\n' "$line" | awk '$(NF-1) ~ /\.timer$/ { print $(NF-1) }')
     if [ -n "$timer_unit" ]; then
-      # Check if timer file is writable
-      timer_path=$(systemctl show "$timer_unit" -p FragmentPath 2>/dev/null | cut -d= -f2)
-      if [ -n "$timer_path" ]; then
-        check_timer_file "$timer_path"
+      timer_count=$(( ${timer_count:-0} + 1 ))
+      if [ "$timer_count" -le 200 ]; then
+        # Check if timer file is writable
+        timer_path=$(systemctl show "$timer_unit" -p FragmentPath 2>/dev/null | cut -d= -f2)
+        if [ -n "$timer_path" ]; then
+          check_timer_file "$timer_path"
+        fi
+
+        # Check timer content for privilege escalation vectors
+        check_timer_content "$timer_unit"
       fi
-
-      # Check timer content for privilege escalation vectors
-      check_timer_content "$timer_unit"
-
-      # Print the timer line with highlighting
-      echo "$line" | sed -${E} "s,$timersG,${SED_GREEN},"
     fi
+    # Keep the list output, including its heading, in the existing format.
+    echo "$line" | sed -${E} "s,$timersG,${SED_GREEN},"
   done || echo_not_found
 
   # Check for disabled but available timers
   print_3title "Disabled timers:" "T1053.003"
-  systemctl list-unit-files --type=timer --state=disabled 2>/dev/null | grep -v "UNIT FILE" | while read -r line; do
-    timer_unit=$(echo "$line" | awk '{print $1}')
+  timer_count=0
+  systemctl list-unit-files --type=timer --state=disabled 2>/dev/null | grep -v "UNIT FILE" | while IFS= read -r line; do
+    timer_unit=$(printf '%s\n' "$line" | awk '$1 ~ /\.timer$/ { print $1 }')
     if [ -n "$timer_unit" ]; then
-      timer_path=$(systemctl show "$timer_unit" -p FragmentPath 2>/dev/null | cut -d= -f2)
-      if [ -n "$timer_path" ]; then
-        check_timer_file "$timer_path"
+      timer_count=$(( ${timer_count:-0} + 1 ))
+      if [ "$timer_count" -le 200 ]; then
+        timer_path=$(systemctl show "$timer_unit" -p FragmentPath 2>/dev/null | cut -d= -f2)
+        if [ -n "$timer_path" ]; then
+          check_timer_file "$timer_path"
+        fi
       fi
     fi
   done || echo_not_found

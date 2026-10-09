@@ -31,9 +31,12 @@ if [ "$kadmin_exists" ] || [ "$klist_exists" ] || [ "$kinit_exists" ] || [ "$PST
   
   (env || printenv) 2>/dev/null | grep -E "^KRB5" | sed -${E} "s,KRB5,${SED_RED},g"
 
-  printf "%s\n" "$PSTORAGE_KERBEROS" | while read f; do
-    if [ -r "$f" ]; then
-      if echo "$f" | grep -q .k5login; then
+  printf "%s\n" "$PSTORAGE_KERBEROS" | while IFS= read -r f; do
+    if [ "${f##*/}" = ".k5users" ] && [ -f "$f" ]; then
+      echo ".k5users authorization file (principal and command rights require review)"
+      ls -ld "$f" 2>/dev/null
+    elif [ -r "$f" ]; then
+      if [ "${f##*/}" = ".k5login" ]; then
         echo ".k5login file (users with access to the user who has this file in his home)"
         cat "$f" 2>/dev/null | sed -${E} "s,.*,${SED_RED},g"
       elif echo "$f" | grep -q keytab; then

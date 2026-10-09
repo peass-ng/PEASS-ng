@@ -1,4 +1,6 @@
 import shlex
+import os
+import re
 import subprocess
 import tempfile
 import unittest
@@ -54,7 +56,7 @@ doas_version_le 6.8.2 6.8.2 && echo le=yes
         self.assertIn("le=yes", result.stdout)
         self.assertIn("newer=yes", result.stdout)
 
-    def test_soccer_rule_matches_current_user_and_dstat(self):
+    def test_root_dstat_rule_matches_current_user(self):
         result = self._run_shell(
             """
 doas_current_user=player
@@ -105,7 +107,7 @@ doas_rule_has_dangerous_environment "$rule" && echo environment=dangerous
             config = Path(tmpdir) / "doas.conf"
             config.write_text(
                 "# ignored\n"
-                "permit nopass player as root cmd /usr/bin/dstat # Soccer\n"
+                "permit nopass player as root cmd /usr/bin/dstat # incidental comment\n"
                 'permit player cmd /usr/bin/printf args "#kept"\n'
                 "deny :blocked\n",
                 encoding="utf-8",
@@ -116,7 +118,7 @@ doas_rule_has_dangerous_environment "$rule" && echo environment=dangerous
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotIn("ignored", result.stdout)
-        self.assertNotIn("Soccer", result.stdout)
+        self.assertNotIn("incidental comment", result.stdout)
         self.assertIn("permit nopass player as root cmd /usr/bin/dstat", result.stdout)
         self.assertIn('args "#kept"', result.stdout)
         self.assertIn("deny :blocked", result.stdout)
@@ -158,7 +160,7 @@ doas_rule_has_dangerous_environment "$rule" && echo environment=dangerous
         self.assertIn("permit nopass", result.stdout)
         self.assertIn("executed=no", result.stdout)
 
-    def test_module_reports_the_soccer_configuration(self):
+    def test_module_reports_root_dstat_rule(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
             fake_doas = tmp_path / "doas"
@@ -205,7 +207,43 @@ doas_rule_has_dangerous_environment "$rule" && echo environment=dangerous
             "matching permit rule allows GTFOBins-capable command /usr/bin/dstat as root without a password",
             result.stdout,
         )
-        self.assertIn("HTB Soccer privilege-escalation pattern", result.stdout)
+        self.assertNotIn("user-controlled dstat plugin can execute as root", result.stdout)
+
+    def test_dstat_plugin_directory_metadata_is_conditional(self):
+        source = self.module_file.read_text(encoding="utf-8")
+        helper = re.search(r"^doas_dstat_plugin_review\(\) \{\n.*?^\}",
+                           source, re.MULTILINE | re.DOTALL)
+        self.assertIsNotNone(helper)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            writable = root / "writable"
+            readonly = root / "readonly"
+            writable.mkdir()
+            readonly.mkdir()
+            readonly.chmod(0o500)
+            (writable / "dstat_sample.py").write_text("private-plugin-content\n")
+            script = (helper.group() + '\ndoas_current_uid="$1"; '
+                      'doas_dstat_plugin_review "$2" "$3" "$4"')
+            result = subprocess.run(
+                ["sh", "-c", script, "sh", "1000", str(writable),
+                 str(readonly), str(root / "missing")],
+                capture_output=True, text=True, timeout=3,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            expected = 2 if os.geteuid() == 0 else 1
+            self.assertEqual(expected, result.stdout.count("Writable dstat plugin directory candidate:"))
+            self.assertIn(str(writable), result.stdout)
+            self.assertNotIn("private-plugin-content", result.stdout)
+            if os.geteuid() != 0:
+                self.assertNotIn(str(readonly), result.stdout)
+
+            root_result = subprocess.run(
+                ["sh", "-c", script, "sh", "0", str(writable),
+                 str(readonly), str(root / "missing")],
+                capture_output=True, text=True, timeout=3,
+            )
+            self.assertEqual(root_result.returncode, 0, root_result.stderr)
+            self.assertEqual("", root_result.stdout)
 
     def test_symlinked_binary_uses_target_permissions(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -254,7 +292,7 @@ doas_rule_has_dangerous_environment "$rule" && echo environment=dangerous
         self.assertNotRegex(content, r"\bdoas\s+-l\b")
         self.assertIn("doas_config_syntax_valid", content)
         self.assertIn("doas_check_command", content)
-        self.assertIn("HTB Soccer", content)
+        self.assertIn("doas_dstat_plugin_review", content)
 
 
 if __name__ == "__main__":
