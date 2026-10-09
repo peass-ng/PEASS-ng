@@ -6,10 +6,10 @@
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1049
-# Functions Used: print_2title, print_3title, warn_exec, echo_not_found
+# Functions Used: print_2title, print_3title, warn_exec, echo_not_found, lp_trusted_version_path
 # Global Variables: $EXTRA_CHECKS, $E, $SED_RED, $SED_GREEN, $SED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $inetd_service, $log_file, $cmd, $service_name, $conf_file, $service_dir, $service_file, $file, $inetd_command, $inetd_telnet_probe_count, $service, $socket, $protocol, $user, $server, $checked_binary, $version_output, $version, $major, $minor, $patch, $rest
+# Generated Global Variables: $inetd_service, $log_file, $cmd, $service_name, $conf_file, $service_dir, $service_file, $file, $inetd_command, $inetd_telnet_probe_count, $service, $socket, $protocol, $user, $server, $checked_binary, $trusted_server, $version_output, $version, $major, $minor, $patch, $rest
 # Fat linpeas: 0
 # Small linpeas: 0
 
@@ -39,7 +39,7 @@ inetd_telnet_upstream_affected() {
 # not proof that a downstream package is unpatched or that a listener is active.
 inetd_telnet_cve_hint() {
     local conf_file=$1 service socket protocol wait_mode user server arguments
-    local checked_binary='' version_output='' version='' major minor patch rest
+    local checked_binary='' version_output='' version='' major minor patch rest trusted_server
 
     [ -f "$conf_file" ] || return 0
     while read -r service socket protocol wait_mode user server arguments || [ -n "$service" ]; do
@@ -56,7 +56,9 @@ inetd_telnet_cve_hint() {
             case "$server" in
                 /*) if [ -x "$server" ] && [ "${inetd_telnet_probe_count:-0}" -lt 4 ] && command -v timeout >/dev/null 2>&1; then
                         inetd_telnet_probe_count=$((inetd_telnet_probe_count + 1))
-                        version_output=$(timeout -k 1 1 "$server" --version 2>&1 | head -c 4096)
+                        if trusted_server=$(lp_trusted_version_path "$server"); then
+                            version_output=$(timeout -k 1 1 "$trusted_server" --version 2>&1 | head -c 4096)
+                        fi
                     fi ;;
             esac
         fi

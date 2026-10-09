@@ -8,6 +8,7 @@ from pathlib import Path
 
 
 IMAGE = "python:3.11-bookworm"
+TRUST_HELPER = Path(__file__).resolve().parents[1] / "builder/linpeas_parts/functions/lp_trusted_version_path.sh"
 MODULE = Path(__file__).resolve().parents[1] / "builder/linpeas_parts/1_system_information/2_Sudo_version.sh"
 
 
@@ -23,7 +24,7 @@ class SudoVersionTests(unittest.TestCase):
             if result.returncode:
                 raise unittest.SkipTest("local Docker daemon or fixture image unavailable")
 
-    def run_case(self, versions, setuid=(), aliases=()):
+    def run_case(self, versions, setuid=(), aliases=(), unsafe_path=None):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             for name, version in versions.items():
@@ -46,16 +47,20 @@ class SudoVersionTests(unittest.TestCase):
 
             path_names = [*versions, *(name for name, _ in aliases)]
             commands = [
-                "cp -R /input/. /tmp/sudo-fixture",
-                "chown -R root:root /tmp/sudo-fixture",
+                "cp -R /input/. /opt/sudo-fixture",
+                "chown -R root:root /opt/sudo-fixture",
             ]
             for name in versions:
                 mode = "4755" if name in setuid else "0755"
-                commands.append(f"chmod {mode} /tmp/sudo-fixture/{name}/sudo")
-            path = ":".join(f"/tmp/sudo-fixture/{name}" for name in path_names)
+                commands.append(f"chmod {mode} /opt/sudo-fixture/{name}/sudo")
+            if unsafe_path:
+                mode = "4775" if unsafe_path.endswith("/sudo") else "0775"
+                commands.append(f"chmod {mode} /opt/sudo-fixture/{unsafe_path}")
+            path = ":".join(f"/opt/sudo-fixture/{name}" for name in path_names)
             commands += [
                 "print_2title() { :; }; print_info() { :; }; echo_not_found() { echo missing-sudo; }",
                 f"PATH='{path}:/usr/bin:/bin'; export PATH",
+                ". /trust-helper",
                 ". /module",
                 "printf '%s\\n' 'QUERY_LOG:'",
                 "cat /tmp/sudo-queries 2>/dev/null || :",
@@ -63,7 +68,8 @@ class SudoVersionTests(unittest.TestCase):
             result = subprocess.run(
                 ["docker", "run", "--rm", "--network", "none", "--mount",
                  f"type=bind,src={root},dst=/input,readonly", "--mount",
-                 f"type=bind,src={MODULE},dst=/module,readonly", IMAGE,
+                 f"type=bind,src={MODULE},dst=/module,readonly", "--mount",
+                 f"type=bind,src={TRUST_HELPER},dst=/trust-helper,readonly", IMAGE,
                  "sh", "-c", "\n".join(commands)],
                 capture_output=True, text=True, timeout=15,
             )
@@ -89,6 +95,15 @@ class SudoVersionTests(unittest.TestCase):
         self.assertEqual(log, ["first", "second"])
         self.assertEqual(output.count("No CVE-2025-32462/32463 upstream candidate"), 2)
         self.assertNotIn("upstream candidate (", output)
+
+    def test_replaceable_root_owned_setuid_targets_are_not_executed(self):
+        for unsafe_path in ("first/sudo", "first"):
+            with self.subTest(unsafe_path=unsafe_path):
+                output, log = self.run_case(
+                    {"first": "1.9.17"}, setuid=("first",), unsafe_path=unsafe_path,
+                )
+                self.assertEqual(log, [])
+                self.assertIn("permissions are untrusted", output)
 
     def test_upstream_range_boundaries(self):
         output, log = self.run_case(

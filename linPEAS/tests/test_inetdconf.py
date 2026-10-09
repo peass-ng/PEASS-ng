@@ -18,7 +18,7 @@ class InetdTelnetCVE202624061Tests(unittest.TestCase):
             "# Run the main function\n", 1
         )[0]
 
-    def _run_hint(self, stanza, version_output="telnetd (GNU inetutils) 2.7"):
+    def _run_hint(self, stanza, version_output="telnetd (GNU inetutils) 2.7", trusted_daemon=True):
         with tempfile.TemporaryDirectory() as tmpdir:
             base = Path(tmpdir)
             source = base / "part.sh"
@@ -55,7 +55,10 @@ class InetdTelnetCVE202624061Tests(unittest.TestCase):
                 [
                     "sh",
                     "-c",
-                    f". {shlex.quote(str(source))}; "
+                    ('lp_trusted_version_path() { printf "%s\\n" "$1"; }; '
+                     if trusted_daemon else
+                     f". {shlex.quote(str(self.part.parent.parent / 'functions/lp_trusted_version_path.sh'))}; ")
+                    + f". {shlex.quote(str(source))}; "
                     f"inetd_telnet_cve_hint {shlex.quote(str(conf))}",
                 ],
                 cwd=self.repo_root,
@@ -98,6 +101,15 @@ class InetdTelnetCVE202624061Tests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("appears non-GNU", result.stdout)
         self.assertNotIn("upstream affected range", result.stdout)
+
+    def test_untrusted_configured_daemon_is_not_executed(self):
+        result, calls = self._run_hint(
+            "telnet stream tcp nowait root {daemon} in.telnetd\n",
+            trusted_daemon=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, "")
+        self.assertIn("implementation/version unknown", result.stdout)
 
     def test_missing_version_is_informational(self):
         result, _ = self._run_hint(

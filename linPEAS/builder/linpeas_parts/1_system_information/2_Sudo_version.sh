@@ -6,10 +6,10 @@
 # License: GNU GPL
 # Version: 1.1
 # Mitre: T1548.003,T1068
-# Functions Used: echo_not_found, print_2title, print_info
+# Functions Used: echo_not_found, lp_trusted_version_path, print_2title, print_info
 # Global Variables: $PATH
 # Initial Functions:
-# Generated Global Variables: $sudo_seen, $sudo_found, $sudo_timeout, $sudo_path_left, $sudo_path_count, $sudo_dir, $sudo_last, $sudo_candidate, $sudo_identity, $sudo_line, $sudo_version, $sudo_parts, $sudo_major, $sudo_minor, $sudo_patch, $sudo_revision, $sudo_host_candidate, $sudo_chroot_candidate
+# Generated Global Variables: $sudo_trusted_candidate, $sudo_seen, $sudo_found, $sudo_timeout, $sudo_path_left, $sudo_path_count, $sudo_dir, $sudo_last, $sudo_candidate, $sudo_identity, $sudo_line, $sudo_version, $sudo_parts, $sudo_major, $sudo_minor, $sudo_patch, $sudo_revision, $sudo_host_candidate, $sudo_chroot_candidate
 # Fat linpeas: 0
 # Small linpeas: 1
 # shellcheck shell=sh
@@ -47,7 +47,11 @@ ${sudo_identity}"
     printf '  %s: root-owned setuid; version query skipped (timeout unavailable)\n' "$sudo_candidate"
     return 0
   fi
-  sudo_line=$("$sudo_timeout" -k 1 2 "$sudo_candidate" -V 2>/dev/null | head -c 256 | head -n 1)
+  sudo_trusted_candidate=$(lp_trusted_version_path "$sudo_candidate") || {
+    printf '  %s: version query skipped (executable or ancestor permissions are untrusted)\n' "$sudo_candidate"
+    return 0
+  }
+  sudo_line=$("$sudo_timeout" -k 1 2 "$sudo_trusted_candidate" -V 2>/dev/null | head -c 256 | head -n 1)
   sudo_version=$(printf '%s\n' "$sudo_line" | awk '$1 == "Sudo" && $2 == "version" { print $3 }')
   if [ -z "$sudo_version" ]; then
     printf '  %s: root-owned setuid; version unavailable or query timed out\n' "$sudo_candidate"

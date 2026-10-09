@@ -17,7 +17,7 @@ class SudoPythonBytecodeCacheTests(unittest.TestCase):
     def run_case(self, *, rule="root", source="from helper import run\n",
                  pyc_tag="cpython-312", cache_mode=0o777, pyc_mode=0o644,
                  script_suffix="", version="3.12.3", fake_root_owned=False,
-                 sudo_command=None, script_mode=0o755):
+                 sudo_command=None, script_mode=0o755, trusted_interpreter=True):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
             bindir = base / "bin"
@@ -86,12 +86,19 @@ class SudoPythonBytecodeCacheTests(unittest.TestCase):
                 "print_2title() { :; }",
                 "print_info() { :; }",
                 "echo_not_found() { :; }",
+                # Policy fixtures use an explicitly trusted fake interpreter; the
+                # negative case below exercises the real filesystem guard.
+                ('lp_trusted_version_path() { printf "%s\\n" "$1"; }'
+                 if trusted_interpreter else
+                 f". {shlex.quote(str(self.module.parent.parent / 'functions/lp_trusted_version_path.sh'))}"),
                 f". {shlex.quote(str(self.module))}",
             ])
             result = subprocess.run(["sh", "-c", body], env=env,
                                     capture_output=True, text=True, timeout=10)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertNotIn("do-not-print-me", result.stdout)
+            if not trusted_interpreter:
+                self.assertFalse((base / "interpreter-calls").exists())
             if calls.exists():
                 self.assertEqual(set(calls.read_text().splitlines()),
                                  {"-I -S --version"})
@@ -134,6 +141,10 @@ class SudoPythonBytecodeCacheTests(unittest.TestCase):
     def test_limits_imports_to_first_twenty(self):
         source = "".join(f"import item{i}\n" for i in range(20)) + "import helper\n"
         output, _, _, _ = self.run_case(source=source)
+        self.assertNotIn("bytecode cache review", output)
+
+    def test_untrusted_interpreter_is_not_executed(self):
+        output, _, _, _ = self.run_case(trusted_interpreter=False)
         self.assertNotIn("bytecode cache review", output)
 
     def test_version_probe_output_is_bounded(self):
