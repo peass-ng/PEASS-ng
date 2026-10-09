@@ -11,6 +11,8 @@ REM /////true or false
 SET long=false
 SET "PEAS_HAS_ROBOCOPY=false"
 where robocopy >nul 2>&1 && SET "PEAS_HAS_ROBOCOPY=true"
+SET "PEAS_USERS_ROOT=%SystemDrive%\Users"
+IF NOT EXIST "%PEAS_USERS_ROOT%\" SET "PEAS_USERS_ROOT=%SystemDrive%\Documents and Settings"
 
 REM Check if the current path contains spaces
 SET "CurrentFolder=%~dp0"
@@ -602,24 +604,28 @@ CALL :T_Progress 3
 
 :McAffeeSitelist
 CALL :ColorLine " %E%33m[+]%E%97m McAffee SiteList.xml"
-if exist "%ProgramFiles%\" (cd /d "%ProgramFiles%" && dir /s /a:-l SiteList.xml 2>nul)
-if exist "%ProgramFiles(x86)%\" (cd /d "%ProgramFiles(x86)%" && dir /s /a:-l SiteList.xml 2>nul)
-if not exist "%SystemDrive%\Users\" if exist "%SystemDrive%\Documents and Settings\" (cd /d "%SystemDrive%\Documents and Settings" && dir /s /a:-l SiteList.xml 2>nul)
-if exist "%SystemDrive%\Users\" (cd /d "%SystemDrive%\Users" && dir /s /a:-l SiteList.xml 2>nul)
+if exist "%ProgramFiles%\" CALL :ListFiles "%ProgramFiles%" "SiteList.xml"
+if exist "%ProgramFiles(x86)%\" CALL :ListFiles "%ProgramFiles(x86)%" "SiteList.xml"
+if exist "%PEAS_USERS_ROOT%\" CALL :ListFiles "%PEAS_USERS_ROOT%" "SiteList.xml"
 ECHO.
 CALL :T_Progress 2
 
 :GPPPassword
 CALL :ColorLine " %E%33m[+]%E%97m GPP Password"
-if exist "%SystemDrive%\Microsoft\Group Policy\history\" (cd /d "%SystemDrive%\Microsoft\Group Policy\history" && dir /s/b /a:-l Groups.xml == Services.xml == Scheduledtasks.xml == DataSources.xml == Printers.xml == Drives.xml 2>nul)
-if exist "%ProgramData%\Microsoft\Group Policy\history\" (cd /d "%ProgramData%\Microsoft\Group Policy\history" && dir /s/b /a:-l Groups.xml == Services.xml == Scheduledtasks.xml == DataSources.xml == Printers.xml == Drives.xml 2>nul)
+if exist "%SystemDrive%\Microsoft\Group Policy\history\" CALL :ListFiles "%SystemDrive%\Microsoft\Group Policy\history" "Groups.xml Services.xml Scheduledtasks.xml DataSources.xml Printers.xml Drives.xml"
+if exist "%ProgramData%\Microsoft\Group Policy\history\" CALL :ListFiles "%ProgramData%\Microsoft\Group Policy\history" "Groups.xml Services.xml Scheduledtasks.xml DataSources.xml Printers.xml Drives.xml"
 ECHO.
 CALL :T_Progress 2
 
 :CloudCreds
 CALL :ColorLine " %E%33m[+]%E%97m Cloud Credentials"
-if exist "%SystemDrive%\Users\" (cd /d "%SystemDrive%\Users" && dir /s/b /a:-l .aws == credentials == gcloud == credentials.db == legacy_credentials == access_tokens.db == .azure == accessTokens.json == azureProfile.json 2>nul)
-if not exist "%SystemDrive%\Users\" if exist "%SystemDrive%\Documents and Settings\" (cd /d "%SystemDrive%\Documents and Settings" && dir /s/b /a:-l .aws == credentials == gcloud == credentials.db == legacy_credentials == access_tokens.db == .azure == accessTokens.json == azureProfile.json 2>nul)
+if exist "%PEAS_USERS_ROOT%\" CALL :ListFiles "%PEAS_USERS_ROOT%" "credentials credentials.db legacy_credentials access_tokens.db accessTokens.json azureProfile.json"
+for /d %%U in ("%PEAS_USERS_ROOT%\*") do (
+    if exist "%%~fU\.aws\" ECHO.%%~fU\.aws
+    if exist "%%~fU\.azure\" ECHO.%%~fU\.azure
+    if exist "%%~fU\AppData\Roaming\gcloud\" ECHO.%%~fU\AppData\Roaming\gcloud
+    if exist "%%~fU\Application Data\gcloud\" ECHO.%%~fU\Application Data\gcloud
+)
 ECHO.
 CALL :T_Progress 2
 
@@ -655,8 +661,6 @@ CALL :T_Progress 2
 ECHO.Looking inside HKCU\Software\OpenSSH\Agent\Keys
 CALL :T_Progress 2
 reg query HKCU\Software\OpenSSH\Agent\Keys /s 2>nul
-SET "PEAS_USERS_ROOT=%SystemDrive%\Users"
-IF NOT EXIST "%PEAS_USERS_ROOT%\" SET "PEAS_USERS_ROOT=%SystemDrive%\Documents and Settings"
 if "%PEAS_HAS_ROBOCOPY%" == "true" (
     if exist "%USERPROFILE%\" robocopy "%USERPROFILE%" "%TEMP%\winpeas-list-only" *password* *credential* /L /S /XJ /R:0 /W:0 /NJH /NJS /NDL /NP /FP /NS /NC
 ) else (
@@ -667,7 +671,7 @@ if "%PEAS_HAS_ROBOCOPY%" == "true" (
 ) else (
     if exist "%PEAS_USERS_ROOT%\" (cd /d "%PEAS_USERS_ROOT%" && dir /s/b /A:-D-L RDCMan.settings == *.rdg == SCClient.exe == *_history == .sudo_as_admin_successful == .profile == *bashrc == httpd.conf == *.plan == .htpasswd == .git-credentials == *.rhosts == hosts.equiv == Dockerfile == docker-compose.yml == appcmd.exe == TypedURLs == TypedURLsTime == History == Bookmarks == Cookies == "Login Data" == places.sqlite == key3.db == key4.db == credentials == credentials.db == access_tokens.db == accessTokens.json == legacy_credentials == azureProfile.json == unattend.txt == access.log == error.log == *.gpg == *.pgp == *config*.php == elasticsearch.y*ml == kibana.y*ml == *.p12 == *.der == *.csr == *.cer == known_hosts == id_rsa == id_dsa == *.ovpn == anaconda-ks.cfg == hostapd.conf == rsyncd.conf == cesi.conf == supervisord.conf == tomcat-users.xml == *.kdbx == *.psafe3 == KeePass.config == Ntds.dit == SAM == SYSTEM == FreeSSHDservice.ini == sysprep.inf == sysprep.xml == unattend.xml == unattended.xml == *vnc*.ini == *vnc*.c*nf* == *vnc*.txt == *vnc*.xml == groups.xml == services.xml == scheduledtasks.xml == printers.xml == drives.xml == datasources.xml == php.ini == https.conf == https-xampp.conf == httpd.conf == my.ini == my.cnf == access.log == error.log == server.xml == SiteList.xml == ConsoleHost_history.txt == setupinfo == setupinfo.bak 2>nul | findstr /v ".dll")
 )
-if exist "%SystemDrive%\inetpub\" (cd /d "%SystemDrive%\inetpub" && dir /s/b /a:-d-l web.config == *.log 2>nul)
+if exist "%SystemDrive%\inetpub\" CALL :ListFiles "%SystemDrive%\inetpub" "web.config *.log"
 ECHO.
 CALL :T_Progress 2
 
@@ -717,6 +721,15 @@ IF /I "%~1" == "--pause" PAUSE >NUL
 EXIT /B
 
 :::-Subroutines
+
+:ListFiles
+REM List matching names without entering junctions when robocopy is available.
+if "%PEAS_HAS_ROBOCOPY%" == "true" (
+    robocopy "%~1" "%TEMP%\winpeas-list-only" %~2 /L /S /XJ /R:0 /W:0 /NJH /NJS /NDL /NP /FP /NS /NC
+) else (
+    pushd "%~1" 2>nul && (dir /s/b /a:-d-l %~2 2>nul & popd)
+)
+EXIT /B
 
 :SetOnce
 REM :: ANSI escape character is set once below - for ColorLine Subroutine
