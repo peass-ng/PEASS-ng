@@ -1811,15 +1811,9 @@ else {
     $recvValue = Get-NtlmRestrictionValue $ntlmStatus.RestrictReceiving
     $sendValue = Get-NtlmRestrictionValue $ntlmStatus.RestrictSending
     $ntlmMsg = "Receiving:{0} Sending:{1} LMCompat:{2}" -f $recvValue, $sendValue, $lmValue
-    if ($recvValue -ge 1 -or $sendValue -ge 1 -or ($lmReview -ne 'Unknown' -and $lmValue -ge 5)) {
-      Write-Host "[!] NTLM is restricted/disabled ($ntlmMsg). Expect Kerberos-only auth paths (sync time before Kerberoasting)." -ForegroundColor Yellow
-    }
-    elseif ($recvValue -lt 0 -or $sendValue -lt 0 -or $lmReview -eq 'Unknown') {
-      Write-Host "[i] NTLM restriction values: $ntlmMsg; one or more effective policy values are unknown."
-    }
-    else {
-      Write-Host "[i] NTLM restrictions appear relaxed ($ntlmMsg)."
-    }
+    Write-Host "[i] NTLM restriction values: $ntlmMsg."
+    Write-Host "[i] Receiving: 0 allows all, 1 denies domain accounts, 2 denies all; Sending: 0 allows, 1 audits only, 2 denies. A value of -1 is unknown."
+    Write-Host "[i] LMCompat 5 refuses LM/NTLMv1 but still permits NTLMv2. These values do not establish Kerberos-only authentication; verify effective policy and exceptions."
   }
 
   $machineQuota = Get-DomainMachineAccountQuota -DomainContext $domainContext
