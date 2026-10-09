@@ -2504,12 +2504,12 @@ search:
                 type: f
                 search_in:
                   - common
-                 
+
   - name: Knockd
     value:
         config:
           auto_check: True
-    
+
         files:
           - name: "*knockd*"
             value: 
