@@ -9,7 +9,7 @@
 # Functions Used: print_2title, print_3title
 # Global Variables: $containerType, $EXTRA_CHECKS
 # Initial Functions: containerCheck
-# Generated Global Variables: $k8s_access_exit, $k8s_access_http, $k8s_access_json, $k8s_access_response, $k8s_access_result, $k8s_aws_bucket, $k8s_cap_eff, $k8s_cap_low, $k8s_cfg, $k8s_cfg_env, $k8s_context_name, $k8s_count, $k8s_current_context, $k8s_dir, $k8s_direct_base, $k8s_direct_ca, $k8s_direct_host, $k8s_direct_port, $k8s_direct_token, $k8s_direct_token_file, $k8s_docker_host, $k8s_file, $k8s_gcs_bucket, $k8s_mount, $k8s_mount_options, $k8s_mount_root, $k8s_namespace, $k8s_node_address, $k8s_node_addresses, $k8s_node_name, $k8s_ns_one, $k8s_ns_self, $k8s_pid, $k8s_probe_host, $k8s_probe_port, $k8s_probe_scheme, $k8s_probe_status, $k8s_rc, $k8s_readable, $k8s_root, $k8s_root_count, $k8s_runc_version, $k8s_secret_response, $k8s_secret_exit, $k8s_secret_http, $k8s_secret_json, $k8s_secret_summary, $k8s_socket, $k8s_writable, $count, $keys, $continued
+# Generated Global Variables: $k8s_access_exit, $k8s_access_http, $k8s_access_json, $k8s_access_response, $k8s_access_result, $k8s_aws_bucket, $k8s_cap_eff, $k8s_cap_low, $k8s_cfg, $k8s_cfg_env, $k8s_context_name, $k8s_count, $k8s_current_context, $k8s_dir, $k8s_direct_base, $k8s_direct_ca, $k8s_direct_host, $k8s_direct_port, $k8s_direct_token, $k8s_direct_token_file, $k8s_docker_host, $k8s_file, $k8s_gcs_bucket, $k8s_mount, $k8s_mount_options, $k8s_mount_root, $k8s_namespace, $k8s_node_address, $k8s_node_addresses, $k8s_node_name, $k8s_ns_one, $k8s_ns_self, $k8s_pid, $k8s_probe_host, $k8s_probe_port, $k8s_probe_scheme, $k8s_probe_status, $k8s_rc, $k8s_readable, $k8s_root, $k8s_root_count, $k8s_runc_version, $k8s_secret_response, $k8s_secret_exit, $k8s_secret_http, $k8s_secret_json, $k8s_secret_summary, $k8s_socket, $k8s_writable, $count, $keys, $continued, $k8s_curl_limit
 # Fat linpeas: 0
 # Small linpeas: 0
 
@@ -371,20 +371,36 @@ k8s_sa_api_get() {
       "$k8s_direct_base$1" 2>/dev/null
 }
 
+# Bound captured bytes even on curl versions whose --max-filesize only checks
+# Content-Length. Keep curl's exit status in-band because head owns the pipeline
+# status. A final dot preserves trailing newlines in command substitutions.
+# Callers reserve 15 bytes: HTTP status (4), exit trailer (up to 10), and
+# one over-limit byte. Reject that extra byte before parsing any response.
+k8s_bounded_curl() (
+  k8s_curl_limit=$1
+  shift
+  { curl "$@"; printf '\nexit=%s\n' "$?"; } | head -c "$k8s_curl_limit"
+  printf '.'
+)
+
 k8s_sa_kube_system_secret_access() {
   # SelfSubjectAccessReview evaluates the mounted token without reading Secrets.
   k8s_access_response="$(printf 'header = "Authorization: Bearer %s"\n' "$k8s_direct_token" |
-    curl -q --config - -fsS --connect-timeout 2 --max-time 5 --max-filesize 4096 \
+    k8s_bounded_curl 4111 -q --config - -fsS --connect-timeout 2 --max-time 5 --max-filesize 4096 \
       --cacert "$k8s_direct_ca" -H 'Accept: application/json' \
       -H 'Content-Type: application/json' \
       --data-binary '{"apiVersion":"authorization.k8s.io/v1","kind":"SelfSubjectAccessReview","spec":{"resourceAttributes":{"namespace":"kube-system","verb":"list","resource":"secrets"}}}' \
       -w '\n%{http_code}' \
       "$k8s_direct_base/apis/authorization.k8s.io/v1/selfsubjectaccessreviews" 2>/dev/null)"
-  k8s_access_exit=$?
-  if [ "${#k8s_access_response}" -gt 4100 ]; then
+  k8s_access_response=${k8s_access_response%.}
+  if [ "$(printf '%s' "$k8s_access_response" | wc -c)" -gt 4110 ]; then
     echo unknown
     return
   fi
+  k8s_access_exit="$(printf '%s' "$k8s_access_response" | tail -n 1)"
+  k8s_access_exit=${k8s_access_exit#exit=}
+  k8s_access_response=${k8s_access_response%exit=*}
+  k8s_access_response=${k8s_access_response%?}
   k8s_access_http="$(printf '%s' "$k8s_access_response" | tail -c 3)"
   case "$k8s_access_exit:$k8s_access_http" in 0:200|0:201) ;; *) echo unknown; return ;; esac
   k8s_access_json="${k8s_access_response%????}"
@@ -403,16 +419,20 @@ k8s_sa_kube_system_secret_access() {
 
 k8s_scan_sa_secrets() {
   # The API response contains values; keep it in memory and emit only selected metadata.
-  # curl's size limit bounds the response even when the server ignores ?limit=100.
+  # Bound the capture independently of Content-Length and curl version.
   k8s_secret_response="$(printf 'header = "Authorization: Bearer %s"\n' "$k8s_direct_token" |
-    curl -q --config - -fsS --connect-timeout 2 --max-time 5 --max-filesize 1048576 \
+    k8s_bounded_curl 1048591 -q --config - -fsS --connect-timeout 2 --max-time 5 --max-filesize 1048576 \
       --cacert "$k8s_direct_ca" -H 'Accept: application/json' -w '\n%{http_code}' \
       "$k8s_direct_base/api/v1/namespaces/$k8s_namespace/secrets?limit=40" 2>/dev/null)"
-  k8s_secret_exit=$?
-  if [ "${#k8s_secret_response}" -gt 1048580 ]; then
+  k8s_secret_response=${k8s_secret_response%.}
+  if [ "$(printf '%s' "$k8s_secret_response" | wc -c)" -gt 1048590 ]; then
     echo '    secrets: response exceeded 1 MiB; inventory skipped'
     return
   fi
+  k8s_secret_exit="$(printf '%s' "$k8s_secret_response" | tail -n 1)"
+  k8s_secret_exit=${k8s_secret_exit#exit=}
+  k8s_secret_response=${k8s_secret_response%exit=*}
+  k8s_secret_response=${k8s_secret_response%?}
   k8s_secret_http="$(printf '%s' "$k8s_secret_response" | tail -c 3)"
   case "$k8s_secret_exit:$k8s_secret_http" in
     0:200) ;;

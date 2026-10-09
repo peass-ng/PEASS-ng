@@ -332,6 +332,36 @@ class KubernetesSurfacesTests(unittest.TestCase):
         )
         return output, calls.read_text().splitlines()
 
+    def test_bounded_curl_capture_preserves_status_and_trailing_newlines(self):
+        output = self.run_shell(
+            "curl() { printf 'body\\n200'; return 22; }; "
+            "k8s_bounded_curl 4111"
+        )
+        self.assertEqual("body\n200\nexit=22\n.", output)
+        output = self.run_shell(
+            "curl() { printf '%5000s' ''; printf '\\n\\n'; }; "
+            "k8s_bounded_curl 4111"
+        )
+        self.assertEqual(4112, len(output.encode()))
+        self.assertTrue(output.endswith("."))
+
+    def test_access_review_capture_is_bounded_without_content_length(self):
+        output = self.run_shell(
+            "curl() { printf '%100000s' ''; }; "
+            "k8s_sa_kube_system_secret_access; "
+            "printf '%s' \"$k8s_access_response\" | wc -c"
+        )
+        self.assertEqual(["unknown", "4111"], output.splitlines())
+
+    def test_secret_capture_is_bounded_without_content_length(self):
+        output = self.run_shell(
+            "curl() { printf '%2000000s' ''; }; "
+            "k8s_scan_sa_secrets; "
+            "printf '%s' \"$k8s_secret_response\" | wc -c"
+        )
+        self.assertIn("response exceeded 1 MiB; inventory skipped", output)
+        self.assertEqual("1048591", output.splitlines()[-1])
+
     def test_secret_inventory_only_prints_bounded_metadata(self):
         with tempfile.TemporaryDirectory() as root:
             items = [
