@@ -48,7 +48,11 @@ class SudoPythonBytecodeCacheTests(unittest.TestCase):
             sudo.write_text("#!/bin/sh\nprintf '%s\\n' \"$FAKE_SUDO_RULE\"\n")
             sudo.chmod(0o755)
             timeout = bindir / "timeout"
-            timeout.write_text("#!/bin/sh\nshift\nexec \"$@\"\n")
+            timeout.write_text(
+                '#!/bin/sh\n'
+                '[ "$1" = -k ] && [ "$2" = 1 ] && [ "$3" = 2 ] || exit 2\n'
+                'shift 3\nexec "$@"\n'
+            )
             timeout.chmod(0o755)
             if fake_root_owned:
                 stat = bindir / "stat"
@@ -130,6 +134,10 @@ class SudoPythonBytecodeCacheTests(unittest.TestCase):
     def test_limits_imports_to_first_twenty(self):
         source = "".join(f"import item{i}\n" for i in range(20)) + "import helper\n"
         output, _, _, _ = self.run_case(source=source)
+        self.assertNotIn("bytecode cache review", output)
+
+    def test_version_probe_output_is_bounded(self):
+        output, _, _, _ = self.run_case(version="x" * 4096 + "\nPython 3.12.3")
         self.assertNotIn("bytecode cache review", output)
 
     def test_quotes_paths_as_data(self):

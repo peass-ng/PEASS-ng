@@ -51,11 +51,12 @@ inetd_telnet_cve_hint() {
         if [ "$server" != "$checked_binary" ]; then
             checked_binary=$server
             version_output=''
-            # A non-GNU daemon may not support --version; never run it unbounded.
+            # A non-GNU daemon may not support --version or honor SIGTERM.
+            # Bound both the process lifetime and captured output.
             case "$server" in
                 /*) if [ -x "$server" ] && [ "${inetd_telnet_probe_count:-0}" -lt 4 ] && command -v timeout >/dev/null 2>&1; then
                         inetd_telnet_probe_count=$((inetd_telnet_probe_count + 1))
-                        version_output=$(timeout 1 "$server" --version 2>&1)
+                        version_output=$(timeout -k 1 1 "$server" --version 2>&1 | head -c 4096)
                     fi ;;
             esac
         fi

@@ -569,9 +569,9 @@ if [ "$sudo_python_cache_scripts" ]; then
     esac
     [ -x "$sudo_python_cache_interpreter" ] || continue
     if [ "$TIMEOUT" ]; then
-      sudo_python_cache_version=$("$TIMEOUT" 2 "$sudo_python_cache_interpreter" -I -S --version 2>&1)
+      sudo_python_cache_version=$("$TIMEOUT" -k 1 2 "$sudo_python_cache_interpreter" -I -S --version 2>&1 | head -c 4096)
     elif command -v timeout >/dev/null 2>&1; then
-      sudo_python_cache_version=$(timeout 2 "$sudo_python_cache_interpreter" -I -S --version 2>&1)
+      sudo_python_cache_version=$(timeout -k 1 2 "$sudo_python_cache_interpreter" -I -S --version 2>&1 | head -c 4096)
     else
       continue
     fi
@@ -662,9 +662,9 @@ if [ "$sudo_python_tar_commands" ]; then
     case "$sudo_python_tar_size" in ''|*[!0-9]*) continue ;; esac
     [ "$sudo_python_tar_size" -le 65536 ] || continue
     if [ "$TIMEOUT" ]; then
-      sudo_python_version=$("$TIMEOUT" 2 "$sudo_python_binary" -I -S --version 2>&1)
+      sudo_python_version=$("$TIMEOUT" -k 1 2 "$sudo_python_binary" -I -S --version 2>&1 | head -c 4096)
     elif command -v timeout >/dev/null 2>&1; then
-      sudo_python_version=$(timeout 2 "$sudo_python_binary" -I -S --version 2>&1)
+      sudo_python_version=$(timeout -k 1 2 "$sudo_python_binary" -I -S --version 2>&1 | head -c 4096)
     else
       continue
     fi

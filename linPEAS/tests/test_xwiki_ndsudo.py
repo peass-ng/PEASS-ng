@@ -93,11 +93,12 @@ class NdsudoCandidateTests(unittest.TestCase):
             marker = Path(tmp) / "executed"
             helper.write_text(f"#!/bin/sh\ntouch '{marker}'\n")
             helper.chmod(mode)
+            stat_guard = '[ "$1" = -f ] || return 1;' if bsd_stat else ''
             shell = (
                 "print_2title() { :; }; print_info() { :; }; echo_not_found() { :; }; "
                 "check_privileged_file_location() { :; }; "
                 f"find() {{ printf '%s\\n' '{helper}'; }}; "
-                f"stat() {{ {'[ "$1" = -f ] || return 1;' if bsd_stat else ''} "
+                f"stat() {{ {stat_guard} "
                 f"printf '%s\\n' '{uid}'; }}; "
                 f"findmnt() {{ printf '%s\\n' '{mount}'; }}; "
                 "awk() { if [ \"$2\" = /proc/self/status ]; then "

@@ -35,7 +35,12 @@ class InetdTelnetCVE202624061Tests(unittest.TestCase):
             bindir = base / "bin"
             bindir.mkdir()
             timeout = bindir / "timeout"
-            timeout.write_text('#!/bin/sh\nshift\nexec "$@"\n', encoding="utf-8")
+            timeout.write_text(
+                '#!/bin/sh\n'
+                '[ "$1" = -k ] && [ "$2" = 1 ] && [ "$3" = 1 ] || exit 2\n'
+                'shift 3\nexec "$@"\n',
+                encoding="utf-8",
+            )
             timeout.chmod(0o755)
             calls = base / "calls"
             env = os.environ.copy()
@@ -102,6 +107,16 @@ class InetdTelnetCVE202624061Tests(unittest.TestCase):
         self.assertIn("implementation/version unknown", result.stdout)
         self.assertNotIn("upstream affected range", result.stdout)
         self.assertNotIn("vulnerable", result.stdout.lower())
+
+    def test_version_probe_output_is_bounded(self):
+        result, calls = self._run_hint(
+            "telnet stream tcp nowait root {daemon} in.telnetd\n",
+            "x" * 4096 + "\ntelnetd (GNU inetutils) 2.7",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, "--version\n")
+        self.assertIn("implementation/version unknown", result.stdout)
+        self.assertNotIn("upstream affected range", result.stdout)
 
     def test_gnu_version_outside_range_is_distinguished(self):
         result, _ = self._run_hint(

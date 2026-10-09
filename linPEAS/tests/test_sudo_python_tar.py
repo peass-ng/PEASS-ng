@@ -80,7 +80,11 @@ class SudoPythonTarTests(unittest.TestCase):
             sudo.chmod(0o755)
             # The module requires a timeout for bounded interpreter inspection.
             timeout = bindir / "timeout"
-            timeout.write_text("#!/bin/sh\nshift\nexec \"$@\"\n")
+            timeout.write_text(
+                '#!/bin/sh\n'
+                '[ "$1" = -k ] && [ "$2" = 1 ] && [ "$3" = 2 ] || exit 2\n'
+                'shift 3\nexec "$@"\n'
+            )
             timeout.chmod(0o755)
             env = os.environ.copy()
             env.update({
@@ -130,6 +134,10 @@ class SudoPythonTarTests(unittest.TestCase):
                         "3.13.4", "3.14.0"):
             with self.subTest(version=version):
                 self.assertNotIn("archive extraction review", self.run_case(version=version))
+
+    def test_version_probe_output_is_bounded(self):
+        output = self.run_case(version="x" * 4096 + "\nPython 3.12.3")
+        self.assertNotIn("archive extraction review", output)
 
     def test_skips_when_control_or_source_flow_is_missing(self):
         variants = (
