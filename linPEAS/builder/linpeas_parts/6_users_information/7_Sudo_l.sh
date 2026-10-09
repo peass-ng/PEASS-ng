@@ -2,9 +2,9 @@
 # ID: UG_Sudo_l
 # Author: Carlos Polop
 # Last Update: 09-10-2026
-# Description: Checking 'sudo -l', sudoers files, privileged config, process tracing, container exec and compose wrappers, packet-filter export, PDF attachments, PostScript conversion, Bash pattern comparisons, relative working-directory helpers and cp globs, temporary-file name races, FreeBSD pkg repository trust, PyInstaller build wrappers, preset and PHP CLI loaders, privileged Neofetch and Facter configuration, and privileged Python imports, environment paths, caches, debugger entry, archive extraction, model loading, and Git transport
+# Description: Checking 'sudo -l', sudoers files, privileged config, backup repository arguments, process tracing, container exec and compose wrappers, packet-filter export, PDF attachments, PostScript conversion, Bash pattern comparisons, relative working-directory helpers and cp globs, temporary-file name races, FreeBSD pkg repository trust, PyInstaller build wrappers, preset and PHP CLI loaders, privileged Neofetch and Facter configuration, and privileged Python imports, environment paths, caches, debugger entry, archive extraction, model loading, and Git transport
 # License: GNU GPL
-# Version: 1.8
+# Version: 1.9
 # Mitre: T1548.003
 # Functions Used: check_sudo_terraform_override, echo_not_found, lp_trusted_version_path, print_2title, print_info
 # Global Variables:$IAMROOT, $PASSWORD, $TIMEOUT, $ROOT_FOLDER, $TMPDIR, $sudoB, $sudoG, $sudoVB1, $sudoVB2
@@ -875,8 +875,10 @@ sudo_adduser_group_review "$sudo_l_cached_output" "$sudo_l_password_output" "$su
   sed -${E} "s,.*,${SED_RED_YELLOW},"
 
 # A bare root-capable restic command permits caller-selected arguments under
-# sudoers syntax. This is a review lead only; later exclusions, authentication,
-# and effective policy still need checking. Never invoke the password helper.
+# sudoers syntax. A backup rule ending in an argument wildcard may also admit a
+# caller-selected source after the repository. These are review leads only;
+# later exclusions, repository access, and effective policy need checking.
+# Never invoke a password helper or backup to test them.
 printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" | awk '
   NR > 3000 { exit }
   length($0) > 2048 { next }
@@ -899,10 +901,14 @@ printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l
         sub(/^[A-Z_]+:[[:space:]]*/, "", command)
       if (command ~ /^!\/[^[:space:]]*\/restic([[:space:]]|$)/) denied = 1
       else if (command ~ /^\/[^[:space:]]*\/restic$/) found = 1
+      else if (command ~ /^\/[^[:space:]]*\/restic[[:space:]]+backup[[:space:]]+-r[[:space:]]+[^[:space:]]*\*$/ ||
+               command ~ /^\/[^[:space:]]*\/restic[[:space:]]+backup[[:space:]]+--repo(=|[[:space:]]+)[^[:space:]]*\*$/)
+        backup_found = 1
     }
   }
   END {
     if (found && !denied) print "Sudo restic password-command review candidate: a root-capable argument-free grant may allow a caller-selected --password-command; verify effective policy and authentication."
+    if (backup_found && !denied) print "Sudo restic backup disclosure review candidate: a root-capable backup grant ends in an argument wildcard; verify effective policy, caller control of the source, repository access/decryption, and resulting object permissions."
   }
 ' | sed -${E} "s,.*,${SED_RED_YELLOW},"
 

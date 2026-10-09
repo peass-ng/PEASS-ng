@@ -2,14 +2,14 @@
 # ID: IP_SUID
 # Author: Carlos Polop, HT Bot
 # Last Update: 09-10-2026
-# Description: SUID - Check easy privesc, exploits, write perms, and risky file placement
+# Description: SUID - Check easy privesc, exploits, write perms, risky file placement, and identity-helper candidates
 # License: GNU GPL
-# Version: 1.4
+# Version: 1.5
 # Mitre: T1548.001
 # Functions Used: check_privileged_file_location, echo_not_found, print_2title, print_info
 # Global Variables: $IAMROOT, $LDD, $ROOT_FOLDER, $READELF, $sidB, $sidG1, $sidG2, $sidG3, $sidG4, $sidVB, $sidVB2, $STRACE, $STRINGS, $TIMEOUT, $Wfolders, $cfuncs
 # Initial Functions:
-# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH, $ndsudo_uid, $ndsudo_nnp, $ndsudo_mount_options, $ndsudo_uncertainty, $pinns_uid, $pinns_nnp, $pinns_mount_options, $pinns_uncertainty, $jjs_nnp, $jjs_mount_options
+# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH, $ndsudo_uid, $ndsudo_nnp, $ndsudo_mount_options, $ndsudo_uncertainty, $pinns_uid, $pinns_nnp, $pinns_mount_options, $pinns_uncertainty, $jjs_nnp, $jjs_mount_options, $gosu_nnp, $gosu_mount_options
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -94,6 +94,21 @@ printf "%s\n" "$suids_files" | while IFS= read -r sfile; do
       echo "  jjs: SUID transition blocked by nosuid mount options."
     else
       echo "  jjs SUID file-access review candidate: root-owned and caller-executable; verify effective UID, mount/NoNewPrivs policy, and installed JVM behavior without running it."
+    fi
+  elif [ "${sname##*/}" = gosu ] && [ ! "$IAMROOT" ] &&
+       [ -u "$sname" ] && [ -x "$sname" ] &&
+       [ "$(stat -c '%u' "$sname" 2>/dev/null || stat -f '%u' "$sname" 2>/dev/null)" = 0 ]; then
+    # A SUID identity-switching helper is a lead; never invoke it to test.
+    echo "$s"
+    gosu_nnp=$(awk '/^NoNewPrivs:/ {print $2; exit}' /proc/self/status 2>/dev/null)
+    gosu_mount_options=$(findmnt -no OPTIONS -T "$sname" 2>/dev/null | head -n 1)
+    if [ "$gosu_nnp" = 1 ]; then
+      echo "  gosu: SUID transition blocked by NoNewPrivs for this process tree."
+    elif echo ",$gosu_mount_options," | grep -q ',nosuid,'; then
+      echo "  gosu: SUID transition blocked by nosuid mount options."
+    else
+      echo "  gosu SUID review candidate: root-owned and caller-executable; NoNewPrivs=${gosu_nnp:-unknown}; mount options=${gosu_mount_options:-unknown}."
+      echo "  Verify effective identity, user-namespace mapping, and installed helper behavior; this does not establish host-root access. No helper execution performed."
     fi
   else
     c="a"

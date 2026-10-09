@@ -983,7 +983,7 @@ search:
         files:
           - name:  "supervisord.conf"
             value: 
-              bad_regex: "port.*=|username.*=|password.*="
+              bad_regex: "port.*=|username.*=|password.*=|^[[:space:]]*files[[:space:]]*="
               only_bad_lines: True
               type: f
               search_in: 
@@ -4508,6 +4508,54 @@ search:
                 search_in: 
                   - common
 
+  - name: Webmin administration configuration
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "webmin.acl"
+            value:
+                # Module grants are a manual review lead; do not print identities.
+                # The cached path may include an offline ROOT_FOLDER prefix.
+                check_extra_path: '/etc/webmin/webmin\.acl$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "miniserv.conf"
+            value:
+                # Server settings can contain authentication material.
+                check_extra_path: '/etc/webmin/miniserv\.conf$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+  - name: PostgreSQL NSS configuration
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "nss-pgsql.conf"
+            value:
+                # Connection settings can contain credentials; report paths only.
+                check_extra_path: '/etc/nss-pgsql\.conf$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
+          - name: "nss-pgsql-root.conf"
+            value:
+                check_extra_path: '/etc/nss-pgsql-root\.conf$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
   - name: Cobbler
     value:
         config:
@@ -5377,6 +5425,21 @@ search:
                 type: f
                 search_in:
                   - common
+
+  - name: Shadow backup candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "shadow.bak"
+            value:
+                check_extra_path: '/var/backups/shadow\.bak$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}var
 
   - name: Backups
     value:

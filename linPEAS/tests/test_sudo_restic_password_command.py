@@ -86,6 +86,44 @@ class SudoResticPasswordCommandTests(unittest.TestCase):
         )
         self.assertEqual(output.count("Sudo restic password-command review candidate"), 1)
 
+    def test_backup_repository_wildcard_is_conditional_candidate(self):
+        for command in (
+            "/usr/bin/restic backup -r rest*",
+            "/usr/local/bin/restic backup --repo=rest:http://backup/*",
+            "/usr/bin/restic backup --repo rest*",
+        ):
+            with self.subTest(command=command):
+                output = self.run_policy(f"    (root) NOPASSWD: {command}")
+                self.assertEqual(output.count("Sudo restic backup disclosure review candidate"), 1)
+                self.assertIn("verify effective policy", output)
+                self.assertNotIn("confirmed disclosure", output)
+                self.assertNotIn("Sudo restic password-command review candidate", output)
+
+    def test_fixed_nonroot_and_negated_backup_rules_do_not_trigger(self):
+        policies = (
+            "    (root) NOPASSWD: /usr/bin/restic backup -r rest:http://fixed/repo /fixed/source",
+            "    (root) NOPASSWD: /usr/bin/restic backup -r rest* /fixed/source",
+            "    (root) NOPASSWD: /usr/bin/restic check -r rest*",
+            "    (operator) NOPASSWD: /usr/bin/restic backup -r rest*",
+            "    (ALL, !root) NOPASSWD: /usr/bin/restic backup -r rest*",
+            "    (root) NOPASSWD: !/usr/bin/restic backup -r rest*",
+            "    (root) NOPASSWD: /usr/bin/restic backup -r rest*, !/usr/bin/restic backup -r rest*",
+            "    (root) NOPASSWD: /usr/bin/restic-helper backup -r rest*",
+            "log: /usr/bin/restic backup -r rest*",
+        )
+        for policy in policies:
+            with self.subTest(policy=policy):
+                self.assertNotIn(
+                    "Sudo restic backup disclosure review candidate",
+                    self.run_policy(policy),
+                )
+
+    def test_backup_comma_rule_and_duplicate_sudo_output_emit_once(self):
+        output = self.run_policy(
+            "    (root) NOPASSWD: /bin/true, /usr/bin/restic backup -r rest*"
+        )
+        self.assertEqual(output.count("Sudo restic backup disclosure review candidate"), 1)
+
     def test_shell_syntax_and_metadata(self):
         from linPEAS.builder.src.linpeasModule import LinpeasModule
 
