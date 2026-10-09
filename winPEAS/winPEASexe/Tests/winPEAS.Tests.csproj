@@ -101,6 +101,7 @@
     <Compile Include="AdcsLocalRegistryTests.cs" />
     <Compile Include="Esc1TemplateCandidateTests.cs" />
     <Compile Include="BitLockerDataAndRecoveryArtifactTests.cs" />
+    <Compile Include="PasswordSafeFileSelectorTests.cs" />
     <Compile Include="SqlSetupConfigurationIndicatorTests.cs" />
     <Compile Include="ArgumentParsingTests.cs" />
     <Compile Include="AutoLogonTests.cs" />
@@ -142,6 +143,8 @@
     <Compile Include="RecycleBinArchiveIndicatorTests.cs" />
     <Compile Include="MRemoteNgConnectionFilesTests.cs" />
     <Compile Include="RemoteDesktopPlusProfilesTests.cs" />
+    <Compile Include="SolarPuttyFilePathTests.cs" />
+    <Compile Include="GiteaAndVisualStudioCandidateTests.cs" />
     <Compile Include="VelociraptorServerConfigTests.cs" />
     <Compile Include="Pdf24RepairPrerequisitesTests.cs" />
   </ItemGroup>

@@ -14,6 +14,7 @@ namespace winPEAS.Helpers.Search
             ".mdb",
             ".p12",
             ".pfx",
+            ".psafe3",
         };
 
         public static readonly HashSet<string> WhiteListExactfilenamesWithExtensions = new HashSet<string>()

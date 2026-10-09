@@ -88,6 +88,51 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void StandaloneRunnerSidecarsUseExplicitTaskWorkingDirectory()
+        {
+            bool inferred;
+            List<string> paths = PrivilegedScheduledTasks.GetStandaloneRunnerSidecarPaths(
+                @"C:\Program Files (x86)\Windows Kits\10\Testing\StandaloneTesting\Internal\x64\standalonerunner.exe",
+                @"C:\Driver Tests\Inputs\", out inferred);
+
+            Assert.IsFalse(inferred);
+            CollectionAssert.AreEqual(new List<string>
+            {
+                @"C:\Driver Tests\Inputs\command.txt",
+                @"C:\Driver Tests\Inputs\reboot.rsf",
+            }, paths);
+        }
+
+        [TestMethod]
+        public void StandaloneRunnerSidecarsMarkExecutableParentAsInferred()
+        {
+            bool inferred;
+            List<string> paths = PrivilegedScheduledTasks.GetStandaloneRunnerSidecarPaths(
+                @"C:\Driver Tests\StandaloneRunner.EXE", null, out inferred);
+
+            Assert.IsTrue(inferred);
+            CollectionAssert.AreEqual(new List<string>
+            {
+                @"C:\Driver Tests\command.txt",
+                @"C:\Driver Tests\reboot.rsf",
+            }, paths);
+        }
+
+        [TestMethod]
+        public void StandaloneRunnerSidecarsRejectOtherToolsAndUnresolvedDirectories()
+        {
+            bool inferred;
+            Assert.AreEqual(0, PrivilegedScheduledTasks.GetStandaloneRunnerSidecarPaths(
+                @"C:\Driver Tests\another-runner.exe", @"C:\Driver Tests", out inferred).Count);
+            Assert.AreEqual(0, PrivilegedScheduledTasks.GetStandaloneRunnerSidecarPaths(
+                @"C:\Driver Tests\StandaloneRunner.exe", @"\\server\share\inputs", out inferred).Count);
+            Assert.AreEqual(0, PrivilegedScheduledTasks.GetStandaloneRunnerSidecarPaths(
+                "StandaloneRunner.exe", null, out inferred).Count);
+            Assert.AreEqual(0, PrivilegedScheduledTasks.GetStandaloneRunnerSidecarPaths(
+                @"C:\Driver Tests\StandaloneRunner.exe", @".\inputs", out inferred).Count);
+        }
+
+        [TestMethod]
         public void IgnoresInlineInterpreterCodeThatLooksLikeAPath()
         {
             List<string> paths = PrivilegedScheduledTasks.ExtractReferencedFilePaths(

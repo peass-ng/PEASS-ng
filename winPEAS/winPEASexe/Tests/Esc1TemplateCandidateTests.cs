@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.DirectoryServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using winPEAS.Checks;
@@ -81,6 +82,114 @@ namespace winPEAS.Tests
         {
             Assert.AreEqual("minimum key size 4096", ActiveDirectoryInfo.DescribeTemplateMinimumKeySize(4096));
             Assert.AreEqual("minimum key size unknown", ActiveDirectoryInfo.DescribeTemplateMinimumKeySize(null));
+        }
+
+        [TestMethod]
+        public void Esc9RequiresNoSecurityExtensionAndClientAuthentication()
+        {
+            Assert.AreEqual(ActiveDirectoryInfo.Esc9TemplateStatus.Candidate,
+                ActiveDirectoryInfo.AssessEsc9Template(0x80000, 0, ClientAuth));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc9TemplateStatus.Candidate,
+                ActiveDirectoryInfo.AssessEsc9Template(0x80000, 0, new[] { "2.5.29.37.0" }));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc9TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc9Template(0, 0, ClientAuth));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc9TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc9Template(0x80000, 0, new[] { "1.3.6.1.5.5.7.3.1" }));
+        }
+
+        [TestMethod]
+        public void Esc9ApprovalOrSignaturesExcludeThisPassivePath()
+        {
+            Assert.AreEqual(ActiveDirectoryInfo.Esc9TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc9Template(0x80002, 0, ClientAuth));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc9TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc9Template(0x80000, 1, ClientAuth));
+        }
+
+        [TestMethod]
+        public void Esc9IncompleteAttributesRemainUnknown()
+        {
+            Assert.AreEqual(ActiveDirectoryInfo.Esc9TemplateStatus.Unknown,
+                ActiveDirectoryInfo.AssessEsc9Template(null, 0, ClientAuth));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc9TemplateStatus.Unknown,
+                ActiveDirectoryInfo.AssessEsc9Template(0x80000, null, ClientAuth));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc9TemplateStatus.Unknown,
+                ActiveDirectoryInfo.AssessEsc9Template(0x80000, 0, null));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc9TemplateStatus.Unknown,
+                ActiveDirectoryInfo.AssessEsc9Template(0x80000, 0, new string[0]));
+        }
+
+        [TestMethod]
+        public void Esc13RequiresExactLinkedIssuancePolicyAndAuthentication()
+        {
+            var links = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                { "1.2.3.4", "CN=LinkedGroup,DC=example,DC=test" }
+            };
+            string group;
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.Candidate,
+                ActiveDirectoryInfo.AssessEsc13Template(new[] { "1.2.3.4" }, links, true,
+                    0, 0, ClientAuth, out group));
+            Assert.AreEqual("CN=LinkedGroup,DC=example,DC=test", group);
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc13Template(new[] { "1.2.3.40" }, links, true,
+                    0, 0, ClientAuth, out group));
+            Assert.IsNull(group);
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc13Template(new string[0], links, false,
+                    0, 0, ClientAuth, out group));
+        }
+
+        [TestMethod]
+        public void Esc13IncompleteOidLookupAndConflictingRecordsRemainUnknown()
+        {
+            string group;
+            var links = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                { "1.2.3.4", string.Empty }
+            };
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.Unknown,
+                ActiveDirectoryInfo.AssessEsc13Template(new[] { "1.2.3.4" }, links, true,
+                    0, 0, ClientAuth, out group));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.Unknown,
+                ActiveDirectoryInfo.AssessEsc13Template(new[] { "1.2.3.5" }, links, false,
+                    0, 0, ClientAuth, out group));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.Unknown,
+                ActiveDirectoryInfo.AssessEsc13Template(new[] { "1.2.3.4" }, links, false,
+                    0, 0, ClientAuth, out group));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.Unknown,
+                ActiveDirectoryInfo.AssessEsc13Template(null, links, true,
+                    0, 0, ClientAuth, out group));
+            links.Add("1.2.3.6", "CN=OtherLinkedGroup");
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.Candidate,
+                ActiveDirectoryInfo.AssessEsc13Template(new[] { "1.2.3.4", "1.2.3.6" }, links, true,
+                    0, 0, ClientAuth, out group));
+            Assert.AreEqual("CN=OtherLinkedGroup", group);
+        }
+
+        [TestMethod]
+        public void Esc13IssuanceGatingAndEkuAreConservative()
+        {
+            var links = new Dictionary<string, string> { { "1.2.3.4", "CN=LinkedGroup" } };
+            string group;
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc13Template(new[] { "1.2.3.4" }, links, true,
+                    2, 0, ClientAuth, out group)); // Manager approval required.
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc13Template(new[] { "1.2.3.4" }, links, true,
+                    0, 1, ClientAuth, out group)); // Authorized signature required.
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.NotCandidate,
+                ActiveDirectoryInfo.AssessEsc13Template(new[] { "1.2.3.4" }, links, true,
+                    0, 0, new[] { "1.3.6.1.5.5.7.3.1" }, out group));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.Candidate,
+                ActiveDirectoryInfo.AssessEsc13Template(new[] { "1.2.3.4" }, links, true,
+                    0, 0, new[] { "2.5.29.37.0" }, out group));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.Unknown,
+                ActiveDirectoryInfo.AssessEsc13Template(new[] { "1.2.3.4" }, links, true,
+                    null, 0, ClientAuth, out group));
+            Assert.AreEqual(ActiveDirectoryInfo.Esc13TemplateStatus.Unknown,
+                ActiveDirectoryInfo.AssessEsc13Template(new[] { "1.2.3.4" }, links, true,
+                    0, 0, new string[0], out group));
         }
     }
 }

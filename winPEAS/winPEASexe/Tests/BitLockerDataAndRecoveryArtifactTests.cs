@@ -32,8 +32,12 @@ namespace winPEAS.Tests
             Assert.IsTrue(SearchHelper.ShouldRetainInventoryFile("BitLocker-backup.7z", ".7z"));
             Assert.IsTrue(SearchHelper.ShouldRetainInventoryFile("Backup_Credentials.7z", ".7z"));
             Assert.IsTrue(SearchHelper.ShouldRetainInventoryFile("recovery.zip", ".zip"));
+            Assert.IsTrue(SearchHelper.ShouldRetainInventoryFile("MEMORY.7z", ".7z"));
+            Assert.IsTrue(SearchHelper.ShouldRetainInventoryFile("memory.7Z", ".7z"));
             Assert.IsFalse(SearchHelper.ShouldRetainInventoryFile("photos.7z", ".7z"));
             Assert.IsFalse(SearchHelper.ShouldRetainInventoryFile("random.zip", ".zip"));
+            Assert.IsFalse(SearchHelper.ShouldRetainInventoryFile("memory-notes.7z", ".7z"));
+            Assert.IsFalse(SearchHelper.ShouldRetainInventoryFile("MEMORY.zip", ".zip"));
             Assert.IsFalse(SearchHelper.ShouldRetainInventoryFile("backup.png", ".png"));
         }
 
@@ -48,9 +52,26 @@ namespace winPEAS.Tests
                 File(@"C:\Users\A\Documents\Microsoft account - BitLocker.html")));
             Assert.AreEqual("backup/recovery archive candidate", SearchHelper.ClassifyMessengerOrRecoveryFile(
                 File(@"C:\Users\A\Documents\Backup_Credentials.7z")));
+            Assert.AreEqual("compressed system memory dump candidate", SearchHelper.ClassifyMessengerOrRecoveryFile(
+                File(@"C:\Users\A\Desktop\MEMORY.7z")));
             Assert.IsNull(SearchHelper.ClassifyMessengerOrRecoveryFile(File(@"C:\Users\A\Documents\OM.db3")));
             Assert.IsNull(SearchHelper.ClassifyMessengerOrRecoveryFile(File(@"C:\Users\A\Documents\capture.pcapng")));
             Assert.IsNull(SearchHelper.ClassifyMessengerOrRecoveryFile(File(@"C:\Users\A\Documents\photos.7z")));
+            Assert.IsNull(SearchHelper.ClassifyMessengerOrRecoveryFile(File(@"C:\Users\A\Desktop\memory-notes.7z")));
+        }
+
+        [TestMethod]
+        public void CachedMemoryArchiveCandidateIsMetadataOnlyAndDeduplicated()
+        {
+            var dump = File(@"C:\Users\A\Desktop\MEMORY.7z");
+            var nearName = File(@"C:\Users\A\Desktop\memory-notes.7z");
+            List<string> findings = SearchHelper.SearchMessengerAndRecoveryArtifacts(
+                new[] { dump, nearName }, new[] { dump });
+
+            Assert.AreEqual(1, findings.Count);
+            StringAssert.Contains(findings[0], dump.FullPath);
+            StringAssert.Contains(findings[0], "compressed system memory dump candidate");
+            StringAssert.Contains(findings[0], "12 bytes; contents not inspected");
         }
 
         [TestMethod]

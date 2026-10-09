@@ -462,6 +462,95 @@ namespace winPEAS.Info.ApplicationInfo
                     return;
                 }
             }
+
+            // StandaloneRunner reads these implicit inputs without naming them in
+            // the task action. Probe only this exact helper under the existing
+            // enabled LocalSystem task scope; the two inputs must both be writable.
+            if (targets.Count + 2 > MaxTargetsPerAction || ShouldStop(report))
+            {
+                return;
+            }
+
+            bool inferredDirectory;
+            List<string> sidecars = GetStandaloneRunnerSidecarPaths(
+                executable, workingDirectory, out inferredDirectory);
+            if (sidecars.Count != 2)
+            {
+                return;
+            }
+
+            string[] reasons = new string[2];
+            for (int index = 0; index < sidecars.Count; index++)
+            {
+                if (ShouldStop(report))
+                {
+                    return;
+                }
+
+                report.TargetsInspected++;
+                reasons[index] = GetWritableTargetReason(sidecars[index], unprivilegedSids);
+            }
+
+            if (!string.IsNullOrEmpty(reasons[0]) && !string.IsNullOrEmpty(reasons[1]))
+            {
+                report.Findings.Add(new PrivilegedScheduledTaskFinding
+                {
+                    TaskPath = taskPath,
+                    Principal = principal,
+                    Executable = executable,
+                    TargetPath = sidecars[0] + " and " + sidecars[1],
+                    AccessReason = "StandaloneRunner sidecar inputs: " + reasons[0] + "; " + reasons[1] +
+                        (inferredDirectory
+                            ? ". Inputs are adjacent to the executable; task working directory was unspecified, so confirm the runtime input directory."
+                            : ". Inputs are in the task working directory; confirm runtime consumption and project working-file prerequisites."),
+                });
+
+                if (GetFindingCount(report) >= MaxFindings)
+                {
+                    report.FindingLimitReached = true;
+                }
+            }
+        }
+
+        internal static List<string> GetStandaloneRunnerSidecarPaths(
+            string executable, string workingDirectory, out bool inferredFromExecutableParent)
+        {
+            inferredFromExecutableParent = false;
+            if (!GetFileName(executable).Equals("StandaloneRunner.exe", StringComparison.OrdinalIgnoreCase))
+            {
+                return new List<string>();
+            }
+
+            string directory = CleanCandidatePath(ExpandAndTrim(workingDirectory));
+            if (string.IsNullOrEmpty(directory))
+            {
+                string resolvedExecutable = CleanCandidatePath(ExpandAndTrim(executable));
+                if (!IsLocalAbsolutePath(resolvedExecutable))
+                {
+                    return new List<string>();
+                }
+
+                int separator = resolvedExecutable.LastIndexOf('\\');
+                if (separator < 3)
+                {
+                    return new List<string>();
+                }
+
+                directory = resolvedExecutable.Substring(0, separator);
+                inferredFromExecutableParent = true;
+            }
+
+            if (!IsLocalAbsolutePath(directory))
+            {
+                return new List<string>();
+            }
+
+            directory = directory.TrimEnd('\\');
+            return new List<string>
+            {
+                directory + @"\command.txt",
+                directory + @"\reboot.rsf",
+            };
         }
 
         internal static bool IsLocalSystemPrincipal(string principal)

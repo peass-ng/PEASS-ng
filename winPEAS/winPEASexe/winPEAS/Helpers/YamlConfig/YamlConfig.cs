@@ -35,7 +35,7 @@ namespace winPEAS.Helpers.YamlConfig
             public class FileSettings
             {
                 public string bad_regex { get; set; }
-                public string check_extra_path { get; set; } // Applied to the Splunk selector on Windows.
+                public string check_extra_path { get; set; } // Applied to opt-in path-scoped selectors on Windows.
                 public string good_regex { get; set; }
                 public bool? just_list_file { get; set; }
                 public string line_grep { get; set; }

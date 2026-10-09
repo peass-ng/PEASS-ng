@@ -47,7 +47,8 @@ namespace winPEAS.Helpers.Search
             if (!StaticExtensions.Contains(ext)) return true;
             if (ext != ".7z" && ext != ".zip") return false;
             string name = filename ?? string.Empty;
-            return name.IndexOf("bitlocker", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            return name.Equals("MEMORY.7z", StringComparison.OrdinalIgnoreCase) ||
+                name.IndexOf("bitlocker", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 name.IndexOf("recovery", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 name.IndexOf("backup", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 name.IndexOf("credential", StringComparison.OrdinalIgnoreCase) >= 0;
@@ -333,6 +334,8 @@ namespace winPEAS.Helpers.Search
             if ((ext == ".html" || ext == ".txt") &&
                 name.IndexOf("bitlocker", StringComparison.OrdinalIgnoreCase) >= 0)
                 return "BitLocker recovery export candidate";
+            if (name.Equals("MEMORY.7z", StringComparison.OrdinalIgnoreCase))
+                return "compressed system memory dump candidate";
             if ((ext == ".7z" || ext == ".zip") &&
                 (name.IndexOf("bitlocker", StringComparison.OrdinalIgnoreCase) >= 0 ||
                  name.IndexOf("recovery", StringComparison.OrdinalIgnoreCase) >= 0 ||
@@ -370,9 +373,14 @@ namespace winPEAS.Helpers.Search
 
         internal static List<string> SearchUsersInterestingFiles()
         {
+            return SearchUsersInterestingFiles(RootDirCurrentUser);
+        }
+
+        internal static List<string> SearchUsersInterestingFiles(IEnumerable<CustomFileInfo> files)
+        {
             var result = new List<string>();
 
-            foreach (var file in RootDirCurrentUser)
+            foreach (var file in files ?? Enumerable.Empty<CustomFileInfo>())
             {
                 if (!file.IsDirectory)
                 {

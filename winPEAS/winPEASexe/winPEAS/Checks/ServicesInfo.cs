@@ -35,6 +35,7 @@ namespace winPEAS.Checks
             new List<Action>
             {
                 PrintInterestingServices,
+                PrintVisualStudioCollectorCandidate,
                 PrintSqlServicePrivilegeContext,
                 PrintModifiableServices,
                 PrintWritableRegServices,
@@ -45,6 +46,18 @@ namespace winPEAS.Checks
                 PrintLegacySignedKernelDrivers,
                 PrintKernelQuickIndicators,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
+        }
+
+        void PrintVisualStudioCollectorCandidate()
+        {
+            VisualStudioCollectorAssessment assessment = VisualStudioCollectorIndicator.Collect();
+            if (assessment == null || !assessment.IsReviewCandidate) return;
+
+            Beaprint.MainPrint("Visual Studio diagnostic collector review candidate", "T1068");
+            Beaprint.NoColorPrint("    VSStandardCollectorService150: LocalSystem; expected Visual Studio collector image.");
+            Beaprint.NoColorPrint("    Setup WMI compiler path: " +
+                (assessment.SetupWmiCompilerPresent ? "present" : "not observed"));
+            Beaprint.GrayPrint("    Historical CVE-2024-20656. Verify the January 2024 component fix and MSI repair prerequisites; service and file presence do not prove exposure.");
         }
 
         void PrintSqlServicePrivilegeContext()

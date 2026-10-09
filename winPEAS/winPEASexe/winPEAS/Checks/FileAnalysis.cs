@@ -16,6 +16,16 @@ namespace winPEAS.Checks
     internal class FileAnalysis : ISystemCheck
     {
         private const int ListFileLimit = 70;
+        // Only these YAML categories opt into path filtering on Windows. Other
+        // categories retain their established filename-only behavior.
+        private static readonly HashSet<string> ScopedSensitiveFileSearchNames =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Splunk", "Solar-PuTTY session stores", "Gitea", "Gitea database",
+                "Backdrop CMS settings candidates", "LimeSurvey", "PSWM vault candidates",
+                "PrestaShop database settings candidates", "ChangeDetection backup candidates",
+                "WonderCMS", "Pluck CMS", "Grafana", "Duplicati server state"
+            };
 
         public string[] MitreAttackIds { get; } = new[] { "T1552.001", "T1083" };
 
@@ -146,28 +156,10 @@ namespace winPEAS.Checks
 
                 if (isFileFound)
                 {
-                    // The shared YAML's extra-path patterns have historically been
-                    // Linux-only. Scope this credential-bearing selector on Windows
-                    // without changing other selectors' established behavior.
-                    if (string.Equals(searchName, "Splunk", StringComparison.OrdinalIgnoreCase) &&
-                        !string.IsNullOrEmpty(fileSettings.check_extra_path))
-                    {
-                        try
-                        {
-                            string portablePath = file.FullPath.Replace('\\', '/');
-                            if (!Regex.IsMatch(portablePath, fileSettings.check_extra_path,
-                                RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100)))
-                                continue;
-                        }
-                        catch (ArgumentException)
-                        {
-                            continue;
-                        }
-                        catch (RegexMatchTimeoutException)
-                        {
-                            continue;
-                        }
-                    }
+                    // Scope only opted-in YAML selectors; other records retain
+                    // their established Windows matching behavior.
+                    if (!MatchesScopedSensitiveFilePath(searchName, file.FullPath,
+                        fileSettings.check_extra_path)) continue;
 
                     if (!somethingFound)
                     {
@@ -197,6 +189,33 @@ namespace winPEAS.Checks
 
 
             return new bool[] { false, somethingFound };
+        }
+
+        internal static bool MatchesScopedSensitiveFilePath(string searchName, string path,
+            string extraPathPattern)
+        {
+            if (!ScopedSensitiveFileSearchNames.Contains(searchName ?? string.Empty))
+                return true;
+            if (string.IsNullOrEmpty(extraPathPattern))
+            {
+                // Preserve existing Splunk behavior and Grafana's grafana.ini;
+                // a new Grafana database without a path pattern fails closed.
+                if (string.Equals(searchName, "Splunk", StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (!string.Equals(searchName, "Grafana", StringComparison.OrdinalIgnoreCase) ||
+                    string.IsNullOrWhiteSpace(path)) return false;
+                string portablePath = path.Replace('\\', '/');
+                return string.Equals(portablePath, "grafana.ini", StringComparison.OrdinalIgnoreCase) ||
+                    portablePath.EndsWith("/grafana.ini", StringComparison.OrdinalIgnoreCase);
+            }
+            if (string.IsNullOrWhiteSpace(path)) return false;
+            try
+            {
+                return Regex.IsMatch(path.Replace('\\', '/'), extraPathPattern,
+                    RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
+            }
+            catch (ArgumentException) { return false; }
+            catch (RegexMatchTimeoutException) { return false; }
         }
 
         public static List<string> SearchContent(string text, string regex_str, bool caseinsensitive)

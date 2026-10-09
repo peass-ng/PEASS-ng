@@ -298,44 +298,92 @@ function Get-GmsaReadersReport {
   param(
     [System.DirectoryServices.ActiveDirectory.Domain]$DomainContext
   )
-  if (-not $DomainContext) { return @() }
-  $domainDN = $DomainContext.GetDirectoryEntry().distinguishedName
+  $report = [ordered]@{ State = 'Unknown'; Inspected = 0; Truncated = $false; Omitted = 0; Rows = @() }
+  if (-not $DomainContext) { return [pscustomobject]$report }
+  $domainEntry = $null
+  $container = $null
+  $searcher = $null
+  $results = $null
+  $rows = New-Object System.Collections.Generic.List[object]
   try {
+    $domainEntry = $DomainContext.GetDirectoryEntry()
+    $domainDN = [string]$domainEntry.distinguishedName
+    if ([string]::IsNullOrEmpty($domainDN) -or $domainDN.Trim().Length -eq 0) { throw 'Domain DN unavailable' }
+    $container = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$domainDN")
     $searcher = New-Object System.DirectoryServices.DirectorySearcher
-    $searcher.SearchRoot = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$domainDN")
+    $searcher.SearchRoot = $container
     $searcher.Filter = "(&(objectClass=msDS-GroupManagedServiceAccount))"
-    $searcher.PageSize = 500
+    $searcher.ReferralChasing = [System.DirectoryServices.ReferralChasingOption]::None
+    $searcher.PageSize = 0 # SizeLimit applies to a single non-paged query.
+    $searcher.SizeLimit = 121 # 120 inspected objects plus a truncation sentinel.
+    $searcher.ClientTimeout = [TimeSpan]::FromSeconds(5)
+    $searcher.ServerTimeLimit = [TimeSpan]::FromSeconds(5)
     [void]$searcher.PropertiesToLoad.Add("sAMAccountName")
     [void]$searcher.PropertiesToLoad.Add("msDS-GroupMSAMembership")
+    $watch = [Diagnostics.Stopwatch]::StartNew()
     $results = $searcher.FindAll()
-  }
-  catch { return @() }
-  $report = @()
-  foreach ($result in $results) {
-    $name = $result.Properties["samaccountname"]
-    $blobs = $result.Properties["msds-groupmsamembership"]
-    if (-not $blobs) { continue }
-    $principals = @()
-    foreach ($blob in $blobs) {
-      try {
-        $raw = New-Object System.Security.AccessControl.RawSecurityDescriptor (, $blob)
-        foreach ($ace in $raw.DiscretionaryAcl) {
-          $sid = Convert-SidToName $ace.SecurityIdentifier
-          if ($sid) { $principals += $sid }
-        }
+    foreach ($result in $results) {
+      if ($watch.ElapsedMilliseconds -ge 8000 -or $report.Inspected -ge 120) {
+        $report.Truncated = $true
+        break
       }
-      catch { continue }
+      $report.Inspected++
+      $name = $result.Properties["samaccountname"]
+      $blobs = $result.Properties["msds-groupmsamembership"]
+      if (-not $blobs) { continue }
+      $principals = New-Object System.Collections.Generic.List[string]
+      $weak = New-Object System.Collections.Generic.List[string]
+      $blobsSeen = 0
+      foreach ($blob in $blobs) {
+        if ($blobsSeen -ge 2) { $report.Truncated = $true; break }
+        $blobsSeen++
+        if ($watch.ElapsedMilliseconds -ge 8000) { $report.Truncated = $true; break }
+        try {
+          if ($blob.Length -gt 16384) { $report.Truncated = $true; continue }
+          $raw = New-Object System.Security.AccessControl.RawSecurityDescriptor (, $blob)
+          if (-not $raw.DiscretionaryAcl) { continue }
+          $acesSeen = 0
+          foreach ($ace in $raw.DiscretionaryAcl) {
+            if ($watch.ElapsedMilliseconds -ge 8000 -or $acesSeen -ge 128 -or $principals.Count -ge 16) {
+              $report.Truncated = $true
+              break
+            }
+            $acesSeen++
+            if (-not $ace.SecurityIdentifier) { continue }
+            $sid = [string]$ace.SecurityIdentifier.Value
+            $principal = Convert-SidToName $ace.SecurityIdentifier
+            if ($principal) { $principals.Add([string]$principal) }
+            if ([string]$ace.AceQualifier -eq 'AccessAllowed' -and
+                ($sid -eq 'S-1-1-0' -or $sid -eq 'S-1-5-11' -or $sid -match '^S-1-5-21-(\d+-){3}513$')) {
+              $weak.Add([string]$principal)
+            }
+          }
+        }
+        catch { $report.Truncated = $true }
+      }
+      if ($principals.Count -eq 0) { continue }
+      $rows.Add([pscustomobject]@{
+        Account        = [string]($name | Select-Object -First 1)
+        Allowed        = (($principals | Sort-Object -Unique) -join ', ')
+        WeakPrincipals = (($weak | Sort-Object -Unique) -join ', ')
+      })
     }
-    if ($principals.Count -eq 0) { continue }
-    $principals = $principals | Sort-Object -Unique
-    $weak = $principals | Where-Object { $_ -match 'Domain Users|Authenticated Users|Everyone' }
-    $report += [pscustomobject]@{
-      Account        = ($name | Select-Object -First 1)
-      Allowed        = ($principals -join ", ")
-      WeakPrincipals = if ($weak) { $weak -join ", " } else { "" }
-    }
+    $report.State = if ($report.Truncated) { 'Partial' } else { 'Observed' }
   }
-  return $report
+  catch {
+    $report.State = if ($report.Inspected -gt 0) { 'Partial' } else { 'Unknown' }
+    $report.Truncated = $true
+  }
+  finally {
+    if ($results) { $results.Dispose() }
+    if ($searcher) { $searcher.Dispose() }
+    if ($container) { $container.Dispose() }
+    if ($domainEntry) { $domainEntry.Dispose() }
+  }
+  $sorted = @($rows | Sort-Object @{Expression={ $_.WeakPrincipals -ne '' };Descending=$true}, Account)
+  $report.Rows = @($sorted | Select-Object -First 20)
+  $report.Omitted = $rows.Count - $report.Rows.Count
+  return [pscustomobject]$report
 }
 
 function Get-PrivilegedSpnTargets {
@@ -1769,20 +1817,24 @@ else {
     Write-Host "[i] SPNs and encryption flags do not prove a weak password, ticket type, or service-key possession."
   }
 
-  $gmsaReport = @(Get-GmsaReadersReport -DomainContext $domainContext)
-  if ($gmsaReport.Count -gt 0) {
-    $weakGmsa = $gmsaReport | Where-Object { $_.WeakPrincipals -ne "" }
+  $gmsaReport = Get-GmsaReadersReport -DomainContext $domainContext
+  if ($gmsaReport.Rows.Count -gt 0) {
+    $weakGmsa = $gmsaReport.Rows | Where-Object { $_.WeakPrincipals -ne "" }
     if ($weakGmsa) {
       Write-Host "[?] gMSA membership DACLs mention broad trustees; ACE rights and effective access are unverified:" -ForegroundColor Yellow
       $weakGmsa | Select-Object Account,@{Name='DaclTrustees';Expression={$_.WeakPrincipals}} | Format-Table -AutoSize | Out-String | Write-Host
     }
     else {
       Write-Host "[i] gMSA membership DACL trustees found (ACE rights and effective access unverified)."
-      $gmsaReport | Select-Object Account,@{Name='DaclTrustees';Expression={$_.Allowed}} | Sort-Object Account | Select-Object -First 5 | Format-Table -Wrap | Out-String | Write-Host
+      $gmsaReport.Rows | Select-Object Account,@{Name='DaclTrustees';Expression={$_.Allowed}} | Sort-Object Account | Select-Object -First 5 | Format-Table -Wrap | Out-String | Write-Host
     }
   }
   else {
-    Write-Host "[?] No gMSA membership DACL trustees returned; LDAP, descriptor visibility, and account coverage are unknown."
+    Write-Host "[?] No gMSA membership DACL trustees returned in $($gmsaReport.Inspected) inspected object(s); LDAP or descriptor visibility may be incomplete."
+  }
+  if ($gmsaReport.Omitted -gt 0) { Write-Host "[i] $($gmsaReport.Omitted) additional gMSA trustee row(s) omitted from display." }
+  if ($gmsaReport.State -ne 'Observed') {
+    Write-Host "[?] gMSA reader inventory $($gmsaReport.State.ToLowerInvariant()): sample, descriptor, or elapsed limit reached (or LDAP unavailable). Remaining access is unknown." -ForegroundColor Yellow
   }
 
   $adcsInfo = Get-AdcsSchannelInfo

@@ -70,7 +70,7 @@ namespace winPEAS.Checks
         internal enum SchannelUpnMappingStatus { Unknown, Enabled, Disabled }
         internal enum SpnWriteRight { None, WriteProperty, ValidatedSelf }
         internal enum MembershipWriteRight { None, OwnMembership, MemberAttribute }
-        internal enum ExactAttributeWriteRight { None, Upn, KeyCredentialLink, AltSecurityIdentities, GmsaReaderList }
+        internal enum ExactAttributeWriteRight { None, Upn, KeyCredentialLink, AltSecurityIdentities, GmsaReaderList, ScriptPath }
         private static readonly Guid SelfMembershipGuid = new Guid("bf9679c0-0de6-11d0-a285-00aa003049e2");
         private static readonly Guid ValidatedSpnGuid = new Guid("f3a64788-5306-11d1-a9c5-0000f80367c1");
         private static readonly Guid OrganizationalUnitClassGuid = new Guid("bf967aa5-0de6-11d0-a285-00aa003049e2");
@@ -78,9 +78,27 @@ namespace winPEAS.Checks
         private static readonly Guid KeyCredentialLinkGuid = new Guid("5b47d60f-6090-40b2-9f37-2a4de88f3063");
         private static readonly Guid AltSecurityIdentitiesGuid = new Guid("00fbf30c-91fe-11d1-aebc-0000f80367c1");
         private static readonly Guid GmsaReaderListGuid = new Guid("888eedd6-ce04-df40-b462-b8a50e41ba38");
+        private static readonly Guid ScriptPathGuid = new Guid("bf9679a8-0de6-11d0-a285-00aa003049e2");
         private static readonly Guid CertificateEnrollGuid = new Guid("0e10c968-78fb-11d2-90d4-00c04f79dc55");
 
         internal enum Esc1TemplateStatus { Unknown, NotCandidate, Candidate }
+        internal enum Esc9TemplateStatus { Unknown, NotCandidate, Candidate }
+        internal enum Esc13TemplateStatus { Unknown, NotCandidate, Candidate }
+
+        private sealed class Esc13TemplateObservation
+        {
+            internal string Name;
+            internal string[] PolicyOids;
+            internal bool PolicyOverflow;
+            internal int? EnrollmentFlags;
+            internal int? RequiredSignatures;
+            internal string[] ExtendedKeyUsages;
+            internal bool DescriptorRead;
+            internal bool CurrentEnrollAllow;
+            internal bool CurrentEnrollDeny;
+            internal bool ComputerEnrollAllow;
+            internal bool ComputerEnrollDeny;
+        }
 
         // Configuration only: publication, CA rights, effective ACLs and KDC mapping remain unverified.
         internal static Esc1TemplateStatus AssessEsc1Template(int? nameFlags, int? enrollmentFlags,
@@ -97,6 +115,115 @@ namespace winPEAS.Checks
                    eku.Contains("1.3.6.1.5.2.3.4") || // PKINIT Client Authentication
                    eku.Contains("1.3.6.1.4.1.311.20.2.2") // Smart Card Logon
                 ? Esc1TemplateStatus.Candidate : Esc1TemplateStatus.NotCandidate;
+        }
+
+        // Configuration only: publication, enrollment, writable account UPN and effective
+        // certificate mapping on the authentication endpoint are separate prerequisites.
+        internal static Esc9TemplateStatus AssessEsc9Template(int? enrollmentFlags,
+            int? requiredSignatures, IEnumerable<string> extendedKeyUsages)
+        {
+            if (!enrollmentFlags.HasValue) return Esc9TemplateStatus.Unknown;
+            if ((enrollmentFlags.Value & 0x80000) == 0) return Esc9TemplateStatus.NotCandidate;
+            if (!requiredSignatures.HasValue || extendedKeyUsages == null)
+                return Esc9TemplateStatus.Unknown;
+            if ((enrollmentFlags.Value & 0x2) != 0 || requiredSignatures.Value != 0)
+                return Esc9TemplateStatus.NotCandidate;
+            var eku = new HashSet<string>(extendedKeyUsages, StringComparer.Ordinal);
+            if (eku.Count == 0) return Esc9TemplateStatus.Unknown; // No EKU may mean Any Purpose.
+            return eku.Contains("1.3.6.1.5.5.7.3.2") || // Client Authentication
+                   eku.Contains("1.3.6.1.5.2.3.4") || // PKINIT Client Authentication
+                   eku.Contains("1.3.6.1.4.1.311.20.2.2") || // Smart Card Logon
+                   eku.Contains("2.5.29.37.0") // Any Purpose
+                ? Esc9TemplateStatus.Candidate : Esc9TemplateStatus.NotCandidate;
+        }
+
+        // A linked issuance-policy OID is a configuration lead, not proof that a CA
+        // publishes the template or that the principal can obtain and use a certificate.
+        internal static Esc13TemplateStatus AssessEsc13Template(IEnumerable<string> policyOids,
+            IDictionary<string, string> linkedGroups, bool oidLookupComplete, int? enrollmentFlags,
+            int? requiredSignatures, IEnumerable<string> extendedKeyUsages, out string linkedGroup)
+        {
+            linkedGroup = null;
+            if (policyOids == null) return Esc13TemplateStatus.Unknown;
+            var policies = policyOids.Where(oid => !string.IsNullOrWhiteSpace(oid)).ToArray();
+            if (policies.Length == 0) return Esc13TemplateStatus.NotCandidate;
+            if (!oidLookupComplete || linkedGroups == null) return Esc13TemplateStatus.Unknown;
+
+            bool conflictingLink = false;
+            foreach (string policy in policies)
+            {
+                string group;
+                if (!linkedGroups.TryGetValue(policy, out group)) continue;
+                // Empty values represent duplicate/conflicting OID-to-group records.
+                if (string.IsNullOrEmpty(group))
+                {
+                    conflictingLink = true;
+                    continue;
+                }
+                linkedGroup = group;
+                break;
+            }
+            if (linkedGroup == null)
+                return conflictingLink
+                    ? Esc13TemplateStatus.Unknown : Esc13TemplateStatus.NotCandidate;
+            if (!enrollmentFlags.HasValue || !requiredSignatures.HasValue || extendedKeyUsages == null)
+                return Esc13TemplateStatus.Unknown;
+            if ((enrollmentFlags.Value & 0x2) != 0 || requiredSignatures.Value != 0)
+                return Esc13TemplateStatus.NotCandidate;
+            var eku = new HashSet<string>(extendedKeyUsages, StringComparer.Ordinal);
+            if (eku.Count == 0) return Esc13TemplateStatus.Unknown;
+            return eku.Contains("1.3.6.1.5.5.7.3.2") || // Client Authentication
+                   eku.Contains("1.3.6.1.5.2.3.4") || // PKINIT Client Authentication
+                   eku.Contains("1.3.6.1.4.1.311.20.2.2") || // Smart Card Logon
+                   eku.Contains("2.5.29.37.0") // Any Purpose
+                ? Esc13TemplateStatus.Candidate : Esc13TemplateStatus.NotCandidate;
+        }
+
+        private static Dictionary<string, string> ReadOidGroupLinks(string configurationNamingContext,
+            out bool complete)
+        {
+            var links = new Dictionary<string, string>(StringComparer.Ordinal);
+            complete = false;
+            try
+            {
+                var oidDn = "LDAP://CN=OID,CN=Public Key Services,CN=Services," + configurationNamingContext;
+                using (var root = new DirectoryEntry(oidDn))
+                using (var search = new DirectorySearcher(root))
+                {
+                    search.SearchScope = SearchScope.OneLevel;
+                    search.Filter = "(&(objectClass=msPKI-Enterprise-Oid)(msDS-OIDToGroupLink=*))";
+                    search.PropertiesToLoad.Add("msPKI-Cert-Template-OID");
+                    search.PropertiesToLoad.Add("msDS-OIDToGroupLink");
+                    search.PageSize = 121;
+                    search.CacheResults = false;
+                    search.ServerTimeLimit = TimeSpan.FromSeconds(5);
+                    search.ClientTimeout = TimeSpan.FromSeconds(5);
+                    using (var results = search.FindAll())
+                    {
+                        int seen = 0;
+                        foreach (SearchResult result in results)
+                        {
+                            if (++seen > 120) return links; // Incomplete: unmatched OIDs remain unknown.
+                            var oid = GetProp(result, "msPKI-Cert-Template-OID")?.Trim();
+                            var group = GetProp(result, "msDS-OIDToGroupLink")?.Trim();
+                            if (string.IsNullOrEmpty(oid) || string.IsNullOrEmpty(group)) continue;
+                            string oldGroup;
+                            if (links.TryGetValue(oid, out oldGroup))
+                            {
+                                if (!string.Equals(oldGroup, group, StringComparison.OrdinalIgnoreCase))
+                                    links[oid] = string.Empty; // Conflicting LDAP records are not a candidate.
+                            }
+                            else links.Add(oid, group);
+                        }
+                    }
+                }
+                complete = true;
+            }
+            catch (Exception)
+            {
+                // LDAP visibility and availability vary by domain; incomplete means unknown.
+            }
+            return links;
         }
 
         internal static bool IsCertificateEnrollAce(ActiveDirectoryRights rights, Guid objectType)
@@ -184,6 +311,8 @@ namespace winPEAS.Checks
             if (objectType == GmsaReaderListGuid &&
                 string.Equals(targetClass, "msDS-GroupManagedServiceAccount", StringComparison.OrdinalIgnoreCase))
                 return ExactAttributeWriteRight.GmsaReaderList;
+            if (objectType == ScriptPathGuid && string.Equals(targetClass, "user", StringComparison.OrdinalIgnoreCase))
+                return ExactAttributeWriteRight.ScriptPath;
             return ExactAttributeWriteRight.None;
         }
 
@@ -207,6 +336,62 @@ namespace winPEAS.Checks
                 sample.Items.Add(item);
             }
             return sample;
+        }
+
+        // Only inspect notes already returned by the bounded AD object sample. Never return note text.
+        internal static string ClassifyAdCredentialNote(IEnumerable<string> objectClasses, string description, string info)
+        {
+            if (objectClasses == null) return null;
+            bool isUser = false;
+            foreach (var objectClass in objectClasses)
+            {
+                if (string.Equals(objectClass, "computer", StringComparison.OrdinalIgnoreCase)) return null;
+                if (string.Equals(objectClass, "user", StringComparison.OrdinalIgnoreCase)) isUser = true;
+            }
+            if (!isUser) return null;
+            if (HasCredentialAssignmentCue(description)) return "description password-like assignment (value redacted)";
+            if (HasCredentialAssignmentCue(info)) return "info password-like assignment (value redacted)";
+            return null;
+        }
+
+        private static bool HasCredentialAssignmentCue(string note)
+        {
+            if (string.IsNullOrWhiteSpace(note)) return false;
+            // Bound both work and memory even if a directory contains unusually large notes.
+            string text = note.Substring(0, Math.Min(note.Length, 512));
+            foreach (var keyword in new[] { "password", "passwd", "passphrase", "pwd", "credential", "secret" })
+            {
+                int start = 0;
+                while (start < text.Length)
+                {
+                    int at = text.IndexOf(keyword, start, StringComparison.OrdinalIgnoreCase);
+                    if (at < 0) break;
+                    start = at + keyword.Length;
+                    if ((at > 0 && IsAdNoteWordChar(text[at - 1])) ||
+                        (start < text.Length && IsAdNoteWordChar(text[start]))) continue;
+                    int next = start;
+                    while (next < text.Length && char.IsWhiteSpace(text[next])) next++;
+                    if (next < text.Length && (text[next] == ':' || text[next] == '=')) next++;
+                    else if (next + 2 < text.Length &&
+                             string.Compare(text, next, "is ", 0, 3, StringComparison.OrdinalIgnoreCase) == 0) next += 3;
+                    else continue;
+                    while (next < text.Length && char.IsWhiteSpace(text[next])) next++;
+                    int end = next;
+                    while (end < text.Length && end - next < 96 && !char.IsWhiteSpace(text[end]) &&
+                           text[end] != ',' && text[end] != ';') end++;
+                    if (end - next < 4) continue;
+                    string firstWord = text.Substring(next, end - next).TrimEnd('.').ToLowerInvariant();
+                    if (new[] { "required", "expired", "changed", "change", "reset", "unknown", "stored",
+                                "never", "unset", "blank", "empty", "none" }.Contains(firstWord)) continue;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool IsAdNoteWordChar(char value)
+        {
+            return char.IsLetterOrDigit(value) || value == '_';
         }
 
         private const int TrustedForDelegation = 0x80000;
@@ -906,6 +1091,10 @@ namespace winPEAS.Checks
                 var processedDns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var findings = new List<AdObjectFinding>();
                 bool samplingIncomplete = false;
+                bool credentialNotesSampled = false;
+                int sampledUserNotes = 0;
+                int credentialNoteCues = 0;
+                int credentialNoteRows = 0;
 
                 foreach (var target in EnumerateHighValueTargets(defaultNC))
                 {
@@ -1029,12 +1218,37 @@ namespace winPEAS.Checks
                         ds.PropertiesToLoad.Add("distinguishedName");
                         ds.PropertiesToLoad.Add("sAMAccountName");
                         ds.PropertiesToLoad.Add("name");
+                        ds.PropertiesToLoad.Add("objectClass");
+                        ds.PropertiesToLoad.Add("description");
+                        ds.PropertiesToLoad.Add("info");
 
                         using (var results = ds.FindAll())
                         {
                             var sample = SelectBoundedSample(results.Cast<SearchResult>(), SampleObjectLimit);
+                            credentialNotesSampled = true;
                             foreach (SearchResult r in sample.Items)
                             {
+                                var classes = r.Properties.Contains("objectClass")
+                                    ? r.Properties["objectClass"].Cast<object>().Select(value => value?.ToString())
+                                    : Enumerable.Empty<string>();
+                                var classList = classes.ToList();
+                                if (classList.Any(value => string.Equals(value, "user", StringComparison.OrdinalIgnoreCase)) &&
+                                    !classList.Any(value => string.Equals(value, "computer", StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    sampledUserNotes++;
+                                    var cue = ClassifyAdCredentialNote(classList, GetProp(r, "description"), GetProp(r, "info"));
+                                    if (cue != null)
+                                    {
+                                        credentialNoteCues++;
+                                        var account = GetProp(r, "sAMAccountName");
+                                        if (!string.IsNullOrWhiteSpace(account) && credentialNoteRows < 12)
+                                        {
+                                            account = new string(account.Take(128).Select(ch => char.IsControl(ch) ? '?' : ch).ToArray());
+                                            Beaprint.BadPrint("    -> AD account note cue: " + account + " — " + cue);
+                                            credentialNoteRows++;
+                                        }
+                                    }
+                                }
                                 var dn = GetProp(r, "distinguishedName");
                                 if (!ShouldInspectAclTarget(dn, processedDns))
                                 {
@@ -1059,6 +1273,14 @@ namespace winPEAS.Checks
                     samplingIncomplete = true;
                     Beaprint.GrayPrint("    [!] LDAP sampling failed: " + ex.Message);
                 }
+
+                if (credentialNotesSampled)
+                    Beaprint.GrayPrint($"  [*] AD account-note review: {sampledUserNotes} user(s) in the capped {SampleObjectLimit}-object mixed sample; {credentialNoteCues} redacted cue(s)" +
+                        (credentialNoteCues > credentialNoteRows ? " (first " + credentialNoteRows + " account(s) shown)" : "") +
+                        ". This is partial coverage; no matching cue does not clear the domain." +
+                        (samplingIncomplete ? " LDAP/ACL sampling was incomplete." : ""));
+                else
+                    Beaprint.GrayPrint("  [!] AD account-note review incomplete: capped LDAP sample unavailable.");
 
                 if (findings.Count == 0)
                 {
@@ -1407,6 +1629,15 @@ namespace winPEAS.Checks
                         Impact = "altSecurityIdentities WriteProperty candidate",
                         Detail = "Matching certificate-mapping attribute write ACE; effective access, certificate possession/enrollment, CA trust, and strong binding require review.",
                         Score = 5
+                    };
+                }
+                if (exactRight == ExactAttributeWriteRight.ScriptPath)
+                {
+                    return new AdAccessImpact
+                    {
+                        Impact = "scriptPath WriteProperty candidate",
+                        Detail = "Exact user logon-script attribute write ACE; effective access, a writable and reachable script path, and execution at the target user's next logon remain unverified.",
+                        Score = 4
                     };
                 }
                 return new AdAccessImpact
@@ -2189,13 +2420,13 @@ namespace winPEAS.Checks
                     Beaprint.GrayPrint("  [-] Certificate Authority not found. Skipping.");
                 }
 
-                // Reuse one template scan for ESC4 rights and passive ESC1 configuration candidates.
+                // Reuse one template scan for ESC4 rights and passive ESC1/ESC9 configuration candidates.
                 Beaprint.InfoPrint("\nIf you can modify a template (WriteDacl/WriteOwner/GenericAll), you can abuse ESC4");
                 var configNC = GetRootDseProp("configurationNamingContext");
                 if (string.IsNullOrEmpty(configNC))
                 {
                     Beaprint.GrayPrint("  [-] Could not resolve configurationNamingContext.");
-                    Beaprint.GrayPrint("  [?] ESC1 template visibility unknown without the configuration naming context.");
+                    Beaprint.GrayPrint("  [?] ESC1/ESC9 template visibility unknown without the configuration naming context.");
                     return;
                 }
 
@@ -2207,6 +2438,9 @@ namespace winPEAS.Checks
                 int esc1Unknown = 0;
                 int esc1Candidates = 0;
                 bool esc1Capped = false;
+                int esc9Unknown = 0;
+                int esc9Candidates = 0;
+                var esc13Observations = new List<Esc13TemplateObservation>();
 
                 var templatesDn = $"LDAP://CN=Certificate Templates,CN=Public Key Services,CN=Services,{configNC}";
 
@@ -2221,6 +2455,7 @@ namespace winPEAS.Checks
                     ds.PropertiesToLoad.Add("msPKI-RA-Signature");
                     ds.PropertiesToLoad.Add("pKIExtendedKeyUsage");
                     ds.PropertiesToLoad.Add("msPKI-Minimal-Key-Size");
+                    ds.PropertiesToLoad.Add("msPKI-Certificate-Policy");
 
                     using (var results = ds.FindAll())
                     {
@@ -2230,19 +2465,44 @@ namespace winPEAS.Checks
                             checkedTemplates++;
                             string templateCn = GetProp(r, "cn") ?? "<unknown>";
                             Esc1TemplateStatus esc1Status = Esc1TemplateStatus.Unknown;
+                            Esc9TemplateStatus esc9Status = Esc9TemplateStatus.Unknown;
+                            Esc13TemplateObservation esc13Observation = null;
                             bool currentEnrollAllow = false, currentEnrollDeny = false;
                             bool computerEnrollAllow = false, computerEnrollDeny = false;
                             bool descriptorRead = false;
                             if (esc1Checked < 120 && esc1Watch.Elapsed < TimeSpan.FromSeconds(5))
                             {
                                 esc1Checked++;
-                            IEnumerable<string> ekus = r.Properties.Contains("pKIExtendedKeyUsage")
-                                ? r.Properties["pKIExtendedKeyUsage"].Cast<object>()
-                                    .Where(value => value != null).Select(value => value.ToString())
-                                : null;
+                                IEnumerable<string> ekus = r.Properties.Contains("pKIExtendedKeyUsage")
+                                    ? r.Properties["pKIExtendedKeyUsage"].Cast<object>()
+                                        .Where(value => value != null).Select(value => value.ToString()).ToArray()
+                                    : null;
+                                int? enrollmentFlags = GetIntProp(r, "msPKI-Enrollment-Flag");
+                                int? requiredSignatures = GetIntProp(r, "msPKI-RA-Signature");
                                 esc1Status = AssessEsc1Template(GetIntProp(r, "msPKI-Certificate-Name-Flag"),
-                                    GetIntProp(r, "msPKI-Enrollment-Flag"), GetIntProp(r, "msPKI-RA-Signature"), ekus);
+                                    enrollmentFlags, requiredSignatures, ekus);
+                                esc9Status = AssessEsc9Template(enrollmentFlags, requiredSignatures, ekus);
                                 if (esc1Status == Esc1TemplateStatus.Unknown) esc1Unknown++;
+                                if (esc9Status == Esc9TemplateStatus.Unknown) esc9Unknown++;
+                                if (r.Properties.Contains("msPKI-Certificate-Policy"))
+                                {
+                                    var policies = r.Properties["msPKI-Certificate-Policy"].Cast<object>()
+                                        .Where(value => value != null).Select(value => value.ToString().Trim())
+                                        .Where(value => value.Length > 0).Take(33).ToArray();
+                                    if (policies.Length > 0)
+                                    {
+                                        esc13Observation = new Esc13TemplateObservation
+                                        {
+                                            Name = templateCn,
+                                            PolicyOids = policies.Take(32).ToArray(),
+                                            PolicyOverflow = policies.Length > 32,
+                                            EnrollmentFlags = enrollmentFlags,
+                                            RequiredSignatures = requiredSignatures,
+                                            ExtendedKeyUsages = ekus?.ToArray()
+                                        };
+                                        esc13Observations.Add(esc13Observation);
+                                    }
+                                }
                             }
                             else
                             {
@@ -2275,7 +2535,9 @@ namespace winPEAS.Checks
                                 {
                                     var sid = (rule.IdentityReference as SecurityIdentifier)?.Value;
                                     if (string.IsNullOrEmpty(sid)) continue;
-                                    if (esc1Status == Esc1TemplateStatus.Candidate &&
+                                    if ((esc1Status == Esc1TemplateStatus.Candidate ||
+                                        esc9Status == Esc9TemplateStatus.Candidate ||
+                                        esc13Observation != null) &&
                                         IsCertificateEnrollAce(rule.ActiveDirectoryRights, rule.ObjectType))
                                     {
                                         bool allowed = rule.AccessControlType == AccessControlType.Allow;
@@ -2327,6 +2589,14 @@ namespace winPEAS.Checks
                             {
                                 de?.Dispose();
                             }
+                            if (esc13Observation != null)
+                            {
+                                esc13Observation.DescriptorRead = descriptorRead;
+                                esc13Observation.CurrentEnrollAllow = currentEnrollAllow;
+                                esc13Observation.CurrentEnrollDeny = currentEnrollDeny;
+                                esc13Observation.ComputerEnrollAllow = computerEnrollAllow;
+                                esc13Observation.ComputerEnrollDeny = computerEnrollDeny;
+                            }
                             if (esc1Status == Esc1TemplateStatus.Candidate)
                             {
                                 esc1Candidates++;
@@ -2343,17 +2613,76 @@ namespace winPEAS.Checks
                                     else Beaprint.GrayPrint(message);
                                 }
                             }
+                            if (esc9Status == Esc9TemplateStatus.Candidate)
+                            {
+                                esc9Candidates++;
+                                if (esc9Candidates <= 20)
+                                {
+                                    string enrollment = DescribeEsc1EnrollAceEvidence(descriptorRead,
+                                        currentEnrollAllow, currentEnrollDeny, computerEnrollAllow,
+                                        computerEnrollDeny, domainComputersSid != null);
+                                    string message = "  ESC9 no-SID-extension configuration candidate: " + templateCn
+                                        + " (" + enrollment + ").";
+                                    if ((currentEnrollAllow && !currentEnrollDeny) ||
+                                        (computerEnrollAllow && !computerEnrollDeny)) Beaprint.BadPrint(message);
+                                    else Beaprint.GrayPrint(message);
+                                }
+                            }
                         }
                     }
                 }
 
+                if (esc13Observations.Count > 0)
+                {
+                    bool oidLookupComplete;
+                    var linkedGroups = ReadOidGroupLinks(configNC, out oidLookupComplete);
+                    int esc13Candidates = 0, esc13Unknown = 0;
+                    foreach (var observation in esc13Observations)
+                    {
+                        string linkedGroup = null;
+                        var status = observation.PolicyOverflow ? Esc13TemplateStatus.Unknown :
+                            AssessEsc13Template(observation.PolicyOids, linkedGroups, oidLookupComplete,
+                                observation.EnrollmentFlags, observation.RequiredSignatures,
+                                observation.ExtendedKeyUsages, out linkedGroup);
+                        if (status == Esc13TemplateStatus.Unknown) esc13Unknown++;
+                        if (status != Esc13TemplateStatus.Candidate) continue;
+                        esc13Candidates++;
+                        if (esc13Candidates > 20) continue;
+                        string enrollment = DescribeEsc1EnrollAceEvidence(observation.DescriptorRead,
+                            observation.CurrentEnrollAllow, observation.CurrentEnrollDeny,
+                            observation.ComputerEnrollAllow, observation.ComputerEnrollDeny,
+                            domainComputersSid != null);
+                        string message = "  ESC13 linked issuance-policy candidate: " + observation.Name
+                            + " -> " + linkedGroup + " (" + enrollment + ").";
+                        if ((observation.CurrentEnrollAllow && !observation.CurrentEnrollDeny) ||
+                            (observation.ComputerEnrollAllow && !observation.ComputerEnrollDeny))
+                            Beaprint.BadPrint(message);
+                        else Beaprint.GrayPrint(message);
+                    }
+                    Beaprint.GrayPrint("  [*] ESC13 issuance-policy review: " + esc13Observations.Count
+                        + " policy-bearing template(s) assessed, " + esc13Candidates + " candidate(s), "
+                        + esc13Unknown + " with incomplete evidence.");
+                    if (esc13Candidates > 20)
+                        Beaprint.GrayPrint("  [*] " + (esc13Candidates - 20)
+                            + " additional ESC13 candidate(s) omitted from display.");
+                    if (!oidLookupComplete)
+                        Beaprint.GrayPrint("  [?] Linked issuance-policy OID query incomplete or capped at 120; all policy assessments are unknown.");
+                    Beaprint.GrayPrint("  [*] ESC13 still requires a published template, CA enrollment rights, effective ACLs, and a working certificate-authentication path; no certificate was requested.");
+                }
+
                 Beaprint.GrayPrint("  [*] ESC1 configuration review: " + esc1Checked + " template(s) assessed, "
                     + esc1Candidates + " candidate(s), " + esc1Unknown + " with incomplete attributes.");
+                Beaprint.GrayPrint("  [*] ESC9 no-SID-extension review: " + esc1Checked + " template(s) assessed, "
+                    + esc9Candidates + " configuration candidate(s), " + esc9Unknown + " with incomplete attributes.");
                 if (esc1Candidates > 20)
                     Beaprint.GrayPrint("  [*] " + (esc1Candidates - 20) + " additional ESC1 candidate(s) omitted from display.");
+                if (esc9Candidates > 20)
+                    Beaprint.GrayPrint("  [*] " + (esc9Candidates - 20) + " additional ESC9 candidate(s) omitted from display.");
                 if (esc1Capped)
-                    Beaprint.GrayPrint("  [?] ESC1 assessment capped at 120 templates or 5 seconds; remaining templates are unknown. ESC4 scan continued.");
+                    Beaprint.GrayPrint("  [?] ESC1/ESC9/ESC13 assessment capped at 120 templates or 5 seconds; remaining templates are unknown. ESC4 scan continued.");
                 Beaprint.GrayPrint("  [*] Template flags and allow ACEs are leads only; publication, CA rights, effective ACLs and KDC strong SID mapping remain unverified.");
+                if (esc9Candidates > 0)
+                    Beaprint.GrayPrint("  [*] ESC9 mapping caveat: current patched KDCs require a strong certificate mapping; the historical StrongCertificateBindingEnforcement compatibility override ended in September 2025. Schannel UPN mapping is a separate endpoint setting. Local registry values do not prove the effective authentication path or a writable target UPN.");
 
                 if (vulnerable == 0)
                 {
@@ -2367,7 +2696,7 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
-                Beaprint.GrayPrint("  [?] ESC1 template visibility unknown because the AD CS enumeration did not complete.");
+                Beaprint.GrayPrint("  [?] ESC1/ESC9 template visibility unknown because the AD CS enumeration did not complete.");
             }
         }
         private void PrintDomainKerberosDefaults(string defaultNc)
