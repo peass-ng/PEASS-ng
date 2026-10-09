@@ -2298,6 +2298,12 @@ search:
                 type: f
                 search_in: 
                   - common
+
+          - name: ".k5users"
+            value:
+                type: f
+                search_in:
+                  - common
           
           - name: "krb5cc_*"
             value: 
@@ -2787,6 +2793,22 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  # Bundler can persist source credentials here. List only the path.
+  - name: Ruby Bundler configuration candidate
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "config"
+            value:
+                check_extra_path: '/\.bundle/config$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - $HOMESEARCH
 
   # Repository history can retain credentials removed from the working tree.
   # Keep this path-only: recursive directory listing would dump Git objects.
@@ -3993,6 +4015,21 @@ search:
                 type: d
                 search_in: 
                   - common
+
+  # The default encrypted credential database; list the directory only.
+  - name: Passpie database candidate
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+
+        files:
+          - name: ".passpie"
+            value:
+                type: d
+                search_in:
+                  - $HOMESEARCH
 
   - name: FTP
     value:

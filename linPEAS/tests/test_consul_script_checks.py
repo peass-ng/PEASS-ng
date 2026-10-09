@@ -15,7 +15,16 @@ MODULE = ROOT / "linPEAS/builder/linpeas_parts/7_software_information/Consul.sh"
 
 
 class ConsulScriptCheckTests(unittest.TestCase):
-    def run_fixture(self, configs, process_owner="root", process_path=None, extra_args=""):
+    def run_fixture(
+        self,
+        configs,
+        process_owner="root",
+        process_path=None,
+        extra_args="",
+        writable_config_dir=False,
+        as_root=False,
+        symlink_config_dir=False,
+    ):
         with tempfile.TemporaryDirectory() as tmp:
             base = pathlib.Path(tmp)
             config_dir = base / "consul"
@@ -25,27 +34,35 @@ class ConsulScriptCheckTests(unittest.TestCase):
             ps = base / "ps"
             ps.write_text('#!/bin/sh\nprintf "%s\\n" "$PS_OUTPUT"\n')
             ps.chmod(0o755)
-            actual_path = process_path or str(config_dir)
+            link = base / "consul-link"
+            if symlink_config_dir:
+                link.symlink_to(config_dir, target_is_directory=True)
+            actual_path = process_path or str(link if symlink_config_dir else config_dir)
+            config_dir.chmod(0o700 if writable_config_dir else 0o500)
             env = os.environ.copy()
             env.update(
                 PATH=str(base) + os.pathsep + env.get("PATH", ""),
                 PS_OUTPUT=f"{process_owner} /usr/local/bin/consul agent -config-dir={actual_path} {extra_args}",
                 CONSUL_MODULE=str(MODULE),
                 SEARCH_IN_FOLDER="",
+                IAMROOT="1" if as_root or os.geteuid() == 0 else "",
             )
             script = (
                 'print_2title() { printf "TITLE:%s\\n" "$1"; }; '
                 'print_info() { :; }; '
                 '. "$CONSUL_MODULE"'
             )
-            result = subprocess.run(
-                ["/bin/sh", "-c", script],
-                env=env,
-                text=True,
-                capture_output=True,
-                timeout=5,
-                check=True,
-            )
+            try:
+                result = subprocess.run(
+                    ["/bin/sh", "-c", script],
+                    env=env,
+                    text=True,
+                    capture_output=True,
+                    timeout=5,
+                    check=True,
+                )
+            finally:
+                config_dir.chmod(0o700)
             self.assertEqual(result.stderr, "")
             return result.stdout
 
@@ -90,6 +107,23 @@ class ConsulScriptCheckTests(unittest.TestCase):
     def test_command_line_script_check_flag_is_candidate(self):
         output = self.run_fixture({}, extra_args="-enable-script-checks")
         self.assertIn("enables script checks on its command line", output)
+
+    @unittest.skipIf(os.geteuid() == 0, "requires non-root permission checks")
+    def test_loaded_writable_directory_is_candidate_even_with_script_checks_disabled(self):
+        output = self.run_fixture(
+            {"config.hcl": "enable_script_checks = false\n"},
+            writable_config_dir=True,
+        )
+        self.assertIn("Root-run Consul config-directory write review candidate", output)
+        self.assertIn("Loaded Consul config-dir writable/searchable by current user:", output)
+        self.assertIn("authorized reload or restart", output)
+        self.assertNotIn("API script execution requires", output)
+
+    def test_writable_directory_is_not_an_escalation_candidate_for_root(self):
+        self.assertEqual(self.run_fixture({}, writable_config_dir=True, as_root=True), "")
+
+    def test_symlinked_config_directory_is_not_reported_as_writable(self):
+        self.assertEqual(self.run_fixture({}, writable_config_dir=True, symlink_config_dir=True), "")
 
     def test_limesurvey_selector_is_scoped_and_metadata_only(self):
         listing = yaml.safe_load((ROOT / "build_lists/sensitive_files.yaml").read_text())

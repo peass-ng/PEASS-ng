@@ -4,12 +4,12 @@
 # Last Update: 09-10-2026
 # Description: SUID - Check easy privesc, exploits, write perms, and risky file placement
 # License: GNU GPL
-# Version: 1.3
+# Version: 1.4
 # Mitre: T1548.001
 # Functions Used: check_privileged_file_location, echo_not_found, print_2title, print_info
 # Global Variables: $IAMROOT, $LDD, $ROOT_FOLDER, $READELF, $sidB, $sidG1, $sidG2, $sidG3, $sidG4, $sidVB, $sidVB2, $STRACE, $STRINGS, $TIMEOUT, $Wfolders, $cfuncs
 # Initial Functions:
-# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH, $ndsudo_uid, $ndsudo_nnp, $ndsudo_mount_options, $ndsudo_uncertainty
+# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH, $ndsudo_uid, $ndsudo_nnp, $ndsudo_mount_options, $ndsudo_uncertainty, $pinns_uid, $pinns_nnp, $pinns_mount_options, $pinns_uncertainty
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -32,6 +32,27 @@ printf "%s\n" "$suids_files" | while IFS= read -r sfile; do
   # Keep the path returned by find: parsing it from ls output breaks on whitespace.
   sname="$sfile"
   sowner="$(echo "$s" | awk '{print $3}')"
+  if [ "${sname##*/}" = "pinns" ] && [ "$(uname -s 2>/dev/null)" = "Linux" ]; then
+    # The privileged CRI-O helper is a lead only; never invoke it to test.
+    pinns_uid=$(stat -c '%u' "$sname" 2>/dev/null || stat -f '%u' "$sname" 2>/dev/null)
+    if [ "$IAMROOT" ] || [ "$pinns_uid" != "0" ] || ! [ -u "$sname" ] || ! [ -x "$sname" ]; then
+      echo "  pinns: no local privilege-escalation candidate for this user (requires root ownership, SUID, and execute access)."
+    else
+      pinns_nnp=$(awk '/^NoNewPrivs:/ {print $2; exit}' /proc/self/status 2>/dev/null)
+      pinns_mount_options=$(findmnt -no OPTIONS -T "$sname" 2>/dev/null | head -n 1)
+      if [ "$pinns_nnp" = "1" ]; then
+        echo "  pinns: SUID transition blocked by NoNewPrivs for this process tree."
+      elif echo ",$pinns_mount_options," | grep -q ',nosuid,'; then
+        echo "  pinns: SUID transition blocked by nosuid mount options."
+      else
+        pinns_uncertainty=""
+        [ "$pinns_nnp" = "0" ] || pinns_uncertainty="NoNewPrivs unknown; "
+        [ -n "$pinns_mount_options" ] || pinns_uncertainty="${pinns_uncertainty}mount SUID policy unknown; "
+        echo "  pinns review candidate (CVE-2022-0811): root-owned SUID executable by current user; NoNewPrivs=${pinns_nnp:-unknown}; mount options=${pinns_mount_options:-unknown}."
+        echo "  ${pinns_uncertainty}Installed helper build and vendor fixes unknown; verify the exact binary and host sysctl policy. No helper execution performed."
+      fi
+    fi
+  fi
   if [ "$sname" = "."  ] || [ "$sname" = ".."  ]; then
     true #Don't do nothing
   elif echo "$sname" | grep -qE '/netdata/plugins[.]d/ndsudo$'; then

@@ -9,7 +9,7 @@
 # Functions Used: check_sudo_terraform_override, echo_not_found, print_2title, print_info
 # Global Variables:$IAMROOT, $PASSWORD, $TIMEOUT, $ROOT_FOLDER, $TMPDIR, $sudoB, $sudoG, $sudoVB1, $sudoVB2
 # Initial Functions:
-# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $sudo_adduser_main, $sudo_adduser_dir, $sudo_adduser_groups, $sudo_adduser_candidates, $sudo_adduser_group, $sudo_adduser_group_status, $sudo_adduser_visible, $sudo_adduser_unknown, $sudo_adduser_files, $sudo_adduser_file, $sudo_adduser_policy, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_backup_wrapper_rules, $sudo_backup_wrapper_script, $sudo_backup_wrapper_remaining, $sudo_backup_wrapper_walk, $sudo_backup_wrapper_part, $sudo_backup_wrapper_symlink, $sudo_backup_wrapper_result, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size, $script, $kept_names, $script_size, $matched_name, $sudo_nmap_walk, $sudo_rsync_rules, $sudo_nmap_result, $sudo_nmap_part, $sudo_rsync_dest, $sudo_nmap_remaining, $sudo_nmap_rules, $sudo_nmap_symlink, $sudo_nmap_path, $sudo_rsync_dir, $sudo_nmap_size, $sudo_rsync_source, $sudo_rsync_safe, $sudo_rsync_check, $sudo_rsync_walk, $sudo_rsync_remaining, $sudo_rsync_part, $sudo_rsync_owner, $sudo_rsync_current_uid, $sudo_gitpython_clone_rules, $sudo_gitpython_parser, $sudo_gitpython_binary, $sudo_gitpython_script, $sudo_gitpython_size, $sudo_gitpython_result, $sudo_model_loader_rules, $sudo_model_loader_script, $sudo_model_loader_dir, $sudo_model_loader_size, $sudo_model_loader_helper, $sudo_model_loader_line, $sudo_qpdf_path, $sudo_relative_cwd_dir, $sudo_relative_cwd_candidate, $sudo_relative_cwd_rules, $sudo_relative_cwd_script, $sudo_relative_cwd_size, $sudo_relative_cwd_shebang, $sudo_relative_cwd_helper, $sudo_bash_pattern_rules, $sudo_bash_pattern_script, $sudo_bash_pattern_size, $sudo_bash_pattern_shebang, $sudo_bash_pattern_line, $sudo_ps2pdf_rules, $sudo_ps2pdf_script, $sudo_ps2pdf_size, $sudo_ps2pdf_shebang, $sudo_ps2pdf_line, $sudo_compose_rules, $sudo_compose_script, $sudo_compose_size, $sudo_compose_shebang, $sudo_compose_match, $sudo_pyinstaller_rules, $sudo_pyinstaller_script, $sudo_pyinstaller_size, $sudo_pyinstaller_shebang, $sudo_pyinstaller_match
+# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $sudo_adduser_main, $sudo_adduser_dir, $sudo_adduser_groups, $sudo_adduser_candidates, $sudo_adduser_group, $sudo_adduser_group_status, $sudo_adduser_visible, $sudo_adduser_unknown, $sudo_adduser_files, $sudo_adduser_file, $sudo_adduser_policy, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_backup_wrapper_rules, $sudo_backup_wrapper_script, $sudo_backup_wrapper_remaining, $sudo_backup_wrapper_walk, $sudo_backup_wrapper_part, $sudo_backup_wrapper_symlink, $sudo_backup_wrapper_result, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size, $script, $kept_names, $script_size, $matched_name, $sudo_nmap_walk, $sudo_rsync_rules, $sudo_nmap_result, $sudo_nmap_part, $sudo_rsync_dest, $sudo_nmap_remaining, $sudo_nmap_rules, $sudo_nmap_symlink, $sudo_nmap_path, $sudo_rsync_dir, $sudo_nmap_size, $sudo_rsync_source, $sudo_rsync_safe, $sudo_rsync_check, $sudo_rsync_walk, $sudo_rsync_remaining, $sudo_rsync_part, $sudo_rsync_owner, $sudo_rsync_current_uid, $sudo_gitpython_clone_rules, $sudo_gitpython_parser, $sudo_gitpython_binary, $sudo_gitpython_script, $sudo_gitpython_size, $sudo_gitpython_result, $sudo_model_loader_rules, $sudo_model_loader_script, $sudo_model_loader_dir, $sudo_model_loader_size, $sudo_model_loader_helper, $sudo_model_loader_line, $sudo_qpdf_path, $sudo_relative_cwd_dir, $sudo_relative_cwd_candidate, $sudo_relative_cwd_rules, $sudo_relative_cwd_script, $sudo_relative_cwd_size, $sudo_relative_cwd_shebang, $sudo_relative_cwd_helper, $sudo_relative_cwd_yaml, $sudo_bash_pattern_rules, $sudo_bash_pattern_script, $sudo_bash_pattern_size, $sudo_bash_pattern_shebang, $sudo_bash_pattern_line, $sudo_ps2pdf_rules, $sudo_ps2pdf_script, $sudo_ps2pdf_size, $sudo_ps2pdf_shebang, $sudo_ps2pdf_line, $sudo_compose_rules, $sudo_compose_script, $sudo_compose_size, $sudo_compose_shebang, $sudo_compose_match, $sudo_pyinstaller_rules, $sudo_pyinstaller_script, $sudo_pyinstaller_size, $sudo_pyinstaller_shebang, $sudo_pyinstaller_match, $sudo_setenv_path_rules, $sudo_setenv_path_script, $sudo_setenv_path_size, $sudo_setenv_path_shebang, $sudo_setenv_path_match
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -18,7 +18,7 @@ print_2title "Checking 'sudo -l', sudoers files, and privileged Python paths" "T
 print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#sudo-and-suid"
 
 sudo_l_colorize() {
-  sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s,$sudoB,${SED_RED},g"
+  sed "s,_proxy,${SED_RED},g" | sed "s,$sudoG,${SED_GREEN},g" | sed -${E} "s,$sudoVB1,${SED_RED_YELLOW}," | sed -${E} "s,$sudoVB2,${SED_RED_YELLOW}," | sed -${E} "s@$sudoB@${SED_RED}@g"
 }
 
 sudo_l_colorize_output() {
@@ -2077,7 +2077,7 @@ sudo_relative_cwd_review() {
   done
   [ -n "$sudo_relative_cwd_dir" ] || return 0
   sudo_relative_cwd_rules=$(printf '%s\n' "$1" | LC_ALL=C awk '
-    function review(specs, root_capable, count, commands, i, command, path, args, python_rule, denied_args, denied_script) {
+    function review(specs, root_capable, count, commands, i, command, path, args, interpreter_rule, denied_args, denied_script) {
       count = split(specs, commands, ",")
       for (i = 1; i <= count; i++) {
         command = commands[i]
@@ -2105,6 +2105,17 @@ sudo_relative_cwd_review() {
               denied_python_script[denied_script] = 1
             }
           }
+          if (path ~ /^\/(usr\/(local\/)?)?bin\/ruby([0-9]+(\.[0-9]+)?)?$/) {
+            denied_args = substr(command, length(path) + 1)
+            sub(/^[[:space:]]+/, "", denied_args)
+            sub(/[[:space:]]+$/, "", denied_args)
+            if (denied_args == "" || denied_args == "*") denied_ruby = 1
+            else if (denied_args ~ /^\/[[:alnum:]_.+\/-]+\.rb([[:space:]]+\*)?$/) {
+              denied_script = denied_args
+              sub(/[[:space:]]+\*$/, "", denied_script)
+              denied_ruby_script[denied_script] = 1
+            }
+          }
           continue
         }
         if (!root_capable || noexec) continue
@@ -2114,17 +2125,24 @@ sudo_relative_cwd_review() {
         args = substr(command, length(path) + 1)
         sub(/^[[:space:]]+/, "", args)
         sub(/[[:space:]]+$/, "", args)
-        python_rule = 0
+        interpreter_rule = ""
         # A fixed Python interpreter plus a fixed script is still a script rule.
         if (path ~ /^\/(usr\/)?bin\/python3(\.[0-9]+)?$/) {
           if (args !~ /^\/[[:alnum:]_.+\/-]+\.py([[:space:]]+\*)?$/) continue
           sub(/[[:space:]]+\*$/, "", args)
           path = args
           args = ""
-          python_rule = 1
+          interpreter_rule = "python"
+        } else if (path ~ /^\/(usr\/(local\/)?)?bin\/ruby([0-9]+(\.[0-9]+)?)?$/) {
+          if (args !~ /^\/[[:alnum:]_.+\/-]+\.rb([[:space:]]+\*)?$/) continue
+          sub(/[[:space:]]+\*$/, "", args)
+          path = args
+          args = ""
+          interpreter_rule = "ruby"
         }
         if (args != "" && args != "*") continue
-        if (python_rule) python_candidate[path] = 1
+        if (interpreter_rule == "python") python_candidate[path] = 1
+        else if (interpreter_rule == "ruby") ruby_candidate[path] = 1
         else direct_candidate[path] = 1
         if (!found[path]++) ordered[++total] = path
       }
@@ -2152,7 +2170,9 @@ sudo_relative_cwd_review() {
         path = ordered[i]
         if (denied[path] ||
             (python_candidate[path] && !direct_candidate[path] &&
-             (denied_python || denied_python_script[path]))) continue
+             (denied_python || denied_python_script[path])) ||
+            (ruby_candidate[path] && !direct_candidate[path] &&
+             (denied_ruby || denied_ruby_script[path]))) continue
         if (++count > 12) exit
         print path
       }
@@ -2166,6 +2186,7 @@ sudo_relative_cwd_review() {
     if [ ! -r "$sudo_relative_cwd_script" ]; then
       case "$sudo_relative_cwd_script" in
         *.py) printf 'Sudo Python script source unreadable: %s (relative working-directory behavior unknown; review source and policy)\n' "$sudo_relative_cwd_script" ;;
+        *.rb) printf 'Sudo Ruby script source unreadable: %s (relative working-directory and YAML loader behavior unknown; review source and policy)\n' "$sudo_relative_cwd_script" ;;
       esac
       continue
     fi
@@ -2175,6 +2196,26 @@ sudo_relative_cwd_review() {
     [ "$sudo_relative_cwd_size" -le 65536 ] || continue
     sudo_relative_cwd_shebang=$(sed -n '1p;1q' "$sudo_relative_cwd_script" 2>/dev/null)
     case "$sudo_relative_cwd_script:$sudo_relative_cwd_shebang" in
+      *.rb:*|*:'#!'*'/ruby'*|*:'#!'*'/env ruby'*)
+        # Relative YAML input plus a loader call is a version-dependent cue.
+        # Do not read the YAML, invoke Ruby, or assume the loader is unsafe.
+        sudo_relative_cwd_yaml=$(LC_ALL=C head -c 65537 "$sudo_relative_cwd_script" 2>/dev/null | awk '
+          { bytes += length($0) + 1 }
+          NR > 200 || bytes > 65536 || length($0) > 2048 { partial = 1; exit }
+          /^[[:space:]]*#/ { next }
+          /(^|[^[:alnum:]_])(Dir|Process)[.]chdir[[:space:]]*\(/ { changes_dir = 1 }
+          /(^|[^[:alnum:]_])chdir[[:space:]]*\(/ { changes_dir = 1 }
+          /(YAML|Psych)[.](load|unsafe_load)[[:space:]]*\([[:space:]]*File[.]read[[:space:]]*\([[:space:]]*["\047][[:alnum:]_.+-]+[.](yml|yaml)["\047][[:space:]]*\)/ {
+            if (!yaml_line) yaml_line = NR
+          }
+          END { if (!partial && !changes_dir && yaml_line) print yaml_line }
+        ')
+        if [ -n "$sudo_relative_cwd_yaml" ]; then
+          printf 'Sudo relative-CWD Ruby YAML review candidate: %s reads a relative YAML file at line %s; writable CWD example: %s (verify input path, loader/Psych version and permitted classes, reachability, and effective sudo policy)\n' \
+            "$sudo_relative_cwd_script" "$sudo_relative_cwd_yaml" "$sudo_relative_cwd_dir"
+        fi
+        continue
+        ;;
       *.py:*|*:'#!'*'/python3'*|*:'#!'*'/env python3'*)
         # A literal single-item helper list, its call, and subprocess use are
         # a static review cue; they do not prove the branch is reachable.
@@ -2616,6 +2657,111 @@ sudo_pyinstaller_wrapper_review() {
   done
 }
 sudo_pyinstaller_wrapper_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+  sed -"$E" "s,.*,$SED_RED_YELLOW,"
+
+# A SETENV grant for an exact root-run Bash script may let the caller supply
+# PATH for an unqualified external command. Read only short, plain scripts;
+# never run a sudo rule or follow script-path symlinks.
+sudo_setenv_path_review() {
+  [ -n "$1" ] || return 0
+  case "$1" in *SETENV:*) ;; *) return 0 ;; esac
+  sudo_setenv_path_rules=$(printf '%s\n' "$1" | LC_ALL=C awk '
+    function review(specs, root_capable, count, commands, i, command, path, args, setenv, noexec) {
+      if (!root_capable) return
+      count = split(specs, commands, ",")
+      setenv = noexec = 0
+      for (i = 1; i <= count; i++) {
+        command = commands[i]
+        sub(/^[[:space:]]*/, "", command)
+        sub(/[[:space:]]*$/, "", command)
+        while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/) {
+          if (command ~ /^SETENV:/) setenv = 1
+          if (command ~ /^NOSETENV:/) setenv = 0
+          if (command ~ /^NOEXEC:/) noexec = 1
+          if (command ~ /^EXEC:/) noexec = 0
+          sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+        }
+        if (command ~ /^!/) {
+          sub(/^![[:space:]]*/, "", command)
+          path = command
+          sub(/[[:space:]].*$/, "", path)
+          if (path == "ALL" || path ~ /\*/) ambiguous = 1
+          else denied[path] = 1
+          continue
+        }
+        if (!setenv || noexec) continue
+        path = command
+        sub(/[[:space:]].*$/, "", path)
+        if (path !~ /^\/[[:alnum:]_.+\/-]+$/) continue
+        args = substr(command, length(path) + 1)
+        sub(/^[[:space:]]+/, "", args)
+        sub(/[[:space:]]+$/, "", args)
+        if (args != "") continue
+        if (!seen[path]++) ordered[++total] = path
+      }
+    }
+    NR > 3000 || length($0) > 2048 { ambiguous = 1; exit }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      previous_rule = 1
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      users = parts[1]
+      root_capable = users ~ /(^|[[:space:],])(ALL|root|#0)([[:space:],]|$)/ &&
+                     users !~ /(^|[[:space:],])!(ALL|root|#0)([[:space:],]|$)/
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      review(line, root_capable)
+      next
+    }
+    previous_rule && /^[[:space:]]+[^[:space:]]/ { ambiguous = 1; exit }
+    { previous_rule = 0 }
+    END {
+      if (ambiguous) exit
+      for (i = 1; i <= total; i++) {
+        path = ordered[i]
+        if (denied[path]) continue
+        if (++printed > 8) exit
+        print path
+      }
+    }
+  ')
+  [ -n "$sudo_setenv_path_rules" ] || return 0
+  printf '%s\n' "$sudo_setenv_path_rules" | while IFS= read -r sudo_setenv_path_script; do
+    case "$sudo_setenv_path_script" in *'//'*|*'/./'*|*'/../'*|*'/.'|*'/..') continue ;; esac
+    sudo_python_import_plain_path "$sudo_setenv_path_script" &&
+      [ -f "$sudo_setenv_path_script" ] && [ -r "$sudo_setenv_path_script" ] &&
+      [ -x "$sudo_setenv_path_script" ] || continue
+    sudo_setenv_path_size=$(stat -c %s "$sudo_setenv_path_script" 2>/dev/null) ||
+      sudo_setenv_path_size=$(stat -f %z "$sudo_setenv_path_script" 2>/dev/null) || continue
+    case "$sudo_setenv_path_size" in ''|*[!0-9]*) continue ;; esac
+    [ "$sudo_setenv_path_size" -le 65536 ] || continue
+    sudo_setenv_path_shebang=$(dd if="$sudo_setenv_path_script" bs=256 count=1 2>/dev/null | sed -n '1p;1q')
+    case "$sudo_setenv_path_shebang" in '#!'*'/bash'|'#!'*'env bash') ;; *) continue ;; esac
+    sudo_setenv_path_match=$(dd if="$sudo_setenv_path_script" bs=65537 count=1 2>/dev/null | LC_ALL=C awk '
+      NR > 200 || length($0) > 2048 { partial = 1; exit }
+      /^[[:space:]]*#/ { next }
+      {
+        line = $0
+        sub(/^[[:space:]]*/, "", line)
+        if (line ~ /^(find|chown|chmod|cp|mv|rm|tar|rsync|curl|wget|sed|awk|grep|truncate|systemctl|docker)([[:space:]]|$)/)
+          bare = 1
+        if (line ~ /^enable[[:space:]]+-n[[:space:]]+\[([[:space:];#]|$)/)
+          disabled_test = 1
+        if (line ~ /^(![[:space:]]*)?\[[[:space:]]/ || line ~ /^(if|elif|while|until)[[:space:]]+(![[:space:]]*)?\[[[:space:]]/)
+          test_call = 1
+      }
+      END {
+        if (!partial && bare) print "bare command"
+        else if (!partial && disabled_test && test_call) print "disabled [ builtin"
+      }
+    ')
+    [ -n "$sudo_setenv_path_match" ] || continue
+    printf 'Sudo SETENV PATH review candidate: %s (%s; confirm effective PATH and script flow, sourced files, denial/NOEXEC policy, writable executable search directory, and command resolution).\n' "$sudo_setenv_path_script" "$sudo_setenv_path_match"
+  done
+}
+sudo_setenv_path_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
   sed -"$E" "s,.*,$SED_RED_YELLOW,"
 
 (sudo_l_colorize_file /etc/sudoers) 2>/dev/null || echo_not_found "/etc/sudoers"

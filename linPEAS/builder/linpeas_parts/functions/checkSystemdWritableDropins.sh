@@ -2,14 +2,14 @@
 # ID: checkSystemdWritableDropins
 # Author: PEASS-ng contributors
 # Last Update: 08-10-2026
-# Description: Passively identify writable systemd service drop-in directories for active root services.
+# Description: Passively identify writable systemd unit and service drop-in directories.
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1543.002
 # Functions Used: print_3title, print_info
 # Global Variables: $E, $IAMROOT, $SED_RED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $sdwdd_system_dir, $sdwdd_dir, $sdwdd_unit, $sdwdd_checked, $sdwdd_properties, $sdwdd_property, $sdwdd_active, $sdwdd_loaded, $sdwdd_user, $sdwdd_user_seen, $sdwdd_dynamic_user, $sdwdd_root_dir, $sdwdd_root_image, $sdwdd_private_users, $sdwdd_found
+# Generated Global Variables: $sdwdd_system_dir, $sdwdd_runtime_dir, $sdwdd_dir, $sdwdd_unit, $sdwdd_checked, $sdwdd_properties, $sdwdd_property, $sdwdd_active, $sdwdd_loaded, $sdwdd_user, $sdwdd_user_seen, $sdwdd_dynamic_user, $sdwdd_root_dir, $sdwdd_root_image, $sdwdd_private_users, $sdwdd_found
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -19,12 +19,25 @@ checkSystemdWritableDropins() {
   [ -z "${IAMROOT:-}" ] || return 0
   [ "$(id -u 2>/dev/null)" != "0" ] || return 0
   command -v systemctl >/dev/null 2>&1 || return 0
-  command -v timeout >/dev/null 2>&1 || return 0
 
-  # The optional directory argument lets tests use a fixture without touching
-  # the host's systemd tree. Normal calls inspect only the system unit path.
+  # Optional directory arguments let tests use fixtures without touching
+  # the host's systemd tree. Normal calls inspect fixed systemd paths only.
   sdwdd_system_dir=${1:-/etc/systemd/system}
+  sdwdd_runtime_dir=${2:-/run/systemd/system}
   [ -d "$sdwdd_system_dir" ] || return 0
+
+  # A user may create a new unit even without directory read permission.
+  # This is only a lead until a privileged manager loads and starts that unit.
+  if [ -d "$sdwdd_runtime_dir" ] && [ ! -L "$sdwdd_system_dir" ] &&
+     [ -w "$sdwdd_system_dir" ] && [ -x "$sdwdd_system_dir" ]; then
+    print_3title "Writable systemd system unit directory" "T1543.002"
+    print_info "https://book.hacktricks.wiki/en/linux-hardening/interesting-files-permissions/write-to-root.html#service--socket-files"
+    echo "$sdwdd_system_dir is writable and searchable; verify effective sudo start/restart policy, unit loading, and service identity before treating a new unit as executable" |
+      sed -"${E}" "s,.*,${SED_RED_YELLOW},"
+    echo ""
+  fi
+
+  command -v timeout >/dev/null 2>&1 || return 0
   sdwdd_checked=0
   sdwdd_found=""
 

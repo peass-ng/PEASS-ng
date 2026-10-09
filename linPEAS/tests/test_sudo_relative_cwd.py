@@ -20,13 +20,13 @@ MARKER = "Sudo relative-CWD helper review candidate:"
 class SudoRelativeCwdTests(unittest.TestCase):
     def scan(self, source="#!/bin/bash\n./initdb.sh 2>/dev/null\n", runas="root",
              args="", tag="NOPASSWD: ", extra="", symlink=False,
-             interpreter="", readable=True):
+             interpreter="", readable=True, suffix=".py"):
         temp_parent = "/private/tmp" if Path("/private/tmp").is_dir() else None
         with tempfile.TemporaryDirectory(dir=temp_parent) as tmp:
             root = Path(tmp)
             working = root / "working"
             working.mkdir()
-            target = root / ("syscheck.py" if interpreter else "syscheck")
+            target = root / ("syscheck" + suffix if interpreter else "syscheck")
             actual = root / "actual" if symlink else target
             actual.write_text(source)
             actual.chmod(0o755 if readable else 0o111)
@@ -143,6 +143,40 @@ class SudoRelativeCwdTests(unittest.TestCase):
             with self.subTest(source=source[:80]):
                 self.assertEqual("", self.scan(source=source,
                                                 interpreter="/usr/bin/python3", args=" *"))
+
+    def test_ruby_relative_yaml_under_exact_root_rule(self):
+        source = ('require "yaml"\n'
+                  'YAML.load(File.read("dependencies.yml"))\n')
+        options = {"source": source, "interpreter": "/usr/bin/ruby",
+                   "suffix": ".rb"}
+        marker = "Sudo relative-CWD Ruby YAML review candidate:"
+        out = self.scan(**options)
+        self.assertEqual(1, out.count(marker))
+        self.assertIn("line 2", out)
+        self.assertIn("loader/Psych version", out)
+        self.assertEqual(1, self.scan(**options, args=" *").count(marker))
+        self.assertEqual(1, self.scan(**options,
+            extra="    (root) ! /usr/bin/ruby /opt/other.rb\n").count(marker))
+
+        for change in (
+            {"runas": "builder"},
+            {"args": " --check"},
+            {"tag": "NOEXEC: "},
+            {"extra": "    (root) ! /usr/bin/ruby {script}\n"},
+            {"extra": "    (root) ! /usr/bin/ruby *\n"},
+            {"extra": "Defaults runchdir=/srv/fixed\n"},
+            {"symlink": True},
+            {"source": 'YAML.safe_load(File.read("dependencies.yml"))\n'},
+            {"source": 'YAML.load(File.read("/etc/dependencies.yml"))\n'},
+            {"source": 'Dir.chdir("/opt")\nYAML.load(File.read("dependencies.yml"))\n'},
+            {"source": '# YAML.load(File.read("dependencies.yml"))\n'},
+            {"source": source + "x" * 2049 + "\n"},
+        ):
+            with self.subTest(change=change):
+                self.assertEqual("", self.scan(**{**options, **change}))
+        unreadable = self.scan(**options, readable=False)
+        self.assertIn("Sudo Ruby script source unreadable", unreadable)
+        self.assertNotIn(marker, unreadable)
 
 
 if __name__ == "__main__":
