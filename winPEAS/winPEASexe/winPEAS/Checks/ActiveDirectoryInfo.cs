@@ -845,10 +845,16 @@ namespace winPEAS.Checks
 
         private static IEnumerable<AdAccessImpact> MapRuleToImpacts(ActiveDirectoryAccessRule rule, string targetClass, string schemaNC, string configNC)
         {
-            var impacts = new List<AdAccessImpact>();
-            var rights = rule.ActiveDirectoryRights;
+            return MapRuleToImpacts(rule.ActiveDirectoryRights, rule.ObjectType, targetClass, schemaNC, configNC);
+        }
 
-            if ((rights & ActiveDirectoryRights.GenericAll) != 0)
+        internal static IEnumerable<AdAccessImpact> MapRuleToImpacts(ActiveDirectoryRights rights, Guid objectType,
+            string targetClass, string schemaNC, string configNC)
+        {
+            var impacts = new List<AdAccessImpact>();
+
+            // AD generic rights are composite masks; a shared read bit is not full control.
+            if ((rights & ActiveDirectoryRights.GenericAll) == ActiveDirectoryRights.GenericAll)
             {
                 impacts.Add(new AdAccessImpact
                 {
@@ -859,7 +865,7 @@ namespace winPEAS.Checks
                 return impacts;
             }
 
-            if ((rights & ActiveDirectoryRights.GenericWrite) != 0)
+            if ((rights & ActiveDirectoryRights.GenericWrite) == ActiveDirectoryRights.GenericWrite)
             {
                 impacts.Add(new AdAccessImpact
                 {
@@ -901,7 +907,7 @@ namespace winPEAS.Checks
 
             if ((rights & ActiveDirectoryRights.ExtendedRight) != 0)
             {
-                var extImpact = MapExtendedRightImpact(rule.ObjectType, schemaNC, configNC);
+                var extImpact = MapExtendedRightImpact(objectType, schemaNC, configNC);
                 if (extImpact != null)
                 {
                     impacts.Add(extImpact);
@@ -910,7 +916,7 @@ namespace winPEAS.Checks
 
             if ((rights & ActiveDirectoryRights.WriteProperty) != 0)
             {
-                var attrImpact = MapAttributeWriteImpact(rule.ObjectType, targetClass, schemaNC, configNC, false);
+                var attrImpact = MapAttributeWriteImpact(objectType, targetClass, schemaNC, configNC, false);
                 if (attrImpact != null)
                 {
                     impacts.Add(attrImpact);
@@ -919,7 +925,7 @@ namespace winPEAS.Checks
 
             if ((rights & ActiveDirectoryRights.Self) != 0)
             {
-                var validatedImpact = MapAttributeWriteImpact(rule.ObjectType, targetClass, schemaNC, configNC, true);
+                var validatedImpact = MapAttributeWriteImpact(objectType, targetClass, schemaNC, configNC, true);
                 if (validatedImpact != null)
                 {
                     impacts.Add(validatedImpact);

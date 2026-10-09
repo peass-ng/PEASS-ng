@@ -227,6 +227,7 @@ namespace winPEAS.Info.FilesInfo
                 return IisCreateFileAcl.ManualReview;
             bool allow = false;
             bool deny = false;
+            bool uncertain = false;
             foreach (GenericAce rawAce in descriptor.DiscretionaryAcl)
             {
                 var ace = rawAce as QualifiedAce;
@@ -235,14 +236,22 @@ namespace winPEAS.Info.FilesInfo
                 int mask = ace.AccessMask;
                 bool createsFile = (mask & (FileAddFile | unchecked((int)0x40000000) | unchecked((int)0x10000000))) != 0;
                 if (!createsFile) continue;
-                if (ace.AceQualifier == AceQualifier.AccessDenied &&
-                    denySids != null && denySids.Contains(ace.SecurityIdentifier.Value)) deny = true;
-                if (ace.AceQualifier == AceQualifier.AccessAllowed && enabledSids.Contains(ace.SecurityIdentifier.Value))
+                bool matchesDeny = ace.AceQualifier == AceQualifier.AccessDenied &&
+                    denySids != null && denySids.Contains(ace.SecurityIdentifier.Value);
+                bool matchesAllow = ace.AceQualifier == AceQualifier.AccessAllowed &&
+                    enabledSids.Contains(ace.SecurityIdentifier.Value);
+                if (!matchesAllow && !matchesDeny) continue;
+                // Callback conditions and object-specific scope are not evaluated here.
+                // In particular, a conditional Deny must not be reported as definite denial.
+                var common = ace as CommonAce;
+                if (common == null || common.IsCallback) { uncertain = true; continue; }
+                if (matchesDeny) deny = true;
+                if (matchesAllow)
                 { allow = true; trustee = ace.SecurityIdentifier.Value; }
             }
             // ACL ordering and generic-rights mapping can affect conflicting ACEs.
             // Avoid claiming denial when both an Allow and a Deny match.
-            if (allow && deny) return IisCreateFileAcl.ManualReview;
+            if (uncertain || (allow && deny)) return IisCreateFileAcl.ManualReview;
             if (deny) return IisCreateFileAcl.Denied;
             return allow ? IisCreateFileAcl.Indicated : IisCreateFileAcl.NoMatch;
         }

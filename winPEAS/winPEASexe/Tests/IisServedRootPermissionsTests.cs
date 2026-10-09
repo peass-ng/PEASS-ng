@@ -17,10 +17,10 @@ namespace winPEAS.Tests
         private const string GroupSid = "S-1-5-21-111-222-333-1002";
         private const string OtherSid = "S-1-5-21-111-222-333-1003";
 
-        private static RawSecurityDescriptor Descriptor(params CommonAce[] aces)
+        private static RawSecurityDescriptor Descriptor(params GenericAce[] aces)
         {
             var acl = new RawAcl(2, aces.Length);
-            foreach (CommonAce ace in aces) acl.InsertAce(acl.Count, ace);
+            foreach (GenericAce ace in aces) acl.InsertAce(acl.Count, ace);
             var owner = new SecurityIdentifier(UserSid);
             return new RawSecurityDescriptor(ControlFlags.DiscretionaryAclPresent, owner, owner, null, acl);
         }
@@ -74,6 +74,35 @@ namespace winPEAS.Tests
             Assert.AreEqual(IisCreateFileAcl.Indicated,
                 Evaluate(Descriptor(Ace(UserSid, AceQualifier.AccessAllowed, unchecked((int)0x40000000))), UserSid));
             Assert.AreEqual(IisCreateFileAcl.ManualReview, Evaluate(null, UserSid));
+        }
+
+        [TestMethod]
+        public void MatchingCallbackAndObjectAcesRequireManualReview()
+        {
+            foreach (var qualifier in new[] { AceQualifier.AccessAllowed, AceQualifier.AccessDenied })
+            {
+                var callback = new CommonAce(AceFlags.None, qualifier, 0x2,
+                    new SecurityIdentifier(UserSid), true, null);
+                Assert.AreEqual(IisCreateFileAcl.ManualReview, Evaluate(Descriptor(callback), UserSid));
+                var scoped = new ObjectAce(AceFlags.None, qualifier, 0x2,
+                    new SecurityIdentifier(UserSid), ObjectAceFlags.ObjectAceTypePresent,
+                    Guid.NewGuid(), Guid.Empty, false, null);
+                Assert.AreEqual(IisCreateFileAcl.ManualReview, Evaluate(Descriptor(scoped), UserSid));
+                Assert.AreEqual(IisCreateFileAcl.ManualReview,
+                    Evaluate(Descriptor(Ace(UserSid, AceQualifier.AccessDenied, 0x2), callback), UserSid));
+            }
+        }
+
+        [TestMethod]
+        public void UnrelatedAndInheritOnlyCallbackAcesDoNotAffectAssessment()
+        {
+            var unrelated = new CommonAce(AceFlags.None, AceQualifier.AccessDenied, 0x2,
+                new SecurityIdentifier(OtherSid), true, null);
+            var inheritOnly = new CommonAce(AceFlags.InheritOnly, AceQualifier.AccessDenied, 0x2,
+                new SecurityIdentifier(UserSid), true, null);
+            Assert.AreEqual(IisCreateFileAcl.NoMatch, Evaluate(Descriptor(unrelated, inheritOnly), UserSid));
+            Assert.AreEqual(IisCreateFileAcl.Indicated,
+                Evaluate(Descriptor(Ace(UserSid, AceQualifier.AccessAllowed, 0x2), unrelated, inheritOnly), UserSid));
         }
 
         private static XDocument Config(int activeCount, bool handler, bool disabled = false)
