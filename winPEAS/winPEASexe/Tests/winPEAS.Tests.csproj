@@ -91,6 +91,7 @@
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.DirectoryServices" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
@@ -98,21 +99,59 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdcsLocalRegistryTests.cs" />
+    <Compile Include="Esc1TemplateCandidateTests.cs" />
+    <Compile Include="BitLockerDataAndRecoveryArtifactTests.cs" />
+    <Compile Include="PasswordSafeFileSelectorTests.cs" />
+    <Compile Include="SqlSetupConfigurationIndicatorTests.cs" />
     <Compile Include="ArgumentParsingTests.cs" />
     <Compile Include="AutoLogonTests.cs" />
+    <Compile Include="FixedBuildIndicatorTests.cs" />
+    <Compile Include="HMailAndInstalledAppsTests.cs" />
+    <Compile Include="LansweeperConfigMetadataTests.cs" />
+    <Compile Include="IisServedRootPermissionsTests.cs" />
+    <Compile Include="ApacheSystemWebRootTests.cs" />
+    <Compile Include="IisWebrootBackupSelectorTests.cs" />
     <Compile Include="ChecksArgumentEdgeCasesTests.cs" />
     <Compile Include="CheckmkAgentVersionTests.cs" />
+    <Compile Include="VeeamBackupVersionTests.cs" />
     <Compile Include="ClfsAuthenticationTests.cs" />
+    <Compile Include="DcLdapPolicyTests.cs" />
+    <Compile Include="DelegationPrivilegePresentationTests.cs" />
+    <Compile Include="CurrentProcessTokenPresentationTests.cs" />
+    <Compile Include="DpapiMasterKeyProfileTests.cs" />
+    <Compile Include="DpapiCredentialFileInventoryTests.cs" />
+    <Compile Include="DeviceDriverInventoryTests.cs" />
+    <Compile Include="ServiceSpnPriorityTests.cs" />
+    <Compile Include="SessionAndSchannelCuesTests.cs" />
+    <Compile Include="SpnWriteRightTests.cs" />
+    <Compile Include="ExactAttributeAclAndSampleTests.cs" />
+    <Compile Include="OuAndMembershipAclTests.cs" />
+    <Compile Include="SqlServicePrivilegeContextTests.cs" />
     <Compile Include="GmsaAndAdcsIndicatorsTests.cs" />
     <Compile Include="LapsPasswordExposureTests.cs" />
+    <Compile Include="CurrentComputerRbcdTests.cs" />
+    <Compile Include="UnconstrainedDelegationInventoryTests.cs" />
     <Compile Include="PrivilegedScheduledTaskTests.cs" />
+    <Compile Include="ProcessModuleDirectoryReviewTests.cs" />
     <Compile Include="PrivilegedWmiEventConsumerTests.cs" />
     <Compile Include="RegistryHiveExposureTests.cs" />
     <Compile Include="SccmNetworkAccessAccountTests.cs" />
+    <Compile Include="ScheduledApplicationDisplayTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SmokeTests.cs" />
     <Compile Include="WritableServiceDllTests.cs" />
     <Compile Include="WritableServiceRecoveryCommandTests.cs" />
+    <Compile Include="ZipNtdsBackupIndicatorTests.cs" />
+    <Compile Include="WimBackupPathTests.cs" />
+    <Compile Include="RecycleBinArchiveIndicatorTests.cs" />
+    <Compile Include="MRemoteNgConnectionFilesTests.cs" />
+    <Compile Include="RemoteDesktopPlusProfilesTests.cs" />
+    <Compile Include="SolarPuttyFilePathTests.cs" />
+    <Compile Include="GiteaAndVisualStudioCandidateTests.cs" />
+    <Compile Include="OpenfireEmbeddedDatabaseTests.cs" />
+    <Compile Include="MinecraftPluginJarCatalogTests.cs" />
+    <Compile Include="VelociraptorServerConfigTests.cs" />
+    <Compile Include="Pdf24RepairPrerequisitesTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

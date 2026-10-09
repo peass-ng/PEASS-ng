@@ -21,7 +21,7 @@ namespace winPEAS.Checks
 {
     internal class FilesInfo : ISystemCheck
     {
-        static readonly string _patternsFileCredsColor = @"RDCMan.settings|.rdg|_history|httpd.conf|.htpasswd|.gitconfig|.git-credentials|Dockerfile|docker-compose.ymlaccess_tokens.db|accessTokens.json|azureProfile.json|appcmd.exe|scclient.exe|unattend.txt|access.log|error.log|credential|password|.gpg|.pgp|config.php|elasticsearch|kibana.|.p12|\.der|.csr|.crt|.cer|.pem|known_hosts|id_rsa|id_dsa|.ovpn|tomcat-users.xml|web.config|.kdbx|.key|KeePass.config|ntds.dir|Ntds.dit|sam|system|SAM|SYSTEM|security|software|SECURITY|SOFTWARE|FreeSSHDservice.ini|sysprep.inf|sysprep.xml|unattend.xml|unattended.xml|vnc|groups.xml|services.xml|scheduledtasks.xml|printers.xml|drives.xml|datasources.xml|php.ini|https.conf|https-xampp.conf|my.ini|my.cnf|access.log|error.log|server.xml|setupinfo|pagefile.sys|NetSetup.log|iis6.log|AppEvent.Evt|SecEvent.Evt|default.sav|security.sav|software.sav|system.sav|ntuser.dat|index.dat|bash.exe|wsl.exe";
+        static readonly string _patternsFileCredsColor = @"\.accdb\b|\.mdb\b|\.pfx\b|RDCMan.settings|.rdg|_history|httpd.conf|.htpasswd|.gitconfig|.git-credentials|Dockerfile|docker-compose.ymlaccess_tokens.db|accessTokens.json|azureProfile.json|appcmd.exe|scclient.exe|unattend.txt|access.log|error.log|credential|password|.gpg|.pgp|config.php|elasticsearch|kibana.|.p12|\.der|.csr|.crt|.cer|.pem|known_hosts|id_rsa|id_dsa|.ovpn|tomcat-users.xml|web.config|.kdbx|.key|KeePass.config|ntds.dir|Ntds.dit|sam|system|SAM|SYSTEM|security|software|SECURITY|SOFTWARE|FreeSSHDservice.ini|sysprep.inf|sysprep.xml|unattend.xml|unattended.xml|vnc|groups.xml|services.xml|scheduledtasks.xml|printers.xml|drives.xml|datasources.xml|php.ini|https.conf|https-xampp.conf|my.ini|my.cnf|access.log|error.log|server.xml|setupinfo|pagefile.sys|NetSetup.log|iis6.log|AppEvent.Evt|SecEvent.Evt|default.sav|security.sav|software.sav|system.sav|ntuser.dat|index.dat|bash.exe|wsl.exe";
         //    static readonly string _patternsFileCreds = @"RDCMan.settings;*.rdg;*_history*;httpd.conf;.htpasswd;.gitconfig;.git-credentials;Dockerfile;docker-compose.yml;access_tokens.db;accessTokens.json;azureProfile.json;appcmd.exe;scclient.exe;*.gpg$;*.pgp$;*config*.php;elasticsearch.y*ml;kibana.y*ml;*.p12$;*.cer$;known_hosts;*id_rsa*;*id_dsa*;*.ovpn;tomcat-users.xml;web.config;*.kdbx;KeePass.config;Ntds.dit;SAM;SYSTEM;security;software;FreeSSHDservice.ini;sysprep.inf;sysprep.xml;*vnc*.ini;*vnc*.c*nf*;*vnc*.txt;*vnc*.xml;php.ini;https.conf;https-xampp.conf;my.ini;my.cnf;access.log;error.log;server.xml;ConsoleHost_history.txt;pagefile.sys;NetSetup.log;iis6.log;AppEvent.Evt;SecEvent.Evt;default.sav;security.sav;software.sav;system.sav;ntuser.dat;index.dat;bash.exe;wsl.exe;unattend.txt;*.der$;*.csr$;unattend.xml;unattended.xml;groups.xml;services.xml;scheduledtasks.xml;printers.xml;drives.xml;datasources.xml;setupinfo;setupinfo.bak";
 
         private static readonly IList<string> patternsFileCreds = new List<string>()
@@ -34,6 +34,7 @@ namespace winPEAS.Checks
             "*.kdbx",
             "*.ovpn",
             "*.p12$",
+            "*.pfx$",
             "*.pgp$",
             "*.rdg",
             "*_history*",
@@ -128,10 +129,16 @@ namespace winPEAS.Checks
                 PrintCloudCreds,
                 PrintUnattendFiles,
                 PrintSAMBackups,
+                PrintNtdsZipBackups,
+                PrintIisServedRoots,
+                PrintApacheSystemWebRoot,
                 PrintMcAffeSitelistFiles,
                 PrintCachedGPPPassword,
                 PrintPossCredsRegs,
+                HMailServerExposure.PrintInfo,
                 PrintUserCredsFiles,
+                PrintMRemoteNgConnectionFiles,
+                PrintVelociraptorServerConfig,
                 PrintOracleSQLDeveloperConfigFiles,
                 Slack.PrintInfo,
                 PrintLOLBAS,
@@ -260,6 +267,107 @@ namespace winPEAS.Checks
                 Beaprint.PrintException(ex.Message);
             }
         }
+
+        void PrintNtdsZipBackups()
+        {
+            Beaprint.MainPrint("ZIP-wrapped NTDS backup exposure indicators", "T1003.003");
+            ZipNtdsBackupReport report = ZipNtdsBackupIndicator.Scan();
+            foreach (ZipNtdsBackupFinding finding in report.Findings)
+            {
+                Beaprint.BadPrint($"    Backup exposure indicator: {finding.Path}");
+                Beaprint.GrayPrint($"      ZIP members: {finding.NtdsMember}, {finding.SystemMember}");
+                Beaprint.GrayPrint("      Readable archive metadata only; this does not establish usable credentials or exploitability.");
+            }
+            foreach (string path in report.UnknownPaths)
+            {
+                Beaprint.GrayPrint($"    Inspection unknown (inaccessible, corrupt, encrypted, truncated, or over limit): {path}");
+            }
+            if (report.LimitReached)
+            {
+                Beaprint.GrayPrint("    Inspection incomplete: archive count or time limit reached; at least one candidate may be skipped.");
+            }
+            if (report.Findings.Count == 0 && report.UnknownPaths.Count == 0 && !report.LimitReached)
+            {
+                Beaprint.GoodPrint("    No matching ZIP backup metadata found in the inspected locations.");
+            }
+        }
+
+        void PrintApacheSystemWebRoot()
+        {
+            ApacheSystemWebRootReport report = ApacheSystemWebRoot.Scan();
+            if (report == null) return;
+            Beaprint.MainPrint("XAMPP Apache served-root permissions", "T1505.003");
+            Beaprint.NoColorPrint("    Service: " + (report.ServiceName ?? "unresolved"));
+            if (report.Root != null)
+            {
+                Beaprint.NoColorPrint("    DocumentRoot: " + report.Root.Path);
+                if (report.Root.CreateFileAcl == IisCreateFileAcl.ManualReview &&
+                    !string.IsNullOrEmpty(report.Root.Trustee))
+                    Beaprint.GrayPrint("    Create-file Allow indicated for current token SID " +
+                        report.Root.Trustee + "; effective access requires manual review.");
+                else if (report.Root.CreateFileAcl == IisCreateFileAcl.Denied)
+                    Beaprint.GrayPrint("    Create-file denied by matching ACL entry.");
+                else if (report.Root.CreateFileAcl == IisCreateFileAcl.NoMatch)
+                    Beaprint.GrayPrint("    No matching create-file Allow in inspected ACL.");
+                else
+                    Beaprint.GrayPrint("    Create-file ACL: " + report.Root.Reason);
+            }
+            Beaprint.GrayPrint("    " + report.Note);
+            Beaprint.GrayPrint("    A writable served root becomes a host escalation route only when the service executes attacker-controlled server-side content with a privileged token.");
+        }
+
+        void PrintIisServedRoots()
+        {
+            IisServedRootReport report = IisServedRootPermissions.Scan();
+            if (report.Roots.Count == 0 && !report.ConfigReadable && report.Note == null) return; // IIS absent.
+            Beaprint.MainPrint("IIS served-root create-file permissions", "T1505.003");
+            Beaprint.LinkPrint("https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-web/iis-internet-information-services");
+            foreach (IisServedRoot root in report.Roots)
+            {
+                Beaprint.NoColorPrint($"    {root.Path}");
+                if (!root.Configured)
+                {
+                    Beaprint.GrayPrint("      Default inetpub candidate only; no active site mapping evidence. Manual review.");
+                    continue;
+                }
+                Beaprint.GrayPrint($"      Site: {root.Site}; application: {root.Application}; pool: {root.Pool ?? "unspecified"} (auto-start {(root.AutoStartConfigured ? "enabled" : "disabled")}; runtime state unverified)");
+                if (root.CreateFileAcl == IisCreateFileAcl.ManualReview)
+                {
+                    Beaprint.GrayPrint($"      Effective current-token create-file: manual review. {root.Reason}");
+                    if (!string.IsNullOrEmpty(root.Trustee))
+                        Beaprint.GrayPrint($"      Matching enabled-token SID Allow: {root.Trustee}");
+                }
+                else if (root.CreateFileAcl == IisCreateFileAcl.Denied)
+                    Beaprint.GrayPrint("      Create-file denied by matching ACL entry.");
+                else
+                    Beaprint.GrayPrint("      No matching create-file Allow in inspected ACL.");
+                Beaprint.GrayPrint(root.AspxHandlerConfigured
+                    ? "      ASPX handler configured in applicationHost.config; per-path overrides and execution unverified."
+                    : "      Served content; server-side execution unverified.");
+            }
+            if (!string.IsNullOrEmpty(report.Note)) Beaprint.GrayPrint("    " + report.Note);
+            if (report.LimitReached) Beaprint.GrayPrint("    IIS inspection incomplete: path, configuration, or time limit reached.");
+            if (report.Roots.Count == 0 && report.ConfigReadable && !report.LimitReached)
+                Beaprint.GoodPrint("    No eligible local physical roots in the inspected IIS configuration.");
+            if (report.AdcsWebEnrollment.Count > 0)
+            {
+                Beaprint.InfoPrint("  Local AD CS Web Enrollment posture (ESC8 configuration leads)");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/ad-certificates/domain-escalation.html#ntlm-relay-to-ad-cs-http-endpoints--esc8");
+                foreach (IisAdcsWebEnrollmentFinding finding in report.AdcsWebEnrollment)
+                {
+                    string summary = $"    {finding.Site}{finding.Path}: HTTP {(finding.HttpBinding ? "yes" : "no")}; HTTPS {(finding.HttpsBinding ? "yes" : "no")}; Windows auth {Show(finding.WindowsAuthentication)}; NTLM-capable provider {Show(finding.NtlmProvider)}; EPA {finding.EpaTokenChecking}; Require SSL {Show(finding.RequireSsl)}.";
+                    Beaprint.NoColorPrint(summary);
+                    if (finding.Candidate)
+                        Beaprint.BadPrint("      ESC8 configuration candidate. Endpoint reachability, web.config overrides, coercion, template enrollment, and runtime state are unverified.");
+                    else
+                        Beaprint.GrayPrint("      Local configuration does not establish an ESC8 candidate; inspect effective endpoint settings and runtime state.");
+                    if (finding.FileLevelOverride)
+                        Beaprint.GrayPrint("      File-level IIS location override exists; effective certificate request endpoint behavior is unknown.");
+                }
+            }
+        }
+
+        private static string Show(bool? value) => value.HasValue ? (value.Value ? "yes" : "no") : "unknown";
 
         private static void PrintMcAffeSitelistFiles()
         {
@@ -497,11 +605,71 @@ namespace winPEAS.Checks
                         }
                     }
                 }
+
+                string drive = Environment.GetEnvironmentVariable("SystemDrive");
+                string driveRoot = string.IsNullOrEmpty(drive) ? null : drive.TrimEnd('\\') + "\\";
+                var profileCandidates = SearchHelper.RootDirUsers
+                    .Where(file => !file.IsDirectory && string.Equals(file.Filename, "profiles.xml", StringComparison.OrdinalIgnoreCase))
+                    .Select(file => file.FullPath);
+                RemoteDesktopPlusProfileReport profiles = RemoteDesktopPlusProfiles.Scan(driveRoot, profileCandidates);
+                foreach (string path in profiles.Paths)
+                {
+                    string safePath = new string(path.Select(c => char.IsControl(c) ? '?' : c).ToArray());
+                    Beaprint.BadPrint("    Remote Desktop Plus-like profile export: " + safePath +
+                        " | stored-password marker present; recovery unverified");
+                }
+                if (profiles.Partial || profiles.LimitReached)
+                    Beaprint.GrayPrint("    Remote-session profile visibility partial: inaccessible path, file size, or scan limit.");
             }
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
             }
+        }
+
+        private static void PrintMRemoteNgConnectionFiles()
+        {
+            Beaprint.MainPrint("Readable mRemoteNG connection XML", "T1552.001");
+            MRemoteNgConnectionReport report = MRemoteNgConnectionFiles.ScanCurrentUser();
+            foreach (MRemoteNgConnectionFinding finding in report.Findings)
+            {
+                string safePath = new string(finding.Path.Select(c => char.IsControl(c) ? '?' : c).ToArray());
+                string count = finding.EncryptedNodeCount.HasValue
+                    ? finding.EncryptedNodeCount.Value.ToString()
+                    : "unavailable (full-file encryption)";
+                Beaprint.BadPrint("    " + safePath + " | encrypted nodes: " + count);
+            }
+            if (report.Findings.Count == 0) Beaprint.NotFoundPrint();
+            if (report.LimitReached || report.Partial)
+                Beaprint.GrayPrint("    Partial visibility: a directory, candidate, or best-effort time limit was reached, or a path could not be inspected.");
+            Beaprint.GrayPrint("    Encrypted entries are a credential lead; recovery depends on the configuration and master password.");
+            Beaprint.GrayPrint("    Only accessible local profile paths were checked; malformed files and hidden stores may be missed.");
+        }
+
+        private static void PrintVelociraptorServerConfig()
+        {
+            Beaprint.MainPrint("Readable forensic server configuration", "T1552.001");
+            ServerConfigReport report = VelociraptorServerConfig.Collect();
+            foreach (ServerConfigFinding finding in report.Findings)
+            {
+                string safePath = new string(finding.Path.Select(c => char.IsControl(c) ? '?' : c).ToArray());
+                switch (finding.State)
+                {
+                    case ServerConfigState.ReadableWithCaKey:
+                        Beaprint.BadPrint("    " + safePath + " | readable; CA private-key marker present");
+                        break;
+                    case ServerConfigState.ReadableWithoutCaKey:
+                        Beaprint.GrayPrint("    " + safePath + " | readable; CA private-key marker absent");
+                        break;
+                    default:
+                        Beaprint.GrayPrint("    " + safePath + " | " + finding.State + "; contents unknown");
+                        break;
+                }
+            }
+            if (report.Findings.Count == 0) Beaprint.NotFoundPrint();
+            if (report.Partial) Beaprint.GrayPrint("    Partial visibility: a path, file-size, or best-effort time limit prevented inspection.");
+            Beaprint.GrayPrint("    Metadata/marker only; no key material is printed. API access also requires a suitable server identity and role.");
+            Beaprint.GrayPrint("    Up to six direct local installation paths were checked; custom paths and offline CA keys may be missed.");
         }
 
         void PrintRecycleBin()
@@ -536,6 +704,26 @@ namespace winPEAS.Checks
                 {
                     Beaprint.NotFoundPrint();
                 }
+
+                Beaprint.MainPrint("Deleted archive candidates in accessible Recycle Bins", "T1552.001");
+                RecycleBinArchiveResult archives = RecycleBinArchiveIndicator.Scan();
+                foreach (RecycleBinArchiveCandidate archive in archives.Candidates)
+                {
+                    int ageDays = Math.Max(0, (int)(DateTime.UtcNow - archive.DeletedUtc).TotalDays);
+                    Beaprint.GrayPrint("  " + archive.OriginalName +
+                        " | deleted " + ageDays + " days ago" +
+                        " | $R: " + archive.RecycledPath +
+                        " | size: " + (archive.Size.HasValue ? archive.Size.Value.ToString() + " bytes" : "unknown") +
+                        " | access: " + archive.Accessibility +
+                        (archive.LikelyBackup ? " | backup/config name" : ""));
+                }
+                if (archives.Candidates.Count == 0) Beaprint.NotFoundPrint();
+                Beaprint.GrayPrint("  Metadata only; archive contents and credentials were not inspected.");
+                Beaprint.GrayPrint("  Scan limits: 16 volumes, 128 SID folders, 4096 entries, 1024 $I records, 20 candidates, 4096 bytes per $I; 3-second best-effort budget.");
+                if (archives.Partial || archives.MalformedRecords > 0)
+                    Beaprint.GrayPrint("  Partial visibility: limits, access errors, skipped reparse points, or malformed $I metadata (" +
+                        archives.MalformedRecords + " malformed); additional candidates may be unseen.");
+                Beaprint.GrayPrint("  Visibility depends on the current identity and Recycle Bin ACLs; no finding does not prove absence.");
             }
             catch (Exception ex)
             {
@@ -558,6 +746,15 @@ namespace winPEAS.Checks
                 var files = SearchHelper.SearchUsersInterestingFiles();
 
                 Beaprint.AnsiPrint("    " + string.Join("\n    ", files), colorF);
+
+                var artifacts = SearchHelper.SearchMessengerAndRecoveryArtifacts();
+                if (artifacts.Count > 0)
+                {
+                    Beaprint.InfoPrint("    Messaging and recovery file candidates from cached user inventory:");
+                    foreach (string artifact in artifacts)
+                        Beaprint.GrayPrint("      " + artifact);
+                    Beaprint.GrayPrint("    File names are review leads; accessibility, archive contents, and recovery keys were not checked.");
+                }
             }
             catch (Exception ex)
             {

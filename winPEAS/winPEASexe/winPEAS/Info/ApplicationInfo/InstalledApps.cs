@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 
@@ -11,10 +10,33 @@ namespace winPEAS.Info.ApplicationInfo
     {
         public static SortedDictionary<string, Dictionary<string, string>> GetInstalledAppsPerms()
         {
-            //Get from Program Files
-            SortedDictionary<string, Dictionary<string, string>> results = GetInstalledAppsPermsPath(Path.GetPathRoot(Environment.SystemDirectory) + "Program Files");
-            SortedDictionary<string, Dictionary<string, string>> results2 = GetInstalledAppsPermsPath(Path.GetPathRoot(Environment.SystemDirectory) + "Program Files (x86)");
-            results.Concat(results2).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            return GetInstalledAppsPermsCore(
+                new[] { Environment.GetEnvironmentVariable("ProgramW6432") ?? Environment.GetEnvironmentVariable("ProgramFiles")
+                        ?? Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                    Environment.GetEnvironmentVariable("ProgramFiles(x86)")
+                        ?? Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) },
+                GetInstalledAppsPermsPath,
+                path => RegistryHelper.GetRegSubkeys("HKLM", path),
+                path => RegistryHelper.GetRegValue("HKLM", path, "InstallLocation"),
+                Directory.Exists,
+                path => PermissionsHelper.GetRecursivePrivs(path));
+        }
+
+        internal static SortedDictionary<string, Dictionary<string, string>> GetInstalledAppsPermsCore(
+            IEnumerable<string> programFilesRoots,
+            Func<string, SortedDictionary<string, Dictionary<string, string>>> getPathPermissions,
+            Func<string, string[]> getSubkeys,
+            Func<string, string> getInstallLocation,
+            Func<string, bool> directoryExists,
+            Func<string, Dictionary<string, string>> getRecursivePrivs)
+        {
+            var results = new SortedDictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (string root in programFilesRoots)
+            {
+                if (string.IsNullOrEmpty(root)) continue;
+                foreach (var app in getPathPermissions(root))
+                    results[app.Key] = app.Value;
+            }
 
             string[] registryPaths = new string[]
             {
@@ -24,12 +46,12 @@ namespace winPEAS.Info.ApplicationInfo
 
             foreach (var registryPath in registryPaths)
             {
-                string[] subkeys = RegistryHelper.GetRegSubkeys("HKLM", registryPath);
+                string[] subkeys = getSubkeys(registryPath);
                 if (subkeys != null)
                 {
                     foreach (string app in subkeys)
                     {
-                        string installLocation = RegistryHelper.GetRegValue("HKLM", string.Format(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{0}", app), "InstallLocation");
+                        string installLocation = getInstallLocation(registryPath + @"\" + app);
                         if (string.IsNullOrEmpty(installLocation))
                         {
                             continue;
@@ -42,12 +64,12 @@ namespace winPEAS.Info.ApplicationInfo
                             installLocation = installLocation.Substring(0, installLocation.Length - 1);
                         }
 
-                        if (!results.ContainsKey(installLocation) && Directory.Exists(installLocation))
+                        if (!results.ContainsKey(installLocation) && directoryExists(installLocation))
                         {
                             bool already = false;
                             foreach (string path in results.Keys)
                             {
-                                if (installLocation.IndexOf(path) != -1) //Check for subfoldres of already found folders
+                                if (installLocation.StartsWith(path.TrimEnd('\\') + @"\", StringComparison.OrdinalIgnoreCase))
                                 {
                                     already = true;
                                     break;
@@ -56,7 +78,7 @@ namespace winPEAS.Info.ApplicationInfo
 
                             if (!already)
                             {
-                                results[installLocation] = PermissionsHelper.GetRecursivePrivs(installLocation);
+                                results[installLocation] = getRecursivePrivs(installLocation);
                             }
                         }
                     }

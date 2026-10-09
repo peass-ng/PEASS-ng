@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Info.ApplicationInfo;
@@ -110,6 +111,9 @@ namespace winPEAS.Checks
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#applications", "Check if you can modify installed software");
                 PrintDockerDesktopVersionRisk();
                 PrintCheckmkAgentVersionRisk();
+                PrintVeeamBackupVersionRisk();
+                PrintPdf24RepairPrerequisites();
+                PrintLansweeperConfigMetadata();
                 SortedDictionary<string, Dictionary<string, string>> installedAppsPerms = InstalledApps.GetInstalledAppsPerms();
                 string format = "    ==>  {0} ({1})";
 
@@ -147,6 +151,53 @@ namespace winPEAS.Checks
             catch (Exception e)
             {
                 Beaprint.PrintException(e.Message);
+            }
+        }
+
+        private static void PrintLansweeperConfigMetadata()
+        {
+            foreach (LansweeperConfigResult result in LansweeperConfigMetadata.Collect())
+            {
+                Beaprint.MainPrint("Lansweeper configuration metadata", "T1552.001");
+                Beaprint.NoColorPrint("    Website\\web.config: " + result.ConfigState);
+                Beaprint.NoColorPrint("    Key\\Encryption.txt: " + result.KeyState);
+                Beaprint.NoColorPrint("    Protected connectionStrings: " +
+                    (result.ConfigState == ConfigFileState.Readable
+                        ? (result.ProtectedConnectionStrings ? "present" : "not detected") : "unknown"));
+                if (result.Candidate)
+                    Beaprint.BadPrint("    Candidate: application-stored scanning credentials may be recoverable with the required context.");
+                Beaprint.GrayPrint("    Database connectivity and decryption context are unknown; no recovery was attempted.");
+                if (result.Partial || result.ConfigState == ConfigFileState.TooLarge)
+                    Beaprint.GrayPrint("    Partial visibility: file access, size, or time limit prevented complete inspection.");
+            }
+        }
+
+        private static void PrintPdf24RepairPrerequisites()
+        {
+            foreach (Pdf24RepairEvidence evidence in Pdf24RepairPrerequisites.Collect())
+            {
+                Version registry = Pdf24RepairPrerequisites.ParseVersion(evidence.RegistryVersion);
+                Version binary = Pdf24RepairPrerequisites.ParseVersion(evidence.BinaryVersion);
+                string versions = "registry version " + (registry == null ? "unavailable" : registry.ToString()) +
+                    ", binary version " + (binary == null ? "unavailable" : binary.ToString());
+                switch (Pdf24RepairPrerequisites.Assess(evidence))
+                {
+                    case Pdf24RepairAssessment.FixedVersion:
+                        Beaprint.GoodPrint("    PDF24 Creator " + versions + ": installed version at or above the 11.15.2 fix boundary; cached package version unverified.");
+                        break;
+                    case Pdf24RepairAssessment.ConditionalLead:
+                        Beaprint.BadPrint("    PDF24 Creator " + versions + ": conditional MSI repair lead; registered installer, readable package, and nonzero interactive-session indicator found.");
+                        Beaprint.InfoPrint("    Repair permission, desktop/UI visibility, vulnerable console action, and log-file delay/access remain unverified. No repair or log access was attempted.");
+                        break;
+                    case Pdf24RepairAssessment.MissingRepairEvidence:
+                        Beaprint.InfoPrint("    PDF24 Creator " + versions + ": older-version clue only; MSI registered=" + evidence.MsiRegistered +
+                            ", readable package=" + evidence.ReadablePackage + ", current session interactive=" + evidence.InteractiveSession +
+                            ", repair UI hidden=" + evidence.RepairUiHidden + ". Repair permission, desktop/UI visibility, vulnerable console action, and log-file delay/access remain unverified.");
+                        break;
+                    default:
+                        Beaprint.InfoPrint("    PDF24 Creator " + versions + ": installer version status unknown or conflicting; no repair conclusion.");
+                        break;
+                }
             }
         }
 
@@ -338,6 +389,158 @@ namespace winPEAS.Checks
             }
         }
 
+        internal enum VeeamBackupVersionStatus
+        {
+            Unknown,
+            Candidate,
+            Fixed
+        }
+
+        internal static bool IsVeeamBackupProduct(string displayName)
+        {
+            return !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= 128 && Regex.IsMatch(
+                displayName.Trim(),
+                @"^Veeam Backup (?:&|and) Replication(?: (?:Server|[0-9]+(?:a)?(?: P[0-9]{8})?))?$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        }
+
+        internal static VeeamBackupVersionStatus ClassifyVeeamBackupVersion(string versionText)
+        {
+            // KB4424 fixes require the patch token. KB2680 lists the same four-part
+            // 11a and 12 builds both before and after those patches.
+            if (string.IsNullOrWhiteSpace(versionText) || versionText.Length > 64)
+            {
+                return VeeamBackupVersionStatus.Unknown;
+            }
+
+            Match match = Regex.Match(versionText.Trim(),
+                @"^([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,5})(?: +P([0-9]{8}))?$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            if (!match.Success)
+            {
+                return VeeamBackupVersionStatus.Unknown;
+            }
+
+            int major, minor, update, build;
+            if (!int.TryParse(match.Groups[1].Value, out major) ||
+                !int.TryParse(match.Groups[2].Value, out minor) ||
+                !int.TryParse(match.Groups[3].Value, out update) ||
+                !int.TryParse(match.Groups[4].Value, out build))
+            {
+                return VeeamBackupVersionStatus.Unknown;
+            }
+
+            string patch = match.Groups[5].Value;
+            if (patch.Length != 0)
+            {
+                DateTime patchDate;
+                if (!DateTime.TryParseExact(patch, "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out patchDate))
+                {
+                    return VeeamBackupVersionStatus.Unknown;
+                }
+            }
+
+            if (major < 11)
+            {
+                return major >= 5 ? VeeamBackupVersionStatus.Candidate : VeeamBackupVersionStatus.Unknown;
+            }
+            if (major == 11)
+            {
+                if (minor == 0 && update == 0)
+                {
+                    return VeeamBackupVersionStatus.Candidate;
+                }
+                if (minor != 0 || update != 1)
+                {
+                    return VeeamBackupVersionStatus.Unknown;
+                }
+                if (build < 1261)
+                {
+                    return VeeamBackupVersionStatus.Candidate;
+                }
+                if (build != 1261)
+                {
+                    return VeeamBackupVersionStatus.Unknown;
+                }
+                return patch.Length == 0 ? VeeamBackupVersionStatus.Unknown :
+                    string.CompareOrdinal(patch, "20230227") >= 0 ? VeeamBackupVersionStatus.Fixed : VeeamBackupVersionStatus.Candidate;
+            }
+            if (major == 12)
+            {
+                if (minor > 0)
+                {
+                    return VeeamBackupVersionStatus.Fixed;
+                }
+                if (update != 0)
+                {
+                    return VeeamBackupVersionStatus.Unknown;
+                }
+                if (build < 1420)
+                {
+                    return VeeamBackupVersionStatus.Candidate;
+                }
+                if (build != 1420 || patch.Length == 0)
+                {
+                    return VeeamBackupVersionStatus.Unknown;
+                }
+                return string.CompareOrdinal(patch, "20230223") >= 0 ? VeeamBackupVersionStatus.Fixed : VeeamBackupVersionStatus.Candidate;
+            }
+            return major >= 13 ? VeeamBackupVersionStatus.Fixed : VeeamBackupVersionStatus.Unknown;
+        }
+
+        private static void PrintVeeamBackupVersionRisk()
+        {
+            const string uninstallPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+            var versions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (RegistryView view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+            {
+                try
+                {
+                    using (var hive = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view))
+                    using (var uninstall = hive.OpenSubKey(uninstallPath))
+                    {
+                        if (uninstall == null) continue;
+                        string[] subkeys = uninstall.GetSubKeyNames();
+                        for (int i = 0; i < subkeys.Length && i < 4096; i++)
+                        {
+                            try
+                            {
+                                using (var app = uninstall.OpenSubKey(subkeys[i]))
+                                {
+                                    if (app == null || !IsVeeamBackupProduct(Convert.ToString(app.GetValue("DisplayName")))) continue;
+                                    string version = (Convert.ToString(app.GetValue("DisplayVersion")) ?? "").Trim();
+                                    if (!versions.Add(version)) continue;
+                                    switch (ClassifyVeeamBackupVersion(version))
+                                    {
+                                        case VeeamBackupVersionStatus.Candidate:
+                                            Beaprint.BadPrint("    Veeam Backup & Replication " + version + ": CVE-2023-27532 version candidate. Confirm the installed patch and Veeam.Backup.Service.exe on TCP 9401.");
+                                            break;
+                                        case VeeamBackupVersionStatus.Fixed:
+                                            Beaprint.GoodPrint("    Veeam Backup & Replication " + version + ": registry reports a release at or beyond the CVE-2023-27532 fixed floor; verify the installed patch on the backup server.");
+                                            break;
+                                        default:
+                                            Beaprint.InfoPrint("    Veeam Backup & Replication registry version " + (version.Length == 0 ? "missing" : version.Length > 64 ? "unparsable" : version.Replace('\r', ' ').Replace('\n', ' ')) + ": CVE-2023-27532 patch status unknown; verify the full build and patch on the backup server.");
+                                            break;
+                                    }
+                                    Beaprint.LinkPrint("https://www.veeam.com/kb4424", "Veeam CVE-2023-27532 patch advisory");
+                                    Beaprint.LinkPrint("https://www.veeam.com/kb2680", "Veeam Backup & Replication build and patch history");
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                // One inaccessible uninstall entry must not hide the others.
+                            }
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Missing or unreadable registry views are optional.
+                }
+            }
+        }
+
         private static void PrintAutoRuns()
         {
             try
@@ -431,47 +634,94 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Scheduled Applications --Non Microsoft--", "T1053.005");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/privilege-escalation-with-autorun-binaries.html", "Check if you can modify other users scheduled binaries");
-                List<Dictionary<string, string>> scheduled_apps = ApplicationInfoHelper.GetScheduledAppsNoMicrosoft();
+                ScheduledAppsResult scheduled_apps = ApplicationInfoHelper.GetScheduledAppsNoMicrosoft();
+                int snortConfigsInspected = 0;
+                bool snortLimitReached = false;
+                HashSet<string> snortTokenSids = null;
 
-                foreach (Dictionary<string, string> sapp in scheduled_apps)
+                foreach (Dictionary<string, string> sapp in scheduled_apps.Apps)
                 {
-                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(sapp["Action"], Checks.CurrentUserSiDs);
-                    List<string> dirRights = PermissionsHelper.GetPermissionsFolder(sapp["Action"], Checks.CurrentUserSiDs);
-                    string formString = "    ({0}) {1}: {2}";
-
-                    if (fileRights.Count > 0)
+                    var fileRights = new List<string>();
+                    var dirRights = new List<string>();
+                    foreach (string actionPath in sapp["ActionPath"].Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
                     {
-                        formString += "\n    Permissions file: {3}";
-                    }
-
-                    if (dirRights.Count > 0)
-                    {
-                        formString += "\n    Permissions folder(DLL Hijacking): {4}";
-                    }
-
-                    if (!string.IsNullOrEmpty(sapp["Trigger"]))
-                    {
-                        formString += "\n    Trigger: {5}";
-                    }
-
-                    if (string.IsNullOrEmpty(sapp["Description"]))
-                    {
-                        formString += "\n    {6}";
+                        try
+                        {
+                            string path = actionPath.Trim().Trim('"');
+                            foreach (string right in PermissionsHelper.GetPermissionsFile(path, Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT))
+                                fileRights.Add(path + ": " + right);
+                            string parent = Path.GetDirectoryName(path);
+                            if (!string.IsNullOrEmpty(parent))
+                            {
+                                foreach (string right in PermissionsHelper.GetPermissionsFolder(parent, Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT))
+                                    dirRights.Add(parent + ": " + right);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Beaprint.PrintException($"failed to check scheduled action path: '{actionPath}': {ex.Message}");
+                        }
                     }
 
                     Dictionary<string, string> colorsS = new Dictionary<string, string>()
                     {
                         { "Permissions.*", Beaprint.ansi_color_bad },
-                        { sapp["Action"].Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)").Replace("]", "\\]").Replace("[", "\\[").Replace("?", "\\?").Replace("+","\\+"), (fileRights.Count > 0 || dirRights.Count > 0) ? Beaprint.ansi_color_bad : Beaprint.ansi_color_good },
+                        { "Possible LSA-secret lead.*", Beaprint.ansi_color_bad },
                     };
-                    Beaprint.AnsiPrint(string.Format(formString, sapp["Author"], sapp["Name"], sapp["Action"], string.Join(", ", fileRights), string.Join(", ", dirRights), sapp["Trigger"], sapp["Description"]), colorsS);
+                    Beaprint.AnsiPrint(FormatScheduledApp(sapp, fileRights, dirRights), colorsS);
+                    if (sapp.ContainsKey("SnortExecutable") && sapp["LogonType"] != "Group")
+                    {
+                        if (snortConfigsInspected >= 3)
+                            snortLimitReached = true;
+                        else
+                        {
+                            snortConfigsInspected++;
+                            if (snortTokenSids == null)
+                                snortTokenSids = PermissionsHelper.GetUnprivilegedTokenSids();
+                            string lead = ApplicationInfoHelper.GetSnortModuleDirectoryLead(
+                                sapp["SnortExecutable"], sapp["SnortArguments"], sapp["Principal"], snortTokenSids);
+                            if (!string.IsNullOrEmpty(lead))
+                            {
+                                Beaprint.InfoPrint("    Snort dynamic preprocessor directory review: " + lead);
+                                Beaprint.GrayPrint("    Configured task principal identifier differs from this token; account equivalence and effective privilege are unverified. Confirm Snort module loading and ACL/share restrictions before treating this as escalation.");
+                            }
+                        }
+                    }
                     Beaprint.PrintLineSeparator();
                 }
+                if (snortLimitReached)
+                    Beaprint.GrayPrint("    Snort configuration review stopped after 3 scheduled actions; remaining Snort actions unknown.");
+                if (snortConfigsInspected > 0)
+                    Beaprint.GrayPrint("    Snort review reads at most 64 KiB and the first 1024 lines of each config, and checks up to 3 literal module directories; other forms remain unknown.");
+                if (scheduled_apps.LimitReached)
+                    Beaprint.NoColorPrint($"    Scheduled task listing stopped at its safety limit ({ApplicationInfoHelper.MaxScheduledTasksInspected} tasks, {ApplicationInfoHelper.MaxScheduledFoldersInspected} folders, or {ApplicationInfoHelper.MaxScheduledAppsDisplayed} displayed).");
+                if (scheduled_apps.WithoutAuthorLimitReached)
+                    Beaprint.NoColorPrint($"    Tasks with unknown author were capped at {ApplicationInfoHelper.MaxScheduledAppsWithoutAuthor}.");
             }
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
             }
+        }
+
+        internal static string FormatScheduledApp(Dictionary<string, string> app, IEnumerable<string> fileRights, IEnumerable<string> dirRights)
+        {
+            var lines = new List<string> { $"    ({app["Author"]}) {app["Name"]}: {app["Action"]}" };
+            lines.Add($"    Principal: {app["Principal"]}; Logon type: {app["LogonType"]}; Run level: {app["RunLevel"]}");
+            lines.Add("    Action path: " + (string.IsNullOrEmpty(app["ActionPath"]) ? "unknown" : app["ActionPath"].Replace("\n", "\n                 ")));
+            string file = string.Join(", ", fileRights ?? new string[0]);
+            string directory = string.Join(", ", dirRights ?? new string[0]);
+            if (!string.IsNullOrEmpty(file))
+                lines.Add("    Permissions file (current user): " + file);
+            if (!string.IsNullOrEmpty(directory))
+                lines.Add("    Permissions parent directory (current user): " + directory);
+            if (!string.IsNullOrEmpty(app["Trigger"]))
+                lines.Add("    Trigger: " + app["Trigger"]);
+            if (!string.IsNullOrEmpty(app["Description"]))
+                lines.Add("    " + app["Description"]);
+            if (!string.IsNullOrEmpty(app["CredentialLead"]))
+                lines.Add("    " + app["CredentialLead"]);
+            return string.Join("\n", lines);
         }
 
         void PrintControllableSystemTasks()
@@ -683,15 +933,18 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Device Drivers --Non Microsoft--", "T1014");
+                Beaprint.MainPrint("Device Drivers -- candidates for manual review --", "T1014");
                 // this link is not very specific, but its the best on hacktricks
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#drivers", "Check 3rd party drivers for known vulnerabilities/rootkits.");
 
-                foreach (var driver in DeviceDrivers.GetDeviceDriversNoMicrosoft())
+                DeviceDriverInventory inventory = DeviceDrivers.GetDriverInventory();
+                Beaprint.InfoPrint("    Driver presence and file permissions do not establish device access or unsafe IOCTL behavior.");
+                foreach (DeviceDriverRecord driver in inventory.Drivers)
                 {
-                    string pathDriver = driver.Key;
-                    List<string> fileRights = PermissionsHelper.GetPermissionsFile(pathDriver, Checks.CurrentUserSiDs);
-                    List<string> dirRights = PermissionsHelper.GetPermissionsFolder(pathDriver, Checks.CurrentUserSiDs);
+                    string pathDriver = driver.Path;
+                    bool localFile = DeviceDrivers.IsLocalFilePath(pathDriver) && File.Exists(pathDriver);
+                    List<string> fileRights = localFile ? PermissionsHelper.GetPermissionsFile(pathDriver, Checks.CurrentUserSiDs) : new List<string>();
+                    List<string> dirRights = localFile ? PermissionsHelper.GetPermissionsFolder(Path.GetDirectoryName(pathDriver), Checks.CurrentUserSiDs) : new List<string>();
 
                     Dictionary<string, string> colorsD = new Dictionary<string, string>()
                         {
@@ -701,7 +954,7 @@ namespace winPEAS.Checks
                         };
 
 
-                    string formString = "    {0} - {1} [{2}]: {3}";
+                    string formString = "    {0} - {1} [{2}]: {3}\n    Service: {6}; State: {7}; Start: {8}";
                     if (fileRights.Count > 0)
                     {
                         formString += "\n    Permissions file: {4}";
@@ -712,7 +965,14 @@ namespace winPEAS.Checks
                         formString += "\n    Permissions folder(DLL Hijacking): {5}";
                     }
 
-                    Beaprint.AnsiPrint(string.Format(formString, driver.Value.ProductName, driver.Value.ProductVersion, driver.Value.CompanyName, pathDriver, string.Join(", ", fileRights), string.Join(", ", dirRights)), colorsD);
+                    Beaprint.AnsiPrint(string.Format(formString,
+                        string.IsNullOrEmpty(driver.Product) ? "product unavailable" : driver.Product,
+                        string.IsNullOrEmpty(driver.Version) ? "version unavailable" : driver.Version,
+                        string.IsNullOrEmpty(driver.Company) ? "publisher unavailable" : driver.Company,
+                        pathDriver, string.Join(", ", fileRights), string.Join(", ", dirRights),
+                        string.IsNullOrEmpty(driver.Name) ? "unknown" : driver.Name,
+                        string.IsNullOrEmpty(driver.State) ? "unknown" : driver.State,
+                        string.IsNullOrEmpty(driver.StartMode) ? "unknown" : driver.StartMode), colorsD);
 
                     //If vuln, end with separator
                     if ((fileRights.Count > 0) || (dirRights.Count > 0))
@@ -720,6 +980,8 @@ namespace winPEAS.Checks
                         Beaprint.PrintLineSeparator();
                     }
                 }
+                if (inventory.UnknownOrTruncated)
+                    Beaprint.InfoPrint("    Driver inventory partial/unknown: " + inventory.Detail);
             }
             catch (Exception ex)
             {

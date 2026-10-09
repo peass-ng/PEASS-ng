@@ -1,5 +1,53 @@
 ﻿namespace winPEAS.Info.SystemInfo.Ntlm
 {
+    internal enum LdapPolicyReadState { Missing, Present, Error }
+    internal enum LocalDomainRole { Unknown, Member, DomainController }
+    internal enum DomainControllerGeneration { Unknown, Before2025, Server2025OrLater }
+    internal enum LdapSigningStatus { Unknown, None, RequireSigning, LegacyDefault }
+    internal enum LdapsChannelBindingStatus { Unknown, Never, WhenSupported, Always }
+
+    internal sealed class DcLdapPolicyInfo
+    {
+        internal LocalDomainRole Role { get; set; }
+        internal DomainControllerGeneration Generation { get; set; }
+        internal LdapPolicyReadState SigningReadState { get; set; }
+        internal uint? SigningValue { get; set; }
+        internal LdapPolicyReadState ChannelBindingReadState { get; set; }
+        internal uint? ChannelBindingValue { get; set; }
+
+        internal LdapSigningStatus SigningStatus
+        {
+            get
+            {
+                if (Role != LocalDomainRole.DomainController) return LdapSigningStatus.Unknown;
+                if (SigningReadState == LdapPolicyReadState.Missing && Generation == DomainControllerGeneration.Before2025)
+                    return LdapSigningStatus.LegacyDefault;
+                if (SigningReadState != LdapPolicyReadState.Present) return LdapSigningStatus.Unknown;
+                if (SigningValue == 1) return LdapSigningStatus.None;
+                if (SigningValue == 2) return LdapSigningStatus.RequireSigning;
+                return LdapSigningStatus.Unknown;
+            }
+        }
+
+        internal LdapsChannelBindingStatus ChannelBindingStatus
+        {
+            get
+            {
+                if (Role != LocalDomainRole.DomainController || ChannelBindingReadState != LdapPolicyReadState.Present)
+                    return LdapsChannelBindingStatus.Unknown;
+                if (ChannelBindingValue == 0) return LdapsChannelBindingStatus.Never;
+                if (ChannelBindingValue == 1) return LdapsChannelBindingStatus.WhenSupported;
+                if (ChannelBindingValue == 2) return LdapsChannelBindingStatus.Always;
+                return LdapsChannelBindingStatus.Unknown;
+            }
+        }
+
+        internal bool HasObservedRelayCondition =>
+            SigningStatus == LdapSigningStatus.None ||
+            SigningStatus == LdapSigningStatus.LegacyDefault ||
+            ChannelBindingStatus == LdapsChannelBindingStatus.Never;
+    }
+
     internal class NtlmSettingsInfo
     {
         public uint? LanmanCompatibilityLevel { get; set; }
@@ -27,6 +75,7 @@
         public bool ServerRequireSigning { get; set; }
         public bool ServerNegotiateSigning { get; set; }
         public uint? LdapSigning { get; set; }
+        internal DcLdapPolicyInfo DcLdapPolicy { get; set; }
 
         public string LdapSigningString
         {
@@ -35,8 +84,8 @@
                 switch (LdapSigning)
                 {
                     case 0: return "No signing";
-                    case 1:
-                    case null: return "Negotiate signing";
+                    case 1: return "Negotiate signing";
+                    case null: return "Unknown";
                     case 2: return "Require Signing";
                     default: return "Unknown";
                 }

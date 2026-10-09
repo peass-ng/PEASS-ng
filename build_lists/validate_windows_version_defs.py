@@ -59,8 +59,8 @@ def validate_file(path: Path, min_products: int, min_entries: int, min_supersede
 
     if not isinstance(data, dict):
         fail("top-level JSON value must be an object")
-    if set(data) != {"generated", "products", "kb_supersedes"}:
-        fail(f"top-level keys must be generated, products, kb_supersedes; got {sorted(data)}")
+    if set(data) != {"generated", "products", "kb_supersedes", "fixed_build_indicators"}:
+        fail(f"unexpected top-level keys: {sorted(data)}")
 
     generated = require_string(data["generated"], "generated")
     if not GENERATED_RE.fullmatch(generated):
@@ -84,6 +84,22 @@ def validate_file(path: Path, min_products: int, min_entries: int, min_supersede
 
     if total_entries < min_entries:
         fail(f"products contain {total_entries} vulnerabilities, expected at least {min_entries}")
+
+    indicators = data["fixed_build_indicators"]
+    if not isinstance(indicators, dict):
+        fail("fixed_build_indicators must be an object")
+    for cve, indicator in indicators.items():
+        if not CVE_RE.fullmatch(cve) or not isinstance(indicator, dict):
+            fail("invalid fixed build indicator")
+        if set(indicator) != {"product", "build", "fixed_ubr", "fixed_kb", "cna_url", "release_url"}:
+            fail(f"invalid fixed build indicator fields for {cve}")
+        if not isinstance(indicator["build"], int) or not isinstance(indicator["fixed_ubr"], int):
+            fail(f"invalid fixed build number for {cve}")
+        if not KB_RE.fullmatch(require_string(indicator["fixed_kb"], "fixed_kb")):
+            fail(f"invalid fixed KB for {cve}")
+        for field in ("product", "cna_url", "release_url"):
+            if not require_string(indicator[field], field).strip():
+                fail(f"empty {field} for {cve}")
 
     kb_supersedes = data["kb_supersedes"]
     if not isinstance(kb_supersedes, dict):

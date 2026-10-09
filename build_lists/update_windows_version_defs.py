@@ -29,6 +29,14 @@ MSRC_UPDATES_URL = "https://api.msrc.microsoft.com/cvrf/v3.0/updates"
 MSRC_CVRF_ACCEPT = "application/json"
 NVD_FEED_URL_TEMPLATE = "https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{year}.json.zip"
 USER_AGENT = "PEASS-ng windows_version_definitions updater"
+CVE_2024_30088_RECORD_URL = (
+    "https://raw.githubusercontent.com/CVEProject/cvelistV5/main/"
+    "cves/2024/30xxx/CVE-2024-30088.json"
+)
+CVE_2024_30088_RELEASE_URL = (
+    "https://support.microsoft.com/en-us/servicing/os/windows-server/2024/06/"
+    "june-11-2024-kb5039227-os-build-20348-2527"
+)
 KB_PATTERN = re.compile(r"\b(\d{6,7})\b")
 CVE_PATTERN = re.compile(r"CVE-\d{4}-\d{4,}")
 WINDOWS_TOKEN = "windows"
@@ -626,6 +634,45 @@ def build_definitions(entries: list[RawEntry], exploit_cves: set[str], generated
     return data
 
 
+def add_server_2022_fixed_build_indicator(data: dict[str, Any], cna_record: dict[str, Any]) -> None:
+    """Add the CNA's affected range, cross-checked against Microsoft's release history."""
+    if cna_record.get("cveMetadata", {}).get("cveId") != "CVE-2024-30088":
+        raise ValueError("Unexpected CVE record")
+    affected = cna_record.get("containers", {}).get("cna", {}).get("affected", [])
+    matching = [
+        version
+        for item in affected
+        if item.get("vendor") == "Microsoft"
+        and item.get("product") == "Windows Server 2022"
+        and "x64-based Systems" in item.get("platforms", [])
+        for version in item.get("versions", [])
+        if version.get("status") == "affected"
+    ]
+    if len(matching) != 1:
+        raise ValueError("Expected one Windows Server 2022 affected range")
+    version = matching[0]
+    start = version.get("version", "")
+    end = version.get("lessThan", "")
+    if not re.fullmatch(r"10\.0\.20348\.\d+", start) or not re.fullmatch(
+        r"10\.0\.20348\.\d+", end
+    ):
+        raise ValueError("Unexpected Windows Server 2022 build range")
+    fixed_ubr = int(end.rsplit(".", 1)[1])
+    # The KB and fixed revision must both match Microsoft's release-history page.
+    if fixed_ubr != 2527:
+        raise ValueError("CNA fixed revision differs from KB5039227 release history")
+    data["fixed_build_indicators"] = {
+        "CVE-2024-30088": {
+            "product": "Windows Server 2022",
+            "build": 20348,
+            "fixed_ubr": fixed_ubr,
+            "fixed_kb": "5039227",
+            "cna_url": CVE_2024_30088_RECORD_URL,
+            "release_url": CVE_2024_30088_RELEASE_URL,
+        }
+    }
+
+
 def validate_output(data: dict[str, Any]) -> None:
     if not re.fullmatch(r"\d{8}", str(data.get("generated", ""))):
         raise RuntimeError("Generated date is missing or malformed")
@@ -635,6 +682,9 @@ def validate_output(data: dict[str, Any]) -> None:
     kb_supersedes = data.get("kb_supersedes")
     if not isinstance(kb_supersedes, dict):
         raise RuntimeError("Output does not contain a kb_supersedes mapping")
+    indicators = data.get("fixed_build_indicators", {})
+    if not isinstance(indicators, dict):
+        raise RuntimeError("Fixed build indicators must be an object")
 
     sample_product = next(iter(products.values()))
     if not isinstance(sample_product, list):
@@ -682,6 +732,9 @@ def main() -> None:
 
     generated = datetime.now(timezone.utc).strftime("%Y%m%d")
     data = build_definitions(bulletin_entries + msrc_entries, exploit_cves, generated)
+    add_server_2022_fixed_build_indicator(
+        data, download_json(CVE_2024_30088_RECORD_URL, timeout=args.timeout, retries=args.retries)
+    )
     validate_output(data)
 
     output_path.write_text(json.dumps(data, separators=(",", ":")) + "\n", encoding="utf-8")

@@ -177,153 +177,287 @@ function Convert-SidToName {
   }
 }
 
+function Get-DnsZoneAceReviewSignal {
+  param($Ace)
+  if ([string]$Ace.AccessControlType -ne 'Allow') { return $null }
+  $sid = [string]$Ace.IdentityReference.Value
+  $principal = switch -Regex ($sid) {
+    '^S-1-1-0$' { 'Everyone'; break }
+    '^S-1-5-11$' { 'Authenticated Users'; break }
+    '^S-1-5-21-([0-9]+-){3}513$' { 'Domain Users'; break }
+    default { return $null }
+  }
+  $rights = [System.DirectoryServices.ActiveDirectoryRights]$Ace.ActiveDirectoryRights
+  # GenericAll/GenericWrite are composite masks and include ordinary read rights.
+  # Relevant write bits are covered below; do not flag an ACE just for sharing a read bit.
+  $reviewRights = [System.DirectoryServices.ActiveDirectoryRights]::CreateChild -bor
+    [System.DirectoryServices.ActiveDirectoryRights]::WriteProperty -bor
+    [System.DirectoryServices.ActiveDirectoryRights]::WriteDacl -bor
+    [System.DirectoryServices.ActiveDirectoryRights]::WriteOwner
+  if (($rights -band $reviewRights) -eq 0) { return $null }
+  $scope = if ($Ace.ObjectType -ne [guid]::Empty) {
+    'Object-specific; dnsNode or attribute scope unverified'
+  } else { 'Review effective ACL' }
+  return [pscustomobject]@{ Principal = "$principal ($sid)"; Rights = $rights.ToString(); Scope = $scope }
+}
+
 function Get-WeakDnsUpdateFindings {
-  param(
-    [System.DirectoryServices.ActiveDirectory.Domain]$DomainContext
+  param([System.DirectoryServices.ActiveDirectory.Domain]$DomainContext)
+  $report = [ordered]@{ Findings = @(); Inspected = 0; Unavailable = @(); Truncated = @() }
+  $clock = [Diagnostics.Stopwatch]::StartNew()
+  if (-not $DomainContext) {
+    $report.Unavailable = @('AD domain context')
+    return [pscustomobject]$report
+  }
+  try {
+    $domainDN = 'DC=' + (($DomainContext.Name -split '\.') -join ',DC=')
+    $forestDN = 'DC=' + (($DomainContext.Forest.RootDomain.Name -split '\.') -join ',DC=')
+    if ($domainDN -eq 'DC=' -or $forestDN -eq 'DC=') { throw 'Domain name unavailable' }
+  }
+  catch {
+    $report.Unavailable = @('DNS partition names')
+    return [pscustomobject]$report
+  }
+  $partitions = @(
+    [pscustomobject]@{ Name = 'DomainDnsZones'; Path = "LDAP://CN=MicrosoftDNS,DC=DomainDnsZones,$domainDN" },
+    [pscustomobject]@{ Name = 'ForestDnsZones'; Path = "LDAP://CN=MicrosoftDNS,DC=ForestDnsZones,$forestDN" },
+    [pscustomobject]@{ Name = 'Legacy domain'; Path = "LDAP://CN=MicrosoftDNS,$domainDN" }
   )
-  if (-not $DomainContext) { return @() }
-  $domainDN = $DomainContext.GetDirectoryEntry().distinguishedName
-  $forestDN = $DomainContext.Forest.RootDomain.GetDirectoryEntry().distinguishedName
-  $paths = @(
-    "LDAP://CN=MicrosoftDNS,DC=DomainDnsZones,$domainDN",
-    "LDAP://CN=MicrosoftDNS,DC=ForestDnsZones,$forestDN",
-    "LDAP://CN=MicrosoftDNS,$domainDN"
-  )
-  $weakPatterns = @(
-    "authenticated users",
-    "everyone",
-    "domain users"
-  )
-  $dangerousRights = @("GenericAll", "GenericWrite", "CreateChild", "WriteProperty", "WriteDacl", "WriteOwner")
-  $findings = @()
-  foreach ($path in $paths) {
-    try {
-      $container = New-Object System.DirectoryServices.DirectoryEntry($path)
-      $null = $container.NativeGuid
+  $findings = New-Object System.Collections.Generic.List[object]
+  foreach ($partition in $partitions) {
+    $remaining = 8000 - $clock.ElapsedMilliseconds
+    if ($remaining -le 0 -or $findings.Count -ge 40) {
+      $report.Truncated += $partition.Name
+      continue
     }
-    catch { continue }
-    $searcher = New-Object System.DirectoryServices.DirectorySearcher($container)
-    $searcher.Filter = "(objectClass=dnsZone)"
-    $searcher.PageSize = 500
-    $results = $searcher.FindAll()
-    foreach ($result in $results) {
-      try {
-        $zoneEntry = $result.GetDirectoryEntry()
-        $zoneEntry.Options.SecurityMasks = [System.DirectoryServices.SecurityMasks]::Dacl
-        $sd = $zoneEntry.ObjectSecurity
-        foreach ($ace in $sd.Access) {
-          if ($ace.AccessControlType -ne 'Allow') { continue }
-          $principal = Convert-SidToName $ace.IdentityReference
-          if (-not $principal) { continue }
-          $principalLower = $principal.ToLower()
-          if (-not ($weakPatterns | Where-Object { $principalLower -like "*${_}*" })) { continue }
-          $rights = $ace.ActiveDirectoryRights.ToString()
-          if (-not ($dangerousRights | Where-Object { $rights -like "*${_}*" })) { continue }
-          $findings += [pscustomobject]@{
-            Zone      = $zoneEntry.Properties["name"].Value
-            Partition = $path.Split(',')[1]
-            Principal = $principal
-            Rights    = $rights
+    $container = $null
+    $searcher = $null
+    $results = $null
+    try {
+      $container = New-Object System.DirectoryServices.DirectoryEntry($partition.Path)
+      $searcher = New-Object System.DirectoryServices.DirectorySearcher($container)
+      $searcher.Filter = '(objectClass=dnsZone)'
+      $searcher.SearchScope = [System.DirectoryServices.SearchScope]::OneLevel
+      $searcher.ReferralChasing = [System.DirectoryServices.ReferralChasingOption]::None
+      $searcher.PageSize = 0
+      $searcher.SizeLimit = 51 # 50 zones plus one truncation sentinel; paging must stay disabled.
+      $searcher.ClientTimeout = [TimeSpan]::FromMilliseconds([math]::Min(2000, $remaining))
+      $searcher.ServerTimeLimit = $searcher.ClientTimeout
+      $searcher.SecurityMasks = [System.DirectoryServices.SecurityMasks]::Dacl
+      foreach ($property in @('name', 'nTSecurityDescriptor')) {
+        [void]$searcher.PropertiesToLoad.Add($property)
+      }
+      $results = $searcher.FindAll()
+      $seen = 0
+      foreach ($result in $results) {
+        if ($seen -ge 50 -or $clock.ElapsedMilliseconds -ge 8000 -or $findings.Count -ge 40) {
+          $report.Truncated += $partition.Name
+          break
+        }
+        $seen++
+        $report.Inspected++
+        try {
+          if ($result.Properties['ntsecuritydescriptor'].Count -eq 0) { throw 'DACL unavailable' }
+          $security = New-Object System.DirectoryServices.ActiveDirectorySecurity
+          $security.SetSecurityDescriptorBinaryForm([byte[]]$result.Properties['ntsecuritydescriptor'][0])
+          if ($result.Properties['name'].Count -eq 0) { throw 'Zone name unavailable' }
+          $zone = [string]($result.Properties['name'] | Select-Object -First 1)
+          $acesSeen = 0
+          foreach ($ace in $security.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier])) {
+            if ($acesSeen -ge 256 -or $clock.ElapsedMilliseconds -ge 8000 -or $findings.Count -ge 40) {
+              $report.Truncated += $partition.Name
+              break
+            }
+            $acesSeen++
+            $signal = Get-DnsZoneAceReviewSignal -Ace $ace
+            if ($signal) {
+              $findings.Add([pscustomobject]@{
+                Zone = $zone; Partition = $partition.Name; Principal = $signal.Principal
+                Rights = $signal.Rights; Scope = $signal.Scope
+              })
+            }
           }
         }
+        catch { $report.Unavailable += "$($partition.Name) zone DACL" }
       }
-      catch { continue }
+    }
+    catch { $report.Unavailable += $partition.Name }
+    finally {
+      if ($results) { $results.Dispose() }
+      if ($searcher) { $searcher.Dispose() }
+      if ($container) { $container.Dispose() }
     }
   }
-  return ($findings | Sort-Object Zone, Principal -Unique)
+  $report.Findings = @($findings.ToArray() | Sort-Object Zone, Partition, Principal, Rights, Scope -Unique)
+  $report.Unavailable = @($report.Unavailable | Sort-Object -Unique)
+  $report.Truncated = @($report.Truncated | Sort-Object -Unique)
+  return [pscustomobject]$report
 }
 
 function Get-GmsaReadersReport {
   param(
     [System.DirectoryServices.ActiveDirectory.Domain]$DomainContext
   )
-  if (-not $DomainContext) { return @() }
-  $domainDN = $DomainContext.GetDirectoryEntry().distinguishedName
+  $report = [ordered]@{ State = 'Unknown'; Inspected = 0; Truncated = $false; Omitted = 0; Rows = @() }
+  if (-not $DomainContext) { return [pscustomobject]$report }
+  $domainEntry = $null
+  $container = $null
+  $searcher = $null
+  $results = $null
+  $rows = New-Object System.Collections.Generic.List[object]
   try {
+    $domainEntry = $DomainContext.GetDirectoryEntry()
+    $domainDN = [string]$domainEntry.distinguishedName
+    if ([string]::IsNullOrEmpty($domainDN) -or $domainDN.Trim().Length -eq 0) { throw 'Domain DN unavailable' }
+    $container = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$domainDN")
     $searcher = New-Object System.DirectoryServices.DirectorySearcher
-    $searcher.SearchRoot = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$domainDN")
+    $searcher.SearchRoot = $container
     $searcher.Filter = "(&(objectClass=msDS-GroupManagedServiceAccount))"
-    $searcher.PageSize = 500
+    $searcher.ReferralChasing = [System.DirectoryServices.ReferralChasingOption]::None
+    $searcher.PageSize = 0 # SizeLimit applies to a single non-paged query.
+    $searcher.SizeLimit = 121 # 120 inspected objects plus a truncation sentinel.
+    $searcher.ClientTimeout = [TimeSpan]::FromSeconds(5)
+    $searcher.ServerTimeLimit = [TimeSpan]::FromSeconds(5)
     [void]$searcher.PropertiesToLoad.Add("sAMAccountName")
     [void]$searcher.PropertiesToLoad.Add("msDS-GroupMSAMembership")
+    $watch = [Diagnostics.Stopwatch]::StartNew()
     $results = $searcher.FindAll()
-  }
-  catch { return @() }
-  $report = @()
-  foreach ($result in $results) {
-    $name = $result.Properties["samaccountname"]
-    $blobs = $result.Properties["msds-groupmsamembership"]
-    if (-not $blobs) { continue }
-    $principals = @()
-    foreach ($blob in $blobs) {
-      try {
-        $raw = New-Object System.Security.AccessControl.RawSecurityDescriptor (, $blob)
-        foreach ($ace in $raw.DiscretionaryAcl) {
-          $sid = Convert-SidToName $ace.SecurityIdentifier
-          if ($sid) { $principals += $sid }
-        }
+    foreach ($result in $results) {
+      if ($watch.ElapsedMilliseconds -ge 8000 -or $report.Inspected -ge 120) {
+        $report.Truncated = $true
+        break
       }
-      catch { continue }
+      $report.Inspected++
+      $name = $result.Properties["samaccountname"]
+      $blobs = $result.Properties["msds-groupmsamembership"]
+      if (-not $blobs) { continue }
+      $principals = New-Object System.Collections.Generic.List[string]
+      $weak = New-Object System.Collections.Generic.List[string]
+      $blobsSeen = 0
+      foreach ($blob in $blobs) {
+        if ($blobsSeen -ge 2) { $report.Truncated = $true; break }
+        $blobsSeen++
+        if ($watch.ElapsedMilliseconds -ge 8000) { $report.Truncated = $true; break }
+        try {
+          if ($blob.Length -gt 16384) { $report.Truncated = $true; continue }
+          $raw = New-Object System.Security.AccessControl.RawSecurityDescriptor (, $blob)
+          if (-not $raw.DiscretionaryAcl) { continue }
+          $acesSeen = 0
+          foreach ($ace in $raw.DiscretionaryAcl) {
+            if ($watch.ElapsedMilliseconds -ge 8000 -or $acesSeen -ge 128 -or $principals.Count -ge 16) {
+              $report.Truncated = $true
+              break
+            }
+            $acesSeen++
+            if (-not $ace.SecurityIdentifier) { continue }
+            $sid = [string]$ace.SecurityIdentifier.Value
+            # Keep descriptor context without an unbounded network name-resolution call.
+            # A deny trustee is not an allowed reader.
+            $principal = "$sid [$($ace.AceQualifier)]"
+            if ($principal) { $principals.Add([string]$principal) }
+            if ([string]$ace.AceQualifier -eq 'AccessAllowed' -and
+                ($sid -eq 'S-1-1-0' -or $sid -eq 'S-1-5-11' -or $sid -match '^S-1-5-21-(\d+-){3}513$')) {
+              $weak.Add([string]$principal)
+            }
+          }
+        }
+        catch { $report.Truncated = $true }
+      }
+      if ($principals.Count -eq 0) { continue }
+      $rows.Add([pscustomobject]@{
+        Account        = [string]($name | Select-Object -First 1)
+        Trustees       = (($principals | Sort-Object -Unique) -join ', ')
+        WeakPrincipals = (($weak | Sort-Object -Unique) -join ', ')
+      })
     }
-    if ($principals.Count -eq 0) { continue }
-    $principals = $principals | Sort-Object -Unique
-    $weak = $principals | Where-Object { $_ -match 'Domain Users|Authenticated Users|Everyone' }
-    $report += [pscustomobject]@{
-      Account        = ($name | Select-Object -First 1)
-      Allowed        = ($principals -join ", ")
-      WeakPrincipals = if ($weak) { $weak -join ", " } else { "" }
-    }
+    $report.State = if ($report.Truncated) { 'Partial' } else { 'Observed' }
   }
-  return $report
+  catch {
+    $report.State = if ($report.Inspected -gt 0) { 'Partial' } else { 'Unknown' }
+    $report.Truncated = $true
+  }
+  finally {
+    if ($results) { $results.Dispose() }
+    if ($searcher) { $searcher.Dispose() }
+    if ($container) { $container.Dispose() }
+    if ($domainEntry) { $domainEntry.Dispose() }
+  }
+  $sorted = @($rows | Sort-Object @{Expression={ $_.WeakPrincipals -ne '' };Descending=$true}, Account)
+  $report.Rows = @($sorted | Select-Object -First 20)
+  $report.Omitted = $rows.Count - $report.Rows.Count
+  return [pscustomobject]$report
 }
 
 function Get-PrivilegedSpnTargets {
-  param(
-    [System.DirectoryServices.ActiveDirectory.Domain]$DomainContext
-  )
-  if (-not $DomainContext) { return @() }
-  $domainDN = $DomainContext.GetDirectoryEntry().distinguishedName
-  $keywords = @(
-    "Domain Admin",
-    "Enterprise Admin",
-    "Administrators",
-    "Exchange",
-    "IT_",
-    "Schema Admin",
-    "Account Operator",
-    "Server Operator",
-    "Backup Operator",
-    "DnsAdmin"
-  )
+  param([System.DirectoryServices.ActiveDirectory.Domain]$DomainContext)
+  $report = [ordered]@{ State = 'Unknown'; Inspected = 0; Enabled = 0; UnknownEligibility = 0; Truncated = $false; Omitted = 0; Rows = @() }
+  if (-not $DomainContext) { return [pscustomobject]$report }
+  $results = $null
+  $searcher = $null
+  $domainEntry = $null
+  $container = $null
   try {
+    $domainEntry = $DomainContext.GetDirectoryEntry()
+    $domainDN = $domainEntry.distinguishedName
     $searcher = New-Object System.DirectoryServices.DirectorySearcher
-    $searcher.SearchRoot = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$domainDN")
-    $searcher.Filter = "(&(objectClass=user)(servicePrincipalName=*))"
-    $searcher.PageSize = 500
-    [void]$searcher.PropertiesToLoad.Add("sAMAccountName")
-    [void]$searcher.PropertiesToLoad.Add("memberOf")
+    $container = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$domainDN")
+    $searcher.SearchRoot = $container
+    $searcher.Filter = '(&(objectClass=user)(servicePrincipalName=*))'
+    $searcher.PageSize = 0
+    $searcher.SizeLimit = 201
+    $searcher.ReferralChasing = [System.DirectoryServices.ReferralChasingOption]::None
+    $searcher.ClientTimeout = [TimeSpan]::FromSeconds(5)
+    $searcher.ServerTimeLimit = [TimeSpan]::FromSeconds(5)
+    foreach ($property in @('sAMAccountName','servicePrincipalName','userAccountControl','msDS-SupportedEncryptionTypes','pwdLastSet','memberOf','objectClass')) {
+      [void]$searcher.PropertiesToLoad.Add($property)
+    }
+    $watch = [Diagnostics.Stopwatch]::StartNew()
     $results = $searcher.FindAll()
-  }
-  catch { return @() }
-  $findings = @()
-  foreach ($res in $results) {
-    $groups = $res.Properties["memberof"]
-    if (-not $groups) { continue }
-    $matchedGroups = @()
-    foreach ($group in $groups) {
-      $cn = ($group -split ',')[0] -replace '^CN=',''
-      if ($keywords | Where-Object { $cn -like "*${_}*" }) {
-        $matchedGroups += $cn
+    $rows = New-Object System.Collections.Generic.List[object]
+    foreach ($res in $results) {
+      if ($watch.Elapsed.TotalSeconds -ge 5) { $report.Truncated = $true; break }
+      if ($report.Inspected -ge 200) { $report.Truncated = $true; break }
+      $report.Inspected++
+      $classes = @($res.Properties['objectclass'])
+      if ($classes -contains 'computer' -or $classes -contains 'msDS-ManagedServiceAccount' -or $classes -contains 'msDS-GroupManagedServiceAccount') { continue }
+      if ($res.Properties['useraccountcontrol'].Count -eq 0) { $report.UnknownEligibility++; continue }
+      $uac = [int]$res.Properties['useraccountcontrol'][0]
+      if (($uac -band 2) -ne 0) { continue }
+      $report.Enabled++
+      $flags = if ($res.Properties['msds-supportedencryptiontypes'].Count -gt 0) { [int]$res.Properties['msds-supportedencryptiontypes'][0] } else { 0 }
+      $groups = @($res.Properties['memberof'] | ForEach-Object { ($_ -split ',')[0] -replace '^CN=','' })
+      $keywords = @('Domain Admin','Enterprise Admin','Administrators','Exchange','IT_','Schema Admin','Account Operator','Server Operator','Backup Operator','DnsAdmin')
+      $matched = @($groups | Where-Object { $group = $_; @($keywords | Where-Object { $group -like ('*' + $_ + '*') }).Count -gt 0 } | Sort-Object -Unique)
+      $spns = @($res.Properties['serviceprincipalname'] | Sort-Object @{Expression={$_ -like 'MSSQLSvc/*'};Descending=$true}, @{Expression={$_}})
+      $sql = @($spns | Where-Object { $_ -like 'MSSQLSvc/*' }).Count -gt 0
+      $stale = $false
+      if ($res.Properties['pwdlastset'].Count -gt 0) {
+        try { $stale = [DateTime]::FromFileTimeUtc([long]$res.Properties['pwdlastset'][0]) -lt [DateTime]::UtcNow.AddDays(-365) } catch { }
       }
+      $priority = if (($flags -band 4) -ne 0 -or $matched.Count -gt 0) { 2 } elseif (($uac -band 0x10000) -ne 0 -or $stale) { 1 } else { 0 }
+      $rows.Add([pscustomobject]@{
+        User = [string]($res.Properties['samaccountname'] | Select-Object -First 1)
+        Priority = $priority
+        Tier = @('Other service account','Review','Higher priority')[$priority]
+        SPN = [string](($spns | Select-Object -First 2) -join ', ')
+        SQL = $sql
+        EncFlags = if ($flags -eq 0) { 'Unspecified' } else { ('0x{0:X}' -f $flags) }
+        Groups = [string]($matched -join ', ')
+      })
     }
-    if ($matchedGroups.Count -gt 0) {
-      $findings += [pscustomobject]@{
-        User   = ($res.Properties["samaccountname"] | Select-Object -First 1)
-        Groups = ($matchedGroups | Sort-Object -Unique) -join ', '
-      }
-    }
+    $report.State = 'Observed'
+    $sorted = @($rows | Sort-Object @{Expression='SQL';Descending=$true}, @{Expression='Priority';Descending=$true}, User)
+    $report.Rows = @($sorted | Select-Object -First 12)
+    $report.Omitted = $report.Enabled - $report.Rows.Count
   }
-  return ($findings | Sort-Object User | Select-Object -First 12)
+  catch { $report.State = 'Unknown'; $report.Rows = @(); $report.Omitted = 0 }
+  finally {
+    if ($results) { $results.Dispose() }
+    if ($searcher) { $searcher.Dispose() }
+    if ($container) { $container.Dispose() }
+    if ($domainEntry) { $domainEntry.Dispose() }
+  }
+  return [pscustomobject]$report
 }
 
 function Get-NtlmPolicySummary {
@@ -337,6 +471,67 @@ function Get-NtlmPolicySummary {
     RestrictSending   = $msv.RestrictSendingNTLMTraffic
     LmCompatibility   = if ($lsa) { $lsa.LmCompatibilityLevel } else { $null }
   }
+}
+
+function Get-LocalDcLdapPolicySummary {
+  $result = [ordered]@{
+    Role = 'Unknown'; Generation = 'Unknown'
+    SigningState = 'Error'; SigningValue = $null
+    BindingState = 'Error'; BindingValue = $null
+  }
+  try {
+    $roleValue = (Get-CimInstance -ClassName Win32_ComputerSystem -Property DomainRole -ErrorAction Stop).DomainRole
+    if ($null -eq $roleValue) { return [pscustomobject]$result }
+    $role = [int]$roleValue
+    if ($role -lt 0 -or $role -gt 5) { return [pscustomobject]$result }
+    $result.Role = if ($role -ge 4 -and $role -le 5) { 'DomainController' } else { 'Member' }
+  }
+  catch { return [pscustomobject]$result }
+  if ($result.Role -ne 'DomainController') { return [pscustomobject]$result }
+
+  try {
+    $build = [int](Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name CurrentBuild -ErrorAction Stop).CurrentBuild
+    if ($build -ge 7600) { $result.Generation = if ($build -ge 26100) { 'Server2025OrLater' } else { 'Before2025' } }
+  }
+  catch { }
+
+  try {
+    $key = Get-Item -LiteralPath 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters' -ErrorAction Stop
+    foreach ($name in @('LDAPServerIntegrity', 'LdapEnforceChannelBinding')) {
+      $prefix = if ($name -eq 'LDAPServerIntegrity') { 'Signing' } else { 'Binding' }
+      try {
+        if ($key.GetValueNames() -notcontains $name) { $result["${prefix}State"] = 'Missing'; continue }
+        if ($key.GetValueKind($name) -ne [Microsoft.Win32.RegistryValueKind]::DWord) { continue }
+        $raw = [int64]$key.GetValue($name)
+        $result["${prefix}Value"] = [uint32]$(if ($raw -lt 0) { $raw + 4294967296 } else { $raw })
+        $result["${prefix}State"] = 'Present'
+      }
+      catch { }
+    }
+  }
+  catch {
+    if ($_.CategoryInfo.Category -eq [System.Management.Automation.ErrorCategory]::ObjectNotFound) {
+      $result.SigningState = 'Missing'; $result.BindingState = 'Missing'
+    }
+  }
+  return [pscustomobject]$result
+}
+
+function Get-DomainMachineAccountQuota {
+  param([System.DirectoryServices.ActiveDirectory.Domain]$DomainContext)
+  try {
+    $entry = $DomainContext.GetDirectoryEntry()
+    try {
+      $entry.RefreshCache(@('ms-DS-MachineAccountQuota'))
+      $value = $entry.Properties['ms-DS-MachineAccountQuota'].Value
+      if ($null -eq $value) { return [pscustomobject]@{ State = 'Missing'; Value = $null } }
+      $quota = [int]$value
+      if ($quota -lt 0) { return [pscustomobject]@{ State = 'Invalid'; Value = $null } }
+      return [pscustomobject]@{ State = 'Present'; Value = $quota }
+    }
+    finally { $entry.Dispose() }
+  }
+  catch { return [pscustomobject]@{ State = 'Error'; Value = $null } }
 }
 
 function Get-TimeSkewInfo {
@@ -1311,10 +1506,59 @@ Write-Host -ForegroundColor Blue "=========|| SERVICE path vulnerable check"
 Write-Host "Checking for vulnerable service .exe"
 # Gathers all services running and stopped, based on .exe and shows the AccessControlList
 $UniqueServices = @{}
-Get-WmiObject Win32_Service | Where-Object { $_.PathName -like '*.exe*' } | ForEach-Object {
-  $Path = ($_.PathName -split '(?<=\.exe\b)')[0].Trim('"')
-  $UniqueServices[$Path] = $_.Name
+$sqlServiceShown = 0
+$sqlContextTimedOut = $false
+$sqlIdentity = try { [Security.Principal.WindowsIdentity]::GetCurrent().Name } catch { $null }
+$serviceInventory = try { @(Get-WmiObject Win32_Service -ErrorAction Stop) } catch {
+  Write-Host "[?] Local service inventory unavailable; SQL service run-as context unknown." -ForegroundColor Yellow
+  @()
 }
+$sqlContextTimer = [Diagnostics.Stopwatch]::StartNew()
+$serviceInventory | ForEach-Object {
+  if ($_.Name -match '^(MSSQLSERVER|SQLSERVERAGENT|MSSQL\$.*|SQLAgent\$.*)$') {
+    if ($sqlServiceShown -lt 10) {
+      $runAs = if ($_.StartName) { $_.StartName } else { 'unknown' }
+      Write-Host "[i] SQL service $($_.Name): state=$($_.State); run-as=$runAs. Match to an MSSQLSvc SPN only after verifying the account; ticket acceptance and SQL roles are unknown."
+      if ($sqlContextTimer.ElapsedMilliseconds -lt 2000) {
+        try {
+          $sqlReg = Get-ItemProperty -LiteralPath ("HKLM:\SYSTEM\CurrentControlSet\Services\" + $_.Name) -ErrorAction Stop
+          $required = @($sqlReg.RequiredPrivileges | Where-Object { $null -ne $_ -and $_ -ne '' })
+          if ($null -eq $sqlReg.RequiredPrivileges) {
+            Write-Host "[?]   Registry RequiredPrivileges unavailable or not configured."
+          } else {
+            $shown = @($required | Select-Object -First 16 | ForEach-Object {
+              $value = ([string]$_ -replace '[\x00-\x1f\x7f]', ' ')
+              if ($value.Length -gt 64) { $value.Substring(0, 64) + '...' } else { $value }
+            })
+            $suffix = if ($required.Count -gt 16) { ', ...' } else { '' }
+            Write-Host "[i]   Registry RequiredPrivileges: $($shown -join ', ')$suffix"
+          }
+          $sameAccount = $false
+          if ($sqlIdentity -and $sqlReg.ObjectName) {
+            $configuredAccount = [string]$sqlReg.ObjectName
+            if ($configuredAccount.StartsWith('.\')) { $configuredAccount = $env:COMPUTERNAME + $configuredAccount.Substring(1) }
+            $sameAccount = $configuredAccount -ieq $sqlIdentity
+          }
+          if ($sameAccount) {
+            Write-Host "[i]   Service account matches this process identity; compare configured rights with this process token privileges. Original service token and exploitability remain unknown."
+          } else {
+            Write-Host "[i]   Service account does not match this process identity or identity is unavailable; no token comparison."
+          }
+        } catch {
+          Write-Host "[?]   Registry RequiredPrivileges unavailable; no token comparison." -ForegroundColor Yellow
+        }
+      } else { $sqlContextTimedOut = $true }
+    }
+    $sqlServiceShown++
+  }
+  if ($_.PathName -like '*.exe*') {
+    $Path = ($_.PathName -split '(?<=\.exe\b)')[0].Trim('"')
+    $UniqueServices[$Path] = $_.Name
+  }
+}
+if ($sqlServiceShown -gt 10) { Write-Host "[i] $($sqlServiceShown - 10) additional SQL services omitted." }
+if ($sqlContextTimedOut) { Write-Host "[?] SQL service privilege configuration inspection stopped at its 2-second limit." -ForegroundColor Yellow }
+if ($sqlServiceShown -gt 0) { Write-Host "[i] RequiredPrivileges is service configuration, not a captured service token; another token for the same account may differ." }
 foreach ( $h in ($UniqueServices | Select-Object -Unique).GetEnumerator()) {
   Start-ACLCheck -Target $h.Name -ServiceName $h.Value
 }
@@ -1498,6 +1742,24 @@ if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| ACTIVE DIRECTORY / IDENTITY MISCONFIG CHECKS"
 
 $domainContext = Get-DomainContext
+$dcLdapPolicy = Get-LocalDcLdapPolicySummary
+if ($dcLdapPolicy.Role -eq 'DomainController') {
+  $signing = if ($dcLdapPolicy.SigningState -eq 'Present') {
+    switch ($dcLdapPolicy.SigningValue) { 1 { 'None' } 2 { 'Require Signing' } default { 'Unknown' } }
+  } elseif ($dcLdapPolicy.SigningState -eq 'Missing' -and $dcLdapPolicy.Generation -eq 'Before2025') {
+    'Older DC default: signing not required'
+  } else { 'Unknown' }
+  $binding = if ($dcLdapPolicy.BindingState -eq 'Present') {
+    switch ($dcLdapPolicy.BindingValue) { 0 { 'Never' } 1 { 'When Supported (partial)' } 2 { 'Always' } default { 'Unknown' } }
+  } else { 'Unknown' }
+  Write-Host ("[i] Local DC LDAP signing: {0} ({1}; {2})" -f $dcLdapPolicy.SigningValue, $dcLdapPolicy.SigningState, $signing)
+  Write-Host ("[i] Local DC LDAPS channel binding: {0} ({1}; {2})" -f $dcLdapPolicy.BindingValue, $dcLdapPolicy.BindingState, $binding)
+  if ($dcLdapPolicy.SigningState -eq 'Missing' -and $dcLdapPolicy.Generation -ne 'Before2025') {
+    Write-Host '[i] Absent signing policy has an unknown effective default; new Server 2025 deployments have different enforcement defaults.'
+  }
+}
+else { Write-Host "[i] Local DC LDAP server policy unknown ($($dcLdapPolicy.Role)); client policy is not a substitute." }
+
 if (-not $domainContext) {
   Write-Host "Host appears to be in a workgroup or the AD context could not be resolved. Skipping domain-specific checks." -ForegroundColor DarkGray
 }
@@ -1516,6 +1778,12 @@ else {
     }
   }
 
+  $machineQuota = Get-DomainMachineAccountQuota -DomainContext $domainContext
+  if ($machineQuota.State -eq 'Present') {
+    Write-Host "[i] ms-DS-MachineAccountQuota: $($machineQuota.Value) (domain setting; caller creation rights and remaining quota unverified)."
+  }
+  else { Write-Host "[i] ms-DS-MachineAccountQuota unavailable ($($machineQuota.State))." }
+
   $timeSkew = Get-TimeSkewInfo -DomainContext $domainContext
   if ($timeSkew) {
     $offsetAbs = [math]::Abs($timeSkew.OffsetSeconds)
@@ -1528,38 +1796,54 @@ else {
     }
   }
 
-  $dnsFindings = @(Get-WeakDnsUpdateFindings -DomainContext $domainContext)
-  if ($dnsFindings.Count -gt 0) {
-    Write-Host "[!] AD-integrated DNS zones allow low-priv principals to write records (dynamic DNS hijack / service MITM risk)." -ForegroundColor Yellow
-    $dnsFindings | Format-Table Zone,Partition,Principal,Rights -AutoSize | Out-String | Write-Host
+  $dnsReport = Get-WeakDnsUpdateFindings -DomainContext $domainContext
+  if ($dnsReport.Findings.Count -gt 0) {
+    Write-Host "[?] AD-integrated DNS zone ACL review signals (effective dnsNode creation/write rights unverified):" -ForegroundColor Yellow
+    $dnsReport.Findings | Format-Table Zone,Partition,Principal,Rights,Scope -AutoSize -Wrap | Out-String | Write-Host
+    Write-Host "[i] Allow ACEs can be limited by deny ACEs, object scope, and DNS policy; these signals do not establish DNS write access or relay viability."
   }
   else {
-    Write-Host "[i] No obvious insecure dynamic DNS ACLs found with current privileges."
+    Write-Host "[i] No DNS zone ACL review signals in $($dnsReport.Inspected) inspected zone(s)."
+  }
+  if ($dnsReport.Unavailable.Count -gt 0) {
+    Write-Host "[?] DNS ACL enumeration unavailable for: $($dnsReport.Unavailable -join ', '). Coverage is unknown." -ForegroundColor Yellow
+  }
+  if ($dnsReport.Truncated.Count -gt 0) {
+    Write-Host "[?] DNS ACL enumeration truncated for: $($dnsReport.Truncated -join ', '). Remaining zones or ACEs were not inspected." -ForegroundColor Yellow
   }
 
-  $spnFindings = @(Get-PrivilegedSpnTargets -DomainContext $domainContext)
-  if ($spnFindings.Count -gt 0) {
-    Write-Host "[!] High-value SPN accounts identified (prime Kerberoast targets):" -ForegroundColor Yellow
-    $spnFindings | Format-Table User,Groups -AutoSize | Out-String | Write-Host
+  $spnReport = Get-PrivilegedSpnTargets -DomainContext $domainContext
+  if ($spnReport.State -eq 'Unknown') {
+    Write-Host "[?] Service-user SPN visibility unknown (LDAP denied or timed out)." -ForegroundColor Yellow
   }
   else {
-    Write-Host "[i] No privileged SPN users detected via quick LDAP search."
+    Write-Host "[i] Inspected $($spnReport.Inspected) SPN objects; enabled service-user accounts: $($spnReport.Enabled); eligibility unknown: $($spnReport.UnknownEligibility)."
+    if ($spnReport.Rows.Count -gt 0) {
+      $spnReport.Rows | Format-Table User,Tier,SPN,EncFlags,Groups -AutoSize -Wrap | Out-String | Write-Host
+    }
+    if ($spnReport.Truncated) { Write-Host "[?] LDAP sample or elapsed limit reached; remaining account count and priority unknown." -ForegroundColor Yellow }
+    if ($spnReport.Omitted -gt 0) { Write-Host "[i] $($spnReport.Omitted) additional enabled service-user SPN account(s) omitted from display." }
+    Write-Host "[i] SPNs and encryption flags do not prove a weak password, ticket type, or service-key possession."
   }
 
-  $gmsaReport = @(Get-GmsaReadersReport -DomainContext $domainContext)
-  if ($gmsaReport.Count -gt 0) {
-    $weakGmsa = $gmsaReport | Where-Object { $_.WeakPrincipals -ne "" }
+  $gmsaReport = Get-GmsaReadersReport -DomainContext $domainContext
+  if ($gmsaReport.Rows.Count -gt 0) {
+    $weakGmsa = $gmsaReport.Rows | Where-Object { $_.WeakPrincipals -ne "" }
     if ($weakGmsa) {
-      Write-Host "[!] gMSA passwords readable by low-priv groups/principals: " -ForegroundColor Yellow
-      $weakGmsa | Select-Object Account, WeakPrincipals | Format-Table -AutoSize | Out-String | Write-Host
+      Write-Host "[?] gMSA membership DACLs mention broad trustees; ACE rights and effective access are unverified:" -ForegroundColor Yellow
+      $weakGmsa | Select-Object Account,@{Name='DaclTrustees';Expression={$_.WeakPrincipals}} | Format-Table -AutoSize | Out-String | Write-Host
     }
     else {
-      Write-Host "[i] gMSA accounts discovered (review allowed readers below)."
-      $gmsaReport | Select-Object Account, Allowed | Sort-Object Account | Select-Object -First 5 | Format-Table -Wrap | Out-String | Write-Host
+      Write-Host "[i] gMSA membership DACL trustees found (ACE rights and effective access unverified)."
+      $gmsaReport.Rows | Select-Object Account,@{Name='DaclTrustees';Expression={$_.Trustees}} | Sort-Object Account | Select-Object -First 5 | Format-Table -Wrap | Out-String | Write-Host
     }
   }
   else {
-    Write-Host "[i] No gMSA objects found via LDAP."
+    Write-Host "[?] No gMSA membership DACL trustees returned in $($gmsaReport.Inspected) inspected object(s); LDAP or descriptor visibility may be incomplete."
+  }
+  if ($gmsaReport.Omitted -gt 0) { Write-Host "[i] $($gmsaReport.Omitted) additional gMSA trustee row(s) omitted from display." }
+  if ($gmsaReport.State -ne 'Observed') {
+    Write-Host "[?] gMSA reader inventory $($gmsaReport.State.ToLowerInvariant()): sample, descriptor, or elapsed limit reached (or LDAP unavailable). Remaining access is unknown." -ForegroundColor Yellow
   }
 
   $adcsInfo = Get-AdcsSchannelInfo
@@ -1678,7 +1962,8 @@ Write-Host -ForegroundColor Blue "=========|| WHOAMI INFO"
 Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| Check Token access here: https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/privilege-escalation-abusing-tokens.html#abusing-tokens"
-Write-Host -ForegroundColor Blue "=========|| Check if you are inside the Administrators group or if you have enabled any token that can be use to escalate privileges like SeImpersonatePrivilege, SeAssignPrimaryPrivilege, SeTcbPrivilege, SeBackupPrivilege, SeRestorePrivilege, SeCreateTokenPrivilege, SeLoadDriverPrivilege, SeTakeOwnershipPrivilege, SeDebugPrivilege"
+Write-Host -ForegroundColor Blue "=========|| Check if you are inside the Administrators group or if you have enabled any token that can be use to escalate privileges like SeImpersonatePrivilege, SeAssignPrimaryPrivilege, SeTcbPrivilege, SeBackupPrivilege, SeRestorePrivilege, SeCreateTokenPrivilege, SeLoadDriverPrivilege, SeTakeOwnershipPrivilege, SeDebugPrivilege, SeManageVolumePrivilege, SeEnableDelegationPrivilege"
+Write-Host "[i] If SeEnableDelegationPrivilege is enabled in this process token, review domain machine-account quota and effective computer-object rights; the privilege alone does not prove a delegation path."
 Write-Host "https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#users--groups" -ForegroundColor Yellow
 Start-Process whoami.exe -ArgumentList "/all" -Wait -NoNewWindow
 

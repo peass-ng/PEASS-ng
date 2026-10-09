@@ -1224,6 +1224,7 @@
     <Compile Include="Helpers\YamlConfig\YamlConfig.cs" />
     <Compile Include="Helpers\YamlConfig\YamlConfigHelper.cs" />
     <Compile Include="Info\ActiveDirectoryInfo\LapsPasswordExposure.cs" />
+    <Compile Include="Info\ActiveDirectoryInfo\CurrentComputerRbcd.cs" />
     <Compile Include="Info\ApplicationInfo\ApplicationInfoHelper.cs" />
     <Compile Include="Info\ApplicationInfo\AutoRuns.cs" />
     <Compile Include="Info\ApplicationInfo\DeviceDrivers.cs" />
@@ -1233,6 +1234,8 @@
     <Compile Include="Info\ApplicationInfo\RecallPolicyConfiguration.cs" />
     <Compile Include="Info\ApplicationInfo\SoapClientProxyAnalyzer.cs" />
     <Compile Include="Info\ApplicationInfo\InstalledApps.cs" />
+    <Compile Include="Info\ApplicationInfo\LansweeperConfigMetadata.cs" />
+    <Compile Include="Info\ApplicationInfo\Pdf24RepairPrerequisites.cs" />
     <Compile Include="Helpers\Beaprint.cs" />
     <Compile Include="Info\CloudInfo\AWSInfo.cs" />
     <Compile Include="Info\CloudInfo\AzureInfo.cs" />
@@ -1264,6 +1267,16 @@
     <Compile Include="Info\FilesInfo\Office\OneDrive\CloudSyncProviderInfo.cs" />
     <Compile Include="Info\FilesInfo\Office\OneDrive\OneDriveSyncProviderInfo.cs" />
     <Compile Include="Info\FilesInfo\RegistryHiveExposure.cs" />
+    <Compile Include="Info\FilesInfo\HMailServerExposure.cs" />
+    <Compile Include="Info\FilesInfo\IisServedRootPermissions.cs" />
+    <Compile Include="Info\FilesInfo\ApacheSystemWebRoot.cs" />
+    <Compile Include="Info\FilesInfo\IisAdcsWebEnrollment.cs" />
+    <Compile Include="Info\FilesInfo\SqlSetupConfigurationIndicator.cs" />
+    <Compile Include="Info\FilesInfo\ZipNtdsBackupIndicator.cs" />
+    <Compile Include="Info\FilesInfo\RecycleBinArchiveIndicator.cs" />
+    <Compile Include="Info\FilesInfo\MRemoteNgConnectionFiles.cs" />
+    <Compile Include="Info\FilesInfo\RemoteDesktopPlusProfiles.cs" />
+    <Compile Include="Info\FilesInfo\VelociraptorServerConfig.cs" />
     <Compile Include="Info\FilesInfo\WSL\WSLHelper.cs" />
     <Compile Include="Info\NetworkInfo\Enums\IPVersion.cs" />
     <Compile Include="Info\NetworkInfo\Enums\MibTcpState.cs" />
@@ -1388,6 +1401,7 @@
     <Compile Include="Info\UserInfo\Token\Enums.cs" />
     <Compile Include="Info\UserInfo\Token\Structs.cs" />
     <Compile Include="Info\UserInfo\Token\Token.cs" />
+    <Compile Include="Info\UserInfo\Token\CurrentProcessToken.cs" />
     <Compile Include="Info\UserInfo\User.cs" />
     <Compile Include="Native\Advapi32.cs" />
     <Compile Include="Native\Classes\SafeTokenHandle.cs" />
@@ -1472,6 +1486,7 @@
     <Compile Include="Info\ProcessInfo\DefensiveProcesses.cs" />
     <Compile Include="Info\ProcessInfo\InterestingProcesses.cs" />
     <Compile Include="Info\ProcessInfo\ProcessesInfo.cs" />
+    <Compile Include="Info\ProcessInfo\ProcessModuleDirectoryReview.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -1480,6 +1495,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Info\ServicesInfo\ServicesInfoHelper.cs" />
+    <Compile Include="Info\ServicesInfo\VisualStudioCollectorIndicator.cs" />
     <Compile Include="Info\ServicesInfo\OemSoftwareHelper.cs" />
     <Compile Include="Info\SystemInfo\SystemInfo.cs" />
     <Compile Include="Info\UserInfo\UserInfoHelper.cs" />

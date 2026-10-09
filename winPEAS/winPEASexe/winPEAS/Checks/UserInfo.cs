@@ -16,6 +16,8 @@ namespace winPEAS.Checks
 {
     internal class UserInfo : ISystemCheck
     {
+        internal const string DelegationPrivilegeNote = "Enabled SeEnableDelegationPrivilege in this process token: review domain machine-account quota and effective computer-object rights; this alone does not prove unconstrained delegation or a coercion path.";
+
         /* Colors Code
         * RED:
         * ---- Privileges users and groups names
@@ -32,7 +34,7 @@ namespace winPEAS.Checks
 
         static string badgroups = "docker|Remote |DNSAdmins|AD Recycle Bin|Azure Admins|Admins|Server Operators";//The space in Remote is important to not mix with SeShutdownRemotePrivilege
         static readonly string _badPasswd = "NotChange|NotExpi";
-        static readonly string _badPrivileges = "SeImpersonatePrivilege|SeAssignPrimaryPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege";
+        static readonly string _badPrivileges = "SeImpersonatePrivilege|SeAssignPrimaryPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege|SeManageVolumePrivilege";
 
         public string[] MitreAttackIds { get; } = new[] { "T1087.001", "T1087.004", "T1033", "T1134.001", "T1115", "T1563.002", "T1083", "T1552.002", "T1201" };
 
@@ -110,10 +112,27 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Current Token privileges", "T1134.001");
+                Beaprint.MainPrint("Current process token privileges", "T1134.001");
+                Beaprint.InfoPrint("These privileges belong to this winPEAS process token; another logon or service token for the same account may differ.");
+                CurrentProcessTokenSnapshot tokenState = CurrentProcessToken.Read();
+                Beaprint.InfoPrint("  " + tokenState.Summary);
+                if (tokenState.IsFilteredLocalAdminCandidate)
+                {
+                    Beaprint.BadPrint("  [!] Confirmed medium, limited local administrator token: the Administrators SID is deny-only and this process is not elevated. UAC policy and consent settings still govern elevation; this does not prove any bypass.");
+                }
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#token-manipulation", "Check if you can escalate privilege using some enabled token");
                 Dictionary<string, string> tokenPrivs = Token.GetTokenGroupPrivs();
-                Beaprint.DictPrint(tokenPrivs, ColorsU(), false);
+                bool delegationEnabled = Token.IsPrivilegeEnabled(tokenPrivs, "SeEnableDelegationPrivilege");
+                Dictionary<string, string> colors = ColorsU();
+                if (delegationEnabled)
+                {
+                    colors["SeEnableDelegationPrivilege"] = Beaprint.ansi_color_bad;
+                }
+                Beaprint.DictPrint(tokenPrivs, colors, false);
+                if (delegationEnabled)
+                {
+                    Beaprint.BadPrint("  [!] " + DelegationPrivilegeNote);
+                }
             }
             catch (Exception ex)
             {
@@ -159,15 +178,20 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("RDP Sessions", "T1563.002");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/rdp-sessions-abuse.html", "Disconnected high-privilege RDP sessions keep reusable tokens inside LSASS.");
-                List<Dictionary<string, string>> rdp_sessions = UserInfoHelper.GetRDPSessions();
-                if (rdp_sessions.Count > 0)
+                var enumeration = UserInfoHelper.GetRDPSessions();
+                if (enumeration.Visibility == RdpSessionVisibility.Unknown)
+                {
+                    Beaprint.GrayPrint("  [-] Session visibility unavailable" +
+                        (string.IsNullOrEmpty(enumeration.FailureReason) ? "." : ": " + enumeration.FailureReason));
+                }
+                else if (enumeration.Visibility == RdpSessionVisibility.Observed)
                 {
                     string format = "    {0,-8}{1,-15}{2,-20}{3,-22}{4,-15}{5,-18}{6,-10}";
                     string header = string.Format(format, "SessID", "Session", "User", "Domain", "State", "SourceIP", "HighPriv");
                     Beaprint.GrayPrint(header);
                     var colors = ColorsU();
                     List<Dictionary<string, string>> flaggedSessions = new List<Dictionary<string, string>>();
-                    foreach (Dictionary<string, string> rdpSes in rdp_sessions)
+                    foreach (Dictionary<string, string> rdpSes in enumeration.Sessions)
                     {
                         string sessionId = GetSessionValue(rdpSes, "SessionID");
                         string sessionName = GetSessionValue(rdpSes, "pSessionName");
@@ -207,7 +231,7 @@ namespace winPEAS.Checks
                 }
                 else
                 {
-                    Beaprint.NotFoundPrint();
+                    Beaprint.GrayPrint("  [-] No user sessions observed by WTS.");
                 }
             }
             catch (Exception ex)

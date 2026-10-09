@@ -11,6 +11,15 @@ namespace winPEAS.Info.UserInfo.Token
 {
     internal static class Token
     {
+        internal static bool IsPrivilegeEnabled(IDictionary<string, string> privileges, string name)
+        {
+            string state;
+            LuidAttributes attributes;
+            return privileges != null && privileges.TryGetValue(name, out state)
+                && Enum.TryParse(state, out attributes)
+                && (attributes & LuidAttributes.SE_PRIVILEGE_ENABLED) != 0;
+        }
+
         public static Dictionary<string, string> GetTokenGroupPrivs()
         {
             // Returns all privileges that the current process/user possesses

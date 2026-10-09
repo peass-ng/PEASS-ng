@@ -33,5 +33,8 @@ namespace winPEAS.Native
 
         [DllImport("wtsapi32.dll")]
         internal static extern void WTSFreeMemory(IntPtr pMemory);
+
+        [DllImport("wtsapi32.dll", EntryPoint = "WTSFreeMemoryExA")]
+        internal static extern bool WTSFreeMemoryEx(int wtsTypeClass, IntPtr pMemory, int numberOfEntries);
     }
 }
