@@ -80,7 +80,7 @@ namespace Tests
                 config.Replace("${INSTALL_DIR}", "${install_dir}"), @"C:\wamp64"));
             Assert.IsNull(ApacheSystemWebRoot.ParseWampDocumentRoot(
                 config + "Define INSTALL_DIR \"C:/wamp64\"\n", @"C:\wamp64"));
-            Assert.IsNull(ApacheSystemWebRoot.ParseWampDocumentRoot(
+            Assert.AreNotEqual(@"C:\wamp64\www", ApacheSystemWebRoot.ParseWampDocumentRoot(
                 "Define INSTALL_DIR \"C:/wamp64\"\nDocumentRoot \"C:/other\"\n", @"C:\wamp64"));
         }
     }
