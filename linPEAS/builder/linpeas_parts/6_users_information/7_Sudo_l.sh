@@ -44,7 +44,7 @@ sudo_env_keep_script_candidates() {
       line = substr($0, RSTART + RLENGTH)
       if (substr(line, 1, 1) == "\"") {
         line = substr(line, 2)
-        sub(/\".*/, "", line)
+        sub(/".*/, "", line)
       } else {
         sub(/,.*/, "", line)
       }
