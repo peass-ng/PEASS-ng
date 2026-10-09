@@ -1,19 +1,19 @@
 # Title: System Information - Systemd
 # ID: SY_Systemd
 # Author: Carlos Polop
-# Last Update: 2024-03-19
-# Description: Check for systemd vulnerabilities, misconfigurations, and readable service environment files:
-#   - Systemd version vulnerabilities (CVE-2021-4034, CVE-2021-33910, etc.)
+# Last Update: 2026-10-09
+# Description: Check systemd version, service misconfigurations, and readable service environment files:
+#   - Systemd release (distribution package and patch status require separate verification)
 #   - Services running as root that could be exploited
 #   - Services with dangerous capabilities that could be abused
 #   - Services with writable paths that could be used to inject malicious code
 #   - Exploitation methods:
-#     * Version exploits: Use known exploits for vulnerable systemd versions
+#     * Version review: Compare the installed distribution package with vendor fixes
 #     * Root services: Abuse services running as root to execute commands
 #     * Capabilities: Abuse services with dangerous capabilities (CAP_SYS_ADMIN, etc.)
 #     * Writable paths: Replace executables in writable paths to get code execution
 # License: GNU GPL
-# Version: 1.1
+# Version: 1.2
 # Mitre: T1543.002,T1552.001
 # Functions Used: print_2title, print_list, echo_not_found
 # Global Variables: $SEARCH_IN_FOLDER, $IAMROOT, $Wfolders, $SED_RED, $SED_RED_YELLOW, $NC
@@ -156,21 +156,13 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
         running_services=$(list_running_services)
     fi
 
-    # Check systemd version and known vulnerabilities
-    print_list "Systemd version and vulnerabilities? .............. "$NC
+    # The upstream release alone does not identify distribution backports or
+    # mitigations. PwnKit is a polkit/pkexec issue, not a systemd version issue.
+    print_list "Systemd release (verify package fixes)? .......... "$NC
     if check_systemctl; then
-        version=$(systemctl --version | head -n 1 | grep -oE '([0-9]+(\.[0-9]+)+)')
+        version=$(systemctl --version 2>/dev/null | awk 'NR == 1 && $1 == "systemd" && $2 ~ /^[0-9]+$/ { print $2 }')
         if [ -n "$version" ]; then
-            echo "$version" | sed -${E} "s,([0-9]+(\.[0-9]+)+),${SED_RED},g"
-            # Check for known vulnerable versions
-            case "$version" in
-                "2.3"[0-4]|"2.3"[0-4]"."*)
-                    echo "  └─ Vulnerable to CVE-2021-4034 (Polkit)" | sed -${E} "s,.*,${SED_RED},g"
-                    ;;
-                "2.4"[0-9]|"2.4"[0-9]"."*)
-                    echo "  └─ Vulnerable to CVE-2021-33910 (systemd-tmpfiles)" | sed -${E} "s,.*,${SED_RED},g"
-                    ;;
-            esac
+            printf '%s\n' "$version"
         fi
     fi
 

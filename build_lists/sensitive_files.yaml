@@ -3545,6 +3545,17 @@ search:
                 type: f
                 search_in: 
                   - common
+
+          # The builder applies path filters to the whole category. Keep the
+          # two existing autologin names valid while restricting passwd exactly.
+          - name: "passwd"
+            value:
+                check_extra_path: '/autologin(\.conf)?$|^(/mnt/stateful_partition)?/etc/autologin/passwd$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}mnt
   
   - name: FastCGI
     value:

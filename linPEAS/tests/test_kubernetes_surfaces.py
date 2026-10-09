@@ -175,6 +175,7 @@ class KubernetesSurfacesTests(unittest.TestCase):
                 '  *"get namespaces"*) echo namespace/testing ;;\n'
                 '  *"get pods,services,serviceaccounts,secrets"*) echo pod/example ;;\n'
                 '  *"auth can-i get nodes/"*) echo yes ;;\n'
+                '  *"auth can-i list secrets -n kube-system"*) echo "${KUBECTL_ACCESS_REPLY:-yes}" ;;\n'
                 '  *"get nodes"*) echo node/example ;;\n'
                 '  *"hostPath.path"*) echo "example: /host" ;;\n'
                 '  *"get pods"*) echo "example sa=default hostPID=true" ;;\n'
@@ -197,6 +198,14 @@ class KubernetesSurfacesTests(unittest.TestCase):
             self.assertIn("example: /host", output)
             self.assertIn("Context: cluster-a", output)
             self.assertIn("example: yes", output)
+            self.assertIn("kube-system secrets list authorization (current context): allowed", output)
+            self.assertEqual(1, sum("auth can-i list secrets -n kube-system" in call for call in log.read_text().splitlines()))
+            env["KUBECTL_ACCESS_REPLY"] = "no"
+            denied = self.run_shell("k8s_namespace=''; EXTRA_CHECKS=1; k8s_scan_kubectl", env=env)
+            self.assertIn("kube-system secrets list authorization (current context): denied", denied)
+            env["KUBECTL_ACCESS_REPLY"] = "authorization unavailable"
+            unknown = self.run_shell("k8s_namespace=''; EXTRA_CHECKS=1; k8s_scan_kubectl", env=env)
+            self.assertIn("kube-system secrets list authorization (current context): unknown", unknown)
             for call in log.read_text().splitlines()[1:]:
                 if "config " not in call:
                     self.assertIn("--request-timeout=5s", call)
@@ -244,6 +253,55 @@ class KubernetesSurfacesTests(unittest.TestCase):
             self.assertTrue(all("--max-time 5" in call for call in calls.read_text().splitlines()))
             self.assertTrue(all(call.startswith("-q ") for call in calls.read_text().splitlines()))
             self.assertEqual(1, sum("/secrets?limit=40" in call for call in calls.read_text().splitlines()))
+
+    def test_cross_namespace_access_review_is_bounded_and_never_reads_secrets(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            curl = root / "curl"
+            calls = root / "calls"
+            payload = root / "reply"
+            curl.write_text(
+                "#!/bin/sh\n"
+                'printf "%s\\n" "$*" >> "$CURL_CALLS"\n'
+                'read -r header\n'
+                'cat "$ACCESS_REPLY"\n'
+                'printf "\\n%s" "$ACCESS_HTTP"\n'
+                'exit "$ACCESS_EXIT"\n'
+            )
+            curl.chmod(0o755)
+            env = os.environ.copy()
+            env.update({
+                "PATH": f"{root}:{env['PATH']}",
+                "CURL_CALLS": str(calls),
+                "ACCESS_REPLY": str(payload),
+                "ACCESS_HTTP": "201",
+                "ACCESS_EXIT": "0",
+            })
+            command = (
+                'k8s_direct_token="SENSITIVE_TOKEN_VALUE"; '
+                'k8s_direct_ca=/tmp/test-ca; k8s_direct_base=https://test.invalid; '
+                'k8s_sa_kube_system_secret_access'
+            )
+            for response, expected in (
+                ('{"status":{"allowed":true,"denied":false}}', "allowed"),
+                ('{"status":{"allowed":false,"denied":true}}', "denied"),
+                ('{"status":{"allowed":true,"evaluationError":"incomplete"}}', "unknown"),
+                ('{"status":{}}', "unknown"),
+                ('not-json', "unknown"),
+            ):
+                payload.write_text(response)
+                self.assertEqual(expected + "\n", self.run_shell(command, env=env))
+            env["ACCESS_HTTP"] = "403"
+            payload.write_text('{"status":{"allowed":true}}')
+            self.assertEqual("unknown\n", self.run_shell(command, env=env))
+            self.assertEqual(6, len(calls.read_text().splitlines()))
+            self.assertTrue(all("--max-time 5" in line and "--max-filesize 4096" in line
+                                for line in calls.read_text().splitlines()))
+            self.assertTrue(all("/selfsubjectaccessreviews" in line and "/secrets?" not in line
+                                for line in calls.read_text().splitlines()))
+            self.assertTrue(all('"namespace":"kube-system"' in line and
+                                '"resource":"secrets"' in line for line in calls.read_text().splitlines()))
+            self.assertNotIn("SENSITIVE_TOKEN_VALUE", calls.read_text())
 
     def run_secret_fixture(self, root, payload, status="200", exit_code=0):
         root = Path(root)

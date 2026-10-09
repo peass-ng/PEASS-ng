@@ -9,7 +9,7 @@
 # Functions Used: print_2title, print_3title
 # Global Variables: $containerType, $EXTRA_CHECKS
 # Initial Functions: containerCheck
-# Generated Global Variables: $k8s_aws_bucket, $k8s_cap_eff, $k8s_cap_low, $k8s_cfg, $k8s_cfg_env, $k8s_context_name, $k8s_count, $k8s_current_context, $k8s_dir, $k8s_direct_base, $k8s_direct_ca, $k8s_direct_host, $k8s_direct_port, $k8s_direct_token, $k8s_direct_token_file, $k8s_docker_host, $k8s_file, $k8s_gcs_bucket, $k8s_mount, $k8s_mount_options, $k8s_mount_root, $k8s_namespace, $k8s_node_address, $k8s_node_addresses, $k8s_node_name, $k8s_ns_one, $k8s_ns_self, $k8s_pid, $k8s_probe_host, $k8s_probe_port, $k8s_probe_scheme, $k8s_probe_status, $k8s_rc, $k8s_readable, $k8s_root, $k8s_root_count, $k8s_runc_version, $k8s_secret_response, $k8s_secret_exit, $k8s_secret_http, $k8s_secret_json, $k8s_secret_summary, $k8s_socket, $k8s_writable, $count, $keys, $continued
+# Generated Global Variables: $k8s_access_exit, $k8s_access_http, $k8s_access_json, $k8s_access_response, $k8s_access_result, $k8s_aws_bucket, $k8s_cap_eff, $k8s_cap_low, $k8s_cfg, $k8s_cfg_env, $k8s_context_name, $k8s_count, $k8s_current_context, $k8s_dir, $k8s_direct_base, $k8s_direct_ca, $k8s_direct_host, $k8s_direct_port, $k8s_direct_token, $k8s_direct_token_file, $k8s_docker_host, $k8s_file, $k8s_gcs_bucket, $k8s_mount, $k8s_mount_options, $k8s_mount_root, $k8s_namespace, $k8s_node_address, $k8s_node_addresses, $k8s_node_name, $k8s_ns_one, $k8s_ns_self, $k8s_pid, $k8s_probe_host, $k8s_probe_port, $k8s_probe_scheme, $k8s_probe_status, $k8s_rc, $k8s_readable, $k8s_root, $k8s_root_count, $k8s_runc_version, $k8s_secret_response, $k8s_secret_exit, $k8s_secret_http, $k8s_secret_json, $k8s_secret_summary, $k8s_socket, $k8s_writable, $count, $keys, $continued
 # Fat linpeas: 0
 # Small linpeas: 0
 
@@ -371,6 +371,36 @@ k8s_sa_api_get() {
       "$k8s_direct_base$1" 2>/dev/null
 }
 
+k8s_sa_kube_system_secret_access() {
+  # SelfSubjectAccessReview evaluates the mounted token without reading Secrets.
+  k8s_access_response="$(printf 'header = "Authorization: Bearer %s"\n' "$k8s_direct_token" |
+    curl -q --config - -fsS --connect-timeout 2 --max-time 5 --max-filesize 4096 \
+      --cacert "$k8s_direct_ca" -H 'Accept: application/json' \
+      -H 'Content-Type: application/json' \
+      --data-binary '{"apiVersion":"authorization.k8s.io/v1","kind":"SelfSubjectAccessReview","spec":{"resourceAttributes":{"namespace":"kube-system","verb":"list","resource":"secrets"}}}' \
+      -w '\n%{http_code}' \
+      "$k8s_direct_base/apis/authorization.k8s.io/v1/selfsubjectaccessreviews" 2>/dev/null)"
+  k8s_access_exit=$?
+  if [ "${#k8s_access_response}" -gt 4100 ]; then
+    echo unknown
+    return
+  fi
+  k8s_access_http="$(printf '%s' "$k8s_access_response" | tail -c 3)"
+  case "$k8s_access_exit:$k8s_access_http" in 0:200|0:201) ;; *) echo unknown; return ;; esac
+  k8s_access_json="${k8s_access_response%????}"
+  k8s_access_result="$(printf '%s' "$k8s_access_json" | jq -r '
+    if (.status | type) != "object" or
+       (.status.allowed | type) != "boolean" or
+       ((.status.evaluationError // "") != "") or
+       (.status.allowed == true and .status.denied == true)
+    then "unknown"
+    elif .status.allowed then "allowed"
+    else "denied"
+    end
+  ' 2>/dev/null | head -n 1)"
+  case "$k8s_access_result" in allowed|denied) echo "$k8s_access_result" ;; *) echo unknown ;; esac
+}
+
 k8s_scan_sa_secrets() {
   # The API response contains values; keep it in memory and emit only selected metadata.
   # curl's size limit bounds the response even when the server ignores ?limit=100.
@@ -440,6 +470,8 @@ k8s_scan_sa_api() {
       sed "s/^/    $k8s_file: /"
   done
   k8s_scan_sa_secrets
+  printf '  kube-system secrets list authorization (mounted identity): %s\n' \
+    "$(k8s_sa_kube_system_secret_access)"
   k8s_sa_api_get '/api/v1/nodes?limit=100' |
     jq -r '.items[]?.metadata.name // empty' 2>/dev/null | head -n 40 | sed 's/^/    node: /'
   k8s_direct_token=''
@@ -474,6 +506,10 @@ k8s_scan_kubectl() {
   echo '  Current context authorization rules:'
   k8s_kubectl --request-timeout=5s auth can-i --list -n "$k8s_namespace" \
     2>/dev/null | head -n 80
+  k8s_access_result="$(k8s_kubectl --request-timeout=5s auth can-i list secrets \
+    -n kube-system 2>/dev/null | head -n 1)"
+  case "$k8s_access_result" in yes) k8s_access_result=allowed ;; no) k8s_access_result=denied ;; *) k8s_access_result=unknown ;; esac
+  printf '  kube-system secrets list authorization (current context): %s\n' "$k8s_access_result"
   echo '  Other configured context authorization rules (up to five):'
   k8s_kubectl config get-contexts -o name 2>/dev/null | head -n 5 |
   while IFS= read -r k8s_context_name; do

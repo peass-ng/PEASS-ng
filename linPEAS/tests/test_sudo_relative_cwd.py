@@ -15,6 +15,8 @@ PATH_HELPER = re.search(r"^sudo_python_import_plain_path\(\) \{\n.*?^\}",
 REVIEW = re.search(r"^sudo_relative_cwd_review\(\) \{\n.*?^\}",
                    SOURCE, re.MULTILINE | re.DOTALL).group()
 MARKER = "Sudo relative-CWD helper review candidate:"
+CP_MARKER = "Sudo GNU cp glob review candidate:"
+GO_MARKER = "Sudo Go relative-CWD WASM review candidate:"
 
 
 class SudoRelativeCwdTests(unittest.TestCase):
@@ -92,6 +94,45 @@ class SudoRelativeCwdTests(unittest.TestCase):
         result = subprocess.run(["sh", "-n", str(MODULE)], text=True,
                                 capture_output=True, timeout=3)
         self.assertEqual(0, result.returncode, result.stderr)
+
+    def test_root_sudo_shell_cp_glob_is_conditional_candidate(self):
+        for command in ("cp .version * /etc/app/staged/",
+                        "/usr/bin/cp * /etc/app/staged"):
+            with self.subTest(command=command):
+                out = self.scan(source="#!/usr/bin/bash\n" + command + "\n", suffix=".sh")
+                self.assertEqual(1, out.count(CP_MARKER))
+                self.assertIn("line 2", out)
+                self.assertIn("writable CWD example:", out)
+                self.assertIn("verify script branch", out)
+        out = self.scan(source="#!/bin/sh\ncp .version * /etc/app/staged/\n",
+                        suffix=".sh", extra="    (root) {script}\n")
+        self.assertEqual(1, out.count(CP_MARKER))
+
+    def test_cp_glob_requires_exact_policy_plain_glob_and_caller_cwd(self):
+        positive = "#!/bin/sh\ncp .version * /etc/app/staged/\n"
+        for kwargs in (
+            {"runas": "builder"},
+            {"runas": "ALL, !root"},
+            {"args": " --fixed"},
+            {"tag": "NOEXEC: "},
+            {"extra": "    (root) ! {script}\n"},
+            {"extra": "Defaults runchdir=/srv/fixed\n"},
+            {"symlink": True},
+            {"readable": False},
+            {"source": "#!/bin/sh\ncd /opt/app\ncp .version * /etc/app/staged/\n"},
+            {"source": "#!/bin/sh\nif cd /opt/app; then :; fi\ncp .version * /etc/app/staged/\n"},
+            {"source": "#!/bin/sh\nif true; then cd /opt/app; fi\ncp .version * /etc/app/staged/\n"},
+            {"source": "#!/bin/sh\ncp .version -- * /etc/app/staged/\n"},
+            {"source": "#!/bin/sh\ncp -- * /etc/app/staged/\n"},
+            {"source": "#!/bin/sh\ncp .version '*' /etc/app/staged/\n"},
+            {"source": "#!/bin/sh\n# cp .version * /etc/app/staged/\n"},
+            {"source": "#!/bin/sh\necho cp .version * /etc/app/staged/\n"},
+            {"source": "#!/bin/sh\ncp .version * relative/staged/\n"},
+            {"source": positive + "x\n" * 201},
+        ):
+            with self.subTest(kwargs=kwargs):
+                self.assertNotIn(CP_MARKER, self.scan(**{
+                    "source": positive, "suffix": ".sh", **kwargs}))
 
     def test_python_literal_helper_under_exact_interpreter_rule(self):
         source = ("#!/usr/bin/python3\n"
@@ -177,6 +218,66 @@ class SudoRelativeCwdTests(unittest.TestCase):
         unreadable = self.scan(**options, readable=False)
         self.assertIn("Sudo Ruby script source unreadable", unreadable)
         self.assertNotIn(marker, unreadable)
+
+    def test_go_wasm_gate_and_relative_shell_under_exact_root_rule(self):
+        source = (
+            'package main\n'
+            'func main() {\n'
+            '  bytes, _ := wasm.ReadBytes("main.wasm")\n'
+            '  instance, _ := wasm.NewInstance(bytes)\n'
+            '  init := instance.Exports["info"]\n'
+            '  result, _ := init()\n'
+            '  f := result.String()\n'
+            '  if (f != "1") {\n'
+            '    println("not ready")\n'
+            '  } else {\n'
+            '    exec.Command("/bin/sh", "deploy.sh").Output()\n'
+            '  }\n'
+            '}\n'
+        )
+        options = {"source": source, "interpreter": "/usr/bin/go run",
+                   "suffix": ".go"}
+        for runas in ("root", "ALL", "#0"):
+            out = self.scan(**options, runas=runas)
+            self.assertEqual(1, out.count(GO_MARKER))
+            self.assertIn("line 3", out)
+            self.assertIn("line 11", out)
+            self.assertIn("result-to-branch flow", out)
+        self.assertIn(GO_MARKER, self.scan(**options,
+            extra="    (root) ! /usr/bin/go run /opt/other.go\n"))
+        for kwargs in (
+            {"runas": "builder"},
+            {"runas": "ALL, !root"},
+            {"args": " --fixed"},
+            {"tag": "NOEXEC: "},
+            {"extra": "    (root) ! /usr/bin/go run {script}\n"},
+            {"extra": "    (root) ! /usr/bin/go run *\n"},
+            {"extra": "    (root) ! /usr/bin/go run {script} *\n"},
+            {"extra": "Defaults runchdir=/srv/fixed\n"},
+            {"symlink": True},
+            {"source": source.replace('wasm.ReadBytes("main.wasm")',
+                                       'wasm.ReadBytes("/opt/main.wasm")')},
+            {"source": source.replace('wasm.NewInstance(bytes)',
+                                       'someOtherFunction(bytes)')},
+            {"source": source.replace('  } else {\n', '  }\n')},
+            {"source": source.replace('    exec.Command("/bin/sh", "deploy.sh").Output()\n'
+                                      '  }',
+                                      '    println("no deploy")\n'
+                                      '  }\n'
+                                      '  exec.Command("/bin/sh", "deploy.sh").Output()')},
+            {"source": source.replace('exec.Command("/bin/sh", "deploy.sh")',
+                                       'exec.Command("/bin/sh", "/opt/deploy.sh")')},
+            {"source": source.replace('  bytes, _ :=',
+                                       '  os.Chdir("/opt")\n  bytes, _ :=')},
+            {"source": source.replace('  bytes, _ :=',
+                                       '  cmd.Dir = "/opt"\n  bytes, _ :=')},
+            {"source": source + "x" * 2049 + "\n"},
+        ):
+            with self.subTest(kwargs=kwargs):
+                self.assertNotIn(GO_MARKER, self.scan(**{**options, **kwargs}))
+        unreadable = self.scan(**options, readable=False)
+        self.assertIn("Sudo Go script source unreadable", unreadable)
+        self.assertNotIn(GO_MARKER, unreadable)
 
 
 if __name__ == "__main__":

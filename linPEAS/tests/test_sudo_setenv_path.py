@@ -1,4 +1,4 @@
-"""A root-capable SETENV script is only a bounded static PATH review lead."""
+"""Bounded root sudo-script PATH review distinguishes evidence from unknowns."""
 
 import re
 import subprocess
@@ -14,12 +14,14 @@ PATH_HELPER = re.search(r"^sudo_python_import_plain_path\(\) \{\n.*?^\}",
                         SOURCE, re.MULTILINE | re.DOTALL).group()
 REVIEW = re.search(r"^sudo_setenv_path_review\(\) \{\n.*?^\}",
                    SOURCE, re.MULTILINE | re.DOTALL).group()
-MARKER = "Sudo SETENV PATH review candidate:"
+MARKER = "Sudo PATH review candidate:"
+UNKNOWN = "Sudo PATH policy unknown:"
 
 
 class SudoSetenvPathTests(unittest.TestCase):
     def scan(self, source="#!/bin/bash\nfind source_images -type f\n",
              runas="root", tag="SETENV: NOPASSWD: ", args="", extra="",
+             defaults="Matching Defaults entries for user on host:\n    !secure_path\n",
              symlink=False, parent_symlink=False):
         temp_parent = "/private/tmp" if Path("/private/tmp").is_dir() else None
         with tempfile.TemporaryDirectory(dir=temp_parent) as tmp:
@@ -41,7 +43,8 @@ class SudoSetenvPathTests(unittest.TestCase):
             real_path.chmod(0o755)
             if symlink:
                 path.symlink_to(real_path)
-            rule = f"    ({runas}) {tag}{path}{args}\n" + extra.replace("{script}", str(path))
+            rule = defaults + f"    ({runas}) {tag}{path}{args}\n"
+            rule += extra.replace("{script}", str(path))
             result = subprocess.run(
                 ["sh", "-c", PATH_HELPER + "\n" + REVIEW +
                  '\nsudo_setenv_path_review "$1"', "sh", rule],
@@ -55,12 +58,54 @@ class SudoSetenvPathTests(unittest.TestCase):
     def test_exact_root_setenv_bare_external_command(self):
         for runas in ("root", "ALL", "#0", "ALL : ALL"):
             with self.subTest(runas=runas):
-                output = self.scan(runas=runas,
-                                   extra="Defaults secure_path=/usr/bin:/bin\n")
+                output = self.scan(runas=runas)
                 self.assertEqual(1, output.count(MARKER))
                 self.assertIn("bare command", output)
-                self.assertIn("confirm effective PATH", output)
+                self.assertIn("verify effective PATH", output)
         self.assertEqual(1, self.scan(extra="    (root) SETENV: {script}\n").count(MARKER))
+
+    def test_explicit_path_preservation_and_bare_gzip(self):
+        source = "#!/bin/bash\ngzip -c /var/log/app.log > /var/backups/app.gz\n"
+        for defaults in (
+            'Matching Defaults entries for user on host:\n    !secure_path, env_keep += "PATH"\n',
+            "Matching Defaults entries for user on host:\n    !secure_path, !env_reset\n",
+        ):
+            with self.subTest(defaults=defaults):
+                output = self.scan(source=source, tag="NOPASSWD: ", defaults=defaults)
+                self.assertIn(MARKER, output)
+                self.assertIn("bare command", output)
+
+    def test_partial_policy_is_unknown_not_a_positive_candidate(self):
+        source = "#!/bin/bash\ngzip -c /var/log/app.log > /var/backups/app.gz\n"
+        for defaults, tag in (
+            ("", "NOPASSWD: "),
+            ("Matching Defaults entries for user on host:\n    !secure_path\n", "NOPASSWD: "),
+            ('Matching Defaults entries for user on host:\n    env_keep += "PATH"\n', "NOPASSWD: "),
+            ("Matching Defaults entries for user on host:\n    !secure_path\n", "SETENV: NOSETENV: "),
+        ):
+            with self.subTest(defaults=defaults, tag=tag):
+                output = self.scan(source=source, tag=tag, defaults=defaults)
+                self.assertIn(UNKNOWN, output)
+                self.assertNotIn(MARKER, output)
+
+    def test_secure_path_or_conflicting_defaults_suppress_candidate(self):
+        self.assertEqual(
+            "",
+            self.scan(defaults="Matching Defaults entries for user on host:\n    secure_path=/usr/bin:/bin\n"),
+        )
+        for defaults in (
+            "Matching Defaults entries for user on host:\n    !secure_path, secure_path=/usr/bin:/bin\n",
+            "Matching Defaults entries for user on host:\n    secure_path=/usr/bin:/bin, !secure_path\n",
+        ):
+            with self.subTest(defaults=defaults):
+                output = self.scan(defaults=defaults)
+                self.assertIn(UNKNOWN, output)
+                self.assertNotIn(MARKER, output)
+        conflicting_keep = (
+            'Matching Defaults entries for user on host:\n'
+            '    !secure_path, env_keep += "PATH", env_keep -= "PATH"\n'
+        )
+        self.assertNotIn(MARKER, self.scan(tag="NOPASSWD: ", defaults=conflicting_keep))
 
     def test_bash_disabled_builtin_is_a_separate_candidate(self):
         source = "#!/bin/bash\nenable -n [ # review command lookup\nif [ -s /var/log/app ]; then\n  :\nfi\n"
@@ -71,8 +116,6 @@ class SudoSetenvPathTests(unittest.TestCase):
         for option in (
             {"runas": "builder"},
             {"runas": "ALL, !root"},
-            {"tag": "NOPASSWD: "},
-            {"tag": "SETENV: NOSETENV: NOPASSWD: "},
             {"tag": "SETENV: NOEXEC: NOPASSWD: "},
             {"args": " --fixed"},
             {"extra": "    (root) ! {script}\n"},
