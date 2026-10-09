@@ -71,6 +71,77 @@ namespace winPEAS.Checks
         internal enum SpnWriteRight { None, WriteProperty, ValidatedSelf }
         internal enum MembershipWriteRight { None, OwnMembership, MemberAttribute }
         internal enum ExactAttributeWriteRight { None, Upn, KeyCredentialLink, AltSecurityIdentities, GmsaReaderList, ScriptPath }
+        internal enum LogonScriptPathKind { Missing, Relative, AbsoluteOrUnc, UnsafeRelative }
+        internal sealed class LogonScriptReference
+        {
+            internal string Account;
+            internal string Path;
+        }
+        internal sealed class LogonScriptReferenceSummary
+        {
+            internal int InspectedUsers;
+            internal int ReferencedUsers;
+            internal int UniquePaths;
+            internal bool Truncated;
+            internal readonly List<string> DisplayLines = new List<string>();
+        }
+
+        internal static LogonScriptPathKind ClassifyLogonScriptPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return LogonScriptPathKind.Missing;
+            if (path[0] == '\\' || path[0] == '/' ||
+                (path.Length > 2 && char.IsLetter(path[0]) && path[1] == ':' &&
+                 (path[2] == '\\' || path[2] == '/')))
+                return LogonScriptPathKind.AbsoluteOrUnc;
+            if (path.Any(char.IsControl) || path.IndexOf(':') >= 0 ||
+                path.Split(new[] { '\\', '/' }).Any(part => part == "." || part == ".." || part.Length == 0))
+                return LogonScriptPathKind.UnsafeRelative;
+            return LogonScriptPathKind.Relative;
+        }
+
+        private static string SafeLogonScriptText(string value, int maxLength)
+        {
+            if (string.IsNullOrEmpty(value)) return "<unknown>";
+            return new string(value.Take(maxLength).Select(ch => char.IsControl(ch) ? '?' : ch).ToArray()) +
+                (value.Length > maxLength ? "…" : "");
+        }
+
+        internal static LogonScriptReferenceSummary SummarizeLogonScriptReferences(
+            IEnumerable<LogonScriptReference> rows, bool sampleTruncated)
+        {
+            var summary = new LogonScriptReferenceSummary { Truncated = sampleTruncated };
+            if (rows == null) return summary;
+            var byPath = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var row in rows)
+            {
+                if (summary.InspectedUsers == SampleObjectLimit)
+                {
+                    summary.Truncated = true;
+                    break;
+                }
+                summary.InspectedUsers++;
+                if (row == null || string.IsNullOrWhiteSpace(row.Path)) continue;
+                summary.ReferencedUsers++;
+                List<string> accounts;
+                if (!byPath.TryGetValue(row.Path, out accounts))
+                {
+                    accounts = new List<string>();
+                    byPath.Add(row.Path, accounts);
+                }
+                if (accounts.Count < 3) accounts.Add(SafeLogonScriptText(row.Account, 128));
+            }
+            summary.UniquePaths = byPath.Count;
+            foreach (var item in byPath.Take(12))
+            {
+                var kind = ClassifyLogonScriptPath(item.Key);
+                string context = kind == LogonScriptPathKind.Relative ? "relative NETLOGON reference" :
+                    kind == LogonScriptPathKind.AbsoluteOrUnc ? "absolute/UNC reference; no path access attempted" :
+                    "unusual relative reference; no path access attempted";
+                summary.DisplayLines.Add(SafeLogonScriptText(item.Key, 192) + " [" + context + "] <- " +
+                    string.Join(", ", item.Value));
+            }
+            return summary;
+        }
         private static readonly Guid SelfMembershipGuid = new Guid("bf9679c0-0de6-11d0-a285-00aa003049e2");
         private static readonly Guid ValidatedSpnGuid = new Guid("f3a64788-5306-11d1-a9c5-0000f80367c1");
         private static readonly Guid OrganizationalUnitClassGuid = new Guid("bf967aa5-0de6-11d0-a285-00aa003049e2");
@@ -80,6 +151,17 @@ namespace winPEAS.Checks
         private static readonly Guid GmsaReaderListGuid = new Guid("888eedd6-ce04-df40-b462-b8a50e41ba38");
         private static readonly Guid ScriptPathGuid = new Guid("bf9679a8-0de6-11d0-a285-00aa003049e2");
         private static readonly Guid CertificateEnrollGuid = new Guid("0e10c968-78fb-11d2-90d4-00c04f79dc55");
+        private static readonly Guid CertificateTemplateClassGuid = new Guid("e5209ca2-3bba-11d2-90cc-00c04fd91ab1");
+
+        internal static bool IsCertificateTemplateCreateAce(ActiveDirectoryRights rights,
+            Guid objectType, PropagationFlags propagationFlags)
+        {
+            if ((propagationFlags & PropagationFlags.InheritOnly) != 0) return false;
+            if ((rights & ActiveDirectoryRights.CreateChild) != ActiveDirectoryRights.CreateChild &&
+                (rights & ActiveDirectoryRights.GenericAll) != ActiveDirectoryRights.GenericAll)
+                return false;
+            return objectType == Guid.Empty || objectType == CertificateTemplateClassGuid;
+        }
 
         internal enum Esc1TemplateStatus { Unknown, NotCandidate, Candidate }
         internal enum Esc9TemplateStatus { Unknown, NotCandidate, Candidate }
@@ -356,7 +438,27 @@ namespace winPEAS.Checks
             if (!isUser) return null;
             if (HasCredentialAssignmentCue(description)) return "description password-like assignment (value redacted)";
             if (HasCredentialAssignmentCue(info)) return "info password-like assignment (value redacted)";
+            if (HasUnlabeledInfoTokenCue(info)) return "info unlabeled mixed-case token (candidate only; value redacted)";
             return null;
+        }
+
+        private static bool HasUnlabeledInfoTokenCue(string info)
+        {
+            // A single unlabeled token may be a reused password. Keep this narrow: many
+            // ordinary account notes and identifiers must not become credential findings.
+            if (string.IsNullOrEmpty(info) || info.Length > 96) return false;
+            string token = info.Trim();
+            if (token.Length < 20 || token.Length > 64) return false;
+
+            int upper = 0, lower = 0, digits = 0;
+            foreach (char ch in token)
+            {
+                if (ch >= 'A' && ch <= 'Z') upper++;
+                else if (ch >= 'a' && ch <= 'z') lower++;
+                else if (ch >= '0' && ch <= '9') digits++;
+                else return false;
+            }
+            return upper >= 2 && lower >= 2 && digits >= 2;
         }
 
         private static bool HasCredentialAssignmentCue(string note)
@@ -1100,6 +1202,7 @@ namespace winPEAS.Checks
                 int sampledUserNotes = 0;
                 int credentialNoteCues = 0;
                 int credentialNoteRows = 0;
+                LogonScriptReferenceSummary logonScriptSummary = null;
 
                 foreach (var target in EnumerateHighValueTargets(defaultNC))
                 {
@@ -1230,10 +1333,12 @@ namespace winPEAS.Checks
                         ds.PropertiesToLoad.Add("objectClass");
                         ds.PropertiesToLoad.Add("description");
                         ds.PropertiesToLoad.Add("info");
+                        ds.PropertiesToLoad.Add("scriptPath");
 
                         using (var results = ds.FindAll())
                         {
                             var sample = SelectBoundedSample(results.Cast<SearchResult>(), SampleObjectLimit);
+                            var scriptRows = new List<LogonScriptReference>();
                             credentialNotesSampled = true;
                             foreach (SearchResult r in sample.Items)
                             {
@@ -1245,6 +1350,11 @@ namespace winPEAS.Checks
                                     !classList.Any(value => string.Equals(value, "computer", StringComparison.OrdinalIgnoreCase)))
                                 {
                                     sampledUserNotes++;
+                                    scriptRows.Add(new LogonScriptReference
+                                    {
+                                        Account = GetProp(r, "sAMAccountName"),
+                                        Path = GetProp(r, "scriptPath")
+                                    });
                                     var cue = ClassifyAdCredentialNote(classList, GetProp(r, "description"), GetProp(r, "info"));
                                     if (cue != null)
                                     {
@@ -1272,6 +1382,7 @@ namespace winPEAS.Checks
                                     findings.Add(finding);
                                 }
                             }
+                            logonScriptSummary = SummarizeLogonScriptReferences(scriptRows, sample.Truncated);
                             if (sample.Truncated)
                                 Beaprint.GrayPrint($"  [*] LDAP sample capped at {SampleObjectLimit} objects; other user/group/computer objects were not inspected.");
                         }
@@ -1290,6 +1401,24 @@ namespace winPEAS.Checks
                         (samplingIncomplete ? " LDAP/ACL sampling was incomplete." : ""));
                 else
                     Beaprint.GrayPrint("  [!] AD account-note review incomplete: capped LDAP sample unavailable.");
+
+                if (logonScriptSummary == null)
+                    Beaprint.GrayPrint("  [?] AD logon-script references unavailable: LDAP sample failed.");
+                else
+                {
+                    Beaprint.GrayPrint("  [*] AD logon-script references: " + logonScriptSummary.ReferencedUsers +
+                        " of " + logonScriptSummary.InspectedUsers + " sampled user(s), " +
+                        logonScriptSummary.UniquePaths + " distinct path(s). This is partial domain coverage.");
+                    foreach (string line in logonScriptSummary.DisplayLines)
+                        Beaprint.GrayPrint("    -> " + line);
+                    if (logonScriptSummary.UniquePaths > logonScriptSummary.DisplayLines.Count)
+                        Beaprint.GrayPrint("  [*] Additional referenced paths omitted from display.");
+                    if (logonScriptSummary.DisplayLines.Count > 0)
+                        Beaprint.GrayPrint("  [*] At most three sampled accounts are shown for each path.");
+                    if (logonScriptSummary.Truncated)
+                        Beaprint.GrayPrint("  [?] Mixed-object LDAP sample was capped; other users' logon scripts are unknown.");
+                    Beaprint.GrayPrint("  [*] LDAP attributes are references only; exact file/share write access, GPO script settings, and target logon remain unverified.");
+                }
 
                 if (findings.Count == 0)
                 {
@@ -2078,6 +2207,25 @@ namespace winPEAS.Checks
                 Beaprint.GrayPrint("  [?] LDAP query failed or ended early; this inventory is partial and domain-wide status is unknown.");
         }
 
+        internal static bool IsFirstDelegationTargetRange(string propertyName, int valueCount)
+        {
+            return valueCount > 0 && (string.Equals(propertyName, "msDS-AllowedToDelegateTo;range=0-0", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(propertyName, "msDS-AllowedToDelegateTo;range=0-*", StringComparison.OrdinalIgnoreCase));
+        }
+
+        internal static string DescribeGmsaDelegationCandidate(GmsaAccessStatus readerStatus, bool hasTarget, int? userAccountControl)
+        {
+            if (readerStatus != GmsaAccessStatus.Candidate || !hasTarget)
+                return null;
+
+            const int trustedToAuthForDelegation = 0x1000000;
+            var transition = !userAccountControl.HasValue ? "protocol-transition flag unknown" :
+                (userAccountControl.Value & trustedToAuthForDelegation) != 0 ? "protocol-transition flag set" :
+                "protocol-transition flag not set";
+            return "at least one configured delegation target; " + transition +
+                ". Verify effective password read, service SPN, ticket and target policy before assessing escalation.";
+        }
+
         // Inspect gMSA membership descriptors for possible read-property trustees.
         private void PrintGmsaReadableByCurrentPrincipal()
         {
@@ -2106,6 +2254,7 @@ namespace winPEAS.Checks
                     Beaprint.GrayPrint("  [-] Current token SIDs unavailable; gMSA access status UNKNOWN.");
                 int total = 0, candidates = 0, unknown = 0, denied = 0;
                 int writerCandidates = 0, writerDenied = 0, writerUnknown = 0;
+                int delegationCandidates = 0;
                 int readerRows = 0, writerRows = 0;
                 bool sampleTruncated = false;
 
@@ -2122,6 +2271,9 @@ namespace winPEAS.Checks
                     ds.PropertiesToLoad.Add("distinguishedName");
                     ds.PropertiesToLoad.Add("msDS-GroupMSAMembership");
                     ds.PropertiesToLoad.Add("ntSecurityDescriptor");
+                    // Range retrieval asks AD for one SPN only; do not materialize or print a full target list.
+                    ds.PropertiesToLoad.Add("msDS-AllowedToDelegateTo;range=0-0");
+                    ds.PropertiesToLoad.Add("userAccountControl");
 
                     using (var results = ds.FindAll())
                     {
@@ -2144,6 +2296,17 @@ namespace winPEAS.Checks
                                 r.Properties["ntSecurityDescriptor"].Count > 0
                                 ? r.Properties["ntSecurityDescriptor"][0] as byte[] : null;
                             var writer = InspectGmsaReaderListWrite(objectDescriptor, currentSidSet);
+                            bool hasDelegationTarget = false;
+                            foreach (string propertyName in r.Properties.PropertyNames)
+                            {
+                                if (IsFirstDelegationTargetRange(propertyName, r.Properties[propertyName].Count))
+                                {
+                                    hasDelegationTarget = true;
+                                    break;
+                                }
+                            }
+                            var delegationNote = DescribeGmsaDelegationCandidate(status, hasDelegationTarget,
+                                GetIntProp(r, "userAccountControl"));
 
                             if (assessment.ReaderSids.Count > 0 && readerRows < MaxFindingsToPrint)
                             {
@@ -2159,6 +2322,12 @@ namespace winPEAS.Checks
                                 if (candidates <= MaxFindingsToPrint)
                                     Beaprint.BadPrint($"  Current-token SID matches a read-grant candidate for gMSA: {name} (DN: {dn}); " +
                                         string.Join(", ", assessment.MatchingReaderSids.Take(8)));
+                                if (delegationNote != null)
+                                {
+                                    delegationCandidates++;
+                                    if (delegationCandidates <= MaxFindingsToPrint)
+                                        Beaprint.GrayPrint($"  [?] gMSA delegation review candidate: {name}; {delegationNote}");
+                                }
                             }
                             else if (status == GmsaAccessStatus.Unknown)
                             {
@@ -2194,6 +2363,8 @@ namespace winPEAS.Checks
 
                 Beaprint.GrayPrint($"  [*] Checked {total} gMSA(s): {candidates} token-match candidate(s), {denied} matching deny(s), {unknown} unknown status(es). Descriptor trustees and token matches do not prove effective access; group membership changes require a refreshed token/session.");
                 Beaprint.GrayPrint($"  [*] gMSA reader-list object ACLs: {writerCandidates} write candidate(s), {writerDenied} matching deny(s), {writerUnknown} unknown status(es). Exact attribute scope, deny/inheritance ordering, and effective access require review; LDAP DACL visibility may be incomplete.");
+                if (delegationCandidates > MaxFindingsToPrint)
+                    Beaprint.GrayPrint($"  [*] {delegationCandidates - MaxFindingsToPrint} additional gMSA delegation review candidate(s) omitted.");
                 if (candidates > MaxFindingsToPrint)
                     Beaprint.GrayPrint($"  [*] {candidates - MaxFindingsToPrint} additional candidate(s) omitted.");
                 if (sampleTruncated)
@@ -2243,6 +2414,91 @@ namespace winPEAS.Checks
 
 
         // Detect AD CS misconfigurations
+        private static void PrintCertificateTemplateContainerCreateAces(string templatesDn,
+            HashSet<string> currentSidSet)
+        {
+            if (currentSidSet == null || currentSidSet.Count == 0)
+            {
+                Beaprint.GrayPrint("  [?] Certificate-template container create ACEs unknown (current token SIDs unavailable).");
+                return;
+            }
+
+            try
+            {
+                using (var entry = new DirectoryEntry(templatesDn))
+                using (var searcher = new DirectorySearcher(entry))
+                {
+                    searcher.SearchScope = SearchScope.Base;
+                    searcher.Filter = "(objectClass=*)";
+                    searcher.SizeLimit = 1;
+                    searcher.SecurityMasks = SecurityMasks.Dacl;
+                    searcher.ClientTimeout = TimeSpan.FromSeconds(2);
+                    searcher.ServerTimeLimit = TimeSpan.FromSeconds(2);
+                    searcher.PropertiesToLoad.Add("ntSecurityDescriptor");
+                    var result = searcher.FindOne();
+                    var descriptor = result != null && result.Properties["ntSecurityDescriptor"].Count > 0
+                        ? result.Properties["ntSecurityDescriptor"][0] as byte[] : null;
+                    if (descriptor == null)
+                    {
+                        Beaprint.GrayPrint("  [?] Certificate-template container create ACEs unknown (DACL unreadable).");
+                        return;
+                    }
+                    if (descriptor.Length > 65536)
+                    {
+                        Beaprint.GrayPrint("  [?] Certificate-template container create ACEs unknown (DACL exceeds 64 KiB review limit).");
+                        return;
+                    }
+
+                    var security = new ActiveDirectorySecurity();
+                    security.SetSecurityDescriptorBinaryForm(descriptor);
+                    int matches = 0;
+                    int inspected = 0;
+                    bool capped = false;
+                    var timer = System.Diagnostics.Stopwatch.StartNew();
+                    foreach (ActiveDirectoryAccessRule rule in security.GetAccessRules(
+                        true, true, typeof(SecurityIdentifier)))
+                    {
+                        if (inspected++ >= 256 || timer.ElapsedMilliseconds >= 500)
+                        {
+                            capped = true;
+                            break;
+                        }
+                        var sid = rule.IdentityReference as SecurityIdentifier;
+                        if (sid == null || !currentSidSet.Contains(sid.Value) ||
+                            !IsCertificateTemplateCreateAce(rule.ActiveDirectoryRights,
+                                rule.ObjectType, rule.PropagationFlags)) continue;
+
+                        matches++;
+                        if (matches > 12) continue;
+                        string right = (rule.ActiveDirectoryRights & ActiveDirectoryRights.GenericAll) ==
+                            ActiveDirectoryRights.GenericAll
+                            ? "GenericAll" : "CreateChild";
+                        string scope = rule.ObjectType == Guid.Empty ? "all child classes"
+                            : "certificate-template class";
+                        string inherited = rule.IsInherited ? "inherited" : "explicit";
+                        string message = "  Certificate-template container " +
+                            rule.AccessControlType + " ACE candidate: trustee " + sid.Value +
+                            ", " + right + ", " + scope + ", " + inherited +
+                            " (effective create rights unverified).";
+                        if (rule.AccessControlType == AccessControlType.Allow)
+                            Beaprint.BadPrint(message);
+                        else
+                            Beaprint.GrayPrint(message);
+                    }
+                    if (matches > 12)
+                        Beaprint.GrayPrint("  [*] Additional matching certificate-template container ACEs omitted (12 shown).");
+                    if (capped)
+                        Beaprint.GrayPrint("  [?] Certificate-template container ACE review capped at 256 entries or 500 ms; remaining ACEs unknown.");
+                    if (matches > 0)
+                        Beaprint.GrayPrint("  [*] ACEs alone do not prove effective template creation, CA publication, enrollment, or certificate mapping.");
+                }
+            }
+            catch (Exception)
+            {
+                Beaprint.GrayPrint("  [?] Certificate-template container create ACEs unknown (bounded DACL read failed).");
+            }
+        }
+
         private void PrintAdcsMisconfigurations()
         {
             try
@@ -2453,6 +2709,7 @@ namespace winPEAS.Checks
                 var esc13Observations = new List<Esc13TemplateObservation>();
 
                 var templatesDn = $"LDAP://CN=Certificate Templates,CN=Public Key Services,CN=Services,{configNC}";
+                PrintCertificateTemplateContainerCreateAces(templatesDn, currentSidSet);
 
                 using (var deBase = new DirectoryEntry(templatesDn))
                 using (var ds = new DirectorySearcher(deBase))

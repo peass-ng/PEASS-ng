@@ -26,8 +26,81 @@ namespace winPEAS.Checks
                 "PrestaShop database settings candidates", "ChangeDetection backup candidates",
                 "WonderCMS", "Pluck CMS", "Grafana", "Duplicati server state",
                 "Openfire local configuration and database", "Minecraft plugin JAR candidates",
-                "IIS default webroot backup archive candidates"
+                "IIS default webroot backup archive candidates", "TeamCity change patch candidates",
+                "Redis Windows service configuration candidates"
             };
+
+        internal const int MaxTeamCityChangeFiles = 32;
+        internal const int MaxTeamCityChangeEntries = 256;
+
+        // Add only top-level change patches from a conventional local data directory.
+        // The normal user-profile .BuildServer path is already in RootDirUsers.
+        internal static List<CustomFileInfo> ProbeTeamCityChanges(string commonDataPath, out bool partial)
+        {
+            partial = false;
+            var files = new List<CustomFileInfo>();
+            if (string.IsNullOrWhiteSpace(commonDataPath)) return files;
+            try
+            {
+                string basePath = Path.GetFullPath(commonDataPath);
+                string root = Path.GetPathRoot(basePath);
+                if (!SqlSetupConfigurationIndicator.IsFixedDriveRoot(root) ||
+                    new DriveInfo(root).DriveType != DriveType.Fixed ||
+                    !IsPlainLocalDirectoryChain(basePath)) return files;
+
+                string changes = basePath;
+                foreach (string part in new[] { "JetBrains", "TeamCity", "system", "changes" })
+                {
+                    changes = Path.Combine(changes, part);
+                    if (!IsPlainDirectoryAttributes(File.GetAttributes(changes))) return files;
+                }
+
+                var timer = Stopwatch.StartNew();
+                int inspected = 0;
+                foreach (string path in Directory.EnumerateFileSystemEntries(changes, "*", SearchOption.TopDirectoryOnly))
+                {
+                    if (timer.ElapsedMilliseconds >= 500 || inspected++ >= MaxTeamCityChangeEntries ||
+                        files.Count >= MaxTeamCityChangeFiles)
+                    {
+                        partial = true;
+                        break;
+                    }
+                    if (!Path.GetFileName(path).EndsWith(".changes.diff", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    var info = new FileInfo(path);
+                    if ((info.Attributes & (FileAttributes.ReparsePoint | FileAttributes.Directory)) != 0)
+                        continue;
+                    files.Add(new CustomFileInfo(info.Name, info.Extension, info.FullName, info.Length, false));
+                }
+            }
+            catch (DirectoryNotFoundException) { }
+            catch (FileNotFoundException) { }
+            catch (Exception) { partial = true; }
+            return files;
+        }
+
+        internal static bool IsPlainDirectoryAttributes(FileAttributes attributes)
+        {
+            return (attributes & FileAttributes.Directory) != 0 &&
+                (attributes & FileAttributes.ReparsePoint) == 0;
+        }
+
+        private static bool IsPlainLocalDirectoryChain(string path)
+        {
+            string root = Path.GetPathRoot(path);
+            string relative = path.Substring(root.Length).TrimEnd(Path.DirectorySeparatorChar);
+            string[] parts = relative.Split(new[] { Path.DirectorySeparatorChar },
+                StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length > 12) return false;
+            string current = root;
+            foreach (string part in parts)
+            {
+                if (part == "." || part == "..") return false;
+                current = Path.Combine(current, part);
+                if (!IsPlainDirectoryAttributes(File.GetAttributes(current))) return false;
+            }
+            return true;
+        }
 
         public string[] MitreAttackIds { get; } = new[] { "T1552.001", "T1083" };
 
@@ -291,6 +364,12 @@ namespace winPEAS.Checks
                 files.InsertRange(0, sqlSetup.Files);
                 if (sqlSetup.Partial)
                     Beaprint.GrayPrint("SQL setup file probe was partial (directory or time limit).");
+                bool teamCityPartial;
+                files.InsertRange(0, ProbeTeamCityChanges(
+                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                    out teamCityPartial));
+                if (teamCityPartial)
+                    Beaprint.GrayPrint("TeamCity change patch probe was partial (directory-entry, file, or time limit).");
                 //var folders = files.Where(f => f.IsDirectory).ToList();
                 var config = Checks.YamlConfig;
                 var defaults = config.defaults;

@@ -30,6 +30,24 @@ namespace winPEAS.Checks
         static string goodUAC = "PromptPermitDenyOnSecureDesktop";
         static string badLAPS = "LAPS not installed";
         static Dictionary<string, string> _basicSystemInfo;
+        static PrintSpoolerCve38028Report _spoolerReport;
+
+        internal enum PointAndPrintPolicyStatus
+        {
+            ExplicitAdminOnly,
+            ReviewCandidate,
+            UnknownValue,
+            NoExplicitWeakValues
+        }
+
+        internal static PointAndPrintPolicyStatus AssessPointAndPrintPolicy(uint? restrict, uint? noWarn, uint? updatePrompt)
+        {
+            if (restrict == 1) return PointAndPrintPolicyStatus.ExplicitAdminOnly;
+            if (restrict == 0 || (noWarn.HasValue && noWarn.Value != 0) ||
+                (updatePrompt.HasValue && updatePrompt.Value != 0)) return PointAndPrintPolicyStatus.ReviewCandidate;
+            if (restrict.HasValue) return PointAndPrintPolicyStatus.UnknownValue;
+            return PointAndPrintPolicyStatus.NoExplicitWeakValues;
+        }
 
 
         private static readonly Dictionary<string, string> _asrGuids = new Dictionary<string, string>
@@ -100,6 +118,7 @@ namespace winPEAS.Checks
                 AppLockerHelper.PrintAppLockerPolicy,
                 PrintPrintNightmarePointAndPrint,
                 PrintPrintersWMIInfo,
+                PrintPrinterDriverAclReview,
                 PrintNamedPipes,
                 PrintNamedPipeAbuseCandidates,
                 PrintAMSIProviders,
@@ -221,6 +240,7 @@ namespace winPEAS.Checks
 
                 var basicInfo = _basicSystemInfo ?? Info.SystemInfo.SystemInfo.GetBasicOSInfo();
                 PrintSpoolerCve38028Report report = winPEAS.Info.SystemInfo.PrintSpoolerCve38028.GetReport(basicInfo);
+                _spoolerReport = report;
 
                 Beaprint.NoColorPrint("    Product/version/architecture: " + report.ProductName + " / " + report.DisplayVersion + " / " + report.Architecture);
                 Beaprint.NoColorPrint("    OS build: " + (string.IsNullOrEmpty(report.BuildVersion) ? "unknown" : report.BuildVersion));
@@ -1406,29 +1426,40 @@ namespace winPEAS.Checks
         private static void PrintPrintNightmarePointAndPrint()
         {
             Beaprint.MainPrint("PrintNightmare PointAndPrint Policies", "T1068");
-            Beaprint.LinkPrint("https://itm4n.github.io/printnightmare-exploitation/", "Check PointAndPrint policy hardening");
+            Beaprint.LinkPrint("https://support.microsoft.com/en-us/servicing/os/windows/2021/07/kb5005010-restricting-installation-of-new-printer-drivers-after-applying-the-july-6-2021-updates", "Microsoft Point and Print policy guidance");
 
             try
             {
-                string key = @"Software\\Policies\\Microsoft\\Windows NT\\Printers\\PointAndPrint";
+                string key = @"Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint";
                 var restrict = RegistryHelper.GetDwordValue("HKLM", key, "RestrictDriverInstallationToAdministrators");
                 var noWarn = RegistryHelper.GetDwordValue("HKLM", key, "NoWarningNoElevationOnInstall");
                 var updatePrompt = RegistryHelper.GetDwordValue("HKLM", key, "UpdatePromptSettings");
 
-                if (restrict == null && noWarn == null && updatePrompt == null)
-                {
-                    Beaprint.NotFoundPrint();
-                    return;
-                }
+                Beaprint.NoColorPrint($"      RestrictDriverInstallationToAdministrators: {(restrict.HasValue ? restrict.Value.ToString() : "not set or unavailable")}\n" +
+                                      $"      NoWarningNoElevationOnInstall: {(noWarn.HasValue ? noWarn.Value.ToString() : "not set or unavailable")}\n" +
+                                      $"      UpdatePromptSettings: {(updatePrompt.HasValue ? updatePrompt.Value.ToString() : "not set or unavailable")}");
 
-                Beaprint.NoColorPrint($"      RestrictDriverInstallationToAdministrators: {restrict}\n" +
-                                      $"      NoWarningNoElevationOnInstall: {noWarn}\n" +
-                                      $"      UpdatePromptSettings: {updatePrompt}");
+                string spoolerState = _spoolerReport == null ? "unknown" :
+                    !string.IsNullOrEmpty(_spoolerReport.State) ? _spoolerReport.State :
+                    _spoolerReport.ServiceExists && _spoolerReport.RegistryStart == 4 ? "disabled (registry)" : "unknown";
+                Beaprint.NoColorPrint("      Spooler state (earlier service check): " + spoolerState);
 
-                if (restrict == 0 && noWarn == 1 && updatePrompt == 2)
+                switch (AssessPointAndPrintPolicy(restrict, noWarn, updatePrompt))
                 {
-                    Beaprint.BadPrint("      [!] Potentially vulnerable to PrintNightmare misconfiguration");
+                    case PointAndPrintPolicyStatus.ExplicitAdminOnly:
+                        Beaprint.InfoPrint("      Administrator-only driver installation is explicitly configured; verify installed security updates and effective policy.");
+                        break;
+                    case PointAndPrintPolicyStatus.ReviewCandidate:
+                        Beaprint.BadPrint("      [!] Point and Print policy review candidate: an explicit value permits or weakens non-administrator driver installation.");
+                        break;
+                    case PointAndPrintPolicyStatus.UnknownValue:
+                        Beaprint.InfoPrint("      Unrecognized administrator restriction value; review effective policy.");
+                        break;
+                    default:
+                        Beaprint.InfoPrint("      No explicit weak value found; an absent restriction has update-dependent defaults.");
+                        break;
                 }
+                Beaprint.NoColorPrint("      Registry values alone do not establish exploitability; verify security updates, effective policy, Spooler state and access.");
             }
             catch (Exception ex)
             {
@@ -1455,6 +1486,33 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 //Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintPrinterDriverAclReview()
+        {
+            Beaprint.MainPrint("Printer driver support-file ACL candidates", "T1574");
+            try
+            {
+                var report = Printers.GetDriverAclReview();
+                if (!report.RootPresent)
+                {
+                    Beaprint.NotFoundPrint();
+                    return;
+                }
+
+                Beaprint.NoColorPrint("      Fixed-depth ProgramData driver-support metadata review; no DLL is opened or loaded.");
+                foreach (var finding in report.Findings)
+                {
+                    Beaprint.BadPrint($"      ACL allow candidate: {finding.Path} ({finding.Rights})");
+                }
+                Beaprint.NoColorPrint($"      Reviewed {report.DriversInspected} driver folders and {report.DllsInspected} DLL paths." +
+                    (report.Partial ? " Result is partial (limit or access error)." : ""));
+                Beaprint.NoColorPrint("      Verify effective ACLs and denies, installed driver/load path, service identity, and vendor patch state before treating a candidate as exploitable.");
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
             }
         }
 
@@ -1614,6 +1672,24 @@ namespace winPEAS.Checks
             }
         }
 
+        internal static IEnumerable<string> FormatDefenderPathExclusions(
+            IList<string> pathExclusions, IList<string> policyManagerPathExclusions)
+        {
+            if (pathExclusions.Count != 0)
+            {
+                yield return "\n  Path Exclusions:";
+                foreach (var path in pathExclusions)
+                    yield return $"    {path}";
+            }
+
+            if (policyManagerPathExclusions.Count != 0)
+            {
+                yield return "\n  PolicyManagerPathExclusions:";
+                foreach (var path in policyManagerPathExclusions)
+                    yield return $"    {path}";
+            }
+        }
+
         private static void PrintWindowsDefenderInfo()
         {
             Beaprint.MainPrint("Windows Defender configuration", "T1518.001");
@@ -1625,23 +1701,8 @@ namespace winPEAS.Checks
                 var extensionExclusions = settings.ExtensionExclusions;
                 var asrSettings = settings.AsrSettings;
 
-                if (pathExclusions.Count != 0)
-                {
-                    Beaprint.NoColorPrint("\n  Path Exclusions:");
-                    foreach (var path in pathExclusions)
-                    {
-                        Beaprint.NoColorPrint($"    {path}");
-                    }
-                }
-
-                if (pathExclusions.Count != 0)
-                {
-                    Beaprint.NoColorPrint("\n  PolicyManagerPathExclusions:");
-                    foreach (var path in pathExclusions)
-                    {
-                        Beaprint.NoColorPrint($"    {path}");
-                    }
-                }
+                foreach (var line in FormatDefenderPathExclusions(pathExclusions, settings.PolicyManagerPathExclusions))
+                    Beaprint.NoColorPrint(line);
 
                 if (processExclusions.Count != 0)
                 {

@@ -1518,6 +1518,22 @@ search:
                 search_in:
                   - common
 
+  - name: TeamCity change patch candidates
+    value:
+        disable:
+          - linpeas
+        config:
+          auto_check: True
+
+        files:
+          - name: "*.changes.diff"
+            value:
+                check_extra_path: '^[A-Za-z]:/(?:ProgramData/JetBrains/TeamCity|Users/[^/]+/\.BuildServer)/system/changes/[^/]+\.changes\.diff$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: OpenVPN
     value:
         config:
@@ -2271,6 +2287,21 @@ search:
                 remove_empty_lines: True
                 remove_regex: '\W+\#|^#'
                 search_in: 
+                  - common
+
+  - name: Redis Windows service configuration candidates
+    value:
+        disable:
+          - linpeas
+        config:
+          auto_check: True
+        files:
+          - name: "redis.windows-service.conf"
+            value:
+                check_extra_path: '^[A-Za-z]:/Program Files(?: \(x86\))?/Redis/redis\.windows-service\.conf$'
+                just_list_file: True
+                type: f
+                search_in:
                   - common
   
   - name: Mosquitto
@@ -4210,6 +4241,26 @@ search:
                 just_list_file: True
                 type: f
                 search_in: 
+                  - common
+
+  - name: Saved authentication process dump candidates
+    value:
+        disable:
+          - linpeas
+        config:
+          auto_check: True
+        files:
+          - name: "lsass.dmp"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+          - name: "lsass.zip"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
                   - common
 
   - name: Windows

@@ -17,6 +17,7 @@ namespace winPEAS.Info.ApplicationInfo
         public List<Dictionary<string, string>> Apps { get; } = new List<Dictionary<string, string>>();
         public bool LimitReached { get; set; }
         public bool WithoutAuthorLimitReached { get; set; }
+        public bool BatchFileLimitReached { get; set; }
     }
 
     internal class ApplicationInfoHelper
@@ -25,6 +26,9 @@ namespace winPEAS.Info.ApplicationInfo
         internal const int MaxScheduledFoldersInspected = 200;
         internal const int MaxScheduledAppsDisplayed = 150;
         internal const int MaxScheduledAppsWithoutAuthor = 30;
+        internal const int MaxScheduledReferencedTargets = 8;
+        internal const int MaxScheduledBatchFilesInspected = 8;
+        private const int MaxScheduledBatchBytes = 16384;
 
         public static string GetActiveWindowTitle()
         {
@@ -46,6 +50,7 @@ namespace winPEAS.Info.ApplicationInfo
             int tasksInspected = 0;
             int foldersInspected = 0;
             int withoutAuthor = 0;
+            int batchFilesInspected = 0;
 
             void ProcessTaskFolder(TaskFolder taskFolder)
             {
@@ -101,6 +106,7 @@ namespace winPEAS.Info.ApplicationInfo
                         }
 
                         List<string> actionPaths = new List<string>();
+                        int referencedTargets = 0;
                         string snortExecutable = null;
                         string snortArguments = null;
                         foreach (winPEAS.TaskScheduler.Action action in t.Definition.Actions)
@@ -109,6 +115,38 @@ namespace winPEAS.Info.ApplicationInfo
                             {
                                 string actionPath = Environment.ExpandEnvironmentVariables(executable.Path);
                                 actionPaths.Add(actionPath);
+                                var batchCandidates = new List<string> { actionPath };
+                                if (referencedTargets < MaxScheduledReferencedTargets)
+                                {
+                                    foreach (string referencedPath in GetScheduledActionReferencedPaths(
+                                        actionPath, executable.Arguments, executable.WorkingDirectory))
+                                    {
+                                        if (referencedTargets >= MaxScheduledReferencedTargets)
+                                            break;
+                                        if (actionPaths.Contains(referencedPath, StringComparer.OrdinalIgnoreCase))
+                                            continue;
+                                        actionPaths.Add(referencedPath);
+                                        referencedTargets++;
+                                        batchCandidates.Add(referencedPath);
+                                    }
+                                }
+                                foreach (string batchPath in batchCandidates.Distinct(StringComparer.OrdinalIgnoreCase))
+                                {
+                                    if (!IsScheduledBatchPath(batchPath)) continue;
+                                    if (batchFilesInspected >= MaxScheduledBatchFilesInspected)
+                                    {
+                                        results.BatchFileLimitReached = true;
+                                        break;
+                                    }
+                                    batchFilesInspected++;
+                                    foreach (string scriptPath in GetScheduledBatchPowerShellPaths(batchPath, executable.WorkingDirectory))
+                                    {
+                                        if (referencedTargets >= MaxScheduledReferencedTargets) break;
+                                        if (actionPaths.Contains(scriptPath, StringComparer.OrdinalIgnoreCase)) continue;
+                                        actionPaths.Add(scriptPath);
+                                        referencedTargets++;
+                                    }
+                                }
                                 if (snortExecutable == null && IsSnortExecutable(actionPath))
                                 {
                                     snortExecutable = actionPath;
@@ -151,6 +189,87 @@ namespace winPEAS.Info.ApplicationInfo
             int separator = Math.Max(path.LastIndexOf('\\'), path.LastIndexOf('/'));
             return IsLocalWindowsPath(path) &&
                 path.Substring(separator + 1).Equals("snort.exe", StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static List<string> GetScheduledActionReferencedPaths(
+            string executable, string arguments, string workingDirectory)
+        {
+            // Reuse the bounded parser from the SYSTEM task review. Its interpreter
+            // rules distinguish a file argument from inline code or output data.
+            try
+            {
+                return PrivilegedScheduledTasks.ExtractReferencedFilePaths(
+                    executable, arguments, workingDirectory);
+            }
+            catch
+            {
+                // Malformed task arguments must not hide the task's executable.
+                return new List<string>();
+            }
+        }
+
+        private static bool IsScheduledBatchPath(string path)
+        {
+            try
+            {
+                string extension = Path.GetExtension(path ?? string.Empty);
+                return extension.Equals(".bat", StringComparison.OrdinalIgnoreCase) ||
+                    extension.Equals(".cmd", StringComparison.OrdinalIgnoreCase);
+            }
+            catch { return false; }
+        }
+
+        internal static List<string> GetScheduledBatchPowerShellPaths(string batchPath, string workingDirectory)
+        {
+            try
+            {
+                if (!IsScheduledBatchPath(batchPath) || !IsFixedUnreparsedPath(batchPath))
+                    return new List<string>();
+                using (var stream = new FileStream(batchPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    if (stream.Length > MaxScheduledBatchBytes) return new List<string>();
+                    byte[] bytes = new byte[MaxScheduledBatchBytes + 1];
+                    int read = 0;
+                    while (read < bytes.Length)
+                    {
+                        int count = stream.Read(bytes, read, bytes.Length - read);
+                        if (count == 0) break;
+                        read += count;
+                    }
+                    if (read > MaxScheduledBatchBytes) return new List<string>();
+                    return ParseScheduledBatchPowerShellPaths(Encoding.UTF8.GetString(bytes, 0, read), workingDirectory);
+                }
+            }
+            catch
+            {
+                // Inaccessible, changing or malformed batch files are unknown.
+                return new List<string>();
+            }
+        }
+
+        internal static List<string> ParseScheduledBatchPowerShellPaths(string content, string workingDirectory)
+        {
+            var paths = new List<string>();
+            if (string.IsNullOrEmpty(content) || content.Length > MaxScheduledBatchBytes)
+                return paths;
+            int lines = 0;
+            foreach (string line in content.Split('\n'))
+            {
+                if (++lines > 256 || paths.Count >= 4) break;
+                // Accept only an unambiguous, literal single-command invocation.
+                // Variables, shell chaining, delayed expansion and inline code need manual review.
+                if (line.Length > 1200 || line.IndexOfAny(new[] { '%', '!', '^', '&', '|', '<', '>' }) >= 0)
+                    continue;
+                Match match = Regex.Match(line.TrimStart('\uFEFF').TrimEnd('\r'),
+                    @"^\s*@?\s*(?:call\s+)?(?:""(?<exe>[A-Za-z]:\\[^""]{1,240}\\powershell(?:\.exe)?)""|(?<exe>(?:[A-Za-z]:\\[^\s""&|<>]{1,240}\\)?powershell(?:\.exe)?))\s+(?<args>[^&|<>]{1,1024})\s*$",
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                if (!match.Success) continue;
+                string script = PrivilegedScheduledTasks.GetPowerShellFileScriptPath(
+                    true, match.Groups["exe"].Value, match.Groups["args"].Value, workingDirectory);
+                if (!string.IsNullOrEmpty(script) && !paths.Contains(script, StringComparer.OrdinalIgnoreCase))
+                    paths.Add(script);
+            }
+            return paths;
         }
 
         internal static string GetSnortConfigPath(string executable, string arguments)

@@ -464,13 +464,35 @@ function Get-NtlmPolicySummary {
   try {
     $msv = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0' -ErrorAction Stop
   }
-  catch { return $null }
-  $lsa = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -ErrorAction SilentlyContinue
+  catch { $msv = $null }
+  try {
+    $lsa = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -ErrorAction Stop
+  }
+  catch { $lsa = $null }
+  if (-not $msv -and -not $lsa) { return $null }
   return [pscustomobject]@{
     RestrictReceiving = $msv.RestrictReceivingNTLMTraffic
     RestrictSending   = $msv.RestrictSendingNTLMTraffic
     LmCompatibility   = if ($lsa) { $lsa.LmCompatibilityLevel } else { $null }
   }
+}
+
+function Get-NtlmRestrictionValue {
+  param($Value)
+  $parsedValue = 0
+  if ([int]::TryParse([string]$Value, [ref]$parsedValue) -and $parsedValue -ge 0 -and $parsedValue -le 2) {
+    return $parsedValue
+  }
+  return -1
+}
+
+function Get-LmCompatibilityPolicyReview {
+  param($Level)
+  $parsedLevel = 0
+  if (-not [int]::TryParse([string]$Level, [ref]$parsedLevel)) { return 'Unknown' }
+  if ($parsedLevel -ge 0 -and $parsedLevel -le 2) { return 'LegacyClient' }
+  if ($parsedLevel -ge 3 -and $parsedLevel -le 5) { return 'Ntlmv2Client' }
+  return 'Unknown'
 }
 
 function Get-LocalDcLdapPolicySummary {
@@ -1021,27 +1043,33 @@ Write-Host ""
 if ($TimeStamp) { TimeElapsed }
 Write-Host -ForegroundColor Blue "=========|| PRINTNIGHTMARE POINTANDPRINT POLICY"
 $pnKey = "HKLM:\Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint"
+$pn = $null
 if (Test-Path $pnKey) {
   $pn = Get-ItemProperty -Path $pnKey -ErrorAction SilentlyContinue
-  $restrict = $pn.RestrictDriverInstallationToAdministrators
-  $noWarn = $pn.NoWarningNoElevationOnInstall
-  $updatePrompt = $pn.UpdatePromptSettings
-
-  Write-Host "RestrictDriverInstallationToAdministrators: $restrict"
-  Write-Host "NoWarningNoElevationOnInstall: $noWarn"
-  Write-Host "UpdatePromptSettings: $updatePrompt"
-
-  $hasAllValues = ($null -ne $restrict) -and ($null -ne $noWarn) -and ($null -ne $updatePrompt)
-  if (-not $hasAllValues) {
-    Write-Host "PointAndPrint policy values are missing or not configured" -ForegroundColor Gray
-  } elseif (($restrict -eq 0) -and ($noWarn -eq 1) -and ($updatePrompt -eq 2)) {
-    Write-Host "Potentially vulnerable to PrintNightmare misconfiguration" -ForegroundColor Red
-  } else {
-    Write-Host "PointAndPrint policy is not in the known risky configuration" -ForegroundColor Green
-  }
-} else {
-  Write-Host "PointAndPrint policy key not found" -ForegroundColor Gray
 }
+$restrict = $pn.RestrictDriverInstallationToAdministrators
+$noWarn = $pn.NoWarningNoElevationOnInstall
+$updatePrompt = $pn.UpdatePromptSettings
+
+Write-Host "RestrictDriverInstallationToAdministrators: $(if ($null -ne $restrict) { $restrict } else { 'not set or unavailable' })"
+Write-Host "NoWarningNoElevationOnInstall: $(if ($null -ne $noWarn) { $noWarn } else { 'not set or unavailable' })"
+Write-Host "UpdatePromptSettings: $(if ($null -ne $updatePrompt) { $updatePrompt } else { 'not set or unavailable' })"
+
+$pnSpooler = Get-Service -Name Spooler -ErrorAction SilentlyContinue
+Write-Host "Spooler state: $(if ($null -ne $pnSpooler) { $pnSpooler.Status } else { 'unknown or not installed' })"
+
+if ($restrict -eq 1) {
+  Write-Host "Administrator-only driver installation is explicitly configured; verify installed security updates and effective policy." -ForegroundColor Gray
+} elseif (($null -ne $restrict -and $restrict -eq 0) -or
+          ($null -ne $noWarn -and $noWarn -ne 0) -or
+          ($null -ne $updatePrompt -and $updatePrompt -ne 0)) {
+  Write-Host "Point and Print policy review candidate: an explicit value permits or weakens non-administrator driver installation." -ForegroundColor Red
+} elseif ($null -ne $restrict) {
+  Write-Host "Unrecognized administrator restriction value; review effective policy." -ForegroundColor Gray
+} else {
+  Write-Host "No explicit weak value found; an absent restriction has update-dependent defaults." -ForegroundColor Gray
+}
+Write-Host "Registry values alone do not establish exploitability; verify security updates, effective policy, Spooler state and access."
 
 
 #Show all unique updates installed
@@ -1760,22 +1788,32 @@ if ($dcLdapPolicy.Role -eq 'DomainController') {
 }
 else { Write-Host "[i] Local DC LDAP server policy unknown ($($dcLdapPolicy.Role)); client policy is not a substitute." }
 
+$ntlmStatus = Get-NtlmPolicySummary
+$lmReview = if ($ntlmStatus) { Get-LmCompatibilityPolicyReview $ntlmStatus.LmCompatibility } else { 'Unknown' }
+$lmValue = if ($lmReview -eq 'Unknown') { 'unknown' } else { [int]$ntlmStatus.LmCompatibility }
+switch ($lmReview) {
+  'LegacyClient' {
+    Write-Host "[!] LAN Manager authentication level $lmValue permits NTLMv1 client responses by policy. Confirm effective policy, actual protocol negotiation, and separate NTLM restrictions." -ForegroundColor Yellow
+  }
+  'Ntlmv2Client' {
+    Write-Host "[i] LAN Manager authentication level $lmValue specifies NTLMv2 client responses; server acceptance and other NTLM restrictions need separate review."
+  }
+  default {
+    Write-Host '[i] LAN Manager authentication level missing, unreadable, or invalid; effective client policy unknown.'
+  }
+}
+
 if (-not $domainContext) {
   Write-Host "Host appears to be in a workgroup or the AD context could not be resolved. Skipping domain-specific checks." -ForegroundColor DarkGray
 }
 else {
-  $ntlmStatus = Get-NtlmPolicySummary
   if ($ntlmStatus) {
-    $recvValue = if ($ntlmStatus.RestrictReceiving -ne $null) { [int]$ntlmStatus.RestrictReceiving } else { -1 }
-    $sendValue = if ($ntlmStatus.RestrictSending -ne $null) { [int]$ntlmStatus.RestrictSending } else { -1 }
-    $lmValue = if ($ntlmStatus.LmCompatibility -ne $null) { [int]$ntlmStatus.LmCompatibility } else { -1 }
+    $recvValue = Get-NtlmRestrictionValue $ntlmStatus.RestrictReceiving
+    $sendValue = Get-NtlmRestrictionValue $ntlmStatus.RestrictSending
     $ntlmMsg = "Receiving:{0} Sending:{1} LMCompat:{2}" -f $recvValue, $sendValue, $lmValue
-    if ($recvValue -ge 1 -or $sendValue -ge 1 -or $lmValue -ge 5) {
-      Write-Host "[!] NTLM is restricted/disabled ($ntlmMsg). Expect Kerberos-only auth paths (sync time before Kerberoasting)." -ForegroundColor Yellow
-    }
-    else {
-      Write-Host "[i] NTLM restrictions appear relaxed ($ntlmMsg)."
-    }
+    Write-Host "[i] NTLM restriction values: $ntlmMsg."
+    Write-Host "[i] Receiving: 0 allows all, 1 denies domain accounts, 2 denies all; Sending: 0 allows, 1 audits only, 2 denies. A value of -1 is unknown."
+    Write-Host "[i] LMCompat 5 refuses LM/NTLMv1 but still permits NTLMv2. These values do not establish Kerberos-only authentication; verify effective policy and exceptions."
   }
 
   $machineQuota = Get-DomainMachineAccountQuota -DomainContext $domainContext

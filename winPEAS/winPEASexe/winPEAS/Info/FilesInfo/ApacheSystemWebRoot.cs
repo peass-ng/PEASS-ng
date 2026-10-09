@@ -8,29 +8,38 @@ namespace winPEAS.Info.FilesInfo
 {
     internal sealed class ApacheSystemWebRootReport
     {
+        internal string Layout;
         internal string ServiceName;
         internal IisServedRoot Root;
         internal string Note;
     }
 
-    // Checks only the conventional local XAMPP installation. No web request,
+    // Checks only conventional local XAMPP and WAMP installations. No web request,
     // recursive search, content execution, or write probe is performed.
     internal static class ApacheSystemWebRoot
     {
         internal const int MaxConfigBytes = 128 * 1024;
         private static readonly string[] ServiceNames = { "Apache2.4", "Apache2.2", "Apache2" };
+        private static readonly string[] WampServiceNames = { "wampapache64", "wampapache" };
 
         internal static ApacheSystemWebRootReport Scan()
         {
             if (Environment.OSVersion.Platform != PlatformID.Win32NT) return null;
             string drive = GetTrustedSystemDrive();
             if (drive == null) return null;
+            ApacheSystemWebRootReport xampp = ScanXampp(drive);
+            if (xampp != null && xampp.Root != null) return xampp;
+            return ScanWamp(drive) ?? xampp;
+        }
+
+        private static ApacheSystemWebRootReport ScanXampp(string drive)
+        {
             string expectedRoot = IisServedRootPermissions.NormalizeLocalPath(drive + @"\xampp\htdocs");
             string expectedImage = IisServedRootPermissions.NormalizeLocalPath(drive + @"\xampp\apache\bin\httpd.exe");
             if (expectedRoot == null || expectedImage == null ||
                 !IsPhysicalFixedPath(expectedRoot) || !Directory.Exists(expectedRoot)) return null;
 
-            var report = new ApacheSystemWebRootReport { Note = "Apache service identity or document-root mapping unresolved." };
+            var report = new ApacheSystemWebRootReport { Layout = "XAMPP", Note = "Apache service identity or document-root mapping unresolved." };
             foreach (string name in ServiceNames)
             {
                 try
@@ -82,6 +91,109 @@ namespace winPEAS.Info.FilesInfo
                 }
             }
             return report;
+        }
+
+        private static ApacheSystemWebRootReport ScanWamp(string drive)
+        {
+            ApacheSystemWebRootReport x64 = ScanWampLayout(drive, "wamp64");
+            if (x64 != null && x64.Root != null) return x64;
+            return ScanWampLayout(drive, "wamp") ?? x64;
+        }
+
+        private static ApacheSystemWebRootReport ScanWampLayout(string drive, string layout)
+        {
+            string installDir = drive + "\\" + layout;
+            string expectedRoot = IisServedRootPermissions.NormalizeLocalPath(installDir + @"\www");
+            if (expectedRoot == null || !IsPhysicalFixedPath(expectedRoot) || !Directory.Exists(expectedRoot))
+                return null;
+
+            var report = new ApacheSystemWebRootReport { Layout = "WAMP", Note = "Apache service identity or document-root mapping unresolved." };
+            foreach (string name in WampServiceNames)
+            {
+                try
+                {
+                    using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\" + name))
+                    {
+                        if (key == null) continue;
+                        report.ServiceName = name;
+                        if (Convert.ToInt32(key.GetValue("Start", 4)) == 4)
+                        { report.Note = "Apache service is disabled; runtime state unknown."; continue; }
+                        string imagePath = key.GetValue("ImagePath") as string;
+                        string expectedImage = ConventionalWampImage(imagePath, drive, layout);
+                        if (expectedImage == null || !IsSystemApacheService(
+                            key.GetValue("ObjectName") as string, imagePath, expectedImage))
+                        {
+                            report.Note = "Apache service account or executable does not confirm SYSTEM WAMP Apache.";
+                            continue;
+                        }
+                        string apacheHome = Path.GetDirectoryName(Path.GetDirectoryName(expectedImage));
+                        string configPath = Path.Combine(apacheHome, @"conf\httpd.conf");
+                        if (!IsPhysicalFixedPath(expectedImage) || !IsPhysicalFixedPath(configPath))
+                        {
+                            report.Note = "Apache executable or configuration path unavailable or contains a reparse point.";
+                            continue;
+                        }
+                        string config = ReadBoundedConfig(configPath);
+                        if (config == null)
+                        {
+                            report.Note = "Apache configuration unavailable or over the read limit.";
+                            continue;
+                        }
+                        if (!string.Equals(ParseWampDocumentRoot(config, installDir),
+                            expectedRoot, StringComparison.OrdinalIgnoreCase))
+                        {
+                            report.Note = "Default Apache DocumentRoot is absent or differs from WAMP www.";
+                            continue;
+                        }
+                        report.Root = new IisServedRoot { Path = expectedRoot, Configured = true };
+                        IisServedRootPermissions.AssessRoot(report.Root);
+                        report.Note = "Apache service configuration maps the default document root to this path; runtime, virtual-host overrides, PHP handler, and server token are unverified.";
+                        return report;
+                    }
+                }
+                catch (Exception) { report.Note = "Apache service or configuration metadata inaccessible."; }
+            }
+            return report;
+        }
+
+        // Derive the selected version from the exact service image, not a directory walk.
+        internal static string ConventionalWampImage(string imagePath, string drive)
+        {
+            return ConventionalWampImage(imagePath, drive, "wamp64");
+        }
+
+        internal static string ConventionalWampImage(string imagePath, string drive, string layout)
+        {
+            if (string.IsNullOrWhiteSpace(imagePath) || string.IsNullOrEmpty(drive) ||
+                (layout != "wamp64" && layout != "wamp")) return null;
+            ServiceCommandLineAssessment command = ServicesInfoHelper.AssessServiceCommandLine(imagePath);
+            if (command.ScanLimitReached || string.IsNullOrEmpty(command.ExecutablePath)) return null;
+            string image = IisServedRootPermissions.NormalizeLocalPath(command.ExecutablePath);
+            string prefix = drive + "\\" + layout + @"\bin\apache\";
+            if (image == null || !image.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return null;
+            string[] suffix = image.Substring(prefix.Length).Split('\\');
+            if (suffix.Length != 3 || !string.Equals(suffix[1], "bin", StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(suffix[2], "httpd.exe", StringComparison.OrdinalIgnoreCase) ||
+                !suffix[0].StartsWith("apache", StringComparison.OrdinalIgnoreCase) ||
+                suffix[0].Length <= 6 || suffix[0].Length > 32) return null;
+            string version = suffix[0].Substring(6);
+            if (version[0] < '0' || version[0] > '9' || version[version.Length - 1] == '.' ||
+                version.Contains("..")) return null;
+            bool previousDot = false;
+            foreach (char c in version)
+            {
+                if (c == '.')
+                {
+                    if (previousDot) return null;
+                    previousDot = true;
+                }
+                else
+                {
+                    if (c < '0' || c > '9') return null;
+                    previousDot = false;
+                }
+            }
+            return image;
         }
 
         internal static bool IsSystemApacheService(string account, string imagePath, string expectedImage)
@@ -152,6 +264,38 @@ namespace winPEAS.Info.FilesInfo
                 }
             }
             catch (Exception) { return null; }
+        }
+
+        internal static string ParseWampDocumentRoot(string config, string installDir)
+        {
+            if (string.IsNullOrEmpty(config) || config.Length > MaxConfigBytes) return null;
+            string direct = ParseDefaultDocumentRoot(config);
+            if (direct != null) return direct;
+            if (config.IndexOf("${INSTALL_DIR}", StringComparison.Ordinal) < 0) return null;
+
+            // Resolve only the conventional WAMP define and only when it names
+            // the same fixed installation directory inferred from the service.
+            const string define = "Define INSTALL_DIR";
+            bool found = false;
+            using (var reader = new StringReader(config))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    line = line.Trim();
+                    if (line.StartsWith("#", StringComparison.Ordinal) ||
+                        !line.StartsWith(define, StringComparison.OrdinalIgnoreCase) ||
+                        line.Length <= define.Length || !char.IsWhiteSpace(line[define.Length])) continue;
+                    if (found) return null;
+                    string value = line.Substring(define.Length).Trim();
+                    if (value.Length >= 2 && value[0] == '"' && value[value.Length - 1] == '"')
+                        value = value.Substring(1, value.Length - 2);
+                    if (!string.Equals(IisServedRootPermissions.NormalizeLocalPath(value), installDir,
+                        StringComparison.OrdinalIgnoreCase)) return null;
+                    found = true;
+                }
+            }
+            return found ? ParseDefaultDocumentRoot(config.Replace("${INSTALL_DIR}", installDir.Replace('\\', '/'))) : null;
         }
 
         internal static string ParseDefaultDocumentRoot(string config)

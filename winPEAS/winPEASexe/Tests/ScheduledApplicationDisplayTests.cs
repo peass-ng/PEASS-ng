@@ -62,6 +62,53 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void IncludesLiteralTaskScriptTargetsWithoutTreatingInlineCodeAsFiles()
+        {
+            var cmdPaths = ApplicationInfoHelper.GetScheduledActionReferencedPaths(
+                @"C:\Windows\System32\cmd.exe", @"/c call ""C:\Jobs\daily clean.bat""",
+                null);
+            CollectionAssert.AreEqual(new[] { @"C:\Jobs\daily clean.bat" }, cmdPaths);
+
+            var psPaths = ApplicationInfoHelper.GetScheduledActionReferencedPaths(
+                @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+                @"-NoProfile -File ""C:\Jobs\daily clean.ps1""", null);
+            CollectionAssert.AreEqual(new[] { @"C:\Jobs\daily clean.ps1" }, psPaths);
+
+            var relativePsPaths = ApplicationInfoHelper.GetScheduledActionReferencedPaths(
+                @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+                @"-NoProfile -File ""daily clean.ps1""", @"C:\Jobs");
+            CollectionAssert.AreEqual(new[] { @"C:\Jobs\daily clean.ps1" }, relativePsPaths);
+
+            Assert.AreEqual(0, ApplicationInfoHelper.GetScheduledActionReferencedPaths(
+                @"C:\Windows\System32\cmd.exe", @"/c echo C:\Jobs\not-run.bat", null).Count);
+            Assert.AreEqual(0, ApplicationInfoHelper.GetScheduledActionReferencedPaths(
+                @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+                @"-Command ""C:\Jobs\not-run.ps1""", null).Count);
+            Assert.AreEqual(0, ApplicationInfoHelper.GetScheduledActionReferencedPaths(
+                @"C:\Tools\writer.exe", @"--output C:\Jobs\not-run.bat", null).Count);
+        }
+
+        [TestMethod]
+        public void FindsOnlyLiteralPowerShellFileTargetsInsideSmallScheduledBatchFiles()
+        {
+            string content = "@echo off\r\n" +
+                "rem powershell.exe -File skipped.ps1\r\n" +
+                "@powershell.exe -NoProfile -File \"rotate task.ps1\"\r\n" +
+                "call \"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -File C:\\Jobs\\second.ps1\r\n" +
+                "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -windowstyle hidden -exec bypass -nop -file C:\\Jobs\\third.ps1 C:\\Logs\r\n" +
+                "echo powershell.exe -File skipped.ps1\r\n" +
+                "powershell.exe -Command Write-Output -File skipped.ps1\r\n" +
+                "powershell.exe -File %TARGET%\r\n" +
+                "powershell.exe -File C:\\Jobs\\third.ps1 & echo done\r\n";
+            CollectionAssert.AreEqual(new[] { @"C:\Jobs\rotate task.ps1", @"C:\Jobs\second.ps1", @"C:\Jobs\third.ps1" },
+                ApplicationInfoHelper.ParseScheduledBatchPowerShellPaths(content, @"C:\Jobs"));
+            Assert.AreEqual(0, ApplicationInfoHelper.ParseScheduledBatchPowerShellPaths(
+                "powershell.exe -File task.ps1", null).Count);
+            Assert.AreEqual(0, ApplicationInfoHelper.ParseScheduledBatchPowerShellPaths(
+                new string('x', 16385), @"C:\Jobs").Count);
+        }
+
+        [TestMethod]
         public void SelectsLiteralSnortConfigFromScheduledActionOnly()
         {
             Assert.AreEqual(@"C:\Snort\etc\snort.conf", ApplicationInfoHelper.GetSnortConfigPath(

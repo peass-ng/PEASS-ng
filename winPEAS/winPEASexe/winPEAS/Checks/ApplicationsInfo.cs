@@ -697,6 +697,8 @@ namespace winPEAS.Checks
                     Beaprint.NoColorPrint($"    Scheduled task listing stopped at its safety limit ({ApplicationInfoHelper.MaxScheduledTasksInspected} tasks, {ApplicationInfoHelper.MaxScheduledFoldersInspected} folders, or {ApplicationInfoHelper.MaxScheduledAppsDisplayed} displayed).");
                 if (scheduled_apps.WithoutAuthorLimitReached)
                     Beaprint.NoColorPrint($"    Tasks with unknown author were capped at {ApplicationInfoHelper.MaxScheduledAppsWithoutAuthor}.");
+                if (scheduled_apps.BatchFileLimitReached)
+                    Beaprint.NoColorPrint($"    Literal batch-to-PowerShell review stopped after {ApplicationInfoHelper.MaxScheduledBatchFilesInspected} local batch files; later batch files remain unknown.");
             }
             catch (Exception ex)
             {

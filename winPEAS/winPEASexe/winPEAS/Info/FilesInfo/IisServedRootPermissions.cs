@@ -12,6 +12,7 @@ using Microsoft.Win32;
 namespace winPEAS.Info.FilesInfo
 {
     internal enum IisCreateFileAcl { NoMatch, Denied, Indicated, ManualReview }
+    internal enum IisPoolIdentity { Unknown, ApplicationPoolIdentity, NetworkService, LocalService, LocalSystem, SpecificUser }
 
     internal sealed class IisServedRoot
     {
@@ -19,6 +20,7 @@ namespace winPEAS.Info.FilesInfo
         internal string Site;
         internal string Application;
         internal string Pool;
+        internal IisPoolIdentity PoolIdentity;
         internal bool Configured;
         internal bool AutoStartConfigured;
         internal bool AspxHandlerConfigured;
@@ -41,6 +43,7 @@ namespace winPEAS.Info.FilesInfo
     internal static class IisServedRootPermissions
     {
         internal const int MaxRoots = 32;
+        internal const int MaxPoolEntries = 128;
         internal const int MaxConfigBytes = 1024 * 1024;
         internal const int MaxMilliseconds = 2000;
         private const int FileAddFile = 0x2; // FILE_ADD_FILE, distinct from FILE_ADD_SUBDIRECTORY (0x4).
@@ -106,6 +109,7 @@ namespace winPEAS.Info.FilesInfo
             XElement sites = host == null ? null : host.Element("sites");
             if (sites == null) { report.Note = "No IIS site mapping was readable."; return; }
             bool aspx = HasGlobalAspxHandler(config);
+            var poolIdentities = ReadPoolIdentities(host, timer);
             // Prefer auto-start sites under the path cap, but a site configured not to
             // auto-start may still be started manually and must remain visible.
             foreach (XElement site in sites.Elements("site").OrderBy(s =>
@@ -119,6 +123,9 @@ namespace winPEAS.Info.FilesInfo
                     XElement defaults = sites.Element("applicationDefaults");
                     string pool = (string)app.Attribute("applicationPool") ??
                         (defaults == null ? null : (string)defaults.Attribute("applicationPool"));
+                    IisPoolIdentity poolIdentity;
+                    if (pool == null || !poolIdentities.TryGetValue(pool, out poolIdentity))
+                        poolIdentity = IisPoolIdentity.Unknown;
                     foreach (XElement virtualDirectory in app.Elements("virtualDirectory"))
                     {
                         if (timer.ElapsedMilliseconds >= MaxMilliseconds || report.Roots.Count >= MaxRoots)
@@ -126,11 +133,73 @@ namespace winPEAS.Info.FilesInfo
                         string path = NormalizeLocalPath((string)virtualDirectory.Attribute("physicalPath"));
                         if (path == null || !seen.Add(path)) continue;
                         report.Roots.Add(new IisServedRoot { Path = path, Site = (string)site.Attribute("name"),
-                            Application = (string)app.Attribute("path"), Pool = pool, Configured = true,
+                            Application = (string)app.Attribute("path"), Pool = pool,
+                            PoolIdentity = poolIdentity, Configured = true,
                             AutoStartConfigured = autoStart,
                             AspxHandlerConfigured = aspx });
                     }
                 }
+            }
+        }
+
+        // Use only the already-loaded, size-capped IIS configuration. Never print userName/password.
+        private static Dictionary<string, IisPoolIdentity> ReadPoolIdentities(XElement host, Stopwatch timer)
+        {
+            var identities = new Dictionary<string, IisPoolIdentity>(StringComparer.OrdinalIgnoreCase);
+            XElement pools = host == null ? null : host.Element("applicationPools");
+            if (pools == null) return identities;
+            XElement defaults = pools.Element("applicationPoolDefaults");
+            IisPoolIdentity defaultIdentity = ParsePoolIdentity((string)(defaults == null ? null :
+                defaults.Element("processModel")?.Attribute("identityType")));
+            int visited = 0;
+            foreach (XElement entry in pools.Elements())
+            {
+                if (++visited > MaxPoolEntries || timer.ElapsedMilliseconds >= MaxMilliseconds) break;
+                if (entry.Name.LocalName == "clear") { identities.Clear(); continue; }
+                string name = (string)entry.Attribute("name");
+                if (string.IsNullOrEmpty(name)) continue;
+                if (entry.Name.LocalName == "remove") { identities.Remove(name); continue; }
+                if (entry.Name.LocalName != "add") continue;
+                XElement processModel = entry.Element("processModel");
+                string explicitIdentity = (string)(processModel == null ? null : processModel.Attribute("identityType"));
+                IisPoolIdentity identity = explicitIdentity == null ? defaultIdentity : ParsePoolIdentity(explicitIdentity);
+                if (!identities.ContainsKey(name)) identities.Add(name, identity);
+                else identities[name] = IisPoolIdentity.Unknown;
+            }
+            return identities;
+        }
+
+        internal static IisPoolIdentity ParsePoolIdentity(string value)
+        {
+            if (string.Equals(value, "ApplicationPoolIdentity", StringComparison.OrdinalIgnoreCase) || value == "4")
+                return IisPoolIdentity.ApplicationPoolIdentity;
+            if (string.Equals(value, "NetworkService", StringComparison.OrdinalIgnoreCase) || value == "2")
+                return IisPoolIdentity.NetworkService;
+            if (string.Equals(value, "LocalService", StringComparison.OrdinalIgnoreCase) || value == "1")
+                return IisPoolIdentity.LocalService;
+            if (string.Equals(value, "LocalSystem", StringComparison.OrdinalIgnoreCase) || value == "0")
+                return IisPoolIdentity.LocalSystem;
+            if (string.Equals(value, "SpecificUser", StringComparison.OrdinalIgnoreCase) || value == "3")
+                return IisPoolIdentity.SpecificUser;
+            return IisPoolIdentity.Unknown;
+        }
+
+        internal static string DescribePoolIdentity(IisPoolIdentity identity)
+        {
+            switch (identity)
+            {
+                case IisPoolIdentity.ApplicationPoolIdentity:
+                case IisPoolIdentity.NetworkService:
+                    return "Configured pool identity: " + identity +
+                        "; on a domain-joined host, outbound network access normally uses the computer account. Runtime identity and directory rights unverified.";
+                case IisPoolIdentity.LocalSystem:
+                    return "Configured pool identity: LocalSystem (local SYSTEM; computer account for outbound network access). Runtime identity unverified.";
+                case IisPoolIdentity.LocalService:
+                    return "Configured pool identity: LocalService (normally anonymous on the network). Runtime identity unverified.";
+                case IisPoolIdentity.SpecificUser:
+                    return "Configured pool identity: SpecificUser (custom account; account name and credentials suppressed). Runtime identity unverified.";
+                default:
+                    return "Configured pool identity: unknown; no network principal inferred.";
             }
         }
 

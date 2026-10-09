@@ -39,5 +39,49 @@ namespace Tests
             Assert.IsNull(ApacheSystemWebRoot.ParseDefaultDocumentRoot(
                 new string('a', ApacheSystemWebRoot.MaxConfigBytes + 1)));
         }
+
+        [TestMethod]
+        public void WampImageMustMatchConventionalVersionedServicePath()
+        {
+            Assert.AreEqual(@"C:\wamp64\bin\apache\apache2.4.27\bin\httpd.exe",
+                ApacheSystemWebRoot.ConventionalWampImage(
+                    "\"C:\\wamp64\\bin\\apache\\apache2.4.27\\bin\\httpd.exe\" -k runservice", "C:"));
+            Assert.AreEqual(@"C:\wamp\bin\apache\apache2.4.9\bin\httpd.exe",
+                ApacheSystemWebRoot.ConventionalWampImage(
+                    "\"C:\\wamp\\bin\\apache\\apache2.4.9\\bin\\httpd.exe\" -k runservice", "C:", "wamp"));
+            Assert.IsNull(ApacheSystemWebRoot.ConventionalWampImage(
+                "\"C:\\wamp64\\bin\\apache\\apache2.4.27\\bin\\other.exe\" -k runservice", "C:"));
+            Assert.IsNull(ApacheSystemWebRoot.ConventionalWampImage(
+                "\"C:\\wamp64\\bin\\apache\\staging\\bin\\httpd.exe\" -k runservice", "C:"));
+            Assert.IsNull(ApacheSystemWebRoot.ConventionalWampImage(
+                "\"C:\\wamp64\\bin\\apache\\apache...\\bin\\httpd.exe\" -k runservice", "C:"));
+            Assert.IsNull(ApacheSystemWebRoot.ConventionalWampImage(
+                "\"C:\\wamp64\\bin\\apache\\apache2..4\\bin\\httpd.exe\" -k runservice", "C:"));
+            Assert.IsNull(ApacheSystemWebRoot.ConventionalWampImage(
+                "\"C:\\wamp64\\bin\\apache\\apache2..4\\bin\\httpd.exe\" -k runservice", "C:"));
+            Assert.IsNull(ApacheSystemWebRoot.ConventionalWampImage(
+                "\"\\\\server\\share\\httpd.exe\" -k runservice", "C:"));
+            Assert.IsNull(ApacheSystemWebRoot.ConventionalWampImage(
+                "\"C:\\wamp\\bin\\apache\\apache2.4.9\\bin\\httpd.exe\" -k runservice", "C:", "wamp64"));
+        }
+
+        [TestMethod]
+        public void WampDocumentRootRequiresMatchingInstallDefine()
+        {
+            string config = "Define INSTALL_DIR \"C:/wamp64\"\n" +
+                "DocumentRoot \"${INSTALL_DIR}/www\"\n";
+            Assert.AreEqual(@"C:\wamp64\www",
+                ApacheSystemWebRoot.ParseWampDocumentRoot(config, @"C:\wamp64"));
+            Assert.IsNull(ApacheSystemWebRoot.ParseWampDocumentRoot(
+                config.Replace("C:/wamp64", "C:/other"), @"C:\wamp64"));
+            Assert.IsNull(ApacheSystemWebRoot.ParseWampDocumentRoot(
+                "DocumentRoot \"${INSTALL_DIR}/www\"\n", @"C:\wamp64"));
+            Assert.IsNull(ApacheSystemWebRoot.ParseWampDocumentRoot(
+                config.Replace("${INSTALL_DIR}", "${install_dir}"), @"C:\wamp64"));
+            Assert.IsNull(ApacheSystemWebRoot.ParseWampDocumentRoot(
+                config + "Define INSTALL_DIR \"C:/wamp64\"\n", @"C:\wamp64"));
+            Assert.AreNotEqual(@"C:\wamp64\www", ApacheSystemWebRoot.ParseWampDocumentRoot(
+                "Define INSTALL_DIR \"C:/wamp64\"\nDocumentRoot \"C:/other\"\n", @"C:\wamp64"));
+        }
     }
 }
