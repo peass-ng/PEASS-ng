@@ -93,7 +93,10 @@ class FreeBSDOpenPortsTests(unittest.TestCase):
         data = "tcp 0 0 127.0.0.1:5901 0.0.0.0:* LISTEN -\n"
         result, calls = self._run("Linux", data)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(calls, ["-punta", "-punta", "-punta"])
+        # The later focused views use ss when available on the test host;
+        # netstat is still the Linux active-port source in either case.
+        self.assertTrue(calls)
+        self.assertTrue(all(call == "-punta" for call in calls), calls)
         self.assertIn("<Active Ports (netstat)>", result.stdout)
         active = result.stdout.split("<Active Ports (netstat)>\n", 1)[1].split(
             "<Local-only listeners (loopback)>", 1
