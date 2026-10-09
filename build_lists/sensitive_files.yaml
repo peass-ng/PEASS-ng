@@ -3442,6 +3442,24 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  # Pool files can describe TCP FastCGI listeners that cross Unix identities.
+  # Inventory paths only; pool environment directives may contain secrets.
+  - name: PHP-FPM pool configuration candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "*.conf"
+            value:
+                check_extra_path: '^/(etc/php/[^/]+/fpm/pool\.d|etc/php-fpm\.d|usr/local/etc/php-fpm\.d)/[^/]+\.conf$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+                  - ${ROOT_FOLDER}usr
   
   - name: Fat-Free
     value:
@@ -4346,6 +4364,23 @@ search:
                 search_in: 
                   - common
   
+  # List only the config path; privilege depends on write access and an
+  # authorized daemon/RPC apply operation, not on file presence alone.
+  - name: OpenMediaVault configuration candidate
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "config.xml"
+            value:
+                check_extra_path: '^/etc/openmediavault/config\.xml$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - ${ROOT_FOLDER}etc
+
   - name: Monit configuration candidates
     value:
         disable:

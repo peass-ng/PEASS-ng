@@ -1,4 +1,4 @@
-"""A sudo shell helper must depend on a writable caller-selected CWD."""
+"""A sudo script helper must depend on a writable caller-selected CWD."""
 
 import re
 import subprocess
@@ -19,23 +19,25 @@ MARKER = "Sudo relative-CWD helper review candidate:"
 
 class SudoRelativeCwdTests(unittest.TestCase):
     def scan(self, source="#!/bin/bash\n./initdb.sh 2>/dev/null\n", runas="root",
-             args="", tag="NOPASSWD: ", extra="", symlink=False):
+             args="", tag="NOPASSWD: ", extra="", symlink=False,
+             interpreter="", readable=True):
         temp_parent = "/private/tmp" if Path("/private/tmp").is_dir() else None
         with tempfile.TemporaryDirectory(dir=temp_parent) as tmp:
             root = Path(tmp)
             working = root / "working"
             working.mkdir()
-            target = root / "syscheck"
+            target = root / ("syscheck.py" if interpreter else "syscheck")
             actual = root / "actual" if symlink else target
             actual.write_text(source)
-            actual.chmod(0o755)
+            actual.chmod(0o755 if readable else 0o111)
             if symlink:
                 target.symlink_to(actual)
             invoked = working / "initdb.sh"
             marker = root / "executed"
             invoked.write_text(f"#!/bin/sh\ntouch '{marker}'\n")
             invoked.chmod(0o755)
-            rule = f"    ({runas}) {tag}{target}{args}\n" + extra.replace("{script}", str(target))
+            command = f"{interpreter} {target}" if interpreter else str(target)
+            rule = f"    ({runas}) {tag}{command}{args}\n" + extra.replace("{script}", str(target))
             result = subprocess.run(
                 ["sh", "-c", PATH_HELPER + "\n" + REVIEW +
                  '\nsudo_relative_cwd_review "$1"', "sh", rule],
@@ -86,9 +88,61 @@ class SudoRelativeCwdTests(unittest.TestCase):
 
     def test_deduplicates_and_parses(self):
         self.assertEqual(1, self.scan(extra="    (root) {script}\n").count(MARKER))
+        self.assertEqual(1, self.scan(extra="    (root) ! /usr/bin/python3 {script} *\n").count(MARKER))
         result = subprocess.run(["sh", "-n", str(MODULE)], text=True,
                                 capture_output=True, timeout=3)
         self.assertEqual(0, result.returncode, result.stderr)
+
+    def test_python_literal_helper_under_exact_interpreter_rule(self):
+        source = ("#!/usr/bin/python3\n"
+                  "import subprocess\n"
+                  "def run_command(cmd):\n"
+                  "    return subprocess.run(cmd, capture_output=True)\n"
+                  "arg_list = ['./initdb.sh']\n"
+                  "print(run_command(arg_list))\n")
+        out = self.scan(source=source, interpreter="/usr/bin/python3", args=" *")
+        self.assertEqual(1, out.count(MARKER))
+        self.assertIn("./initdb.sh", out)
+        self.assertIn("branch reachability", out)
+        unrelated_denial = self.scan(
+            source=source, interpreter="/usr/bin/python3", args=" *",
+            extra="    (root) ! /usr/bin/python3 /opt/other.py *\n",
+        )
+        self.assertEqual(1, unrelated_denial.count(MARKER))
+        for kwargs in (
+            {"args": " --fixed"},
+            {"runas": "builder"},
+            {"tag": "NOEXEC: "},
+            {"extra": "    (root) ! /usr/bin/python3 {script} *\n"},
+            {"extra": "    (root) ! /usr/bin/python3 *\n"},
+            {"extra": "Defaults runchdir=/srv/fixed\n"},
+        ):
+            with self.subTest(kwargs=kwargs):
+                options = {"source": source, "interpreter": "/usr/bin/python3",
+                           "args": " *"}
+                options.update(kwargs)
+                self.assertEqual("", self.scan(**options))
+        unreadable = self.scan(source=source, interpreter="/usr/bin/python3",
+                               args=" *", readable=False)
+        self.assertIn("source unreadable", unreadable)
+        self.assertIn("behavior unknown", unreadable)
+        self.assertNotIn(MARKER, unreadable)
+
+    def test_python_cue_requires_call_and_no_fixed_cwd(self):
+        prefix = ("#!/usr/bin/python3\nimport subprocess\n"
+                  "def run_command(cmd):\n"
+                  "    return subprocess.run(cmd, capture_output=True)\n")
+        for source in (
+            prefix + "arg_list = ['./initdb.sh']\n",
+            prefix + "# arg_list = ['./initdb.sh']\nprint(run_command(arg_list))\n",
+            prefix + "import os\nos.chdir('/opt')\narg_list = ['./initdb.sh']\nprint(run_command(arg_list))\n",
+            prefix + "arg_list = ['./initdb.sh']\nprint(subprocess.run(arg_list, cwd='/opt'))\n",
+            "#!/usr/bin/python3\narg_list = ['./initdb.sh']\nprint(run_command(arg_list))\n",
+            prefix + "arg_list = ['./initdb.sh']\nprint(run_command(arg_list))\n" + "x" * 2049,
+        ):
+            with self.subTest(source=source[:80]):
+                self.assertEqual("", self.scan(source=source,
+                                                interpreter="/usr/bin/python3", args=" *"))
 
 
 if __name__ == "__main__":

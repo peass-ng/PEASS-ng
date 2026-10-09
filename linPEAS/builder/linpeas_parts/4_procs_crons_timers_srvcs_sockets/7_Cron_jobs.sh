@@ -9,9 +9,81 @@
 # Functions Used: check_pg_basebackup_boundary, echo_not_found, print_2title, print_3title, print_info
 # Global Variables: $cronjobsG, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders, $cronjobsB, $PATH, $PG_BASEBACKUP_DESTS
 # Initial Functions:
-# Generated Global Variables: $cmd, $VAR, $file, $path, $user_crontab, $username, $job_id, $cron_dir, $crontab, $findings, $line, $finding, $bin, $cron_log_timeout, $cron_log_status, $files, $cron_file, $prefix, $spool, $bash, $script, $log, $parent, $safe, $candidate, $rest, $part, $route, $mode, $sticky, $cron_tar_timeout, $cron_tar_status, $current_uid, $schedule, $spool_owner, $runas, $helper, $schedule_line, $owner_uid, $helper_text, $dir, $tar_cmd, $helper_line, $version, $cron_process_timeout, $cron_process_status, $magick_cwd, $magick_bin, $magick_cd_line, $magick_exec_line, $magick_marker, $cron_replace_status, $cron_replace_timeout
+# Generated Global Variables: $cmd, $VAR, $file, $path, $user_crontab, $username, $job_id, $cron_dir, $crontab, $findings, $line, $finding, $bin, $cron_log_timeout, $cron_log_status, $files, $cron_file, $prefix, $spool, $bash, $script, $log, $parent, $safe, $candidate, $rest, $part, $route, $mode, $sticky, $cron_tar_timeout, $cron_tar_status, $current_uid, $schedule, $spool_owner, $runas, $helper, $schedule_line, $owner_uid, $helper_text, $dir, $tar_cmd, $helper_line, $version, $cron_process_timeout, $cron_process_status, $magick_cwd, $magick_bin, $magick_cd_line, $magick_exec_line, $magick_marker, $cron_replace_status, $cron_replace_timeout, $cron_ansible_status, $cron_ansible_timeout, $glob, $depth
 # Fat linpeas: 0
 # Small linpeas: 1
+
+# Correlate a literal root cron playbook glob with a directory the current
+# user can populate. Never expand the glob, inspect playbooks, or run Ansible.
+cron_ansible_glob_probe() {
+  cron_ansible_timeout=$(command -v timeout 2>/dev/null || command -v gtimeout 2>/dev/null)
+  [ -n "$cron_ansible_timeout" ] || return 0
+  "$cron_ansible_timeout" 3 sh -c '
+    LC_ALL=C; export LC_ALL
+    [ "$(id -u 2>/dev/null)" != 0 ] || exit 0
+    files=0
+    for cron_file do
+      files=$((files + 1))
+      if [ "$files" -gt 12 ]; then
+        echo "Cron Ansible playbook correlation: incomplete (12-file limit)."
+        break
+      fi
+      [ -f "$cron_file" ] && [ -r "$cron_file" ] && [ ! -L "$cron_file" ] || continue
+      schedule=$(dd if="$cron_file" bs=8193 count=1 2>/dev/null) || continue
+      if [ "${#schedule}" -ge 8192 ]; then
+        echo "Cron Ansible playbook correlation: incomplete (8 KiB schedule limit): $cron_file"
+        continue
+      fi
+      case "$schedule" in *ansible-parallel*) ;; *) continue ;; esac
+      case "$cron_file" in */spool/cron/root|*/spool/cron/crontabs/root) spool=1 ;; *) spool=0 ;; esac
+      printf "%s\n" "$schedule" | awk -v spool="$spool" '\''
+        NR > 32 || length($0) > 512 { partial = 1; next }
+        /^[[:space:]]*(#|$)/ { next }
+        {
+          for (i = 1; i <= 5; i++) if ($i !~ /^[0-9*,\/-]+$/) next
+          if (spool) {
+            if (NF != 7) next
+            helper = $6; glob = $7
+          } else {
+            if (NF != 8 || $6 != "root") next
+            helper = $7; glob = $8
+          }
+          if (helper !~ /^\/[A-Za-z0-9_.\/+\-]+\/ansible-parallel$/ ||
+              glob !~ /^\/[A-Za-z0-9_.\/+\-]+\/\*\.(yml|yaml)$/) next
+          print glob "|" NR
+        }
+        END { if (partial) print "#PARTIAL" }
+      '\'' | while IFS="|" read -r glob schedule_line; do
+        if [ "$glob" = "#PARTIAL" ]; then
+          echo "Cron Ansible playbook correlation: incomplete (line/column limit): $cron_file"
+          continue
+        fi
+        case "$glob" in *"/../"*|*"/./"*|*"//"*) continue ;; esac
+        dir=${glob%/*}
+        [ -d "$dir" ] && [ -w "$dir" ] && [ -x "$dir" ] || continue
+        path=; rest=${dir#/}; safe=1; depth=0
+        while [ -n "$rest" ]; do
+          depth=$((depth + 1))
+          [ "$depth" -le 16 ] || { safe=0; break; }
+          part=${rest%%/*}; path=$path/$part
+          if [ -L "$path" ]; then safe=0; break; fi
+          case "$rest" in */*) rest=${rest#*/} ;; *) rest= ;; esac
+        done
+        [ "$safe" -eq 1 ] || continue
+        mode=$(ls -ld "$dir" 2>/dev/null) || continue
+        mode=${mode%% *}
+        case $(printf "%s" "$mode" | cut -c 10) in t|T) continue ;; esac
+        echo "Cron Ansible playbook review candidate: $cron_file:$schedule_line (root cron passes $glob to helper; current user can create entries in $dir; verify helper behavior, ACLs, mount policy, and scheduler state)"
+      done
+    done
+  ' sh "$@"
+  cron_ansible_status=$?
+  case "$cron_ansible_status" in
+    124|137) echo "Cron Ansible playbook correlation: incomplete (3-second timeout)." ;;
+    0) ;;
+    *) echo "Cron Ansible playbook correlation: incomplete (metadata error)." ;;
+  esac
+}
 
 # A read-only cron script may still be replaceable through its parent. Inspect
 # only literal shell-script paths in a few visible cron files; no job is run.
@@ -485,6 +557,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_3title "Root cron literal log inputs (passive review)" "T1053.003"
   cron_log_input_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/root /var/spool/cron/root
   cron_replaceable_script_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/root /var/spool/cron/root
+  cron_ansible_glob_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/root /var/spool/cron/root
   echo "Only readable root entries were inspected; private crontabs and other schedules may be invisible."
   print_3title "GNU tar cron wildcard inputs (passive review)" "T1053.003"
   cron_tar_wildcard_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/* /var/spool/cron/*
