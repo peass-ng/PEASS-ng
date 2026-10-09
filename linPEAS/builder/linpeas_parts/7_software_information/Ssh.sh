@@ -9,9 +9,34 @@
 # Functions Used: print_2title, print_3title
 # Global Variables: $HOME, $HOMESEARCH, $ROOT_FOLDER, $SEARCH_IN_FOLDER, $TIMEOUT, $USER, $wgroups
 # Initial Functions:
-# Generated Global Variables: $certsb4_grep, $hostsallow, $hostsdenied, $sshconfig, $writable_agents, $agent_sockets, $privatekeyfilesetc, $privatekeyfileshome, $privatekeyfilesroot, $privatekeyfilesmnt, $sc_number, $sc_depth, $sc_pub, $ssh_ca_files, $sc_file, $sc_line, $sc_meta, $sc_candidate, $ssh_ca_root_login_seen, $sc_mapped, $sc_key, $ssh_ca_context, $sc_header, $sc_value, $sc_pattern, $ssh_ca_principals_seen, $sc_keyword, $sc_config, $sc_output, $sc_root, $sc_count, $sc_size
+# Generated Global Variables: $certsb4_grep, $hostsallow, $hostsdenied, $sshconfig, $writable_agents, $agent_sockets, $privatekeyfilesetc, $privatekeyfileshome, $privatekeyfilesroot, $privatekeyfilesmnt, $sc_number, $sc_depth, $sc_pub, $ssh_ca_files, $sc_file, $sc_line, $sc_meta, $sc_candidate, $ssh_ca_root_login_seen, $sc_mapped, $sc_key, $ssh_ca_context, $sc_header, $sc_value, $sc_pattern, $ssh_ca_principals_seen, $sc_keyword, $sc_config, $sc_output, $sc_root, $sc_count, $sc_size, $mux_home, $mux_path, $mux_count
 # Fat linpeas: 0
 # Small linpeas: 1
+
+# A multiplexed SSH master can leave a Unix socket below the current home.
+# Inspect only .ssh and one direct child level; do not connect to candidates.
+ssh_control_socket_candidates() {
+  mux_home=$1
+  mux_count=0
+  [ "$SEARCH_IN_FOLDER" ] && return 0
+  [ -n "$mux_home" ] && [ -d "$mux_home/.ssh" ] || return 0
+  for mux_path in "$mux_home"/.ssh/* "$mux_home"/.ssh/*/*; do
+    [ -S "$mux_path" ] && [ ! -L "$mux_path" ] || continue
+    if [ "$mux_count" -eq 0 ]; then
+      print_3title "Unix sockets under current SSH home (ControlMaster candidates):" "T1021.004"
+    fi
+    LC_ALL=C ls -ld "$mux_path" 2>/dev/null
+    mux_count=$((mux_count + 1))
+    if [ "$mux_count" -ge 20 ]; then
+      printf '%s\n' '  [*] Output capped at 20 sockets; others may be unseen.'
+      break
+    fi
+  done
+  if [ "$mux_count" -gt 0 ]; then
+    printf '%s\n' '  [?] Path, owner and mode only. Config, access and live SSH master remain unverified; an agent socket is different.'
+    echo ""
+  fi
+}
 
 # SSH user CA correlation. This is a bounded config read, not sshd's effective
 # configuration: Match criteria, command-line options and unvisited Includes may
@@ -29,7 +54,8 @@ ssh_ca_scan_config() {
     sc_line=${sc_line%%#*}
     case "$sc_line" in *\"*|*\'* ) continue ;; esac
     set -f
-    # shellcheck disable=SC2086 -- intentional whitespace tokenization, globbing off
+    # Intentional whitespace tokenization with globbing disabled.
+    # shellcheck disable=SC2086
     set -- $sc_line
     set +f
     [ "$#" -gt 0 ] || continue
@@ -266,6 +292,7 @@ if [ "$agent_sockets" ]; then
   printf "%s\n" "$agent_sockets" | sed -${E} "s,.*,${SED_RED},"
   echo ""
 fi
+ssh_control_socket_candidates "$HOME"
 if ssh-add -l 2>/dev/null | grep -qv 'no identities'; then
   print_3title "Listing SSH Agents" "T1552.004,T1021.004"
   ssh-add -l

@@ -180,6 +180,71 @@ class RootWritableProcessPathsTests(unittest.TestCase):
                 )
         self.assertNotIn("PID 9999:", self.run_check())
 
+    def test_root_php_server_literal_include_requires_writable_target(self):
+        webroot = self.root.resolve() / "webroot"
+        config_dir = webroot / "config"
+        config_dir.mkdir(parents=True)
+        monitor = webroot / "monitor.php"
+        monitor.write_text(
+            "<?php\ninclude('config/configuration.php');\n", encoding="utf-8"
+        )
+        config = config_dir / "configuration.php"
+        marker = self.root.resolve() / "should-not-exist"
+        config.write_text(f"<?php system('touch {marker}');\n", encoding="utf-8")
+        config.chmod(0o600)
+        self.process(1, ["/usr/bin/php", "-S", "127.0.0.1:8080", "-t", str(webroot)])
+        output = self.run_check()
+        self.assertIn(f"root PHP source {monitor} includes writable PHP file {config}", output)
+        self.assertFalse(marker.exists())
+
+        config.chmod(0o400)
+        self.assertNotIn("includes writable PHP file", self.run_check())
+
+    def test_root_php_cli_include_and_negative_paths(self):
+        app = self.root.resolve() / "app"
+        app.mkdir()
+        script = app / "job.php"
+        target = app / "configuration.php"
+        target.write_text("<?php\n", encoding="utf-8")
+        target.chmod(0o600)
+        script.write_text(
+            "<?php\n// include('configuration.php');\n"
+            "include($dynamic);\nrequire_once \"configuration.php\";\n",
+            encoding="utf-8",
+        )
+        self.process(1, ["/usr/bin/php", "-f", str(script)])
+        self.assertEqual(self.run_check().count("includes writable PHP file"), 1)
+
+        script.write_text("<?php\ninclude('../configuration.php');\n", encoding="utf-8")
+        self.assertNotIn("includes writable PHP file", self.run_check())
+        script.write_text("<?php\ninclude($dynamic);\n", encoding="utf-8")
+        self.assertNotIn("includes writable PHP file", self.run_check())
+        script.write_text("<?php\nrequire_once \"configuration.php\";\n", encoding="utf-8")
+        self.process(2, ["/usr/bin/php", "-f", str(script)], uid=1000)
+        self.assertEqual(self.run_check().count("includes writable PHP file"), 1)
+
+    def test_php_include_source_and_symlink_caps(self):
+        webroot = self.root.resolve() / "webroot"
+        webroot.mkdir()
+        (webroot / "config").mkdir()
+        target = webroot / "config" / "configuration.php"
+        target.write_text("<?php\n", encoding="utf-8")
+        target.chmod(0o600)
+        for index in range(9):
+            (webroot / f"{index:02d}.php").write_text(
+                "<?php\ninclude('config/configuration.php');\n", encoding="utf-8"
+            )
+        self.process(1, ["/usr/bin/php", "-S", "127.0.0.1:8080", "-t", str(webroot)])
+        self.assertEqual(self.run_check().count("includes writable PHP file"), 8)
+
+        for source in webroot.glob("[0-9][0-9].php"):
+            source.unlink()
+        large = webroot / "large.php"
+        large.write_text("<?php\n" + "x" * 8192 + "\ninclude('config/configuration.php');\n", encoding="utf-8")
+        link = webroot / "link.php"
+        link.symlink_to(large)
+        self.assertNotIn("includes writable PHP file", self.run_check())
+
 
 if __name__ == "__main__":
     unittest.main()

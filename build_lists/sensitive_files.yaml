@@ -704,6 +704,21 @@ search:
                 type: f
                 search_in: 
                   - common
+
+  - name: Backdrop CMS settings candidates
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "settings.php"
+            value:
+                check_extra_path: "/settings\\.php$"
+                remove_path: "/sites/(default|[^/]+)/settings\\.php$"
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
   
   - name: Moodle
     value:
@@ -718,6 +733,20 @@ search:
                 only_bad_lines: True
                 type: f
                 search_in: 
+                  - common
+
+  - name: LimeSurvey
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "config.php"
+            value:
+                check_extra_path: "/limesurvey/application/config/config\\.php$"
+                just_list_file: True
+                type: f
+                search_in:
                   - common
 
   - name: Tomcat
@@ -2218,6 +2247,16 @@ search:
                 remove_empty_lines: True
                 remove_regex: '^#|^;'
                 search_in: 
+                  - common
+
+          # The path filter applies to the entire Grafana group: keep every
+          # existing grafana.ini match while scoping the binary database.
+          - name: "grafana.db"
+            value:
+                check_extra_path: '(^|/)grafana\.ini$|(^|/)(var/lib/grafana|opt/grafana/data|opt/data|data/grafana)/grafana\.db$'
+                just_list_file: True
+                type: f
+                search_in:
                   - common
                  
   - name: Knockd
@@ -3747,7 +3786,23 @@ search:
                 type: f
                 search_in: 
                   - common
-        
+
+  - name: PSWM vault candidates
+    value:
+        config:
+          auto_check: True
+          exec:
+            - echo "Encrypted vault path only; readability, master password strength, and credential reuse are unverified."
+
+        files:
+          - name: "pswm"
+            value:
+                check_extra_path: '/\.local/share/pswm/pswm$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - $HOMESEARCH
+
   - name: Pre-Shared Keys
     value:
         config:
@@ -4825,6 +4880,28 @@ search:
         files:
           - name: "server.config.yaml"
             value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Solar-PuTTY session stores
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "sessions-backup.dat"
+            value:
+                check_extra_path: '(^|/)[Ss]olar-[Pp]u[Tt][Tt][Yy]/sessions-backup\.dat$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "data.dat"
+            value:
+                check_extra_path: '/AppData/Roaming/SolarWinds/FreeTools/Solar-PuTTY/data\.dat$'
                 just_list_file: True
                 type: f
                 search_in:

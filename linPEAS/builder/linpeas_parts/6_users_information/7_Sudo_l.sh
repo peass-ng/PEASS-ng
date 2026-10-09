@@ -2,14 +2,14 @@
 # ID: UG_Sudo_l
 # Author: Carlos Polop
 # Last Update: 09-10-2026
-# Description: Checking 'sudo -l', sudoers files, privileged config and preset loaders, and privileged Python imports, paths, caches, and archive extraction
+# Description: Checking 'sudo -l', sudoers files, privileged config, container exec, packet-filter export, preset and PHP CLI loaders, and privileged Python imports, paths, caches, and archive extraction
 # License: GNU GPL
-# Version: 1.3
+# Version: 1.4
 # Mitre: T1548.003
 # Functions Used: check_sudo_terraform_override, echo_not_found, print_2title, print_info
 # Global Variables:$IAMROOT, $PASSWORD, $TIMEOUT, $ROOT_FOLDER, $TMPDIR, $sudoB, $sudoG, $sudoVB1, $sudoVB2
 # Initial Functions:
-# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $sudo_adduser_main, $sudo_adduser_dir, $sudo_adduser_groups, $sudo_adduser_candidates, $sudo_adduser_group, $sudo_adduser_group_status, $sudo_adduser_visible, $sudo_adduser_unknown, $sudo_adduser_files, $sudo_adduser_file, $sudo_adduser_policy, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_backup_wrapper_rules, $sudo_backup_wrapper_script, $sudo_backup_wrapper_remaining, $sudo_backup_wrapper_walk, $sudo_backup_wrapper_part, $sudo_backup_wrapper_symlink, $sudo_backup_wrapper_result, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size
+# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $sudo_adduser_main, $sudo_adduser_dir, $sudo_adduser_groups, $sudo_adduser_candidates, $sudo_adduser_group, $sudo_adduser_group_status, $sudo_adduser_visible, $sudo_adduser_unknown, $sudo_adduser_files, $sudo_adduser_file, $sudo_adduser_policy, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_backup_wrapper_rules, $sudo_backup_wrapper_script, $sudo_backup_wrapper_remaining, $sudo_backup_wrapper_walk, $sudo_backup_wrapper_part, $sudo_backup_wrapper_symlink, $sudo_backup_wrapper_result, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size, $script, $kept_names, $script_size, $matched_name, $sudo_nmap_walk, $sudo_rsync_rules, $sudo_nmap_result, $sudo_nmap_part, $sudo_rsync_dest, $sudo_nmap_remaining, $sudo_nmap_rules, $sudo_nmap_symlink, $sudo_nmap_path, $sudo_rsync_dir, $sudo_nmap_size, $sudo_rsync_source, $sudo_rsync_safe, $sudo_rsync_check, $sudo_rsync_walk, $sudo_rsync_remaining, $sudo_rsync_part, $sudo_rsync_owner, $sudo_rsync_current_uid
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -27,6 +27,81 @@ sudo_l_colorize_output() {
 
 sudo_l_colorize_file() {
   grep -Iv "^$" "$1" | grep -v "#" | sudo_l_colorize | sed "s,pwfeedback,${SED_RED},g"
+}
+
+# Correlate sudo-preserved variables with command words in fixed shell scripts.
+# This reads only short, explicitly allowed scripts; it never invokes a rule.
+sudo_env_keep_script_candidates() {
+  [ -n "$1" ] || return 0
+  case "$1" in *env_keep*) ;; *) return 0 ;; esac
+  printf '%s\n' "$1" | awk '
+    NR > 3000 || length($0) > 2048 { ambiguous = 1; exit }
+    /![[:space:]]*\/[A-Za-z0-9_\/.+-]*\/(sh|bash|dash|ksh|zsh)([[:space:]]|$)/ {
+      ambiguous = 1
+      exit
+    }
+    match($0, /env_keep[[:space:]]*\+?=[[:space:]]*/) {
+      line = substr($0, RSTART + RLENGTH)
+      if (substr(line, 1, 1) == "\"") {
+        line = substr(line, 2)
+        sub(/\".*/, "", line)
+      } else {
+        sub(/,.*/, "", line)
+      }
+      n = split(line, words, /[[:space:]]+/)
+      for (i = 1; i <= n; i++)
+        if (words[i] ~ /^[A-Za-z_][A-Za-z0-9_]*$/ && !kept[words[i]] && kept_count < 16) {
+          kept[words[i]] = 1
+          kept_order[++kept_count] = words[i]
+        }
+    }
+    /^[[:space:]]*\((ALL|root)([[:space:]:]|\))/ {
+      line = $0
+      sub(/^[[:space:]]*[^)]*\)[[:space:]]*/, "", line)
+      while (sub(/^[A-Z_]+:[[:space:]]*/, "", line)) {}
+      n = split(line, words, /[[:space:]]+/)
+      if (n < 2 || words[1] !~ /^\/[A-Za-z0-9_\/.+-]*\/(sh|bash|dash|ksh|zsh)$/)
+        next
+      script = words[2]
+      if (script ~ /^\/[A-Za-z0-9_\/.+-]+$/ && !seen[script] && script_count < 12) {
+        seen[script] = 1
+        scripts[++script_count] = script
+      }
+    }
+    END {
+      if (ambiguous || !kept_count) exit
+      names = kept_order[1]
+      for (i = 2; i <= kept_count; i++) names = names " " kept_order[i]
+      for (i = 1; i <= script_count; i++) print scripts[i] "\t" names
+    }
+  ' | while IFS="$(printf '\t')" read -r script kept_names; do
+    [ -f "$script" ] && [ -r "$script" ] || continue
+    script_size=$(stat -c %s "$script" 2>/dev/null)
+    case "$script_size" in
+      ''|*[!0-9]*) script_size=$(stat -f %z "$script" 2>/dev/null) ;;
+    esac
+    case "$script_size" in
+      ''|*[!0-9]*) continue ;;
+    esac
+    [ "$script_size" -le 65536 ] || continue
+    matched_name=$(awk -v names="$kept_names" '
+      BEGIN { count = split(names, preserved, / /) }
+      NR > 200 { exit }
+      {
+        for (i = 1; i <= count; i++) {
+          name = preserved[i]
+          if ($0 ~ "^[[:space:]]*(if[[:space:]]+|while[[:space:]]+|until[[:space:]]+|![[:space:]]+)?\\$" name "([[:space:];|&()]|$)" ||
+              $0 ~ "^[[:space:]]*(if[[:space:]]+|while[[:space:]]+|until[[:space:]]+|![[:space:]]+)?\\$\\{" name "\\}([[:space:];|&()]|$)") {
+            print name
+            exit
+          }
+        }
+      }
+    ' "$script" 2>/dev/null)
+    if [ -n "$matched_name" ]; then
+      printf 'Potential sudo script command execution: %s (preserved variable %s used as a command; review reachability)\n' "$script" "$matched_name"
+    fi
+  done
 }
 
 if [ "$(command -v sudo 2>/dev/null || echo -n '')" ]; then
@@ -55,6 +130,354 @@ if [ "$(command -v sudo 2>/dev/null || echo -n '')" ]; then
 else
   echo_not_found "sudo"
 fi
+
+sudo_env_keep_script_candidates "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")"
+
+# Review only an explicitly sudo-allowed Nmap executable. A small shell
+# wrapper that filters --script but forwards argv may still leave NSE's data
+# directory loader available. This is a passive review lead, not execution.
+sudo_nmap_wrapper_review() {
+  [ -n "$1" ] || return 0
+  case "$1" in *nmap*) ;; *) return 0 ;; esac
+  sudo_nmap_rules=$(printf '%s\n' "$1" | LC_ALL=C awk '
+    function review(specs, count, commands, i, command, path, args) {
+      count = split(specs, commands, ",")
+      for (i = 1; i <= count; i++) {
+        command = commands[i]
+        sub(/^[[:space:]]*/, "", command)
+        while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/)
+          sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+        if (command ~ /^!/) {
+          if (command ~ /^![[:space:]]*(ALL|\/[A-Za-z0-9_\/.+-]*\/nmap)([[:space:]]|$)/) denied = 1
+          continue
+        }
+        path = command
+        sub(/[[:space:]].*$/, "", path)
+        if (path !~ /^\/[A-Za-z0-9_\/.+-]*\/nmap$/) continue
+        args = substr(command, length(path) + 1)
+        sub(/^[[:space:]]+/, "", args)
+        sub(/[[:space:]]+$/, "", args)
+        if (args == "" || args == "*") found[path] = 1
+      }
+    }
+    NR > 3000 || length($0) > 2048 { partial = 1; exit }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      if (active) review(specs)
+      active = 0
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      users = parts[1]
+      if (users !~ /(^|[[:space:],])(root|ALL|#0)([[:space:],]|$)/ ||
+          users ~ /(^|[[:space:],])!(root|ALL|#0)([[:space:],]|$)/) next
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      specs = line
+      active = 1
+      next
+    }
+    active && /^[[:space:]]+[^[:space:]]/ { active = 0; partial = 1; next }
+    active { review(specs); active = 0 }
+    END {
+      if (active) review(specs)
+      if (partial) { print "#PARTIAL"; exit }
+      if (denied) exit
+      for (path in found) {
+        if (++count > 8) { print "#PARTIAL"; exit }
+        print path
+      }
+    }
+  ')
+  [ -n "$sudo_nmap_rules" ] || return 0
+  printf '%s\n' "$sudo_nmap_rules" | while IFS= read -r sudo_nmap_path; do
+    if [ "$sudo_nmap_path" = '#PARTIAL' ]; then
+      echo 'Sudo Nmap wrapper review incomplete (policy limit or continuation); inspect the displayed rule manually.'
+      continue
+    fi
+    case "$sudo_nmap_path" in
+      /*/nmap) ;;
+      *) continue ;;
+    esac
+    case "$sudo_nmap_path" in *'/../'*|*'/./'*|*'//'*) continue ;; esac
+    sudo_nmap_remaining=${sudo_nmap_path#/}
+    sudo_nmap_walk=
+    sudo_nmap_symlink=
+    while [ -n "$sudo_nmap_remaining" ]; do
+      sudo_nmap_part=${sudo_nmap_remaining%%/*}
+      sudo_nmap_walk="$sudo_nmap_walk/$sudo_nmap_part"
+      if [ -L "$sudo_nmap_walk" ]; then sudo_nmap_symlink=1; break; fi
+      case "$sudo_nmap_remaining" in
+        */*) sudo_nmap_remaining=${sudo_nmap_remaining#*/} ;;
+        *) sudo_nmap_remaining= ;;
+      esac
+    done
+    [ -z "$sudo_nmap_symlink" ] || continue
+    [ -f "$sudo_nmap_path" ] && [ -r "$sudo_nmap_path" ] || continue
+    sudo_nmap_size=$(stat -c %s "$sudo_nmap_path" 2>/dev/null)
+    case "$sudo_nmap_size" in ''|*[!0-9]*) sudo_nmap_size=$(stat -f %z "$sudo_nmap_path" 2>/dev/null) ;; esac
+    case "$sudo_nmap_size" in ''|*[!0-9]*) continue ;; esac
+    if [ "$sudo_nmap_size" -gt 65536 ]; then
+      echo "Sudo Nmap wrapper review incomplete (64 KiB file limit): $sudo_nmap_path"
+      continue
+    fi
+    sudo_nmap_result=$(LC_ALL=C awk '
+      NR > 200 || length($0) > 2048 { partial = 1; exit }
+      NR == 1 && /^#!.*\/(sh|bash|dash|ksh|zsh)([[:space:]]|$)/ { shell = 1 }
+      /^[[:space:]]*#/ { next }
+      /--script/ { blocked_script = 1 }
+      /--datadir/ { blocked_datadir = 1 }
+      /\$\*/ { checks_argv = 1 }
+      /(^|[[:space:];])exit[[:space:]]+[1-9]/ { stops = 1 }
+      /^[[:space:]]*exec[[:space:]]+\/[A-Za-z0-9_\/.+-]*\/nmap([.-][A-Za-z0-9_.+-]+)?[[:space:]]+"\$@"/ { forwards = 1 }
+      END {
+        if (partial) print "partial"
+        else if (shell && blocked_script && !blocked_datadir && checks_argv && stops && forwards) print "candidate"
+      }
+    ' "$sudo_nmap_path" 2>/dev/null)
+    case "$sudo_nmap_result" in
+      candidate)
+        echo "Sudo Nmap wrapper NSE data-loader review candidate: $sudo_nmap_path (--script filter seen, --datadir filter not seen, argv forwarded; verify effective policy, wrapper logic, Nmap version, and MAC policy)" ;;
+      partial)
+        echo "Sudo Nmap wrapper review incomplete (200-line/2048-column scan limit): $sudo_nmap_path" ;;
+    esac
+  done
+}
+sudo_nmap_wrapper_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+  sed -"${E}" "s,.*,${SED_RED_YELLOW},"
+
+# A sudoers argument glob can match spaces. For a root rsync archive copy,
+# this may admit an extra --chown option while preserving source mode bits.
+# Check only the exact source and destination named in a captured rule.
+sudo_rsync_wildcard_review() {
+  [ -n "$1" ] || return 0
+  case "$1" in *rsync*) ;; *) return 0 ;; esac
+  sudo_rsync_rules=$(printf '%s\n' "$1" | LC_ALL=C awk '
+    function review(specs, count, commands, i, command, path, args, n, words, j, archive, blocked, source, dest) {
+      count = split(specs, commands, ",")
+      for (i = 1; i <= count; i++) {
+        command = commands[i]
+        sub(/^[[:space:]]*/, "", command)
+        while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/)
+          sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+        if (command ~ /^!/) {
+          if (command ~ /^![[:space:]]*(ALL|\/[A-Za-z0-9_\/.+-]*\/rsync)([[:space:]]|$)/) denied = 1
+          continue
+        }
+        path = command
+        sub(/[[:space:]].*$/, "", path)
+        if (path !~ /^\/[A-Za-z0-9_\/.+-]*\/rsync$/) continue
+        args = substr(command, length(path) + 1)
+        sub(/^[[:space:]]+/, "", args)
+        sub(/[[:space:]]+$/, "", args)
+        n = split(args, words, /[[:space:]]+/)
+        archive = blocked = 0
+        for (j = 1; j <= n; j++) {
+          if (words[j] == "-a" || words[j] == "--archive" || words[j] ~ /^-[A-Za-z]*a[A-Za-z]*$/) archive = 1
+          if (words[j] == "--" || words[j] == "--no-perms" ||
+              words[j] == "--no-owner" || words[j] == "--no-group") blocked = 1
+        }
+        if (!archive || blocked || n < 3) continue
+        source = words[n-1]
+        dest = words[n]
+        if (source !~ /^\/[A-Za-z0-9_\/.+-]+\/\*$/ ||
+            dest !~ /^\/[A-Za-z0-9_\/.+-]+\/?$/) continue
+        found[source "|" dest] = 1
+      }
+    }
+    NR > 3000 || length($0) > 2048 { partial = 1; exit }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      if (active) review(specs)
+      active = 0
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      users = parts[1]
+      if (users !~ /(^|[[:space:],])(root|ALL|#0)([[:space:],]|$)/ ||
+          users ~ /(^|[[:space:],])!(root|ALL|#0)([[:space:],]|$)/) next
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      specs = line
+      active = 1
+      next
+    }
+    active && /^[[:space:]]+[^[:space:]]/ { active = 0; partial = 1; next }
+    active { review(specs); active = 0 }
+    END {
+      if (active) review(specs)
+      if (partial) { print "#PARTIAL"; exit }
+      if (denied) exit
+      for (pair in found) {
+        if (++count > 8) { print "#PARTIAL"; exit }
+        print pair
+      }
+    }
+  ')
+  [ -n "$sudo_rsync_rules" ] || return 0
+  printf '%s\n' "$sudo_rsync_rules" | while IFS='|' read -r sudo_rsync_source sudo_rsync_dest; do
+    if [ "$sudo_rsync_source" = '#PARTIAL' ]; then
+      echo 'Sudo rsync wildcard review incomplete (policy limit or continuation); inspect the displayed rule manually.'
+      continue
+    fi
+    sudo_rsync_dir=${sudo_rsync_source%/*}
+    case "$sudo_rsync_dir:$sudo_rsync_dest" in *'/../'*|*'/./'*|*'//'*) continue ;; esac
+    [ -d "$sudo_rsync_dir" ] && [ -w "$sudo_rsync_dir" ] && [ -x "$sudo_rsync_dir" ] || continue
+    [ -d "$sudo_rsync_dest" ] || continue
+    sudo_rsync_safe=1
+    for sudo_rsync_check in "$sudo_rsync_dir" "$sudo_rsync_dest"; do
+      sudo_rsync_walk=
+      sudo_rsync_remaining=${sudo_rsync_check#/}
+      while [ -n "$sudo_rsync_remaining" ]; do
+        sudo_rsync_part=${sudo_rsync_remaining%%/*}
+        sudo_rsync_walk="$sudo_rsync_walk/$sudo_rsync_part"
+        if [ -L "$sudo_rsync_walk" ]; then sudo_rsync_safe=0; break; fi
+        case "$sudo_rsync_remaining" in
+          */*) sudo_rsync_remaining=${sudo_rsync_remaining#*/} ;;
+          *) sudo_rsync_remaining= ;;
+        esac
+      done
+      [ "$sudo_rsync_safe" -eq 1 ] || break
+    done
+    [ "$sudo_rsync_safe" -eq 1 ] || continue
+    sudo_rsync_owner=$(stat -c %u "$sudo_rsync_dest" 2>/dev/null)
+    case "$sudo_rsync_owner" in ''|*[!0-9]*) sudo_rsync_owner=$(stat -f %u "$sudo_rsync_dest" 2>/dev/null) ;; esac
+    case "$sudo_rsync_owner" in ''|*[!0-9]*) continue ;; esac
+    sudo_rsync_current_uid=$(id -u 2>/dev/null) || continue
+    [ "$sudo_rsync_owner" != "$sudo_rsync_current_uid" ] || continue
+    echo "Sudo rsync argument wildcard review candidate: $sudo_rsync_source -> $sudo_rsync_dest (writable source directory; sudoers * may admit extra options while archive mode preserves permissions; verify effective policy, destination mount, rsync version, and authentication)"
+  done
+}
+sudo_rsync_wildcard_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+  sed -"${E}" "s,.*,${SED_RED_YELLOW},"
+
+# A fixed hg pull source does not fix the receiving repository: without -R,
+# Mercurial uses the caller's current repository and may run its local hook.
+# Mercurial trust policy can prevent this, so report only a conditional cue.
+sudo_hg_pull_hook_review() {
+  [ -n "$1" ] || return 0
+  case "$1" in *hg*pull*) ;; *) return 0 ;; esac
+  printf '%s\n' "$1" | LC_ALL=C awk -v current="$(id -un 2>/dev/null)" '
+    function review(specs, runas, count, commands, i, command, path, args) {
+      count = split(specs, commands, ",")
+      for (i = 1; i <= count; i++) {
+        command = commands[i]
+        sub(/^[[:space:]]*/, "", command)
+        while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/)
+          sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+        if (command ~ /^!/) {
+          if (command ~ /^![[:space:]]*(ALL|\/[A-Za-z0-9_\/.+-]*\/hg)([[:space:]]|$)/) denied = 1
+          continue
+        }
+        path = command
+        sub(/[[:space:]].*$/, "", path)
+        if (path !~ /^\/[A-Za-z0-9_\/.+-]*\/hg$/) continue
+        args = substr(command, length(path) + 1)
+        sub(/^[[:space:]]+/, "", args)
+        sub(/[[:space:]]+$/, "", args)
+        if (args !~ /^pull[[:space:]]+\/[A-Za-z0-9_\/.+-]+\/?$/) continue
+        if (runas == current) continue
+        found[runas] = 1
+      }
+    }
+    NR > 3000 || length($0) > 2048 { partial = 1; exit }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      if (active) review(specs, runas)
+      active = 0
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      runas = parts[1]
+      gsub(/[[:space:]]/, "", runas)
+      if (runas !~ /^(root|ALL|#[0-9]+|[A-Za-z_][A-Za-z0-9_-]*)$/) next
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      specs = line
+      active = 1
+      next
+    }
+    active && /^[[:space:]]+[^[:space:]]/ { active = 0; partial = 1; next }
+    active { review(specs, runas); active = 0 }
+    END {
+      if (active) review(specs, runas)
+      if (partial) { print "Sudo Mercurial hook review incomplete (policy limit or continuation)."; exit }
+      if (denied) exit
+      for (runas in found)
+        print "Sudo Mercurial receiving-repo hook review candidate: hg pull as " runas " may load a hook from the caller-selected current repository; verify Mercurial trusted users/groups, effective policy, working directory, and authentication."
+    }
+  '
+}
+sudo_hg_pull_hook_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+  sed -"${E}" "s,.*,${SED_RED_YELLOW},"
+
+# A bare Forge grant can select a compiler or output path under any RunAs
+# identity. A bare root-capable pacman grant can select a local package or
+# hook directory. Review only captured policy; never invoke either program.
+sudo_build_package_tool_review() {
+  [ -n "$1" ] || return 0
+  case "$1" in *forge*|*pacman*) ;; *) return 0 ;; esac
+  printf '%s\n' "$1" | LC_ALL=C awk '
+    function review(specs, root_capable, count, commands, i, command, path, args) {
+      count = split(specs, commands, ",")
+      for (i = 1; i <= count; i++) {
+        command = commands[i]
+        sub(/^[[:space:]]*/, "", command)
+        sub(/[[:space:]]*$/, "", command)
+        while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/)
+          sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+        if (command ~ /^!/) {
+          sub(/^![[:space:]]*/, "", command)
+          path = command
+          sub(/[[:space:]].*$/, "", path)
+          if (path ~ /^\/([[:alnum:]_.+-]+\/)*forge$/) forge_denied = 1
+          if (path ~ /^\/([[:alnum:]_.+-]+\/)*pacman$/) pacman_denied = 1
+          continue
+        }
+        path = command
+        sub(/[[:space:]].*$/, "", path)
+        args = substr(command, length(path) + 1)
+        sub(/^[[:space:]]+/, "", args)
+        sub(/[[:space:]]+$/, "", args)
+        if (args != "" && args != "*") continue
+        if (path ~ /^\/([[:alnum:]_.+-]+\/)*forge$/) forge_found = 1
+        if (root_capable && path ~ /^\/([[:alnum:]_.+-]+\/)*pacman$/)
+          pacman_found = 1
+      }
+    }
+    NR > 3000 || length($0) > 2048 { ambiguous = 1; exit }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      if (active) review(specs, root_capable)
+      active = 0
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      users = parts[1]
+      if (users !~ /(^|[[:space:],])(ALL|root|#[0-9]+|[A-Za-z_][A-Za-z0-9_-]*)([[:space:],]|$)/)
+        next
+      root_capable = users ~ /(^|[[:space:],])(ALL|root|#0)([[:space:],]|$)/ &&
+                     users !~ /(^|[[:space:],])!(ALL|root|#0)([[:space:],]|$)/
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      specs = line
+      active = 1
+      next
+    }
+    active && /^[[:space:]]+[^[:space:]]/ { active = 0; ambiguous = 1; next }
+    active { review(specs, root_capable); active = 0 }
+    END {
+      if (active) review(specs, root_capable)
+      if (ambiguous) exit
+      if (forge_found && !forge_denied)
+        print "Sudo Forge unrestricted RunAs review candidate: caller-selected compiler and output paths may cross the allowed identity boundary; verify effective policy, binary identity, options, environment, and authentication."
+      if (pacman_found && !pacman_denied)
+        print "Sudo pacman unrestricted root review candidate: caller-selected local packages or hook directories may cause privileged writes or scripts; verify effective policy, options, and authentication."
+    }
+  '
+}
+sudo_build_package_tool_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+  sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # A single-name adduser grant can create a missing group with the same name.
 # Inspect only captured sudo output and local policy metadata; never add a user.
@@ -198,9 +621,9 @@ printf "%s\n%s\n%s\n" "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l
   }
 ' | sed -${E} "s,.*,${SED_RED_YELLOW},"
 
-# A bare root-capable BBOT grant permits caller-selected preset arguments.
-# Presets may name Python module directories; importing a module is the risk.
-# Review only captured sudo policy text. Never run BBOT or load a preset.
+# Bare root-capable BBOT or Bee grants permit caller-selected arguments.
+# BBOT presets can load Python modules; Bee can evaluate PHP in a Backdrop site.
+# Review only captured sudo policy text. Never run either program.
 printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" | LC_ALL=C awk '
   function review(specs, count, commands, i, command, path) {
     count = split(specs, commands, ",")
@@ -215,9 +638,11 @@ printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l
         sub(/^![[:space:]]*/, "", path)
         sub(/[[:space:]].*$/, "", path)
         if (path ~ /^\/([[:alnum:]_.-]+\/)*bbot$/) denied = 1
+        if (path ~ /^\/([[:alnum:]_.-]+\/)*bee(\.php)?$/) bee_denied = 1
         continue
       }
       if (command ~ /^\/([[:alnum:]_.-]+\/)*bbot$/) found = 1
+      if (command ~ /^\/([[:alnum:]_.-]+\/)*bee(\.php)?$/) bee_found = 1
     }
   }
   NR > 3000 { ambiguous = 1; exit }
@@ -244,8 +669,164 @@ printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l
     if (active) review(specs)
     if (found && !denied && !ambiguous)
       print "Sudo BBOT preset-loader review candidate: unrestricted root-capable arguments may select a preset and Python module_dirs; verify effective policy, authentication, installed version, and caller control of preset/module paths."
+    if (bee_found && !bee_denied && !ambiguous)
+      print "Sudo Bee PHP CLI review candidate: unrestricted root-capable arguments may permit eval/php-script in a Backdrop site; verify effective policy, authentication, binary identity, and site bootstrap."
   }
 ' | sed -"${E}" "s,.*,${SED_RED_YELLOW},"
+
+# A root-capable sudo grant for docker exec can expose its --privileged and
+# --user options even when the caller cannot read the Docker socket directly.
+# Only inspect captured sudo policy; no container or daemon command is run.
+printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output" | LC_ALL=C awk '
+  function review(specs, count, commands, i, command, path, args, rest) {
+    count = split(specs, commands, ",")
+    for (i = 1; i <= count; i++) {
+      command = commands[i]
+      sub(/^[[:space:]]*/, "", command)
+      sub(/[[:space:]]*$/, "", command)
+      while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/)
+        sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+      if (command ~ /^!/) {
+        sub(/^![[:space:]]*/, "", command)
+        path = command
+        sub(/[[:space:]].*$/, "", path)
+        if (path ~ /^\/([[:alnum:]_.+-]+\/)*docker$/) {
+          args = substr(command, length(path) + 1)
+          sub(/^[[:space:]]+/, "", args)
+          if (args == "" || args ~ /^exec([[:space:]]|$)/) denied = 1
+        }
+        continue
+      }
+      path = command
+      sub(/[[:space:]].*$/, "", path)
+      if (path !~ /^\/([[:alnum:]_.+-]+\/)*docker$/) continue
+      args = substr(command, length(path) + 1)
+      sub(/^[[:space:]]+/, "", args)
+      sub(/[[:space:]]+$/, "", args)
+      if (args !~ /^exec([[:space:]]|$)/) continue
+      rest = args
+      sub(/^exec[[:space:]]*/, "", rest)
+      # A trailing bare wildcard is useful only before the container name;
+      # fixed container/command arguments are intentionally not inferred.
+      while (rest ~ /^(-i|-t|-it|-ti|--privileged|(-u|--user)[[:space:]]+(root|0)|--user=(root|0))[[:space:]]+/) {
+        sub(/^(-i|-t|-it|-ti|--privileged|(-u|--user)[[:space:]]+(root|0)|--user=(root|0))[[:space:]]+/, "", rest)
+      }
+      if (rest == "*") found = 1
+    }
+  }
+  NR > 3000 { ambiguous = 1; exit }
+  length($0) > 2048 { ambiguous = 1; active = 0; next }
+  /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+    if (active) review(specs)
+    active = 0
+    line = $0
+    sub(/^[[:space:]]*\(/, "", line)
+    runas = line
+    sub(/\).*/, "", runas)
+    split(runas, parts, ":")
+    users = parts[1]
+    if (users ~ /(^|[[:space:],])!(root|ALL|#0)([[:space:],]|$)/ ||
+        users !~ /(^|[[:space:],])(root|ALL|#0)([[:space:],]|$)/) next
+    sub(/^[^)]*\)[[:space:]]*/, "", line)
+    specs = line
+    active = 1
+    next
+  }
+  active && /^[[:space:]]+[^[:space:]]/ { active = 0; ambiguous = 1; next }
+  active { review(specs); active = 0 }
+  END {
+    if (active) review(specs)
+    if (found && !denied && !ambiguous)
+      print "Sudo Docker exec privilege review candidate: root-capable docker exec arguments may allow --privileged and --user root even without direct socket access; verify effective policy, authentication, a running container, rootful daemon, authorization controls, user namespaces, and host-device or writable-mount access."
+  }
+' | sed -"${E}" "s,.*,${SED_RED_YELLOW},"
+
+# A pair of unrestricted root-capable packet-filter commands can let the
+# caller add rule comments and export the ruleset to a chosen pathname.
+# Only inspect captured sudo policy; never change or export firewall rules.
+sudo_packet_filter_export_review() {
+  printf '%s\n' "$1" | LC_ALL=C awk '
+    function review(specs, count, commands, i, command, path, name, kind) {
+      count = split(specs, commands, ",")
+      for (i = 1; i <= count; i++) {
+        command = commands[i]
+        sub(/^[[:space:]]*/, "", command)
+        sub(/[[:space:]]*$/, "", command)
+        while (command ~ /^(NOPASSWD|PASSWD|SETENV|NOSETENV|EXEC|NOEXEC|LOG_INPUT|NOLOG_INPUT|LOG_OUTPUT|NOLOG_OUTPUT):[[:space:]]*/)
+          sub(/^[A-Z_]+:[[:space:]]*/, "", command)
+        if (command ~ /(^|[[:space:]])(sha224|sha256|sha384|sha512):/ || command ~ /\\,/) {
+          ambiguous = 1
+          continue
+        }
+        kind = "allow"
+        if (command ~ /^!/) {
+          kind = "deny"
+          sub(/^![[:space:]]*/, "", command)
+        }
+        path = command
+        sub(/[[:space:]].*$/, "", path)
+        if (path !~ /^\/([[:alnum:]_.+-]+\/)*[[:alnum:]_.+-]+$/) {
+          if (kind == "deny") ambiguous = 1
+          continue
+        }
+        name = path
+        sub(/^.*\//, "", name)
+        if (name !~ /^(ip6?tables)(-(nft|legacy))?(-save)?$/) {
+          if (kind == "deny" && (name == "ALL" || name ~ /tables/)) ambiguous = 1
+          continue
+        }
+        if (kind == "deny") {
+          denied[name] = 1
+          continue
+        }
+        # A bare sudoers command admits caller-selected arguments. A trailing
+        # quoted empty argument or a fixed option does not.
+        if (command == path) allowed[name] = 1
+      }
+    }
+    NR > 3000 { ambiguous = 1; exit }
+    length($0) > 2048 { ambiguous = 1; active = 0; next }
+    /^[[:space:]]*\([^)]*\)[[:space:]]/ {
+      if (active) review(specs)
+      active = 0
+      line = $0
+      sub(/^[[:space:]]*\(/, "", line)
+      runas = line
+      sub(/\).*/, "", runas)
+      split(runas, parts, ":")
+      users = parts[1]
+      if (users ~ /(^|[[:space:],])!(root|ALL|#0)([[:space:],]|$)/ ||
+          users !~ /(^|[[:space:],])(root|ALL|#0)([[:space:],]|$)/) next
+      sub(/^[^)]*\)[[:space:]]*/, "", line)
+      specs = line
+      active = 1
+      next
+    }
+    active && /^[[:space:]]+[^[:space:]]/ { active = 0; ambiguous = 1; next }
+    active { review(specs); active = 0 }
+    END {
+      if (active) review(specs)
+      if (ambiguous) exit
+      names[1] = "iptables"
+      names[2] = "ip6tables"
+      names[3] = "iptables-nft"
+      names[4] = "ip6tables-nft"
+      names[5] = "iptables-legacy"
+      names[6] = "ip6tables-legacy"
+      for (i = 1; i <= 6; i++) {
+        name = names[i]
+        save = name "-save"
+        if (allowed[name] && allowed[save] && !denied[name] && !denied[save])
+          print "Sudo packet-filter export review candidate (" name " + " save "): unrestricted root-capable commands may permit rule-comment input and file output; verify effective policy, authentication, backend formatting, and target permissions."
+      }
+    }
+  '
+}
+{
+  sudo_packet_filter_export_review "$sudo_l_cached_output"
+  sudo_packet_filter_export_review "$sudo_l_password_output"
+  sudo_packet_filter_export_review "$sudo_l_output"
+} | LC_ALL=C sort -u | sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 if command -v check_sudo_terraform_override >/dev/null 2>&1; then
   check_sudo_terraform_override "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output"

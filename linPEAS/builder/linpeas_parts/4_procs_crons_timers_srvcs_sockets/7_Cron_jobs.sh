@@ -9,9 +9,85 @@
 # Functions Used: check_pg_basebackup_boundary, echo_not_found, print_2title, print_3title, print_info
 # Global Variables: $cronjobsG, $nosh_usrs, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders, $cronjobsB, $PATH, $PG_BASEBACKUP_DESTS
 # Initial Functions:
-# Generated Global Variables: $cmd, $VAR, $file, $path, $user_crontab, $username, $job_id, $cron_dir, $crontab, $findings, $line, $finding, $bin, $cron_log_timeout, $cron_log_status, $files, $cron_file, $prefix, $spool, $bash, $script, $log, $parent, $safe, $candidate, $rest, $part, $route, $mode, $sticky, $cron_tar_timeout, $cron_tar_status, $current_uid, $schedule, $spool_owner, $runas, $helper, $schedule_line, $owner_uid, $helper_text, $dir, $tar_cmd, $helper_line, $version, $cron_process_timeout, $cron_process_status
+# Generated Global Variables: $cmd, $VAR, $file, $path, $user_crontab, $username, $job_id, $cron_dir, $crontab, $findings, $line, $finding, $bin, $cron_log_timeout, $cron_log_status, $files, $cron_file, $prefix, $spool, $bash, $script, $log, $parent, $safe, $candidate, $rest, $part, $route, $mode, $sticky, $cron_tar_timeout, $cron_tar_status, $current_uid, $schedule, $spool_owner, $runas, $helper, $schedule_line, $owner_uid, $helper_text, $dir, $tar_cmd, $helper_line, $version, $cron_process_timeout, $cron_process_status, $magick_cwd, $magick_bin, $magick_cd_line, $magick_exec_line, $magick_marker, $cron_replace_status, $cron_replace_timeout
 # Fat linpeas: 0
 # Small linpeas: 1
+
+# A read-only cron script may still be replaceable through its parent. Inspect
+# only literal shell-script paths in a few visible cron files; no job is run.
+cron_replaceable_script_probe() {
+  cron_replace_timeout=$(command -v timeout 2>/dev/null || command -v gtimeout 2>/dev/null)
+  [ -n "$cron_replace_timeout" ] || return 0
+  "$cron_replace_timeout" 3 sh -c '
+    LC_ALL=C; export LC_ALL
+    current_uid=$(id -u 2>/dev/null) || exit 1
+    files=0
+    for cron_file do
+      files=$((files + 1))
+      if [ "$files" -gt 12 ]; then
+        echo "Cron script replacement review incomplete (12-file limit)."
+        break
+      fi
+      [ -f "$cron_file" ] && [ -r "$cron_file" ] && [ ! -L "$cron_file" ] || continue
+      schedule=$(dd if="$cron_file" bs=8193 count=1 2>/dev/null) || continue
+      if [ "${#schedule}" -ge 8192 ]; then
+        echo "Cron script replacement review incomplete (8 KiB schedule limit): $cron_file"
+        continue
+      fi
+      spool_owner=
+      case "$cron_file" in */spool/cron/root|*/spool/cron/crontabs/root) spool_owner=root ;; esac
+      printf "%s\n" "$schedule" | awk -v owner="$spool_owner" '\''
+        NR > 32 || length($0) > 512 { partial = 1; next }
+        /^[[:space:]]*(#|$)/ { next }
+        {
+          for (i = 1; i <= 5; i++) if ($i !~ /^[0-9*,\/-]+$/) next
+          if (owner == "") {
+            if (NF != 8) next
+            runas = $6; shell = $7; script = $8
+          } else {
+            if (NF != 7) next
+            runas = owner; shell = $6; script = $7
+          }
+          if (runas !~ /^[A-Za-z_][A-Za-z0-9_-]*$/ ||
+              (shell != "/bin/sh" && shell != "/usr/bin/sh" &&
+               shell != "/bin/bash" && shell != "/usr/bin/bash") ||
+              script !~ /^\/[A-Za-z0-9_\/.+-]+$/) next
+          print runas "|" script "|" NR
+        }
+        END { if (partial) print "#PARTIAL" }
+      '\'' | while IFS="|" read -r runas script schedule_line; do
+        if [ "$runas" = "#PARTIAL" ]; then
+          echo "Cron script replacement review incomplete (line/column limit): $cron_file"
+          continue
+        fi
+        case "$script" in *"/../"*|*"/.."|*"/./"*|*"/."|*"//"*) continue ;; esac
+        owner_uid=$(id -u "$runas" 2>/dev/null) || continue
+        [ "$owner_uid" != "$current_uid" ] || continue
+        [ -f "$script" ] && [ ! -L "$script" ] && [ ! -w "$script" ] || continue
+        parent=${script%/*}; [ -n "$parent" ] || parent=/
+        [ -d "$parent" ] && [ -w "$parent" ] && [ -x "$parent" ] || continue
+        path=; rest=${script#/}; safe=1
+        while [ -n "$rest" ]; do
+          part=${rest%%/*}; path=$path/$part
+          if [ -L "$path" ]; then safe=0; break; fi
+          case "$rest" in */*) rest=${rest#*/} ;; *) rest= ;; esac
+        done
+        [ "$safe" -eq 1 ] || continue
+        mode=$(ls -ld "$parent" 2>/dev/null) || continue
+        mode=${mode%% *}
+        sticky=$(printf "%s" "$mode" | cut -c 10)
+        case "$sticky" in t|T) continue ;; esac
+        echo "Cron script replacement review candidate: $cron_file:$schedule_line ($runas runs $script; current user can replace its directory entry in $parent; verify ACLs, mount policy, and scheduler state)"
+      done
+    done
+  ' sh "$@"
+  cron_replace_status=$?
+  case "$cron_replace_status" in
+    124|137) echo 'Cron script replacement review incomplete (3-second timeout).' ;;
+    0) ;;
+    *) echo 'Cron script replacement review incomplete (metadata error).' ;;
+  esac
+}
 
 # Inspect only literal, visible root cron commands. The whole probe has a wall-clock
 # limit; without timeout, filesystem metadata on an unresponsive mount is unbounded.
@@ -333,6 +409,55 @@ cron_process_args_probe() {
             }
           }
         '\''
+        # Reuse the same bounded helper text for the Linux AppImage search-path
+        # lead. No image tool is executed: a crafted CWD could load code on run.
+        if [ "$(uname -s 2>/dev/null)" = Linux ]; then
+          printf "%s\n" "$helper_text" | awk '\''
+            NR > 32 || length($0) > 512 { exit }
+            /^[[:space:]]*(#|$)/ { next }
+            {
+              line=$0
+              sub(/^[[:space:]]+/, "", line)
+              sub(/[[:space:]]+#.*$/, "", line)
+              if (line ~ /^cd[[:space:]]+/) {
+                cwd=line
+                sub(/^cd[[:space:]]+/, "", cwd)
+                sub(/[[:space:]]+$/, "", cwd)
+                if (cwd ~ /^\/[A-Za-z0-9_.\/-]+$/ &&
+                    cwd !~ /\/\.\.?($|\/)/ && cwd !~ /\/\//) {
+                  cd_line=NR
+                } else { cwd=""; cd_line=0 }
+                next
+              }
+              if (!cwd) next
+              n=split(line, words, /[[:space:]]+/)
+              for (i=1; i<n; i++) {
+                if (words[i] ~ /^\/[A-Za-z0-9_.\/-]+\/magick$/ &&
+                    words[i+1] == "identify" &&
+                    (i == 1 || words[i-1] == "xargs")) {
+                  print cwd "|" words[i] "|" cd_line "|" NR
+                  exit
+                }
+              }
+            }
+          '\'' | while IFS="|" read -r magick_cwd magick_bin magick_cd_line magick_exec_line; do
+            [ -d "$magick_cwd" ] && [ -w "$magick_cwd" ] && [ -x "$magick_cwd" ] || continue
+            [ -f "$magick_bin" ] && [ -x "$magick_bin" ] || continue
+            magick_marker=""
+            if [ -r "$magick_bin" ] && command -v od >/dev/null 2>&1; then
+              magick_marker=$(dd if="$magick_bin" bs=1 skip=8 count=3 2>/dev/null | od -An -tx1 2>/dev/null | tr -d "[:space:]")
+            fi
+            echo "Cron ImageMagick working-directory review candidate: $cron_file:$schedule_line"
+            echo "  Schedule owner: root; helper: $helper (cd line $magick_cd_line; identify line $magick_exec_line)"
+            echo "  Caller-writable working directory: $magick_cwd; executable: $magick_bin"
+            if [ "$magick_marker" = 414902 ]; then
+              echo "  AppImage type-2 marker found; verify affected ImageMagick AppRun search paths and version."
+            else
+              echo "  AppImage format not confirmed; native builds and safe search paths may be unaffected."
+            fi
+            echo "  Passive correlation only; cron execution, loader paths, and mount/ACL policy need review."
+          done
+        fi
       done
     done
   ' sh "$@"
@@ -359,6 +484,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   grep -RInE 'pg_basebackup|run-parts|crontab-ui' /etc/crontab /etc/cron.d /etc/anacrontab /var/spool/cron/crontabs /etc/incron.d /var/spool/incron 2>/dev/null | sed -${E} "s,$cronjobsB,${SED_RED},g" | sed -${E} "s,$Wfolders,${SED_RED_YELLOW},g"
   print_3title "Root cron literal log inputs (passive review)" "T1053.003"
   cron_log_input_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/root /var/spool/cron/root
+  cron_replaceable_script_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/root /var/spool/cron/root
   echo "Only readable root entries were inspected; private crontabs and other schedules may be invisible."
   print_3title "GNU tar cron wildcard inputs (passive review)" "T1053.003"
   cron_tar_wildcard_probe /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/* /var/spool/cron/*

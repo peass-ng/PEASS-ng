@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -116,6 +117,57 @@ class CronProcessArgsTests(unittest.TestCase):
         self.assertIn("unknown (unreadable helper", self.run_probe())
         self.assertIn("unknown (oversized schedule", self.run_probe("#" * 8200))
         self.assertIn("unknown beyond 6 schedule files", self.run_probe(paths=[self.cron] * 7))
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "AppImage is Linux-specific")
+    @unittest.skipIf(os.geteuid() == 0, "writability must be tested as an unprivileged user")
+    def test_imagemagick_appimage_writable_cwd_is_passive_candidate(self):
+        cwd = self.root / "images"
+        cwd.mkdir()
+        magick = self.root / "magick"
+        magick.write_bytes(b"\x7fELF" + b"\x00" * 4 + b"AI\x02" + b"\x00" * 20)
+        magick.chmod(0o755)
+        self.write_helper(
+            f"cd {cwd}\n"
+            "truncate -s 0 metadata.log\n"
+            f"find {cwd} -type f -name '*.jpg' | xargs {magick} identify >> metadata.log"
+        )
+        output = self.run_probe()
+        self.assertIn("Cron ImageMagick working-directory review candidate", output)
+        self.assertIn("AppImage type-2 marker found", output)
+        self.assertIn("cd line 2; identify line 4", output)
+        self.assertFalse((cwd / "metadata.log").exists())
+
+        self.assertNotIn("ImageMagick working-directory review candidate",
+                         self.run_probe(self.command.replace(" root ", " user ")))
+        cwd.chmod(0o500)
+        self.assertNotIn("ImageMagick working-directory review candidate", self.run_probe())
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "AppImage is Linux-specific")
+    @unittest.skipIf(os.geteuid() == 0, "writability must be tested as an unprivileged user")
+    def test_imagemagick_native_and_ambiguous_helpers_are_not_confirmed(self):
+        cwd = self.root / "images"
+        cwd.mkdir()
+        magick = self.root / "magick"
+        marker = self.root / "ran"
+        magick.write_text(f"#!/bin/sh\ntouch {marker}\n", encoding="utf-8")
+        magick.chmod(0o755)
+        self.write_helper(f"cd {cwd}\n{magick} identify image.jpg")
+        output = self.run_probe()
+        self.assertIn("ImageMagick working-directory review candidate", output)
+        self.assertIn("AppImage format not confirmed", output)
+        self.assertFalse(marker.exists())
+
+        for body in (
+            f"{magick} identify image.jpg",  # no working-directory transition
+            f"cd {cwd}\n{magick} version",  # no identify operation
+            f"cd {cwd}\necho {magick} identify image.jpg",  # printed command
+            f"cd {cwd}; echo unsafe\n{magick} identify image.jpg",  # compound cd
+            f"cd {cwd}\n# {magick} identify image.jpg",  # comment
+            f"cd {cwd}\n" + ("# padding\n" * 34) + f"{magick} identify image.jpg",
+        ):
+            with self.subTest(body=body):
+                self.write_helper(body)
+                self.assertNotIn("ImageMagick working-directory review candidate", self.run_probe())
 
 
 if __name__ == "__main__":
