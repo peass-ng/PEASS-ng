@@ -83,6 +83,65 @@ class BackupFoldersTests(unittest.TestCase):
                        if f"{backups}/item" in line]
             self.assertEqual(len(entries), 30)
 
+    def test_redacted_backup_shell_pass_assignments_are_bounded(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            backups = root / "backup"
+            backups.mkdir()
+            script = backups / "offsite-backup.sh"
+            script.write_text(
+                "OFFSITE_PASS=active-secret\n"
+                "# export DB_PASS='old-secret'\n"
+                "BYPASS=wrong-secret\n"
+                "OFFSITE_PASSWORD=wrong-secret\n"
+                "echo OFFSITE_PASS=wrong-secret\n"
+                "OFFSITE_PASS =wrong-secret\n"
+                "# note OTHER_PASS=wrong-secret\n"
+                "EMPTY_PASS=\n"
+                "LONG_PASS=" + "x" * 513 + "\n"
+            )
+            (backups / "late.sh").write_text("# filler\n" * 200 + "LATE_PASS=late-secret\n")
+            (backups / "oversized.sh").write_text("BIG_PASS=big-secret\n" + "x" * 65536)
+            outside = root / "outside.sh"
+            outside.write_text("LINK_PASS=link-secret\n")
+            (backups / "linked.sh").symlink_to(outside)
+            os.mkfifo(backups / "pipe.sh")
+            locked = backups / "locked.sh"
+            locked.write_text("LOCKED_PASS=locked-secret\n")
+            locked.chmod(0)
+            if os.access(locked, os.R_OK):
+                # Privileged test runners can still read mode-000 files.
+                locked.unlink()
+
+            output = self.run_module([backups])
+            findings = [line for line in output.splitlines() if "[REDACTED]" in line]
+            self.assertEqual(findings, [
+                f"  {script}:1: OFFSITE_PASS=[REDACTED] (active)",
+                f"  {script}:2: DB_PASS=[REDACTED] (commented; stale/unknown)",
+            ])
+            for value in ("active-secret", "old-secret", "wrong-secret", "late-secret",
+                          "big-secret", "link-secret", "locked-secret"):
+                self.assertNotIn(value, output)
+            self.assertLessEqual(len(findings), 50)
+
+    def test_backup_pass_scan_caps_directories_and_findings(self):
+        with tempfile.TemporaryDirectory() as temp:
+            paths = []
+            for index in range(13):
+                backups = Path(temp) / f"backup{index:02d}"
+                backups.mkdir()
+                (backups / "vars.sh").write_text(
+                    "".join(f"KEY{key}_PASS=secret{key}\n" for key in range(6))
+                )
+                paths.append(backups)
+
+            output = self.run_module(paths)
+            findings = [line for line in output.splitlines() if "[REDACTED]" in line]
+            self.assertEqual(len(findings), 50)
+            self.assertFalse(any("KEY5_PASS" in line for line in findings))
+            self.assertFalse(any(str(paths[-1] / "vars.sh") in line for line in findings))
+            self.assertNotIn("secret0", output)
+
     def test_readable_root_archives_report_only_actual_group_or_world_access(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -147,6 +206,60 @@ stat() { return 127; }
                          "nested.tar", "deep.tar.gz", "link.tar.gz"):
                 self.assertFalse(any(name in line for line in findings), name)
             self.assertNotIn("fixture contents", result.stdout)
+
+    def test_small_other_user_archives_are_candidates_without_reading_contents(self):
+        with tempfile.TemporaryDirectory() as temp:
+            backups = Path(temp) / "backups"
+            backups.mkdir()
+            names = ("other-user.tar.gz", "shared.zip", "too-large.tar.gz",
+                     "current-user.tar.gz", "locked.tar.gz", "ordinary.txt")
+            for name in names:
+                (backups / name).write_text("private fixture contents")
+            (backups / "link.tar.gz").symlink_to(backups / "other-user.tar.gz")
+
+            script = r'''
+print_2title() { :; }
+id() {
+  case "$1" in
+    -u) printf '%s\n' 1000 ;;
+    -G) printf '%s\n' '1000 4242' ;;
+    *) return 1 ;;
+  esac
+}
+ls() {
+  if [ "$1" = -ldn ]; then
+    case "$2" in
+      *'other-user.tar.gz') printf '%s\n' '-rw-r--r-- 1 2000 2000 123 fixture' ;;
+      *'shared.zip') printf '%s\n' '-rw-r----- 1 2000 4242 10485760 fixture' ;;
+      *'too-large.tar.gz') printf '%s\n' '-rw-r--r-- 1 2000 2000 10485761 fixture' ;;
+      *'current-user.tar.gz') printf '%s\n' '-rw-r--r-- 1 1000 1000 123 fixture' ;;
+      *'locked.tar.gz') printf '%s\n' '-rw------- 1 2000 2000 123 fixture' ;;
+      *) return 1 ;;
+    esac
+  else
+    command ls "$@"
+  fi
+}
+. "$BACKUP_MODULE"
+'''
+            env = dict(os.environ, BACKUP_MODULE=str(self.module),
+                       PSTORAGE_BACKUPS=str(backups), SEARCH_IN_FOLDER="", DEBUG="",
+                       E="E", SED_RED="")
+            result = subprocess.run(["/bin/sh", "-c", script], env=env,
+                                    capture_output=True, text=True, check=True)
+            findings = [line for line in result.stdout.splitlines()
+                        if "Possible exposure:" in line]
+            self.assertEqual(len(findings), 2, result.stdout)
+            self.assertTrue(any("other-user.tar.gz" in line and
+                                "access=world-readable" in line and
+                                "contents unverified" in line for line in findings))
+            self.assertTrue(any("shared.zip" in line and
+                                "access=group-readable" in line and
+                                "size=10485760" in line for line in findings))
+            for name in ("too-large.tar.gz", "current-user.tar.gz", "locked.tar.gz",
+                         "ordinary.txt", "link.tar.gz"):
+                self.assertFalse(any(name in line for line in findings), name)
+            self.assertNotIn("private fixture contents", result.stdout)
 
 
 if __name__ == "__main__":

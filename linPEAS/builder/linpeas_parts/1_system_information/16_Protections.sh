@@ -33,7 +33,7 @@
 # Functions Used: echo_no, echo_not_found, print_2title, print_list, warn_exec
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $ASLR, $hypervisorflag, $detectedvirt, $unpriv_userns_clone, $perf_event_paranoid, $mmap_min_addr, $ptrace_scope, $dmesg_restrict, $kptr_restrict, $unpriv_bpf_disabled, $protected_symlinks, $protected_hardlinks, $label, $sysctl_path, $sysctl_var, $zero_color, $nonzero_color, $sysctl_value, $f2b_jails
+# Generated Global Variables: $ASLR, $hypervisorflag, $detectedvirt, $unpriv_userns_clone, $perf_event_paranoid, $mmap_min_addr, $ptrace_scope, $dmesg_restrict, $kptr_restrict, $unpriv_bpf_disabled, $protected_symlinks, $protected_hardlinks, $protected_regular, $label, $sysctl_path, $sysctl_var, $zero_color, $nonzero_color, $sysctl_value, $f2b_jails
 # Fat linpeas: 0
 # Small linpeas: 0
 
@@ -125,6 +125,11 @@ print_sysctl_eq_zero "ptrace_scope? .................. " "/proc/sys/kernel/yama/
 print_sysctl_eq_zero "protected_symlinks? ............ " "/proc/sys/fs/protected_symlinks" "protected_symlinks" "$SED_RED" "$SED_GREEN"
 
 print_sysctl_eq_zero "protected_hardlinks? ........... " "/proc/sys/fs/protected_hardlinks" "protected_hardlinks" "$SED_RED" "$SED_GREEN"
+
+# Linux uses 0 (disabled), 1 (world-writable sticky directories), and 2
+# (also group-writable sticky directories). A nonzero value is protective;
+# privileged wrappers still need to stop if a rewrite is denied.
+print_sysctl_eq_zero "protected_regular? ............ " "/proc/sys/fs/protected_regular" "protected_regular" "$SED_RED" "$SED_GREEN"
 
 print_list "perf_event_paranoid? ........... "$NC
 perf_event_paranoid=$(cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null)

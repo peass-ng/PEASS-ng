@@ -10,9 +10,48 @@
 # Functions Used: print_2title, print_3title, echo_not_found
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $rfile, $perms, $owner, $g, $o, $any_rhosts, $shown, $f, $p
+# Generated Global Variables: $rfile, $perms, $owner, $size, $metadata, $metadata_rest, $any_rhosts, $rhosts_scanned, $shown, $f, $p
 # Fat linpeas: 0
 # Small linpeas: 1
+
+rcommands_trust_metadata() {
+  # GNU and BSD/OpenBSD stat use different format flags.
+  stat -c '%a %U %s' "$1" 2>/dev/null || stat -f '%Lp %Su %z' "$1" 2>/dev/null
+}
+
+rcommands_trust_group_other_writable() {
+  case "$1" in
+    [0-7][0-7][0-7]|[0-7][0-7][0-7][0-7])
+      [ "$((0${1} & 0022))" -ne 0 ]
+      ;;
+    *) return 1 ;;
+  esac
+}
+
+rcommands_trust_entries() {
+  # Read at most 64 KiB and stop after one extra non-comment entry.
+  dd if="$1" bs=65536 count=1 2>/dev/null | LC_ALL=C awk -v size="$2" '
+    /^[[:space:]]*(#|$)/ { next }
+    {
+      entries++
+      if (entries > 64) {
+        print "    [!] Trust entries truncated after 64 lines"
+        exit
+      }
+      if (length($0) > 512) print "    " substr($0, 1, 512) " ... [line shortened]"
+      else print "    " $0
+      if ($1 !~ /^[-+@]/ && $1 !~ /:/ && $1 ~ /[[:alpha:]]/) hostname = 1
+      if ($2 == "+") any_user = 1
+      if ($1 == "+" || $2 == "+") wildcard = 1
+    }
+    END {
+      if (size == "" || size + 0 > 65536) print "    [!] Trust-file input limited to first 64 KiB"
+      if (hostname) print "    [!] Hostname-based trust candidate: review control of DNS and local name mappings"
+      if (any_user) print "    [!] Remote-user + may broaden trust (service and PAM policy still apply)"
+      if (wildcard) print "    [!] Wildcard '\''+'\'' trust found"
+    }
+  '
+}
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Legacy r-commands (rsh/rlogin/rexec) and host-based trust" "T1021.004"
@@ -73,33 +112,48 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   print_3title "/etc/hosts.equiv and /etc/shosts.equiv" "T1021.004"
   for f in /etc/hosts.equiv /etc/shosts.equiv; do
     if [ -f "$f" ]; then
-      perms=$(stat -c %a "$f" 2>/dev/null)
-      owner=$(stat -c %U "$f" 2>/dev/null)
-      echo "  $f (perm $perms, owner $owner)"
-      # Print non-comment lines
-      awk 'NF && $0 !~ /^\s*#/ {print "    " $0}' "$f" 2>/dev/null
-      if grep -qEv '^\s*#|^\s*$' "$f" 2>/dev/null; then
-        if grep -qE '(^|\s)\+' "$f" 2>/dev/null; then
-          echo "    [!] Wildcard '+' trust found"
-        fi
+      metadata=$(rcommands_trust_metadata "$f")
+      if [ -n "$metadata" ]; then
+        perms=${metadata%% *}
+        metadata_rest=${metadata#* }
+        owner=${metadata_rest%% *}
+        size=${metadata_rest##* }
+        echo "  $f (perm $perms, owner $owner)"
+      else
+        size=
+        echo "  $f (metadata unavailable)"
       fi
+      rcommands_trust_entries "$f" "$size"
     fi
   done
 
   echo ""
   print_3title "Per-user .rhosts files" "T1021.004"
   any_rhosts=false
+  rhosts_scanned=0
   for rfile in /root/.rhosts /home/*/.rhosts; do
     if [ -f "$rfile" ]; then
+      rhosts_scanned=$((rhosts_scanned + 1))
+      if [ "$rhosts_scanned" -gt 64 ]; then
+        echo "  [!] .rhosts discovery limited to first 64 files; coverage is partial"
+        break
+      fi
       any_rhosts=true
-      perms=$(stat -c %a "$rfile" 2>/dev/null)
-      owner=$(stat -c %U "$rfile" 2>/dev/null)
-      echo "  $rfile (perm $perms, owner $owner)"
-      awk 'NF && $0 !~ /^\s*#/ {print "    " $0}' "$rfile" 2>/dev/null
+      metadata=$(rcommands_trust_metadata "$rfile")
+      if [ -n "$metadata" ]; then
+        perms=${metadata%% *}
+        metadata_rest=${metadata#* }
+        owner=${metadata_rest%% *}
+        size=${metadata_rest##* }
+        echo "  $rfile (perm $perms, owner $owner)"
+      else
+        perms=
+        size=
+        echo "  $rfile (metadata unavailable)"
+      fi
+      rcommands_trust_entries "$rfile" "$size"
       # Warn on insecure perms (group/other write)
-      g=$(printf "%s" "$perms" | cut -c2)
-      o=$(printf "%s" "$perms" | cut -c3)
-      if [ "${g:-0}" -ge 2 ] || [ "${o:-0}" -ge 2 ]; then
+      if rcommands_trust_group_other_writable "$perms"; then
         echo "    [!] Insecure permissions (group/other write)"
       fi
     fi
@@ -136,4 +190,3 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
 
   echo ""
 fi
-

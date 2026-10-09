@@ -472,6 +472,8 @@ search:
             - 'echo "Nginx version: $(warn_exec nginx -v 2>/dev/null)"'
             - if [ -d "/etc/apache2" ] && [ -r "/etc/apache2" ]; then grep -R -B1 "httpd-php" /etc/apache2 2>/dev/null; fi
             - if [ -d "/usr/share/nginx/modules" ] && [ -r "/usr/share/nginx/modules" ]; then print_3title 'Nginx modules'; ls /usr/share/nginx/modules | sed -${E} "s,$NGINX_KNOWN_MODULES,${SED_GREEN},g"; fi
+            - lp_apache_piped_log_check
+            - lp_remco_apache_template_check
             - "print_3title 'PHP exec extensions'"
             
         files:
@@ -483,14 +485,16 @@ search:
                       value:
                         bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status|command on"
                         remove_empty_lines: True
-                        remove_regex: '#'
+                        # Piped-log command text is summarized by the bounded
+                        # checker above; do not echo arguments from config files.
+                        remove_regex: '#|^[[:space:]]*([Cc][Uu][Ss][Tt][Oo][Mm][Ll][Oo][Gg]|[Ee][Rr][Rr][Oo][Rr][Ll][Oo][Gg]|[Tt][Rr][Aa][Nn][Ss][Ff][Ee][Rr][Ll][Oo][Gg])[[:space:]]+[^[:space:]]?\\|'
                 search_in: 
                     - common
       
             - name: "000-default.conf"
               value: 
                 bad_regex: "AuthType|AuthName|AuthUserFile|ServerName|ServerAlias|DocumentRoot|AllowOverride|ProxyPass|ProxyPassReverse|RemoteIPHeader|SetEnvIf.*X-Forwarded|ErrorDocument|server-status"
-                remove_regex: '#'
+                remove_regex: '#|^[[:space:]]*([Cc][Uu][Ss][Tt][Oo][Mm][Ll][Oo][Gg]|[Ee][Rr][Rr][Oo][Rr][Ll][Oo][Gg]|[Tt][Rr][Aa][Nn][Ss][Ff][Ee][Rr][Ll][Oo][Gg])[[:space:]]+[^[:space:]]?\\|'
                 type: f
                 search_in: 
                     - common
@@ -2720,12 +2724,6 @@ search:
                 search_in:
                   - common
 
-          - name: "private-keys-v1.d/*.key"
-            value: 
-                type: f
-                search_in: 
-                  - common
-
           - name: "*.gnupg"
             value: 
                 type: f
@@ -4807,13 +4805,25 @@ search:
         files:
           - name: "crontab.db"
             value:
-                bad_regex: "-P[[:space:]]+\\S+|--password[[:space:]]+\\S+|[Pp]ass(word)?|[Tt]oken|[Ss]ecret"
-                only_bad_lines: True
+                just_list_file: True
                 type: f
                 search_in:
                   - common
 
           - name: "crontab-ui.service"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: Velociraptor server configuration candidate
+    value:
+        config:
+          auto_check: True
+
+        files:
+          - name: "server.config.yaml"
             value:
                 just_list_file: True
                 type: f
