@@ -27,13 +27,22 @@ def policy_function(source, name="Get-LmCompatibilityPolicyReview"):
 def powershell_command():
     runtime = shutil.which("pwsh")
     if runtime:
-        return [runtime, "-NoProfile", "-Command", "-"]
+        return [runtime, "-NoProfile", "-NonInteractive", "-Command"]
     if shutil.which("docker"):
         return [
             "docker", "run", "--rm", "-i", IMAGE,
-            "pwsh", "-NoProfile", "-Command", "-",
+            "pwsh", "-NoProfile", "-NonInteractive", "-Command",
         ]
     return None
+
+
+def run_fixture(command, fixture):
+    # -Command - handles stdin interactively and can lose multiline statements or
+    # hide parse/throw failures. Pass one complete script and make errors fatal.
+    return subprocess.run(
+        command + ["$ErrorActionPreference = 'Stop'\n" + fixture],
+        text=True, capture_output=True, timeout=30,
+    )
 
 
 class LmCompatibilityPolicyTests(unittest.TestCase):
@@ -50,6 +59,15 @@ class LmCompatibilityPolicyTests(unittest.TestCase):
         self.assertIn("effective client policy unknown", source)
         self.assertIn("$lmValue = if ($lmReview -eq 'Unknown') { 'unknown' }", source)
 
+    def test_fixture_runner_rejects_parse_and_terminating_errors(self):
+        command = powershell_command()
+        if not command:
+            self.skipTest("PowerShell runtime unavailable")
+        for fixture in ["throw 'fixture sentinel'", "function Broken {"]:
+            with self.subTest(fixture=fixture):
+                result = run_fixture(command, fixture)
+                self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_policy_boundaries_in_powershell(self):
         source = SCRIPT.read_text(encoding="utf-8-sig")
         command = powershell_command()
@@ -58,7 +76,7 @@ class LmCompatibilityPolicyTests(unittest.TestCase):
 
         fixture = policy_function(source) + "\n" + "\n".join(
             f"$actual = Get-LmCompatibilityPolicyReview -Level {value}; "
-            f"if ($actual -ne '{expected}') {{ throw 'level {value}: ' + $actual }}"
+            f"if ($actual -ne '{expected}') {{ throw 'unexpected LM compatibility classification: ' + $actual }}"
             for value, expected in [
                 (0, "LegacyClient"), (1, "LegacyClient"), (2, "LegacyClient"),
                 (3, "Ntlmv2Client"), (4, "Ntlmv2Client"), (5, "Ntlmv2Client"),
@@ -67,13 +85,13 @@ class LmCompatibilityPolicyTests(unittest.TestCase):
             ]
         ) + "\n" + policy_function(source, "Get-NtlmRestrictionValue") + "\n" + "\n".join(
             f"$actual = Get-NtlmRestrictionValue -Value {value}; "
-            f"if ($actual -ne {expected}) {{ throw 'restriction {value}: ' + $actual }}"
+            f"if ($actual -ne {expected}) {{ throw 'unexpected restriction classification: ' + $actual }}"
             for value, expected in [
                 (0, 0), (1, 1), (2, 2), (3, -1), (-1, -1),
                 ("$null", -1), ("'invalid'", -1),
             ]
         ) + "\n"
-        result = subprocess.run(command, input=fixture, text=True, capture_output=True, timeout=30)
+        result = run_fixture(command, fixture)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertNotIn("Exception", result.stdout + result.stderr)
 
@@ -94,7 +112,7 @@ class LmCompatibilityPolicyTests(unittest.TestCase):
             + "$script:msvAvailable = $false; $script:lsaAvailable = $false; $result = Get-NtlmPolicySummary; "
             + "if ($null -ne $result) { throw 'absent keys should be unknown' }\n"
         )
-        result = subprocess.run(command, input=fixture, text=True, capture_output=True, timeout=30)
+        result = run_fixture(command, fixture)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertNotIn("Exception", result.stdout + result.stderr)
 
@@ -124,9 +142,38 @@ class LmCompatibilityPolicyTests(unittest.TestCase):
             fixture += (
                 f"$script:policyValue = {value}; $script:messages = @(); Invoke-LocalPolicyReview; "
                 f"if (-not (($script:messages -join ' ').Contains('{expected}'))) "
-                f"{{ throw 'wrong output for {value}: ' + ($script:messages -join ' ') }}\n"
+                f"{{ throw 'wrong local policy output: ' + ($script:messages -join ' ') }}\n"
             )
-        result = subprocess.run(command, input=fixture, text=True, capture_output=True, timeout=30)
+        result = run_fixture(command, fixture)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn("Exception", result.stdout + result.stderr)
+
+
+    def test_restriction_output_does_not_confuse_auditing_with_blocking(self):
+        source = SCRIPT.read_text(encoding="utf-8-sig")
+        command = powershell_command()
+        if not command:
+            self.skipTest("PowerShell runtime unavailable")
+        start = source.index("    $recvValue = Get-NtlmRestrictionValue")
+        end = source.index("\n  }", start)
+        fixture = (
+            policy_function(source, "Get-NtlmRestrictionValue")
+            + "\nfunction Write-Host { param($Object, $ForegroundColor) $script:messages += [string]$Object }"
+            + "\nfunction Invoke-RestrictionReview { param($ntlmStatus, $lmValue)\n"
+            + source[start:end]
+            + "\n}\n"
+        )
+        for receiving, sending, level in [(0, 1, 3), (0, 0, 5), (1, 2, 5), ("$null", "$null", "'unknown'")]:
+            fixture += (
+                "$script:messages = @(); Invoke-RestrictionReview "
+                f"([pscustomobject]@{{ RestrictReceiving = {receiving}; RestrictSending = {sending} }}) {level}; "
+                "$output = $script:messages -join ' '; "
+                "if (-not $output.Contains('1 audits only') -or "
+                "-not $output.Contains('still permits NTLMv2') -or "
+                "$output.Contains('Expect Kerberos-only') -or "
+                "$output.Contains('NTLM is restricted/disabled')) { throw 'incorrect restriction interpretation: ' + $output }\n"
+            )
+        result = run_fixture(command, fixture)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertNotIn("Exception", result.stdout + result.stderr)
 
