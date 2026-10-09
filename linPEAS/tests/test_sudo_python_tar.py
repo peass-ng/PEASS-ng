@@ -16,7 +16,7 @@ class SudoPythonTarTests(unittest.TestCase):
 
     def run_case(self, version="3.12.3", rule="root", wildcard=True,
                  source_kind="valid", archive_dir=True, python_name="python3",
-                 fixed_argument=False):
+                 fixed_argument=False, trusted_interpreter=True):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
             bindir = base / "bin"
@@ -28,6 +28,7 @@ class SudoPythonTarTests(unittest.TestCase):
                 backups.mkdir()
             python.write_text(
                 "#!/bin/sh\n"
+                "printf invoked > \"$PYTHON_CALLS\"\n"
                 "[ \"$1\" = -I ] && [ \"$2\" = -S ] && [ \"$3\" = --version ] || exit 7\n"
                 "printf 'Python %s\\n' \"$FAKE_PYTHON_VERSION\"\n"
             )
@@ -90,6 +91,7 @@ class SudoPythonTarTests(unittest.TestCase):
             env.update({
                 "PATH": f"{bindir}:{env['PATH']}",
                 "FAKE_PYTHON_VERSION": version,
+                "PYTHON_CALLS": str(base / "interpreter-calls"),
                 "FAKE_SUDO_RULE": (
                     f"    ({rule}) NOPASSWD: {python} {script}"
                     + (" *" if wildcard else (" /opt/fixed.tar" if fixed_argument else ""))
@@ -109,12 +111,19 @@ class SudoPythonTarTests(unittest.TestCase):
                 "print_2title() { :; }",
                 "print_info() { :; }",
                 "echo_not_found() { :; }",
+                # Policy fixtures use an explicitly trusted fake interpreter; the
+                # negative case below exercises the real filesystem guard.
+                ('lp_trusted_version_path() { printf "%s\\n" "$1"; }'
+                 if trusted_interpreter else
+                 f". {shlex.quote(str(self.module.parent.parent / 'functions/lp_trusted_version_path.sh'))}"),
                 f". {shlex.quote(str(self.module))}",
             ])
             result = subprocess.run(["sh", "-c", body], env=env,
                                     capture_output=True, text=True, timeout=10)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertNotIn("do-not-print-me", result.stdout)
+            if not trusted_interpreter:
+                self.assertFalse((base / "interpreter-calls").exists())
             return result.stdout
 
     def test_correlates_writable_user_archive_and_upstream_affected_python(self):
@@ -134,6 +143,10 @@ class SudoPythonTarTests(unittest.TestCase):
                         "3.13.4", "3.14.0"):
             with self.subTest(version=version):
                 self.assertNotIn("archive extraction review", self.run_case(version=version))
+
+    def test_untrusted_interpreter_is_not_executed(self):
+        output = self.run_case(trusted_interpreter=False)
+        self.assertNotIn("archive extraction review", output)
 
     def test_version_probe_output_is_bounded(self):
         output = self.run_case(version="x" * 4096 + "\nPython 3.12.3")
