@@ -9,7 +9,7 @@
 # Functions Used: print_2title, print_info, print_ps, checkRootWritableProcessPaths
 # Global Variables: $capsB, $knw_usrs, $nosh_usrs, $NOUSEPS, $processesB, $processesDump, $processesVB, $rootcommon, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders
 # Initial Functions:
-# Generated Global Variables: $pslist, $cpid, $caphex, $psline, $pid, $selinux_ctx, $current_env_vars, $env_findings, $apparmor_profile, $mount, $mount_findings, $fd_findings, $proc_cmd, $proc_user, $mount_point, $current_mounts, $fd_target, $var, $findings, $sec_findings, $proc_env_vars, $fd_count, $proc_mounts, $$escaped_var
+# Generated Global Variables: $pslist, $cpid, $caphex, $psline, $pid, $selinux_ctx, $current_env_vars, $env_findings, $apparmor_profile, $mount, $mount_findings, $fd_findings, $proc_cmd, $proc_user, $mount_point, $current_mounts, $fd_target, $var, $findings, $sec_findings, $proc_env_vars, $fd_count, $proc_mounts, $office_uno_sockets, $$escaped_var
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -215,6 +215,34 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     fi
   }
 
+  # Inspect the already collected process list; do not connect to UNO or probe ports.
+  check_privileged_office_uno_sockets() {
+    [ -n "$pslist" ] || return
+    printf '%s\n' "$pslist" | awk '
+      NR > 5000 { exit }
+      length($0) > 4096 { next }
+      $1 == "root" &&
+      /(^|[[:space:]\/])(soffice(\.bin)?|libreoffice|openoffice)([[:space:]]|$)/ &&
+      /--accept=/ {
+        if (!match($0, /--accept=[^[:space:]]+/)) next
+        accept = substr($0, RSTART, RLENGTH)
+        sub(/^--accept=/, "", accept)
+        sub(/^"/, "", accept)
+        sub(/"$/, "", accept)
+        if (accept !~ /^socket,host=/ || accept !~ /;urp(;|$)/) next
+        if (!match(accept, /host=[^,;[:space:]]+/)) next
+        host = substr(accept, RSTART + 5, RLENGTH - 5)
+        if (!match(accept, /port=[0-9]+/)) next
+        port = substr(accept, RSTART + 5, RLENGTH - 5)
+        if (port + 0 < 1 || port + 0 > 65535) next
+        endpoint = host ":" port
+        if (!seen[endpoint]++) {
+          print endpoint
+          if (++count >= 5) exit
+        }
+      }'
+  }
+
   if [ "$NOUSEPS" ]; then
     print_ps | grep -v 'sed-Es' | sed -${E} "s,$Wfolders,${SED_RED},g" | sed -${E} "s,$sh_usrs,${SED_LIGHT_CYAN}," | sed -${E} "s,$nosh_usrs,${SED_BLUE}," | sed -${E} "s,$rootcommon,${SED_GREEN}," | sed -${E} "s,$knw_usrs,${SED_GREEN}," | sed "s,$USER,${SED_LIGHT_MAGENTA}," | sed "s,root,${SED_RED}," | sed -${E} "s,$processesVB,${SED_RED_YELLOW},g" | sed "s,$processesB,${SED_RED}," | sed -${E} "s,$processesDump,${SED_RED},"
     pslist=$(print_ps)
@@ -231,6 +259,13 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     done
     pslist=$(ps auxwww)
     echo ""
+  fi
+
+  office_uno_sockets=$(check_privileged_office_uno_sockets)
+  if [ -n "$office_uno_sockets" ]; then
+    print_2title "Privileged office automation sockets" "T1068"
+    printf 'Root-owned process command advertises a LibreOffice/OpenOffice UNO acceptor at:\n%s\n' "$office_uno_sockets"
+    print_info "Confirm the listener and local access; a reachable UNO API can act with the office process identity: https://book.hacktricks.wiki/en/linux-hardening/processes-crontab-systemd-dbus/process-enumeration-and-service-paths.html#privileged-office-automation-sockets"
   fi
 
   checkRootWritableProcessPaths

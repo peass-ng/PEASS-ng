@@ -1,7 +1,7 @@
 # Title: System Information - Mounts
 # ID: SY_Mounts
 # Author: Carlos Polop
-# Last Update: 07-09-2026
+# Last Update: 09-10-2026
 # Description: Check for mount point misconfigurations that could lead to privilege escalation, udisks2 CVE-2026-7867 exposure, and XFSTango CVE-2026-80530 exposure:
 #   - Unmounted filesystems
 #   - Mount point permissions
@@ -34,10 +34,33 @@
 # Small linpeas: 1
 
 
+fuse_allow_other_state() {
+    [ -f "$1" ] && [ -r "$1" ] || { printf 'unknown\n'; return; }
+    awk '
+        NR > 256 { truncated = 1; exit }
+        /^[[:space:]]*user_allow_other[[:space:]]*$/ { enabled = 1; exit }
+        END {
+            if (enabled) print "enabled"
+            else if (truncated) print "unknown"
+            else print "disabled"
+        }
+    ' "$1" 2>/dev/null
+}
+
 if ! [ "$SEARCH_IN_FOLDER" ]; then
     checkLibblockdevCVE20256019
     checkUDisksCVE20267867
     checkXFSTangoCVE202680530
+fi
+
+if [ -e /etc/fuse.conf ] || [ -L /etc/fuse.conf ]; then
+    print_2title "FUSE cross-user mount policy" "T1082"
+    case "$(fuse_allow_other_state /etc/fuse.conf)" in
+        enabled) echo "user_allow_other enabled: non-root mounts may opt into access by other users, including root; review privileged writes into caller-controlled paths" ;;
+        disabled) echo "user_allow_other disabled in /etc/fuse.conf" ;;
+        *) echo "user_allow_other unknown (unreadable, non-regular, or beyond first 256 lines)" ;;
+    esac
+    echo ""
 fi
 
 if [ -f "/etc/fstab" ] || [ "$DEBUG" ]; then

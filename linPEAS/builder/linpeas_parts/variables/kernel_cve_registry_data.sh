@@ -462,10 +462,10 @@ CVE-2023-2593	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token 
 CVE-2023-2598	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2023-26083	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2023-2612	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
-CVE-2023-2640	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
+CVE-2023-2640	catalog_reference_only	9999.9999.9999		0	Reference-only source token; narrow Ubuntu generic matcher is in KERNEL_CVE_DATA_26
 CVE-2023-31248	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2023-32233	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
-CVE-2023-32629	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
+CVE-2023-32629	catalog_reference_only	9999.9999.9999		0	Reference-only source token; narrow Ubuntu generic matcher is in KERNEL_CVE_DATA_26
 CVE-2023-3269	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2023-32832	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
 CVE-2023-32837	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from example repos; no matching rule defined in source suggesters
@@ -731,6 +731,7 @@ EOF_DATA_25
 )"
 
 KERNEL_CVE_DATA_26="$(cat <<'EOF_DATA_26'
+CVE-2023-2640,CVE-2023-32629	Ubuntu OverlayFS userns copy-up	pkg=linux-kernel,ver>=6.2.0-1,ver<6.2.0-26,CONFIG_USER_NS=y,cmd:grep -q '^ID=ubuntu$' /etc/os-release && grep -Eq '^VERSION_ID="?(22[.]04|23[.]04)"?$' /etc/os-release && uname -r | grep -Eq '^6[.]2[.]0-[0-9]+-generic$',cmd:test -r /proc/sys/kernel/unprivileged_userns_clone && test "$(cat /proc/sys/kernel/unprivileged_userns_clone)" = 1		1	Candidate only for Ubuntu 22.04 HWE 6.2 or 23.04 generic before 6.2.0-26; Canonical backports and Livepatch may alter effective status; verify running kernel package
 CVE-2026-53264	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public net/sched privilege-escalation exploit; dedicated LinPEAS check handles prerequisites
 CVE-2026-68121	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public PPPoE privilege-escalation exploit; no stable matcher added
 CVE-2026-74469	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public SCTP diagnostics privilege-escalation exploit; dedicated LinPEAS check handles prerequisites

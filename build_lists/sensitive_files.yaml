@@ -4325,6 +4325,59 @@ search:
                 search_in: 
                   - common
   
+  - name: Monit configuration candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: ".monitrc"
+            value:
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "monitrc"
+            value:
+                check_extra_path: '/(etc|monit)/monitrc$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+  - name: TeamCity data candidates
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "buildserver.script"
+            value:
+                check_extra_path: '/system/buildserver\.script$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "buildserver.log"
+            value:
+                check_extra_path: '/system/buildserver\.log$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "TeamCity_Backup_*.zip"
+            value:
+                check_extra_path: '/backup/TeamCity_Backup_[0-9]{8}_[0-9]{6}\.zip$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
   - name: Jenkins
     value:
         config:
@@ -4889,6 +4942,24 @@ search:
                 search_in:
                   - common
 
+# The Derby marker identifies an embedded OFBiz database directory without
+# recursively listing its potentially large seg0 table files.
+  - name: OFBiz embedded Derby database
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+
+        files:
+          - name: "service.properties"
+            value:
+                check_extra_path: '/runtime/data/derby/[^/]+/service[.]properties$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
 # Final section
   - name: Database
     value:
@@ -4915,6 +4986,29 @@ search:
                 remove_path: "/man/|/usr/|/var/cache/"
                 type: f
                 search_in: 
+                  - common
+
+  - name: Proxmox VE host backups
+    value:
+        disable:
+          - winpeas
+        config:
+          auto_check: True
+        files:
+          - name: "pve-host-*.tar.gz"
+            value:
+                check_extra_path: '/var/backups/pve-host-[^/]+\.tar\.gz$'
+                just_list_file: True
+                type: f
+                search_in:
+                  - common
+
+          - name: "proxmox_backup_*.tar.gz"
+            value:
+                check_extra_path: '/var/backups/proxmox_backup_[^/]+\.tar\.gz$'
+                just_list_file: True
+                type: f
+                search_in:
                   - common
 
   - name: Backups
