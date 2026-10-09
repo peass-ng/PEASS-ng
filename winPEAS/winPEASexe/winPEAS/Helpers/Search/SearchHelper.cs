@@ -57,6 +57,15 @@ namespace winPEAS.Helpers.Search
         public static List<CustomFileInfo> GetFilesFast(string folder, string pattern = "*", HashSet<string> excludedDirs = null, bool isFoldersIncluded = false)
         {
             ConcurrentBag<CustomFileInfo> files = new ConcurrentBag<CustomFileInfo>();
+            if (string.IsNullOrWhiteSpace(folder)) return new List<CustomFileInfo>();
+            try
+            {
+                if (!CanTraverseDirectory(new DirectoryInfo(folder))) return new List<CustomFileInfo>();
+            }
+            catch (Exception)
+            {
+                return new List<CustomFileInfo>();
+            }
             IEnumerable<DirectoryInfo> startDirs = GetStartDirectories(folder, files, pattern, isFoldersIncluded);
             IList<DirectoryInfo> startDirsExcluded = new List<DirectoryInfo>();
             ConcurrentDictionary<string, byte> known_dirs = new ConcurrentDictionary<string, byte>();
@@ -104,68 +113,52 @@ namespace winPEAS.Helpers.Search
         }
 
 
+        private static bool CanTraverseDirectory(DirectoryInfo directory)
+        {
+            try
+            {
+                return (directory.Attributes & FileAttributes.ReparsePoint) == 0;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         private static List<FileInfo> GetFiles(string folder, string pattern = "*")
         {
-            DirectoryInfo dirInfo;
-            DirectoryInfo[] directories;
-            try
-            {
-                dirInfo = new DirectoryInfo(folder);
-                directories = dirInfo.GetDirectories();
+            var result = new List<FileInfo>();
+            var pending = new Stack<DirectoryInfo>();
+            pending.Push(new DirectoryInfo(folder));
 
-                if (directories.Length == 0)
+            while (pending.Count > 0)
+            {
+                DirectoryInfo current = pending.Pop();
+                if (!CanTraverseDirectory(current)) continue;
+
+                try
                 {
-                    return new List<FileInfo>(dirInfo.GetFiles(pattern));
+                    result.AddRange(current.GetFiles(pattern));
+                }
+                catch (Exception)
+                {
+                    // Access restrictions and transient paths are expected during inventory.
+                }
+
+                try
+                {
+                    foreach (DirectoryInfo child in current.GetDirectories())
+                    {
+                        if (CanTraverseDirectory(child)) pending.Push(child);
+                    }
+                }
+                catch (Exception)
+                {
+                    // Keep files already found in the current directory.
                 }
             }
-            catch (UnauthorizedAccessException)
-            {
-                return new List<FileInfo>();
-            }
-            catch (PathTooLongException)
-            {
-                return new List<FileInfo>();
-            }
-            catch (DirectoryNotFoundException)
-            {
-                return new List<FileInfo>();
-            }
-            catch (Exception)
-            {
-                return new List<FileInfo>();
-            }
 
-            ConcurrentBag<FileInfo> result = new ConcurrentBag<FileInfo>();
-
-            Parallel.ForEach(directories, (d) =>
-            {
-                foreach (var file in GetFiles(d.FullName, pattern))
-                {
-                    result.Add(file);
-                }
-            });
-
-            try
-            {
-                foreach (var file in dirInfo.GetFiles(pattern))
-                {
-                    result.Add(file);
-                }
-            }
-            catch (UnauthorizedAccessException)
-            {
-            }
-            catch (PathTooLongException)
-            {
-            }
-            catch (DirectoryNotFoundException)
-            {
-            }
-            catch (Exception)
-            {
-            }
-
-            return result.ToList();
+            return result;
         }
 
         private static IEnumerable<DirectoryInfo> GetStartDirectories(string folder, ConcurrentBag<CustomFileInfo> files, string pattern, bool isFoldersIncluded = false)
@@ -202,6 +195,8 @@ namespace winPEAS.Helpers.Search
                         }
                     }
 
+                    // Keep linked folders visible in the inventory, but never recurse into them.
+                    directories = directories.Where(CanTraverseDirectory).ToArray();
                     if (directories.Length > 1) return new List<DirectoryInfo>(directories);
 
                     if (directories.Length == 0) return new List<DirectoryInfo>();

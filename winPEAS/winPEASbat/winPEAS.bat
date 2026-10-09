@@ -517,10 +517,29 @@ CALL :ColorLine " %E%33m[+]%E%97m UNQUOTED SERVICE PATHS"
 ECHO.   [i] When the path is not quoted (ex: C:\Program files\soft\new folder\exec.exe) Windows will try to execute first 'C:\Program.exe', then 'C:\Program Files\soft\new.exe' and finally 'C:\Program Files\soft\new folder\exec.exe'. Try to create 'C:\Program Files\soft\new.exe'
 ECHO.   [i] The permissions are also checked and filtered using icacls
 ECHO.   [?] https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services
-for /f "tokens=2" %%n in ('sc query state^= all^| findstr SERVICE_NAME') do (
-	for /f "delims=: tokens=1*" %%r in ('sc qc "%%~n" ^| findstr BINARY_PATH_NAME ^| findstr /i /v /l /c:"c:\windows\system32" ^| findstr /v /c:""""') do (
-		ECHO.%%~s ^| findstr /r /c:"[a-Z][ ][a-Z]" >nul 2>&1 && (ECHO.%%n && ECHO.%%~s && icacls %%s | findstr /i "(F) (M) (W) :\" | findstr /i ":\\ everyone authenticated users todos %username%") && ECHO.
-	)
+REM Read service ImagePath values once; repeated sc qc calls can stall on busy systems.
+for /f "tokens=1,2,*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Services" /s /v ImagePath 2^>nul') do (
+    if /i "%%A"=="ImagePath" (
+        set "serviceImage=%%C"
+        set "firstToken="
+        set "remaining="
+        for /f "tokens=1,*" %%P in ("!serviceImage!") do (
+            set "firstToken=%%P"
+            set "remaining=%%Q"
+        )
+        if defined remaining (
+            set "firstTokenNoQuote=!firstToken:"=!"
+            if "!firstTokenNoQuote!"=="!firstToken!" if /i not "!firstToken:~-4!"==".exe" if /i not "!firstToken:~-4!"==".com" (
+                echo(!serviceImage! | findstr /i /c:".exe" /c:".com" >nul && (
+                    ECHO.    Candidate service key: !serviceKey!
+                    ECHO.    Unquoted ImagePath: !serviceImage!
+                    ECHO.    [i] Verify executable-prefix ACLs and service restart rights.
+                )
+            )
+        )
+    ) else (
+        set "serviceKey=%%A"
+    )
 )
 CALL :T_Progress 2
 ::wmic service get name,displayname,pathname,startmode | more | findstr /i /v "C:\\Windows\\system32\\" | findstr /i /v """

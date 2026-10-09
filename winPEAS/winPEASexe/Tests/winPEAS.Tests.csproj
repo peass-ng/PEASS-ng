@@ -171,6 +171,7 @@
     <Compile Include="PrinterDriverAclReviewTests.cs" />
     <Compile Include="DefenderPathExclusionDisplayTests.cs" />
     <Compile Include="StorvspVsmbRuntimeTests.cs" />
+    <Compile Include="SearchHelperRuntimeTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
