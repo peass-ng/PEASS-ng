@@ -69,10 +69,11 @@ namespace winPEAS.Tests
             string driver = Path.Combine(root, "driver-a");
             string common = Path.Combine(driver, "_common");
             string dlz = Path.Combine(common, "dlz");
+            string dll = Path.Combine(dlz, "support.dll");
             Func<string, IEnumerable<string>> dirs = path => path == root ? new[] { driver } : new string[0];
-            Func<string, IEnumerable<string>> dlls = path => new[] { Path.Combine(dlz, "support.dll") };
+            Func<string, IEnumerable<string>> dlls = path => new[] { dll };
 
-            foreach (string blocked in new[] { programData, root, driver, common, dlz, Path.Combine(dlz, "support.dll") })
+            foreach (string blocked in new[] { programData, root, driver, common, dlz })
             {
                 var report = Printers.ReviewDriverAclPaths(programData, dirs, dlls,
                     path => path == root || path == common || path == dlz,
@@ -82,6 +83,18 @@ namespace winPEAS.Tests
                     () => 0);
                 Assert.AreEqual(0, report.Findings.Count, blocked);
             }
+
+            int fileRightsCalls = 0;
+            var linkedDll = Printers.ReviewDriverAclPaths(programData, dirs, dlls,
+                path => path == root || path == common || path == dlz,
+                path => path == dll,
+                path => CandidateRights,
+                path => { fileRightsCalls++; return CandidateRights; },
+                () => 0);
+            Assert.AreEqual(4, linkedDll.Findings.Count);
+            Assert.AreEqual(0, linkedDll.DllsInspected);
+            Assert.AreEqual(0, fileRightsCalls);
+            Assert.IsFalse(linkedDll.Findings.Exists(finding => finding.Path == dll));
 
             var missing = Printers.ReviewDriverAclPaths(programData, dirs, dlls,
                 path => false, path => false, path => CandidateRights,
