@@ -51,25 +51,11 @@ namespace winPEAS.Info.SystemInfo
         //From Seatbelt
         public static Dictionary<string, string> GetBasicOSInfo()
         {
-            Dictionary<string, string> results = new Dictionary<string, string>();
-            
-            Process process = new Process();
-
-            // Configure the process to run the systeminfo command
-            process.StartInfo.FileName = "systeminfo.exe";
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.RedirectStandardOutput = true;
-
-            // Start the process
-            process.Start();
-
-            // Read the output of the command
-            string output = process.StandardOutput.ReadToEnd();
-
-            // Wait for the command to finish
-            process.WaitForExit();
-
-
+            Dictionary<string, string> results = new Dictionary<string, string>
+            {
+                { "Hotfixes", "unavailable" }
+            };
+            string output = ReadSystemInfoOutput();
             // Split the output by newline characters
             string[] lines = output.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             
@@ -112,6 +98,13 @@ namespace winPEAS.Info.SystemInfo
                 string UpdateBuildRevision = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "UBR");
                 string CurrentMajorVersionNumber = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentMajorVersionNumber");
                 string CurrentVersion = RegistryHelper.GetRegValue("HKLM", "Software\\Microsoft\\Windows NT\\CurrentVersion", "CurrentVersion");
+                ProductName = NormalizeProductName(ProductName, CurrentBuild);
+
+                if (!results.ContainsKey("OS Name") && !string.IsNullOrEmpty(ProductName))
+                    results["OS Name"] = ProductName;
+                if (!results.ContainsKey("OS Version") && !string.IsNullOrEmpty(CurrentBuild))
+                    results["OS Version"] = CurrentVersion + " (Build " + CurrentBuild +
+                        (string.IsNullOrEmpty(UpdateBuildRevision) ? "" : "." + UpdateBuildRevision) + ")";
 
                 bool isHighIntegrity = MyUtils.IsHighIntegrity();
 
@@ -120,10 +113,15 @@ namespace winPEAS.Info.SystemInfo
                 var timeZone = TimeZoneInfo.Local;
                 InputLanguage myCurrentLanguage = InputLanguage.CurrentInputLanguage;
 
-                string arch = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
-                string userName = Environment.GetEnvironmentVariable("USERNAME");
+                string arch = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432") ??
+                    Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
+                if (!results.ContainsKey("System Type") && !string.IsNullOrEmpty(arch))
+                    results["System Type"] = arch + "-based PC";
                 string ProcessorCount = Environment.ProcessorCount.ToString();
-                bool isVM = IsVirtualMachine();
+                bool isVM;
+                string vmError;
+                bool vmKnown = CheckRunner.TryRunBounded(IsVirtualMachine, TimeSpan.FromSeconds(2),
+                    out isVM, out vmError);
 
                 DateTime now = DateTime.Now;
 
@@ -131,50 +129,97 @@ namespace winPEAS.Info.SystemInfo
                 IPGlobalProperties properties = IPGlobalProperties.GetIPGlobalProperties();
                 string dnsDomain = properties.DomainName;
 
-                const string query = "SELECT HotFixID,InstalledOn FROM Win32_QuickFixEngineering";
+                results["Hostname"] = strHostName;
+                if (dnsDomain.Length > 1)
+                    results["Domain Name"] = dnsDomain;
+                results["ProductName"] = ProductName;
+                results["EditionID"] = EditionID;
+                results["ReleaseId"] = ReleaseId;
+                results["DisplayVersion"] = DisplayVersion;
+                results["BuildBranch"] = BuildBranch;
+                results["CurrentBuild"] = CurrentBuild;
+                results["UpdateBuildRevision"] = UpdateBuildRevision;
+                results["CurrentMajorVersionNumber"] = CurrentMajorVersionNumber;
+                results["CurrentVersion"] = CurrentVersion;
+                results["Architecture"] = arch;
+                results["ProcessorCount"] = ProcessorCount;
+                results["SystemLang"] = systemLang;
+                results["KeyboardLang"] = myCurrentLanguage.Culture.EnglishName;
+                results["TimeZone"] = timeZone.DisplayName;
+                results["IsVirtualMachine"] = vmKnown ? isVM.ToString() : "unknown";
+                if (!vmKnown)
+                    results["VM detection"] = "unavailable (" + vmError + ")";
+                results["Current Time"] = now.ToString();
+                results["HighIntegrity"] = isHighIntegrity.ToString();
+                results["PartOfDomain"] = Checks.Checks.IsPartOfDomain.ToString();
 
-                using (var search = new ManagementObjectSearcher(query))
-                {
-                    using (var collection = search.Get())
-                    {
-                        string hotfixes = "";
-                        foreach (ManagementObject quickFix in collection)
-                        {
-                            hotfixes += quickFix["HotFixID"] + " (" + quickFix["InstalledOn"] + "), ";
-                        }
-
-                        results.Add("Hostname", strHostName);
-                        if (dnsDomain.Length > 1)
-                        {
-                            results.Add("Domain Name", dnsDomain);
-                        }
-                        results.Add("ProductName", ProductName);
-                        results.Add("EditionID", EditionID);
-                        results.Add("ReleaseId", ReleaseId);
-                        results.Add("DisplayVersion", DisplayVersion);
-                        results.Add("BuildBranch", BuildBranch);
-                        results.Add("CurrentBuild", CurrentBuild);
-                        results.Add("UpdateBuildRevision", UpdateBuildRevision);
-                        results.Add("CurrentMajorVersionNumber", CurrentMajorVersionNumber);
-                        results.Add("CurrentVersion", CurrentVersion);
-                        results.Add("Architecture", arch);
-                        results.Add("ProcessorCount", ProcessorCount);
-                        results.Add("SystemLang", systemLang);
-                        results.Add("KeyboardLang", myCurrentLanguage.Culture.EnglishName);
-                        results.Add("TimeZone", timeZone.DisplayName);
-                        results.Add("IsVirtualMachine", isVM.ToString());
-                        results.Add("Current Time", now.ToString());
-                        results.Add("HighIntegrity", isHighIntegrity.ToString());
-                        results.Add("PartOfDomain", Checks.Checks.IsPartOfDomain.ToString());
-                        results.Add("Hotfixes", hotfixes);
-                    }
-                }
+                string hotfixes;
+                string hotfixError;
+                bool hotfixesKnown = CheckRunner.TryRunBounded(QueryHotfixes, TimeSpan.FromSeconds(3),
+                    out hotfixes, out hotfixError);
+                results["Hotfixes"] = hotfixesKnown ? hotfixes : "unavailable";
+                if (!hotfixesKnown)
+                    results["Hotfix collection"] = "unavailable (" + hotfixError + ")";
             }
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
             }
             return results;
+        }
+
+        internal static string NormalizeProductName(string productName, string build)
+        {
+            if (int.TryParse(build, out int buildNumber) && buildNumber >= 22000 &&
+                productName != null && productName.StartsWith("Windows 10 ", StringComparison.OrdinalIgnoreCase))
+                return "Windows 11 " + productName.Substring("Windows 10 ".Length);
+            return productName;
+        }
+
+        private static string QueryHotfixes()
+        {
+            const string query = "SELECT HotFixID,InstalledOn FROM Win32_QuickFixEngineering";
+            using (var search = new ManagementObjectSearcher(query))
+            {
+                search.Options.Timeout = TimeSpan.FromSeconds(2);
+                using (var collection = search.Get())
+                {
+                    var hotfixes = new List<string>();
+                    foreach (ManagementObject quickFix in collection)
+                    {
+                        hotfixes.Add(quickFix["HotFixID"] + " (" + quickFix["InstalledOn"] + ")");
+                    }
+                    return string.Join(", ", hotfixes);
+                }
+            }
+        }
+
+        private static string ReadSystemInfoOutput()
+        {
+            try
+            {
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = "systeminfo.exe";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.CreateNoWindow = true;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.Start();
+                    // Drain stdout while waiting so a full pipe cannot stall the child.
+                    var output = process.StandardOutput.ReadToEndAsync();
+                    if (!process.WaitForExit(8000))
+                    {
+                        try { process.Kill(); } catch (InvalidOperationException) { }
+                        return "";
+                    }
+                    return output.Wait(1000) ? output.Result : "";
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException("systeminfo.exe: " + ex.Message);
+                return "";
+            }
         }
 
         public static List<Dictionary<string, string>> GetDrivesInfo()

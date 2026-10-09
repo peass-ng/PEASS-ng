@@ -195,6 +195,10 @@ namespace winPEAS.Checks
                     Beaprint.InfoPrint("Definitions date: " + report.DefinitionsDate);
                 }
                 Beaprint.InfoPrint("Installed hotfixes detected: " + report.InstalledHotfixesCount);
+                if (basicInfo != null && basicInfo.TryGetValue("Hotfix collection", out var hotfixCollection))
+                {
+                    Beaprint.InfoPrint("Patch inventory is unavailable (" + hotfixCollection + "); version matches below cannot be filtered by installed updates.");
+                }
                 if (report.CandidateProducts.Any(p => p.StartsWith("Windows Server 2022", StringComparison.OrdinalIgnoreCase)) &&
                     (basicInfo == null || !basicInfo.TryGetValue("CurrentBuild", out var serverBuild) || serverBuild == "20348"))
                 {
@@ -345,31 +349,42 @@ namespace winPEAS.Checks
                         " (later cumulative updates are also recognized by build/driver version)");
                 }
 
-                Beaprint.NoColorPrint("    Virtual Machine Platform: " + report.VirtualMachinePlatformState);
-                Beaprint.NoColorPrint("    storvsp driver registered/started: " + report.DriverRegistered + " / " + report.DriverStarted);
-                if (report.DriverRegistered)
+                if (report.SurfaceCollectionSkipped)
                 {
-                    string registryState = report.DriverStart.HasValue ? report.DriverStart.Value.ToString() : "unknown";
-                    string driverType = report.DriverType.HasValue ? report.DriverType.Value.ToString() : "unknown";
-                    Beaprint.NoColorPrint("    storvsp registry image/start/type: " + report.DriverImagePath + " / " + registryState + " / " + driverType);
-                    Beaprint.NoColorPrint("    storvsp WMI path/start mode/state: " + report.DriverWmiPath + " / " + report.DriverStartMode + " / " + report.DriverState);
+                    Beaprint.NoColorPrint("    Attack-surface collection: skipped because this two-CVE chain is patched or not applicable to the OS build.");
                 }
-
-                Beaprint.NoColorPrint("    storvsp.sys: " + report.DriverPath + " (exists: " + report.DriverExists + ")");
-                if (report.DriverExists)
+                else
                 {
-                    Beaprint.NoColorPrint("    storvsp.sys file/product version: " + report.DriverFileVersion + " / " + report.DriverProductVersion);
-                    Beaprint.NoColorPrint("    storvsp.sys company/signer: " + report.DriverCompany + " / " + report.DriverSigner);
-                    Beaprint.NoColorPrint("    storvsp.sys Authenticode: " + report.DriverSignatureStatus);
-                    if (report.DriverLastWriteUtc.HasValue)
+                    Beaprint.NoColorPrint("    Virtual Machine Platform: " + report.VirtualMachinePlatformState);
+                    Beaprint.NoColorPrint("    storvsp driver registered/started: " + report.DriverRegistered + " / " +
+                        (report.DriverRuntimeKnown ? report.DriverStarted.ToString() : "unknown"));
+                    if (report.DriverRegistered)
                     {
-                        Beaprint.NoColorPrint("    storvsp.sys last write UTC: " + report.DriverLastWriteUtc.Value.ToString("u"));
+                        string registryState = report.DriverStart.HasValue ? report.DriverStart.Value.ToString() : "unknown";
+                        string driverType = report.DriverType.HasValue ? report.DriverType.Value.ToString() : "unknown";
+                        Beaprint.NoColorPrint("    storvsp registry image/start/type: " + report.DriverImagePath + " / " + registryState + " / " + driverType);
+                        if (report.DriverRuntimeKnown)
+                        {
+                            Beaprint.NoColorPrint("    storvsp WMI path/start mode/state: " + report.DriverWmiPath + " / " + report.DriverStartMode + " / " + report.DriverState);
+                        }
                     }
-                }
 
-                Beaprint.NoColorPrint("    \\.\\STORVSP DOS device link: " + report.DeviceLinkPresent +
-                    (string.IsNullOrEmpty(report.DeviceLinkTarget) ? "" : " -> " + report.DeviceLinkTarget));
-                Beaprint.NoColorPrint("    Relevant vSMB attack surface enabled: " + report.AttackSurfaceEnabled);
+                    Beaprint.NoColorPrint("    storvsp.sys: " + report.DriverPath + " (exists: " + report.DriverExists + ")");
+                    if (report.DriverExists)
+                    {
+                        Beaprint.NoColorPrint("    storvsp.sys file/product version: " + report.DriverFileVersion + " / " + report.DriverProductVersion);
+                        Beaprint.NoColorPrint("    storvsp.sys company/signer: " + report.DriverCompany + " / " + report.DriverSigner);
+                        Beaprint.NoColorPrint("    storvsp.sys Authenticode: " + report.DriverSignatureStatus);
+                        if (report.DriverLastWriteUtc.HasValue)
+                        {
+                            Beaprint.NoColorPrint("    storvsp.sys last write UTC: " + report.DriverLastWriteUtc.Value.ToString("u"));
+                        }
+                    }
+
+                    Beaprint.NoColorPrint("    \\.\\STORVSP DOS device link: " + report.DeviceLinkPresent +
+                        (string.IsNullOrEmpty(report.DeviceLinkTarget) ? "" : " -> " + report.DeviceLinkTarget));
+                    Beaprint.NoColorPrint("    Relevant vSMB attack surface enabled: " + report.AttackSurfaceEnabled);
+                }
 
                 if (report.HighPriorityFinding)
                 {
@@ -378,7 +393,7 @@ namespace winPEAS.Checks
                 }
                 else if (report.PatchStatus == StorvspPatchStatus.Susceptible)
                 {
-                    Beaprint.InfoPrint("The OS build is susceptible to both CVEs, but an enabled STORVSP/vSMB attack surface was not observed. " + report.PatchEvidence);
+                    Beaprint.InfoPrint("The OS build is susceptible to both CVEs, but an enabled STORVSP/vSMB attack surface was not confirmed by the available evidence. " + report.PatchEvidence);
                 }
                 else if (report.PatchStatus == StorvspPatchStatus.Patched)
                 {

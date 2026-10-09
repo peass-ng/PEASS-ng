@@ -170,6 +170,7 @@
     <Compile Include="FirefoxCredentialFilePathTests.cs" />
     <Compile Include="PrinterDriverAclReviewTests.cs" />
     <Compile Include="DefenderPathExclusionDisplayTests.cs" />
+    <Compile Include="StorvspVsmbRuntimeTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
