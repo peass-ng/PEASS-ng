@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using System.Management;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Linq;
 using winPEAS.Helpers;
 using winPEAS.Helpers.AppLocker;
 using winPEAS.Helpers.Extensions;
@@ -1787,6 +1790,84 @@ namespace winPEAS.Checks
             }
         }
 
+        internal static string ExtractHistoricalDefenderExclusion(string newValue)
+        {
+            if (string.IsNullOrEmpty(newValue))
+                return null;
+
+            foreach (var kind in new[] { "Paths", "Processes", "Extensions" })
+            {
+                var marker = "\\Exclusions\\" + kind + "\\";
+                var start = newValue.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+                if (start < 0)
+                    continue;
+
+                var name = newValue.Substring(start + marker.Length);
+                var equals = name.IndexOf(" = ", StringComparison.Ordinal);
+                if (equals >= 0)
+                    name = name.Substring(0, equals);
+                name = name.Replace('\r', ' ').Replace('\n', ' ').Trim();
+                if (name.Length == 0)
+                    return null;
+                return kind + ": " + (name.Length > 160 ? name.Substring(0, 160) + "..." : name);
+            }
+            return null;
+        }
+
+        internal static string ExtractDefenderEventNewValue(string eventXml)
+        {
+            if (string.IsNullOrEmpty(eventXml) || eventXml.Length > 32768)
+                return null;
+            try
+            {
+                var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null };
+                using (var xmlReader = XmlReader.Create(new StringReader(eventXml), settings))
+                {
+                    var document = XDocument.Load(xmlReader);
+                    return document.Descendants().Where(element => element.Name.LocalName == "Data")
+                        .Where(element => string.Equals((string)element.Attribute("Name"), "New Value",
+                            StringComparison.OrdinalIgnoreCase))
+                        .Select(element => element.Value).FirstOrDefault();
+                }
+            }
+            catch (XmlException)
+            {
+                return null;
+            }
+        }
+
+        private static IList<string> GetRecentDefenderExclusionChanges()
+        {
+            var changes = new List<string>();
+            try
+            {
+                // Query only recent configuration events, newest first; never scan an entire log.
+                const string query = "*[System[(EventID=5007) and TimeCreated[timediff(@SystemTime) <= 604800000]]]";
+                using (var reader = MyUtils.GetEventLogReader("Microsoft-Windows-Windows Defender/Operational", query))
+                {
+                    var started = System.Diagnostics.Stopwatch.StartNew();
+                    for (var inspected = 0; inspected < 48 && changes.Count < 5 &&
+                        started.ElapsedMilliseconds < 1500; inspected++)
+                    {
+                        using (var record = reader.ReadEvent(TimeSpan.FromMilliseconds(200)))
+                        {
+                            if (record == null)
+                                break;
+                            var exclusion = ExtractHistoricalDefenderExclusion(
+                                ExtractDefenderEventNewValue(record.ToXml()));
+                            if (exclusion != null)
+                                changes.Add("    " + record.TimeCreated?.ToString("u") + " " + exclusion);
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Defender or its operational log may be absent or inaccessible.
+            }
+            return changes;
+        }
+
         private static void PrintWindowsDefenderInfo()
         {
             Beaprint.MainPrint("Windows Defender configuration", "T1518.001");
@@ -1863,6 +1944,24 @@ namespace winPEAS.Checks
 
                 Beaprint.ColorPrint("  Group Policy Settings", Beaprint.LBLUE);
                 DisplayDefenderSettings(info.GroupPolicySettings);
+
+                if (info.LocalSettings.PathExclusions.Count == 0 &&
+                    info.LocalSettings.PolicyManagerPathExclusions.Count == 0 &&
+                    info.LocalSettings.ProcessExclusions.Count == 0 &&
+                    info.LocalSettings.ExtensionExclusions.Count == 0 &&
+                    info.GroupPolicySettings.PathExclusions.Count == 0 &&
+                    info.GroupPolicySettings.PolicyManagerPathExclusions.Count == 0 &&
+                    info.GroupPolicySettings.ProcessExclusions.Count == 0 &&
+                    info.GroupPolicySettings.ExtensionExclusions.Count == 0)
+                {
+                    var changes = GetRecentDefenderExclusionChanges();
+                    if (changes.Count != 0)
+                    {
+                        Beaprint.NoColorPrint("\n  Recent exclusion changes in Defender event log (historical; verify current policy):");
+                        foreach (var change in changes)
+                            Beaprint.NoColorPrint(change);
+                    }
+                }
             }
             catch (Exception e)
             {

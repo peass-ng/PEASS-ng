@@ -41,6 +41,15 @@ namespace winPEAS.Checks
                 : StagedComputerStatus.Excluded;
         }
 
+        internal static string DescribeDisabledUserAclTarget(string objectClass, int? userAccountControl)
+        {
+            if (!string.Equals(objectClass, "user", StringComparison.OrdinalIgnoreCase) ||
+                !userAccountControl.HasValue || (userAccountControl.Value & 0x2) == 0)
+                return null;
+            return "Account is disabled; a password reset alone does not permit authentication. " +
+                "Re-enabling it requires separately verified rights and policy.";
+        }
+
         internal enum Esc11RegistryStatus
         {
             Unknown,
@@ -71,6 +80,16 @@ namespace winPEAS.Checks
         internal enum SpnWriteRight { None, WriteProperty, ValidatedSelf }
         internal enum MembershipWriteRight { None, OwnMembership, MemberAttribute }
         internal enum ExactAttributeWriteRight { None, Upn, KeyCredentialLink, AltSecurityIdentities, GmsaReaderList, ScriptPath }
+
+        internal static string DescribeCaAccessMask(int mask)
+        {
+            var rights = new List<string>();
+            if ((mask & 0x1) != 0) rights.Add("CA Administrator");
+            if ((mask & 0x2) != 0) rights.Add("Certificate Manager");
+            if ((mask & 0x200) != 0) rights.Add("Enroll");
+            if ((mask & 0x10000000) != 0) rights.Add("GenericAll (verify CA mapping)");
+            return rights.Count == 0 ? null : string.Join(", ", rights);
+        }
         internal enum LogonScriptPathKind { Missing, Relative, AbsoluteOrUnc, UnsafeRelative }
         internal sealed class LogonScriptReference
         {
@@ -166,6 +185,34 @@ namespace winPEAS.Checks
         internal enum Esc1TemplateStatus { Unknown, NotCandidate, Candidate }
         internal enum Esc9TemplateStatus { Unknown, NotCandidate, Candidate }
         internal enum Esc13TemplateStatus { Unknown, NotCandidate, Candidate }
+        internal enum Esc15TemplateStatus { Unknown, NotCandidate, Candidate }
+
+        internal static Esc15TemplateStatus AssessEsc15Template(int? schemaVersion, int? nameFlags,
+            int? enrollmentFlags, int? requiredSignatures, bool? published)
+        {
+            // This classifies configuration only. CA patch level and request policy are unknown.
+            if (schemaVersion.HasValue && schemaVersion.Value != 1) return Esc15TemplateStatus.NotCandidate;
+            if (nameFlags.HasValue && (nameFlags.Value & 0x1) == 0) return Esc15TemplateStatus.NotCandidate;
+            if (enrollmentFlags.HasValue && (enrollmentFlags.Value & 0x2) != 0) return Esc15TemplateStatus.NotCandidate;
+            if (requiredSignatures.HasValue && requiredSignatures.Value != 0) return Esc15TemplateStatus.NotCandidate;
+            if (published == false) return Esc15TemplateStatus.NotCandidate;
+            if (!schemaVersion.HasValue || !nameFlags.HasValue || !enrollmentFlags.HasValue ||
+                !requiredSignatures.HasValue || !published.HasValue) return Esc15TemplateStatus.Unknown;
+            return Esc15TemplateStatus.Candidate;
+        }
+
+        private sealed class Esc15TemplateObservation
+        {
+            internal string Name;
+            internal int? SchemaVersion;
+            internal int? NameFlags;
+            internal int? EnrollmentFlags;
+            internal int? RequiredSignatures;
+            internal bool DescriptorRead;
+            internal bool CurrentEnrollAllow;
+            internal bool CurrentEnrollDeny;
+            internal readonly HashSet<string> EnrollSids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        }
 
         private sealed class Esc13TemplateObservation
         {
@@ -308,6 +355,148 @@ namespace winPEAS.Checks
                 // LDAP visibility and availability vary by domain; incomplete means unknown.
             }
             return links;
+        }
+
+        private static HashSet<string> ReadPublishedTemplateNames(string configurationNamingContext,
+            out bool complete)
+        {
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            complete = false;
+            try
+            {
+                string baseDn = "LDAP://CN=Enrollment Services,CN=Public Key Services,CN=Services," +
+                    configurationNamingContext;
+                using (var root = new DirectoryEntry(baseDn))
+                using (var search = new DirectorySearcher(root))
+                {
+                    search.Filter = "(objectClass=pKIEnrollmentService)";
+                    search.SearchScope = SearchScope.OneLevel;
+                    search.PropertiesToLoad.Add("certificateTemplates");
+                    search.PageSize = 0;
+                    search.SizeLimit = 121;
+                    search.ReferralChasing = ReferralChasingOption.None;
+                    search.CacheResults = false;
+                    search.ServerTimeLimit = TimeSpan.FromSeconds(2);
+                    search.ClientTimeout = TimeSpan.FromSeconds(2);
+                    using (var results = search.FindAll())
+                    {
+                        int caCount = 0;
+                        foreach (SearchResult result in results)
+                        {
+                            if (++caCount > 120) return names;
+                            if (result.Properties.PropertyNames.Cast<string>().Any(name =>
+                                name.StartsWith("certificateTemplates;range=", StringComparison.OrdinalIgnoreCase)))
+                                return names; // Ranged values make a negative publication result incomplete.
+                            if (!result.Properties.Contains("certificateTemplates")) continue;
+                            foreach (object item in result.Properties["certificateTemplates"])
+                            {
+                                if (names.Count >= 2048) return names;
+                                string name = item?.ToString();
+                                if (!string.IsNullOrWhiteSpace(name)) names.Add(name.Trim());
+                            }
+                        }
+                    }
+                }
+                complete = true;
+            }
+            catch (Exception)
+            {
+                // Unavailable or partial CA publication data is not an all-clear.
+            }
+            return names;
+        }
+
+        internal static string SidToLdapFilterBytes(string sidText)
+        {
+            if (string.IsNullOrEmpty(sidText)) return null;
+            var parts = sidText.Split('-');
+            if (parts.Length < 8 || parts.Length > 18 || parts[0] != "S" ||
+                parts[1] != "1" || parts[2] != "5" || parts[3] != "21") return null;
+            int count = parts.Length - 3;
+            if (count > 15) return null;
+            var bytes = new byte[8 + count * 4];
+            bytes[0] = 1;
+            bytes[1] = (byte)count;
+            bytes[7] = 5;
+            for (int i = 0; i < count; i++)
+            {
+                uint value;
+                if (!uint.TryParse(parts[i + 3], System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture, out value)) return null;
+                for (int offset = 0; offset < 4; offset++)
+                    bytes[8 + i * 4 + offset] = (byte)(value >> (offset * 8));
+            }
+            return string.Concat(bytes.Select(value => "\\" + value.ToString("X2")));
+        }
+
+        private static void PrintDeletedEnrollmentSidMatches(string defaultNamingContext,
+            IEnumerable<string> enrollmentSids)
+        {
+            var sids = enrollmentSids?.Where(sid => !string.IsNullOrEmpty(sid))
+                .Distinct(StringComparer.OrdinalIgnoreCase).Take(17).ToArray();
+            if (sids == null || sids.Length == 0 || string.IsNullOrEmpty(defaultNamingContext)) return;
+            bool sidCap = sids.Length > 16;
+            var selected = sids.Take(16).Select(sid => new { Sid = sid, Filter = SidToLdapFilterBytes(sid) })
+                .Where(item => item.Filter != null).ToArray();
+            if (selected.Length == 0) return;
+            try
+            {
+                string baseDn = "LDAP://CN=Deleted Objects," + defaultNamingContext;
+                using (var root = new DirectoryEntry(baseDn))
+                using (var search = new DirectorySearcher(root))
+                {
+                    search.Tombstone = true;
+                    search.SearchScope = SearchScope.OneLevel;
+                    search.Filter = "(&(isDeleted=TRUE)(|" +
+                        string.Concat(selected.Select(item => "(objectSid=" + item.Filter + ")")) + "))";
+                    search.PropertiesToLoad.Add("objectSid");
+                    search.PropertiesToLoad.Add("objectGUID");
+                    search.PropertiesToLoad.Add("lastKnownParent");
+                    search.PropertiesToLoad.Add("isRecycled");
+                    search.PageSize = 0;
+                    search.SizeLimit = 17;
+                    search.ReferralChasing = ReferralChasingOption.None;
+                    search.CacheResults = false;
+                    search.ServerTimeLimit = TimeSpan.FromSeconds(2);
+                    search.ClientTimeout = TimeSpan.FromSeconds(2);
+                    int shown = 0;
+                    using (var results = search.FindAll())
+                    {
+                        foreach (SearchResult result in results)
+                        {
+                            if (shown >= 16) { sidCap = true; break; }
+                            byte[] sidBytes = result.Properties.Contains("objectSid") &&
+                                result.Properties["objectSid"].Count > 0
+                                ? result.Properties["objectSid"][0] as byte[] : null;
+                            if (sidBytes == null) continue;
+                            string sid;
+                            try { sid = new SecurityIdentifier(sidBytes, 0).Value; }
+                            catch (Exception) { continue; }
+                            if (!selected.Any(item => string.Equals(item.Sid, sid, StringComparison.OrdinalIgnoreCase)))
+                                continue;
+                            byte[] guidBytes = result.Properties.Contains("objectGUID") &&
+                                result.Properties["objectGUID"].Count > 0
+                                ? result.Properties["objectGUID"][0] as byte[] : null;
+                            string guid = guidBytes != null && guidBytes.Length == 16
+                                ? new Guid(guidBytes).ToString() : "unknown";
+                            string parent = GetProp(result, "lastKnownParent") ?? "unknown";
+                            string recycled = GetProp(result, "isRecycled");
+                            Beaprint.GrayPrint("  [*] Deleted-object SID matches a sampled template Enroll ACE: " + sid +
+                                "; object GUID " + guid + "; former parent " + SafeLogonScriptText(parent, 192) +
+                                "; recycled " + (string.IsNullOrEmpty(recycled) ? "unknown" : recycled) + ".");
+                            shown++;
+                        }
+                    }
+                    if (shown > 0)
+                        Beaprint.GrayPrint("  [*] SID match and former parent are review leads only; restoration needs separate Reanimate Tombstones, destination create-child, object/attribute rights, and Recycle Bin state checks.");
+                    if (sidCap)
+                        Beaprint.GrayPrint("  [?] Deleted-object/SID review capped at 16 SIDs or results; others are unknown.");
+                }
+            }
+            catch (Exception)
+            {
+                Beaprint.GrayPrint("  [?] Deleted-object/SID correlation unavailable; container access or LDAP support may be restricted.");
+            }
         }
 
         internal static bool IsCertificateEnrollAce(ActiveDirectoryRights rights, Guid objectType,
@@ -1444,6 +1633,8 @@ namespace winPEAS.Checks
                 {
                     Beaprint.BadPrint($"    -> ACL candidate: {finding.DisplayName} ({finding.ClassName})");
                     Beaprint.GrayPrint("       DN: " + finding.DistinguishedName);
+                    string disabledContext = DescribeDisabledUserAclTarget(finding.ClassName, finding.UserAccountControl);
+                    if (disabledContext != null) Beaprint.GrayPrint("       * " + disabledContext);
                     foreach (var impact in finding.Impacts.OrderByDescending(i => i.Score))
                     {
                         Beaprint.GrayPrint($"       * {impact.Impact}: {impact.Detail}");
@@ -1537,6 +1728,8 @@ namespace winPEAS.Checks
                 DistinguishedName = entry.Properties?["distinguishedName"]?.Value as string ?? entry.Path,
                 ClassName = entry.SchemaClassName ?? "object"
             };
+            if (string.Equals(finding.ClassName, "user", StringComparison.OrdinalIgnoreCase))
+                finding.UserAccountControl = ReadDirectoryEntryInt(entry, "userAccountControl");
 
             var seenImpacts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -1595,6 +1788,19 @@ namespace winPEAS.Checks
 
             aclReadSucceeded = true;
             return finding.Impacts.Count > 0 ? finding : null;
+        }
+
+        private static int? ReadDirectoryEntryInt(DirectoryEntry entry, string property)
+        {
+            try
+            {
+                object value = entry.Properties[property]?.Value;
+                return value == null ? (int?)null : Convert.ToInt32(value);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static IEnumerable<AdAccessImpact> MapRuleToImpacts(ActiveDirectoryAccessRule rule, string targetClass, string schemaNC, string configNC)
@@ -1984,6 +2190,7 @@ namespace winPEAS.Checks
             public string DisplayName { get; set; }
             public string DistinguishedName { get; set; }
             public string ClassName { get; set; }
+            public int? UserAccountControl { get; set; }
             public List<AdAccessImpact> Impacts { get; } = new List<AdAccessImpact>();
             public int MaxScore => Impacts.Count == 0 ? 0 : Impacts.Max(i => i.Score);
         }
@@ -2501,6 +2708,69 @@ namespace winPEAS.Checks
             }
         }
 
+        private static void PrintLocalCaRoleAces(string caPath, HashSet<string> currentSidSet)
+        {
+            if (currentSidSet == null || currentSidSet.Count == 0)
+            {
+                Beaprint.GrayPrint("  [?] Local CA role ACEs unknown: current token SIDs unavailable.");
+                return;
+            }
+            try
+            {
+                using (var key = RegistryHelper.GetReg("HKLM", caPath))
+                {
+                    var descriptor = key?.GetValue("Security") as byte[];
+                    if (descriptor == null || descriptor.Length == 0 || descriptor.Length > 65536)
+                    {
+                        Beaprint.GrayPrint("  [?] Local CA role ACEs unavailable or over 64 KiB.");
+                        return;
+                    }
+                    var security = new RawSecurityDescriptor(descriptor, 0);
+                    if (security.DiscretionaryAcl == null)
+                    {
+                        Beaprint.GrayPrint("  [?] Local CA role DACL unavailable.");
+                        return;
+                    }
+                    int inspected = 0, matching = 0;
+                    bool capped = false;
+                    var timer = System.Diagnostics.Stopwatch.StartNew();
+                    foreach (GenericAce entry in security.DiscretionaryAcl)
+                    {
+                        if (inspected++ >= 256 || timer.ElapsedMilliseconds >= 500)
+                        {
+                            capped = true;
+                            break;
+                        }
+                        var ace = entry as QualifiedAce;
+                        if (ace == null || ace.SecurityIdentifier == null ||
+                            (ace.AceFlags & AceFlags.InheritOnly) != 0 ||
+                            !currentSidSet.Contains(ace.SecurityIdentifier.Value)) continue;
+                        string rights = DescribeCaAccessMask(ace.AccessMask);
+                        if (rights == null) continue;
+                        matching++;
+                        if (matching > 12) continue;
+                        string action = ace.AceQualifier == AceQualifier.AccessDenied ? "Deny" :
+                            ace.AceQualifier == AceQualifier.AccessAllowed ? "Allow" : "Other";
+                        string message = "  Local CA role " + action + " ACE: trustee " +
+                            ace.SecurityIdentifier.Value + ", " + rights +
+                            " (effective CA roles unverified).";
+                        if (action == "Allow") Beaprint.BadPrint(message);
+                        else Beaprint.GrayPrint(message);
+                    }
+                    if (matching > 12)
+                        Beaprint.GrayPrint("  [*] Additional matching CA role ACEs omitted (12 shown).");
+                    if (capped)
+                        Beaprint.GrayPrint("  [?] CA role DACL review capped at 256 ACEs or 500 ms.");
+                    if (matching > 0)
+                        Beaprint.GrayPrint("  [*] Deny ACEs, group context, role separation, CA policy, and effective access must be checked before an ESC7 conclusion.");
+                }
+            }
+            catch (Exception)
+            {
+                Beaprint.GrayPrint("  [?] Local CA role DACL read failed; ESC7 rights unknown on this host.");
+            }
+        }
+
         private void PrintAdcsMisconfigurations()
         {
             try
@@ -2601,6 +2871,7 @@ namespace winPEAS.Checks
                 if (localAssessment.CheckCaSettings)
                 {
                     string caPath = $@"SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\{caName}";
+                    PrintLocalCaRoleAces(caPath, GetCurrentSidSet());
                     uint? interfaceFlags;
                     try
                     {
@@ -2709,6 +2980,7 @@ namespace winPEAS.Checks
                 int esc9Unknown = 0;
                 int esc9Candidates = 0;
                 var esc13Observations = new List<Esc13TemplateObservation>();
+                var esc15Observations = new List<Esc15TemplateObservation>();
 
                 var templatesDn = $"LDAP://CN=Certificate Templates,CN=Public Key Services,CN=Services,{configNC}";
                 PrintCertificateTemplateContainerCreateAces(templatesDn, currentSidSet);
@@ -2726,6 +2998,7 @@ namespace winPEAS.Checks
                     ds.PropertiesToLoad.Add("nTSecurityDescriptor");
                     ds.PropertiesToLoad.Add("cn");
                     ds.PropertiesToLoad.Add("msPKI-Certificate-Name-Flag");
+                    ds.PropertiesToLoad.Add("msPKI-Template-Schema-Version");
                     ds.PropertiesToLoad.Add("msPKI-Enrollment-Flag");
                     ds.PropertiesToLoad.Add("msPKI-RA-Signature");
                     ds.PropertiesToLoad.Add("pKIExtendedKeyUsage");
@@ -2747,6 +3020,7 @@ namespace winPEAS.Checks
                             Esc1TemplateStatus esc1Status = Esc1TemplateStatus.Unknown;
                             Esc9TemplateStatus esc9Status = Esc9TemplateStatus.Unknown;
                             Esc13TemplateObservation esc13Observation = null;
+                            Esc15TemplateObservation esc15Observation = null;
                             bool currentEnrollAllow = false, currentEnrollDeny = false;
                             bool computerEnrollAllow = false, computerEnrollDeny = false;
                             bool descriptorRead = false;
@@ -2762,6 +3036,21 @@ namespace winPEAS.Checks
                                 esc1Status = AssessEsc1Template(GetIntProp(r, "msPKI-Certificate-Name-Flag"),
                                     enrollmentFlags, requiredSignatures, ekus);
                                 esc9Status = AssessEsc9Template(enrollmentFlags, requiredSignatures, ekus);
+                                int? schemaVersion = GetIntProp(r, "msPKI-Template-Schema-Version");
+                                int? nameFlags = GetIntProp(r, "msPKI-Certificate-Name-Flag");
+                                if (AssessEsc15Template(schemaVersion, nameFlags, enrollmentFlags,
+                                    requiredSignatures, true) != Esc15TemplateStatus.NotCandidate)
+                                {
+                                    esc15Observation = new Esc15TemplateObservation
+                                    {
+                                        Name = templateCn,
+                                        SchemaVersion = schemaVersion,
+                                        NameFlags = nameFlags,
+                                        EnrollmentFlags = enrollmentFlags,
+                                        RequiredSignatures = requiredSignatures
+                                    };
+                                    esc15Observations.Add(esc15Observation);
+                                }
                                 if (esc1Status == Esc1TemplateStatus.Unknown) esc1Unknown++;
                                 if (esc9Status == Esc9TemplateStatus.Unknown) esc9Unknown++;
                                 if (r.Properties.Contains("msPKI-Certificate-Policy"))
@@ -2810,11 +3099,14 @@ namespace winPEAS.Checks
                                     if (string.IsNullOrEmpty(sid)) continue;
                                     if ((esc1Status == Esc1TemplateStatus.Candidate ||
                                         esc9Status == Esc9TemplateStatus.Candidate ||
-                                        esc13Observation != null) &&
+                                        esc13Observation != null || esc15Observation != null) &&
                                         IsCertificateEnrollAce(rule.ActiveDirectoryRights, rule.ObjectType,
                                             (rule.PropagationFlags & PropagationFlags.InheritOnly) != 0))
                                     {
                                         bool allowed = rule.AccessControlType == AccessControlType.Allow;
+                                        if (allowed && esc15Observation != null &&
+                                            sid.StartsWith("S-1-5-21-", StringComparison.OrdinalIgnoreCase))
+                                            esc15Observation.EnrollSids.Add(sid);
                                         if (currentSidSet.Contains(sid))
                                         {
                                             if (allowed) currentEnrollAllow = true;
@@ -2866,6 +3158,12 @@ namespace winPEAS.Checks
                                 esc13Observation.CurrentEnrollDeny = currentEnrollDeny;
                                 esc13Observation.ComputerEnrollAllow = computerEnrollAllow;
                                 esc13Observation.ComputerEnrollDeny = computerEnrollDeny;
+                            }
+                            if (esc15Observation != null)
+                            {
+                                esc15Observation.DescriptorRead = descriptorRead;
+                                esc15Observation.CurrentEnrollAllow = currentEnrollAllow;
+                                esc15Observation.CurrentEnrollDeny = currentEnrollDeny;
                             }
                             if (esc1Status == Esc1TemplateStatus.Candidate)
                             {
@@ -2940,6 +3238,48 @@ namespace winPEAS.Checks
                     Beaprint.GrayPrint("  [*] ESC13 still requires a published template, CA enrollment rights, effective ACLs, and a working certificate-authentication path; no certificate was requested.");
                 }
 
+                if (esc15Observations.Count > 0)
+                {
+                    bool publicationComplete;
+                    var publishedNames = ReadPublishedTemplateNames(configNC, out publicationComplete);
+                    int candidates = 0, unknown = 0;
+                    var sidRows = new List<string>();
+                    foreach (var observation in esc15Observations)
+                    {
+                        bool? published = publicationComplete
+                            ? (bool?)publishedNames.Contains(observation.Name) : null;
+                        var status = AssessEsc15Template(observation.SchemaVersion, observation.NameFlags,
+                            observation.EnrollmentFlags, observation.RequiredSignatures, published);
+                        if (status == Esc15TemplateStatus.Unknown) unknown++;
+                        if (status != Esc15TemplateStatus.NotCandidate)
+                            sidRows.AddRange(observation.EnrollSids);
+                        if (status != Esc15TemplateStatus.Candidate) continue;
+                        candidates++;
+                        if (candidates > 20) continue;
+                        string enrollment = DescribeEsc1EnrollAceEvidence(observation.DescriptorRead,
+                            observation.CurrentEnrollAllow, observation.CurrentEnrollDeny,
+                            false, false, false);
+                        string message = "  ESC15 configuration candidate: published V1 template " +
+                            SafeLogonScriptText(observation.Name, 128) + " (" + enrollment +
+                            "; CA patch state unknown).";
+                        if (observation.CurrentEnrollAllow && !observation.CurrentEnrollDeny)
+                            Beaprint.BadPrint(message);
+                        else Beaprint.GrayPrint(message);
+                    }
+                    Beaprint.GrayPrint("  [*] ESC15 configuration review: " + esc15Observations.Count +
+                        " possible V1 template(s), " + candidates + " published candidate(s), " +
+                        unknown + " with incomplete evidence.");
+                    if (!publicationComplete)
+                        Beaprint.GrayPrint("  [?] CA publication query incomplete; no template is cleared by missing publication evidence.");
+                    if (candidates > 20)
+                        Beaprint.GrayPrint("  [*] Additional ESC15 candidates omitted from display.");
+                    Beaprint.GrayPrint("  [*] CA patch state, effective enrollment/issuance rights, application-policy handling, second-stage template, and certificate authentication remain unverified.");
+
+                    // Exact SID lookup only; never enumerate all deleted directory objects.
+                    PrintDeletedEnrollmentSidMatches(GetRootDseProp("defaultNamingContext"),
+                        sidRows.Where(sid => !currentSidSet.Contains(sid)));
+                }
+
                 Beaprint.GrayPrint("  [*] ESC1 configuration review: " + esc1Checked + " template(s) assessed, "
                     + esc1Candidates + " candidate(s), " + esc1Unknown + " with incomplete attributes.");
                 Beaprint.GrayPrint("  [*] ESC9 no-SID-extension review: " + esc1Checked + " template(s) assessed, "
@@ -2949,7 +3289,7 @@ namespace winPEAS.Checks
                 if (esc9Candidates > 20)
                     Beaprint.GrayPrint("  [*] " + (esc9Candidates - 20) + " additional ESC9 candidate(s) omitted from display.");
                 if (esc1Capped)
-                    Beaprint.GrayPrint("  [?] ESC1/ESC4/ESC9/ESC13 assessment capped at 120 templates or 5 seconds; remaining templates are unknown.");
+                    Beaprint.GrayPrint("  [?] ESC1/ESC4/ESC9/ESC13/ESC15 assessment capped at 120 templates or 5 seconds; remaining templates are unknown.");
                 Beaprint.GrayPrint("  [*] Template flags and allow ACEs are leads only; publication, CA rights, effective ACLs and KDC strong SID mapping remain unverified.");
                 if (esc9Candidates > 0)
                     Beaprint.GrayPrint("  [*] ESC9 mapping caveat: current patched KDCs require a strong certificate mapping; the historical StrongCertificateBindingEnforcement compatibility override ended in September 2025. Schannel UPN mapping is a separate endpoint setting. Local registry values do not prove the effective authentication path or a writable target UPN.");
