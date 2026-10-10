@@ -29,6 +29,7 @@ jobs:
       CHACK_LOGS_HTTP_URL: ${{ secrets.CHACK_LOGS_HTTP_URL }}
     outputs:
       should_run: ${{ steps.gate.outputs.should_run }}
+      still_open: ${{ steps.live_pr.outputs.open }}
       pr_number: ${{ steps.gate.outputs.pr_number }}
       pr_title: ${{ steps.gate.outputs.pr_title }}
       pr_body: ${{ steps.gate.outputs.pr_body }}
@@ -64,6 +65,14 @@ jobs:
             echo "No pull request found for this workflow_run; skipping."
             echo "should_run=false" >> "$GITHUB_OUTPUT"
             echo "pr_number=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          pr_state="$(gh pr view "$pr_number" --json state --jq .state)"
+          if [ "$pr_state" != "OPEN" ]; then
+            echo "PR #$pr_number is $pr_state; skipping review."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -223,9 +232,26 @@ jobs:
           codex_access_token: ${{ secrets.CODEX_ACCESS_TOKEN }}
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
 
+      - name: Check PR is still open at reviewed head
+        id: live_pr
+        if: ${{ steps.gate.outputs.should_run == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.gate.outputs.pr_number }}
+          REVIEWED_HEAD_SHA: ${{ steps.gate.outputs.head_sha }}
+        run: |
+          pr_state="$(gh pr view "$PR_NUMBER" --json state --jq .state)"
+          current_head_sha="$(gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid)"
+          if [ "$pr_state" = "OPEN" ] && [ "$current_head_sha" = "$REVIEWED_HEAD_SHA" ]; then
+            echo "open=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "PR #$PR_NUMBER is $pr_state at $current_head_sha; skipping stale review actions."
+            echo "open=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Commit and push Chack Agent fixes
         id: push_fix
-        if: ${{ steps.gate.outputs.should_run == 'true' && steps.gate.outputs.trusted_automerge != 'true' }}
+        if: ${{ steps.live_pr.outputs.open == 'true' && steps.gate.outputs.trusted_automerge != 'true' }}
         env:
           TARGET_BRANCH: ${{ steps.gate.outputs.head_ref }}
           PR_NUMBER: ${{ steps.gate.outputs.pr_number }}
@@ -321,7 +347,7 @@ jobs:
   merge_or_comment:
     runs-on: ubuntu-latest
     needs: chack_agent_triage
-    if: ${{ (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success') && needs.chack_agent_triage.outputs.should_run == 'true' && (needs.chack_agent_triage.outputs.trusted_automerge == 'true' || needs.chack_agent_triage.outputs.decision != '') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success') && needs.chack_agent_triage.outputs.still_open == 'true' && (needs.chack_agent_triage.outputs.trusted_automerge == 'true' || needs.chack_agent_triage.outputs.decision != '') }}
     permissions:
       contents: write
       pull-requests: write
@@ -338,6 +364,11 @@ jobs:
           if [ "$TRUSTED_AUTOMERGE" = "true" ]; then
             echo "Auto-merging trusted generated PR #${PR_NUMBER}: ${TRUSTED_AUTOMERGE_REASON}"
           fi
+          pr_state="$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json state --jq .state)"
+          if [ "$pr_state" != "OPEN" ]; then
+            echo "PR #${PR_NUMBER} is $pr_state; skipping merge."
+            exit 0
+          fi
           current_head_sha="$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json headRefOid --jq .headRefOid)"
           if [ "$current_head_sha" != "$VALIDATED_HEAD_SHA" ]; then
             echo "PR #${PR_NUMBER} changed since review; skipping merge of stale head ${VALIDATED_HEAD_SHA}."
@@ -353,6 +384,11 @@ jobs:
             exit 0
           fi
           # Another run can update the head between the check and the merge request.
+          pr_state="$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json state --jq .state)"
+          if [ "$pr_state" != "OPEN" ]; then
+            echo "PR #${PR_NUMBER} closed during merge; no further action needed."
+            exit 0
+          fi
           current_head_sha="$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json headRefOid --jq .headRefOid)"
           if [ "$current_head_sha" != "$VALIDATED_HEAD_SHA" ]; then
             echo "PR #${PR_NUMBER} changed during merge; leaving its newer head for review."
