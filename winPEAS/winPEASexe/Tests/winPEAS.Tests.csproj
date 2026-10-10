@@ -169,6 +169,7 @@
     <Compile Include="Pdf24RepairPrerequisitesTests.cs" />
     <Compile Include="FirefoxCredentialFilePathTests.cs" />
     <Compile Include="PrinterDriverAclReviewTests.cs" />
+    <Compile Include="DefenderEngineCve41091Tests.cs" />
     <Compile Include="DefenderPathExclusionDisplayTests.cs" />
     <Compile Include="StorvspVsmbRuntimeTests.cs" />
     <Compile Include="SearchHelperRuntimeTests.cs" />
