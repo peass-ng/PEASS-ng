@@ -59,7 +59,7 @@ class SelectorCatalogLoadingTests(unittest.TestCase):
         builder.bash_storages = set()
         builder._LinpeasBuilder__get_files_to_search()
         finds, _ = builder._LinpeasBuilder__generate_finds()
-        names = [line.split("=", 1)[0] for line in finds]
+        names = [line.split()[1] for line in finds if line.startswith("cache_find ")]
         self.assertTrue(all(re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name)
                             for name in names))
         self.assertIn("FIND_DATASTORE_BACKUPS", names)

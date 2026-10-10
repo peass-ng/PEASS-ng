@@ -8,7 +8,7 @@
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $VERSION, $ADVISORY, $IAMROOT, $MAXPATH_FIND_W, $C, $RED, $SED_RED, $GREEN, $SED_GREEN, $YELLOW, $SED_YELLOW, $RED_YELLOW, $SED_RED_YELLOW, $BLUE, $SED_BLUE, $ITALIC_BLUE, $LIGHT_MAGENTA, $SED_LIGHT_MAGENTA, $LIGHT_CYAN, $SED_LIGHT_CYAN, $LG, $SED_LG, $DG, $SED_DG, $NC, $UNDERLINED, $ITALIC, $MACPEAS, $FAST, $SUPERFAST, $DISCOVERY, $PORTS, $QUIET, $CHECKS, $MITRE_FILTER, $SEARCH_IN_FOLDER, $ROOT_FOLDER, $WAIT, $PASSWORD, $NOCOLOR, $DEBUG, $AUTO_NETWORK_SCAN, $EXTRA_CHECKS, $REGEXES, $PORT_FORWARD, $NOT_CHECK_EXTERNAL_HOSTNAME, $ONLINE_VULN_CHECKS, $E, $PING, $FPING, $DISCOVER_BAN_BAD, $DISCOVER_BAN_GOOD, $SCAN_BAN_GOOD, $NMAP_GOOD, $SCRIPTNAME, $FOUND_BASH, $FOUND_NC, $HOMESEARCH, $GREPHOMESEARCH, $SCAN_BAN_BAD, $HOME, $THREADS, $opt, $HELP, $USER, $TOTAL_T1_TIME, $END_T1_TIME, $START_T1_TIME, $title, $title_len, $max_title_len, $rest_len, $CONT_THREADS, $wgroups, $SEDOVERFLOW, $Wfolders, $Wfolder, $grp, $END_T2_TIME, $TOTAL_T2_TIME, $START_T2_TIME, $_mitre_tag, $_mitre_filter, $_mitre_base, $_mitre_tags_left, $_mitre_filters_left
+# Generated Global Variables: $VERSION, $ADVISORY, $IAMROOT, $MAXPATH_FIND_W, $C, $RED, $SED_RED, $GREEN, $SED_GREEN, $YELLOW, $SED_YELLOW, $RED_YELLOW, $SED_RED_YELLOW, $BLUE, $SED_BLUE, $ITALIC_BLUE, $LIGHT_MAGENTA, $SED_LIGHT_MAGENTA, $LIGHT_CYAN, $SED_LIGHT_CYAN, $LG, $SED_LG, $DG, $SED_DG, $NC, $UNDERLINED, $ITALIC, $MACPEAS, $FAST, $SUPERFAST, $DISCOVERY, $PORTS, $QUIET, $CHECKS, $MITRE_FILTER, $SEARCH_IN_FOLDER, $ROOT_FOLDER, $WAIT, $PASSWORD, $NOCOLOR, $DEBUG, $AUTO_NETWORK_SCAN, $EXTRA_CHECKS, $REGEXES, $PORT_FORWARD, $NOT_CHECK_EXTERNAL_HOSTNAME, $ONLINE_VULN_CHECKS, $E, $PING, $FPING, $DISCOVER_BAN_BAD, $DISCOVER_BAN_GOOD, $SCAN_BAN_GOOD, $NMAP_GOOD, $SCRIPTNAME, $FOUND_BASH, $FOUND_NC, $HOMESEARCH, $GREPHOMESEARCH, $SCAN_BAN_BAD, $HOME, $THREADS, $opt, $HELP, $USER, $TOTAL_T1_TIME, $END_T1_TIME, $START_T1_TIME, $title, $title_len, $max_title_len, $rest_len, $CONT_THREADS, $wgroups, $WF_ALL, $WF_TIMEOUT, $WF_STATUS, $bf_limit, $wf_pid, $wf_timer, $wf_rc, $SEDOVERFLOW, $Wfolders, $Wfolder, $grp, $END_T2_TIME, $TOTAL_T2_TIME, $START_T2_TIME, $_mitre_tag, $_mitre_filter, $_mitre_base, $_mitre_tags_left, $_mitre_filters_left
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -86,7 +86,7 @@ REGEXES=""
 PORT_FORWARD=""
 NOT_CHECK_EXTERNAL_HOSTNAME=""
 ONLINE_VULN_CHECKS=""
-THREADS="$( ( (grep -c processor /proc/cpuinfo 2>/dev/null) || ( (command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || echo -n 2) | tr -d "\n")"
+THREADS="$( ( (grep -c processor /proc/cpuinfo 2>/dev/null) || ( (command -v lscpu >/dev/null 2>&1) && (lscpu | grep '^CPU(s):' | awk '{print $2}')) || sysctl -n hw.ncpu 2>/dev/null || echo -n 2) | tr -d "\n")"
 [ "$THREADS" -eq "$THREADS" ] 2>/dev/null && : || THREADS="2" #If THREADS is not a number, put number 2
 [ "$THREADS" -lt 1 ] 2>/dev/null && THREADS="2" #If THREADS is 0 or negative, put number 2 (avoids division-by-zero in eval_bckgrd)
 HELP=$GREEN"Enumerate and search Privilege Escalation vectors.
@@ -523,14 +523,43 @@ if [ ! "$HOME" ]; then
   fi
 fi
 
+WF_TIMEOUT="$(command -v timeout 2>/dev/null || command -v gtimeout 2>/dev/null || :)"
+bounded_command() {
+  bf_limit=$1
+  shift
+  if [ "$WF_TIMEOUT" ]; then
+    "$WF_TIMEOUT" "$bf_limit" "$@" 2>/dev/null
+    return $?
+  fi
+  # POSIX shell fallback when neither timeout nor gtimeout is installed.
+  "$@" 2>/dev/null &
+  wf_pid=$!
+  (sleep "$bf_limit"; kill "$wf_pid" 2>/dev/null) >/dev/null 2>&1 &
+  wf_timer=$!
+  wait "$wf_pid"
+  wf_rc=$?
+  kill "$wf_timer" 2>/dev/null
+  wait "$wf_timer" 2>/dev/null
+  return "$wf_rc"
+}
+if [ "$CHECKS" = "container" ]; then
+  # Container-only checks never use Wfolders or Wfolder. Avoid a host-wide
+  # writable-directory inventory before inspecting runtime settings.
+  Wfolders='[a-zA-Z]+[a-zA-Z0-9]* +\*'
+  Wfolder=/tmp
+else
+WF_ALL=$(bounded_command 60 find / -maxdepth "$MAXPATH_FIND_W" \
+  '(' -path /proc -o -path /sys -o -path /System/Volumes/Data ')' -prune -o \
+  -type d '(' -user "$USER" -o -perm -o=w -o '(' -perm -g=w -a '(' $wgroups ')' ')' ')' -print)
+WF_STATUS=$?
+case "$WF_STATUS" in 124|143) printf '%s\n' 'Writable directory search reached 60 seconds; results may be incomplete' >&2;; esac
+WF_ALL=$(printf '%s\n' "$WF_ALL" | sort)
 SEDOVERFLOW=true
 while $SEDOVERFLOW; do
-  #WF=`find /dev /srv /proc /home /media /sys /lost+found /run /etc /root /var /tmp /mnt /boot /opt -type d -maxdepth $MAXPATH_FIND_W -writable -or -user $USER 2>/dev/null | sort`
-  #if [ "$MACPEAS" ]; then
-    WF=$(find / -maxdepth $MAXPATH_FIND_W -type d ! -path "/proc/*" '(' '(' -user $USER ')' -or '(' -perm -o=w ')' -or  '(' -perm -g=w -and '(' $wgroups ')' ')' ')'  2>/dev/null | sort) #OpenBSD find command doesn't have "-writable" option
-  #else
-  #  WF=`find / -maxdepth $MAXPATH_FIND_W -type d ! -path "/proc/*" -and '(' -writable -or -user $USER ')' 2>/dev/null | sort`
-  #fi
+  # The maximum-depth result is reused when the sed expression must be
+  # shortened. Re-running find / for every smaller depth is very costly on
+  # large home directories and produces the same filtered list.
+  WF=$(printf '%s\n' "$WF_ALL" | awk -v maxdepth="$MAXPATH_FIND_W" '{ if (gsub(/\//, "/", $0) <= maxdepth) print }')
   Wfolders=$(printf "%s" "$WF" | tr '\n' '|')"|[a-zA-Z]+[a-zA-Z0-9]* +\*"
   Wfolder="$(printf "%s" "$WF" | grep "/shm" | head -n1)"  # Try to get /dev/shm
   if ! [ "$Wfolder" ]; then
@@ -546,6 +575,7 @@ while $SEDOVERFLOW; do
      SEDOVERFLOW=false
   fi
 done
+fi
 
 #Get HOMESEARCH
 if [ "$SEARCH_IN_FOLDER" ]; then

@@ -8,7 +8,7 @@
 # Functions Used: echo_not_found
 # Global Variables: $GREP_DOCKER_SOCK_INFOS, $GREP_DOCKER_SOCK_INFOS_IGNORE
 # Initial Functions:
-# Generated Global Variables: $SEARCHED_DOCKER_SOCKETS, $docker_enumerated, $dockerVersion, $int_sock, $sockInfoResponse, $IFS, $OLDIFS
+# Generated Global Variables: $SEARCHED_DOCKER_SOCKETS, $docker_enumerated, $dockerVersion, $int_sock, $sockInfoResponse, $IFS, $OLDIFS, $runtime_socket_find, $runtime_socket_status
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -20,9 +20,16 @@ enumerateDockerSockets() {
     OLDIFS="$IFS"
     IFS='
 '
-    # NOTE: This is intentionally "lightweight" (checks common runtime socket names) and avoids
-    # pseudo filesystems (/sys, /proc) to reduce noise and latency.
-    for int_sock in $(find / \
+    # Search the whole tree but stop on very large hosts; find prints matches as it goes.
+    # Search the usual runtime roots first so their sockets are still covered at the limit.
+    runtime_socket_find=""
+    for int_sock in /run /var/run /tmp /var/tmp /var/lib/docker /var/lib/containers "$HOME/.docker" /home/*/.docker /Users/*/.docker; do
+      [ -d "$int_sock" ] || continue
+      runtime_socket_find="$runtime_socket_find
+$(bounded_command 5 find "$int_sock" -type s \( -name 'docker.sock' -o -name 'docker.socket' -o -name 'cri-dockerd.sock' -o -name 'dockershim.sock' -o -name 'containerd.sock' -o -name 'containerd.sock.ttrpc' -o -name 'crio.sock' -o -name 'podman.sock' -o -name 'kubelet.sock' -o -name 'buildkitd.sock' -o -name 'buildkit.sock' -o -name 'firecracker-containerd.sock' -o -name 'frakti.sock' -o -name 'rktlet.sock' \) -print)"
+    done
+    runtime_socket_find="$runtime_socket_find
+$(bounded_command 30 find / \
       -path "/sys" -prune -o \
       -path "/proc" -prune -o \
       -type s \( \
@@ -40,7 +47,10 @@ enumerateDockerSockets() {
         -name "firecracker-containerd.sock" -o \
         -name "frakti.sock" -o \
         -name "rktlet.sock" \
-      \) -print 2>/dev/null); do
+      \) -print)"
+    runtime_socket_status=$?
+    case "$runtime_socket_status" in 124|143) echo "Runtime socket search reached 30 seconds; results may be incomplete";; esac
+    for int_sock in $(printf '%s\n' "$runtime_socket_find" | sort -u); do
 
       # Basic permissions hint (you generally need write perms to connect to a unix socket).
       if [ -w "$int_sock" ]; then
@@ -69,7 +79,7 @@ enumerateDockerSockets() {
       # Use DOCKER_HOST so we can target non-default socket paths when possible.
       if [ "$(command -v docker 2>/dev/null || echo -n '')" ] && ! [ "$docker_enumerated" ]; then
         if [ -w "$int_sock" ] && echo "$int_sock" | grep -Eq "docker"; then
-          sockInfoResponse="$(DOCKER_HOST="unix://$int_sock" docker info 2>/dev/null)"
+          sockInfoResponse="$(bounded_command 8 env DOCKER_HOST="unix://$int_sock" docker info)"
           if [ "$sockInfoResponse" ]; then
             dockerVersion=$(echo "$sockInfoResponse" | grep -i "^ Server Version:" | awk '{print $4}' | head -n 1)
             printf "%s\n" "$sockInfoResponse" | grep -E "$GREP_DOCKER_SOCK_INFOS" | grep -v "$GREP_DOCKER_SOCK_INFOS_IGNORE" | tr -d '"'

@@ -33,12 +33,12 @@ class BackupFoldersTests(unittest.TestCase):
                 check=True,
             )
             lines = output_path.read_text().splitlines()
-            directory_find = next(line for line in lines if "FIND_DIR_VAR=" in line)
-            file_find = next(line for line in lines if "FIND_VAR=" in line)
+            directory_find = next(line for line in lines if "cache_find FIND_DIR_VAR " in line)
+            file_find = next(line for line in lines if "cache_find FIND_VAR " in line)
             storage = next(line for line in lines if "PSTORAGE_BACKUPS=" in line)
             for name in ("backup", "backups"):
-                self.assertIn(f'-name \\"{name}\\"', directory_find)
-                self.assertIn(f'-name \\"{name}\\"', file_find)
+                self.assertIn(f'-name "{name}"', directory_find)
+                self.assertIn(f'-name "{name}"', file_find)
             self.assertIn("$FIND_DIR_VAR", storage)
             self.assertIn("$FIND_VAR", storage)
 

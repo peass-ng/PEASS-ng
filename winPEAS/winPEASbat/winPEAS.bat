@@ -457,7 +457,7 @@ CALL :T_Progress 1
 :CurrentClipboard
 CALL :ColorLine " %E%33m[+]%E%97m CURRENT CLIPBOARD"
 ECHO.   [i] Any passwords inside the clipboard?
-powershell -command "Get-Clipboard" 2>nul
+powershell -NoProfile -Command "$clip = Start-Job { Get-Clipboard }; if (Wait-Job $clip -Timeout 5) { Receive-Job $clip } else { Write-Output '[i] Clipboard query timed out after 5 seconds.' }; Remove-Job $clip -Force -ErrorAction SilentlyContinue" 2>nul
 ECHO.
 CALL :T_Progress 1
 

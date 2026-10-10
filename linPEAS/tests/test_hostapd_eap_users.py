@@ -27,8 +27,8 @@ class HostapdEapUserTests(unittest.TestCase):
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
             script = output.read_text()
 
-            etc_find = re.search(r"(?m)^\s*FIND_ETC=(.*)$", script)
-            var_find = re.search(r"(?m)^\s*FIND_VAR=(.*)$", script)
+            etc_find = re.search(r"(?m)^\s*cache_find FIND_ETC (.*)$", script)
+            var_find = re.search(r"(?m)^\s*cache_find FIND_VAR (.*)$", script)
             storage = re.search(r"(?m)^\s*PSTORAGE_HOSTAPD=(.*)$", script)
             self.assertIsNotNone(etc_find)
             self.assertIsNotNone(var_find)

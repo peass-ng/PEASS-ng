@@ -72,7 +72,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
   log_find_exec_end='+'
   find /dev/null -exec true '{}' + >/dev/null 2>&1 || log_find_exec_end=';'
   # shellcheck disable=SC2067
-  (find /var/log/ /var/logs/ /private/var/log -type f -exec grep -R -H -i "pwd\|passw" "{}" "$log_find_exec_end") 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | grep -v "File does not exist:\|modules-config/config-set-passwords\|config-set-passwords already ran\|script not found or unable to stat:\|\"GET /.*\" 404" | head -n 70 | sed -${E} "s,pwd|passw,${SED_RED},"
+  (find /var/log/ /var/logs/ /private/var/log -type f -exec grep -H -i "pwd\|passw" "{}" "$log_find_exec_end") 2>/dev/null | sed '/^.\{150\}./d' | sort | uniq | grep -v "File does not exist:\|modules-config/config-set-passwords\|config-set-passwords already ran\|script not found or unable to stat:\|\"GET /.*\" 404" | head -n 70 | sed -${E} "s,pwd|passw,${SED_RED},"
   lp_http_log_credential_cues \
     /var/log/apache2/access.log /var/log/apache2/access.log.1 \
     /var/log/httpd/access_log /var/log/httpd/access_log.1 \
