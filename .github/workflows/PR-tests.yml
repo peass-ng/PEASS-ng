@@ -84,6 +84,26 @@ jobs:
             Write-Error "winPEAS.exe not found at $exePath"
           }
 
+      - name: Verify winPEAS batch clipboard timeout
+        shell: pwsh
+        timeout-minutes: 1
+        run: |
+          $line = Get-Content winPEAS/winPEASbat/winPEAS.bat |
+            Where-Object { $_ -match 'Start-Job.*Get-Clipboard' } |
+            Select-Object -First 1
+          if (!$line) { throw 'Clipboard check not found in winPEAS.bat' }
+          $testLine = $line.Replace('Get-Clipboard', 'Start-Sleep -Seconds 30')
+          $testBat = Join-Path $env:RUNNER_TEMP 'winpeas-clipboard-timeout.bat'
+          [System.IO.File]::WriteAllText($testBat, "@echo off`r`n$testLine`r`n")
+          $watch = [System.Diagnostics.Stopwatch]::StartNew()
+          $output = & cmd.exe /d /c $testBat
+          if ($LASTEXITCODE -ne 0 -or $output -notmatch 'Clipboard query timed out after 5 seconds') {
+            throw 'Clipboard check did not stop the delayed job'
+          }
+          if ($watch.Elapsed.TotalSeconds -gt 20) {
+            throw "Clipboard check took $($watch.Elapsed.TotalSeconds) seconds"
+          }
+
       - name: Execute winPEAS cloudinfo
         shell: pwsh
         run: |
@@ -414,8 +434,9 @@ jobs:
       - name: Run macpeas system_information
         run: linPEAS/linpeas_fat.sh -o system_information -a
       
-      # - name: Run macpeas container
-      #   run: linPEAS/linpeas_fat.sh -o container -a
+      - name: Run macpeas container
+        timeout-minutes: 4
+        run: linPEAS/linpeas_fat.sh -M -o container -n -N
       
       # - name: Run macpeas cloud
       #   run: linPEAS/linpeas_fat.sh -o cloud -a

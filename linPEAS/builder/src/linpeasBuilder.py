@@ -19,8 +19,6 @@ from .yamlGlobals import (
     INT_HIDDEN_FILES_MARKUP,
     ROOT_FOLDER,
     STORAGE_TEMPLATE,
-    FIND_TEMPLATE,
-    FIND_LINE_MARKUP,
     STORAGE_LINE_MARKUP,
     STORAGE_LINE_EXTRA_MARKUP,
     EXTRASECTIONS_MARKUP,
@@ -55,8 +53,8 @@ class LinpeasBuilder:
         if len(re.findall(r"PSTORAGE_[a-zA-Z0-9_]+", self.linpeas_sh)) > 1: #Only add storages if there are storages (PSTORAGE_BACKUPS is always there so it doesn't count)
             print("[+] Building finds...")
             find_calls, find_custom_calls = self.__generate_finds()
-            self.__replace_mark(PEAS_FINDS_MARKUP, find_calls, "  ")
-            self.__replace_mark(PEAS_FINDS_CUSTOM_MARKUP, find_custom_calls, "  ")
+            self.__replace_mark(PEAS_FINDS_MARKUP, find_calls, "\n  ")
+            self.__replace_mark(PEAS_FINDS_CUSTOM_MARKUP, find_custom_calls, "\n  ")
 
             print("[+] Building storages...")
             storage_vars = self.__generate_storages()
@@ -186,23 +184,31 @@ class LinpeasBuilder:
                         self.bash_find_f_vars.add(bash_find_var)
                         all_file_regexes += regexes
 
-                    find_line += '\\( -name \\"' + '\\" -o -name \\"'.join(regexes) + '\\" \\)'
-                    find_line = FIND_TEMPLATE.replace(FIND_LINE_MARKUP, find_line)
-                    find_line = f"{bash_find_var}={find_line}"
+                    find_line += '\\( -name "' + '" -o -name "'.join(regexes) + '" \\)'
+                    find_line = f"cache_find {bash_find_var} {find_line}"
                     finds.append(find_line)
         
         # Buid folder and files finds when searching in a custom folder
         all_folder_regexes = list(set(all_folder_regexes))
-        find_line = '$SEARCH_IN_FOLDER -type d \\( -name \\"' + '\\" -o -name \\"'.join(all_folder_regexes) + '\\" \\)'
-        find_line = FIND_TEMPLATE.replace(FIND_LINE_MARKUP, find_line)
-        find_line = f"FIND_DIR_CUSTOM={find_line}"
+        find_line = '"$SEARCH_IN_FOLDER" -type d \\( -name "' + '" -o -name "'.join(all_folder_regexes) + '" \\)'
+        find_line = f"cache_find FIND_DIR_CUSTOM {find_line}"
         finds_custom.append(find_line)
         
         all_file_regexes = list(set(all_file_regexes))
-        find_line = '$SEARCH_IN_FOLDER \\( -name \\"' + '\\" -o -name \\"'.join(all_file_regexes) + '\\" \\)'
-        find_line = FIND_TEMPLATE.replace(FIND_LINE_MARKUP, find_line)
-        find_line = f"FIND_CUSTOM={find_line}"
+        find_line = '"$SEARCH_IN_FOLDER" \\( -name "' + '" -o -name "'.join(all_file_regexes) + '" \\)'
+        find_line = f"cache_find FIND_CUSTOM {find_line}"
         finds_custom.append(find_line)
+
+        # Read the results only after every background find has finished.
+        # Command substitutions around background jobs wait for their output
+        # pipes and turn the apparent parallelism into serial traversals.
+        for calls, variables in (
+            (finds, sorted(self.bash_find_d_vars | self.bash_find_f_vars)),
+            (finds_custom, ["FIND_DIR_CUSTOM", "FIND_CUSTOM"]),
+        ):
+            calls.append("wait")
+            calls.extend(f'{var}=$(cat "$FIND_CACHE_DIR/{var}" 2>/dev/null)' for var in variables)
+            calls.append('rm -rf "$FIND_CACHE_DIR"')
             
         return finds, finds_custom
 

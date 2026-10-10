@@ -13,4 +13,4 @@
 # Small linpeas: 1
 
 
-TIMEOUT="$(command -v timeout 2>/dev/null || echo -n '')"
+TIMEOUT="$(command -v timeout 2>/dev/null || command -v gtimeout 2>/dev/null || :)"

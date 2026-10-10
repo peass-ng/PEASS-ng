@@ -48,6 +48,7 @@ fi
 
 if [ "$MACPEAS" ] && [ "$(command -v brew 2>/dev/null || echo -n '')" ]; then
     print_2title "Brew Doctor Suggestions" "T1082"
-    brew doctor
+    bounded_command 20 brew doctor
+    case "$?" in 124|143) echo 'brew doctor reached 20 seconds; suggestions may be incomplete';; esac
     echo ""
 fi
