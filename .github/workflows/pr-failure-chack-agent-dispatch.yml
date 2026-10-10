@@ -7,7 +7,7 @@ on:
 
 jobs:
   resolve_pr_context:
-    if: >
+    if: >-
       ${{ github.event.workflow_run.conclusion == 'failure' &&
           !startsWith(github.event.workflow_run.head_commit.message || '', 'Fix CI failures for PR #') }}
     runs-on: ubuntu-latest
@@ -26,6 +26,7 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          SOURCE_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           GH_TOKEN: ${{ github.token }}
         run: |
           if [ -z "$PR_NUMBER" ] && [ -n "$HEAD_BRANCH" ]; then
@@ -51,6 +52,14 @@ jobs:
           pr_head_branch=$(gh api -H "Accept: application/vnd.github+json" \
             /repos/${{ github.repository }}/pulls/${PR_NUMBER} \
             --jq '.head.ref')
+          pr_head_sha=$(gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/pulls/${PR_NUMBER} \
+            --jq '.head.sha')
+          if [ "$pr_head_sha" != "$SOURCE_HEAD_SHA" ]; then
+            echo "PR #${PR_NUMBER} moved from failed head $SOURCE_HEAD_SHA to $pr_head_sha; skipping stale fix."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           pr_labels=$(gh api -H "Accept: application/vnd.github+json" \
             /repos/${{ github.repository }}/issues/${PR_NUMBER} \
             --jq '.labels[].name')

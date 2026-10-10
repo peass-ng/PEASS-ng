@@ -5,12 +5,23 @@ on:
     branches:
       - master
       - main
-    paths-ignore:
-      - '.github/**'
 
   workflow_dispatch:
 
 jobs:
+  Validate_workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+          cache: false
+      - name: Lint GitHub Actions workflows
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+          "$(go env GOPATH)/bin/actionlint" -shellcheck= -pyflakes=
+
   Build_and_test_winpeas_pr:
     runs-on: windows-latest
     
