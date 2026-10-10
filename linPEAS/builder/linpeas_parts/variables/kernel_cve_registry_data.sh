@@ -2,7 +2,7 @@
 # ID: kernel_cve_registry_data
 # Author: Carlos Polop
 # Contributor: Arjay Saguisa
-# Last Update: 28-09-2026
+# Last Update: 10-10-2026
 # Description: Embedded kernel exploit matching datasets extracted from linux-exploit-suggester and linux-exploit-suggester-2 examples. Data is split across KERNEL_CVE_DATA_1..X with a maximum of 25 rows per env variable. This file also stores reference-only CVE tokens found in example repos when no explicit suggester matching rule exists.
 # License: GNU GPL
 # Version: 1.0
@@ -734,10 +734,19 @@ EOF_DATA_25
 
 KERNEL_CVE_DATA_26="$(cat <<'EOF_DATA_26'
 CVE-2023-2640,CVE-2023-32629	Ubuntu OverlayFS userns copy-up	pkg=linux-kernel,ver>=6.2.0-1,ver<6.2.0-26,CONFIG_USER_NS=y,cmd:grep -q '^ID=ubuntu$' /etc/os-release && grep -Eq '^VERSION_ID="?(22[.]04|23[.]04)"?$' /etc/os-release && uname -r | grep -Eq '^6[.]2[.]0-[0-9]+-generic$',cmd:test -r /proc/sys/kernel/unprivileged_userns_clone && test "$(cat /proc/sys/kernel/unprivileged_userns_clone)" = 1		1	Candidate only for Ubuntu 22.04 HWE 6.2 or 23.04 generic before 6.2.0-26; Canonical backports and Livepatch may alter effective status; verify running kernel package
+CVE-2025-22050	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from an official Linux kernel usbnet privilege-escalation advisory; no public matcher added
+CVE-2025-38416	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from an official Linux kernel NFC NCI UART privilege-escalation advisory; no public matcher added
+CVE-2026-22999	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from an official Linux kernel QFQ scheduler privilege-escalation advisory; no public matcher added
+CVE-2026-23413	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from an official Linux kernel clsact qdisc privilege-escalation advisory; no public matcher added
+CVE-2026-31719	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from an official Linux kernel crypto subsystem privilege-escalation advisory; no public matcher added
+CVE-2026-53182	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from an official Linux kernel wireless configuration privilege-escalation advisory; no public matcher added
 CVE-2026-53264	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public net/sched privilege-escalation exploit; dedicated LinPEAS check handles prerequisites
 CVE-2026-68121	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public PPPoE privilege-escalation exploit; no stable matcher added
+CVE-2026-72463	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from an official Linux kernel IPv6 VTI privilege-escalation advisory; no public matcher added
+CVE-2026-74465	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from an official Linux kernel Open vSwitch privilege-escalation advisory; no public matcher added
 CVE-2026-74469	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public SCTP diagnostics privilege-escalation exploit; dedicated LinPEAS check handles prerequisites
 CVE-2026-74480	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
+CVE-2026-74565	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from an official Linux kernel nftables privilege-escalation advisory; no public matcher added
 CVE-2026-74581	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
 CVE-2026-74597	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public kernel privilege-escalation exploit; no stable matcher added
 CVE-2026-80530	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token with a public XFS privilege-escalation exploit; dedicated LinPEAS check handles filesystem prerequisites
@@ -748,5 +757,6 @@ CVE-2026-81000	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token
 CVE-2026-89487	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token in a public Open vSwitch page-cache privilege-escalation chain; dedicated LinPEAS check handles prerequisites
 CVE-2026-89775	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token for a KVM/arm64 guest-to-host escape and local privilege escalation; no stable matcher added
 CVE-2026-90049	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token in a public Open vSwitch page-cache privilege-escalation chain; dedicated LinPEAS check handles prerequisites
+CVE-2026-98116	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token from official Linux kernel ALSA page use-after-free privilege-escalation advisories; no public matcher added
 EOF_DATA_26
 )"
