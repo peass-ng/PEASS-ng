@@ -1893,6 +1893,38 @@ namespace winPEAS.Checks
         {
             Beaprint.MainPrint("Windows Defender configuration", "T1518.001");
 
+            Beaprint.ColorPrint("  Defender engine CVE-2026-41091", Beaprint.LBLUE);
+            Beaprint.LinkPrint(
+                "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-41091",
+                "Actively exploited link-following LPE; Microsoft fixed the engine in 1.1.26040.8");
+
+            var engineInfo = WindowsDefender.GetDefenderEngineInfo();
+            var engineStatus = WindowsDefender.AssessCve41091Engine(engineInfo?.EngineVersion);
+            if (engineStatus == DefenderCve41091Status.Candidate && engineInfo.ServiceEnabled == true)
+            {
+                Beaprint.BadPrint("    Microsoft Defender engine " + engineInfo.EngineVersion +
+                    " predates the CVE-2026-41091 fix and the antimalware service is enabled. This is a local SYSTEM escalation candidate; update the Defender engine.");
+            }
+            else if (engineStatus == DefenderCve41091Status.Candidate && engineInfo.ServiceEnabled == false)
+            {
+                Beaprint.InfoPrint("    Microsoft Defender engine " + engineInfo.EngineVersion +
+                    " predates the CVE-2026-41091 fix, but WMI reports the antimalware service disabled. Exposure is not confirmed; update before enabling Defender.");
+            }
+            else if (engineStatus == DefenderCve41091Status.Candidate)
+            {
+                Beaprint.InfoPrint("    Microsoft Defender engine " + engineInfo.EngineVersion +
+                    " predates the CVE-2026-41091 fix, but service state is unavailable. Verify that Defender is active and update the engine.");
+            }
+            else if (engineStatus == DefenderCve41091Status.Fixed)
+            {
+                Beaprint.GoodPrint("    Microsoft Defender engine " + engineInfo.EngineVersion +
+                    " is at or above the CVE-2026-41091 fixed version (1.1.26040.8).");
+            }
+            else
+            {
+                Beaprint.GrayPrint("    Defender engine version unavailable or unparsable; CVE-2026-41091 status is unknown.");
+            }
+
             void DisplayDefenderSettings(WindowsDefenderSettings settings)
             {
                 var pathExclusions = settings.PathExclusions;
