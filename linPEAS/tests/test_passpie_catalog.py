@@ -41,8 +41,8 @@ class PasspieCatalogTests(unittest.TestCase):
         builder.bash_storages = set()
         builder._LinpeasBuilder__get_files_to_search()
         finds, _ = builder._LinpeasBuilder__generate_finds()
-        home_find = next(line for line in finds if line.startswith("FIND_DIR_HOMESEARCH="))
-        self.assertIn('-name \\".passpie\\"', home_find)
+        home_find = next(line for line in finds if line.startswith("cache_find FIND_DIR_HOMESEARCH "))
+        self.assertIn('-name ".passpie"', home_find)
         section = builder._LinpeasBuilder__generate_sections()["Passpie database candidate"]
         for unsafe in ("cat ", "ls -lRA", "find \"$f\""):
             self.assertNotIn(unsafe, section)

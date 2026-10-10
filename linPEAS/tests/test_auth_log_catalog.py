@@ -37,7 +37,8 @@ class AuthLogCatalogTests(unittest.TestCase):
         builder.bash_storages = set()
         builder._LinpeasBuilder__get_files_to_search()
         finds, _ = builder._LinpeasBuilder__generate_finds()
-        self.assertTrue(any('-name \\"auth.log\\"' in line for line in finds))
+        self.assertTrue(any('-name "auth.log"' in line for line in finds
+                            if line.strip().startswith("cache_find ")))
         builder._LinpeasBuilder__generate_storages()
         section = builder._LinpeasBuilder__generate_sections()[TITLE]
         self.assertNotIn('cat "$f"', section)

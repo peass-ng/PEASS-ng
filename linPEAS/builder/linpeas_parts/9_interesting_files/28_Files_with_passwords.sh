@@ -9,7 +9,7 @@
 # Functions Used: print_2title
 # Global Variables: $HOMESEARCH,$ITALIC, $pwd_in_variables1, $pwd_in_variables2, $pwd_in_variables3, $pwd_in_variables4, $pwd_in_variables5, $pwd_in_variables6, $pwd_in_variables7, $pwd_in_variables8, $pwd_in_variables9, $pwd_in_variables10, $pwd_in_variables11, $SEARCH_IN_FOLDER, $TIMEOUT, $backup_folders_row
 # Initial Functions:
-# Generated Global Variables: $ppicf, $password_find_exec_end, $password_variable_regex
+# Generated Global Variables: $password_find_exec_end, $password_variable_regex
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -36,17 +36,17 @@ if ! [ "$FAST" ] && ! [ "$SUPERFAST" ] && [ "$TIMEOUT" ]; then
 
   ##-- IF) Find possible conf files with passwords
   print_2title "Searching possible password in config files (if k8s secrets are found you need to read the file)" "T1552.001"
+  (
   if ! [ "$SEARCH_IN_FOLDER" ]; then
-    ppicf=$("$TIMEOUT" 150 find $HOMESEARCH /var/www/ /usr/local/www/ /etc /opt /tmp /private /Applications /mnt -name "*.conf" -o -name "*.cnf" -o -name "*.config" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" 2>/dev/null)
+    # shellcheck disable=SC2086
+    set -- $HOMESEARCH /var/www/ /usr/local/www/ /etc /opt /tmp /private /Applications /mnt
   else
-    ppicf=$("$TIMEOUT" 150 find $SEARCH_IN_FOLDER -name "*.conf" -o -name "*.cnf" -o -name "*.config" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" 2>/dev/null)
+    set -- "$SEARCH_IN_FOLDER"
   fi
-  printf "%s\n" "$ppicf" | while IFS= read -r f; do
-    [ -f "$f" ] || continue
-    if "$TIMEOUT" 5 grep -qEiI 'passwd.*|creden.*|^kind:\W?Secret|\Wenv:|\Wsecret:|\WsecretName:|^kind:\W?EncryptionConfiguration|\-\-encryption\-provider\-config' "$f" 2>/dev/null; then
-      echo "$ITALIC $f$NC"
-      "$TIMEOUT" 5 grep -HnEiIo 'passwd.*|creden.*|^kind:\W?Secret|\Wenv:|\Wsecret:|\WsecretName:|^kind:\W?EncryptionConfiguration|\-\-encryption\-provider\-config' "$f" 2>/dev/null | sed -${E} "s,[pP][aA][sS][sS][wW]|[cC][rR][eE][dD][eE][nN],${SED_RED},g"
-    fi
-  done
+  "$TIMEOUT" 150 find -L "$@" -type f '(' -name "*.conf" -o -name "*.cnf" -o -name "*.config" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" ')' \
+    -exec grep -HnEiIo 'passwd.*|creden.*|^kind:\W?Secret|\Wenv:|\Wsecret:|\WsecretName:|^kind:\W?EncryptionConfiguration|\-\-encryption\-provider\-config' '{}' "$password_find_exec_end" 2>/dev/null |
+    awk -v italic="$ITALIC " -v nc="$NC" '{ path=$0; sub(/:[0-9]+:.*/, "", path); if (path != previous) { print italic path nc; previous=path } print }' |
+    sed -${E} "s,[pP][aA][sS][sS][wW]|[cC][rR][eE][dD][eE][nN],${SED_RED},g"
+  )
   echo ""
 fi

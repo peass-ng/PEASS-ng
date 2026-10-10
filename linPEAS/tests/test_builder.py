@@ -52,29 +52,29 @@ class LinpeasBuilderTests(unittest.TestCase):
             builder.bash_find_d_vars = set()
             standard, custom = builder._LinpeasBuilder__generate_finds()
 
-            def run_find(assignment):
-                rhs = assignment.partition("=")[2]
+            def run_find(call):
+                _, variable, arguments = call.strip().split(" ", 2)
                 script = "\n".join((
-                    'eval_bckgrd() { eval "$1"; }',
                     f"SEARCH_IN_FOLDER={shlex.quote(str(root))}",
-                    f"RESULT={rhs}",
-                    'printf "%s\\n" "$RESULT"',
+                    f"find {arguments}",
                 ))
                 result = subprocess.run(
                     ["sh", "-c", script], capture_output=True, text=True,
                     cwd=str(root),
                 )
                 self.assertEqual(result.returncode, 0, result.stderr)
-                return set(result.stdout.splitlines())
+                return variable, set(result.stdout.splitlines())
 
             expected_dirs = {str(root / "dir-first"), str(root / "dir-second")}
             expected_files = {str(root / "file-first.conf"), str(root / "file-second.yaml")}
-            for assignment in standard + custom:
-                found = run_find(assignment)
-                if assignment.startswith("FIND_DIR_"):
-                    self.assertEqual(found, expected_dirs, assignment)
+            for call in standard + custom:
+                if not call.strip().startswith("cache_find "):
+                    continue
+                variable, found = run_find(call)
+                if variable.startswith("FIND_DIR_"):
+                    self.assertEqual(found, expected_dirs, call)
                 else:
-                    self.assertEqual(found, expected_files, assignment)
+                    self.assertEqual(found, expected_files, call)
 
     def test_small_build_creates_executable(self):
         with tempfile.TemporaryDirectory() as tmpdir:
