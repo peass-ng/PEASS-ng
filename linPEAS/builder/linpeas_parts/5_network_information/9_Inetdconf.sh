@@ -6,23 +6,12 @@
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1049
-# Functions Used: print_2title, print_3title, warn_exec, echo_not_found, lp_trusted_version_path
+# Functions Used: print_2title, print_3title, warn_exec, echo_not_found, lp_trusted_version_path, check_command
 # Global Variables: $EXTRA_CHECKS, $E, $SED_RED, $SED_GREEN, $SED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $inetd_service, $log_file, $cmd, $service_name, $conf_file, $service_dir, $service_file, $file, $inetd_command, $inetd_telnet_probe_count, $service, $socket, $protocol, $user, $server, $checked_binary, $trusted_server, $version_output, $version, $major, $minor, $patch, $rest
+# Generated Global Variables: $inetd_service, $log_file, $service_name, $conf_file, $service_dir, $service_file, $file, $inetd_command, $inetd_telnet_probe_count, $service, $socket, $protocol, $user, $server, $checked_binary, $trusted_server, $version_output, $version, $major, $minor, $patch, $rest
 # Fat linpeas: 0
 # Small linpeas: 0
-
-# Function to check if a command exists and is executable
-check_command() {
-    local cmd=$1
-    if command -v "$cmd" >/dev/null 2>&1; then
-        if [ -x "$(command -v "$cmd")" ]; then
-            return 0
-        fi
-    fi
-    return 1
-}
 
 inetd_telnet_upstream_affected() {
     local major=$1 minor=$2 patch=$3

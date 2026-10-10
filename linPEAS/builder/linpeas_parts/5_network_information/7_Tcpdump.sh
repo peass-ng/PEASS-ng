@@ -6,23 +6,12 @@
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1040
-# Functions Used: print_2title, print_3title, print_info, warn_exec
+# Functions Used: print_2title, print_3title, print_info, warn_exec, check_command
 # Global Variables: $EXTRA_CHECKS, $E, $SED_RED, $SED_GREEN, $SED_RED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $tools_found, $tool, $interfaces, $interfaces_found, $iface, $cmd, $pattern, $patterns, $dumpcap_test_file
+# Generated Global Variables: $tools_found, $tool, $interfaces, $interfaces_found, $iface, $pattern, $patterns, $dumpcap_test_file
 # Fat linpeas: 0
 # Small linpeas: 1
-
-# Function to check if a command exists and is executable
-check_command() {
-    local cmd=$1
-    if command -v "$cmd" >/dev/null 2>&1; then
-        if [ -x "$(command -v "$cmd")" ]; then
-            return 0
-        fi
-    fi
-    return 1
-}
 
 # Function to check if we can sniff on an interface
 check_interface_sniffable() {
