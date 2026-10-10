@@ -15,8 +15,6 @@ namespace winPEAS.Info.SystemInfo
     internal static class StorvspVsmbCves
     {
         private const string DriverServiceKey = @"SYSTEM\CurrentControlSet\Services\storvsp";
-        private static readonly Guid WinTrustActionGenericVerifyV2 = new Guid("00AAC56B-CD44-11d0-8CC2-00C04FC295EE");
-
         // Microsoft Security Response Center, December 2025 security update.
         // The regular cumulative-update build is used as the safe version threshold.
         // Hotpatch builds are accepted only when their corresponding KB is present.
@@ -181,7 +179,7 @@ namespace winPEAS.Info.SystemInfo
                 report.DriverCompany = version.CompanyName ?? "";
                 report.DriverLastWriteUtc = File.GetLastWriteTimeUtc(path);
 
-                report.DriverSignatureValid = VerifyAuthenticode(path, out string signatureStatus);
+                report.DriverSignatureValid = AuthenticodeHelper.Verify(path, out string signatureStatus);
                 report.DriverSignatureStatus = signatureStatus;
                 try
                 {
@@ -330,35 +328,6 @@ namespace winPEAS.Info.SystemInfo
             return build > 0 && revision >= 0;
         }
 
-        private static bool VerifyAuthenticode(string path, out string status)
-        {
-            IntPtr fileInfoPointer = IntPtr.Zero;
-            try
-            {
-                var fileInfo = new WinTrustFileInfo(path);
-                fileInfoPointer = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(WinTrustFileInfo)));
-                Marshal.StructureToPtr(fileInfo, fileInfoPointer, false);
-
-                var trustData = new WinTrustData(fileInfoPointer);
-                int result = WinVerifyTrust(new IntPtr(-1), WinTrustActionGenericVerifyV2, trustData);
-                status = result == 0 ? "Valid" : "Invalid (0x" + result.ToString("X8") + ")";
-                return result == 0;
-            }
-            catch (Exception ex)
-            {
-                status = "Error: " + ex.Message;
-                return false;
-            }
-            finally
-            {
-                if (fileInfoPointer != IntPtr.Zero)
-                {
-                    Marshal.DestroyStructure(fileInfoPointer, typeof(WinTrustFileInfo));
-                    Marshal.FreeCoTaskMem(fileInfoPointer);
-                }
-            }
-        }
-
         private sealed class FixedBuild
         {
             internal FixedBuild(int revision, string kb, int hotpatchRevision = 0, string hotpatchKb = "")
@@ -375,55 +344,9 @@ namespace winPEAS.Info.SystemInfo
             internal string HotpatchKb { get; }
         }
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        private struct WinTrustFileInfo
-        {
-            public uint StructSize;
-            [MarshalAs(UnmanagedType.LPWStr)]
-            public string FilePath;
-            public IntPtr FileHandle;
-            public IntPtr KnownSubject;
-
-            public WinTrustFileInfo(string filePath)
-            {
-                StructSize = (uint)Marshal.SizeOf(typeof(WinTrustFileInfo));
-                FilePath = filePath;
-                FileHandle = IntPtr.Zero;
-                KnownSubject = IntPtr.Zero;
-            }
-        }
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        private sealed class WinTrustData
-        {
-            public uint StructSize = (uint)Marshal.SizeOf(typeof(WinTrustData));
-            public IntPtr PolicyCallbackData = IntPtr.Zero;
-            public IntPtr SipClientData = IntPtr.Zero;
-            public uint UiChoice = 2; // WTD_UI_NONE
-            public uint RevocationChecks = 0; // WTD_REVOKE_NONE
-            public uint UnionChoice = 1; // WTD_CHOICE_FILE
-            public IntPtr FileInfoPointer;
-            public uint StateAction = 0; // WTD_STATEACTION_IGNORE
-            public IntPtr StateData = IntPtr.Zero;
-            public IntPtr UrlReference = IntPtr.Zero;
-            public uint ProviderFlags = 0x00001000; // WTD_CACHE_ONLY_URL_RETRIEVAL
-            public uint UiContext = 0;
-            public IntPtr SignatureSettings = IntPtr.Zero;
-
-            public WinTrustData(IntPtr fileInfoPointer)
-            {
-                FileInfoPointer = fileInfoPointer;
-            }
-        }
-
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern uint QueryDosDevice(string deviceName, StringBuilder targetPath, int maximumLength);
 
-        [DllImport("wintrust.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
-        private static extern int WinVerifyTrust(
-            IntPtr hwnd,
-            [MarshalAs(UnmanagedType.LPStruct)] Guid actionId,
-            [In] WinTrustData trustData);
     }
 
     internal enum StorvspPatchStatus
