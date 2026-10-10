@@ -184,7 +184,7 @@ jobs:
         uses: carlospolop/chack-agent@9fd38a0657ae7060cc9bb07329c0bde71d7ba0d9
         with:
           provider: codex
-          model_primary: BEST_QUALITY
+          model_primary: gpt-5.6-sol
           max_turns: 125
           main_action: peass-ng-pr-traige
           sub_action: Chack-Agent PR Triage
