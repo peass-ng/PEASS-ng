@@ -46,6 +46,14 @@ jobs:
           pr_author=$(gh api -H "Accept: application/vnd.github+json" \
             /repos/${{ github.repository }}/pulls/${PR_NUMBER} \
             --jq '.user.login')
+          pr_state=$(gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/pulls/${PR_NUMBER} \
+            --jq '.state')
+          if [ "$pr_state" != "open" ]; then
+            echo "PR #${PR_NUMBER} is $pr_state; skipping stale fix."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           pr_head_repo=$(gh api -H "Accept: application/vnd.github+json" \
             /repos/${{ github.repository }}/pulls/${PR_NUMBER} \
             --jq '.head.repo.full_name')
@@ -244,6 +252,14 @@ jobs:
           if [ -z "$PUSH_TOKEN" ]; then
             echo "CODEX_FIXER_TOKEN is required to push and retest Chack Agent fixes."
             exit 1
+          fi
+
+          pr_state="$(GH_TOKEN="$WORKFLOW_TOKEN" gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json state --jq .state)"
+          current_head_sha="$(GH_TOKEN="$WORKFLOW_TOKEN" gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json headRefOid --jq .headRefOid)"
+          if [ "$pr_state" != "OPEN" ] || [ "$current_head_sha" != "$ORIGINAL_HEAD_SHA" ]; then
+            echo "PR #${PR_NUMBER} is $pr_state at $current_head_sha; skipping stale fix push."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           if ! git push origin HEAD:${TARGET_BRANCH}; then
