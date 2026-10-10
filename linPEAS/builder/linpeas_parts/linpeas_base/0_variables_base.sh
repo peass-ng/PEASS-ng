@@ -542,6 +542,12 @@ bounded_command() {
   wait "$wf_timer" 2>/dev/null
   return "$wf_rc"
 }
+if [ "$CHECKS" = "container" ]; then
+  # Container-only checks never use Wfolders or Wfolder. Avoid a host-wide
+  # writable-directory inventory before inspecting runtime settings.
+  Wfolders='[a-zA-Z]+[a-zA-Z0-9]* +\*'
+  Wfolder=/tmp
+else
 WF_ALL=$(bounded_command 60 find / -maxdepth "$MAXPATH_FIND_W" \
   '(' -path /proc -o -path /sys -o -path /System/Volumes/Data ')' -prune -o \
   -type d '(' -user "$USER" -o -perm -o=w -o '(' -perm -g=w -a '(' $wgroups ')' ')' ')' -print)
@@ -569,6 +575,7 @@ while $SEDOVERFLOW; do
      SEDOVERFLOW=false
   fi
 done
+fi
 
 #Get HOMESEARCH
 if [ "$SEARCH_IN_FOLDER" ]; then
