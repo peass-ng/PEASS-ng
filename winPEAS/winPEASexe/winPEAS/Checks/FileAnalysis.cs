@@ -198,7 +198,7 @@ namespace winPEAS.Checks
                                 isFileFound = Regex.IsMatch(fold, pattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(20));
                                 if (isFileFound) break;
                             }
-                            catch (RegexMatchTimeoutException e)
+                            catch (RegexMatchTimeoutException)
                             {
                                 if (Checks.IsDebug)
                                 {
@@ -220,7 +220,7 @@ namespace winPEAS.Checks
                         {
                             isFileFound = Regex.IsMatch(file.Filename, pattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(20));
                         }
-                        catch (RegexMatchTimeoutException e)
+                        catch (RegexMatchTimeoutException)
                         {
                             if (Checks.IsDebug)
                             {
@@ -414,7 +414,7 @@ namespace winPEAS.Checks
                     }, Checks.IsDebug);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
         }
@@ -564,7 +564,7 @@ namespace winPEAS.Checks
                         {
                             num_threads = Environment.ProcessorCount;
                         }
-                        catch (Exception ex) { }
+                        catch (Exception) { }
 
                         Parallel.ForEach(files, new ParallelOptions { MaxDegreeOfParallelism = num_threads }, f =>
                         {
