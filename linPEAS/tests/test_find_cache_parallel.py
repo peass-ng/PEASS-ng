@@ -12,6 +12,35 @@ BASE_MODULE = Path(__file__).resolve().parents[1] / "builder/linpeas_parts/linpe
 
 
 class FindCacheParallelTests(unittest.TestCase):
+    def test_cache_guard_selects_the_same_builtin_and_custom_paths(self):
+        source = CACHE_MODULE.read_text()
+        source = source.replace("peass{FINDS_CUSTOM}", "printf '%s\\n' FINDS_CUSTOM")
+        source = source.replace("peass{FINDS_HERE}", "printf '%s\\n' FINDS_HERE")
+        source = source.replace("peass{STORAGES_HERE}", "printf '%s\\n' STORAGES_HERE")
+
+        cases = (
+            ("unrelated", "", ()),
+            ("procs_crons_timers_srvcs_sockets", "", ("FINDS_HERE", "STORAGES_HERE")),
+            ("software_information", "", ("FINDS_HERE", "STORAGES_HERE")),
+            ("interesting_files", "", ("FINDS_HERE", "STORAGES_HERE")),
+            ("unrelated", "/tmp/folder with spaces", ("FINDS_CUSTOM", "STORAGES_HERE")),
+        )
+        for checks, search_in_folder, expected_markers in cases:
+            with self.subTest(checks=checks, search_in_folder=search_in_folder):
+                env = os.environ.copy()
+                env.update({
+                    "CHECKS": checks, "SEARCH_IN_FOLDER": search_in_folder,
+                    "GREEN": "", "YELLOW": "", "NC": "", "THREADS": "2",
+                    "PSTORAGE_BACKUPS": "",
+                })
+                result = subprocess.run(
+                    ["/bin/sh", "-c", source], env=env,
+                    capture_output=True, text=True, timeout=10,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                for marker in ("FINDS_CUSTOM", "FINDS_HERE", "STORAGES_HERE"):
+                    self.assertEqual(marker in result.stdout, marker in expected_markers)
+
     def test_portable_find_deadline_does_not_hold_the_output_pipe_open(self):
         source = BASE_MODULE.read_text()
         function = source.split("bounded_command() {", 1)[1].split("\nWF_ALL=", 1)[0]
