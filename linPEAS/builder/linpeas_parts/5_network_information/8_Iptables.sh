@@ -6,23 +6,12 @@
 # License: GNU GPL
 # Version: 1.0
 # Mitre: T1016
-# Functions Used: print_2title, print_3title, warn_exec, echo_not_found
+# Functions Used: print_2title, print_3title, warn_exec, echo_not_found, check_command
 # Global Variables: $EXTRA_CHECKS, $E, $SED_RED, $SED_GREEN, $SED_YELLOW, $SED_RED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $rules_file, $cmd, $tool, $config_file, $sysctl_var
+# Generated Global Variables: $rules_file, $tool, $config_file, $sysctl_var
 # Fat linpeas: 0
 # Small linpeas: 1
-
-# Function to check if a command exists and is executable
-check_command() {
-    local cmd=$1
-    if command -v "$cmd" >/dev/null 2>&1; then
-        if [ -x "$(command -v "$cmd")" ]; then
-            return 0
-        fi
-    fi
-    return 1
-}
 
 # Function to analyze iptables rules
 analyze_iptables() {
