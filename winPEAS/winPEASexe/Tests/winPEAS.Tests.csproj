@@ -106,6 +106,7 @@
     <Compile Include="NsclientConfigCatalogTests.cs" />
     <Compile Include="SqlSetupConfigurationIndicatorTests.cs" />
     <Compile Include="ArgumentParsingTests.cs" />
+    <Compile Include="AIStorageAuditTests.cs" />
     <Compile Include="AutoLogonTests.cs" />
     <Compile Include="FixedBuildIndicatorTests.cs" />
     <Compile Include="HMailAndInstalledAppsTests.cs" />

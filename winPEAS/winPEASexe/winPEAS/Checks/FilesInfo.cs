@@ -127,6 +127,7 @@ namespace winPEAS.Checks
                 SuperPutty.PrintInfo,
                 PrintOffice365EndpointsSyncedByOneDrive,
                 PrintCloudCreds,
+                PrintAIStoragePermissions,
                 PrintUnattendFiles,
                 PrintSAMBackups,
                 PrintNtdsZipBackups,
@@ -154,6 +155,38 @@ namespace winPEAS.Checks
                 PrintExecutablesInNonDefaultFoldersWithWritePermissions,
                 PrintWSLDistributions
             }.ForEach(action => CheckRunner.Run(action, isDebug));
+        }
+
+        void PrintAIStoragePermissions()
+        {
+            Beaprint.MainPrint("Current-user AI storage directory permissions", "T1083");
+            Beaprint.InfoPrint("Stored data may include private conversations and configuration. Broad allow ACEs require review; deny ACEs and effective access are not evaluated.");
+            bool found = false;
+            foreach (var root in AIStorageAudit.GetCurrentUserRoots())
+            {
+                try
+                {
+                    if (!Directory.Exists(root.Value))
+                        continue;
+                    if (AIStorageAudit.HasReparsePoint(root.Value))
+                    {
+                        Beaprint.InfoPrint(root.Key + ": skipped reparse point in directory path");
+                        continue;
+                    }
+                    found = true;
+                    Beaprint.InfoPrint(string.Format("{0}: {1}", root.Key, root.Value));
+                    var rules = AIStorageAudit.GetBroadAccessRules(Directory.GetAccessControl(root.Value));
+                    foreach (string rule in rules)
+                        Beaprint.BadPrint("  Review broad directory access: " + rule);
+                }
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException
+                    || ex is System.Security.SecurityException)
+                {
+                    Beaprint.InfoPrint(root.Key + ": directory permissions unavailable");
+                }
+            }
+            if (!found)
+                Beaprint.NotFoundPrint();
         }
 
         void PrintCloudCreds()

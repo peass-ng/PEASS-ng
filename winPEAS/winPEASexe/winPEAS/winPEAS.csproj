@@ -1191,6 +1191,7 @@
     <Compile Include="Checks\CloudInfo.cs" />
     <Compile Include="Checks\FileAnalysis.cs" />
     <Compile Include="Checks\FilesInfo.cs" />
+    <Compile Include="Info\FilesInfo\AIStorageAudit.cs" />
     <Compile Include="Checks\Globals.cs" />
     <Compile Include="Checks\ISystemCheck.cs" />
     <Compile Include="Checks\EventsInfo.cs" />
