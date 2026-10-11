@@ -5,6 +5,10 @@ on:
     workflows: ["PR-tests"]
     types: [completed]
 
+# Context resolution happens before checkout, including branch-based PR lookup.
+env:
+  GH_REPO: ${{ github.repository }}
+
 jobs:
   resolve_pr_context:
     if: >-
