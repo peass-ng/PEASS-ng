@@ -297,46 +297,52 @@ namespace winPEAS.Checks
 
         public static List<string> SearchContent(string text, string regex_str, bool caseinsensitive)
         {
-            List<string> foundMatches = new List<string>();
-
             try
             {
-                Regex rgx;
-                bool is_re_match = false;
+                Regex matchRegex;
+                Regex captureRegex;
+                CreateSearchRegexes(regex_str, caseinsensitive, out matchRegex, out captureRegex);
+                return SearchContent(text, regex_str, matchRegex, captureRegex);
+            }
+            catch (Exception e)
+            {
+                Beaprint.GrayPrint($"Error looking for regex {regex_str} inside files: {e}");
+                return new List<string>();
+            }
+        }
+
+        private static void CreateSearchRegexes(string regex, bool caseInsensitive,
+            out Regex matchRegex, out Regex captureRegex)
+        {
+            // Keep the existing two-regex behavior: the initial IsMatch is bounded,
+            // while Matches retains its established options and timeout behavior.
+            string pattern = regex.Trim();
+            RegexOptions options = caseInsensitive ? RegexOptions.IgnoreCase : RegexOptions.None;
+            matchRegex = new Regex(pattern, options, TimeSpan.FromSeconds(120));
+            captureRegex = new Regex(pattern, options);
+        }
+
+        internal static List<string> SearchContent(string text, string regex,
+            Regex matchRegex, Regex captureRegex)
+        {
+            List<string> foundMatches = new List<string>();
+            try
+            {
                 try
                 {
-                    // Escape backslashes in the regex string - I don't think this is needed anymore
-                    //string escapedRegex = regex_str.Trim().Replace(@"\", @"\\");
-                    string escapedRegex = regex_str.Trim();
-
-                    // Use "IsMatch" because it supports timeout, if exception is thrown exit the func to avoid ReDoS in "rgx.Matches"
-                    if (caseinsensitive)
-                    {
-                        is_re_match = Regex.IsMatch(text, escapedRegex, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(120));
-                        rgx = new Regex(escapedRegex, RegexOptions.IgnoreCase);
-                    }
-                    else
-                    {
-                        is_re_match = Regex.IsMatch(text, escapedRegex, RegexOptions.None, TimeSpan.FromSeconds(120));
-                        rgx = new Regex(escapedRegex);
-                    }
+                    if (!matchRegex.IsMatch(text)) return foundMatches;
                 }
-                catch (RegexMatchTimeoutException e)
+                catch (RegexMatchTimeoutException)
                 {
                     if (Checks.IsDebug)
                     {
-                        Beaprint.GrayPrint($"The regex {regex_str} had a timeout (ReDoS avoided but regex unchecked in a file)");
+                        Beaprint.GrayPrint($"The regex {regex} had a timeout (ReDoS avoided but regex unchecked in a file)");
                     }
-                    return foundMatches;
-                }
-
-                if (!is_re_match)
-                {
                     return foundMatches;
                 }
 
                 int cont = 0;
-                foreach (Match match in rgx.Matches(text))
+                foreach (Match match in captureRegex.Matches(text))
                 {
                     if (cont > 10) break;
 
@@ -348,7 +354,7 @@ namespace winPEAS.Checks
             }
             catch (Exception e)
             {
-                Beaprint.GrayPrint($"Error looking for regex {regex_str} inside files: {e}");
+                Beaprint.GrayPrint($"Error looking for regex {regex} inside files: {e}");
             }
 
             return foundMatches;
@@ -581,12 +587,28 @@ namespace winPEAS.Checks
 
                                     try
                                     {
+                                        Regex matchRegex = null;
+                                        Regex captureRegex = null;
+                                        try
+                                        {
+                                            CreateSearchRegexes(regex.regex, (bool)regex.caseinsensitive,
+                                                out matchRegex, out captureRegex);
+                                        }
+                                        catch (Exception)
+                                        {
+                                            // Preserve the established per-line error handling for malformed patterns.
+                                            matchRegex = null;
+                                            captureRegex = null;
+                                        }
+
                                         using (StreamReader sr = new StreamReader(f.FullPath))
                                         {
                                             string line;
                                             while ((line = sr.ReadLine()) != null)
                                             {
-                                                List<string> results = SearchContent(line, regex.regex, (bool)regex.caseinsensitive);
+                                                List<string> results = matchRegex == null
+                                                    ? SearchContent(line, regex.regex, (bool)regex.caseinsensitive)
+                                                    : SearchContent(line, regex.regex, matchRegex, captureRegex);
                                                 if (results.Count > 0)
                                                 {
                                                     if (!fileResults.ContainsKey(f.FullPath))
