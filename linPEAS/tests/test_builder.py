@@ -76,6 +76,29 @@ class LinpeasBuilderTests(unittest.TestCase):
                 else:
                     self.assertEqual(found, expected_files, call)
 
+    def test_generated_storages_deduplicate_in_sort(self):
+        """Every catalog storage should deduplicate without a separate uniq process."""
+        sys.path.insert(0, str(self.linpeas_dir))
+        try:
+            from builder.src.linpeasBuilder import LinpeasBuilder
+            from builder.src.peasLoaded import PEASLoaded
+        finally:
+            sys.path.pop(0)
+
+        builder = object.__new__(LinpeasBuilder)
+        builder.ploaded = PEASLoaded()
+        builder.hidden_files = set()
+        builder.bash_find_f_vars = set()
+        builder.bash_find_d_vars = set()
+        builder.bash_storages = set()
+        builder._LinpeasBuilder__get_files_to_search()
+        builder._LinpeasBuilder__generate_finds()
+
+        storages = builder._LinpeasBuilder__generate_storages()
+        self.assertTrue(storages)
+        self.assertTrue(all(" | sort -u | head -n 70)" in line for line in storages))
+        self.assertTrue(all(" | sort | uniq " not in line for line in storages))
+
     def test_small_build_creates_executable(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "linpeas_small.sh"
