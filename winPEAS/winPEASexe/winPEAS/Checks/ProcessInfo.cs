@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using winPEAS.Helpers;
 using winPEAS.Info.ProcessInfo;
 
@@ -17,6 +18,7 @@ namespace winPEAS.Checks
             new List<Action>
             {
                 PrintInterestingProcesses,
+                PrintProcessTokenExposure,
                 PrintVulnLeakedHandlers,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
@@ -98,6 +100,67 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.GrayPrint(ex.Message);
+            }
+        }
+
+        void PrintProcessTokenExposure()
+        {
+            try
+            {
+                Beaprint.MainPrint("Privileged and service process token exposure", "T1134.001");
+                Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#token-manipulation", "Review token impersonation and duplication prerequisites");
+                Beaprint.InfoPrint("Read-only access probes only: granted token rights are conditional leads, not proof that impersonation or CreateProcessAsUser will succeed.");
+
+                ProcessTokenExposureReport report = ProcessTokenExposure.Inspect();
+                int displayed = 0;
+                int omitted = 0;
+                const int maxDisplayed = 128;
+                foreach (ProcessTokenExposureInfo process in report.Processes)
+                {
+                    if (!process.ShouldDisplay) continue;
+                    if (displayed >= maxDisplayed)
+                    {
+                        ++omitted;
+                        continue;
+                    }
+                    ++displayed;
+
+                    string services = process.Services.Count == 0 ? "none" : string.Join(", ",
+                        process.Services.Take(8).Select(service => service.Name + " [" + service.Account + "]")) +
+                        (process.Services.Count > 8 ? ", ..." : "");
+                    string heading = string.Format("    {0}({1}) - {2}", process.ProcessName,
+                        process.ProcessId, process.AccountKind);
+                    if (process.IsConditionalTokenAbuseCandidate)
+                        Beaprint.BadPrint(heading + " - conditional token-duplication candidate");
+                    else
+                        Beaprint.NoColorPrint(heading);
+                    Beaprint.NoColorPrint("      Path: " + process.ExecutablePath);
+                    Beaprint.NoColorPrint("      Services: " + services);
+                    Beaprint.NoColorPrint("      Token: " + process.TokenUser + " [" + process.TokenSid +
+                        "]; logon session: " + process.LogonSession + "; integrity: " + process.Integrity);
+                    Beaprint.GrayPrint("      Open access: " + process.AccessSummary);
+                    if (process.IsConditionalTokenAbuseCandidate)
+                        Beaprint.GrayPrint("      A different higher-value token was openable with TOKEN_DUPLICATE. Token type, enabled privileges, process protection and the intended impersonation/process-creation path still require validation.");
+                    Beaprint.PrintLineSeparator();
+                }
+
+                int candidates = report.Processes.Count(process => process.IsConditionalTokenAbuseCandidate);
+                int queryable = report.Processes.Count(process => process.TokenQueryAccess);
+                Beaprint.GrayPrint(string.Format(
+                    "    Inspected {0} processes: {1} queryable tokens, {2} conditional duplication candidate(s), {3} process-query denials, {4} token-query denials.",
+                    report.Enumerated, queryable, candidates, report.ProcessQueryDenied, report.TokenQueryDenied));
+                if (displayed == 0)
+                    Beaprint.GrayPrint("    No queryable privileged or service process tokens were observed.");
+                if (omitted > 0)
+                    Beaprint.GrayPrint("    " + omitted + " additional privileged/service token record(s) omitted from output.");
+                if (report.ServiceInventoryUnavailable)
+                    Beaprint.GrayPrint("    Running-service associations were unavailable; account classification and output may be incomplete.");
+                if (report.ProcessLimitReached || report.TimeLimitReached)
+                    Beaprint.GrayPrint("    Process-token inspection was partial (1024-process cap; 2.5-second inspection budget); remaining processes are unknown.");
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
             }
         }
 

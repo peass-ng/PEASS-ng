@@ -75,7 +75,7 @@ namespace winPEAS.Info.UserInfo.Token
             return snapshot;
         }
 
-        private static bool TryRead(SafeTokenHandle handle, TOKEN_INFORMATION_CLASS informationClass, out IntPtr buffer, out int length)
+        internal static bool TryRead(SafeTokenHandle handle, TOKEN_INFORMATION_CLASS informationClass, out IntPtr buffer, out int length)
         {
             buffer = IntPtr.Zero;
             length = 0;
@@ -120,7 +120,7 @@ namespace winPEAS.Info.UserInfo.Token
             finally { Marshal.FreeHGlobal(buffer); }
         }
 
-        private static TokenIntegrityState ReadIntegrity(SafeTokenHandle handle)
+        internal static TokenIntegrityState ReadIntegrity(SafeTokenHandle handle)
         {
             IntPtr buffer;
             int length;

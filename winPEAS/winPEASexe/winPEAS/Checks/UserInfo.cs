@@ -35,6 +35,11 @@ namespace winPEAS.Checks
         static string badgroups = "docker|Remote |DNSAdmins|AD Recycle Bin|Azure Admins|Admins|Server Operators";//The space in Remote is important to not mix with SeShutdownRemotePrivilege
         static readonly string _badPasswd = "NotChange|NotExpi";
         internal static readonly string BadPrivilegesPattern = "SeImpersonatePrivilege|SeAssignPrimaryTokenPrivilege|SeTcbPrivilege|SeBackupPrivilege|SeRestorePrivilege|SeCreateTokenPrivilege|SeLoadDriverPrivilege|SeTakeOwnershipPrivilege|SeDebugPrivilege|SeManageVolumePrivilege";
+        internal static readonly string[] TokenAbusePrivileges = new[]
+        {
+            "SeDebugPrivilege", "SeImpersonatePrivilege", "SeAssignPrimaryTokenPrivilege",
+            "SeIncreaseQuotaPrivilege", "SeTcbPrivilege"
+        };
 
         public string[] MitreAttackIds { get; } = new[] { "T1087.001", "T1087.004", "T1033", "T1134.001", "T1115", "T1563.002", "T1083", "T1552.002", "T1201" };
 
@@ -122,6 +127,14 @@ namespace winPEAS.Checks
                 }
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#token-manipulation", "Check if you can escalate privilege using some enabled token");
                 Dictionary<string, string> tokenPrivs = Token.GetTokenGroupPrivs();
+                var relevantPrivileges = new List<string>();
+                foreach (string privilege in TokenAbusePrivileges)
+                {
+                    string state;
+                    relevantPrivileges.Add(privilege + "=" +
+                        (tokenPrivs.TryGetValue(privilege, out state) ? state : "not present"));
+                }
+                Beaprint.InfoPrint("  Token-manipulation context: " + string.Join(", ", relevantPrivileges));
                 bool delegationEnabled = Token.IsPrivilegeEnabled(tokenPrivs, "SeEnableDelegationPrivilege");
                 Dictionary<string, string> colors = ColorsU();
                 if (delegationEnabled)

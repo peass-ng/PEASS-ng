@@ -160,7 +160,7 @@ Once you have installed and activated it you need to:
 
 - **Users Information**
   - [x] Users information
-  - [x] Current token privileges
+  - [x] Current token integrity/elevation, group state, and token-manipulation privileges
   - [x] Clipboard text
   - [x] Current logged users
   - [x] RDP sessions
@@ -173,6 +173,7 @@ Once you have installed and activated it you need to:
 
 - **Processes Information**
   - [x] Interesting processes (non Microsoft)
+  - [x] Privileged/service process token identities, logon sessions, integrity levels, service associations, and read-only token-access probes
 
 - **Services Information**
   - [x] Interesting services (non Microsoft) information
@@ -181,6 +182,8 @@ Once you have installed and activated it you need to:
   - [x] Writable DLLs loaded by enabled LocalSystem services
   - [x] Writable LocalSystem service recovery command targets
   - [x] PATH Dll Hijacking
+
+Process-token and service-access results are local, read-only review leads. Token access does not guarantee successful impersonation, and remote service binary-path replacement requires independent remote SCM permissions.
 
 - **Applications Information**
   - [x] Current Active Window
