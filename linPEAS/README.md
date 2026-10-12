@@ -104,6 +104,8 @@ This script doesn't have any dependency.
 
 ### Recent updates
 
+- **Oct 2026**: Added a read-only AF_ALG skcipher concurrent-writer check for CVE-2025-39964. It compares upstream and selected Debian/Ubuntu fixed versions, checks kernel configuration and `algif_skcipher` availability, and flags possible container-to-host impact without triggering the race.
+
 - **Oct 2026**: Added a passive nftables catchall verdict-map UAF check for CVE-2026-23111, correlating exact upstream affected/fixed kernel ranges and vendor package evidence with `nf_tables`/pipapo availability, namespace controls, and AppArmor, SELinux, seccomp, and capability context.
 
 - **Sep 2026**: Added a passive Android Qualcomm KGSL check for CVE-2024-23380, correlating the `/dev/kgsl-3d0` and sysfs attack surface, Qualcomm/Adreno properties, device-node access, kernel/driver details, and the July 5, 2024 platform/vendor security patch level.

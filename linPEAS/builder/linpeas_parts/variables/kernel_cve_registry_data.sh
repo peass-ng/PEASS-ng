@@ -674,7 +674,6 @@ CVE-2026-64600	RefluXFS stale mapping race	pkg=linux-kernel,ver>=6.7,ver<6.12.96
 CVE-2026-64600	RefluXFS stale mapping race	pkg=linux-kernel,ver>=6.13,ver<6.18.39,CONFIG_XFS_FS=[my],cmd:grep -qw xfs /proc/mounts		1	Fixed in stable 6.18.39; requires an XFS filesystem with reflink enabled
 CVE-2026-64600	RefluXFS stale mapping race	pkg=linux-kernel,ver>=6.19,ver<7.1.4,CONFIG_XFS_FS=[my],cmd:grep -qw xfs /proc/mounts		1	Fixed in stable 7.1.4; requires an XFS filesystem with reflink enabled
 CVE-2026-64600	RefluXFS stale mapping race	pkg=linux-kernel,ver>=7.2,ver<7.3,CONFIG_XFS_FS=[my],cmd:uname -r 2>/dev/null | grep -Eq '^7\.2\.0-rc[123]([-.]|$)',cmd:grep -qw xfs /proc/mounts		1	Fixed in mainline 7.2-rc4; requires an XFS filesystem with reflink enabled
-CVE-2025-39964	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token for a CISA KEV Linux kernel AF_ALG local privilege-escalation flaw; no stable matcher added
 CVE-2026-53266	catalog_reference_only	9999.9999.9999		0	Reference-only CVE token for a CISA KEV Linux kernel ebtables page-corruption privilege-escalation flaw; no stable matcher added
 CVE-2026-98256,CVE-2026-98258,CVE-2026-98260	catalog_reference_only	9999.9999.9999		0	Reference-only CVE tokens from official Linux kernel POSIX timer exec-race privilege-escalation advisories; no public matcher added
 EOF_DATA_23
