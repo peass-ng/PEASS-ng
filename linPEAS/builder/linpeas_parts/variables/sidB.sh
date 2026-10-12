@@ -1,7 +1,7 @@
 # Title: Variables - sidB
 # ID: sidB
 # Author: Carlos Polop
-# Last Update: 09-10-2026
+# Last Update: 12-10-2026
 # Description: Dangerous sid binaries
 # License: GNU GPL
 # Version: 1.1
@@ -65,6 +65,7 @@ sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
  /umount$%BSD/Linux\(08-1996\)\
  /umount-loop$%Rocks_Clusters<=4.1\(07-2006\)\
  /uucp$%Taylor_UUCP_1.0.6\
+ /worker-launcher$%Apache_Storm_3.0.0_before_3.1.0_\(CVE-2026-82429,CVE-2026-82430\)\
  /XFree86$%XFree86_X11R6_3.3.x/4.0/4.x/3.3\(03-2003\)\
  /xlock$%BSD/OS_2.1/DG/UX_7.0/Debian_1.3/HP-UX_10.34/IBM_AIX_4.2/SGI_IRIX_6.4/Solaris_2.5.1\(04-1997\)\
  /xscreensaver%Solaris_11.x\(CVE-2019-3010\)\
