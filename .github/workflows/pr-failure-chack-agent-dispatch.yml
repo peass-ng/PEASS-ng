@@ -178,7 +178,7 @@ jobs:
 
       - name: Install Codex CLI
         run: |
-          npm install -g @openai/codex
+          npm install --global @openai/codex@latest
           codex --version
 
       - name: Run Chack Agent

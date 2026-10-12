@@ -189,7 +189,7 @@ jobs:
       - name: Install Codex CLI
         if: ${{ steps.gate.outputs.should_run == 'true' && steps.gate.outputs.trusted_automerge != 'true' }}
         run: |
-          npm install -g @openai/codex
+          npm install --global @openai/codex@latest
           codex --version
 
       - name: Run Chack Agent
