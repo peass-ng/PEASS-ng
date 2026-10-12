@@ -270,33 +270,19 @@ namespace winPEAS.Helpers.Search
 
         internal static IEnumerable<CustomFileInfo> SearchUserCredsFiles()
         {
-            var patterns = new List<string>
-            {
-                ".*credential.*",
-                ".*password.*"
-            };
-
             foreach (var file in RootDirUsers)
             {
-                //string extLower = file.Extension.ToLower();
-
-                if (!file.IsDirectory)
-                {
-                    string nameLower = file.Filename.ToLower();
-                    //  string nameExtLower = nameLower + "." + extLower;
-
-                    foreach (var pattern in patterns)
-                    {
-                        if (Regex.IsMatch(nameLower, pattern, RegexOptions.IgnoreCase))
-                        {
-                            yield return file;
-
-                            break;
-                        }
-                    }
-
-                }
+                if (!file.IsDirectory && IsCredentialFilename(file.Filename))
+                    yield return file;
             }
+        }
+
+        internal static bool IsCredentialFilename(string filename)
+        {
+            if (filename == null) return false;
+            string lowered = filename.ToLower();
+            return lowered.IndexOf("credential", StringComparison.Ordinal) >= 0 ||
+                lowered.IndexOf("password", StringComparison.Ordinal) >= 0;
         }
 
         internal const int MaxMessengerAndRecoveryArtifacts = 20;

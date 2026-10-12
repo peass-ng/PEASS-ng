@@ -94,5 +94,26 @@ namespace winPEAS.Tests
                 reusedResults);
             Assert.AreEqual(9, reusedResults.Count);
         }
+
+        [TestMethod]
+        public void CredentialFilenamePredicatePreservesLegacyMatches()
+        {
+            string[] names =
+            {
+                "credential.txt", "CREDENTIAL_backup.xml", "myPassword.kdbx",
+                "PASSWORDS.csv", "service-account.txt", "pass-word.txt", "paſsword.txt",
+                string.Empty
+            };
+
+            foreach (string name in names)
+            {
+                string lowered = name.ToLower();
+                bool legacyMatch = Regex.IsMatch(lowered, ".*credential.*", RegexOptions.IgnoreCase) ||
+                    Regex.IsMatch(lowered, ".*password.*", RegexOptions.IgnoreCase);
+                Assert.AreEqual(legacyMatch, SearchHelper.IsCredentialFilename(name), name);
+            }
+
+            Assert.IsFalse(SearchHelper.IsCredentialFilename(null));
+        }
     }
 }
