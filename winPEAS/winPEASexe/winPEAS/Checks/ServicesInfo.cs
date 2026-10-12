@@ -257,6 +257,7 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Modifiable Services", "T1543.003");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#services", "Check if you can modify any service");
+                Beaprint.GrayPrint("    Local SCM only. Remote sc.exe service-path replacement requires separate remote administrative/service-control access and is not inferred by this check.");
                 ScmCreateServiceAccess createAccess = ServicesInfoHelper.GetScmCreateServiceAccess();
                 if (createAccess == ScmCreateServiceAccess.Granted)
                 {
