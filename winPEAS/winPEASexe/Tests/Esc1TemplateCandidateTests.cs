@@ -11,6 +11,49 @@ namespace winPEAS.Tests
     public class Esc1TemplateCandidateTests
     {
         private static readonly string[] ClientAuth = { "1.3.6.1.5.5.7.3.2" };
+        private static readonly string[] EnrollmentAgent = { "1.3.6.1.4.1.311.20.2.1" };
+
+        [TestMethod]
+        public void Esc3AgentNeedsIssuanceWithoutApprovalOrSignatures()
+        {
+            Assert.IsTrue(ActiveDirectoryInfo.IsEsc3AgentTemplate(0, 0, EnrollmentAgent));
+            Assert.IsFalse(ActiveDirectoryInfo.IsEsc3AgentTemplate(null, 0, EnrollmentAgent));
+            Assert.IsFalse(ActiveDirectoryInfo.IsEsc3AgentTemplate(2, 0, EnrollmentAgent));
+            Assert.IsFalse(ActiveDirectoryInfo.IsEsc3AgentTemplate(0, 1, EnrollmentAgent));
+            Assert.IsFalse(ActiveDirectoryInfo.IsEsc3AgentTemplate(0, 0, ClientAuth));
+            Assert.IsFalse(ActiveDirectoryInfo.IsEsc3AgentTemplate(0, 0, null));
+        }
+
+        [TestMethod]
+        public void Esc3OnBehalfOfNeedsAgentSignatureAndAuthenticationPolicy()
+        {
+            Assert.IsTrue(ActiveDirectoryInfo.IsEsc3OnBehalfOfTemplate(2, 0, 1,
+                EnrollmentAgent, ClientAuth));
+            Assert.IsFalse(ActiveDirectoryInfo.IsEsc3OnBehalfOfTemplate(2, 0, 0,
+                EnrollmentAgent, ClientAuth));
+            Assert.IsFalse(ActiveDirectoryInfo.IsEsc3OnBehalfOfTemplate(1, 0, 0,
+                null, ClientAuth));
+            Assert.IsFalse(ActiveDirectoryInfo.IsEsc3OnBehalfOfTemplate(2, 0, null,
+                EnrollmentAgent, ClientAuth));
+            Assert.IsFalse(ActiveDirectoryInfo.IsEsc3OnBehalfOfTemplate(2, 0, 1,
+                ClientAuth, ClientAuth));
+            Assert.IsFalse(ActiveDirectoryInfo.IsEsc3OnBehalfOfTemplate(2, 2, 1,
+                EnrollmentAgent, ClientAuth));
+            Assert.IsFalse(ActiveDirectoryInfo.IsEsc3OnBehalfOfTemplate(2, 0, 1,
+                EnrollmentAgent, EnrollmentAgent));
+            Assert.IsFalse(ActiveDirectoryInfo.IsEsc3OnBehalfOfTemplate(null, 0, 1,
+                EnrollmentAgent, ClientAuth));
+        }
+
+        [TestMethod]
+        public void Esc3AgentDnsRequirementMustBeKnownBeforePairing()
+        {
+            Assert.IsNull(ActiveDirectoryInfo.Esc3AgentRequiresDns(null));
+            Assert.AreEqual(false, ActiveDirectoryInfo.Esc3AgentRequiresDns(0));
+            Assert.AreEqual(true, ActiveDirectoryInfo.Esc3AgentRequiresDns(0x00400000));
+            Assert.AreEqual(true, ActiveDirectoryInfo.Esc3AgentRequiresDns(0x08000000));
+            Assert.AreEqual(true, ActiveDirectoryInfo.Esc3AgentRequiresDns(0x10000000));
+        }
 
         [TestMethod]
         public void DisabledUserAclCueRequiresConfirmedDisabledUser()
