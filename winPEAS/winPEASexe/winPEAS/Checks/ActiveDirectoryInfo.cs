@@ -186,6 +186,50 @@ namespace winPEAS.Checks
         internal enum Esc9TemplateStatus { Unknown, NotCandidate, Candidate }
         internal enum Esc13TemplateStatus { Unknown, NotCandidate, Candidate }
         internal enum Esc15TemplateStatus { Unknown, NotCandidate, Candidate }
+        private const string EnrollmentAgentOid = "1.3.6.1.4.1.311.20.2.1";
+
+        private sealed class Esc3TemplateObservation
+        {
+            internal string Name;
+            internal bool Agent;
+            internal bool OnBehalfOf;
+            internal bool DescriptorRead;
+            internal bool CurrentEnrollAllow;
+            internal bool CurrentEnrollDeny;
+            internal bool? RequiresDns;
+        }
+
+        // Both stages are configuration leads. CA publication, enrollment-agent
+        // restrictions and effective access must still be checked separately.
+        internal static bool IsEsc3AgentTemplate(int? enrollmentFlags, int? requiredSignatures,
+            IEnumerable<string> applicationPolicies)
+        {
+            return enrollmentFlags.HasValue && (enrollmentFlags.Value & 0x2) == 0 &&
+                requiredSignatures == 0 && applicationPolicies != null &&
+                applicationPolicies.Contains(EnrollmentAgentOid);
+        }
+
+        internal static bool? Esc3AgentRequiresDns(int? nameFlags)
+        {
+            // An unreadable name flag must not be treated as evidence that a user
+            // can enroll in a template requiring a computer DNS name.
+            return nameFlags.HasValue ? (bool?)((nameFlags.Value & 0x18400000) != 0) : null;
+        }
+
+        internal static bool IsEsc3OnBehalfOfTemplate(int? schemaVersion, int? enrollmentFlags, int? requiredSignatures,
+            IEnumerable<string> raApplicationPolicies, IEnumerable<string> applicationPolicies)
+        {
+            if (!schemaVersion.HasValue || schemaVersion.Value < 2 || !enrollmentFlags.HasValue ||
+                (enrollmentFlags.Value & 0x2) != 0 || requiredSignatures != 1 ||
+                raApplicationPolicies == null || !raApplicationPolicies.Contains(EnrollmentAgentOid) ||
+                applicationPolicies == null)
+                return false;
+            // A target with no required RA signature is not an ESC3 second stage.
+            return applicationPolicies.Any(oid => oid == "1.3.6.1.5.5.7.3.2" || // Client Authentication
+                oid == "1.3.6.1.5.2.3.4" || // PKINIT Client Authentication
+                oid == "1.3.6.1.4.1.311.20.2.2" || // Smart Card Logon
+                oid == "2.5.29.37.0"); // Any Purpose
+        }
 
         internal static Esc15TemplateStatus AssessEsc15Template(int? schemaVersion, int? nameFlags,
             int? enrollmentFlags, int? requiredSignatures, bool? published)
@@ -2958,13 +3002,13 @@ namespace winPEAS.Checks
                     Beaprint.GrayPrint("  [-] Certificate Authority not found. Skipping.");
                 }
 
-                // Reuse one template scan for ESC4 rights and passive ESC1/ESC9 configuration candidates.
+                // Reuse one bounded template scan for ACL rights and passive ESC configuration candidates.
                 Beaprint.InfoPrint("\nIf you can modify a template (WriteDacl/WriteOwner/GenericAll), you can abuse ESC4");
                 var configNC = GetRootDseProp("configurationNamingContext");
                 if (string.IsNullOrEmpty(configNC))
                 {
                     Beaprint.GrayPrint("  [-] Could not resolve configurationNamingContext.");
-                    Beaprint.GrayPrint("  [?] ESC1/ESC9 template visibility unknown without the configuration naming context.");
+                    Beaprint.GrayPrint("  [?] ESC1/ESC3/ESC9 template visibility unknown without the configuration naming context.");
                     return;
                 }
 
@@ -2979,6 +3023,7 @@ namespace winPEAS.Checks
                 bool esc1Capped = false;
                 int esc9Unknown = 0;
                 int esc9Candidates = 0;
+                var esc3Observations = new List<Esc3TemplateObservation>();
                 var esc13Observations = new List<Esc13TemplateObservation>();
                 var esc15Observations = new List<Esc15TemplateObservation>();
 
@@ -3002,6 +3047,8 @@ namespace winPEAS.Checks
                     ds.PropertiesToLoad.Add("msPKI-Enrollment-Flag");
                     ds.PropertiesToLoad.Add("msPKI-RA-Signature");
                     ds.PropertiesToLoad.Add("pKIExtendedKeyUsage");
+                    ds.PropertiesToLoad.Add("msPKI-Certificate-Application-Policy");
+                    ds.PropertiesToLoad.Add("msPKI-RA-Application-Policies");
                     ds.PropertiesToLoad.Add("msPKI-Minimal-Key-Size");
                     ds.PropertiesToLoad.Add("msPKI-Certificate-Policy");
 
@@ -3019,6 +3066,7 @@ namespace winPEAS.Checks
                             string templateCn = GetProp(r, "cn") ?? "<unknown>";
                             Esc1TemplateStatus esc1Status = Esc1TemplateStatus.Unknown;
                             Esc9TemplateStatus esc9Status = Esc9TemplateStatus.Unknown;
+                            Esc3TemplateObservation esc3Observation = null;
                             Esc13TemplateObservation esc13Observation = null;
                             Esc15TemplateObservation esc15Observation = null;
                             bool currentEnrollAllow = false, currentEnrollDeny = false;
@@ -3033,11 +3081,34 @@ namespace winPEAS.Checks
                                     : null;
                                 int? enrollmentFlags = GetIntProp(r, "msPKI-Enrollment-Flag");
                                 int? requiredSignatures = GetIntProp(r, "msPKI-RA-Signature");
+                                int? schemaVersion = GetIntProp(r, "msPKI-Template-Schema-Version");
+                                int? nameFlags = GetIntProp(r, "msPKI-Certificate-Name-Flag");
+                                // Application policies take precedence over the legacy EKU field.
+                                IEnumerable<string> applicationPolicies = r.Properties.Contains("msPKI-Certificate-Application-Policy")
+                                    ? r.Properties["msPKI-Certificate-Application-Policy"].Cast<object>()
+                                        .Where(value => value != null).Select(value => value.ToString()).ToArray()
+                                    : ekus;
+                                IEnumerable<string> raApplicationPolicies = r.Properties.Contains("msPKI-RA-Application-Policies")
+                                    ? r.Properties["msPKI-RA-Application-Policies"].Cast<object>()
+                                        .Where(value => value != null).Select(value => value.ToString()).ToArray()
+                                    : null;
+                                bool esc3Agent = IsEsc3AgentTemplate(enrollmentFlags, requiredSignatures, applicationPolicies);
+                                bool esc3OnBehalfOf = IsEsc3OnBehalfOfTemplate(schemaVersion, enrollmentFlags, requiredSignatures,
+                                    raApplicationPolicies, applicationPolicies);
+                                if (esc3Agent || esc3OnBehalfOf)
+                                {
+                                    esc3Observation = new Esc3TemplateObservation
+                                    {
+                                        Name = templateCn,
+                                        Agent = esc3Agent,
+                                        OnBehalfOf = esc3OnBehalfOf,
+                                        RequiresDns = esc3Agent ? Esc3AgentRequiresDns(nameFlags) : false
+                                    };
+                                    esc3Observations.Add(esc3Observation);
+                                }
                                 esc1Status = AssessEsc1Template(GetIntProp(r, "msPKI-Certificate-Name-Flag"),
                                     enrollmentFlags, requiredSignatures, ekus);
                                 esc9Status = AssessEsc9Template(enrollmentFlags, requiredSignatures, ekus);
-                                int? schemaVersion = GetIntProp(r, "msPKI-Template-Schema-Version");
-                                int? nameFlags = GetIntProp(r, "msPKI-Certificate-Name-Flag");
                                 if (AssessEsc15Template(schemaVersion, nameFlags, enrollmentFlags,
                                     requiredSignatures, true) != Esc15TemplateStatus.NotCandidate)
                                 {
@@ -3099,6 +3170,7 @@ namespace winPEAS.Checks
                                     if (string.IsNullOrEmpty(sid)) continue;
                                     if ((esc1Status == Esc1TemplateStatus.Candidate ||
                                         esc9Status == Esc9TemplateStatus.Candidate ||
+                                        esc3Observation != null ||
                                         esc13Observation != null || esc15Observation != null) &&
                                         IsCertificateEnrollAce(rule.ActiveDirectoryRights, rule.ObjectType,
                                             (rule.PropagationFlags & PropagationFlags.InheritOnly) != 0))
@@ -3159,6 +3231,12 @@ namespace winPEAS.Checks
                                 esc13Observation.ComputerEnrollAllow = computerEnrollAllow;
                                 esc13Observation.ComputerEnrollDeny = computerEnrollDeny;
                             }
+                            if (esc3Observation != null)
+                            {
+                                esc3Observation.DescriptorRead = descriptorRead;
+                                esc3Observation.CurrentEnrollAllow = currentEnrollAllow;
+                                esc3Observation.CurrentEnrollDeny = currentEnrollDeny;
+                            }
                             if (esc15Observation != null)
                             {
                                 esc15Observation.DescriptorRead = descriptorRead;
@@ -3198,6 +3276,57 @@ namespace winPEAS.Checks
                             }
                         }
                     }
+                }
+
+                bool publicationComplete = false;
+                var publishedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                if (esc3Observations.Count > 0 || esc15Observations.Count > 0)
+                    publishedNames = ReadPublishedTemplateNames(configNC, out publicationComplete);
+
+                if (esc3Observations.Count > 0)
+                {
+                    var agentTemplates = esc3Observations.Where(o => o.Agent).ToList();
+                    var onBehalfTemplates = esc3Observations.Where(o => o.OnBehalfOf).ToList();
+                    foreach (var observation in esc3Observations.Take(20))
+                    {
+                        string stage = observation.Agent && observation.OnBehalfOf ?
+                            "enrollment-agent and on-behalf-of" :
+                            observation.Agent ? "enrollment-agent" : "on-behalf-of";
+                        string enrollment = !observation.DescriptorRead ? "Enroll ACL unavailable" :
+                            observation.CurrentEnrollDeny ? "matching token deny ACE" :
+                            observation.CurrentEnrollAllow ? "current-token Enroll allow ACE" :
+                            "no matching token Enroll allow ACE";
+                        string publication = !publicationComplete ? "publication unknown" :
+                            publishedNames.Contains(observation.Name) ? "published" : "not published";
+                        Beaprint.GrayPrint("  ESC3 " + stage + " template lead: " +
+                            SafeLogonScriptText(observation.Name, 128) + " (" + enrollment + "; " + publication +
+                            (observation.RequiresDns == true ? "; requester DNS name required" :
+                            observation.RequiresDns.HasValue ? "" : "; requester DNS requirement unknown") + ").");
+                    }
+                    int paths = 0;
+                    if (publicationComplete)
+                    {
+                        foreach (var agent in agentTemplates.Where(o => o.RequiresDns == false && o.DescriptorRead &&
+                            o.CurrentEnrollAllow && !o.CurrentEnrollDeny && publishedNames.Contains(o.Name)))
+                        {
+                            foreach (var target in onBehalfTemplates.Where(o => o.DescriptorRead &&
+                                o.CurrentEnrollAllow && !o.CurrentEnrollDeny && publishedNames.Contains(o.Name)))
+                            {
+                                paths++;
+                                if (paths <= 20)
+                                    Beaprint.BadPrint("  ESC3 candidate path: " + SafeLogonScriptText(agent.Name, 128) +
+                                        " -> " + SafeLogonScriptText(target.Name, 128) +
+                                        " (current token has matching Enroll allow ACEs on both published templates).");
+                            }
+                        }
+                    }
+                    Beaprint.GrayPrint("  [*] ESC3 review: " + agentTemplates.Count + " agent template(s), " +
+                        onBehalfTemplates.Count + " on-behalf-of template(s), " + paths + " candidate path(s).");
+                    if (esc3Observations.Count > 20 || paths > 20)
+                        Beaprint.GrayPrint("  [*] Additional ESC3 leads or paths omitted from display.");
+                    if (!publicationComplete)
+                        Beaprint.GrayPrint("  [?] CA publication query incomplete; ESC3 path status is unknown.");
+                    Beaprint.GrayPrint("  [*] ESC3 still requires effective ACLs, CA enrollment and enrollment-agent restrictions, trusted CA chains, and a usable authentication template; no certificate was requested.");
                 }
 
                 if (esc13Observations.Count > 0)
@@ -3240,8 +3369,6 @@ namespace winPEAS.Checks
 
                 if (esc15Observations.Count > 0)
                 {
-                    bool publicationComplete;
-                    var publishedNames = ReadPublishedTemplateNames(configNC, out publicationComplete);
                     int candidates = 0, unknown = 0;
                     var sidRows = new List<string>();
                     foreach (var observation in esc15Observations)
@@ -3289,7 +3416,7 @@ namespace winPEAS.Checks
                 if (esc9Candidates > 20)
                     Beaprint.GrayPrint("  [*] " + (esc9Candidates - 20) + " additional ESC9 candidate(s) omitted from display.");
                 if (esc1Capped)
-                    Beaprint.GrayPrint("  [?] ESC1/ESC4/ESC9/ESC13/ESC15 assessment capped at 120 templates or 5 seconds; remaining templates are unknown.");
+                    Beaprint.GrayPrint("  [?] ESC1/ESC3/ESC4/ESC9/ESC13/ESC15 assessment capped at 120 templates or 5 seconds; remaining templates are unknown.");
                 Beaprint.GrayPrint("  [*] Template flags and allow ACEs are leads only; publication, CA rights, effective ACLs and KDC strong SID mapping remain unverified.");
                 if (esc9Candidates > 0)
                     Beaprint.GrayPrint("  [*] ESC9 mapping caveat: current patched KDCs require a strong certificate mapping; the historical StrongCertificateBindingEnforcement compatibility override ended in September 2025. Schannel UPN mapping is a separate endpoint setting. Local registry values do not prove the effective authentication path or a writable target UPN.");
@@ -3308,7 +3435,7 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.PrintException(ex.Message);
-                Beaprint.GrayPrint("  [?] ESC1/ESC9 template visibility unknown because the AD CS enumeration did not complete.");
+                Beaprint.GrayPrint("  [?] ESC1/ESC3/ESC9 template visibility unknown because the AD CS enumeration did not complete.");
             }
         }
         private void PrintDomainKerberosDefaults(string defaultNc)

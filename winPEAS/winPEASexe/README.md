@@ -71,6 +71,12 @@ winpeas.exe -linpeas=http://127.0.0.1/linpeas.sh #Execute also additional linpea
 winpeas.exe -lolbas  #Execute also additional LOLBAS search check
 ```
 
+The `domain` checks include a bounded, read-only AD CS template review. ESC3 output
+correlates published enrollment-agent and on-behalf-of templates with matching
+Enroll ACEs for the current token. These are candidate paths, not proof of
+effective access: CA-specific publication, enrollment-agent restrictions,
+issuance policy, and certificate authentication still need manual verification.
+
 ## Basic information
 
 The goal of this project is to search for possible **Privilege Escalation Paths** in Windows environments.
