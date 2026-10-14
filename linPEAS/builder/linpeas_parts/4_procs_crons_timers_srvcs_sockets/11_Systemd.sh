@@ -1,24 +1,25 @@
 # Title: System Information - Systemd
 # ID: SY_Systemd
 # Author: Carlos Polop
-# Last Update: 2026-10-09
-# Description: Check systemd version, service misconfigurations, and readable service environment files:
+# Last Update: 2026-10-14
+# Description: Check systemd version, service misconfigurations, and readable or writable service environment files:
 #   - Systemd release (distribution package and patch status require separate verification)
 #   - Services running as root that could be exploited
 #   - Services with dangerous capabilities that could be abused
 #   - Services with writable paths that could be used to inject malicious code
+#   - Writable environment files consumed by active root services
 #   - Exploitation methods:
 #     * Version review: Compare the installed distribution package with vendor fixes
 #     * Root services: Abuse services running as root to execute commands
 #     * Capabilities: Abuse services with dangerous capabilities (CAP_SYS_ADMIN, etc.)
 #     * Writable paths: Replace executables in writable paths to get code execution
 # License: GNU GPL
-# Version: 1.2
+# Version: 1.3
 # Mitre: T1543.002,T1552.001
-# Functions Used: print_2title, print_list, echo_not_found
-# Global Variables: $SEARCH_IN_FOLDER, $IAMROOT, $Wfolders, $SED_RED, $SED_RED_YELLOW, $NC
+# Functions Used: print_2title, print_info, print_list, echo_not_found
+# Global Variables: $E, $SEARCH_IN_FOLDER, $IAMROOT, $Wfolders, $SED_RED, $SED_RED_YELLOW, $NC
 # Initial Functions:
-# Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $exec_value, $cmd, $cmd_path, $svc_path_entry, $svc_writable_path, $running_services, $env_file_findings, $env_file_path, $env_file_size, $env_key_names, $env_unit_size
+# Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $exec_value, $cmd, $cmd_path, $svc_path_entry, $svc_writable_path, $running_services, $env_file_findings, $env_file_path, $env_file_size, $env_key_names, $env_unit_size, $systemd_wenv_findings, $systemd_wenv_properties, $systemd_wenv_user, $systemd_wenv_dynamic, $systemd_wenv_rootdir, $systemd_wenv_rootimage, $systemd_wenv_path
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -26,12 +27,14 @@
 # indicator of readable credential-like assignments, not evidence that a key
 # is used for authentication or provides privilege escalation.
 systemd_envfile_candidates() {
-    [ -f "$1" ] && [ -r "$1" ] || return
-    local env_unit_size
-    env_unit_size=$(stat -c %s "$1" 2>/dev/null) ||
-        env_unit_size=$(stat -f %z "$1" 2>/dev/null) || return
-    case "$env_unit_size" in ''|*[!0-9]*) return ;; esac
-    [ "$env_unit_size" -le 65536 ] || return
+    if [ "$1" != "-" ]; then
+        [ -f "$1" ] && [ -r "$1" ] || return
+        local env_unit_size
+        env_unit_size=$(stat -c %s "$1" 2>/dev/null) ||
+            env_unit_size=$(stat -f %z "$1" 2>/dev/null) || return
+        case "$env_unit_size" in ''|*[!0-9]*) return ;; esac
+        [ "$env_unit_size" -le 65536 ] || return
+    fi
     awk '
         function add_path(value, path, quoted, optional) {
             sub(/^[[:space:]]*/, "", value)
@@ -110,6 +113,27 @@ systemd_envfile_findings_for_unit() {
         env_key_names=$(systemd_envfile_key_names "$env_file_path")
         [ "$env_key_names" ] && printf '%s: %s\n' "$env_file_path" "$env_key_names"
     done
+}
+
+# systemctl cat includes the loaded unit and its drop-ins, so resets in a
+# drop-in cannot leave a stale EnvironmentFile= candidate from the main unit.
+# The caller supplies only an active system service and the effective User=.
+systemd_wenv_findings_for_unit() {
+    [ -n "$1" ] || return 0
+    systemd_wenv_properties=$(systemctl show "$1" -p User -p DynamicUser -p RootDirectory -p RootImage 2>/dev/null) || return 0
+    systemd_wenv_user=$(printf '%s\n' "$systemd_wenv_properties" | sed -n 's/^User=//p' | head -n 1)
+    case "$systemd_wenv_user" in ""|root|0) ;; *) return 0 ;; esac
+    systemd_wenv_dynamic=$(printf '%s\n' "$systemd_wenv_properties" | sed -n 's/^DynamicUser=//p' | head -n 1)
+    [ "$systemd_wenv_dynamic" = "yes" ] && return 0
+    systemd_wenv_rootdir=$(printf '%s\n' "$systemd_wenv_properties" | sed -n 's/^RootDirectory=//p' | head -n 1)
+    systemd_wenv_rootimage=$(printf '%s\n' "$systemd_wenv_properties" | sed -n 's/^RootImage=//p' | head -n 1)
+    [ -z "$systemd_wenv_rootdir" ] && [ -z "$systemd_wenv_rootimage" ] || return 0
+
+    systemctl cat --no-pager "$1" 2>/dev/null | head -c 65536 |
+        systemd_envfile_candidates - | while IFS= read -r systemd_wenv_path; do
+            [ -f "$systemd_wenv_path" ] && [ -w "$systemd_wenv_path" ] || continue
+            printf '%s: %s\n' "$1" "$systemd_wenv_path"
+        done
 }
 
 if ! [ "$SEARCH_IN_FOLDER" ]; then
@@ -263,6 +287,19 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
         if [ "$env_file_findings" ]; then
             print_2title "Readable systemd EnvironmentFile credential-like keys (possible exposure)" "T1552.001"
             printf '%s\n' "$env_file_findings"
+            echo ""
+        fi
+
+        systemd_wenv_findings=$(
+            printf '%s\n' "$running_services" | systemd_envfile_active_units | while IFS= read -r service; do
+                systemd_wenv_findings_for_unit "$service"
+            done | sort -u
+        )
+        if [ "$systemd_wenv_findings" ]; then
+            print_2title "Writable EnvironmentFile in active root systemd service (environment injection candidate)" "T1543.002"
+            print_info "https://man7.org/linux/man-pages/man5/systemd.exec.5.html"
+            printf '%s\n' "$systemd_wenv_findings" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+            printf '%s\n' 'The service manager reads these files before execution; review effective unit overrides, UnsetEnvironment, executable type, and restart conditions.'
             echo ""
         fi
     fi

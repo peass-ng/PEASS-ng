@@ -209,7 +209,72 @@ class SystemdEnvironmentFilesTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             seen_calls = calls.read_text(encoding="utf-8").splitlines()
             self.assertEqual(1, seen_calls.count("list-units"))
-            self.assertEqual(201, seen_calls.count("show"))
+            # The writable-environment check also reads the effective user
+            # for each of the 200 bounded active services.
+            self.assertEqual(401, seen_calls.count("show"))
+
+    def test_writable_envfile_in_active_root_unit_and_dropin_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            bindir = root / "bin"
+            bindir.mkdir()
+            env_file = root / "service env"
+            env_file.write_text("LD_PRELOAD=do-not-print-this-value\n", encoding="utf-8")
+            env_file.chmod(0o666)
+            unit = root / "demo.service"
+            unit.write_text("[Service]\nEnvironmentFile=/stale.env\n", encoding="utf-8")
+            dropin = root / "override.conf"
+            dropin.write_text(
+                f'[Service]\nEnvironmentFile=\nEnvironmentFile="{env_file}"\n',
+                encoding="utf-8",
+            )
+            systemctl = bindir / "systemctl"
+            systemctl.write_text(
+                "#!/bin/sh\n"
+                "case \"$1\" in\n"
+                "  show) printf 'User=%s\\nDynamicUser=%s\\nRootDirectory=\\nRootImage=\\n' "
+                '"$FAKE_USER" "$FAKE_DYNAMIC" ;;\n'
+                '  cat) cat "$FAKE_UNIT" "$FAKE_DROPIN" ;;\n'
+                "esac\n",
+                encoding="utf-8",
+            )
+            systemctl.chmod(0o755)
+            env = os.environ.copy()
+            env.update(
+                {
+                    "PATH": f"{bindir}:{env['PATH']}",
+                    "FAKE_UNIT": str(unit),
+                    "FAKE_DROPIN": str(dropin),
+                    "FAKE_USER": "",
+                    "FAKE_DYNAMIC": "no",
+                }
+            )
+            body = "\n".join(
+                [
+                    "SEARCH_IN_FOLDER=1",
+                    f". {shlex.quote(str(self.script))}",
+                    "systemd_wenv_findings_for_unit demo.service",
+                ]
+            )
+            result = subprocess.run(
+                ["sh", "-c", body], env=env, capture_output=True, text=True
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(f"demo.service: {env_file}\n", result.stdout)
+            self.assertNotIn("do-not-print-this-value", result.stdout)
+            self.assertNotIn("/stale.env", result.stdout)
+
+            env["FAKE_USER"] = "daemon"
+            nonroot = subprocess.run(
+                ["sh", "-c", body], env=env, capture_output=True, text=True
+            )
+            self.assertEqual("", nonroot.stdout)
+            env["FAKE_USER"] = ""
+            env["FAKE_DYNAMIC"] = "yes"
+            dynamic = subprocess.run(
+                ["sh", "-c", body], env=env, capture_output=True, text=True
+            )
+            self.assertEqual("", dynamic.stdout)
 
     def test_new_indicator_only_checks_first_200_units_including_bulleted_rows(self):
         body = "\n".join(
