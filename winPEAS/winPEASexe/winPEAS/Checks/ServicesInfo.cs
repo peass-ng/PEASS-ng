@@ -343,23 +343,40 @@ namespace winPEAS.Checks
         {
             try
             {
-                Beaprint.MainPrint("Writable DLLs loaded by LocalSystem services", "T1574.010");
+                Beaprint.MainPrint("Controllable DLLs loaded by LocalSystem services", "T1574.010,T1574.011");
                 Beaprint.LinkPrint(
                     "https://attack.mitre.org/techniques/T1574/010/",
                     "A replaceable DLL loaded by an enabled LocalSystem service can execute as SYSTEM when the service starts.");
+                Beaprint.LinkPrint(
+                    "https://attack.mitre.org/techniques/T1574/011/",
+                    "An enabled LocalSystem service may load an attacker-selected DLL if its ServiceDll registry value is writable.");
 
                 WritableServiceDllReport report = ServicesInfoHelper.GetWritableSystemServiceDlls(Checks.CurrentUserSiDs);
                 if (report.Findings.Count == 0)
                 {
-                    Beaprint.GoodPrint($"    No replaceable ServiceDll paths found in {report.ServicesInspected} inspected service(s).");
+                    string summary = $"    No controllable ServiceDll paths or values found in {report.ServicesInspected} inspected service(s).";
+                    if (!report.InventoryAvailable)
+                        Beaprint.GrayPrint("    Service DLL registry inventory unavailable; no conclusion.");
+                    else if (report.ServiceLimitReached || report.TimeLimitReached)
+                        Beaprint.GrayPrint(summary + " Remaining services unknown.");
+                    else
+                        Beaprint.GoodPrint(summary);
                 }
 
                 foreach (WritableServiceDllInfo finding in report.Findings)
                 {
                     Beaprint.BadPrint($"    {finding.ServiceName} ({finding.Account})");
                     Beaprint.NoColorPrint($"      ServiceDll : {finding.ServiceDllPath}");
-                    Beaprint.NoColorPrint($"      DLL exists : {finding.FileExists}");
-                    Beaprint.BadPrint($"      Evidence    : {finding.AccessReason}");
+                    if (finding.CanChangeServiceDllValue)
+                    {
+                        Beaprint.BadPrint("      Evidence    : current token can open Parameters with KEY_SET_VALUE; ServiceDll value may be changed.");
+                        Beaprint.GrayPrint("      DLL loading and service restart were not tested; registry value was not changed.");
+                    }
+                    else
+                    {
+                        Beaprint.NoColorPrint($"      DLL exists : {finding.FileExists}");
+                        Beaprint.BadPrint($"      Evidence    : {finding.AccessReason}");
+                    }
                     Beaprint.PrintLineSeparator();
                 }
 
@@ -370,6 +387,10 @@ namespace winPEAS.Checks
                 if (report.FindingLimitReached)
                 {
                     Beaprint.GrayPrint($"    Findings were capped at {ServicesInfoHelper.MaxServiceDllFindings}.");
+                }
+                if (report.TimeLimitReached)
+                {
+                    Beaprint.GrayPrint($"    Service inspection stopped at its {ServicesInfoHelper.MaxServiceDllInspectionMilliseconds / 1000}-second limit; remaining services unknown.");
                 }
             }
             catch (Exception ex)

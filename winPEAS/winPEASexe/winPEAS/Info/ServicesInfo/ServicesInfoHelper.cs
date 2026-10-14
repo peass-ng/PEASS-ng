@@ -110,14 +110,17 @@ namespace winPEAS.Info.ServicesInfo
         public string ServiceDllPath { get; set; }
         public bool FileExists { get; set; }
         public string AccessReason { get; set; }
+        public bool CanChangeServiceDllValue { get; set; }
     }
 
     internal sealed class WritableServiceDllReport
     {
         public List<WritableServiceDllInfo> Findings { get; } = new List<WritableServiceDllInfo>();
         public int ServicesInspected { get; set; }
+        public bool InventoryAvailable { get; set; }
         public bool ServiceLimitReached { get; set; }
         public bool FindingLimitReached { get; set; }
+        public bool TimeLimitReached { get; set; }
     }
 
     internal sealed class WritableServiceRecoveryCommandInfo
@@ -372,6 +375,7 @@ namespace winPEAS.Info.ServicesInfo
 
         internal const int MaxServiceDllServices = 4096;
         internal const int MaxServiceDllFindings = 64;
+        internal const int MaxServiceDllInspectionMilliseconds = 3000;
         internal const int MaxRecoveryCommandServices = 4096;
         internal const int MaxRecoveryCommandFindings = 64;
 
@@ -1023,18 +1027,16 @@ namespace winPEAS.Info.ServicesInfo
         public static WritableServiceDllReport GetWritableSystemServiceDlls(Dictionary<string, string> currentUserSids)
         {
             var report = new WritableServiceDllReport();
-            if (currentUserSids == null || currentUserSids.Count == 0)
-            {
-                return report;
-            }
-
             string windowsDirectory = GetWindowsDirectory();
             if (string.IsNullOrWhiteSpace(windowsDirectory))
             {
                 return report;
             }
 
-            var tokenSids = new HashSet<string>(currentUserSids.Keys, StringComparer.OrdinalIgnoreCase);
+            var tokenSids = new HashSet<string>(
+                currentUserSids == null ? Enumerable.Empty<string>() : currentUserSids.Keys,
+                StringComparer.OrdinalIgnoreCase);
+            Stopwatch timer = Stopwatch.StartNew();
 
             try
             {
@@ -1046,8 +1048,14 @@ namespace winPEAS.Info.ServicesInfo
                     }
 
                     string[] serviceNames = servicesKey.GetSubKeyNames();
+                    report.InventoryAvailable = true;
                     foreach (string serviceName in serviceNames)
                     {
+                        if (timer.ElapsedMilliseconds >= MaxServiceDllInspectionMilliseconds)
+                        {
+                            report.TimeLimitReached = true;
+                            break;
+                        }
                         if (report.ServicesInspected >= MaxServiceDllServices)
                         {
                             report.ServiceLimitReached = true;
@@ -1088,21 +1096,28 @@ namespace winPEAS.Info.ServicesInfo
                                     continue;
                                 }
 
-                                bool fileExists;
-                                string accessReason;
-                                string accessPath = GetFileSystemAccessPath(
-                                    serviceDllPath,
-                                    windowsDirectory,
-                                    Environment.Is64BitOperatingSystem,
-                                    Environment.Is64BitProcess);
-                                if (!TryGetReplacementDetails(
-                                    accessPath,
-                                    tokenSids,
-                                    "service DLL",
-                                    out fileExists,
-                                    out accessReason))
+                                // Request KEY_SET_VALUE without changing the registry. Unlike an
+                                // ACL allow-rule match, opening the key tests this process token's
+                                // effective access (including deny ACEs).
+                                bool canChangeValue = CanSetServiceDllValue(servicesKey, serviceName);
+                                bool fileExists = false;
+                                string accessReason = string.Empty;
+                                if (!canChangeValue)
                                 {
-                                    continue;
+                                    string accessPath = GetFileSystemAccessPath(
+                                        serviceDllPath,
+                                        windowsDirectory,
+                                        Environment.Is64BitOperatingSystem,
+                                        Environment.Is64BitProcess);
+                                    if (!TryGetReplacementDetails(
+                                        accessPath,
+                                        tokenSids,
+                                        "service DLL",
+                                        out fileExists,
+                                        out accessReason))
+                                    {
+                                        continue;
+                                    }
                                 }
 
                                 report.Findings.Add(new WritableServiceDllInfo
@@ -1112,6 +1127,7 @@ namespace winPEAS.Info.ServicesInfo
                                     ServiceDllPath = serviceDllPath,
                                     FileExists = fileExists,
                                     AccessReason = accessReason,
+                                    CanChangeServiceDllValue = canChangeValue,
                                 });
                             }
                         }
@@ -1128,6 +1144,27 @@ namespace winPEAS.Info.ServicesInfo
             }
 
             return report;
+        }
+
+        internal static bool CanSetServiceDllValue(RegistryKey servicesKey, string serviceName)
+        {
+            if (servicesKey == null || string.IsNullOrEmpty(serviceName))
+                return false;
+
+            try
+            {
+                using (RegistryKey parametersKey = servicesKey.OpenSubKey(
+                    serviceName + @"\Parameters",
+                    RegistryKeyPermissionCheck.ReadWriteSubTree,
+                    RegistryRights.SetValue))
+                {
+                    return parametersKey != null;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         internal static bool IsEligibleSystemService(

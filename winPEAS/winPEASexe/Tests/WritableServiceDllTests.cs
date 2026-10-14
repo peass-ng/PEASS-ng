@@ -1,4 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -10,6 +12,35 @@ namespace Tests
     public class WritableServiceDllTests
     {
         private const string UsersSid = "S-1-5-32-545";
+
+        [TestMethod]
+        public void ServiceDllRegistryProbeRequestsSetValueWithoutWriting()
+        {
+            string testPath = @"Software\winPEAS-ServiceDllTest-" + Guid.NewGuid().ToString("N");
+            try
+            {
+                using (RegistryKey root = Registry.CurrentUser.CreateSubKey(testPath))
+                using (RegistryKey parameters = root.CreateSubKey(@"Demo\Parameters"))
+                {
+                    parameters.SetValue("ServiceDll", @"C:\Windows\System32\example.dll");
+                }
+
+                using (RegistryKey root = Registry.CurrentUser.OpenSubKey(testPath))
+                {
+                    Assert.IsTrue(ServicesInfoHelper.CanSetServiceDllValue(root, "Demo"));
+                    Assert.IsFalse(ServicesInfoHelper.CanSetServiceDllValue(root, "Missing"));
+                    Assert.IsFalse(ServicesInfoHelper.CanSetServiceDllValue(null, "Demo"));
+                    using (RegistryKey parameters = root.OpenSubKey(@"Demo\Parameters"))
+                    {
+                        Assert.AreEqual(@"C:\Windows\System32\example.dll", parameters.GetValue("ServiceDll"));
+                    }
+                }
+            }
+            finally
+            {
+                Registry.CurrentUser.DeleteSubKeyTree(testPath, false);
+            }
+        }
 
         [TestMethod]
         public void NormalizesServicePathsAndRequiresUnprotectedSystemSvchost()
