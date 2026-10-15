@@ -8,7 +8,7 @@
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $VERSION, $ADVISORY, $IAMROOT, $MAXPATH_FIND_W, $C, $RED, $SED_RED, $GREEN, $SED_GREEN, $YELLOW, $SED_YELLOW, $RED_YELLOW, $SED_RED_YELLOW, $BLUE, $SED_BLUE, $ITALIC_BLUE, $LIGHT_MAGENTA, $SED_LIGHT_MAGENTA, $LIGHT_CYAN, $SED_LIGHT_CYAN, $LG, $SED_LG, $DG, $SED_DG, $NC, $UNDERLINED, $ITALIC, $MACPEAS, $FAST, $SUPERFAST, $DISCOVERY, $PORTS, $QUIET, $CHECKS, $MITRE_FILTER, $SEARCH_IN_FOLDER, $ROOT_FOLDER, $WAIT, $PASSWORD, $NOCOLOR, $DEBUG, $AUTO_NETWORK_SCAN, $EXTRA_CHECKS, $REGEXES, $PORT_FORWARD, $NOT_CHECK_EXTERNAL_HOSTNAME, $ONLINE_VULN_CHECKS, $E, $PING, $FPING, $DISCOVER_BAN_BAD, $DISCOVER_BAN_GOOD, $SCAN_BAN_GOOD, $NMAP_GOOD, $SCRIPTNAME, $FOUND_BASH, $FOUND_NC, $HOMESEARCH, $GREPHOMESEARCH, $SCAN_BAN_BAD, $HOME, $THREADS, $opt, $HELP, $USER, $TOTAL_T1_TIME, $END_T1_TIME, $START_T1_TIME, $title, $title_len, $max_title_len, $rest_len, $CONT_THREADS, $wgroups, $WF_ALL, $WF_TIMEOUT, $WF_STATUS, $bf_limit, $wf_pid, $wf_timer, $wf_rc, $SEDOVERFLOW, $Wfolders, $Wfolder, $grp, $END_T2_TIME, $TOTAL_T2_TIME, $START_T2_TIME, $_mitre_tag, $_mitre_filter, $_mitre_base, $_mitre_tags_left, $_mitre_filters_left
+# Generated Global Variables: $VERSION, $ADVISORY, $IAMROOT, $MAXPATH_FIND_W, $C, $RED, $SED_RED, $GREEN, $SED_GREEN, $YELLOW, $SED_YELLOW, $RED_YELLOW, $SED_RED_YELLOW, $BLUE, $SED_BLUE, $ITALIC_BLUE, $LIGHT_MAGENTA, $SED_LIGHT_MAGENTA, $LIGHT_CYAN, $SED_LIGHT_CYAN, $LG, $SED_LG, $DG, $SED_DG, $NC, $UNDERLINED, $ITALIC, $MACPEAS, $FAST, $SUPERFAST, $DISCOVERY, $PORTS, $QUIET, $CHECKS, $MITRE_FILTER, $SEARCH_IN_FOLDER, $ROOT_FOLDER, $WAIT, $PASSWORD, $NOCOLOR, $DEBUG, $AUTO_NETWORK_SCAN, $EXTRA_CHECKS, $REGEXES, $PORT_FORWARD, $NOT_CHECK_EXTERNAL_HOSTNAME, $ONLINE_VULN_CHECKS, $E, $PING, $FPING, $DISCOVER_BAN_BAD, $DISCOVER_BAN_GOOD, $SCAN_BAN_GOOD, $NMAP_GOOD, $SCRIPTNAME, $FOUND_BASH, $FOUND_NC, $HOMESEARCH, $GREPHOMESEARCH, $SCAN_BAN_BAD, $HOME, $THREADS, $opt, $HELP, $USER, $TOTAL_T1_TIME, $END_T1_TIME, $START_T1_TIME, $title, $title_len, $max_title_len, $rest_len, $CONT_THREADS, $wgroups, $WF_ALL, $WF_TIMEOUT, $WF_STATUS, $bf_limit, $wf_pid, $wf_timer, $wf_rc, $SEDOVERFLOW, $Wfolders, $Wfolder, $grp, $END_T2_TIME, $TOTAL_T2_TIME, $START_T2_TIME, $_mitre_tag, $_mitre_filter, $_mitre_base, $_mitre_tags_left, $_mitre_filters_left, $_repeat_character_value, $_repeat_character_count, $_filter_writable_folders_max_depth, $_filter_writable_folders_path, $_filter_writable_folders_rest, $_filter_writable_folders_depth
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -221,14 +221,11 @@ filter_writable_folders_by_depth(){
 
   while IFS= read -r _filter_writable_folders_path; do
     [ -z "$_filter_writable_folders_path" ] && continue
-    _filter_writable_folders_rest=${_filter_writable_folders_path#/}
+    _filter_writable_folders_rest=$_filter_writable_folders_path
     _filter_writable_folders_depth=0
-    while [ -n "$_filter_writable_folders_rest" ]; do
+    while [ "$_filter_writable_folders_rest" != "${_filter_writable_folders_rest#*/}" ]; do
       _filter_writable_folders_depth=$((_filter_writable_folders_depth + 1))
-      case "$_filter_writable_folders_rest" in
-        */*) _filter_writable_folders_rest=${_filter_writable_folders_rest#*/} ;;
-        *) _filter_writable_folders_rest="" ;;
-      esac
+      _filter_writable_folders_rest=${_filter_writable_folders_rest#*/}
     done
     if [ "$_filter_writable_folders_depth" -le "$_filter_writable_folders_max_depth" ]; then
       printf '%s\n' "$_filter_writable_folders_path"
@@ -521,10 +518,10 @@ fi
 
 SCAN_BAN_BAD="No port scan capabilities (nc and bash not found)"
 if [ "$FOUND_BASH" ]; then
-  SCAN_BAN_GOOD="$YELLOW[+] $GREEN$FOUND_BASH${BLUE} is available for network discovery, port scanning and port forwarding$LG ($SCRIPTNAME can discover hosts, scan ports, and forward ports. Learn more with -h)\n"
+  SCAN_BAN_GOOD="${YELLOW}[+] $GREEN$FOUND_BASH${BLUE} is available for network discovery, port scanning and port forwarding$LG ($SCRIPTNAME can discover hosts, scan ports, and forward ports. Learn more with -h)\n"
 fi
 if [ "$FOUND_NC" ]; then
-  SCAN_BAN_GOOD="$SCAN_BAN_GOOD$YELLOW[+] $GREEN$FOUND_NC${BLUE} is available for network discovery & port scanning$LG ($SCRIPTNAME can discover hosts and scan ports, learn more with -h)\n"
+  SCAN_BAN_GOOD="$SCAN_BAN_GOOD${YELLOW}[+] $GREEN$FOUND_NC${BLUE} is available for network discovery & port scanning$LG ($SCRIPTNAME can discover hosts and scan ports, learn more with -h)\n"
 fi
 
 if [ "$SCAN_BAN_GOOD" ]; then
