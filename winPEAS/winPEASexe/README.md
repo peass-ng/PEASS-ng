@@ -77,6 +77,15 @@ Enroll ACEs for the current token. These are candidate paths, not proof of
 effective access: CA-specific publication, enrollment-agent restrictions,
 issuance policy, and certificate authentication still need manual verification.
 
+The device-driver audit also reviews registered kernel-driver services whose image
+is named `WinNotify.sys` or `msft.sys`. It reports service state, image path,
+SHA-256, file version, and signature details. Only a SHA-256 match to the
+[LocalStranger PoC driver](https://github.com/nbs32k/LocalStranger) confirms that
+specific image; filename-only matches require manual review. The bounded,
+read-only audit does not test the device interface or establish that the driver
+can be loaded or exploited by the current user. It does not assess current
+vulnerable-driver blocklist enforcement.
+
 ## Basic information
 
 The goal of this project is to search for possible **Privilege Escalation Paths** in Windows environments.

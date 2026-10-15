@@ -982,6 +982,30 @@ namespace winPEAS.Checks
                         Beaprint.PrintLineSeparator();
                     }
                 }
+                bool candidateAuditIncomplete;
+                List<VulnerableDriverCandidate> candidates = DeviceDrivers.GetVulnerableDriverCandidates(out candidateAuditIncomplete);
+                if (candidates.Count > 0)
+                {
+                    Beaprint.MainPrint("Known vulnerable driver indicators (BYOVD)", "T1068");
+                    Beaprint.LinkPrint("https://github.com/nbs32k/LocalStranger", "WinNotify.sys / msft.sys LocalStranger proof of concept");
+                    foreach (VulnerableDriverCandidate candidate in candidates)
+                    {
+                        string finding = candidate.KnownHash
+                            ? "Confirmed match to the published LocalStranger driver image"
+                            : "Filename match only; driver identity not confirmed";
+                        if (candidate.KnownHash) Beaprint.BadPrint("    " + finding);
+                        else Beaprint.InfoPrint("    " + finding);
+                        Beaprint.NoColorPrint("      Service/Image: " + candidate.ServiceName + " / " + candidate.Path);
+                        Beaprint.NoColorPrint("      Service registered; image on disk: " + (candidate.ImagePresent ? "yes" : "not found or unresolved") +
+                            "; SCM state: " + candidate.State + "; Start: " + (candidate.Start >= 0 ? candidate.Start.ToString() : "unknown"));
+                        Beaprint.NoColorPrint("      SHA-256: " + candidate.Sha256);
+                        Beaprint.NoColorPrint("      Version: " + candidate.Version + "; Signer: " + candidate.Signer);
+                        Beaprint.NoColorPrint("      Authenticode: " + candidate.SignatureStatus);
+                    }
+                    Beaprint.GrayPrint("    Device access, service-load rights, and vulnerable-driver blocklist enforcement were not verified; a running service or matching image alone does not prove exploitability.");
+                }
+                if (candidateAuditIncomplete)
+                    Beaprint.InfoPrint("    Known-driver indicator audit incomplete (registry access, 2-second or 4096-service limit, or 4-candidate limit).");
                 if (inventory.UnknownOrTruncated)
                     Beaprint.InfoPrint("    Driver inventory partial/unknown: " + inventory.Detail);
             }
