@@ -107,6 +107,37 @@ class LinpeasBuilderTests(unittest.TestCase):
             mode = output_path.stat().st_mode
             self.assertTrue(mode & stat.S_IXUSR, "linpeas_small.sh is not executable.")
 
+    def test_base_startup_helpers_do_not_require_seq_or_awk(self):
+        """Firmware shells may lack seq and awk before any checks run."""
+        base_file = self.linpeas_dir / "builder" / "linpeas_parts" / "linpeas_base" / "0_variables_base.sh"
+        content = base_file.read_text(encoding="utf-8")
+        title_function = content[content.index("repeat_character(){"):content.index("check_mitre_filter(){")]
+        cache_function = content[content.index("filter_writable_folders_by_depth(){"):content.index("print_title(){")]
+
+        self.assertNotIn("seq", title_function)
+        self.assertIn("command -v awk", cache_function)
+        self.assertIn("awk -v maxdepth", cache_function)
+        self.assertIn("while [", title_function)
+        self.assertIn("while [", cache_function)
+
+        result = subprocess.run(
+            ["sh", "-c", title_function + "\nrepeat_character x 3; printf '\\n'; printf '/a\\n/a/b\\n/a/b/c\\n' | filter_writable_folders_by_depth 2"],
+            capture_output=True,
+            text=True,
+            env={"PATH": ""},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.splitlines(), ["xxx", "/a", "/a/b"])
+
+        result = subprocess.run(
+            ["sh", "-c", "awk(){ printf 'awk-selected\\n'; }\n" + cache_function + "\nprintf '/a\\n' | filter_writable_folders_by_depth 2"],
+            capture_output=True,
+            text=True,
+            env={"PATH": ""},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "awk-selected\n")
+
     def test_include_exclude_modules(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "linpeas_include.sh"

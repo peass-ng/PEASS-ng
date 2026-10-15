@@ -203,6 +203,39 @@ fi
 # on macOS the built-in echo does not support -n, use /bin/echo instead
 if [ "$MACPEAS" ] ; then alias echo=/bin/echo ; fi
 
+repeat_character(){
+  _repeat_character_value=$1
+  _repeat_character_count=$2
+  while [ "$_repeat_character_count" -gt 0 ]; do
+    printf "%s" "$_repeat_character_value"
+    _repeat_character_count=$((_repeat_character_count - 1))
+  done
+}
+
+filter_writable_folders_by_depth(){
+  _filter_writable_folders_max_depth=$1
+  if command -v awk >/dev/null 2>&1; then
+    awk -v maxdepth="$_filter_writable_folders_max_depth" '{ if (gsub(/\//, "/", $0) <= maxdepth) print }'
+    return
+  fi
+
+  while IFS= read -r _filter_writable_folders_path; do
+    [ -z "$_filter_writable_folders_path" ] && continue
+    _filter_writable_folders_rest=${_filter_writable_folders_path#/}
+    _filter_writable_folders_depth=0
+    while [ -n "$_filter_writable_folders_rest" ]; do
+      _filter_writable_folders_depth=$((_filter_writable_folders_depth + 1))
+      case "$_filter_writable_folders_rest" in
+        */*) _filter_writable_folders_rest=${_filter_writable_folders_rest#*/} ;;
+        *) _filter_writable_folders_rest="" ;;
+      esac
+    done
+    if [ "$_filter_writable_folders_depth" -le "$_filter_writable_folders_max_depth" ]; then
+      printf '%s\n' "$_filter_writable_folders_path"
+    fi
+  done
+}
+
 print_title(){
   if [ "$DEBUG" ]; then
     END_T1_TIME=$(date +%s 2>/dev/null)
@@ -227,23 +260,23 @@ print_title(){
   rest_len=$((($max_title_len - $title_len) / 2))
 
   printf "%s" "${BLUE}"
-  for i in $(seq 1 $rest_len); do printf " "; done
+  repeat_character " " "$rest_len"
   printf "╔"
-  for i in $(seq 1 $title_len); do printf "═"; done; printf "═";
+  repeat_character "═" "$title_len"; printf "═";
   printf "╗"
 
   echo ""
 
-  for i in $(seq 1 $rest_len); do printf "═"; done
+  repeat_character "═" "$rest_len"
   printf "╣ $GREEN${title}${BLUE} ╠"
-  for i in $(seq 1 $rest_len); do printf "═"; done
+  repeat_character "═" "$rest_len"
 
   echo ""
 
   printf "%s" "${BLUE}"
-  for i in $(seq 1 $rest_len); do printf " "; done
+  repeat_character " " "$rest_len"
   printf "╚"
-  for i in $(seq 1 $title_len); do printf "═"; done; printf "═";
+  repeat_character "═" "$title_len"; printf "═";
   printf "╝"
 
   printf "%s" "${NC}"
@@ -559,7 +592,7 @@ while $SEDOVERFLOW; do
   # The maximum-depth result is reused when the sed expression must be
   # shortened. Re-running find / for every smaller depth is very costly on
   # large home directories and produces the same filtered list.
-  WF=$(printf '%s\n' "$WF_ALL" | awk -v maxdepth="$MAXPATH_FIND_W" '{ if (gsub(/\//, "/", $0) <= maxdepth) print }')
+  WF=$(printf '%s\n' "$WF_ALL" | filter_writable_folders_by_depth "$MAXPATH_FIND_W")
   Wfolders=$(printf "%s" "$WF" | tr '\n' '|')"|[a-zA-Z]+[a-zA-Z0-9]* +\*"
   Wfolder="$(printf "%s" "$WF" | grep "/shm" | head -n1)"  # Try to get /dev/shm
   if ! [ "$Wfolder" ]; then
