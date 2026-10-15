@@ -161,6 +161,24 @@ class LinpeasBuilderTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(result.stdout.splitlines(), [path for path in paths if path.count("/") <= 2])
 
+    def test_explicit_zsh_invocation_uses_sh_globbing(self):
+        zsh = Path("/bin/zsh")
+        if not zsh.exists():
+            self.skipTest("zsh is not installed")
+
+        base_file = self.linpeas_dir / "builder" / "linpeas_parts" / "linpeas_base" / "0_variables_base.sh"
+        startup = next(
+            line for line in base_file.read_text(encoding="utf-8").splitlines()
+            if "command -v emulate" in line and "emulate sh" in line
+        )
+        result = subprocess.run(
+            [str(zsh), "-c", startup + "\nprintf '%s\\n' /__linpeas_no_such_directory__/*"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "/__linpeas_no_such_directory__/*\n")
+
     def test_include_exclude_modules(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "linpeas_include.sh"
