@@ -3,7 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Microsoft.Win32;
+using System.ServiceProcess;
+using winPEAS.Helpers;
 using winPEAS.Native;
 
 namespace winPEAS.Info.ApplicationInfo
@@ -26,8 +31,27 @@ namespace winPEAS.Info.ApplicationInfo
         public string Detail;
     }
 
+    internal sealed class VulnerableDriverCandidate
+    {
+        public string ServiceName;
+        public string Path;
+        public bool ImagePresent;
+        public string State = "unknown";
+        public int Start = -1;
+        public string Sha256 = "unavailable";
+        public bool KnownHash;
+        public string Version = "unavailable";
+        public string Signer = "unavailable";
+        public string SignatureStatus = "not checked";
+    }
+
     internal static class DeviceDrivers
     {
+        // SHA-256 of msft.sys in nbs32k/LocalStranger, commit 41fbecee2c9f928abb6306ccb481e715c80d8e8e.
+        private const string LocalStrangerSha256 = "4dc3a03a046c210a7c6cd37db8d6bd34bf3760a612232cc82acf941a9e508e0f";
+        private const int MaxDriverServiceKeys = 4096;
+        private const int MaxDriverCandidates = 4;
+        private const long MaxHashBytes = 8 * 1024 * 1024;
         internal const int MaxPsapiDrivers = 1024;
         internal const int MaxWmiDrivers = 1024;
         internal const int MaxOutputDrivers = 256;
@@ -42,6 +66,102 @@ namespace winPEAS.Info.ApplicationInfo
             ReadPsapi(psapi, details);
             ReadRunningSystemDrivers(wmi, details);
             return Merge(psapi, wmi, MaxOutputDrivers, string.Join("; ", details));
+        }
+
+        // Inspect only registered kernel-driver images with relevant names. Never contact a driver device.
+        public static List<VulnerableDriverCandidate> GetVulnerableDriverCandidates(out bool incomplete)
+        {
+            var candidates = new List<VulnerableDriverCandidate>();
+            incomplete = false;
+            try
+            {
+                using (RegistryKey services = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services"))
+                {
+                    if (services == null) { incomplete = true; return candidates; }
+                    string[] names = services.GetSubKeyNames();
+                    int inspected = 0;
+                    var timer = Stopwatch.StartNew();
+                    foreach (string name in names)
+                    {
+                        if (++inspected > MaxDriverServiceKeys || timer.ElapsedMilliseconds >= 2000 ||
+                            candidates.Count >= MaxDriverCandidates)
+                        {
+                            incomplete = true;
+                            break;
+                        }
+                        try
+                        {
+                            using (RegistryKey key = services.OpenSubKey(name))
+                            {
+                                if (key == null) continue;
+                                int type = Convert.ToInt32(key.GetValue("Type", 0));
+                                if (type != 1 && type != 2) continue; // kernel and file-system driver services
+                                string rawPath = key.GetValue("ImagePath") as string;
+                                if (string.IsNullOrWhiteSpace(rawPath))
+                                    rawPath = @"System32\drivers\" + name + ".sys";
+                                string path = NormalizePath(rawPath);
+                                string fileName = Path.GetFileName(path);
+                                if (!string.Equals(fileName, "WinNotify.sys", StringComparison.OrdinalIgnoreCase) &&
+                                    !string.Equals(fileName, "msft.sys", StringComparison.OrdinalIgnoreCase)) continue;
+
+                                var candidate = new VulnerableDriverCandidate { ServiceName = name, Path = path };
+                                try { candidate.Start = Convert.ToInt32(key.GetValue("Start", -1)); }
+                                catch { /* Keep start mode unknown. */ }
+                                try
+                                {
+                                    using (var controller = new ServiceController(name))
+                                        candidate.State = controller.Status.ToString();
+                                }
+                                catch { /* Loaded state remains unknown. */ }
+                                ReadCandidateFile(candidate);
+                                candidates.Add(candidate);
+                            }
+                        }
+                        catch { incomplete = true; /* One unreadable service must not stop the audit. */ }
+                    }
+                }
+            }
+            catch { incomplete = true; }
+            return candidates;
+        }
+
+        private static void ReadCandidateFile(VulnerableDriverCandidate candidate)
+        {
+            try
+            {
+                if (!IsLocalFilePath(candidate.Path) || !File.Exists(candidate.Path)) return;
+                candidate.ImagePresent = true;
+                var file = new FileInfo(candidate.Path);
+                if (file.Length > MaxHashBytes)
+                {
+                    candidate.Sha256 = "not checked (image exceeds 8 MiB limit)";
+                    candidate.Version = "not checked (image exceeds 8 MiB limit)";
+                    candidate.SignatureStatus = "not checked (image exceeds 8 MiB limit)";
+                    return;
+                }
+                try
+                {
+                    using (var stream = new FileStream(candidate.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var sha = SHA256.Create())
+                        candidate.Sha256 = BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+                    candidate.KnownHash = string.Equals(candidate.Sha256, LocalStrangerSha256, StringComparison.OrdinalIgnoreCase);
+                }
+                catch { candidate.Sha256 = "unavailable (image could not be read)"; }
+                try { candidate.Version = FileVersionInfo.GetVersionInfo(candidate.Path).FileVersion ?? "unavailable"; }
+                catch { /* Signature verification can still succeed without version metadata. */ }
+                AuthenticodeHelper.Verify(candidate.Path, out string status);
+                candidate.SignatureStatus = status;
+                try
+                {
+                    using (var baseCert = X509Certificate.CreateFromSignedFile(candidate.Path))
+                    using (var cert = new X509Certificate2(baseCert))
+                    {
+                        candidate.Signer = cert.Subject;
+                    }
+                }
+                catch { /* A catalog signature may have no embedded signer. */ }
+            }
+            catch { /* Hash and signature remain unknown if the image cannot be read. */ }
         }
 
         // Pure merge/filter step: fixtures need no Windows APIs or device access.
