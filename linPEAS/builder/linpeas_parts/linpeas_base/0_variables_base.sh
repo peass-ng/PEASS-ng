@@ -8,7 +8,7 @@
 # Functions Used:
 # Global Variables:
 # Initial Functions:
-# Generated Global Variables: $VERSION, $ADVISORY, $IAMROOT, $MAXPATH_FIND_W, $C, $RED, $SED_RED, $GREEN, $SED_GREEN, $YELLOW, $SED_YELLOW, $RED_YELLOW, $SED_RED_YELLOW, $BLUE, $SED_BLUE, $ITALIC_BLUE, $LIGHT_MAGENTA, $SED_LIGHT_MAGENTA, $LIGHT_CYAN, $SED_LIGHT_CYAN, $LG, $SED_LG, $DG, $SED_DG, $NC, $UNDERLINED, $ITALIC, $MACPEAS, $FAST, $SUPERFAST, $DISCOVERY, $PORTS, $QUIET, $CHECKS, $MITRE_FILTER, $SEARCH_IN_FOLDER, $ROOT_FOLDER, $WAIT, $PASSWORD, $NOCOLOR, $DEBUG, $AUTO_NETWORK_SCAN, $EXTRA_CHECKS, $REGEXES, $PORT_FORWARD, $NOT_CHECK_EXTERNAL_HOSTNAME, $ONLINE_VULN_CHECKS, $E, $PING, $FPING, $DISCOVER_BAN_BAD, $DISCOVER_BAN_GOOD, $SCAN_BAN_GOOD, $NMAP_GOOD, $SCRIPTNAME, $FOUND_BASH, $FOUND_NC, $HOMESEARCH, $GREPHOMESEARCH, $SCAN_BAN_BAD, $HOME, $THREADS, $opt, $HELP, $USER, $TOTAL_T1_TIME, $END_T1_TIME, $START_T1_TIME, $title, $title_len, $max_title_len, $rest_len, $CONT_THREADS, $wgroups, $WF_ALL, $WF_TIMEOUT, $WF_STATUS, $bf_limit, $wf_pid, $wf_timer, $wf_rc, $SEDOVERFLOW, $Wfolders, $Wfolder, $grp, $END_T2_TIME, $TOTAL_T2_TIME, $START_T2_TIME, $_mitre_tag, $_mitre_filter, $_mitre_base, $_mitre_tags_left, $_mitre_filters_left
+# Generated Global Variables: $VERSION, $ADVISORY, $IAMROOT, $MAXPATH_FIND_W, $C, $RED, $SED_RED, $GREEN, $SED_GREEN, $YELLOW, $SED_YELLOW, $RED_YELLOW, $SED_RED_YELLOW, $BLUE, $SED_BLUE, $ITALIC_BLUE, $LIGHT_MAGENTA, $SED_LIGHT_MAGENTA, $LIGHT_CYAN, $SED_LIGHT_CYAN, $LG, $SED_LG, $DG, $SED_DG, $NC, $UNDERLINED, $ITALIC, $MACPEAS, $FAST, $SUPERFAST, $DISCOVERY, $PORTS, $QUIET, $CHECKS, $MITRE_FILTER, $SEARCH_IN_FOLDER, $ROOT_FOLDER, $WAIT, $PASSWORD, $NOCOLOR, $DEBUG, $AUTO_NETWORK_SCAN, $EXTRA_CHECKS, $REGEXES, $PORT_FORWARD, $NOT_CHECK_EXTERNAL_HOSTNAME, $ONLINE_VULN_CHECKS, $E, $PING, $FPING, $DISCOVER_BAN_BAD, $DISCOVER_BAN_GOOD, $SCAN_BAN_GOOD, $NMAP_GOOD, $SCRIPTNAME, $FOUND_BASH, $FOUND_NC, $HOMESEARCH, $GREPHOMESEARCH, $SCAN_BAN_BAD, $HOME, $THREADS, $opt, $HELP, $USER, $TOTAL_T1_TIME, $END_T1_TIME, $START_T1_TIME, $title, $title_len, $max_title_len, $rest_len, $CONT_THREADS, $wgroups, $WF_ALL, $WF_TIMEOUT, $WF_STATUS, $bf_limit, $wf_pid, $wf_timer, $wf_rc, $SEDOVERFLOW, $Wfolders, $Wfolder, $grp, $END_T2_TIME, $TOTAL_T2_TIME, $START_T2_TIME, $_mitre_tag, $_mitre_filter, $_mitre_base, $_mitre_tags_left, $_mitre_filters_left, $_repeat_character_value, $_repeat_character_count, $_filter_writable_folders_max_depth, $_filter_writable_folders_path, $_filter_writable_folders_rest, $_filter_writable_folders_depth
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -203,6 +203,36 @@ fi
 # on macOS the built-in echo does not support -n, use /bin/echo instead
 if [ "$MACPEAS" ] ; then alias echo=/bin/echo ; fi
 
+repeat_character(){
+  _repeat_character_value=$1
+  _repeat_character_count=$2
+  while [ "$_repeat_character_count" -gt 0 ]; do
+    printf "%s" "$_repeat_character_value"
+    _repeat_character_count=$((_repeat_character_count - 1))
+  done
+}
+
+filter_writable_folders_by_depth(){
+  _filter_writable_folders_max_depth=$1
+  if command -v awk >/dev/null 2>&1; then
+    awk -v maxdepth="$_filter_writable_folders_max_depth" '{ if (gsub(/\//, "/", $0) <= maxdepth) print }'
+    return
+  fi
+
+  while IFS= read -r _filter_writable_folders_path; do
+    [ -z "$_filter_writable_folders_path" ] && continue
+    _filter_writable_folders_rest=$_filter_writable_folders_path
+    _filter_writable_folders_depth=0
+    while [ "$_filter_writable_folders_rest" != "${_filter_writable_folders_rest#*/}" ]; do
+      _filter_writable_folders_depth=$((_filter_writable_folders_depth + 1))
+      _filter_writable_folders_rest=${_filter_writable_folders_rest#*/}
+    done
+    if [ "$_filter_writable_folders_depth" -le "$_filter_writable_folders_max_depth" ]; then
+      printf '%s\n' "$_filter_writable_folders_path"
+    fi
+  done
+}
+
 print_title(){
   if [ "$DEBUG" ]; then
     END_T1_TIME=$(date +%s 2>/dev/null)
@@ -227,23 +257,23 @@ print_title(){
   rest_len=$((($max_title_len - $title_len) / 2))
 
   printf "%s" "${BLUE}"
-  for i in $(seq 1 $rest_len); do printf " "; done
+  repeat_character " " "$rest_len"
   printf "╔"
-  for i in $(seq 1 $title_len); do printf "═"; done; printf "═";
+  repeat_character "═" "$title_len"; printf "═";
   printf "╗"
 
   echo ""
 
-  for i in $(seq 1 $rest_len); do printf "═"; done
+  repeat_character "═" "$rest_len"
   printf "╣ $GREEN${title}${BLUE} ╠"
-  for i in $(seq 1 $rest_len); do printf "═"; done
+  repeat_character "═" "$rest_len"
 
   echo ""
 
   printf "%s" "${BLUE}"
-  for i in $(seq 1 $rest_len); do printf " "; done
+  repeat_character " " "$rest_len"
   printf "╚"
-  for i in $(seq 1 $title_len); do printf "═"; done; printf "═";
+  repeat_character "═" "$title_len"; printf "═";
   printf "╝"
 
   printf "%s" "${NC}"
@@ -488,10 +518,10 @@ fi
 
 SCAN_BAN_BAD="No port scan capabilities (nc and bash not found)"
 if [ "$FOUND_BASH" ]; then
-  SCAN_BAN_GOOD="$YELLOW[+] $GREEN$FOUND_BASH${BLUE} is available for network discovery, port scanning and port forwarding$LG ($SCRIPTNAME can discover hosts, scan ports, and forward ports. Learn more with -h)\n"
+  SCAN_BAN_GOOD="${YELLOW}[+] $GREEN$FOUND_BASH${BLUE} is available for network discovery, port scanning and port forwarding$LG ($SCRIPTNAME can discover hosts, scan ports, and forward ports. Learn more with -h)\n"
 fi
 if [ "$FOUND_NC" ]; then
-  SCAN_BAN_GOOD="$SCAN_BAN_GOOD$YELLOW[+] $GREEN$FOUND_NC${BLUE} is available for network discovery & port scanning$LG ($SCRIPTNAME can discover hosts and scan ports, learn more with -h)\n"
+  SCAN_BAN_GOOD="$SCAN_BAN_GOOD${YELLOW}[+] $GREEN$FOUND_NC${BLUE} is available for network discovery & port scanning$LG ($SCRIPTNAME can discover hosts and scan ports, learn more with -h)\n"
 fi
 
 if [ "$SCAN_BAN_GOOD" ]; then
@@ -559,7 +589,7 @@ while $SEDOVERFLOW; do
   # The maximum-depth result is reused when the sed expression must be
   # shortened. Re-running find / for every smaller depth is very costly on
   # large home directories and produces the same filtered list.
-  WF=$(printf '%s\n' "$WF_ALL" | awk -v maxdepth="$MAXPATH_FIND_W" '{ if (gsub(/\//, "/", $0) <= maxdepth) print }')
+  WF=$(printf '%s\n' "$WF_ALL" | filter_writable_folders_by_depth "$MAXPATH_FIND_W")
   Wfolders=$(printf "%s" "$WF" | tr '\n' '|')"|[a-zA-Z]+[a-zA-Z0-9]* +\*"
   Wfolder="$(printf "%s" "$WF" | grep "/shm" | head -n1)"  # Try to get /dev/shm
   if ! [ "$Wfolder" ]; then

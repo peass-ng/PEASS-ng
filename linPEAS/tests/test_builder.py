@@ -1,6 +1,7 @@
 import os
 import re
 import shlex
+import shutil
 import stat
 import subprocess
 import sys
@@ -106,6 +107,59 @@ class LinpeasBuilderTests(unittest.TestCase):
             self.assertTrue(output_path.exists(), "linpeas_small.sh was not created.")
             mode = output_path.stat().st_mode
             self.assertTrue(mode & stat.S_IXUSR, "linpeas_small.sh is not executable.")
+
+    def test_base_startup_helpers_do_not_require_seq_or_awk(self):
+        """The startup helpers work in POSIX shells without seq or awk."""
+        base_file = self.linpeas_dir / "builder" / "linpeas_parts" / "linpeas_base" / "0_variables_base.sh"
+        content = base_file.read_text(encoding="utf-8")
+        title_function = content[content.index("repeat_character(){"):content.index("check_mitre_filter(){")]
+        cache_function = content[content.index("filter_writable_folders_by_depth(){"):content.index("print_title(){")]
+        paths = ["/", "/a", "/a/b", "/a/b/", "/a//b", "relative", "relative/path"]
+        path_input = "printf '%s\\n' " + " ".join(shlex.quote(path) for path in paths)
+        shells = [Path("/bin/sh"), Path("/bin/bash"), Path("/bin/dash"), Path("/bin/ksh"), Path("/bin/zsh")]
+        for shell in shells:
+            if not shell.exists():
+                continue
+            shell_prefix = "emulate sh\n" if shell.name == "zsh" else ""
+            for depth in range(4):
+                expected = [path for path in paths if path.count("/") <= depth]
+                script = shell_prefix + (
+                    title_function + "\n"
+                    "repeat_character x 3; printf '\\n'\n"
+                    f"{path_input} | filter_writable_folders_by_depth {depth}\n"
+                )
+                with self.subTest(shell=str(shell), depth=depth):
+                    result = subprocess.run(
+                        [str(shell), "-c", script],
+                        capture_output=True,
+                        text=True,
+                        env={"PATH": ""},
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout.splitlines(), ["xxx", *expected])
+
+            # Keep wc available to print_title, but deliberately omit seq.
+            with tempfile.TemporaryDirectory() as tmpdir:
+                (Path(tmpdir) / "wc").symlink_to(shutil.which("wc"))
+                result = subprocess.run(
+                    [str(shell), "-c", shell_prefix + title_function + "\nprint_title Portable"],
+                    capture_output=True,
+                    text=True,
+                    env={"PATH": tmpdir},
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stderr, "")
+                self.assertIn("Portable", result.stdout)
+
+        # Also exercise the fast path when awk is installed.
+        if subprocess.run(["/bin/sh", "-c", "command -v awk"], capture_output=True).returncode == 0:
+            result = subprocess.run(
+                ["/bin/sh", "-c", cache_function + "\n" + path_input + " | filter_writable_folders_by_depth 2"],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout.splitlines(), [path for path in paths if path.count("/") <= 2])
 
     def test_include_exclude_modules(self):
         with tempfile.TemporaryDirectory() as tmpdir:
