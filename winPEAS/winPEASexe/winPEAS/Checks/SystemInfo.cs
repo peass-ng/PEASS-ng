@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.Win32;
 using winPEAS.Helpers;
 using winPEAS.Helpers.AppLocker;
 using winPEAS.Helpers.Extensions;
@@ -23,6 +24,7 @@ using winPEAS.Info.SystemInfo.PowerShell;
 using winPEAS.Info.SystemInfo.Printers;
 using winPEAS.Info.SystemInfo.SysMon;
 using winPEAS.Info.SystemInfo.WindowsDefender;
+using winPEAS.Info.UserInfo.Token;
 using winPEAS.Native.Enums;
 
 namespace winPEAS.Checks
@@ -125,6 +127,7 @@ namespace winPEAS.Checks
                 PrintAVInfo,
                 PrintWindowsDefenderInfo,
                 PrintUACInfo,
+                PrintFodhelperHijack,
                 PrintPSInfo,
                 PrintPowerShellSessionSettings,
                 PrintTranscriptPS,
@@ -1163,6 +1166,56 @@ namespace winPEAS.Checks
 
                 if ((uacDict["EnableLUA"] == "1") && (uacDict["LocalAccountTokenFilterPolicy"] != "1") && (uacDict["FilterAdministratorToken"] == "1"))
                     Beaprint.GoodPrint("      [*] LocalAccountTokenFilterPolicy set to 0 and FilterAdministratorToken == 1.\r\n      [-] No local accounts can be used for lateral movement.");
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintFodhelperHijack()
+        {
+            const string path = @"Software\Classes\ms-settings\Shell\Open\command";
+            Beaprint.MainPrint("Per-user fodhelper UAC hijack", "T1548.002");
+            try
+            {
+                // Use the native registry view used by the Windows fodhelper binary.
+                RegistryView view = Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32;
+                using (RegistryKey user = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, view))
+                using (RegistryKey key = user.OpenSubKey(path))
+                {
+                    if (key == null)
+                    {
+                        Beaprint.GrayPrint("  [-] No per-user ms-settings command override found.");
+                    }
+                    else
+                    {
+                        object rawCommand = key.GetValue("", null, RegistryValueOptions.DoNotExpandEnvironmentNames);
+                        string command = rawCommand as string;
+                        bool hasDelegateExecute = key.GetValueNames().Any(name =>
+                            name.Equals("DelegateExecute", StringComparison.OrdinalIgnoreCase));
+                        object rawDelegateExecute = hasDelegateExecute
+                            ? key.GetValue("DelegateExecute", null, RegistryValueOptions.DoNotExpandEnvironmentNames)
+                            : null;
+                        string delegateExecute = rawDelegateExecute as string;
+
+                        Beaprint.NoColorPrint("  HKCU\\" + path);
+                        Beaprint.NoColorPrint("    (Default): " + (rawCommand == null ? "not set" : command ?? "non-string value"));
+                        Beaprint.NoColorPrint("    DelegateExecute: " + (hasDelegateExecute
+                            ? "present (" + (rawDelegateExecute == null ? "no value" : delegateExecute ?? "non-string value") + ")"
+                            : "not set"));
+
+                        if (!string.IsNullOrWhiteSpace(command) && delegateExecute == "")
+                            Beaprint.BadPrint("  [!] Per-user ms-settings command and empty DelegateExecute are present: review as a possible fodhelper UAC bypass, not proof of elevation.");
+                        else
+                            Beaprint.GrayPrint("  [?] ms-settings key is present, but the common fodhelper hijack pattern is incomplete.");
+                    }
+                }
+
+                CurrentProcessTokenSnapshot token = CurrentProcessToken.Read();
+                Beaprint.InfoPrint("  Current process token: " + token.Summary);
+                if (!token.IsFilteredLocalAdminCandidate)
+                    Beaprint.InfoPrint("  This check does not establish a usable UAC bypass; a filtered local administrator token is normally required.");
             }
             catch (Exception ex)
             {

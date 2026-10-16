@@ -163,6 +163,7 @@ Once you have installed and activated it you need to:
   - [x] AV
   - [x] Windows Defender
   - [x] UAC configuration
+  - [x] Read-only review of the current user's `ms-settings\Shell\Open\command` override (fodhelper UAC-bypass candidate), showing its command, `DelegateExecute`, and current token/UAC context. This is not proof of elevation; a filtered local administrator token is normally required.
   - [x] NTLM Settings
   - [x] Local Group Policy
   - [x] Applocker Configuration & bypass suggestions
