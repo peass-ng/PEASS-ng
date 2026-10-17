@@ -147,6 +147,7 @@ Once you have installed and activated it you need to:
   - [x] Use embedded definitions to flag known exploitable vulnerabilities for the running Windows version (version-based)
   - [x] Passive Print Spooler CVE-2022-38028/GooseEgg exposure assessment (OS fixed build, update supersedence, Spooler state/configuration, and registry ACL)
   - [x] Passive Storage VSP/vSMB CVE-2025-59517 and CVE-2025-64673 assessment (OS/driver fixed build, update inventory, Virtual Machine Platform, `storvsp` registration, signature, and `STORVSP` device link)
+  - [x] Passive UAS storage driver CVE-2026-68839 exposure assessment (product-specific fixed build, `uaspstor.sys` version/signature/hash, and `UASPStor` service registration; no SCSI requests)
   - [x] Passive Windows Installer CVE-2025-27727 build and artifact assessment (`msi.dll`, `TempPackages`, `Installer\Folders`, and `C:\Config.Msi` ACL/rollback state)
   - [x] Passive CrossDevice dangling COM CVE-2026-66804 assessment (fixed build, 32/64-bit registration, writable DLL path, SYSTEM COM host, and user-executable `CreateObjectTask`)
   - [x] Enumerate Microsoft updates

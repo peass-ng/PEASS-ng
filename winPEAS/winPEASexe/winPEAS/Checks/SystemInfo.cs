@@ -108,6 +108,7 @@ namespace winPEAS.Checks
                 PrintWindowsVersionVulnerabilities,
                 PrintSpoolerCve38028,
                 PrintStorvspVsmbCves,
+                PrintUaspstorCve68839,
                 PrintWindowsInstallerCve27727,
                 PrintCrossDeviceComCve66804,
                 PrintMicrosoftUpdatesCOM,
@@ -419,6 +420,53 @@ namespace winPEAS.Checks
                 {
                     Beaprint.GrayPrint("    Collection note: " + error);
                 }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        private static void PrintUaspstorCve68839()
+        {
+            try
+            {
+                Beaprint.MainPrint("UAS storage driver CVE-2026-68839 exposure", "T1068");
+                Beaprint.LinkPrint("https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-68839", "Microsoft advisory and security updates");
+                Beaprint.LinkPrint("https://nccgroup.com/research/technical-advisory-microsoft-windows-uaspstorsys-device-controlled-kernel-pool-oob-write-via-report-luns-cve-2026-68839", "Technical analysis");
+                Beaprint.InfoPrint("Read-only check. The demonstrated kernel corruption requires a malicious UAS device and a REPORT LUNS rescan; no exploit or SCSI commands are sent.");
+
+                UaspstorCve68839Report report = UaspstorCve68839.GetReport(
+                    _basicSystemInfo ?? Info.SystemInfo.SystemInfo.GetBasicOSInfo());
+                Beaprint.NoColorPrint("    Product/build: " + report.ProductName + " / " +
+                    (string.IsNullOrEmpty(report.BuildVersion) ? "unknown" : report.BuildVersion));
+                if (report.BuildListed)
+                {
+                    Beaprint.NoColorPrint("    First Microsoft fixed build: " + report.FixedVersion);
+                    Beaprint.NoColorPrint("    uaspstor.sys: " + report.DriverPath + " (exists: " + report.DriverExists + ")");
+                    if (report.DriverExists)
+                    {
+                        Beaprint.NoColorPrint("    Driver version / file Authenticode: " + report.DriverVersion + " / " + report.DriverSignatureStatus +
+                            " (catalog signatures may not be detected)");
+                        Beaprint.NoColorPrint("    Driver SHA-256: " + report.DriverSha256);
+                    }
+                    Beaprint.NoColorPrint("    UASPStor service registered / start: " + report.DriverRegistered + " / " +
+                        (report.DriverStart.HasValue ? report.DriverStart.Value.ToString() : "unknown"));
+                }
+
+                if (report.PatchStatus == UaspstorPatchStatus.Patched)
+                    Beaprint.GoodPrint("CVE-2026-68839: " + report.PatchEvidence);
+                else if (report.PatchStatus == UaspstorPatchStatus.Susceptible &&
+                    report.DriverExists && report.DriverRegistered && report.DriverStart.HasValue && report.DriverStart.Value != 4)
+                    Beaprint.BadPrint("Potential CVE-2026-68839 exposure: unpatched Windows/UAS driver with the UASPStor service available. A malicious UAS device is required for the demonstrated physical attack; a complete LPE exploit was not shown. Apply Microsoft's September 2026 update or restrict untrusted UAS devices. " + report.PatchEvidence);
+                else
+                    Beaprint.InfoPrint("CVE-2026-68839 exposure not confirmed. " + report.PatchEvidence +
+                        (report.PatchStatus == UaspstorPatchStatus.Susceptible
+                            ? " UASPStor driver availability was not confirmed."
+                            : ""));
+
+                foreach (string error in report.CollectionErrors)
+                    Beaprint.GrayPrint("    Collection note: " + error);
             }
             catch (Exception ex)
             {

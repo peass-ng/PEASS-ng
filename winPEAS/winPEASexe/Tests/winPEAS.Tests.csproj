@@ -173,6 +173,7 @@
     <Compile Include="DefenderEngineCve41091Tests.cs" />
     <Compile Include="DefenderPathExclusionDisplayTests.cs" />
     <Compile Include="StorvspVsmbRuntimeTests.cs" />
+    <Compile Include="UaspstorCve68839Tests.cs" />
     <Compile Include="SearchHelperRuntimeTests.cs" />
   </ItemGroup>
   <ItemGroup>
