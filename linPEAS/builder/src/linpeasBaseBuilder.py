@@ -363,8 +363,8 @@ class LinpeasBaseBuilder:
             if small and not m.is_small:
                 continue
             
-            # If implicitly included, add
-            if all_modules or all_no_fat_modules or m.id in include_modules:
+            # Small is a selection mode unless --include narrows its scope.
+            if all_modules or all_no_fat_modules or (small and not include_modules) or m.id in include_modules:
                 parsed_modules.append(m)
             for in_module in include_modules:
                 if self.selector_matches(in_module, m.path, os.path.basename(m.path), m.id, m.title, m.section_info["name"], m.section_info["name_check"]):
