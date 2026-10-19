@@ -99,6 +99,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdcsLocalRegistryTests.cs" />
+    <Compile Include="AsRepRoastCandidateTests.cs" />
     <Compile Include="Esc1TemplateCandidateTests.cs" />
     <Compile Include="BitLockerDataAndRecoveryArtifactTests.cs" />
     <Compile Include="PasswordSafeFileSelectorTests.cs" />
