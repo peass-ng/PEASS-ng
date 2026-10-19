@@ -1,7 +1,7 @@
 # Title: System Information - Systemd
 # ID: SY_Systemd
-# Author: Carlos Polop
-# Last Update: 2026-10-14
+# Author: Carlos Polop, HT Bot
+# Last Update: 2026-10-19
 # Description: Check systemd version, service misconfigurations, and readable or writable service environment files:
 #   - Systemd release (distribution package and patch status require separate verification)
 #   - Services running as root that could be exploited
@@ -14,12 +14,12 @@
 #     * Capabilities: Abuse services with dangerous capabilities (CAP_SYS_ADMIN, etc.)
 #     * Writable paths: Replace executables in writable paths to get code execution
 # License: GNU GPL
-# Version: 1.3
+# Version: 1.4
 # Mitre: T1543.002,T1552.001
 # Functions Used: print_2title, print_info, print_list, echo_not_found
 # Global Variables: $E, $SEARCH_IN_FOLDER, $IAMROOT, $Wfolders, $SED_RED, $SED_RED_YELLOW, $NC
 # Initial Functions:
-# Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $exec_value, $cmd, $cmd_path, $svc_path_entry, $svc_writable_path, $running_services, $env_file_findings, $env_file_path, $env_file_size, $env_key_names, $env_unit_size, $systemd_wenv_findings, $systemd_wenv_properties, $systemd_wenv_user, $systemd_wenv_dynamic, $systemd_wenv_rootdir, $systemd_wenv_rootimage, $systemd_wenv_path
+# Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $exec_value, $cmd, $cmd_path, $svc_path_entry, $svc_writable_path, $running_services, $env_file_findings, $env_file_path, $env_file_size, $env_key_names, $env_unit_size, $systemd_wenv_findings, $systemd_wenv_properties, $systemd_wenv_user, $systemd_wenv_dynamic, $systemd_wenv_rootdir, $systemd_wenv_rootimage, $systemd_wenv_path, $systemd_wenv_line, $systemd_wenv_seen_user, $systemd_wenv_seen_dynamic, $systemd_wenv_seen_rootdir, $systemd_wenv_seen_rootimage
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -121,12 +121,29 @@ systemd_envfile_findings_for_unit() {
 systemd_wenv_findings_for_unit() {
     [ -n "$1" ] || return 0
     systemd_wenv_properties=$(systemctl show "$1" -p User -p DynamicUser -p RootDirectory -p RootImage 2>/dev/null) || return 0
-    systemd_wenv_user=$(printf '%s\n' "$systemd_wenv_properties" | sed -n 's/^User=//p' | head -n 1)
+    systemd_wenv_user= systemd_wenv_dynamic= systemd_wenv_rootdir= systemd_wenv_rootimage=
+    # Keep the first value for each property, including an empty value.
+    systemd_wenv_seen_user= systemd_wenv_seen_dynamic= systemd_wenv_seen_rootdir= systemd_wenv_seen_rootimage=
+    while IFS= read -r systemd_wenv_line; do
+        case "$systemd_wenv_line" in
+            User=*) if [ ! "$systemd_wenv_seen_user" ]; then
+                systemd_wenv_user=${systemd_wenv_line#User=}; systemd_wenv_seen_user=1
+            fi ;;
+            DynamicUser=*) if [ ! "$systemd_wenv_seen_dynamic" ]; then
+                systemd_wenv_dynamic=${systemd_wenv_line#DynamicUser=}; systemd_wenv_seen_dynamic=1
+            fi ;;
+            RootDirectory=*) if [ ! "$systemd_wenv_seen_rootdir" ]; then
+                systemd_wenv_rootdir=${systemd_wenv_line#RootDirectory=}; systemd_wenv_seen_rootdir=1
+            fi ;;
+            RootImage=*) if [ ! "$systemd_wenv_seen_rootimage" ]; then
+                systemd_wenv_rootimage=${systemd_wenv_line#RootImage=}; systemd_wenv_seen_rootimage=1
+            fi ;;
+        esac
+    done <<EOF
+$systemd_wenv_properties
+EOF
     case "$systemd_wenv_user" in ""|root|0) ;; *) return 0 ;; esac
-    systemd_wenv_dynamic=$(printf '%s\n' "$systemd_wenv_properties" | sed -n 's/^DynamicUser=//p' | head -n 1)
     [ "$systemd_wenv_dynamic" = "yes" ] && return 0
-    systemd_wenv_rootdir=$(printf '%s\n' "$systemd_wenv_properties" | sed -n 's/^RootDirectory=//p' | head -n 1)
-    systemd_wenv_rootimage=$(printf '%s\n' "$systemd_wenv_properties" | sed -n 's/^RootImage=//p' | head -n 1)
     [ -z "$systemd_wenv_rootdir" ] && [ -z "$systemd_wenv_rootimage" ] || return 0
 
     systemctl cat --no-pager "$1" 2>/dev/null | head -c 65536 |
