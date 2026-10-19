@@ -1,15 +1,15 @@
 # Title: Processes & Cron & Services & Timers - List processes
 # ID: PR_List_processes
-# Author: Carlos Polop
-# Last Update: 2024-03-19
-# Description: List running processes and check for unusual configurations
+# Author: Carlos Polop, HT Bot
+# Last Update: 2026-10-19
+# Description: List running processes and check for unusual configurations, including exposed Jupyter authentication settings
 # License: GNU GPL
-# Version: 1.4
-# Mitre: T1057
+# Version: 1.5
+# Mitre: T1057,T1552.001
 # Functions Used: print_2title, print_info, print_ps, checkRootWritableProcessPaths
-# Global Variables: $capsB, $knw_usrs, $nosh_usrs, $NOUSEPS, $processesB, $processesDump, $processesVB, $rootcommon, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders
+# Global Variables: $capsB, $knw_usrs, $nosh_usrs, $NOUSEPS, $processesB, $processesDump, $processesVB, $rootcommon, $SEARCH_IN_FOLDER, $sh_usrs, $USER, $Wfolders, $MACPEAS
 # Initial Functions:
-# Generated Global Variables: $pslist, $cpid, $caphex, $psline, $pid, $selinux_ctx, $current_env_vars, $env_findings, $apparmor_profile, $mount, $mount_findings, $fd_findings, $proc_cmd, $proc_user, $mount_point, $current_mounts, $fd_target, $var, $findings, $sec_findings, $proc_env_vars, $fd_count, $proc_mounts, $office_uno_sockets, $spice_console_endpoints, $spice_exec_field, $$escaped_var
+# Generated Global Variables: $pslist, $cpid, $caphex, $psline, $pid, $selinux_ctx, $current_env_vars, $env_findings, $apparmor_profile, $mount, $mount_findings, $fd_findings, $proc_cmd, $proc_user, $mount_point, $current_mounts, $fd_target, $var, $findings, $sec_findings, $proc_env_vars, $fd_count, $proc_mounts, $office_uno_sockets, $spice_console_endpoints, $spice_exec_field, $jupyter_process_cues, $$escaped_var
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -299,6 +299,32 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     done
     pslist=$(ps auxwww)
     echo ""
+  fi
+
+  # Jupyter terminals and kernels run as the server account. Report only
+  # cross-user instances; do not print authentication values a second time.
+  if [ ! "$MACPEAS" ] && command -v ps >/dev/null 2>&1; then
+    jupyter_process_cues=$(ps -eww -o pid=,uid=,args= 2>/dev/null | awk -v my_uid="$(id -u 2>/dev/null)" '
+      {
+        pid = $1; uid = $2
+        if (pid !~ /^[0-9]+$/ || uid !~ /^[0-9]+$/ || uid == my_uid) next
+        cmd = $0
+        sub(/^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+/, "", cmd)
+        if (cmd !~ /(^|[[:space:]\/])jupyter(-lab|-notebook|-server)?([[:space:]]|$)/ &&
+            cmd !~ /-m[[:space:]]+jupyter(lab|_lab|_server|_notebook)?([[:space:]]|$)/) next
+        auth = (cmd ~ /--(ServerApp|NotebookApp)\.(token|password)[[:space:]]*=/ ||
+                cmd ~ /(^|[[:space:]])JUPYTER_TOKEN=/)
+        printf "PID %s (UID %s): Jupyter%s\n", pid, uid,
+               auth ? " - authentication setting visible in process arguments" : ""
+        if (++count >= 10) exit
+      }
+    ')
+    if [ -n "$jupyter_process_cues" ]; then
+      print_2title "Jupyter running as another user (review local access)" "T1552.001"
+      printf '%s\n' "$jupyter_process_cues"
+      printf '%s\n' 'Check readable systemd unit/environment files and local listeners; a usable token or disabled authentication can allow terminal/kernel execution as the service account.'
+      echo ""
+    fi
   fi
 
   office_uno_sockets=$(check_privileged_office_uno_sockets)
