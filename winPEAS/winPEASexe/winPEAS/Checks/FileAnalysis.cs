@@ -179,6 +179,12 @@ namespace winPEAS.Checks
                 pattern = GetRegexpFromString(fileName);
             }
 
+            if (files.Count == 0) return new bool[] { false, somethingFound };
+
+            // These literal search terms do not depend on the inventory entry.
+            string exactFileName = !isFolder && pattern == string.Empty ? fileName.ToLower() : null;
+            string exactFolder = isFolder && pattern == string.Empty ? $"\\{fileName}\\" : null;
+
             foreach (var file in files)
             {
                 bool isFileFound = false;
@@ -187,7 +193,7 @@ namespace winPEAS.Checks
                 {
                     if (pattern == string.Empty)
                     {
-                        isFileFound = file.FullPath.ToLower().Contains($"\\{fileName}\\");
+                        isFileFound = file.FullPath.ToLower().Contains(exactFolder);
                     }
                     else
                     {
@@ -212,7 +218,7 @@ namespace winPEAS.Checks
                 {
                     if (pattern == String.Empty)
                     {
-                        isFileFound = file.Filename.ToLower() == fileName.ToLower();
+                        isFileFound = file.Filename.ToLower() == exactFileName;
                     }
                     else
                     {
