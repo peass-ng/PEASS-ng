@@ -1011,11 +1011,11 @@ namespace winPEAS.Checks
             };
         }
 
-        public string[] MitreAttackIds { get; } = new[] { "T1018", "T1087.002", "T1558.003", "T1484.001", "T1649", "T1003" };
+        public string[] MitreAttackIds { get; } = new[] { "T1018", "T1087.002", "T1558.003", "T1558.004", "T1484.001", "T1649", "T1003" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Active Directory Quick Checks", "T1018,T1087.002,T1558.003,T1484.001,T1649,T1003");
+            Beaprint.GreatPrint("Active Directory Quick Checks", "T1018,T1087.002,T1558.003,T1558.004,T1484.001,T1649,T1003");
 
             new List<Action>
             {
@@ -1024,6 +1024,7 @@ namespace winPEAS.Checks
                 PrintNonDcUnconstrainedDelegation,
                 PrintDmsaCreationRights,
                 PrintKerberoastableServiceAccounts,
+                PrintAsRepRoastableAccounts,
                 PrintMachineAccountQuota,
                 PrintStagedComputerCandidates,
                 PrintAdObjectControlPaths,
@@ -2662,6 +2663,114 @@ namespace winPEAS.Checks
             catch (Exception ex)
             {
                 Beaprint.GrayPrint("  [-] Kerberoasting check failed: " + ex.Message);
+            }
+        }
+
+        internal static bool IsAsRepRoastCandidate(int? userAccountControl)
+        {
+            const int accountDisabled = 0x2;
+            const int workstationTrust = 0x1000;
+            const int serverTrust = 0x2000;
+            const int dontRequirePreauth = 0x400000;
+            return userAccountControl.HasValue &&
+                (userAccountControl.Value & (accountDisabled | workstationTrust | serverTrust)) == 0 &&
+                (userAccountControl.Value & dontRequirePreauth) != 0;
+        }
+
+        private static void PrintAsRepRoastableAccounts()
+        {
+            Beaprint.MainPrint("AD accounts without Kerberos preauthentication (AS-REP roasting)", "T1558.004");
+            Beaprint.LinkPrint("https://learn.microsoft.com/en-us/defender-for-identity/alerts-mdi-classic",
+                "Microsoft describes the offline password-guessing risk and recommends enabling preauthentication.");
+
+            if (!Checks.IsPartOfDomain)
+            {
+                Beaprint.GrayPrint("  [-] Host is not domain-joined. Skipping.");
+                return;
+            }
+
+            try
+            {
+                string defaultNc = GetRootDseProp("defaultNamingContext");
+                if (string.IsNullOrEmpty(defaultNc))
+                {
+                    Beaprint.GrayPrint("  [?] Could not resolve defaultNamingContext; account status unknown.");
+                    return;
+                }
+
+                const int resultLimit = 101;
+                const int displayLimit = 20;
+                int inspected = 0;
+                int candidates = 0;
+                int unverified = 0;
+                bool truncated = false;
+                bool elapsedLimit = false;
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                using (var root = new DirectoryEntry("LDAP://" + defaultNc))
+                using (var searcher = new DirectorySearcher(root))
+                {
+                    searcher.SearchScope = SearchScope.Subtree;
+                    searcher.PageSize = 0;
+                    searcher.SizeLimit = resultLimit;
+                    searcher.ReferralChasing = ReferralChasingOption.None;
+                    searcher.ClientTimeout = TimeSpan.FromSeconds(5);
+                    searcher.ServerTimeLimit = TimeSpan.FromSeconds(5);
+                    searcher.Filter = "(&(objectCategory=person)(objectClass=user)" +
+                        "(userAccountControl:1.2.840.113556.1.4.803:=4194304)" +
+                        "(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
+                    searcher.PropertiesToLoad.Add("sAMAccountName");
+                    searcher.PropertiesToLoad.Add("distinguishedName");
+                    searcher.PropertiesToLoad.Add("userAccountControl");
+
+                    using (var results = searcher.FindAll())
+                    foreach (SearchResult result in results)
+                    {
+                        if (watch.Elapsed > TimeSpan.FromSeconds(5))
+                        {
+                            elapsedLimit = true;
+                            break;
+                        }
+                        if (++inspected == resultLimit)
+                        {
+                            truncated = true;
+                            break;
+                        }
+                        if (!IsAsRepRoastCandidate(GetIntProp(result, "userAccountControl")))
+                        {
+                            unverified++;
+                            continue;
+                        }
+
+                        candidates++;
+                        if (candidates <= displayLimit)
+                        {
+                            string label = GetProp(result, "sAMAccountName");
+                            if (string.IsNullOrWhiteSpace(label))
+                                label = GetProp(result, "distinguishedName");
+                            Beaprint.BadPrint("  [!] " + SafeLogonScriptText(label, 128) +
+                                ": enabled user account has DONT_REQ_PREAUTH set.");
+                        }
+                    }
+                }
+
+                if (candidates == 0)
+                    Beaprint.GrayPrint("  [-] No confirmed enabled preauthentication-disabled user accounts in the bounded query.");
+                else
+                {
+                    if (candidates > displayLimit)
+                        Beaprint.GrayPrint($"  [*] {candidates - displayLimit} additional candidate(s) omitted from display.");
+                    Beaprint.GrayPrint("  [*] This is an offline password-guessing exposure, not proof of a weak password or privileged access. Enable Kerberos preauthentication after reviewing account compatibility.");
+                }
+                if (truncated)
+                    Beaprint.GrayPrint("  [?] LDAP result sample capped at 100 objects; additional accounts are unknown.");
+                if (elapsedLimit)
+                    Beaprint.GrayPrint("  [?] LDAP elapsed limit reached; additional accounts are unknown.");
+                if (unverified > 0)
+                    Beaprint.GrayPrint($"  [?] {unverified} LDAP result(s) could not be confirmed from account-control data.");
+            }
+            catch (Exception ex)
+            {
+                Beaprint.GrayPrint("  [?] AS-REP account visibility unknown: LDAP query failed or timed out: " + ex.Message);
             }
         }
 
