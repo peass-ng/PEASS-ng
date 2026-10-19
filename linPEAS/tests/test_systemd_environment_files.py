@@ -276,6 +276,62 @@ class SystemdEnvironmentFilesTests(unittest.TestCase):
             )
             self.assertEqual("", dynamic.stdout)
 
+    def test_writable_envfile_uses_first_property_values(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            bindir = root / "bin"
+            bindir.mkdir()
+            env_file = root / "config.env"
+            env_file.write_text("TOKEN=not-printed\n", encoding="utf-8")
+            systemctl = bindir / "systemctl"
+            systemctl.write_text(
+                "#!/bin/sh\n"
+                "case \"$1\" in\n"
+                "  show) printf '%s\\n' \"$FAKE_PROPERTIES\" ;;\n"
+                "  cat) printf '[Service]\\nEnvironmentFile=%s\\n' \"$FAKE_ENV_FILE\" ;;\n"
+                "esac\n",
+                encoding="utf-8",
+            )
+            systemctl.chmod(0o755)
+            env = os.environ.copy()
+            env.update(
+                {"PATH": f"{bindir}:{env['PATH']}", "FAKE_ENV_FILE": str(env_file)}
+            )
+            body = "\n".join(
+                [
+                    "SEARCH_IN_FOLDER=1",
+                    f". {shlex.quote(str(self.script))}",
+                    "systemd_wenv_findings_for_unit demo.service",
+                ]
+            )
+            cases = [
+                ("User=daemon\nUser=root", ""),
+                ("User=\nUser=daemon", f"demo.service: {env_file}\n"),
+                ("User=root\nDynamicUser=yes\nDynamicUser=no", ""),
+                ("User=root\nRootDirectory=/srv/jail\nRootDirectory=", ""),
+                (
+                    "User=root\nRootDirectory=\nRootDirectory=/srv/jail",
+                    f"demo.service: {env_file}\n",
+                ),
+                ("User=root\nRootImage=/srv/root.img\nRootImage=", ""),
+                (
+                    "User=root\nRootImage=\nRootImage=/srv/root.img",
+                    f"demo.service: {env_file}\n",
+                ),
+                (
+                    "User=root\nDynamicUser=no\nRootDirectory=\nRootImage=",
+                    f"demo.service: {env_file}\n",
+                ),
+            ]
+            for properties, expected in cases:
+                with self.subTest(properties=properties):
+                    env["FAKE_PROPERTIES"] = properties
+                    result = subprocess.run(
+                        ["sh", "-c", body], env=env, capture_output=True, text=True
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout, expected)
+
     def test_new_indicator_only_checks_first_200_units_including_bulleted_rows(self):
         body = "\n".join(
             [
