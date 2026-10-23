@@ -853,13 +853,13 @@ namespace winPEAS.Checks
             }
         }
 
-        internal static List<string> FindRootPowerShellTranscripts(string rootPath, out bool partial,
+        internal static List<string> FindRootPowerShellTranscripts(string rootPath, out bool isPartial,
             Func<string, FileAttributes> getAttributes = null)
         {
             const int maxRootEntries = 16;
             const int maxChildEntries = 64;
             var files = new List<string>();
-            partial = false;
+            isPartial = false;
             getAttributes = getAttributes ?? File.GetAttributes;
 
             try
@@ -880,7 +880,7 @@ namespace winPEAS.Checks
                 {
                     if (++rootEntries > maxRootEntries)
                     {
-                        partial = true;
+                        isPartial = true;
                         break;
                     }
 
@@ -896,7 +896,7 @@ namespace winPEAS.Checks
                             // Count every entry, including nonmatches and skipped reparse points.
                             if (childEntries++ >= maxChildEntries)
                             {
-                                partial = true;
+                                isPartial = true;
                                 return files;
                             }
 
@@ -907,20 +907,20 @@ namespace winPEAS.Checks
                                 files.Add(file);
                         }
                     }
-                    catch (UnauthorizedAccessException) { partial = true; }
-                    catch (PathTooLongException) { partial = true; }
-                    catch (IOException) { partial = true; }
-                    catch (System.Security.SecurityException) { partial = true; }
+                    catch (UnauthorizedAccessException) { isPartial = true; }
+                    catch (PathTooLongException) { isPartial = true; }
+                    catch (IOException) { isPartial = true; }
+                    catch (System.Security.SecurityException) { isPartial = true; }
                 }
             }
             catch (FileNotFoundException) { }
             catch (DirectoryNotFoundException) { }
-            catch (UnauthorizedAccessException) { partial = true; }
-            catch (PathTooLongException) { partial = true; }
-            catch (IOException) { partial = true; }
-            catch (ArgumentException) { partial = true; }
-            catch (NotSupportedException) { partial = true; }
-            catch (System.Security.SecurityException) { partial = true; }
+            catch (UnauthorizedAccessException) { isPartial = true; }
+            catch (PathTooLongException) { isPartial = true; }
+            catch (IOException) { isPartial = true; }
+            catch (ArgumentException) { isPartial = true; }
+            catch (NotSupportedException) { isPartial = true; }
+            catch (System.Security.SecurityException) { isPartial = true; }
             return files;
         }
 

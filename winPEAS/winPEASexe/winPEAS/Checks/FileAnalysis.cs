@@ -37,9 +37,9 @@ namespace winPEAS.Checks
 
         // Add only top-level change patches from a conventional local data directory.
         // The normal user-profile .BuildServer path is already in RootDirUsers.
-        internal static List<CustomFileInfo> ProbeTeamCityChanges(string commonDataPath, out bool partial)
+        internal static List<CustomFileInfo> ProbeTeamCityChanges(string commonDataPath, out bool isPartial)
         {
-            partial = false;
+            isPartial = false;
             var files = new List<CustomFileInfo>();
             if (string.IsNullOrWhiteSpace(commonDataPath)) return files;
             try
@@ -64,7 +64,7 @@ namespace winPEAS.Checks
                     if (timer.ElapsedMilliseconds >= 500 || inspected++ >= MaxTeamCityChangeEntries ||
                         files.Count >= MaxTeamCityChangeFiles)
                     {
-                        partial = true;
+                        isPartial = true;
                         break;
                     }
                     if (!Path.GetFileName(path).EndsWith(".changes.diff", StringComparison.OrdinalIgnoreCase))
@@ -77,7 +77,7 @@ namespace winPEAS.Checks
             }
             catch (DirectoryNotFoundException) { }
             catch (FileNotFoundException) { }
-            catch (Exception) { partial = true; }
+            catch (Exception) { isPartial = true; }
             return files;
         }
 

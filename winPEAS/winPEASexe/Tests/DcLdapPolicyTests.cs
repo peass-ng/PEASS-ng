@@ -32,18 +32,18 @@ namespace winPEAS.Tests
             Assert.AreEqual(LdapsChannelBindingStatus.Always, none.ChannelBindingStatus);
             Assert.IsTrue(none.HasObservedRelayCondition);
 
-            var partial = Policy(LocalDomainRole.DomainController, DomainControllerGeneration.Before2025,
+            var partiallyProtected = Policy(LocalDomainRole.DomainController, DomainControllerGeneration.Before2025,
                 LdapPolicyReadState.Present, 2, LdapPolicyReadState.Present, 1);
-            Assert.AreEqual(LdapSigningStatus.RequireSigning, partial.SigningStatus);
-            Assert.AreEqual(LdapsChannelBindingStatus.WhenSupported, partial.ChannelBindingStatus);
-            Assert.IsFalse(partial.HasObservedRelayCondition);
+            Assert.AreEqual(LdapSigningStatus.RequireSigning, partiallyProtected.SigningStatus);
+            Assert.AreEqual(LdapsChannelBindingStatus.WhenSupported, partiallyProtected.ChannelBindingStatus);
+            Assert.IsFalse(partiallyProtected.HasObservedRelayCondition);
 
-            partial.ChannelBindingValue = 2;
-            Assert.IsFalse(partial.HasObservedRelayCondition);
+            partiallyProtected.ChannelBindingValue = 2;
+            Assert.IsFalse(partiallyProtected.HasObservedRelayCondition);
 
-            partial.ChannelBindingValue = 0;
-            Assert.AreEqual(LdapsChannelBindingStatus.Never, partial.ChannelBindingStatus);
-            Assert.IsTrue(partial.HasObservedRelayCondition);
+            partiallyProtected.ChannelBindingValue = 0;
+            Assert.AreEqual(LdapsChannelBindingStatus.Never, partiallyProtected.ChannelBindingStatus);
+            Assert.IsTrue(partiallyProtected.HasObservedRelayCondition);
         }
 
         [TestMethod]
