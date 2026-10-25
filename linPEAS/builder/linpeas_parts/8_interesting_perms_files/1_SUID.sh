@@ -1,15 +1,15 @@
 # Title: Interesting Permissions Files - SUID
 # ID: IP_SUID
 # Author: Carlos Polop, HT Bot
-# Last Update: 09-10-2026
-# Description: SUID - Check easy privesc, exploits, write perms, risky file placement, and identity-helper candidates
+# Last Update: 25-10-2026
+# Description: SUID - Check easy privesc, exploits, write perms, risky file placement, shell copies, and identity-helper candidates
 # License: GNU GPL
-# Version: 1.5
+# Version: 1.6
 # Mitre: T1548.001
 # Functions Used: check_privileged_file_location, echo_not_found, print_2title, print_info
 # Global Variables: $IAMROOT, $LDD, $ROOT_FOLDER, $READELF, $sidB, $sidG1, $sidG2, $sidG3, $sidG4, $sidVB, $sidVB2, $STRACE, $STRINGS, $TIMEOUT, $Wfolders, $cfuncs
 # Initial Functions:
-# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH, $ndsudo_uid, $ndsudo_nnp, $ndsudo_mount_options, $ndsudo_uncertainty, $pinns_uid, $pinns_nnp, $pinns_mount_options, $pinns_uncertainty, $jjs_nnp, $jjs_mount_options, $gosu_nnp, $gosu_mount_options
+# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH, $ndsudo_uid, $ndsudo_nnp, $ndsudo_mount_options, $ndsudo_uncertainty, $pinns_uid, $pinns_nnp, $pinns_mount_options, $pinns_uncertainty, $jjs_nnp, $jjs_mount_options, $gosu_nnp, $gosu_mount_options, $suid_shell_refs, $suid_shell_name, $suid_shell_path, $suid_shell_size, $suid_file_stat, $suid_file_size
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -22,6 +22,20 @@ fi
 if ! [ "$STRACE" ]; then
   echo_not_found "strace"
 fi
+# Compare only small, installed shell binaries; never execute a discovered SUID file.
+suid_shell_refs=""
+if command -v cmp >/dev/null 2>&1; then
+  for suid_shell_name in sh dash bash zsh ksh; do
+    for suid_shell_path in "${ROOT_FOLDER%/}/bin/$suid_shell_name" "${ROOT_FOLDER%/}/usr/bin/$suid_shell_name"; do
+      [ -f "$suid_shell_path" ] && [ -r "$suid_shell_path" ] || continue
+      suid_shell_size=$(stat -c '%s' "$suid_shell_path" 2>/dev/null || stat -f '%z' "$suid_shell_path" 2>/dev/null)
+      case "$suid_shell_size" in ''|*[!0-9]*) continue ;; esac
+      [ "$suid_shell_size" -le 4194304 ] || continue
+      suid_shell_refs="${suid_shell_refs}${suid_shell_size} ${suid_shell_path}
+"
+    done
+  done
+fi
 suids_files=$(find $ROOT_FOLDER -perm -4000 -type f ! -path "/dev/*" 2>/dev/null)
 printf "%s\n" "$suids_files" | while IFS= read -r sfile; do
   [ -z "$sfile" ] && continue
@@ -32,6 +46,23 @@ printf "%s\n" "$suids_files" | while IFS= read -r sfile; do
   # Keep the path returned by find: parsing it from ls output breaks on whitespace.
   sname="$sfile"
   sowner="$(echo "$s" | awk '{print $3}')"
+  if [ -n "$suid_shell_refs" ]; then
+    suid_file_stat=$(stat -c '%u %s' "$sname" 2>/dev/null || stat -f '%u %z' "$sname" 2>/dev/null)
+    case "$suid_file_stat" in
+      '0 '*)
+        suid_file_size=${suid_file_stat#0 }
+        while read -r suid_shell_size suid_shell_path; do
+          [ "$suid_file_size" = "$suid_shell_size" ] || continue
+          if cmp -s "$sname" "$suid_shell_path" 2>/dev/null; then
+            echo "Root-owned SUID file matches a system shell: $sname (matches $suid_shell_path; verify SUID policy and shell behavior)" | sed -${E} "s,.*,${SED_RED},"
+            break
+          fi
+        done <<EOF_SUID_SHELL_REFS
+$suid_shell_refs
+EOF_SUID_SHELL_REFS
+        ;;
+    esac
+  fi
   if [ "${sname##*/}" = "pinns" ] && [ "$(uname -s 2>/dev/null)" = "Linux" ]; then
     # The privileged CRI-O helper is a lead only; never invoke it to test.
     pinns_uid=$(stat -c '%u' "$sname" 2>/dev/null || stat -f '%u' "$sname" 2>/dev/null)
