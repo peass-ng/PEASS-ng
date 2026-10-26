@@ -154,6 +154,10 @@ jobs:
           $serverPath = Join-Path $env:RUNNER_TEMP "mock_host_checker.py"
           $bodyPath = Join-Path $env:RUNNER_TEMP "host_checker_body.json"
           $countPath = Join-Path $env:RUNNER_TEMP "host_checker_count.txt"
+          $portListener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
+          $portListener.Start()
+          $mockPort = ([System.Net.IPEndPoint]$portListener.LocalEndpoint).Port
+          $portListener.Stop()
           @"
           from http.server import BaseHTTPRequestHandler, HTTPServer
           import json
@@ -225,7 +229,7 @@ jobs:
               def log_message(self, fmt, *args):
                   pass
 
-          HTTPServer(("127.0.0.1", 18768), Handler).serve_forever()
+          HTTPServer(("127.0.0.1", $mockPort), Handler).serve_forever()
           "@ | Set-Content -Path $serverPath -Encoding utf8
 
           $pythonCandidates = @(
@@ -267,7 +271,7 @@ jobs:
               }
 
               try {
-                $readyResponse = Invoke-WebRequest -UseBasicParsing -TimeoutSec 1 -Uri "http://127.0.0.1:18768/ready"
+                $readyResponse = Invoke-WebRequest -UseBasicParsing -TimeoutSec 1 -Uri "http://127.0.0.1:$mockPort/ready"
                 if ($readyResponse.StatusCode -eq 200) {
                   $serverReady = $true
                   break
@@ -288,7 +292,7 @@ jobs:
               Write-Error "Mock host-checker server did not become ready before winPEAS execution. ExitCode=$($server.ExitCode)`nSTDOUT:`n$stdout`nSTDERR:`n$stderr"
             }
 
-            $env:HACKTRICKS_HOST_CHECKER_URL = "http://127.0.0.1:18768/api/host-checker"
+            $env:HACKTRICKS_HOST_CHECKER_URL = "http://127.0.0.1:$mockPort/api/host-checker"
             $output = & $exePath applicationsinfo -vulnpackages notcolor 2>&1 | Out-String
 
             if ($output -notmatch "Online package vulnerabilities found: 55 vulnerable package\(s\), checked 300\.") {
