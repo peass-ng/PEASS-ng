@@ -1,15 +1,15 @@
 # Title: Users Information - Sudo -l
 # ID: UG_Sudo_l
-# Author: Carlos Polop
-# Last Update: 09-10-2026
+# Author: Carlos Polop, HT Bot
+# Last Update: 26-10-2026
 # Description: Checking 'sudo -l', sudoers files, directly writable sudo scripts, privileged config, backup repository arguments, process tracing, container exec and compose wrappers, packet-filter export, PDF attachments, PostScript conversion, Bash pattern comparisons, relative working-directory helpers and cp globs, temporary-file name races, FreeBSD pkg repository trust, PyInstaller build wrappers, preset and PHP CLI loaders, privileged Neofetch and Facter configuration, and privileged Python imports, environment paths, caches, debugger entry, archive extraction, model loading, and Git transport
 # License: GNU GPL
-# Version: 1.9
+# Version: 1.10
 # Mitre: T1548.003
 # Functions Used: check_sudo_terraform_override, echo_not_found, lp_trusted_version_path, print_2title, print_info
 # Global Variables:$IAMROOT, $PASSWORD, $TIMEOUT, $ROOT_FOLDER, $TMPDIR, $sudoB, $sudoG, $sudoVB1, $sudoVB2
 # Initial Functions:
-# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $sudo_writable_scripts, $sudo_writable_script, $sudo_adduser_main, $sudo_adduser_dir, $sudo_adduser_groups, $sudo_adduser_candidates, $sudo_adduser_group, $sudo_adduser_group_status, $sudo_adduser_visible, $sudo_adduser_unknown, $sudo_adduser_files, $sudo_adduser_file, $sudo_adduser_policy, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_backup_wrapper_rules, $sudo_backup_wrapper_script, $sudo_backup_wrapper_remaining, $sudo_backup_wrapper_walk, $sudo_backup_wrapper_part, $sudo_backup_wrapper_symlink, $sudo_backup_wrapper_result, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_mode, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size, $sudo_python_debugger_rules, $sudo_python_debugger_script, $sudo_python_debugger_size, $sudo_python_debugger_match, $script, $kept_names, $script_size, $matched_name, $sudo_nmap_walk, $sudo_rsync_rules, $sudo_nmap_result, $sudo_nmap_part, $sudo_rsync_dest, $sudo_nmap_remaining, $sudo_nmap_rules, $sudo_nmap_symlink, $sudo_nmap_path, $sudo_rsync_dir, $sudo_nmap_size, $sudo_rsync_source, $sudo_rsync_safe, $sudo_rsync_check, $sudo_rsync_walk, $sudo_rsync_remaining, $sudo_rsync_part, $sudo_rsync_owner, $sudo_rsync_current_uid, $sudo_gitpython_clone_rules, $sudo_gitpython_parser, $sudo_gitpython_binary, $sudo_gitpython_script, $sudo_gitpython_size, $sudo_gitpython_result, $sudo_model_loader_rules, $sudo_model_loader_script, $sudo_model_loader_dir, $sudo_model_loader_size, $sudo_model_loader_helper, $sudo_model_loader_line, $sudo_qpdf_path, $sudo_relative_cwd_dir, $sudo_relative_cwd_candidate, $sudo_relative_cwd_rules, $sudo_relative_cwd_script, $sudo_relative_cwd_size, $sudo_relative_cwd_shebang, $sudo_relative_cwd_go, $sudo_relative_cwd_wasm, $sudo_relative_cwd_helper, $sudo_relative_cwd_shell_match, $sudo_relative_cwd_cpglob, $sudo_relative_cwd_yaml, $sudo_bash_pattern_rules, $sudo_bash_pattern_script, $sudo_bash_pattern_size, $sudo_bash_pattern_shebang, $sudo_bash_pattern_line, $sudo_ps2pdf_rules, $sudo_ps2pdf_script, $sudo_ps2pdf_size, $sudo_ps2pdf_shebang, $sudo_ps2pdf_line, $sudo_compose_rules, $sudo_compose_script, $sudo_compose_size, $sudo_compose_shebang, $sudo_compose_match, $sudo_pyinstaller_rules, $sudo_pyinstaller_script, $sudo_pyinstaller_size, $sudo_pyinstaller_shebang, $sudo_pyinstaller_match, $sudo_setenv_path_rules, $sudo_setenv_path_script, $sudo_setenv_path_mode, $sudo_setenv_path_size, $sudo_setenv_path_shebang, $sudo_setenv_path_match, $sudo_pkg_repo_rules, $sudo_pkg_repo_size, $sudo_pkg_repo_match, $sudo_mktemp_rules, $sudo_mktemp_script, $sudo_mktemp_size, $sudo_mktemp_shebang, $sudo_mktemp_match, $sudo_pythonpath_rules, $sudo_pythonpath_wrapper, $sudo_pythonpath_wrapper_size, $sudo_pythonpath_wrapper_shebang, $sudo_pythonpath_target, $sudo_pythonpath_target_size, $sudo_pythonpath_target_shebang, $sudo_pythonpath_import, $sudo_positional_rules, $sudo_positional_script, $sudo_positional_size, $sudo_positional_line
+# Generated Global Variables: $sudo_l_output, $sudo_l_password_output, $sudo_l_cached_output, $sudo_l_policy_output, $sudo_writable_scripts, $sudo_writable_script, $sudo_adduser_main, $sudo_adduser_dir, $sudo_adduser_groups, $sudo_adduser_candidates, $sudo_adduser_group, $sudo_adduser_group_status, $sudo_adduser_visible, $sudo_adduser_unknown, $sudo_adduser_files, $sudo_adduser_file, $sudo_adduser_policy, $secure_path_candidate, $secure_path_index, $secure_path_entry, $secure_path_remaining, $secure_path_part, $secure_path_walk, $secure_path_symlink, $sudo_needrestart_dir, $sudo_needrestart_config, $sudo_needrestart_timeout, $sudo_needrestart_query, $sudo_npbackup_rules, $sudo_npbackup_dir, $sudo_npbackup_timeout, $sudo_npbackup_count, $sudo_npbackup_started, $sudo_npbackup_now, $sudo_npbackup_command, $sudo_npbackup_config, $sudo_npbackup_query, $sudo_backup_wrapper_rules, $sudo_backup_wrapper_script, $sudo_backup_wrapper_remaining, $sudo_backup_wrapper_walk, $sudo_backup_wrapper_part, $sudo_backup_wrapper_symlink, $sudo_backup_wrapper_result, $sudo_python_scripts, $python_sudo_script, $python_loader_lines, $python_loader_root, $python_loader_roots, $python_loader_path_lines, $python_loader_literal, $python_loader_parent, $python_candidate_dir, $python_seen_dirs, $python_pth_file, $python_pth_imports, $python_writable_pth, $python_script_dir, $sudo_python_import_rules, $sudo_python_import_script, $sudo_python_import_runas, $sudo_python_import_mode, $sudo_python_import_size, $sudo_python_import_shebang, $sudo_python_import_dir, $sudo_python_import_line, $sudo_python_import_kind, $sudo_python_import_name, $sudo_python_import_member, $sudo_python_import_statement, $sudo_python_import_candidate, $sudo_python_import_parent, $sudo_python_import_access, $sudo_python_import_sticky, $sudo_python_import_walk, $sudo_python_import_remaining, $sudo_python_import_part, $sudo_python_import_probe_count, $sudo_python_cache_scripts, $sudo_python_cache_script, $sudo_python_cache_size, $sudo_python_cache_shebang, $sudo_python_cache_interpreter, $sudo_python_cache_version, $sudo_python_cache_tag, $sudo_python_cache_dir, $sudo_python_cache_line, $sudo_python_cache_module, $sudo_python_cache_source, $sudo_python_cache_pyc, $sudo_python_cache_sticky, $sudo_python_cache_owner, $sudo_python_cache_access, $sudo_python_tar_commands, $sudo_python_tar_command, $sudo_python_binary, $sudo_python_version, $sudo_python_tar_dir, $sudo_python_tar_size, $sudo_python_debugger_rules, $sudo_python_debugger_script, $sudo_python_debugger_size, $sudo_python_debugger_match, $script, $kept_names, $script_size, $matched_name, $sudo_nmap_walk, $sudo_rsync_rules, $sudo_nmap_result, $sudo_nmap_part, $sudo_rsync_dest, $sudo_nmap_remaining, $sudo_nmap_rules, $sudo_nmap_symlink, $sudo_nmap_path, $sudo_rsync_dir, $sudo_nmap_size, $sudo_rsync_source, $sudo_rsync_safe, $sudo_rsync_check, $sudo_rsync_walk, $sudo_rsync_remaining, $sudo_rsync_part, $sudo_rsync_owner, $sudo_rsync_current_uid, $sudo_gitpython_clone_rules, $sudo_gitpython_parser, $sudo_gitpython_binary, $sudo_gitpython_script, $sudo_gitpython_size, $sudo_gitpython_result, $sudo_model_loader_rules, $sudo_model_loader_script, $sudo_model_loader_dir, $sudo_model_loader_size, $sudo_model_loader_helper, $sudo_model_loader_line, $sudo_qpdf_path, $sudo_relative_cwd_dir, $sudo_relative_cwd_candidate, $sudo_relative_cwd_rules, $sudo_relative_cwd_script, $sudo_relative_cwd_size, $sudo_relative_cwd_shebang, $sudo_relative_cwd_go, $sudo_relative_cwd_wasm, $sudo_relative_cwd_helper, $sudo_relative_cwd_shell_match, $sudo_relative_cwd_cpglob, $sudo_relative_cwd_yaml, $sudo_bash_pattern_rules, $sudo_bash_pattern_script, $sudo_bash_pattern_size, $sudo_bash_pattern_shebang, $sudo_bash_pattern_line, $sudo_ps2pdf_rules, $sudo_ps2pdf_script, $sudo_ps2pdf_size, $sudo_ps2pdf_shebang, $sudo_ps2pdf_line, $sudo_compose_rules, $sudo_compose_script, $sudo_compose_size, $sudo_compose_shebang, $sudo_compose_match, $sudo_pyinstaller_rules, $sudo_pyinstaller_script, $sudo_pyinstaller_size, $sudo_pyinstaller_shebang, $sudo_pyinstaller_match, $sudo_setenv_path_rules, $sudo_setenv_path_script, $sudo_setenv_path_mode, $sudo_setenv_path_size, $sudo_setenv_path_shebang, $sudo_setenv_path_match, $sudo_pkg_repo_rules, $sudo_pkg_repo_size, $sudo_pkg_repo_match, $sudo_mktemp_rules, $sudo_mktemp_script, $sudo_mktemp_size, $sudo_mktemp_shebang, $sudo_mktemp_match, $sudo_pythonpath_rules, $sudo_pythonpath_wrapper, $sudo_pythonpath_wrapper_size, $sudo_pythonpath_wrapper_shebang, $sudo_pythonpath_target, $sudo_pythonpath_target_size, $sudo_pythonpath_target_shebang, $sudo_pythonpath_import, $sudo_positional_rules, $sudo_positional_script, $sudo_positional_size, $sudo_positional_line
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -131,7 +131,10 @@ else
   echo_not_found "sudo"
 fi
 
-sudo_env_keep_script_candidates "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")"
+# These three captures do not change below. Assemble the helper argument once
+# rather than spawning a command substitution for every policy review.
+sudo_l_policy_output=$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")
+sudo_env_keep_script_candidates "$sudo_l_policy_output"
 
 # Correlate only exact root-capable sudo shell-script grants with current-user
 # write access. This does not search Home or execute the permitted script.
@@ -177,7 +180,7 @@ sudo_writable_script_candidates() {
     printf 'Sudo writable script review candidate: %s (verify effective RunAs/denials, path components, interpreter, and execution policy)\n' "$sudo_writable_script"
   done
 }
-sudo_writable_script_candidates "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")"
+sudo_writable_script_candidates "$sudo_l_policy_output"
 
 # An empty-argument Neofetch grant can still source a shell config when sudo
 # preserves a caller-selected XDG_CONFIG_HOME. Inspect only cached policy text.
@@ -236,7 +239,7 @@ sudo_neofetch_xdg_review() {
     }
   '
 }
-sudo_neofetch_xdg_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")"
+sudo_neofetch_xdg_review "$sudo_l_policy_output"
 
 # A bare root-capable Facter rule accepts caller-selected custom fact paths.
 # Inspect only captured sudo policy; do not run Facter or load Ruby code.
@@ -267,7 +270,7 @@ sudo_facter_custom_dir_review() {
     }
   '
 }
-sudo_facter_custom_dir_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")"
+sudo_facter_custom_dir_review "$sudo_l_policy_output"
 
 # Review only an explicitly sudo-allowed Nmap executable. A small shell
 # wrapper that filters --script but forwards argv may still leave NSE's data
@@ -379,7 +382,7 @@ sudo_nmap_wrapper_review() {
     esac
   done
 }
-sudo_nmap_wrapper_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_nmap_wrapper_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # A sudoers argument glob can match spaces. For a root rsync archive copy,
@@ -484,7 +487,7 @@ sudo_rsync_wildcard_review() {
     echo "Sudo rsync argument wildcard review candidate: $sudo_rsync_source -> $sudo_rsync_dest (writable source directory; sudoers * may admit extra options while archive mode preserves permissions; verify effective policy, destination mount, rsync version, and authentication)"
   done
 }
-sudo_rsync_wildcard_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_rsync_wildcard_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # A fixed hg pull source does not fix the receiving repository: without -R,
@@ -544,7 +547,7 @@ sudo_hg_pull_hook_review() {
     }
   '
 }
-sudo_hg_pull_hook_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_hg_pull_hook_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # A bare Forge grant can select a compiler or output path under any RunAs
@@ -612,7 +615,7 @@ sudo_build_package_tool_review() {
     }
   '
 }
-sudo_build_package_tool_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_build_package_tool_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # A slicer project can carry post-processing commands. Flag only an effective
@@ -676,7 +679,7 @@ sudo_prusaslicer_project_review() {
     }
   '
 }
-sudo_prusaslicer_project_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_prusaslicer_project_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # A root-capable ProcMon grant can observe another process's syscall buffers.
@@ -742,7 +745,7 @@ sudo_procmon_trace_review() {
     }
   '
 }
-sudo_procmon_trace_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_procmon_trace_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # qpdf 10.2+ can embed an arbitrary readable file in a PDF. Only a captured,
@@ -807,7 +810,7 @@ sudo_qpdf_attachment_review() {
     echo "Sudo qpdf attachment file-read review candidate: $sudo_qpdf_path (unrestricted root-capable rule; confirm qpdf >=10.2, authentication, source readability by root, and writable output path)"
   done
 }
-sudo_qpdf_attachment_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_qpdf_attachment_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # A single-name adduser grant can create a missing group with the same name.
@@ -1858,7 +1861,7 @@ sudo_model_loader_review() {
       printf 'Sudo model-loader review candidate: %s accepts checkpoints from writable %s and forwards them to %s (loader at line %s); verify helper dataflow, effective sudo policy, loader version, and weights_only behavior.\n' "$sudo_model_loader_script" "$sudo_model_loader_dir" "$sudo_model_loader_helper" "$sudo_model_loader_line"
     done
 }
-sudo_model_loader_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_model_loader_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # Correlate direct root sudo rules with an existing cache for a top-level,
@@ -2227,7 +2230,7 @@ GITPYTHON_CLONE_AST
   done
 }
 
-sudo_gitpython_clone_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")"
+sudo_gitpython_clone_review "$sudo_l_policy_output"
 
 # A sudo script that invokes ./helper inherits the caller's working directory
 # unless it changes directory first. Inspect only bounded, readable scripts
@@ -2495,7 +2498,7 @@ sudo_relative_cwd_review() {
       "$sudo_relative_cwd_script" "$sudo_relative_cwd_helper" "$sudo_relative_cwd_dir"
   done
 }
-sudo_relative_cwd_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_relative_cwd_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # An unquoted RHS in Bash [[ lhs == rhs ]] is a pattern. Only inspect short,
@@ -2601,7 +2604,7 @@ sudo_bash_pattern_auth_review() {
       "$sudo_bash_pattern_script" "$sudo_bash_pattern_line"
   done
 }
-sudo_bash_pattern_auth_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_bash_pattern_auth_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # Inspect only exact root-capable sudo scripts already named by sudo -l. A
@@ -2690,7 +2693,7 @@ sudo_ps2pdf_nosafer_review() {
       "$sudo_ps2pdf_script" "$sudo_ps2pdf_line"
   done
 }
-sudo_ps2pdf_nosafer_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_ps2pdf_nosafer_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # Inspect only exact root-capable Python rules that accept a caller-selected
@@ -2784,7 +2787,7 @@ sudo_compose_wrapper_review() {
     printf 'Sudo Compose wrapper review candidate: %s has a caller-selected YAML sudo rule and invokes Docker Compose up; verify that this YAML reaches Compose, wrapper validation of capabilities, security options and volume syntax, effective sudo policy, and daemon restrictions.\n' "$sudo_compose_script"
   done
 }
-sudo_compose_wrapper_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_compose_wrapper_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,${SED_RED_YELLOW},"
 
 # A PyInstaller .spec is Python executed at build time. Review only a root-
@@ -2888,7 +2891,7 @@ sudo_pyinstaller_wrapper_review() {
     printf 'Sudo PyInstaller wrapper review candidate: %s passes a caller argument to PyInstaller after a spec condition; verify branch reachability, file control, exact sudo policy, build identity, and artifact access.\n' "$sudo_pyinstaller_script"
   done
 }
-sudo_pyinstaller_wrapper_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_pyinstaller_wrapper_review "$sudo_l_policy_output" |
   sed -"$E" "s,.*,$SED_RED_YELLOW,"
 
 # Inspect exact root-capable sudo shell scripts for a dry-run temporary name
@@ -2996,7 +2999,7 @@ sudo_mktemp_dry_run_review() {
       "$sudo_mktemp_script" "$sudo_mktemp_match"
   done
 }
-sudo_mktemp_dry_run_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_mktemp_dry_run_review "$sudo_l_policy_output" |
   sed -"${E}" "s,.*,$SED_RED_YELLOW,"
 
 # An exact root-run Bash script with a bare external command deserves PATH
@@ -3127,7 +3130,7 @@ sudo_setenv_path_review() {
     fi
   done
 }
-sudo_setenv_path_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_setenv_path_review "$sudo_l_policy_output" |
   sed -"$E" "s,.*,$SED_RED_YELLOW,"
 
 # Review a narrow one-hop Python import path behind an exact root SETENV
@@ -3239,7 +3242,7 @@ sudo_setenv_pythonpath_review() {
     done
   done
 }
-sudo_setenv_pythonpath_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_setenv_pythonpath_review "$sudo_l_policy_output" |
   sed -"$E" "s,.*,$SED_RED_YELLOW,"
 
 # Review exact root-capable sudo Python entry points for literal debugger calls.
@@ -3309,7 +3312,7 @@ sudo_python_debugger_review() {
     printf 'Sudo Python debugger review candidate: %s (confirm debugger call reachability, root RunAs policy, authentication, and control of the privileged debugger input; no script was run).\n' "$sudo_python_debugger_script"
   done
 }
-sudo_python_debugger_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_python_debugger_review "$sudo_l_policy_output" |
   sed -"$E" "s,.*,$SED_RED_YELLOW,"
 
 # A root pkg grant can trust a locally redirected repository only when the
@@ -3406,7 +3409,7 @@ sudo_freebsd_pkg_repo_review() {
   [ "$sudo_pkg_repo_match" = yes ] || return 0
   printf 'Sudo FreeBSD pkg repository review candidate: /etc/pkg/FreeBSD.conf is an enabled unsigned HTTP hostname repository; root pkg update/install grants and writable /etc/hosts coexist (verify effective repository overrides, DNS/mirror behavior, sudo policy, and package install scripts).\n'
 }
-sudo_freebsd_pkg_repo_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_freebsd_pkg_repo_review "$sudo_l_policy_output" |
   sed -"$E" "s,.*,$SED_RED_YELLOW,"
 
 # A positional command word in a short root-sudo Bash wrapper is a static
@@ -3488,7 +3491,7 @@ sudo_positional_command_review() {
       "$sudo_positional_script" "$sudo_positional_line"
   done
 }
-sudo_positional_command_review "$(printf '%s\n%s\n%s\n' "$sudo_l_cached_output" "$sudo_l_password_output" "$sudo_l_output")" |
+sudo_positional_command_review "$sudo_l_policy_output" |
   sed -"$E" "s,.*,$SED_RED_YELLOW,"
 
 (sudo_l_colorize_file /etc/sudoers) 2>/dev/null || echo_not_found "/etc/sudoers"
