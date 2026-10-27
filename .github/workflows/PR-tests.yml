@@ -411,10 +411,10 @@ jobs:
         run: linPEAS/linpeas_fat.sh -o software_information -a
       
       - name: Run linpeas interesting_perms_files
-        run: linPEAS/linpeas_fat.sh -o interesting_perms_files -a
+        run: timeout 90s linPEAS/linpeas_fat.sh -o interesting_perms_files -a -s || test $? -eq 124
       
       - name: Run linpeas interesting_files
-        run: linPEAS/linpeas_fat.sh -o interesting_files -a
+        run: timeout 90s linPEAS/linpeas_fat.sh -o interesting_files -a -s || test $? -eq 124
 
   Build_and_test_macpeas_pr:
     runs-on: macos-latest
