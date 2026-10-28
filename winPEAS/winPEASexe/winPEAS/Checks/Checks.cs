@@ -633,7 +633,7 @@ namespace winPEAS.Checks
         {
             try
             {
-                if (RegistryHelper.GetRegValue("HKCU", "CONSOLE", "VirtualTerminalLevel") == "" && RegistryHelper.GetRegValue("HKCU", "CONSOLE", "VirtualTerminalLevel") == "")
+                if (RegistryHelper.GetRegValue("HKCU", "CONSOLE", "VirtualTerminalLevel") != "1")
                     Console.WriteLine(@"ANSI color bit for Windows is not set. If you are executing this from a Windows terminal inside the host you should run 'REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1' and then start a new CMD");
             }
             catch (Exception ex)
@@ -648,7 +648,7 @@ namespace winPEAS.Checks
             {
                 if (RegistryHelper.GetRegValue("HKLM", @"SYSTEM\CurrentControlSet\Control\FileSystem", "LongPathsEnabled") != "1")
                 {
-                    Console.WriteLine(@"Long paths are disabled, so the maximum length of a path supported is 260 chars (this may cause false negatives when looking for files). If you are admin, you can enable it with 'REG ADD HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v VirtualTerminalLevel /t REG_DWORD /d 1' and then start a new CMD");
+                    Console.WriteLine(@"Long paths are disabled, so the maximum length of a path supported is 260 chars (this may cause false negatives when looking for files). If you are admin, you can enable it with 'REG ADD HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1' and then start a new CMD");
                     IsLongPath = false;
                 }
                 else
