@@ -110,6 +110,7 @@
     <Compile Include="AIStorageAuditTests.cs" />
     <Compile Include="AutoLogonTests.cs" />
     <Compile Include="FixedBuildIndicatorTests.cs" />
+    <Compile Include="WindowsVersionVulnsTests.cs" />
     <Compile Include="HMailAndInstalledAppsTests.cs" />
     <Compile Include="LansweeperConfigMetadataTests.cs" />
     <Compile Include="IisServedRootPermissionsTests.cs" />
