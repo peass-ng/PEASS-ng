@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.Win32;
 using System.Collections.Generic;
 using System.Security.AccessControl;
 using winPEAS.Info.ApplicationInfo;
@@ -22,6 +23,40 @@ namespace winPEAS.Tests
             Assert.IsTrue(PrivilegedScheduledTasks.IsLocalSystemPrincipal("LocalSystem"));
             Assert.IsFalse(PrivilegedScheduledTasks.IsLocalSystemPrincipal(@"BUILTIN\Administrators"));
             Assert.IsFalse(PrivilegedScheduledTasks.IsLocalSystemPrincipal("S-1-5-19"));
+        }
+
+        [TestMethod]
+        public void AcceptsOnlyLocalInProcessComServerPaths()
+        {
+            Assert.AreEqual(@"C:\Ops\task.dll", PrivilegedScheduledTasks.NormalizeComHandlerServerPath(
+                "\"C:\\Ops\\task.dll\""));
+            Assert.AreEqual(@"D:\Ops\task.ocx", PrivilegedScheduledTasks.NormalizeComHandlerServerPath(
+                @"D:\Ops\task.ocx"));
+            Assert.IsNull(PrivilegedScheduledTasks.NormalizeComHandlerServerPath(@"\\server\share\task.dll"));
+            Assert.IsNull(PrivilegedScheduledTasks.NormalizeComHandlerServerPath(@"task.dll"));
+            Assert.IsNull(PrivilegedScheduledTasks.NormalizeComHandlerServerPath(@"C:\Ops\task.exe"));
+            Assert.IsNull(PrivilegedScheduledTasks.NormalizeComHandlerServerPath(
+                "C:\\Ops\\task.dll\r\nspoofed"));
+            Assert.IsNull(PrivilegedScheduledTasks.NormalizeComHandlerServerPath(
+                @"C:\Ops\task.dll -argument"));
+        }
+
+        [TestMethod]
+        public void ComServerPathRespectsRegistryAndFilesystemViews()
+        {
+            Assert.AreEqual(@"C:\Windows\SysWOW64\task.dll",
+                PrivilegedScheduledTasks.ResolveComHandlerServerPathForView(
+                    @"C:\Windows\System32\task.dll", RegistryView.Registry32, @"C:\Windows", true, true));
+            Assert.AreEqual(@"C:\Windows\System32\task.dll",
+                PrivilegedScheduledTasks.ResolveComHandlerServerPathForView(
+                    @"C:\Windows\System32\task.dll", RegistryView.Registry64, @"C:\Windows", true, true));
+            Assert.IsNull(PrivilegedScheduledTasks.ResolveComHandlerServerPathForView(
+                @"C:\Windows\System32\subdir\task.dll", RegistryView.Registry32, @"C:\Windows", true, true));
+            Assert.IsNull(PrivilegedScheduledTasks.ResolveComHandlerServerPathForView(
+                @"C:\Windows\System32\task.dll", RegistryView.Registry32, @"C:\Windows", true, false));
+            Assert.AreEqual(@"C:\Ops\task.dll",
+                PrivilegedScheduledTasks.ResolveComHandlerServerPathForView(
+                    @"C:\Ops\task.dll", RegistryView.Registry32, @"C:\Windows", true, true));
         }
 
         [TestMethod]

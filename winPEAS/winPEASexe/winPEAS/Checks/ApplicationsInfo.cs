@@ -732,6 +732,7 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Low-privilege control and demand-start review of enabled SYSTEM scheduled tasks", "T1053.005");
                 Beaprint.LinkPrint("https://learn.microsoft.com/en-us/windows/win32/taskschd/security-contexts-for-running-tasks", "A writable action target or task DACL can let a low-privilege principal replace what the task runs as SYSTEM.");
+                Beaprint.LinkPrint("https://learn.microsoft.com/en-us/windows/win32/taskschd/task-security-hardening", "COM-handler actions activate in a task host under the task principal; writable InprocServer32 DLLs are review candidates.");
 
                 PrivilegedScheduledTaskReport report = PrivilegedScheduledTasks.GetReport();
                 if (report.ControlFindings.Count == 0 && report.Findings.Count == 0 && report.DemandStartFindings.Count == 0)
