@@ -5,6 +5,7 @@ using System.IO;
 using System.Security.AccessControl;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Win32;
 using winPEAS.Helpers;
 using winPEAS.TaskScheduler;
 using ScheduledTask = winPEAS.TaskScheduler.Task;
@@ -286,6 +287,15 @@ namespace winPEAS.Info.ApplicationInfo
                                     }
                                     ProcessExecAction(task.Path, principalName, execAction, unprivilegedSids, report);
                                 }
+                                else
+                                {
+                                    var comAction = action as TaskAction.ComHandlerAction;
+                                    if (comAction != null)
+                                    {
+                                        ProcessComHandlerAction(task.Path, principalName, comAction.ClassId,
+                                            unprivilegedSids, report);
+                                    }
+                                }
                             }
 
                             if (ShouldStop(report))
@@ -510,6 +520,126 @@ namespace winPEAS.Info.ApplicationInfo
                     report.FindingLimitReached = true;
                 }
             }
+        }
+
+        private static void ProcessComHandlerAction(
+            string taskPath,
+            string principal,
+            Guid classId,
+            ISet<string> unprivilegedSids,
+            PrivilegedScheduledTaskReport report)
+        {
+            if (classId == Guid.Empty)
+            {
+                return;
+            }
+
+            var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string osArchitecture = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432") ??
+                Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
+            bool isX64OperatingSystem = string.Equals(osArchitecture, "AMD64", StringComparison.OrdinalIgnoreCase);
+            RegistryView[] views = Environment.Is64BitOperatingSystem
+                ? new[] { RegistryView.Registry64, RegistryView.Registry32 }
+                : new[] { RegistryView.Registry32 };
+            foreach (RegistryView view in views)
+            {
+                if (ShouldStop(report))
+                {
+                    return;
+                }
+
+                string serverPath = ResolveComHandlerServerPathForView(
+                    ReadComHandlerServerPath(classId, view), view,
+                    Environment.GetEnvironmentVariable("SystemRoot"),
+                    Environment.Is64BitOperatingSystem, isX64OperatingSystem);
+                if (string.IsNullOrEmpty(serverPath) || !seenPaths.Add(serverPath))
+                {
+                    continue;
+                }
+
+                report.TargetsInspected++;
+                string accessReason = GetWritableTargetReason(serverPath, unprivilegedSids);
+                if (string.IsNullOrEmpty(accessReason))
+                {
+                    continue;
+                }
+
+                report.Findings.Add(new PrivilegedScheduledTaskFinding
+                {
+                    TaskPath = taskPath,
+                    Principal = principal,
+                    Executable = "COM handler " + classId.ToString("B") + " (" + view + " InprocServer32)",
+                    TargetPath = serverPath,
+                    AccessReason = accessReason + "; confirm COM activation and task trigger",
+                });
+                if (GetFindingCount(report) >= MaxFindings)
+                {
+                    report.FindingLimitReached = true;
+                    return;
+                }
+            }
+        }
+
+        private static string ReadComHandlerServerPath(Guid classId, RegistryView view)
+        {
+            try
+            {
+                string keyPath = @"SOFTWARE\Classes\CLSID\" + classId.ToString("B") + @"\InprocServer32";
+                using (RegistryKey hive = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view))
+                using (RegistryKey server = hive.OpenSubKey(keyPath))
+                {
+                    return server == null ? null : NormalizeComHandlerServerPath(
+                        server.GetValue(null, null, RegistryValueOptions.DoNotExpandEnvironmentNames) as string);
+                }
+            }
+            catch
+            {
+                // An inaccessible or absent class registration is not evidence of a writable target.
+                return null;
+            }
+        }
+
+        internal static string NormalizeComHandlerServerPath(string registryValue)
+        {
+            if (string.IsNullOrWhiteSpace(registryValue) || registryValue.Length > 1024 ||
+                registryValue.IndexOfAny(new[] { '\r', '\n', '\0' }) >= 0)
+            {
+                return null;
+            }
+
+            string path = CleanCandidatePath(ExpandAndTrim(registryValue));
+            if (!IsLocalAbsolutePath(path) || path.IndexOfAny(new[] { '"', '\'' }) >= 0)
+            {
+                return null;
+            }
+
+            string extension = Path.GetExtension(path);
+            return extension.Equals(".dll", StringComparison.OrdinalIgnoreCase) ||
+                extension.Equals(".ocx", StringComparison.OrdinalIgnoreCase) ? path : null;
+        }
+
+        internal static string ResolveComHandlerServerPathForView(
+            string path, RegistryView view, string systemRoot,
+            bool is64BitOperatingSystem, bool isX64OperatingSystem)
+        {
+            if (string.IsNullOrEmpty(path) || view != RegistryView.Registry32 ||
+                !is64BitOperatingSystem || string.IsNullOrWhiteSpace(systemRoot))
+            {
+                return path;
+            }
+
+            string system32 = systemRoot.TrimEnd('\\') + @"\System32\";
+            if (!path.StartsWith(system32, StringComparison.OrdinalIgnoreCase))
+            {
+                return path;
+            }
+
+            // Only the direct System32 DLL mapping is unambiguous; some subdirectories
+            // are exempt from WOW64 filesystem redirection. ARM64 uses a different
+            // 32-bit system directory, so do not guess its target.
+            string fileName = path.Substring(system32.Length);
+            return !isX64OperatingSystem || fileName.IndexOf('\\') >= 0 ? null :
+                systemRoot.TrimEnd('\\') + @"\SysWOW64\" + fileName;
         }
 
         internal static List<string> GetStandaloneRunnerSidecarPaths(
