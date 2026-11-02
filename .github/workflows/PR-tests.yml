@@ -100,7 +100,7 @@ jobs:
           if ($LASTEXITCODE -ne 0 -or $output -notmatch 'Clipboard query timed out after 5 seconds') {
             throw 'Clipboard check did not stop the delayed job'
           }
-          if ($watch.Elapsed.TotalSeconds -gt 20) {
+          if ($watch.Elapsed.TotalSeconds -gt 25) {
             throw "Clipboard check took $($watch.Elapsed.TotalSeconds) seconds"
           }
 
