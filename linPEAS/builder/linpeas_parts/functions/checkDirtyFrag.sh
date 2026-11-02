@@ -2,15 +2,15 @@
 # ID: checkDirtyFrag
 # Author: Samuel Monsempes
 # Contributor: Arjay Saguisa
-# Last Update: 29-06-2026
+# Last Update: 02-11-2026
 # Description: Check whether the current Linux kernel looks exposed to Dirty Frag (CVE-2026-43284 and CVE-2026-43500).
 # Description: Per-CVE module state (xfrm-ESP and rxrpc), built-in detection, modprobe.d blacklist, user-namespace mitigation, CAP_NET_ADMIN, kernel build-date heuristic.
 # License: GNU GPL
 # Version: 1.0.1
-# Functions Used:
+# Functions Used: print_3title, print_info
 # Global Variables: $E, $SED_GREEN, $SED_YELLOW, $SED_RED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $DF43_KERNEL_OS, $DF43_KERNEL_RELEASE, $DF43_KERNEL_VERSION, $DF43_KBUILD, $DF43_VERSION_KNOWN, $DF43_ESP_AFFECTED, $DF43_RXRPC_AFFECTED, $DF43_ESP_MODS, $DF43_RXRPC_MODS, $DF43_LOADED_ESP, $DF43_LOADED_RXRPC, $DF43_AUTO_ESP, $DF43_AUTO_RXRPC, $DF43_MODDEP, $DF43_MOD, $DF43_BUILTIN_ESP, $DF43_BUILTIN_RXRPC, $DF43_KCFG, $DF43_KCAT, $DF43_C, $DF43_MITIG_ESP, $DF43_MITIG_RXRPC, $DF43_USERNS_OFF, $DF43_CAP_NET_ADMIN, $DF43_CAPEFF, $DF43_CAPLO, $DF43_OLDBUILD, $DF43_BDATE, $DF43_BE, $DF43_FE, $DF43_ESP_REACH, $DF43_RXRPC_REACH, $DF43_RC, $DF43_CURVER, $DF43_REQVER, $DF43_OP, $DF43_CMP
+# Generated Global Variables: $DF43_KERNEL_OS, $DF43_KERNEL_RELEASE, $DF43_KERNEL_VERSION, $DF43_KBUILD, $DF43_VERSION_KNOWN, $DF43_ESP_AFFECTED, $DF43_RXRPC_AFFECTED, $DF43_ESP_MODS, $DF43_RXRPC_MODS, $DF43_AUTO_ESP, $DF43_AUTO_RXRPC, $DF43_MODDEP, $DF43_MOD, $DF43_BUILTIN_ESP, $DF43_BUILTIN_RXRPC, $DF43_KCFG, $DF43_KCAT, $DF43_C, $DF43_MITIG_ESP, $DF43_MITIG_RXRPC, $DF43_USERNS_OFF, $DF43_CAP_NET_ADMIN, $DF43_CAPEFF, $DF43_CAPLO, $DF43_OLDBUILD, $DF43_BDATE, $DF43_BE, $DF43_FE, $DF43_ESP_REACH, $DF43_RXRPC_REACH, $DF43_RC, $DF43_CURVER, $DF43_REQVER, $DF43_OP, $DF43_CMP, $DF43_LOADED_ESP, $DF43_LOADED_RXRPC, $fg26_release, $fg26_base, $fg26_fixed, $fg26_root, $fg26_config, $fg26_cfg_lines, $fg26_protocol, $fg26_module, $fg26_esp_setting, $fg26_dep, $fg26_loaded, $fg26_builtin, $fg26_autoload, $fg26_rule_file, $fg26_install_blocked, $fg26_reach, $fg26_userns, $fg26_namespaces_max
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -298,4 +298,99 @@ checkDirtyFrag() {
         fi
         exit $DF43_RC
     )
+}
+
+# Kernel CNA stable boundaries for CVE-2026-46300.  Distro kernels may backport
+# the fix without changing their upstream-looking release number.
+fg26_upstream_candidate() {
+    fg26_release=$1
+    fg26_base=${fg26_release%%-*}
+    case "$fg26_release" in
+        7.1-rc[1-4]|7.1-rc[1-4]-*) return 0 ;;
+        7.1-rc*) return 1 ;;
+    esac
+    df43_ver_cmp "$fg26_base" '>=' 3.9 || return 1
+    df43_ver_cmp "$fg26_base" '<' 7.1 || return 1
+    fg26_fixed=
+    case "$fg26_base" in
+        5.10.*) fg26_fixed=5.10.257 ;;
+        5.15.*) fg26_fixed=5.15.208 ;;
+        6.1.*) fg26_fixed=6.1.174 ;;
+        6.6.*) fg26_fixed=6.6.141 ;;
+        6.12.*) fg26_fixed=6.12.91 ;;
+        6.18.*) fg26_fixed=6.18.33 ;;
+        7.0.*) fg26_fixed=7.0.10 ;;
+    esac
+    [ -z "$fg26_fixed" ] || df43_ver_cmp "$fg26_base" '<' "$fg26_fixed"
+}
+
+# Only report when kernel configuration explicitly enables ESP-in-TCP and its
+# matching ESP transport is loaded, built-in, or autoloadable. No sockets are
+# opened, modules loaded, or namespaces created.
+fg26_check_evidence() (
+    fg26_root=${1%/}
+    [ -n "$fg26_root" ] || fg26_root=/
+    fg26_release=$2
+    fg26_upstream_candidate "$fg26_release" || return 0
+
+    fg26_config=
+    for fg26_rule_file in "$fg26_root/proc/config.gz" "$fg26_root/boot/config-$fg26_release" "$fg26_root/boot/config"; do
+        [ -r "$fg26_rule_file" ] && { fg26_config=$fg26_rule_file; break; }
+    done
+    [ -n "$fg26_config" ] || return 0
+    case "$fg26_config" in
+        *.gz) command -v zcat >/dev/null 2>&1 || return 0
+              fg26_cfg_lines=$(zcat "$fg26_config" 2>/dev/null | awk 'NR > 16384 {exit} /^CONFIG_(INET|INET6)_(ESP|ESPINTCP)=/ {print; if (++n == 4) exit}') ;;
+        *) fg26_cfg_lines=$(awk 'NR > 16384 {exit} /^CONFIG_(INET|INET6)_(ESP|ESPINTCP)=/ {print; if (++n == 4) exit}' "$fg26_config" 2>/dev/null) ;;
+    esac
+    fg26_reach=
+    for fg26_protocol in INET INET6; do
+        printf '%s\n' "$fg26_cfg_lines" | grep -q "^CONFIG_${fg26_protocol}_ESPINTCP=y$" || continue
+        case "$fg26_protocol" in INET) fg26_module=esp4 ;; INET6) fg26_module=esp6 ;; esac
+        fg26_esp_setting=$(printf '%s\n' "$fg26_cfg_lines" | sed -n "s/^CONFIG_${fg26_protocol}_ESP=//p" | head -n 1)
+        fg26_loaded=
+        grep -q "^${fg26_module} " "$fg26_root/proc/modules" 2>/dev/null && fg26_loaded=yes
+        fg26_builtin=
+        [ "$fg26_esp_setting" = y ] && fg26_builtin=yes
+        fg26_autoload=
+        fg26_dep="$fg26_root/lib/modules/$fg26_release/modules.dep"
+        if [ "$fg26_esp_setting" = m ] && [ -r "$fg26_dep" ] &&
+           grep -Eq "(^|/)${fg26_module}\\.ko(\\.[a-z]+)?:" "$fg26_dep" 2>/dev/null; then
+            fg26_autoload=yes
+        fi
+        fg26_install_blocked=
+        for fg26_rule_file in "$fg26_root"/etc/modprobe.d/* "$fg26_root"/run/modprobe.d/* "$fg26_root"/usr/lib/modprobe.d/* "$fg26_root"/lib/modprobe.d/*; do
+            [ -f "$fg26_rule_file" ] || continue
+            if grep -Eq "^[[:space:]]*install[[:space:]]+${fg26_module}[[:space:]]+(/usr)?/bin/(false|true)([[:space:]]|$)" "$fg26_rule_file" 2>/dev/null; then
+                fg26_install_blocked=yes
+                break
+            fi
+        done
+        if [ "$fg26_loaded" = yes ] || [ "$fg26_builtin" = yes ]; then
+            fg26_reach="$fg26_reach $fg26_module(active or built-in)"
+        elif [ "$fg26_autoload" = yes ] && [ "$fg26_install_blocked" != yes ]; then
+            fg26_reach="$fg26_reach $fg26_module(autoloadable)"
+        fi
+    done
+    [ -n "$fg26_reach" ] || return 0
+
+    fg26_userns=available-or-unknown
+    if [ -r "$fg26_root/proc/sys/kernel/unprivileged_userns_clone" ] &&
+       [ "$(cat "$fg26_root/proc/sys/kernel/unprivileged_userns_clone" 2>/dev/null)" = 0 ]; then
+        fg26_userns=disabled
+    fi
+    fg26_namespaces_max=$(cat "$fg26_root/proc/sys/user/max_user_namespaces" 2>/dev/null)
+    [ "$fg26_namespaces_max" = 0 ] && fg26_userns=disabled
+
+    print_3title "Fragnesia ESP-in-TCP review (CVE-2026-46300)" "T1068"
+    print_info "https://www.cve.org/CVERecord?id=CVE-2026-46300"
+    echo "Kernel $fg26_release is below an upstream fix; ESP-in-TCP reachability:$fg26_reach" | sed -${E} "s,.*,${SED_RED_YELLOW},"
+    echo "Unprivileged user namespaces: $fg26_userns; disabled blocks the ordinary-user public PoC unless CAP_NET_ADMIN is otherwise available."
+    echo "Review the running distro kernel's CVE patch status; vendor backports and live patches are not determined from uname."
+)
+
+checkFragnesia() {
+    [ "$(uname -s 2>/dev/null)" = Linux ] || return 0
+    [ "${1:-/}" = / ] || return 0 # offline roots do not describe the running kernel
+    fg26_check_evidence / "$(uname -r 2>/dev/null)"
 }
