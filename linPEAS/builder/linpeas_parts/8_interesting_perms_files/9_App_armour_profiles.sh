@@ -1,10 +1,10 @@
 # Title: Interesting Permissions Files - AppArmor profiles
 # ID: IP_App_armour_profiles
-# Author: Carlos Polop
-# Last Update: 19-10-2026
+# Author: Carlos Polop, HT Bot
+# Last Update: 02-11-2026
 # Description: AppArmor profiles and Ubuntu CrackArmor host-path prerequisites
 # License: GNU GPL
-# Version: 1.1
+# Version: 1.2
 # Mitre: T1518.001,T1068
 # Functions Used: print_2title, print_3title, print_info
 # Global Variables: $SEARCH_IN_FOLDER, $E, $SED_RED_YELLOW
@@ -34,7 +34,8 @@ apparmor_crackarmor_review() (
   for apparmor_ca_policy in .load .replace .remove; do
     [ -f "${apparmor_ca_root}sys/kernel/security/apparmor/${apparmor_ca_policy}" ] || return 0
     apparmor_ca_mode=$(LC_ALL=C ls -ld "${apparmor_ca_root}sys/kernel/security/apparmor/${apparmor_ca_policy}" 2>/dev/null | awk 'NR==1 {print $1}')
-    [ "$(printf '%s' "$apparmor_ca_mode" | cut -c 9)" = w ] || return 0
+    # The ninth character of the ls mode is other-write.
+    case "$apparmor_ca_mode" in ????????w*) ;; *) return 0 ;; esac
   done
   apparmor_ca_su=
   for apparmor_ca_policy in usr/bin/su bin/su; do
