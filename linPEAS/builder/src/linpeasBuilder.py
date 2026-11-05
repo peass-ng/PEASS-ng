@@ -188,7 +188,7 @@ class LinpeasBuilder:
                     find_line = f"cache_find {bash_find_var} {find_line}"
                     finds.append(find_line)
         
-        # Buid folder and files finds when searching in a custom folder
+        # Build folder and files finds when searching in a custom folder
         all_folder_regexes = list(set(all_folder_regexes))
         find_line = '"$SEARCH_IN_FOLDER" -type d \\( -name "' + '" -o -name "'.join(all_folder_regexes) + '" \\)'
         find_line = f"cache_find FIND_DIR_CUSTOM {find_line}"
