@@ -30,7 +30,11 @@ jobs:
       pull-requests: write
       actions: write
     env:
-      CHACK_LOGS_HTTP_URL: ${{ secrets.CHACK_LOGS_HTTP_URL }}
+      # chack-agent OTel traces to Phoenix; off when the header secret is absent (e.g. forks).
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${{ secrets.PHOENIX_OTLP_HEADERS != '' && 'https://chacks.hacktricks.wiki/v1/traces' || '' }}
+      OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.PHOENIX_OTLP_HEADERS }}
+      OTEL_SERVICE_NAME: peass-ng
+      OTEL_RESOURCE_ATTRIBUTES: openinference.project.name=peass-ng
     outputs:
       should_run: ${{ steps.gate.outputs.should_run }}
       still_open: ${{ steps.live_pr.outputs.open }}
