@@ -20,9 +20,8 @@ jobs:
     env:
       TARGET_BRANCH: master
       FIX_BRANCH: chack-agent/ci-master-fix-${{ github.event.workflow_run.id }}
-      # chack-agent OTel traces to Phoenix; off when the header secret is absent (e.g. forks).
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${{ secrets.PHOENIX_OTLP_HEADERS != '' && 'https://chacks.hacktricks.wiki/v1/traces' || '' }}
-      OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.PHOENIX_OTLP_HEADERS }}
+      # chack-agent OTel traces to the Chacks collector (no credentials needed).
+      OTEL_EXPORTER_OTLP_ENDPOINT: https://chacks.hacktricks.wiki
       OTEL_SERVICE_NAME: peass-ng
       OTEL_RESOURCE_ATTRIBUTES: openinference.project.name=peass-ng
       CAN_PUSH_WORKFLOWS: ${{ secrets.CODEX_FIXER_TOKEN != '' }}
