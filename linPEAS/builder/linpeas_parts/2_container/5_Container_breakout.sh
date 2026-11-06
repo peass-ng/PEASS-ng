@@ -220,10 +220,10 @@ if [ "$inContainer" ]; then
         host_process_count="$(ls -d /proc/[0-9]* 2>/dev/null | wc -l | tr -d ' ')"
         host_process_indicators="$(for proc_comm in /proc/[0-9]*/comm; do cat "$proc_comm" 2>/dev/null; done | grep -E '^(systemd|init|kthreadd|dockerd|containerd|kubelet|sshd|udevd|NetworkManager|dbus-daemon)$' | sort -u)"
     fi
-    print_list "Processes visible .............. $host_process_count\n" | sed -${E} "s,^[^0-9]*([5-9][0-9]|[1-9][0-9]{2,}).*,${SED_RED_YELLOW}&,"
+    print_list "Processes visible .............. $host_process_count\n" | sed -${E} "s#^[^0-9]*([5-9][0-9]|[1-9][0-9]{2,}).*#${SED_RED_YELLOW}#"
     print_list "Host-like processes visible .... "$NC
     if [ "$host_process_indicators" ]; then
-        printf "%s\n" "$host_process_indicators" | sed -${E} "s,.*,${SED_RED_YELLOW}&,"
+        printf "%s\n" "$host_process_indicators" | sed -${E} "s,.*,${SED_RED_YELLOW},"
     else
         echo "No obvious host daemons"
     fi

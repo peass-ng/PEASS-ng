@@ -65,7 +65,10 @@ tmux_socket_review() (
 )
 
 tmuxdefsess=$(tmux ls 2>/dev/null)
-tmuxnondefsess=$(ps auxwww | grep "tmux " | grep -v grep)
+tmuxnondefsess=
+if command -v ps >/dev/null 2>&1; then
+  tmuxnondefsess=$(ps auxwww 2>/dev/null | grep '[t]mux ')
+fi
 TMUX_TMPDIR=${TMUX_TMPDIR:-}
 tmux_scan_output=
 if ! [ "$SEARCH_IN_FOLDER" ]; then
