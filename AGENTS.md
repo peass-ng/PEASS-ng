@@ -6,3 +6,8 @@
 - **Create only needed branches.** Check `git status` and worktrees first. Use one short-lived branch per change, reuse it for revisions, and preserve others' work. Avoid speculative or duplicate branches.
 - **Clean up after a verified merge.** Confirm the changes landed, including after squash/rebase, and that no open PR or unmerged work needs the branch. Delete only your completed task's remote/local branch and worktree; prune stale refs. Never delete default, protected, shared, or unrelated branches.
 - **Leave a clean environment.** Check for leftover branches, worktrees, and uncommitted changes. Clean up safely or explain what must remain; never merge or delete when authorization or safety is uncertain.
+
+## chack-agent
+
+- **Always use the latest chack-agent.** Reference it from `master` (`uses: carlospolop/chack-agent@master`, or `pip install "chack-agent @ git+https://github.com/carlospolop/chack-agent.git@master"`); never pin a commit or version.
+- **Install opencode next to the CLI backends.** Any workflow that installs chack's CLI backends (codex, claude-code, copilot) also installs opencode with the version chack-agent's README names (currently `npm i -g opencode-ai@1.19.5`).
