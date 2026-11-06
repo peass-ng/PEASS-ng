@@ -6,9 +6,9 @@
 # License: GNU GPL
 # Version: 1.0
 # Functions Used: print_3title_no_nl
-# Global Variables: $backup_folders_row, $HOMESEARCH, $ROOT_FOLDER, $SEARCH_IN_FOLDER
+# Global Variables: $backup_folders_row, $HOMESEARCH, $ROOT_FOLDER, $SEARCH_IN_FOLDER, $TIMEOUT
 # Initial Functions:
-# Generated Global Variables: $regex, $title, $caseSensitive
+# Generated Global Variables: $regex, $title, $caseSensitive, $i, $regex_pids, $regex_pid
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -25,31 +25,44 @@ search_for_regex(){
     fi
 
     print_3title_no_nl "Searching $title..."
+    regex_pids=
 
     if [ "$SEARCH_IN_FOLDER" ]; then
-        timeout 120 find "$ROOT_FOLDER" -type f -not -path "*/node_modules/*" -exec grep -HnRIE$i "$regex" '{}' \; 2>/dev/null  | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &
+        "$TIMEOUT" 120 find "$ROOT_FOLDER" -type d -name node_modules -prune -o -type f -exec grep -HnE$i -I -e "$regex" '{}' + 2>/dev/null | sed '/^.\{150\}./d' | sort -u | head -n 50 &
+        regex_pids="$regex_pids $!"
     else
         # Search in home direcoties (usually the slowest)
-        timeout 120 find $HOMESEARCH -type f -not -path "*/node_modules/*" -exec grep -HnRIE$i "$regex" '{}' \; 2>/dev/null  | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &
+        if [ "$HOMESEARCH" ]; then
+            "$TIMEOUT" 120 find $HOMESEARCH -type d -name node_modules -prune -o -type f -exec grep -HnE$i -I -e "$regex" '{}' + 2>/dev/null | sed '/^.\{150\}./d' | sort -u | head -n 50 &
+            regex_pids="$regex_pids $!"
+        fi
         
         # Search in etc
-        timeout 120 find /etc -type f -not -path "*/node_modules/*" -exec grep -HnRIE$i "$regex" '{}' \; 2>/dev/null  | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &
+        "$TIMEOUT" 120 find /etc -type d -name node_modules -prune -o -type f -exec grep -HnE$i -I -e "$regex" '{}' + 2>/dev/null | sed '/^.\{150\}./d' | sort -u | head -n 50 &
+        regex_pids="$regex_pids $!"
         
         # Search in opt
-        timeout 120 find /opt -type f -not -path "*/node_modules/*" -exec grep -HnRIE$i "$regex" '{}' \; 2>/dev/null  | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &
+        "$TIMEOUT" 120 find /opt -type d -name node_modules -prune -o -type f -exec grep -HnE$i -I -e "$regex" '{}' + 2>/dev/null | sed '/^.\{150\}./d' | sort -u | head -n 50 &
+        regex_pids="$regex_pids $!"
         
         # Search in possible web folders (usually only 1 will exist)
-        timeout 120 find /var/www /usr/local/www /usr/share/nginx /Library/WebServer/ -type f -not -path "*/node_modules/*" -exec grep -HnRIE$i "$regex" '{}' \; 2>/dev/null  | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &
+        "$TIMEOUT" 120 find /var/www /usr/local/www /usr/share/nginx /Library/WebServer/ -type d -name node_modules -prune -o -type f -exec grep -HnE$i -I -e "$regex" '{}' + 2>/dev/null | sed '/^.\{150\}./d' | sort -u | head -n 50 &
+        regex_pids="$regex_pids $!"
         
         # Search in logs
-        timeout 120 find /var/log /var/logs /Library/Logs -type f -not -path "*/node_modules/*" -exec grep -HnRIE$i "$regex" '{}' \; 2>/dev/null  | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &
+        "$TIMEOUT" 120 find /var/log /var/logs /Library/Logs -type d -name node_modules -prune -o -type f -exec grep -HnE$i -I -e "$regex" '{}' + 2>/dev/null | sed '/^.\{150\}./d' | sort -u | head -n 50 &
+        regex_pids="$regex_pids $!"
         
         # Search in backups
-        timeout 120 find $backup_folders_row -type f -not -path "*/node_modules/*" -exec grep -HnRIE$i "$regex" '{}' \; 2>/dev/null  | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &
+        if [ "$backup_folders_row" ]; then
+            "$TIMEOUT" 120 find $backup_folders_row -type d -name node_modules -prune -o -type f -exec grep -HnE$i -I -e "$regex" '{}' + 2>/dev/null | sed '/^.\{150\}./d' | sort -u | head -n 50 &
+            regex_pids="$regex_pids $!"
+        fi
         
         # Search in others folders (usually only /srv or /Applications will exist)
-        timeout 120 find /tmp /srv /Applications -type f -not -path "*/node_modules/*" -exec grep -HnRIE$i "$regex" '{}' \; 2>/dev/null  | sed '/^.\{150\}./d' | sort | uniq | head -n 50 &
+        "$TIMEOUT" 120 find /tmp /srv /Applications -type d -name node_modules -prune -o -type f -exec grep -HnE$i -I -e "$regex" '{}' + 2>/dev/null | sed '/^.\{150\}./d' | sort -u | head -n 50 &
+        regex_pids="$regex_pids $!"
     fi
-    wait
+    for regex_pid in $regex_pids; do wait "$regex_pid"; done
     printf "\033[2K\r"
 }
