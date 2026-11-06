@@ -92,9 +92,34 @@ namespace winPEAS.Helpers
              */
 
             List<string> results = new List<string>();
-            path = path.Trim();
-            if (path == null || path == "")
+            if (string.IsNullOrWhiteSpace(path))
                 return results;
+            path = path.Trim();
+
+            // Most callers already have an exact path. Parsing it as a command line
+            // can truncate paths with dotted parent directories (Vendor.App\bin.exe).
+            try
+            {
+                return GetMyPermissionsF(File.GetAccessControl(path.Trim('"')), SIDs, permissionType);
+            }
+            catch
+            {
+                // Fall back to extracting a path from command lines and quoted values.
+            }
+
+            if (path.StartsWith("\"", StringComparison.Ordinal))
+            {
+                int closingQuote = path.IndexOf('"', 1);
+                if (closingQuote > 1)
+                {
+                    try
+                    {
+                        return GetMyPermissionsF(File.GetAccessControl(path.Substring(1, closingQuote - 1)),
+                            SIDs, permissionType);
+                    }
+                    catch { /* Keep the legacy command-line fallback below. */ }
+                }
+            }
 
             Match reg_path = Regex.Match(path.ToString(), @"\W*([a-z]:\\[^.]+(\.[a-zA-Z0-9_-]+)?)\W*", RegexOptions.IgnoreCase);
             string binaryPath = reg_path.Groups[1].ToString();
