@@ -13,6 +13,16 @@ namespace winPEAS.Tests
     public class SearchHelperRuntimeTests
     {
         [TestMethod]
+        public void FontExtensionsAreExcludedWithoutChangingArchiveSelection()
+        {
+            Assert.IsFalse(SearchHelper.ShouldRetainInventoryFile("font.woff2", ".woff2"));
+            Assert.IsFalse(SearchHelper.ShouldRetainInventoryFile("font.WOFF3", ".WOFF3"));
+            Assert.IsFalse(SearchHelper.ShouldRetainInventoryFile("ordinary.zip", ".ZIP"));
+            Assert.IsTrue(SearchHelper.ShouldRetainInventoryFile("backup.ZIP", ".ZIP"));
+            Assert.IsTrue(SearchHelper.ShouldRetainInventoryFile("service.exe", ".EXE"));
+        }
+
+        [TestMethod]
         public void FileInventoryKeepsRealFilesAndDoesNotEnterJunctions()
         {
             string parent = Path.Combine(Path.GetTempPath(), "winpeas-search-" + Guid.NewGuid().ToString("N"));

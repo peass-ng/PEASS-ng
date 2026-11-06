@@ -22,7 +22,7 @@ namespace winPEAS.Helpers.Search
         public static string SystemDrive = Environment.GetEnvironmentVariable("SystemDrive");
         private static string GlobalPattern = "*";
 
-        public static List<string> StaticExtensions = new List<string>() {
+        private static readonly HashSet<string> StaticExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
             // archives
             ".7z", ".tar", ".zip", ".gz",
 
@@ -33,7 +33,7 @@ namespace winPEAS.Helpers.Search
             ".ico",
 
             // fonts
-            ".eot", ".fnt", ".fon", ".otf", ".odttf", ".ttc", ".ttf", ".woff", "woff2", "woff3",
+            ".eot", ".fnt", ".fon", ".otf", ".odttf", ".ttc", ".ttf", ".woff", ".woff2", ".woff3",
 
             // images
             ".bmp", ".emf", ".gif", ".pm",
@@ -43,9 +43,10 @@ namespace winPEAS.Helpers.Search
 
         internal static bool ShouldRetainInventoryFile(string filename, string extension)
         {
-            string ext = (extension ?? string.Empty).ToLowerInvariant();
+            string ext = extension ?? string.Empty;
             if (!StaticExtensions.Contains(ext)) return true;
-            if (ext != ".7z" && ext != ".zip") return false;
+            if (!ext.Equals(".7z", StringComparison.OrdinalIgnoreCase) &&
+                !ext.Equals(".zip", StringComparison.OrdinalIgnoreCase)) return false;
             string name = filename ?? string.Empty;
             return name.Equals("MEMORY.7z", StringComparison.OrdinalIgnoreCase) ||
                 name.IndexOf("bitlocker", StringComparison.OrdinalIgnoreCase) >= 0 ||
@@ -92,8 +93,7 @@ namespace winPEAS.Helpers.Search
 
             Parallel.ForEach(startDirsExcluded, (d) =>
             {
-                var foundFiles = GetFiles(d.FullName, pattern);
-                foreach (var f in foundFiles)
+                VisitFiles(d.FullName, pattern, f =>
                 {
                     if (f != null && ShouldRetainInventoryFile(f.Name, f.Extension))
                     {
@@ -106,7 +106,7 @@ namespace winPEAS.Helpers.Search
                             files.Add(file_dir);
                         }
                     }
-                }
+                });
             });
 
             return files.ToList();
@@ -125,9 +125,8 @@ namespace winPEAS.Helpers.Search
             }
         }
 
-        private static List<FileInfo> GetFiles(string folder, string pattern = "*")
+        private static void VisitFiles(string folder, string pattern, Action<FileInfo> visit)
         {
-            var result = new List<FileInfo>();
             var pending = new Stack<DirectoryInfo>();
             pending.Push(new DirectoryInfo(folder));
 
@@ -136,14 +135,18 @@ namespace winPEAS.Helpers.Search
                 DirectoryInfo current = pending.Pop();
                 if (!CanTraverseDirectory(current)) continue;
 
+                FileInfo[] currentFiles;
                 try
                 {
-                    result.AddRange(current.GetFiles(pattern));
+                    currentFiles = current.GetFiles(pattern);
                 }
                 catch (Exception)
                 {
                     // Access restrictions and transient paths are expected during inventory.
+                    currentFiles = new FileInfo[0];
                 }
+                foreach (FileInfo file in currentFiles)
+                    visit(file);
 
                 try
                 {
@@ -158,7 +161,6 @@ namespace winPEAS.Helpers.Search
                 }
             }
 
-            return result;
         }
 
         private static IEnumerable<DirectoryInfo> GetStartDirectories(string folder, ConcurrentBag<CustomFileInfo> files, string pattern, bool isFoldersIncluded = false)
