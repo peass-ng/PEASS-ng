@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using winPEAS.Helpers;
 using winPEAS.Info.ApplicationInfo;
 using winPEAS.Info.FilesInfo;
 
@@ -10,6 +11,74 @@ namespace winPEAS.Tests
     [TestClass]
     public class HMailAndInstalledAppsTests
     {
+        [TestMethod]
+        public void RegistryInstallLocationsIncludeLocalPathsAndDeduplicateViews()
+        {
+            var locations = InstalledApps.GetInstallLocationsCore(
+                key => key.Contains("WOW6432Node")
+                    ? new[] { "Duplicate", "Other" }
+                    : new[] { "Native", "Network", "Root", "Relative", "DriveRelative" },
+                key =>
+                {
+                    if (key.EndsWith("Native")) return "\"" + @"C:\Program Files\Vendor\" + "\"";
+                    if (key.EndsWith("Duplicate")) return @"c:\program files\vendor";
+                    if (key.EndsWith("Other")) return @"D:\Applications\Other";
+                    if (key.EndsWith("Network")) return @"\\server\share\App";
+                    if (key.EndsWith("Root")) return @"C:\";
+                    if (key.EndsWith("DriveRelative")) return @"C:relative\App";
+                    return @"relative\App";
+                },
+                path => true);
+
+            CollectionAssert.AreEqual(new[] { @"C:\Program Files\Vendor", @"D:\Applications\Other" },
+                locations);
+        }
+
+        [TestMethod]
+        public void WritableInstalledExecutableIsReportedByFilePathOnce()
+        {
+            string executable = @"C:\Program Files\Vendor\bin\sample.exe";
+            var files = new[]
+            {
+                new CustomFileInfo("sample.exe", ".exe", executable, 1, false),
+                new CustomFileInfo("SAMPLE.EXE", ".EXE", executable.ToUpperInvariant(), 1, false),
+                new CustomFileInfo("read-only.exe", ".exe", @"C:\Program Files\Vendor\read-only.exe", 1, false),
+                new CustomFileInfo("notes.txt", ".txt", @"C:\Program Files\Vendor\notes.txt", 1, false),
+                new CustomFileInfo("directory.exe", ".exe", @"C:\Program Files\Vendor\directory.exe", 0, true)
+            };
+            var checkedPaths = new List<string>();
+            var findings = winPEAS.Checks.FilesInfo.FindWritableExecutables(files, path =>
+            {
+                checkedPaths.Add(path);
+                return path.Equals(executable, StringComparison.OrdinalIgnoreCase)
+                    ? new List<string> { "Users [Allow: AllAccess]" }
+                    : new List<string>();
+            });
+
+            Assert.AreEqual(1, findings.Count);
+            Assert.AreEqual(executable, findings[0].Key);
+            Assert.AreEqual("Users [Allow: AllAccess]", findings[0].Value[0]);
+            Assert.AreEqual(2, checkedPaths.Count);
+        }
+
+        [TestMethod]
+        public void InstalledPathInventoryAvoidsRescanningCoveredRoots()
+        {
+            string drive = @"C:\";
+            string nativeRoot = @"C:\Program Files";
+            string x86Root = @"C:\Program Files (x86)";
+            var excluded = new[] { nativeRoot, x86Root, @"C:\Windows", @"C:\ProgramData" };
+
+            Assert.IsTrue(winPEAS.Checks.FilesInfo.IsCoveredByExecutableInventory(
+                @"C:\Program Files\Vendor", drive, excluded, nativeRoot, x86Root));
+            Assert.IsTrue(winPEAS.Checks.FilesInfo.IsCoveredByExecutableInventory(
+                @"C:\Users\Alice\App", drive, excluded, nativeRoot, x86Root));
+            Assert.IsFalse(winPEAS.Checks.FilesInfo.IsCoveredByExecutableInventory(
+                @"C:\ProgramData\Vendor", drive, excluded, nativeRoot, x86Root));
+            Assert.IsFalse(winPEAS.Checks.FilesInfo.IsCoveredByExecutableInventory(
+                @"D:\Applications\Vendor", drive, excluded, nativeRoot, x86Root));
+        }
+
         [TestMethod]
         public void IncludesX86ProgramFilesAndReadsTheWowUninstallKey()
         {

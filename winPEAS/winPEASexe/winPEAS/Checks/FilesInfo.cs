@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
 using winPEAS.Helpers.Search;
+using winPEAS.Info.ApplicationInfo;
 using winPEAS.Info.FilesInfo;
 using winPEAS.Info.FilesInfo.Certificates;
 using winPEAS.Info.FilesInfo.McAfee;
@@ -152,7 +153,7 @@ namespace winPEAS.Checks
                 PrintRecycleBin,
                 PrintHiddenFilesAndFolders,
                 PrintOtherUsersInterestingFiles,
-                PrintExecutablesInNonDefaultFoldersWithWritePermissions,
+                PrintExecutablesWithWritePermissions,
                 PrintWSLDistributions
             }.ForEach(action => CheckRunner.Run(action, isDebug));
         }
@@ -1002,63 +1003,95 @@ namespace winPEAS.Checks
             }
         }
 
-        private void PrintExecutablesInNonDefaultFoldersWithWritePermissions()
+        private void PrintExecutablesWithWritePermissions()
         {
-            Beaprint.MainPrint($"Searching executable files in non-default folders with write (equivalent) permissions (can be slow)", "T1574.001");
+            Beaprint.MainPrint("Searching executable files with write (equivalent) permissions (can be slow)", "T1574.001");
 
             var systemDrive = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\";
 
-            var excludedDirs = new HashSet<string>()
+            var programFilesRoot = Path.Combine(systemDrive, "Program Files");
+            var programFilesX86Root = Path.Combine(systemDrive, "Program Files (x86)");
+            var excludedDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                @"c:\esupport",
-                @"c:\perflogs",
-                @"c:\programdata",
-                @"c:\program files (x86)",
-                @"c:\program files",
-                @"c:\windows",
-                @"c:\windows.old",
+                Path.Combine(systemDrive, "eSupport"),
+                Path.Combine(systemDrive, "PerfLogs"),
+                Path.Combine(systemDrive, "ProgramData"),
+                programFilesX86Root,
+                programFilesRoot,
+                Path.Combine(systemDrive, "Windows"),
+                Path.Combine(systemDrive, "Windows.old"),
             };
 
-            var currentUserDir = @$"{systemDrive}users\{Environment.GetEnvironmentVariable("USERNAME")}".ToLower();
-
-            var allowedExtensions = new HashSet<string>()
-            {
-                ".bat",
-                ".exe",
-                ".ps1",
-                ".cmd"
-            };
+            var currentUserDir = @$"{systemDrive}users\{Environment.GetEnvironmentVariable("USERNAME")}";
 
             var files = SearchHelper.GetFilesFast(systemDrive, "*", excludedDirs);
-
-            foreach (var file in files)
+            // The startup inventory already traversed both standard install trees.
+            files.AddRange(SearchHelper.ProgramFiles);
+            files.AddRange(SearchHelper.ProgramFilesX86);
+            foreach (string installLocation in InstalledApps.GetInstallLocations())
             {
-                try
+                if (!excludedDirs.Contains(installLocation) &&
+                    !IsCoveredByExecutableInventory(installLocation, systemDrive, excludedDirs,
+                        programFilesRoot, programFilesX86Root))
                 {
-                    if (file.Extension != null && allowedExtensions.Contains(file.Extension.ToLower()))
-                    {
-                        // check the file permissions
-                        List<string> fileRights = PermissionsHelper.GetPermissionsFile(file.FullPath, Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT);
-
-                        if (fileRights.Count > 0)
-                        {
-                            string log = $"     File Permissions \"{file.FullPath}\": " + string.Join(",", fileRights);
-
-                            if (file.FullPath.ToLower().StartsWith(currentUserDir))
-                            {
-                                Beaprint.NoColorPrint(log);
-                            }
-                            else
-                            {
-                                Beaprint.BadPrint(log);
-                            }
-                        }
-                    }
-                }
-                catch (Exception)
-                {
+                    files.AddRange(SearchHelper.GetFilesFast(installLocation));
                 }
             }
+
+            foreach (var finding in FindWritableExecutables(files,
+                path => PermissionsHelper.GetPermissionsFile(path, Checks.CurrentUserSiDs,
+                    PermissionType.WRITEABLE_OR_EQUIVALENT)))
+            {
+                string log = $"     File Permissions \"{finding.Key}\": " + string.Join(",", finding.Value);
+                if (IsPathWithin(finding.Key, currentUserDir))
+                {
+                    Beaprint.NoColorPrint(log);
+                }
+                else
+                {
+                    Beaprint.BadPrint(log);
+                }
+            }
+        }
+
+        internal static List<KeyValuePair<string, List<string>>> FindWritableExecutables(
+            IEnumerable<CustomFileInfo> files, Func<string, List<string>> getPermissions)
+        {
+            var findings = new List<KeyValuePair<string, List<string>>>();
+            var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".bat", ".exe", ".ps1", ".cmd"
+            };
+            foreach (var file in files)
+            {
+                if (file == null || file.IsDirectory || string.IsNullOrEmpty(file.FullPath) ||
+                    !allowedExtensions.Contains(file.Extension) || !seenPaths.Add(file.FullPath)) continue;
+                try
+                {
+                    var rights = getPermissions(file.FullPath);
+                    if (rights != null && rights.Count > 0)
+                        findings.Add(new KeyValuePair<string, List<string>>(file.FullPath, rights));
+                }
+                catch (Exception) { /* Inaccessible files should not stop the scan. */ }
+            }
+            return findings;
+        }
+
+        internal static bool IsCoveredByExecutableInventory(string path, string systemDrive,
+            IEnumerable<string> excludedDirs, string programFilesRoot, string programFilesX86Root)
+        {
+            if (IsPathWithin(path, programFilesRoot) || IsPathWithin(path, programFilesX86Root)) return true;
+            return IsPathWithin(path, systemDrive) && !excludedDirs.Any(root => IsPathWithin(path, root));
+        }
+
+        private static bool IsPathWithin(string path, string root)
+        {
+            if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(root)) return false;
+            string normalizedPath = path.TrimEnd('\\', '/');
+            string normalizedRoot = root.TrimEnd('\\', '/');
+            return normalizedPath.Equals(normalizedRoot, StringComparison.OrdinalIgnoreCase) ||
+                normalizedPath.StartsWith(normalizedRoot + @"\", StringComparison.OrdinalIgnoreCase);
         }
 
         private static void PrintOracleSQLDeveloperConfigFiles()
