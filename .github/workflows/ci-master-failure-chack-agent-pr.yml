@@ -151,15 +151,17 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install Codex CLI
+      - name: Install Codex and opencode CLIs
         run: |
           npm install --global @openai/codex@latest
+          npm i -g opencode-ai@1.19.5
           codex --version
+          opencode --version
 
       - name: Run Chack Agent
         id: run_chack
-        # Pin the action so dependency changes on its default branch cannot break CI repair.
-        uses: carlospolop/chack-agent@9fd38a0657ae7060cc9bb07329c0bde71d7ba0d9
+        # Always run the latest chack-agent; never pin a commit.
+        uses: carlospolop/chack-agent@master
         with:
           provider: codex
           model_primary: gpt-5.6-sol
