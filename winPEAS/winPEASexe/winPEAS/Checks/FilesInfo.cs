@@ -116,11 +116,11 @@ namespace winPEAS.Checks
         };
 
 
-        public string[] MitreAttackIds { get; } = new[] { "T1083", "T1552.001", "T1552.002", "T1552.004", "T1552.006", "T1003.002", "T1003.004", "T1564.001", "T1574.001", "T1059.004", "T1114.001", "T1218", "T1649" };
+        public string[] MitreAttackIds { get; } = new[] { "T1083", "T1552.001", "T1552.002", "T1552.004", "T1552.006", "T1003.002", "T1003.004", "T1564.001", "T1574", "T1059.004", "T1114.001", "T1218", "T1649" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Interesting files and registry", "T1083,T1552.001,T1552.002,T1552.004,T1552.006,T1003.002,T1003.004,T1564.001,T1574.001,T1059.004,T1114.001,T1218,T1649");
+            Beaprint.GreatPrint("Interesting files and registry", "T1083,T1552.001,T1552.002,T1552.004,T1552.006,T1003.002,T1003.004,T1564.001,T1574,T1059.004,T1114.001,T1218,T1649");
 
             new List<Action>
             {
@@ -1005,7 +1005,7 @@ namespace winPEAS.Checks
 
         private void PrintExecutablesWithWritePermissions()
         {
-            Beaprint.MainPrint("Searching executable files with write (equivalent) permissions (can be slow)", "T1574.001");
+            Beaprint.MainPrint("Executable file write-ACL candidates (can be slow)", "T1574");
 
             var systemDrive = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\";
 
@@ -1038,9 +1038,12 @@ namespace winPEAS.Checks
                 }
             }
 
-            foreach (var finding in FindWritableExecutables(files,
+            var findings = FindWritableExecutables(files,
                 path => PermissionsHelper.GetPermissionsFile(path, Checks.CurrentUserSiDs,
-                    PermissionType.WRITEABLE_OR_EQUIVALENT)))
+                    PermissionType.WRITEABLE_OR_EQUIVALENT));
+            if (findings.Count > 0)
+                Beaprint.GrayPrint("    Confirm effective write access and that a more privileged service, task, installer, or user executes the file before treating it as privilege escalation.");
+            foreach (var finding in findings)
             {
                 string log = $"     File Permissions \"{finding.Key}\": " + string.Join(",", finding.Value);
                 if (IsPathWithin(finding.Key, currentUserDir))
@@ -1070,7 +1073,7 @@ namespace winPEAS.Checks
                 try
                 {
                     var rights = getPermissions(file.FullPath);
-                    if (rights != null && rights.Count > 0)
+                    if (rights != null && rights.Any(right => right != null && right.Contains("[Allow:")))
                         findings.Add(new KeyValuePair<string, List<string>>(file.FullPath, rights));
                 }
                 catch (Exception) { /* Inaccessible files should not stop the scan. */ }

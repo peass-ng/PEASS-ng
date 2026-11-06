@@ -109,6 +109,7 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Installed Applications --Via Program Files/Uninstall registry--", "T1518");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html#applications", "Check if you can modify installed software");
+                Beaprint.GrayPrint("    Folder ACLs are review leads. Run filesinfo for executable-level write-ACL candidates; privilege escalation requires privileged execution and effective write access.");
                 PrintDockerDesktopVersionRisk();
                 PrintCheckmkAgentVersionRisk();
                 PrintVeeamBackupVersionRisk();

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using winPEAS.Helpers;
 using winPEAS.Info.ApplicationInfo;
@@ -37,12 +40,13 @@ namespace winPEAS.Tests
         [TestMethod]
         public void WritableInstalledExecutableIsReportedByFilePathOnce()
         {
-            string executable = @"C:\Program Files\Vendor\bin\sample.exe";
+            string executable = @"C:\Program Files\Vendor.Agent\bin\sample.exe";
             var files = new[]
             {
                 new CustomFileInfo("sample.exe", ".exe", executable, 1, false),
                 new CustomFileInfo("SAMPLE.EXE", ".EXE", executable.ToUpperInvariant(), 1, false),
                 new CustomFileInfo("read-only.exe", ".exe", @"C:\Program Files\Vendor\read-only.exe", 1, false),
+                new CustomFileInfo("deny-only.exe", ".exe", @"C:\Program Files\Vendor\deny-only.exe", 1, false),
                 new CustomFileInfo("notes.txt", ".txt", @"C:\Program Files\Vendor\notes.txt", 1, false),
                 new CustomFileInfo("directory.exe", ".exe", @"C:\Program Files\Vendor\directory.exe", 0, true)
             };
@@ -50,6 +54,8 @@ namespace winPEAS.Tests
             var findings = winPEAS.Checks.FilesInfo.FindWritableExecutables(files, path =>
             {
                 checkedPaths.Add(path);
+                if (path.EndsWith("deny-only.exe"))
+                    return new List<string> { "Users [Deny: AllAccess]" };
                 return path.Equals(executable, StringComparison.OrdinalIgnoreCase)
                     ? new List<string> { "Users [Allow: AllAccess]" }
                     : new List<string>();
@@ -58,7 +64,36 @@ namespace winPEAS.Tests
             Assert.AreEqual(1, findings.Count);
             Assert.AreEqual(executable, findings[0].Key);
             Assert.AreEqual("Users [Allow: AllAccess]", findings[0].Value[0]);
-            Assert.AreEqual(2, checkedPaths.Count);
+            Assert.AreEqual(3, checkedPaths.Count);
+        }
+
+        [TestMethod]
+        public void ExactFilePermissionLookupHandlesDottedParentDirectory()
+        {
+            string parent = Path.Combine(Path.GetTempPath(), "winpeas-acl." + Guid.NewGuid().ToString("N"));
+            string executable = Path.Combine(parent, "agent.exe");
+            try
+            {
+                Directory.CreateDirectory(parent);
+                File.WriteAllText(executable, "fixture");
+                SecurityIdentifier sid = WindowsIdentity.GetCurrent().User;
+                FileSecurity security = File.GetAccessControl(executable);
+                security.AddAccessRule(new FileSystemAccessRule(sid, FileSystemRights.WriteData,
+                    AccessControlType.Allow));
+                File.SetAccessControl(executable, security);
+
+                var sids = new Dictionary<string, string> { { sid.Value, "fixture-user" } };
+                var permissions = PermissionsHelper.GetPermissionsFile(executable, sids,
+                    PermissionType.WRITEABLE_OR_EQUIVALENT);
+                Assert.IsTrue(permissions.Any(right => right.Contains("[Allow:")));
+                var quotedCommandPermissions = PermissionsHelper.GetPermissionsFile(
+                    "\"" + executable + "\" --run", sids, PermissionType.WRITEABLE_OR_EQUIVALENT);
+                Assert.IsTrue(quotedCommandPermissions.Any(right => right.Contains("[Allow:")));
+            }
+            finally
+            {
+                if (Directory.Exists(parent)) Directory.Delete(parent, true);
+            }
         }
 
         [TestMethod]
