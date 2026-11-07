@@ -94,7 +94,7 @@ namespace winPEAS.Checks
                 if (permsFolder.Count > 0)
                 {
                     Beaprint.BadPrint("    Possible DLL Hijacking, folder is writable: " + PermissionsHelper.GetFolderFromString(title));
-                    Beaprint.BadPrint("    Folder Permissions: " + string.Join(",", permsFile));
+                    Beaprint.BadPrint("    Folder Permissions: " + string.Join(",", permsFolder));
                 }
             }
             catch (Exception ex)
@@ -120,7 +120,11 @@ namespace winPEAS.Checks
 
                 foreach (KeyValuePair<string, Dictionary<string, string>> app in installedAppsPerms)
                 {
-                    if (string.IsNullOrEmpty(app.Value.ToString())) //If empty, nothing found, is good
+                    if (app.Value == null)
+                    {
+                        Beaprint.InfoPrint("    Permissions unavailable: " + app.Key);
+                    }
+                    else if (app.Value.Count == 0) // If empty, nothing found, is good
                     {
                         Beaprint.GoodPrint(app.Key);
                     }
@@ -134,13 +138,13 @@ namespace winPEAS.Checks
                         else
                         {
                             Beaprint.BadPrint(string.Format("    {0}({1})", app.Key, app.Value[app.Key]));
-                            app.Value[app.Key] = ""; //So no reprinted later
                         }
 
                         //Check the rest of the values to see if we have something to print in red (permissions)
                         foreach (KeyValuePair<string, string> subfolder in app.Value)
                         {
-                            if (!string.IsNullOrEmpty(subfolder.Value))
+                            if (!string.Equals(subfolder.Key, app.Key, StringComparison.OrdinalIgnoreCase) &&
+                                !string.IsNullOrEmpty(subfolder.Value))
                             {
                                 Beaprint.BadPrint(string.Format(format, subfolder.Key, subfolder.Value));
                             }

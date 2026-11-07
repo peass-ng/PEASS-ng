@@ -148,6 +148,26 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void RecursivePermissionInventoryIncludesChildDirectories()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "winpeas-perms-" + Guid.NewGuid().ToString("N"));
+            string child = Path.Combine(root, "Child");
+            var originalSids = winPEAS.Checks.Checks.CurrentUserSiDs;
+            try
+            {
+                Directory.CreateDirectory(child);
+                winPEAS.Checks.Checks.CurrentUserSiDs = new Dictionary<string, string>();
+                var permissions = PermissionsHelper.GetRecursivePrivs(root);
+                Assert.IsTrue(permissions.ContainsKey(child));
+            }
+            finally
+            {
+                winPEAS.Checks.Checks.CurrentUserSiDs = originalSids;
+                if (Directory.Exists(root)) Directory.Delete(root, true);
+            }
+        }
+
+        [TestMethod]
         public void ParsesOnlyRelevantConfigurationKeysAndNeverRetainsPasswordValue()
         {
             string secret = "fixture-secret-should-not-be-retained";

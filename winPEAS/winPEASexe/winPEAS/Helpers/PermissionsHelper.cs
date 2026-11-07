@@ -2,7 +2,6 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
@@ -496,7 +495,10 @@ namespace winPEAS.Helpers
                                 results[f] = String.Join(", ", GetPermissionsFile(f, Checks.Checks.CurrentUserSiDs));
                             }
                             cont += 1;
-                            results.Concat(GetRecursivePrivs(d, cont)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                            foreach (KeyValuePair<string, string> child in GetRecursivePrivs(d, cont))
+                            {
+                                results[child.Key] = child.Value;
+                            }
                         }
                     }
                 }
