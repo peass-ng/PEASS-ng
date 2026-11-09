@@ -1,7 +1,7 @@
 # Title: Variables - sidB
 # ID: sidB
 # Author: Carlos Polop
-# Last Update: 26-10-2026
+# Last Update: 09-11-2026
 # Description: Dangerous sid binaries
 # License: GNU GPL
 # Version: 1.1
@@ -56,6 +56,7 @@ sidB="/apache2$%Read_root_passwd__apache2_-f_/etc/shadow\(CVE-2019-0211\)\
  /sdtcm_convert$%Sun_Solaris_7.0\
  /sendmail$%Sendmail_8.10.1/Sendmail_8.11.x/Linux_Kernel_2.2.x_2.4.0-test1_\(SGI_ProPack_1.2/1.3\)\
  /snap-confine$%snap-confine_SUID_helper_review_effective_identity_and_mount_policy\
+ /starter-suid$%Apptainer_1.5.0_to_1.5.3_SUID_mode_--cdi-dirs\(GHSA-4wg8-vhjg-jq8p\)\
  /sudo%check_if_the_sudo_version_is_vulnerable\
  /Serv-U%FTP_Server<15.1.7(CVE-2019-12181)\
  /sudoedit$%Sudo/SudoEdit_1.6.9p21/1.7.2p4/\(RHEL_5/6/7/Ubuntu\)/Sudo<=1.8.14\
