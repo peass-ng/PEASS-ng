@@ -171,6 +171,7 @@
     <Compile Include="VelociraptorServerConfigTests.cs" />
     <Compile Include="Pdf24RepairPrerequisitesTests.cs" />
     <Compile Include="FirefoxCredentialFilePathTests.cs" />
+    <Compile Include="PsReadLineCredentialHistoryTests.cs" />
     <Compile Include="PrinterDriverAclReviewTests.cs" />
     <Compile Include="DefenderEngineCve41091Tests.cs" />
     <Compile Include="DefenderPathExclusionDisplayTests.cs" />

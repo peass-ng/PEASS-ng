@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using winPEAS.Helpers;
 using winPEAS.Helpers.Registry;
@@ -139,6 +140,7 @@ namespace winPEAS.Checks
                 PrintPossCredsRegs,
                 HMailServerExposure.PrintInfo,
                 PrintUserCredsFiles,
+                PrintPsReadLineCredentialHistory,
                 PrintMRemoteNgConnectionFiles,
                 PrintVelociraptorServerConfig,
                 PrintOracleSQLDeveloperConfigFiles,
@@ -660,6 +662,98 @@ namespace winPEAS.Checks
             {
                 Beaprint.PrintException(ex.Message);
             }
+        }
+
+        private const int MaxHistoryFiles = 16;
+        private const int MaxHistoryBytes = 512 * 1024;
+        private const int MaxHistoryFindings = 8;
+        private const int MaxHistoryLines = 10000;
+
+        internal static string ClassifyPsReadLineCommand(string line)
+        {
+            if (string.IsNullOrWhiteSpace(line) || line.Length > 4096 ||
+                line.TrimStart().StartsWith("#", StringComparison.Ordinal)) return null;
+            bool cmdkey = line.IndexOf("cmdkey", StringComparison.OrdinalIgnoreCase) >= 0;
+            bool netUser = line.IndexOf("net", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                line.IndexOf("user", StringComparison.OrdinalIgnoreCase) >= 0;
+            bool schtasks = line.IndexOf("schtasks", StringComparison.OrdinalIgnoreCase) >= 0;
+            if (!cmdkey && !netUser && !schtasks) return null;
+
+            const RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant;
+            TimeSpan timeout = TimeSpan.FromMilliseconds(50);
+            if (cmdkey && Regex.IsMatch(line, @"\bcmdkey(?:\.exe)?\b[^\r\n]*\s/pass:(?:""(?![$%])[^""]+""|[^\s""'/$%]+)", options, timeout))
+                return "cmdkey /pass:<value>";
+            if (netUser && Regex.IsMatch(line, @"\bnet(?:\.exe)?\s+user\s+(?:""[^""]+""|\S+)\s+(?![/*$%])(?:""(?![$%])[^""]+""|[^\s""']+)", options, timeout))
+                return "net user <account> <password>";
+            if (schtasks && Regex.IsMatch(line, @"\bschtasks(?:\.exe)?\b[^\r\n]*\s/rp\s+(?![/*$%])(?:""(?![$%])[^""]+""|[^\s""']+)", options, timeout))
+                return "schtasks /rp <password>";
+            return null;
+        }
+
+        private static void PrintPsReadLineCredentialHistory()
+        {
+            Beaprint.MainPrint("PSReadLine history with plaintext credential arguments", "T1552.003");
+            Beaprint.LinkPrint("https://learn.microsoft.com/en-us/powershell/module/psreadline/about/about_psreadline",
+                "History may retain credential-bearing commands; no command text or password is printed.");
+
+            const string historySuffix = @"\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt";
+            var histories = (SearchHelper.RootDirUsers ?? new List<CustomFileInfo>())
+                .Where(file => !file.IsDirectory && file.FullPath != null &&
+                    file.FullPath.EndsWith(historySuffix, StringComparison.OrdinalIgnoreCase))
+                .Select(file => file.FullPath)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .Take(MaxHistoryFiles + 1).ToList();
+
+            bool partial = SearchHelper.RootDirUsers == null || histories.Count > MaxHistoryFiles;
+            int findings = 0;
+            foreach (string path in histories.Take(MaxHistoryFiles))
+            {
+                if (findings >= MaxHistoryFindings) { partial = true; break; }
+                try
+                {
+                    if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
+                    { partial = true; continue; }
+                    using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
+                        FileShare.ReadWrite | FileShare.Delete, 4096, FileOptions.SequentialScan))
+                    {
+                        if (stream.Length > MaxHistoryBytes) partial = true;
+                        var bytes = new byte[(int)Math.Min(stream.Length, MaxHistoryBytes)];
+                        int read = 0;
+                        while (read < bytes.Length)
+                        {
+                            int count = stream.Read(bytes, read, bytes.Length - read);
+                            if (count == 0) break;
+                            read += count;
+                        }
+                        Encoding encoding = read >= 2 && bytes[0] == 0xff && bytes[1] == 0xfe
+                            ? Encoding.Unicode : Encoding.UTF8;
+                        using (var reader = new StringReader(encoding.GetString(bytes, 0, read)))
+                        {
+                            int lineNumber = 0;
+                            string line;
+                            while ((line = reader.ReadLine()) != null)
+                            {
+                                if (++lineNumber > MaxHistoryLines) { partial = true; break; }
+                                string kind = ClassifyPsReadLineCommand(line);
+                                if (kind == null) continue;
+                                string safePath = new string(path.Take(220)
+                                    .Select(c => char.IsControl(c) ? '?' : c).ToArray());
+                                Beaprint.BadPrint("    Credential argument in " + safePath +
+                                    " (line " + lineNumber + ", " + kind + "; value redacted)");
+                                if (++findings >= MaxHistoryFindings) { partial = true; break; }
+                            }
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    partial = true; // Missing or unreadable history is unknown, not clean.
+                }
+            }
+            if (findings == 0) Beaprint.GrayPrint("    No credential-bearing commands found in readable, bounded ConsoleHost histories.");
+            if (partial) Beaprint.GrayPrint("    History review was partial (file count, size, access, line, or finding limit).");
+            Beaprint.GrayPrint("    A command in history does not prove that the credential still works or belongs to a privileged account.");
         }
 
         private static void PrintMRemoteNgConnectionFiles()
