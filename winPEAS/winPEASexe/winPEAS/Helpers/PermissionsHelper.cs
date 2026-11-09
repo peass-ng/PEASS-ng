@@ -470,14 +470,17 @@ namespace winPEAS.Helpers
         //From https://stackoverflow.com/questions/929276/how-to-recursively-list-all-the-files-in-a-directory-in-c
         public static Dictionary<string, string> GetRecursivePrivs(string path, int cont = 0)
         {
-            /*string root = @Path.GetPathRoot(Environment.SystemDirectory) + path;
-            var dirs = from dir in Directory.EnumerateDirectories(root) select dir;
-            return dirs.ToList();*/
             Dictionary<string, string> results = new Dictionary<string, string>();
+            CollectRecursivePrivs(path, cont, results);
+            return results;
+        }
+
+        private static void CollectRecursivePrivs(string path, int cont, Dictionary<string, string> results)
+        {
             int max_dir_recurse = 130;
             if (cont > max_dir_recurse)
             {
-                return results; //"Limit" for apps with hundreds of thousands of folders
+                return; //"Limit" for apps with hundreds of thousands of folders
             }
 
             results[path] = ""; //If you cant open, then there are no privileges for you (and the try will explode)
@@ -495,10 +498,7 @@ namespace winPEAS.Helpers
                                 results[f] = String.Join(", ", GetPermissionsFile(f, Checks.Checks.CurrentUserSiDs));
                             }
                             cont += 1;
-                            foreach (KeyValuePair<string, string> child in GetRecursivePrivs(d, cont))
-                            {
-                                results[child.Key] = child.Value;
-                            }
+                            CollectRecursivePrivs(d, cont, results);
                         }
                     }
                 }
@@ -507,7 +507,6 @@ namespace winPEAS.Helpers
             {
                 //Access denied to a path
             }
-            return results;
         }
     }
 }
