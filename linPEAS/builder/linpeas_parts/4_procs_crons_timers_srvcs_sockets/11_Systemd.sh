@@ -1,9 +1,10 @@
 # Title: System Information - Systemd
 # ID: SY_Systemd
 # Author: Carlos Polop, HT Bot
-# Last Update: 2026-10-19
+# Last Update: 2026-11-09
 # Description: Check systemd version, service misconfigurations, and readable or writable service environment files:
 #   - Systemd release (distribution package and patch status require separate verification)
+#   - systemd-homed self-group escalation prerequisites (CVE-2026-16742)
 #   - Services running as root that could be exploited
 #   - Services with dangerous capabilities that could be abused
 #   - Services with writable paths that could be used to inject malicious code
@@ -14,9 +15,9 @@
 #     * Capabilities: Abuse services with dangerous capabilities (CAP_SYS_ADMIN, etc.)
 #     * Writable paths: Replace executables in writable paths to get code execution
 # License: GNU GPL
-# Version: 1.4
-# Mitre: T1543.002,T1552.001
-# Functions Used: print_2title, print_info, print_list, echo_not_found
+# Version: 1.5
+# Mitre: T1543.002,T1552.001,T1068
+# Functions Used: print_2title, print_info, print_list, echo_not_found, checkSystemdHomedCVE202616742
 # Global Variables: $E, $SEARCH_IN_FOLDER, $IAMROOT, $Wfolders, $SED_RED, $SED_RED_YELLOW, $NC
 # Initial Functions:
 # Generated Global Variables: $WRITABLESYSTEMDPATH, $line, $service, $file, $version, $user, $caps, $path, $path_line, $service_file, $exec_line, $exec_value, $cmd, $cmd_path, $svc_path_entry, $svc_writable_path, $running_services, $env_file_findings, $env_file_path, $env_file_size, $env_key_names, $env_unit_size, $systemd_wenv_findings, $systemd_wenv_properties, $systemd_wenv_user, $systemd_wenv_dynamic, $systemd_wenv_rootdir, $systemd_wenv_rootimage, $systemd_wenv_path, $systemd_wenv_line, $systemd_wenv_seen_user, $systemd_wenv_seen_dynamic, $systemd_wenv_seen_rootdir, $systemd_wenv_seen_rootimage
@@ -199,6 +200,7 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
 
     # The upstream release alone does not identify distribution backports or
     # mitigations. PwnKit is a polkit/pkexec issue, not a systemd version issue.
+    version=""
     print_list "Systemd release (verify package fixes)? .......... "$NC
     if check_systemctl; then
         version=$(systemctl --version 2>/dev/null | awk 'NR == 1 && $1 == "systemd" && $2 ~ /^[0-9]+$/ { print $2 }')
@@ -336,4 +338,10 @@ if ! [ "$SEARCH_IN_FOLDER" ]; then
     fi
 
     echo ""
+
+    # Only report when the current user appears homed-managed and the local NSS
+    # path could honor the forged group membership; no service calls are made.
+    if command -v checkSystemdHomedCVE202616742 >/dev/null 2>&1; then
+        checkSystemdHomedCVE202616742 "$version"
+    fi
 fi
