@@ -1,15 +1,15 @@
 # Title: Software Information - Tmux
 # ID: SI_Tmux
-# Author: Carlos Polop
-# Last Update: 22-08-2023
+# Author: Carlos Polop, HT Bot
+# Last Update: 09-11-2026
 # Description: Enumerate Tmux
 # License: GNU GPL
-# Version: 1.0
+# Version: 1.1
 # Mitre: T1563
 # Functions Used: print_2title, print_info
 # Global Variables: $DEBUG, $SEARCH_IN_FOLDER
 # Initial Functions:
-# Generated Global Variables: $tmuxdefsess, $tmuxnondefsess, $tmuxsess2, $tmux_scan_output, $tmux_socket_candidates, $tmux_scan_partial, $tmux_root, $tmux_root_seen, $tmux_dir, $tmux_socket, $tmux_dir_count, $tmux_entry_count, $tmux_partial, $tmux_uid, $tmux_groups, $tmux_meta, $tmux_owner_uid, $tmux_owner_gid, $tmux_rest, $tmux_mode, $tmux_mode_writable, $TMUX_TMPDIR
+# Generated Global Variables: $tmuxdefsess, $tmuxnondefsess, $tmuxsess2, $tmux_scan_output, $tmux_socket_candidates, $tmux_scan_partial, $tmux_scan_line, $tmux_dirs_seen, $tmux_sockets_seen, $tmux_root, $tmux_root_seen, $tmux_dir, $tmux_socket, $tmux_dir_count, $tmux_entry_count, $tmux_partial, $tmux_uid, $tmux_groups, $tmux_meta, $tmux_owner_uid, $tmux_owner_gid, $tmux_rest, $tmux_mode, $tmux_mode_writable, $TMUX_TMPDIR
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -74,9 +74,35 @@ tmux_scan_output=
 if ! [ "$SEARCH_IN_FOLDER" ]; then
   tmux_scan_output=$(tmux_socket_review /tmp "$TMUX_TMPDIR")
 fi
-tmuxsess2=$(printf '%s\n' "$tmux_scan_output" | sed -n 's/^DIR //p')
-tmux_socket_candidates=$(printf '%s\n' "$tmux_scan_output" | sed -n 's/^SOCKET //p')
-tmux_scan_partial=$(printf '%s\n' "$tmux_scan_output" | sed -n '/^PARTIAL$/p')
+tmuxsess2=
+tmux_socket_candidates=
+tmux_scan_partial=
+tmux_dirs_seen=
+tmux_sockets_seen=
+# Keep the scan's encounter order without starting three parsers.
+while IFS= read -r tmux_scan_line; do
+  case "$tmux_scan_line" in
+    'DIR '*)
+      if [ "$tmux_dirs_seen" ]; then
+        tmuxsess2="${tmuxsess2}
+${tmux_scan_line#DIR }"
+      else
+        tmuxsess2=${tmux_scan_line#DIR }
+      fi
+      tmux_dirs_seen=1 ;;
+    'SOCKET '*)
+      if [ "$tmux_sockets_seen" ]; then
+        tmux_socket_candidates="${tmux_socket_candidates}
+${tmux_scan_line#SOCKET }"
+      else
+        tmux_socket_candidates=${tmux_scan_line#SOCKET }
+      fi
+      tmux_sockets_seen=1 ;;
+    PARTIAL) tmux_scan_partial=PARTIAL ;;
+  esac
+done <<EOF
+$tmux_scan_output
+EOF
 if ([ "$tmuxdefsess" ] || [ "$tmuxnondefsess" ] || [ "$tmuxsess2" ] || [ "$tmux_scan_partial" ] || [ "$DEBUG" ]) && ! [ "$SEARCH_IN_FOLDER" ]; then
   print_2title "Searching tmux sessions"$N
   print_info "https://book.hacktricks.wiki/en/linux-hardening/linux-basics/linux-privilege-escalation/index.html#open-shell-sessions"

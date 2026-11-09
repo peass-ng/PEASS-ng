@@ -22,6 +22,47 @@ FUNCTION = re.search(
 
 
 class TmuxSocketReviewTests(unittest.TestCase):
+    def test_scan_record_parsing_preserves_order_and_partial_marker(self):
+        source = MODULE.read_text()
+        parser = source.split("\ntmuxsess2=\n", 1)[1].split(
+            'if ([ "$tmuxdefsess"', 1
+        )[0]
+        parser = "tmuxsess2=\n" + parser
+        cases = (
+            ("", "", "", ""),
+            (
+                "DIR /tmp/first path\nSOCKET /tmp/first path/default\n"
+                "noise\nDIR /tmp/second\nSOCKET /tmp/second/my socket\nPARTIAL",
+                "/tmp/first path\n/tmp/second",
+                "/tmp/first path/default\n/tmp/second/my socket",
+                "PARTIAL",
+            ),
+            (
+                "\n".join(f"DIR /tmp/tmux-{i}" for i in range(32))
+                + "\nPARTIAL",
+                "\n".join(f"/tmp/tmux-{i}" for i in range(32)),
+                "",
+                "PARTIAL",
+            ),
+        )
+        for shell in ("sh", "dash"):
+            if not shutil.which(shell):
+                continue
+            for records, dirs, sockets, partial in cases:
+                with self.subTest(shell=shell, records=records[:32]):
+                    env = os.environ.copy()
+                    env["TMUX_RECORDS"] = records
+                    result = subprocess.run(
+                        [shell, "-c", "tmux_scan_output=$TMUX_RECORDS\n" + parser
+                         + 'printf "%s\\n--\\n%s\\n--\\n%s\\n" '
+                         '"$tmuxsess2" "$tmux_socket_candidates" '
+                         '"$tmux_scan_partial"'],
+                        env=env, capture_output=True, text=True, timeout=3,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout,
+                                     f"{dirs}\n--\n{sockets}\n--\n{partial}\n")
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
