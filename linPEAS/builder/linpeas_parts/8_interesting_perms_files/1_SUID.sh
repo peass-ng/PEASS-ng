@@ -1,15 +1,15 @@
 # Title: Interesting Permissions Files - SUID
 # ID: IP_SUID
 # Author: Carlos Polop, HT Bot
-# Last Update: 25-10-2026
+# Last Update: 14-11-2026
 # Description: SUID - Check easy privesc, exploits, write perms, risky file placement, shell copies, and identity-helper candidates
 # License: GNU GPL
-# Version: 1.6
+# Version: 1.7
 # Mitre: T1548.001
 # Functions Used: check_privileged_file_location, echo_not_found, print_2title, print_info
 # Global Variables: $IAMROOT, $LDD, $ROOT_FOLDER, $READELF, $sidB, $sidG1, $sidG2, $sidG3, $sidG4, $sidVB, $sidVB2, $STRACE, $STRINGS, $TIMEOUT, $Wfolders, $cfuncs
 # Initial Functions:
-# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH, $ndsudo_uid, $ndsudo_nnp, $ndsudo_mount_options, $ndsudo_uncertainty, $pinns_uid, $pinns_nnp, $pinns_mount_options, $pinns_uncertainty, $jjs_nnp, $jjs_mount_options, $gosu_nnp, $gosu_mount_options, $suid_shell_refs, $suid_shell_name, $suid_shell_path, $suid_shell_size, $suid_file_stat, $suid_file_size
+# Generated Global Variables: $suids_files, $sfile, $sname, $sowner, $sline_first, $sline, $OLD_LD_LIBRARY_PATH, $LD_LIBRARY_PATH, $ndsudo_uid, $ndsudo_nnp, $ndsudo_mount_options, $ndsudo_uncertainty, $pinns_uid, $pinns_nnp, $pinns_mount_options, $pinns_uncertainty, $jjs_nnp, $jjs_mount_options, $gosu_nnp, $gosu_mount_options, $suid_shell_refs, $suid_shell_name, $suid_shell_path, $suid_shell_size, $suid_file_stat, $suid_file_size, $suid_rule_pattern
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -144,8 +144,9 @@ EOF_SUID_SHELL_REFS
   else
     c="a"
     for b in $sidB; do
-      if echo "$sname" | grep -q $(echo $b | cut -d % -f 1); then
-        echo "$s" | sed -${E} "s,$(echo $b | cut -d % -f 1),${C}[1;31m&  --->  $(echo $b | cut -d % -f 2)${C}[0m,"
+      suid_rule_pattern=${b%%\%*}
+      if echo "$sname" | grep -q "$suid_rule_pattern"; then
+        echo "$s" | sed -${E} "s,$suid_rule_pattern,${C}[1;31m&  --->  $(echo $b | cut -d % -f 2)${C}[0m,"
         c=""
         break;
       fi
