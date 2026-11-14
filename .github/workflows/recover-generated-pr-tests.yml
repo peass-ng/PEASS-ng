@@ -1,0 +1,27 @@
+name: Recover stalled generated PRs
+
+on:
+  schedule:
+    - cron: '7,27,47 * * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: recover-generated-pr-tests
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check and recover stalled generated PRs
+        run: python3 .github/scripts/recover_generated_pr_tests.py
