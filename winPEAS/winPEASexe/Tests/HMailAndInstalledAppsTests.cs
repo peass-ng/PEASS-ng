@@ -15,6 +15,26 @@ namespace winPEAS.Tests
     public class HMailAndInstalledAppsTests
     {
         [TestMethod]
+        public void FileAclMatchesMultipleSidsWithoutChangingReportedRights()
+        {
+            var everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+            var users = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
+            var security = new FileSecurity();
+            security.AddAccessRule(new FileSystemAccessRule(users, FileSystemRights.WriteData,
+                AccessControlType.Allow));
+            var sids = new Dictionary<string, string>
+            {
+                { everyone.Value, "Everyone" },
+                { users.Value.ToLowerInvariant(), "Users" }
+            };
+
+            CollectionAssert.AreEqual(new[] { "Users [Allow: WriteData/CreateFiles]" },
+                PermissionsHelper.GetMyPermissionsF(security, sids));
+            Assert.AreEqual(0, PermissionsHelper.GetMyPermissionsF(security,
+                new Dictionary<string, string>()).Count);
+        }
+
+        [TestMethod]
         public void RegistryInstallLocationsIncludeLocalPathsAndDeduplicateViews()
         {
             var locations = InstalledApps.GetInstallLocationsCore(
