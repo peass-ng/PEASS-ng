@@ -168,6 +168,72 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void RecursivePermissionInventoryMatchesOriginalForNestedFilesAndDepthLimit()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "winpeas-perms-" + Guid.NewGuid().ToString("N"));
+            var originalSids = winPEAS.Checks.Checks.CurrentUserSiDs;
+            try
+            {
+                string first = Directory.CreateDirectory(Path.Combine(root, "First")).FullName;
+                string nested = Directory.CreateDirectory(Path.Combine(first, "Nested")).FullName;
+                string second = Directory.CreateDirectory(Path.Combine(root, "Second")).FullName;
+                File.WriteAllText(Path.Combine(first, "one.txt"), "one");
+                File.WriteAllText(Path.Combine(nested, "two.txt"), "two");
+                File.WriteAllText(Path.Combine(second, "three.txt"), "three");
+                winPEAS.Checks.Checks.CurrentUserSiDs = new Dictionary<string, string>();
+
+                foreach (int depth in new[] { 0, 130, 131 })
+                {
+                    var expected = OriginalRecursivePrivs(root, depth);
+                    var actual = PermissionsHelper.GetRecursivePrivs(root, depth);
+                    CollectionAssert.AreEqual(expected.Keys.OrderBy(key => key).ToArray(),
+                        actual.Keys.OrderBy(key => key).ToArray());
+                    foreach (string key in expected.Keys)
+                        Assert.AreEqual(expected[key], actual[key], key);
+                }
+
+                string missing = Path.Combine(root, "Missing");
+                CollectionAssert.AreEquivalent(OriginalRecursivePrivs(missing, 0).ToArray(),
+                    PermissionsHelper.GetRecursivePrivs(missing).ToArray());
+            }
+            finally
+            {
+                winPEAS.Checks.Checks.CurrentUserSiDs = originalSids;
+                if (Directory.Exists(root)) Directory.Delete(root, true);
+            }
+        }
+
+        // Pre-refactor collector retained as a differential oracle for traversal and ACL output.
+        private static Dictionary<string, string> OriginalRecursivePrivs(string path, int cont)
+        {
+            var results = new Dictionary<string, string>();
+            if (cont > 130) return results;
+            results[path] = "";
+            try
+            {
+                results[path] = string.Join(", ", PermissionsHelper.GetPermissionsFolder(
+                    path, winPEAS.Checks.Checks.CurrentUserSiDs));
+                if (string.IsNullOrEmpty(results[path]) && Directory.Exists(path))
+                {
+                    foreach (string d in Directory.EnumerateDirectories(path))
+                    {
+                        foreach (string f in Directory.EnumerateFiles(d))
+                            results[f] = string.Join(", ", PermissionsHelper.GetPermissionsFile(
+                                f, winPEAS.Checks.Checks.CurrentUserSiDs));
+                        cont += 1;
+                        foreach (var child in OriginalRecursivePrivs(d, cont))
+                            results[child.Key] = child.Value;
+                    }
+                }
+            }
+            catch
+            {
+                // Matches the original access-denied and partial-result handling.
+            }
+            return results;
+        }
+
+        [TestMethod]
         public void ParsesOnlyRelevantConfigurationKeysAndNeverRetainsPasswordValue()
         {
             string secret = "fixture-secret-should-not-be-retained";
