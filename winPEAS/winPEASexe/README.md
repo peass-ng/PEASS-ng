@@ -86,6 +86,17 @@ read-only audit does not test the device interface or establish that the driver
 can be loaded or exploited by the current user. It does not assess current
 vulnerable-driver blocklist enforcement.
 
+The Services Information check also reviews the Steam Client Service, when present.
+It reports its account and available file version, then checks the registered Steam client
+installation and `legacycompat` paths for write-related ACL entries matching
+the current token's SIDs (not an effective-access test) and notes
+`servicecall_*` artifacts and the secure-desktop `InputEnabled` setting. This is
+read-only, bounded reconnaissance for the [Steam install-script and ModuleManager
+research](https://atredis.com/blog/2026/10/28/turning-the-valve); write-related ACL entries
+or authorization settings do not prove that a particular Steam build is vulnerable.
+No affected/fixed version range was published, so update Steam and verify the
+service-controlled paths rather than treating the reported version as a verdict.
+
 ## Basic information
 
 The goal of this project is to search for possible **Privilege Escalation Paths** in Windows environments.

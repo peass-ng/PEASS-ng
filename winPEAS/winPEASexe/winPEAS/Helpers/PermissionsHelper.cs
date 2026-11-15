@@ -157,7 +157,7 @@ namespace winPEAS.Helpers
                     return results;
                 }
 
-                FileSecurity fSecurity = File.GetAccessControl(path);
+                DirectorySecurity fSecurity = Directory.GetAccessControl(path);
                 results = GetMyPermissionsF(fSecurity, SIDs, permissionType);
             }
             catch
@@ -167,7 +167,7 @@ namespace winPEAS.Helpers
             return results;
         }
 
-        public static List<string> GetMyPermissionsF(FileSecurity fSecurity, Dictionary<string, string> SIDs, PermissionType permissionType = PermissionType.DEFAULT)
+        public static List<string> GetMyPermissionsF(FileSystemSecurity fSecurity, Dictionary<string, string> SIDs, PermissionType permissionType = PermissionType.DEFAULT)
         {
             // Get interesting permissions in fSecurity (Only files and folders)
             List<string> results = new List<string>();

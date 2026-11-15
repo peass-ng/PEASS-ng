@@ -50,6 +50,7 @@ namespace winPEAS.Checks
                 PrintWritableSystemRecoveryCommands,
                 PrintPathDllHijacking,
                 PrintOemPrivilegedUtilities,
+                PrintSteamServicePaths,
                 PrintLegacySignedKernelDrivers,
                 PrintKernelQuickIndicators,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
@@ -506,6 +507,145 @@ namespace winPEAS.Checks
                     }
 
                     Beaprint.PrintLineSeparator();
+                }
+            }
+            catch (Exception ex)
+            {
+                Beaprint.PrintException(ex.Message);
+            }
+        }
+
+        // Read-only, bounded indicators for Steam's install-script and legacycompat service paths.
+        // The published research does not establish affected/fixed version boundaries.
+        void PrintSteamServicePaths()
+        {
+            try
+            {
+                using (RegistryKey service = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\Steam Client Service"))
+                {
+                    if (service == null) return;
+
+                    string account = service.GetValue("ObjectName") as string ?? "unknown";
+                    string command = service.GetValue("ImagePath") as string ?? string.Empty;
+                    string image = ServicesInfoHelper.AssessServiceCommandLine(
+                        Environment.ExpandEnvironmentVariables(command)).ExecutablePath;
+                    if (string.IsNullOrWhiteSpace(image) ||
+                        !string.Equals(Path.GetFileName(image), "steamservice.exe", StringComparison.OrdinalIgnoreCase))
+                        return;
+
+                    bool localSystem = string.Equals(account, "LocalSystem", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(account, "NT AUTHORITY\\SYSTEM", StringComparison.OrdinalIgnoreCase);
+                    Beaprint.MainPrint("Steam Client Service execution path ACLs (review)", "T1068");
+                    Beaprint.NoColorPrint($"    Service: {image} (run-as: {account})");
+                    if (File.Exists(image))
+                    {
+                        try
+                        {
+                            Beaprint.NoColorPrint("    File version: " + FileVersionInfo.GetVersionInfo(image).FileVersion);
+                        }
+                        catch (Exception)
+                        {
+                            Beaprint.GrayPrint("    File version unavailable; continuing path review.");
+                        }
+                    }
+                    Beaprint.GrayPrint("    Version alone does not establish exposure: no verified affected/fixed range is published.");
+
+                    foreach (RegistryView view in new[] { RegistryView.Registry32, RegistryView.Registry64 })
+                    {
+                        if (view == RegistryView.Registry64 && !Environment.Is64BitOperatingSystem) break;
+                        using (RegistryKey machine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view))
+                        using (RegistryKey desktop = machine.OpenSubKey(@"SOFTWARE\Valve\SteamSecureDesktop"))
+                        {
+                            if (desktop == null) continue;
+                            object enabled = desktop.GetValue("InputEnabled");
+                            if (enabled == null) continue;
+                            Beaprint.NoColorPrint("    Secure desktop input authorization: InputEnabled=" + enabled);
+                            break;
+                        }
+                    }
+
+                    // SteamService.exe may live under Common Files, not the Steam client installation.
+                    string steamRoot = null;
+                    using (RegistryKey machine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32))
+                    using (RegistryKey valve = machine32.OpenSubKey(@"SOFTWARE\Valve\Steam"))
+                        steamRoot = valve?.GetValue("InstallPath") as string;
+                    steamRoot = Environment.ExpandEnvironmentVariables(steamRoot ?? string.Empty).Trim().Trim('"');
+                    if (!File.Exists(Path.Combine(steamRoot ?? string.Empty, "steam.exe")) && Environment.Is64BitOperatingSystem)
+                    {
+                        using (RegistryKey machine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
+                        using (RegistryKey valve = machine64.OpenSubKey(@"SOFTWARE\Valve\Steam"))
+                            steamRoot = valve?.GetValue("InstallPath") as string;
+                        steamRoot = Environment.ExpandEnvironmentVariables(steamRoot ?? string.Empty).Trim().Trim('"');
+                    }
+                    if (!File.Exists(Path.Combine(steamRoot ?? string.Empty, "steam.exe")))
+                    {
+                        using (RegistryKey valve = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Valve\Steam"))
+                            steamRoot = valve?.GetValue("SteamPath") as string;
+                    }
+                    steamRoot = Environment.ExpandEnvironmentVariables(steamRoot ?? string.Empty).Trim().Trim('"');
+                    if (string.IsNullOrWhiteSpace(steamRoot) || !File.Exists(Path.Combine(steamRoot, "steam.exe")))
+                    {
+                        Beaprint.GrayPrint("    Steam client installation path could not be verified; path ACL review skipped.");
+                        return;
+                    }
+
+                    string rootRights = string.Join(", ", PermissionsHelper.GetPermissionsFolder(
+                        steamRoot, Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT));
+                    string legacy = Path.Combine(steamRoot, "legacycompat");
+                    string legacyRights = Directory.Exists(legacy)
+                        ? string.Join(", ", PermissionsHelper.GetPermissionsFolder(
+                            legacy, Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT))
+                        : string.Empty;
+                    bool rootAllow = rootRights.Contains("[Allow:");
+                    bool legacyAllow = legacyRights.Contains("[Allow:");
+                    if (rootAllow)
+                        Beaprint.BadPrint($"    Steam root has write-related allow ACL entries: {steamRoot} ({rootRights})");
+                    else if (!string.IsNullOrEmpty(rootRights))
+                        Beaprint.GrayPrint($"    Steam root has write-related deny ACL entries: {steamRoot} ({rootRights})");
+                    if (legacyAllow)
+                        Beaprint.BadPrint($"    legacycompat has write-related allow ACL entries: {legacy} ({legacyRights})");
+                    else if (!string.IsNullOrEmpty(legacyRights))
+                        Beaprint.GrayPrint($"    legacycompat has write-related deny ACL entries: {legacy} ({legacyRights})");
+                    if (localSystem && (rootAllow || legacyAllow))
+                        Beaprint.BadPrint("    Review Steam service-controlled install-script targets and legacycompat child-process execution; update Steam and restrict writable paths.");
+
+                    string child = Path.Combine(legacy, "steamservice.exe");
+                    if (File.Exists(child))
+                    {
+                        string childRights = string.Join(", ", PermissionsHelper.GetPermissionsFile(
+                            child, Checks.CurrentUserSiDs, PermissionType.WRITEABLE_OR_EQUIVALENT));
+                        Beaprint.NoColorPrint($"    legacycompat child image present: {child}");
+                        if (childRights.Contains("[Allow:"))
+                            Beaprint.BadPrint("    Child image has write-related allow ACL entries: " + childRights);
+                        else if (!string.IsNullOrEmpty(childRights))
+                            Beaprint.GrayPrint("    Child image has write-related deny ACL entries: " + childRights);
+                    }
+
+                    if (Directory.Exists(legacy))
+                    {
+                        int shown = 0;
+                        int inspected = 0;
+                        bool limitReached = false;
+                        var timer = Stopwatch.StartNew();
+                        foreach (string artifact in Directory.EnumerateFiles(legacy, "servicecall_*", SearchOption.TopDirectoryOnly))
+                        {
+                            if (++inspected > 128 || timer.ElapsedMilliseconds > 500)
+                            {
+                                limitReached = true;
+                                break;
+                            }
+                            string extension = Path.GetExtension(artifact);
+                            if (!string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase) &&
+                                !string.Equals(extension, ".in", StringComparison.OrdinalIgnoreCase) &&
+                                !string.Equals(extension, ".out", StringComparison.OrdinalIgnoreCase)) continue;
+                            Beaprint.GrayPrint("    ModuleManager artifact: " + artifact);
+                            if (++shown >= 8) break;
+                        }
+                        if (limitReached)
+                            Beaprint.GrayPrint("    ModuleManager artifact scan stopped at its time or entry limit; more files may exist.");
+                    }
+
+                    Beaprint.GrayPrint("    ACL entries are not an effective-access test; deny rules and token state may override allows. Paths and InputEnabled do not prove an unpatched service or exploitable IPC.");
                 }
             }
             catch (Exception ex)
