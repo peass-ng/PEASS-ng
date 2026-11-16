@@ -100,10 +100,11 @@ namespace winPEAS.Helpers.Search
                         CustomFileInfo file_info = new CustomFileInfo(f.Name, f.Extension, f.FullName, f.Length, false);
                         files.Add(file_info);
 
-                        CustomFileInfo file_dir = new CustomFileInfo(f.Directory.Name, "", f.Directory.FullName, 0, true);
-                        if (known_dirs.TryAdd(file_dir.FullPath, 0))
+                        DirectoryInfo directory = f.Directory;
+                        string directoryPath = directory.FullName;
+                        if (known_dirs.TryAdd(directoryPath, 0))
                         {
-                            files.Add(file_dir);
+                            files.Add(new CustomFileInfo(directory.Name, "", directoryPath, 0, true));
                         }
                     }
                 });
