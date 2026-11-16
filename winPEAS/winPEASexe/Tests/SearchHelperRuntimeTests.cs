@@ -23,6 +23,36 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void FileInventoryEmitsOneDirectoryRecordForRepeatedFiles()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "winpeas-inventory-" + Guid.NewGuid().ToString("N"));
+            string child = Path.Combine(root, "child");
+            string other = Path.Combine(root, "other");
+            try
+            {
+                Directory.CreateDirectory(child);
+                Directory.CreateDirectory(other);
+                Directory.CreateDirectory(Path.Combine(root, "empty"));
+                File.WriteAllText(Path.Combine(root, "top.txt"), "top");
+                File.WriteAllText(Path.Combine(child, "one.txt"), "one");
+                File.WriteAllText(Path.Combine(child, "two.txt"), "two");
+                File.WriteAllText(Path.Combine(child, "ignored.woff2"), "font");
+                File.WriteAllText(Path.Combine(other, "three.txt"), "three");
+
+                var records = SearchHelper.GetFilesFast(root);
+                CollectionAssert.AreEquivalent(new[] { "top.txt", "one.txt", "two.txt", "three.txt" },
+                    records.Where(record => !record.IsDirectory).Select(record => record.Filename).ToArray());
+                var directories = records.Where(record => record.IsDirectory).ToArray();
+                CollectionAssert.AreEquivalent(new[] { child, other },
+                    directories.Select(record => record.FullPath).ToArray());
+            }
+            finally
+            {
+                if (Directory.Exists(root)) Directory.Delete(root, true);
+            }
+        }
+
+        [TestMethod]
         public void FileInventoryKeepsRealFilesAndDoesNotEnterJunctions()
         {
             string parent = Path.Combine(Path.GetTempPath(), "winpeas-search-" + Guid.NewGuid().ToString("N"));
