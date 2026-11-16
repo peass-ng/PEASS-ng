@@ -1,15 +1,15 @@
 # Title: Function - checkUMPConversionCVE202537891
 # ID: checkUMPConversionCVE202537891
 # Author: HT Bot
-# Last Update: 27-10-2026
+# Last Update: 16-11-2026
 # Description: Passively assess the ALSA UMP SysEx conversion overflow (CVE-2025-37891) using the running kernel, selected vendor fixes, and MIDI configuration.
 # License: GNU GPL
-# Version: 1.0
+# Version: 1.1
 # Mitre: T1068
 # Functions Used: lp_version_lt, print_3title, print_info
 # Global Variables: $E, $ROOT_FOLDER, $SED_GREEN, $SED_RED_YELLOW, $SED_YELLOW
 # Initial Functions:
-# Generated Global Variables: $ump37891_release, $ump37891_base, $ump37891_status, $ump37891_os, $ump37891_os_version, $ump37891_package, $ump37891_package_version, $ump37891_fixed_package, $ump37891_vendor, $ump37891_config, $ump37891_lines, $ump37891_ump, $ump37891_legacy, $ump37891_usb, $ump37891_node, $ump37891_nodes
+# Generated Global Variables: $ump37891_release, $ump37891_base, $ump37891_status, $ump37891_os, $ump37891_os_version, $ump37891_package, $ump37891_package_version, $ump37891_fixed_package, $ump37891_vendor, $ump37891_config, $ump37891_lines, $ump37891_states, $ump37891_ump, $ump37891_legacy, $ump37891_usb, $ump37891_node, $ump37891_nodes
 # Fat linpeas: 0
 # Small linpeas: 1
 
@@ -109,15 +109,38 @@ checkUMPConversionCVE202537891() {
       *) ump37891_lines="$(grep -E '^(CONFIG_SND_UMP|CONFIG_SND_UMP_LEGACY_RAWMIDI|CONFIG_SND_USB_AUDIO_MIDI_V2)=|^# CONFIG_SND_(UMP|UMP_LEGACY_RAWMIDI|USB_AUDIO_MIDI_V2) is not set$' "$ump37891_config" 2>/dev/null)" ;;
     esac
   fi
-  ump37891_ump="unknown"
-  ump37891_legacy="unknown"
-  ump37891_usb="unknown"
-  printf '%s\n' "$ump37891_lines" | grep -Eq '^CONFIG_SND_UMP=[ym]$' && ump37891_ump="enabled"
-  printf '%s\n' "$ump37891_lines" | grep -Eq '^# CONFIG_SND_UMP is not set$|^CONFIG_SND_UMP=n$' && ump37891_ump="disabled"
-  printf '%s\n' "$ump37891_lines" | grep -Eq '^CONFIG_SND_UMP_LEGACY_RAWMIDI=[ym]$' && ump37891_legacy="enabled"
-  printf '%s\n' "$ump37891_lines" | grep -Eq '^# CONFIG_SND_UMP_LEGACY_RAWMIDI is not set$|^CONFIG_SND_UMP_LEGACY_RAWMIDI=n$' && ump37891_legacy="disabled"
-  printf '%s\n' "$ump37891_lines" | grep -Eq '^CONFIG_SND_USB_AUDIO_MIDI_V2=[ym]$' && ump37891_usb="enabled"
-  printf '%s\n' "$ump37891_lines" | grep -Eq '^# CONFIG_SND_USB_AUDIO_MIDI_V2 is not set$|^CONFIG_SND_USB_AUDIO_MIDI_V2=n$' && ump37891_usb="disabled"
+  # The old independent searches gave an explicit "not set" or =n priority
+  # over =y/=m, even if the enabled line appeared later in the file.
+  if command -v awk >/dev/null 2>&1; then
+    ump37891_states=$(printf '%s\n' "$ump37891_lines" | awk '
+    /^CONFIG_SND_UMP=[ym]$/ { if (ump != 2) ump = 1 }
+    /^# CONFIG_SND_UMP is not set$|^CONFIG_SND_UMP=n$/ { ump = 2 }
+    /^CONFIG_SND_UMP_LEGACY_RAWMIDI=[ym]$/ { if (legacy != 2) legacy = 1 }
+    /^# CONFIG_SND_UMP_LEGACY_RAWMIDI is not set$|^CONFIG_SND_UMP_LEGACY_RAWMIDI=n$/ { legacy = 2 }
+    /^CONFIG_SND_USB_AUDIO_MIDI_V2=[ym]$/ { if (usb != 2) usb = 1 }
+    /^# CONFIG_SND_USB_AUDIO_MIDI_V2 is not set$|^CONFIG_SND_USB_AUDIO_MIDI_V2=n$/ { usb = 2 }
+    END {
+      printf "%s %s %s\n",
+        ump == 2 ? "disabled" : ump == 1 ? "enabled" : "unknown",
+        legacy == 2 ? "disabled" : legacy == 1 ? "enabled" : "unknown",
+        usb == 2 ? "disabled" : usb == 1 ? "enabled" : "unknown"
+    }
+    ')
+    IFS=' ' read -r ump37891_ump ump37891_legacy ump37891_usb <<EOF_UMP37891_STATES
+$ump37891_states
+EOF_UMP37891_STATES
+  else
+    # Preserve the original grep-only path on installations without awk.
+    ump37891_ump="unknown"
+    ump37891_legacy="unknown"
+    ump37891_usb="unknown"
+    printf '%s\n' "$ump37891_lines" | grep -Eq '^CONFIG_SND_UMP=[ym]$' && ump37891_ump="enabled"
+    printf '%s\n' "$ump37891_lines" | grep -Eq '^# CONFIG_SND_UMP is not set$|^CONFIG_SND_UMP=n$' && ump37891_ump="disabled"
+    printf '%s\n' "$ump37891_lines" | grep -Eq '^CONFIG_SND_UMP_LEGACY_RAWMIDI=[ym]$' && ump37891_legacy="enabled"
+    printf '%s\n' "$ump37891_lines" | grep -Eq '^# CONFIG_SND_UMP_LEGACY_RAWMIDI is not set$|^CONFIG_SND_UMP_LEGACY_RAWMIDI=n$' && ump37891_legacy="disabled"
+    printf '%s\n' "$ump37891_lines" | grep -Eq '^CONFIG_SND_USB_AUDIO_MIDI_V2=[ym]$' && ump37891_usb="enabled"
+    printf '%s\n' "$ump37891_lines" | grep -Eq '^# CONFIG_SND_USB_AUDIO_MIDI_V2 is not set$|^CONFIG_SND_USB_AUDIO_MIDI_V2=n$' && ump37891_usb="disabled"
+  fi
   echo "UMP config: $ump37891_ump; legacy rawmidi: $ump37891_legacy; USB MIDI2: $ump37891_usb"
 
   ump37891_nodes="none visible"
