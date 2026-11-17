@@ -501,7 +501,7 @@ k8s_kubectl() {
   # Request timeouts do not bound credential plugins or all paginated requests.
   # Skip kubectl when a process-wide deadline cannot be enforced.
   command -v timeout >/dev/null 2>&1 || return 1
-  timeout -s KILL 5 kubectl "$@"
+  timeout -k 1 5 kubectl "$@"
 }
 
 k8s_scan_kubectl() {
