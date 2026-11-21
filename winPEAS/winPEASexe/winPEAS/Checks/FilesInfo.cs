@@ -705,19 +705,19 @@ namespace winPEAS.Checks
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
                 .Take(MaxHistoryFiles + 1).ToList();
 
-            bool partial = SearchHelper.RootDirUsers == null || histories.Count > MaxHistoryFiles;
+            bool isPartial = SearchHelper.RootDirUsers == null || histories.Count > MaxHistoryFiles;
             int findings = 0;
             foreach (string path in histories.Take(MaxHistoryFiles))
             {
-                if (findings >= MaxHistoryFindings) { partial = true; break; }
+                if (findings >= MaxHistoryFindings) { isPartial = true; break; }
                 try
                 {
                     if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
-                    { partial = true; continue; }
+                    { isPartial = true; continue; }
                     using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
                         FileShare.ReadWrite | FileShare.Delete, 4096, FileOptions.SequentialScan))
                     {
-                        if (stream.Length > MaxHistoryBytes) partial = true;
+                        if (stream.Length > MaxHistoryBytes) isPartial = true;
                         var bytes = new byte[(int)Math.Min(stream.Length, MaxHistoryBytes)];
                         int read = 0;
                         while (read < bytes.Length)
@@ -734,25 +734,25 @@ namespace winPEAS.Checks
                             string line;
                             while ((line = reader.ReadLine()) != null)
                             {
-                                if (++lineNumber > MaxHistoryLines) { partial = true; break; }
+                                if (++lineNumber > MaxHistoryLines) { isPartial = true; break; }
                                 string kind = ClassifyPsReadLineCommand(line);
                                 if (kind == null) continue;
                                 string safePath = new string(path.Take(220)
                                     .Select(c => char.IsControl(c) ? '?' : c).ToArray());
                                 Beaprint.BadPrint("    Credential argument in " + safePath +
                                     " (line " + lineNumber + ", " + kind + "; value redacted)");
-                                if (++findings >= MaxHistoryFindings) { partial = true; break; }
+                                if (++findings >= MaxHistoryFindings) { isPartial = true; break; }
                             }
                         }
                     }
                 }
                 catch (Exception)
                 {
-                    partial = true; // Missing or unreadable history is unknown, not clean.
+                    isPartial = true; // Missing or unreadable history is unknown, not clean.
                 }
             }
             if (findings == 0) Beaprint.GrayPrint("    No credential-bearing commands found in readable, bounded ConsoleHost histories.");
-            if (partial) Beaprint.GrayPrint("    History review was partial (file count, size, access, line, or finding limit).");
+            if (isPartial) Beaprint.GrayPrint("    History review was partial (file count, size, access, line, or finding limit).");
             Beaprint.GrayPrint("    A command in history does not prove that the credential still works or belongs to a privileged account.");
         }
 
