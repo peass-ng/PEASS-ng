@@ -161,6 +161,7 @@ Once you have installed and activated it you need to:
   - [x] Passive UAS storage driver CVE-2026-68839 exposure assessment (product-specific fixed build, `uaspstor.sys` version/signature/hash, and `UASPStor` service registration; no SCSI requests)
   - [x] Passive Windows Installer CVE-2025-27727 build and artifact assessment (`msi.dll`, `TempPackages`, `Installer\Folders`, and `C:\Config.Msi` ACL/rollback state)
   - [x] Passive CrossDevice dangling COM CVE-2026-66804 assessment (fixed build, 32/64-bit registration, writable DLL path, SYSTEM COM host, and user-executable `CreateObjectTask`)
+  - [x] Read-only InstallService plugin-map indicator for CVE-2026-50343 (reports existing non-built-in mappings to the CrossDevice COM class; does not claim exploitability)
   - [x] Enumerate Microsoft updates
   - [x] PS, Audit, WEF and LAPS Settings
   - [x] LSA protection
