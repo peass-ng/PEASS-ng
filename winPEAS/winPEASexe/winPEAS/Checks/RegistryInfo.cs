@@ -12,6 +12,8 @@ namespace winPEAS.Checks
     internal class RegistryInfo : ISystemCheck
     {
         private const string TypingInsightsRelativePath = @"Software\Microsoft\Input\TypingInsights";
+        private const string InstallServiceStatePath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\InstallService\State";
+        private static readonly Guid CrossDeviceClsid = new Guid("E9F83CF2-E0C0-4CA7-AF01-E90C70BEF496");
 
         private static readonly string[] KnownWritableSystemKeyCandidates = new[]
         {
@@ -50,16 +52,17 @@ namespace winPEAS.Checks
         private const int MaxHandlersPerClass = 64;
         private const int MaxWritableContextMenuServers = 25;
 
-        public string[] MitreAttackIds { get; } = new[] { "T1012", "T1574.011", "T1056.001" };
+        public string[] MitreAttackIds { get; } = new[] { "T1012", "T1574.011", "T1056.001", "T1546.015" };
 
         public void PrintInfo(bool isDebug)
         {
-            Beaprint.GreatPrint("Registry permissions for hive exploitation", "T1012,T1574.011,T1056.001");
+            Beaprint.GreatPrint("Registry permissions and plugin-map indicators", "T1012,T1574.011,T1056.001,T1546.015");
 
             new List<Action>
             {
                 PrintTypingInsightsPermissions,
                 PrintKnownSystemWritableKeys,
+                PrintInstallServicePluginMapIndicators,
                 PrintWritableContextMenuServers,
                 PrintHeuristicWritableKeys,
             }.ForEach(action => CheckRunner.Run(action, isDebug));
@@ -124,6 +127,72 @@ namespace winPEAS.Checks
             }
 
             PrintEntries(matches);
+        }
+
+        private static void PrintInstallServicePluginMapIndicators()
+        {
+            Beaprint.MainPrint("InstallService plugin-map indicators (CVE-2026-50343)", "T1012,T1546.015");
+            bool found = false;
+            bool inspected = false;
+            int reported = 0;
+
+            foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+            {
+                try
+                {
+                    using (var machine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view))
+                    using (var state = machine.OpenSubKey(InstallServiceStatePath))
+                    {
+                        if (state == null)
+                        {
+                            continue;
+                        }
+
+                        // Only report an existing mapping to the documented COM class;
+                        // this does not test whether the service or DLL path is exploitable.
+                        foreach (string name in state.GetValueNames())
+                        {
+                            if (string.IsNullOrEmpty(name) ||
+                                name.Equals("WU", StringComparison.OrdinalIgnoreCase) ||
+                                name.Equals("XVC", StringComparison.OrdinalIgnoreCase) ||
+                                name.Equals("ChainedWork", StringComparison.OrdinalIgnoreCase) ||
+                                name.Equals("Microsoft.GamingServices_8wekyb3d8bbwe", StringComparison.OrdinalIgnoreCase))
+                            {
+                                continue;
+                            }
+
+                            string value = state.GetValue(name, null, RegistryValueOptions.DoNotExpandEnvironmentNames) as string;
+                            if (Guid.TryParse(value, out var mappedClsid) && mappedClsid == CrossDeviceClsid)
+                            {
+                                found = true;
+                                if (reported++ < 20)
+                                {
+                                    Beaprint.BadPrint($"  [!] {view}: {name} maps to the CrossDevice COM class. Review this InstallService plugin-map entry.");
+                                }
+                            }
+                        }
+                        inspected = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Beaprint.GrayPrint($"  [*] Could not inspect the {view} InstallService state: {ex.Message}");
+                }
+            }
+
+            if (reported > 20)
+            {
+                Beaprint.GrayPrint("  [*] Additional matching entries omitted to keep output bounded.");
+            }
+            if (!inspected && !found)
+            {
+                Beaprint.GrayPrint("  [*] InstallService state was not available for inspection.");
+            }
+            else if (!found)
+            {
+                Beaprint.GrayPrint("  [-] No non-built-in plugin ID mapped to the documented CrossDevice class was observed.");
+            }
+            Beaprint.InfoPrint("A mapping is an investigation lead, not proof of an unpatched system; its absence does not establish safety. Review the CrossDevice COM assessment and apply current Windows security updates.");
         }
 
         private void PrintHeuristicWritableKeys()
