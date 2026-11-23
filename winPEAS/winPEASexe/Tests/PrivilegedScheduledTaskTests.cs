@@ -15,6 +15,24 @@ namespace winPEAS.Tests
         };
 
         [TestMethod]
+        public void CommonStartupAclRequiresLowPrivilegeCreateOrControlRight()
+        {
+            var writable = new RawSecurityDescriptor("O:SYG:SYD:(A;;0x00000002;;;BU)");
+            var genericWrite = new RawSecurityDescriptor("O:SYG:SYD:(A;;GW;;;BU)");
+            var aclControl = new RawSecurityDescriptor("O:SYG:SYD:(A;;WD;;;BU)");
+            var readOnly = new RawSecurityDescriptor("O:SYG:SYD:(A;;0x001200a9;;;BU)");
+            var denied = new RawSecurityDescriptor("O:SYG:SYD:(D;;0x00000002;;;WD)(A;;0x00000002;;;BU)");
+            var broadSids = new HashSet<string> { "S-1-1-0", "S-1-5-32-545" };
+
+            Assert.AreEqual("S-1-5-32-545", AutoRuns.AssessCommonStartupAcl(writable, StandardUserSids));
+            Assert.AreEqual("S-1-5-32-545", AutoRuns.AssessCommonStartupAcl(genericWrite, StandardUserSids));
+            Assert.AreEqual("S-1-5-32-545", AutoRuns.AssessCommonStartupAcl(aclControl, StandardUserSids));
+            Assert.IsNull(AutoRuns.AssessCommonStartupAcl(readOnly, StandardUserSids));
+            Assert.IsNull(AutoRuns.AssessCommonStartupAcl(denied, broadSids));
+            Assert.IsNull(AutoRuns.AssessCommonStartupAcl(writable, null));
+        }
+
+        [TestMethod]
         public void RecognizesOnlyLocalSystemPrincipalForms()
         {
             Assert.IsTrue(PrivilegedScheduledTasks.IsLocalSystemPrincipal("S-1-5-18"));

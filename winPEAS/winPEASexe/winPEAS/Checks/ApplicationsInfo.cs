@@ -552,6 +552,21 @@ namespace winPEAS.Checks
             {
                 Beaprint.MainPrint("Autorun Applications", "T1547.001");
                 Beaprint.LinkPrint("https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/privilege-escalation-with-autorun-binaries.html", "Check if you can modify other users AutoRuns binaries (Note that is normal that you can modify HKCU registry and binaries indicated there)");
+                string commonStartup = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup);
+                bool privilegedContext;
+                HashSet<string> startupSids = PermissionsHelper.GetUnprivilegedTokenSids(out privilegedContext);
+                if (privilegedContext)
+                {
+                    startupSids.IntersectWith(new[] { "S-1-1-0", "S-1-5-4", "S-1-5-11", "S-1-5-32-545" });
+                }
+                string startupTrustee = AutoRuns.GetCommonStartupWriteTrustee(
+                    commonStartup, startupSids);
+                if (!string.IsNullOrEmpty(startupTrustee))
+                {
+                    Beaprint.BadPrint("    [!] All-users Startup directory permits file creation or ACL control by " +
+                        startupTrustee + ": " + commonStartup +
+                        " (may execute in another user's session at logon; not automatic elevation)");
+                }
                 List<Dictionary<string, string>> apps = AutoRuns.GetAutoRuns(Checks.CurrentUserSiDs);
 
                 foreach (Dictionary<string, string> app in apps)
