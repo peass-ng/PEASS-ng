@@ -35,6 +35,37 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void FileAclPreservesMixedCaseSidAllowDenyAndNonmatches()
+        {
+            var everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+            var users = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
+            var system = new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null);
+            var security = new FileSecurity();
+            security.AddAccessRule(new FileSystemAccessRule(users, FileSystemRights.WriteData,
+                AccessControlType.Allow));
+            security.AddAccessRule(new FileSystemAccessRule(users, FileSystemRights.Delete,
+                AccessControlType.Deny));
+            security.AddAccessRule(new FileSystemAccessRule(everyone, FileSystemRights.ReadData,
+                AccessControlType.Allow));
+            security.AddAccessRule(new FileSystemAccessRule(system, FileSystemRights.WriteData,
+                AccessControlType.Allow));
+            var sids = new Dictionary<string, string>
+            {
+                { users.Value.ToLowerInvariant(), "Users" },
+                { everyone.Value, "Everyone" },
+                { "S-1-5-21-123-456-789-1001", "Absent" }
+            };
+
+            CollectionAssert.AreEqual(new[] { "Users [Allow: WriteData/CreateFiles] [Deny: Delete]" },
+                PermissionsHelper.GetMyPermissionsF(security, sids));
+            CollectionAssert.AreEquivalent(new[]
+            {
+                "Users [Allow: WriteData/CreateFiles] [Deny: Delete]",
+                "Everyone [Allow: ReadData]"
+            }, PermissionsHelper.GetMyPermissionsF(security, sids, PermissionType.READABLE_OR_WRITABLE));
+        }
+
+        [TestMethod]
         public void RegistryInstallLocationsIncludeLocalPathsAndDeduplicateViews()
         {
             var locations = InstalledApps.GetInstallLocationsCore(

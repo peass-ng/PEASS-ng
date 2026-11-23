@@ -187,9 +187,9 @@ namespace winPEAS.Helpers
                 string ruleSid = null;
                 foreach (KeyValuePair<string, string> mySID in SIDs)
                 {
-                    if (ruleSid == null) ruleSid = rule.IdentityReference.Value.ToLower();
+                    if (ruleSid == null) ruleSid = rule.IdentityReference.Value;
                     // If the rule is interesting, check if any of my SIDs is in the rule
-                    if (ruleSid == mySID.Key.ToLower())
+                    if (string.Equals(ruleSid, mySID.Key, StringComparison.OrdinalIgnoreCase))
                     {
                         string SID_name = string.IsNullOrEmpty(mySID.Value) ? mySID.Key : mySID.Value;
 
@@ -262,9 +262,9 @@ namespace winPEAS.Helpers
                     string ruleSid = null;
                     foreach (KeyValuePair<string, string> mySID in SIDs)
                     {
-                        if (ruleSid == null) ruleSid = rule.IdentityReference.Value.ToLower();
+                        if (ruleSid == null) ruleSid = rule.IdentityReference.Value;
                         // If the rule is interesting, check if any of my SIDs is in the rule
-                        if (ruleSid == mySID.Key.ToLower())
+                        if (string.Equals(ruleSid, mySID.Key, StringComparison.OrdinalIgnoreCase))
                         {
                             string SID_name = string.IsNullOrEmpty(mySID.Value) ? mySID.Key : mySID.Value;
 
