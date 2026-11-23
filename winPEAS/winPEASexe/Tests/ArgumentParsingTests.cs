@@ -122,6 +122,25 @@ namespace winPEAS.Tests
         }
 
         [TestMethod]
+        public void PortsFlag_AcceptsValidPortBoundaries()
+        {
+            ParseOnly("-network=auto", "-ports=1,65535");
+            CollectionAssert.AreEqual(new List<int> { 1, 65535 },
+                winPEAS.Checks.Checks.PortScannerPorts.ToList());
+        }
+
+        [TestMethod]
+        public void PortsFlag_RejectsInvalidPortsWithoutKeepingPartialList()
+        {
+            foreach (var ports in new[] { "0", "65536", "-1", "80,", "80,not-a-port", "80,,443" })
+            {
+                ParseOnly("-network=auto", "-ports=" + ports);
+                Assert.IsNull(winPEAS.Checks.Checks.PortScannerPorts,
+                    "Invalid port list should not be accepted: " + ports);
+            }
+        }
+
+        [TestMethod]
         public void MitreFlag_SingleTechnique_ParsedIntoFilter()
         {
             ParseOnly("mitre=T1082");
