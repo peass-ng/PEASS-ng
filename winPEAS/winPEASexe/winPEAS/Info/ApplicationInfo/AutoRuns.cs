@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Security.AccessControl;
 using System.Text.RegularExpressions;
 using winPEAS.Checks;
 using winPEAS.Helpers;
@@ -16,6 +17,95 @@ namespace winPEAS.Info.ApplicationInfo
 
     internal static class AutoRuns
     {
+        // FILE_ADD_FILE on a directory uses the same bit as FILE_WRITE_DATA on a file.
+        private const uint FileAddFile = 0x00000002;
+        private const uint WriteDac = 0x00040000;
+        private const uint WriteOwner = 0x00080000;
+        private const uint GenericAll = 0x10000000;
+        private const uint GenericWrite = 0x40000000;
+
+        internal static string GetCommonStartupWriteTrustee(string path, ISet<string> unprivilegedSids)
+        {
+            if (string.IsNullOrWhiteSpace(path) || path.Length < 3 ||
+                !char.IsLetter(path[0]) || path[1] != ':' || path[2] != '\\' ||
+                unprivilegedSids == null || unprivilegedSids.Count == 0)
+            {
+                return null;
+            }
+
+            try
+            {
+                var driveType = new DriveInfo(Path.GetPathRoot(path)).DriveType;
+                if (driveType == DriveType.Network || driveType == DriveType.NoRootDirectory ||
+                    driveType == DriveType.Unknown || !Directory.Exists(path))
+                {
+                    return null;
+                }
+
+                var security = Directory.GetAccessControl(path, AccessControlSections.Access);
+                var descriptor = new RawSecurityDescriptor(security.GetSecurityDescriptorBinaryForm(), 0);
+                return AssessCommonStartupAcl(descriptor, unprivilegedSids);
+            }
+            catch
+            {
+                // An inaccessible directory is unknown, not a negative finding.
+                return null;
+            }
+        }
+
+        internal static string AssessCommonStartupAcl(RawSecurityDescriptor descriptor, ISet<string> unprivilegedSids)
+        {
+            if (descriptor == null || unprivilegedSids == null || unprivilegedSids.Count == 0)
+            {
+                return null;
+            }
+
+            foreach (uint right in new[] { FileAddFile, WriteDac, WriteOwner })
+            {
+                if (IsDeniedToUnprivilegedSid(descriptor, unprivilegedSids, right))
+                {
+                    continue;
+                }
+
+                string trustee = PrivilegedScheduledTasks.FindWriteTrustee(descriptor, unprivilegedSids, right);
+                if (!string.IsNullOrEmpty(trustee))
+                {
+                    return trustee;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsDeniedToUnprivilegedSid(
+            RawSecurityDescriptor descriptor, ISet<string> unprivilegedSids, uint right)
+        {
+            if (descriptor.DiscretionaryAcl == null)
+            {
+                return false;
+            }
+
+            foreach (GenericAce ace in descriptor.DiscretionaryAcl)
+            {
+                var qualified = ace as QualifiedAce;
+                var known = ace as KnownAce;
+                if ((ace.AceFlags & AceFlags.InheritOnly) != 0 || qualified == null || known == null ||
+                    qualified.AceQualifier != AceQualifier.AccessDenied || qualified.SecurityIdentifier == null ||
+                    !unprivilegedSids.Contains(qualified.SecurityIdentifier.Value))
+                {
+                    continue;
+                }
+
+                uint mask = unchecked((uint)known.AccessMask);
+                if ((mask & (right | GenericAll)) != 0 || (right == FileAddFile && (mask & GenericWrite) != 0))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static List<Dictionary<string, string>> GetAutoRuns(Dictionary<string, string> NtAccountNames)
         {
             var result = new List<Dictionary<string, string>>();
