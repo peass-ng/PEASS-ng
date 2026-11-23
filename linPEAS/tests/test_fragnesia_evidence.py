@@ -33,6 +33,26 @@ class FragnesiaEvidenceTests(unittest.TestCase):
         deps.write_text("kernel/net/ipv4/esp4.ko.xz:\n")
         return config
 
+    def test_version_normalization_keeps_kernel_and_malformed_inputs(self):
+        cases = {
+            "5.15.0--rc1+test": "5.15.0",
+            "7.0.10": "7.0.10",
+            "not-a-version": "",
+            "v5.15": "",
+            "7..0": "7.0",
+            "5---15.0": "5..15.0",
+            "-4.11.0-rc7": "4.11.0",
+            "5.3.0-rc8": "5.3.0",
+            "5.15.0\n7.1-rc4": "5.15.0\n7.1",
+        }
+        for version, expected in cases.items():
+            with self.subTest(version=version):
+                env = dict(os.environ, HELPER=str(HELPER), VERSION=version)
+                result = subprocess.run(
+                    ["/bin/sh"], input='. "$HELPER"; df43_norm_ver "$VERSION"',
+                    text=True, capture_output=True, timeout=5, env=env, check=True)
+                self.assertEqual(expected, result.stdout.rstrip("\n"))
+
     def test_upstream_boundary_and_explicit_configuration(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

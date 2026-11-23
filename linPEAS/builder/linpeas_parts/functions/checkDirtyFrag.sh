@@ -1,12 +1,12 @@
 # Title: Function - checkDirtyFrag
 # ID: checkDirtyFrag
-# Author: Samuel Monsempes
+# Author: Samuel Monsempes, HT Bot
 # Contributor: Arjay Saguisa
-# Last Update: 02-11-2026
+# Last Update: 23-11-2026
 # Description: Check whether the current Linux kernel looks exposed to Dirty Frag (CVE-2026-43284 and CVE-2026-43500).
 # Description: Per-CVE module state (xfrm-ESP and rxrpc), built-in detection, modprobe.d blacklist, user-namespace mitigation, CAP_NET_ADMIN, kernel build-date heuristic.
 # License: GNU GPL
-# Version: 1.0.1
+# Version: 1.0.2
 # Functions Used: print_3title, print_info
 # Global Variables: $E, $SED_GREEN, $SED_YELLOW, $SED_RED_YELLOW
 # Initial Functions:
@@ -15,7 +15,8 @@
 # Small linpeas: 1
 
 df43_norm_ver() {
-    printf "%s" "$1" | tr '-' '.' | sed 's/[^0-9.].*$//' | sed 's/\.\./\./g' | sed 's/^\.//' | sed 's/\.$//'
+    # Keep the original transform order, but avoid four processes per version.
+    printf "%s" "$1" | sed -e 'y/-/./' -e 's/[^0-9.].*$//' -e 's/\.\./\./g' -e 's/^\.//' -e 's/\.$//'
 }
 
 df43_ver_cmp() {
