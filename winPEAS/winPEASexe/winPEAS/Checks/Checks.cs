@@ -295,18 +295,28 @@ namespace winPEAS.Checks
                         return;
                     }
 
-                    var portString = parts[1];
-                    IEnumerable<int> ports = new List<int>();
-                    try
+                    var portString = parts[1].Trim('"', '\'');
+                    var parsedPorts = new List<int>();
+                    bool validPorts = true;
+                    foreach (var value in portString.Split(','))
                     {
-                        PortScannerPorts = portString.Trim('"').Trim('\'').Split(',').ToList().ConvertAll<int>(int.Parse);
+                        if (!int.TryParse(value, out int port) || port < 1 || port > 65535)
+                        {
+                            validPorts = false;
+                            break;
+                        }
+
+                        parsedPorts.Add(port);
                     }
-                    catch (Exception)
+
+                    if (!validPorts)
                     {
                         Beaprint.ColorPrint($" [!] the \"-ports\" argument is not present or valid, add it if you want to define network scan ports. For help, run winpeass.exe --help", Beaprint.YELLOW);
 
                         return;
                     }
+
+                    PortScannerPorts = parsedPorts;
                 }
 
                 string argToLower = arg.ToLower();
